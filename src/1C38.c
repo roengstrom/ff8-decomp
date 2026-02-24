@@ -517,7 +517,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002871C);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80028738);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80028768);
+// copy_bytes
+void func_80028768(u8 *src, u8 *dst, s32 numBytes) {
+    while (numBytes > 0) {
+        *dst++ = *src++;
+        numBytes--;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80028790);
 
