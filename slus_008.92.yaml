@@ -26,6 +26,8 @@ options:
   # Symbols
   symbol_addrs_path:
     - symbol_addrs.txt
+  reloc_addrs_path:
+    - reloc_addrs.txt
   undefined_funcs_auto_path: undefined_funcs_auto.txt
   undefined_syms_auto_path: undefined_syms_auto.txt
 

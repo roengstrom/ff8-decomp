@@ -1,0 +1,4 @@
+// Force literal immediates for handwritten addi $gp instructions
+rom:0x1B98C reloc:MIPS_NONE symbol:dummy
+rom:0x1D9CC reloc:MIPS_NONE symbol:dummy
+rom:0x1F648 reloc:MIPS_NONE symbol:dummy
