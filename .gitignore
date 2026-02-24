@@ -4,7 +4,6 @@ build/
 asm/
 .venv/
 .claude/
-tools/gcc-2.8.1-psx/
 __pycache__/
 .vscode/
 .idea/
