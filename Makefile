@@ -27,6 +27,7 @@ ASFLAGS := -march=r3000 -mabi=32 -EL -no-pad-sections -Iinclude
 # --no-check-sections : don't error on overlapping sections
 # -Map : generate a map file (shows where everything ended up)
 LDFLAGS := -T $(LD_SCRIPT) \
+           -T undefined_funcs.txt \
            -T undefined_funcs_auto.txt \
            -T undefined_syms_auto.txt \
            --no-check-sections \
