@@ -1,0 +1,221 @@
+"Location","String Value","String Representation","Data Type"
+"800101d0","WARNING:MesCon required more memory.:%d
+","\"WARNING:MesCon required more memory.:%d\n\"","ds"
+"80010244","MESSAGE DATA OVER RUN
+","\"MESSAGE DATA OVER RUN\n\"","ds"
+"80010828","init.out","\"init.out\"","ds"
+"80010834","mngrp.bin","\"mngrp.bin\"","ds"
+"80010840","menutest.ovl","\"menutest.ovl\"","ds"
+"80010850","menutips.ovl","\"menutips.ovl\"","ds"
+"80010860","menutmag.ovl","\"menutmag.ovl\"","ds"
+"80010870","menututo.ovl","\"menututo.ovl\"","ds"
+"80010880","menucrd.ovl","\"menucrd.ovl\"","ds"
+"8001088c","menusav.ovl","\"menusav.ovl\"","ds"
+"80010898","menujnc2.ovl","\"menujnc2.ovl\"","ds"
+"800108a8","menugf.ovl","\"menugf.ovl\"","ds"
+"800108b4","menumgc.ovl","\"menumgc.ovl\"","ds"
+"800108c0","menuitem.ovl","\"menuitem.ovl\"","ds"
+"800108d0","menuext.ovl","\"menuext.ovl\"","ds"
+"800108dc","menushop.ovl","\"menushop.ovl\"","ds"
+"800108ec","menuabl.ovl","\"menuabl.ovl\"","ds"
+"800108f8","menusts.ovl","\"menusts.ovl\"","ds"
+"80010904","menupty.ovl","\"menupty.ovl\"","ds"
+"80010910","menucfg.ovl","\"menucfg.ovl\"","ds"
+"8001091c","menumain.ovl","\"menumain.ovl\"","ds"
+"8001092c","\SLUS_008.92;1","\"\\SLUS_008.92;1\"","ds"
+"8001093c","\SLUS_009.08;1","\"\\SLUS_009.08;1\"","ds"
+"8001094c","\SLUS_009.09;1","\"\\SLUS_009.09;1\"","ds"
+"8001095c","\SLUS_009.10;1","\"\\SLUS_009.10;1\"","ds"
+"8001098c","SPU:T/O [%s]
+","\"SPU:T/O [%s]\n\"","ds"
+"8001099c","wait (reset)","\"wait (reset)\"","ds"
+"800109ac","wait (wrdy H -> L)","\"wait (wrdy H -> L)\"","ds"
+"800109c0","wait (dmaf clear/W)","\"wait (dmaf clear/W)\"","ds"
+"800109dc","SPU:T/O [%s]
+","\"SPU:T/O [%s]\n\"","ds"
+"800109ec","wait (IRQ/ON)","\"wait (IRQ/ON)\"","ds"
+"800109fc","wait (IRQ/OFF)","\"wait (IRQ/OFF)\"","ds"
+"80010a0c","VSync: timeout
+","\"VSync: timeout\n\"","ds"
+"80010a1c","$Id: intr.c\,v 1.76 1997/02/12 12:45:05 makoto Exp $","\"$Id: intr.c\,v 1.76 1997/02/12 12:45:05 makoto Exp $\"","ds"
+"80010a50","unexpected interrupt(%04x)
+","\"unexpected interrupt(%04x)\n\"","ds"
+"80010a6c","intr timeout(%04x:%04x)
+","\"intr timeout(%04x:%04x)\n\"","ds"
+"80010a8c","DMA bus error: code=%08x
+","\"DMA bus error: code=%08x\n\"","ds"
+"80010aa8","MADR[%d]=%08x
+","\"MADR[%d]=%08x\n\"","ds"
+"80010abc","CdInit: Init failed
+","\"CdInit: Init failed\n\"","ds"
+"80010aec","CdlReadS","\"CdlReadS\"","ds"
+"80010af8","CdlSeekP","\"CdlSeekP\"","ds"
+"80010b04","CdlSeekL","\"CdlSeekL\"","ds"
+"80010b10","CdlGetTD","\"CdlGetTD\"","ds"
+"80010b1c","CdlGetTN","\"CdlGetTN\"","ds"
+"80010b28","CdlGetlocP","\"CdlGetlocP\"","ds"
+"80010b34","CdlGetlocL","\"CdlGetlocL\"","ds"
+"80010b44","CdlSetmode","\"CdlSetmode\"","ds"
+"80010b50","CdlSetfilter","\"CdlSetfilter\"","ds"
+"80010b60","CdlDemute","\"CdlDemute\"","ds"
+"80010b6c","CdlMute","\"CdlMute\"","ds"
+"80010b74","CdlReset","\"CdlReset\"","ds"
+"80010b80","CdlPause","\"CdlPause\"","ds"
+"80010b8c","CdlStop","\"CdlStop\"","ds"
+"80010b94","CdlStandby","\"CdlStandby\"","ds"
+"80010ba0","CdlReadN","\"CdlReadN\"","ds"
+"80010bac","CdlBackward","\"CdlBackward\"","ds"
+"80010bb8","CdlForward","\"CdlForward\"","ds"
+"80010bc4","CdlPlay","\"CdlPlay\"","ds"
+"80010bcc","CdlSetloc","\"CdlSetloc\"","ds"
+"80010bd8","CdlNop","\"CdlNop\"","ds"
+"80010be0","CdlSync","\"CdlSync\"","ds"
+"80010be8","DiskError","\"DiskError\"","ds"
+"80010bf4","DataEnd","\"DataEnd\"","ds"
+"80010bfc","Acknowledge","\"Acknowledge\"","ds"
+"80010c08","Complete","\"Complete\"","ds"
+"80010c14","DataReady","\"DataReady\"","ds"
+"80010c20","NoIntr","\"NoIntr\"","ds"
+"80010c28","CD timeout: ","\"CD timeout: \"","ds"
+"80010c38","%s:(%s) Sync=%s\, Ready=%s
+","\"%s:(%s) Sync=%s\, Ready=%s\n\"","ds"
+"80010c54","DiskError: ","\"DiskError: \"","ds"
+"80010c60","com=%s\,code=(%02x:%02x)
+","\"com=%s\,code=(%02x:%02x)\n\"","ds"
+"80010c7c","CDROM: unknown intr","\"CDROM: unknown intr\"","ds"
+"80010c90","(%d)
+","\"(%d)\n\"","ds"
+"80010cb0","CD_sync","\"CD_sync\"","ds"
+"80010cb8","CD_ready","\"CD_ready\"","ds"
+"80010cc4","%s...
+","\"%s...\n\"","ds"
+"80010ccc","%s: no param
+","\"%s: no param\n\"","ds"
+"80010cdc","CD_cw","\"CD_cw\"","ds"
+"80010ce4","$Id: bios.c\,v 1.86 1997/03/28 07:42:42 makoto Exp $","\"$Id: bios.c\,v 1.86 1997/03/28 07:42:42 makoto Exp $\"","ds"
+"80010d18","CD_init:","\"CD_init:\"","ds"
+"80010d24","addr=%08x
+","\"addr=%08x\n\"","ds"
+"80010d30","CD_datasync","\"CD_datasync\"","ds"
+"80010d3c","%s: path level (%d) error
+","\"%s: path level (%d) error\n\"","ds"
+"80010d58","%s: dir was not found
+","\"%s: dir was not found\n\"","ds"
+"80010d70","CdSearchFile: disc error
+","\"CdSearchFile: disc error\n\"","ds"
+"80010d8c","CdSearchFile: searching %s...
+","\"CdSearchFile: searching %s...\n\"","ds"
+"80010dac","%s:  found
+","\"%s:  found\n\"","ds"
+"80010db8","%s: not found
+","\"%s: not found\n\"","ds"
+"80010dc8","CD_newmedia: Read error in cd_read(PVD)
+","\"CD_newmedia: Read error in cd_read(PVD)\n\"","ds"
+"80010df4","CD001","\"CD001\"","ds"
+"80010dfc","CD_newmedia: Disc format error in cd_read(PVD)
+","\"CD_newmedia: Disc format error in cd_read(PVD)\n\"","ds"
+"80010e2c","CD_newmedia: Read error (PT:%08x)
+","\"CD_newmedia: Read error (PT:%08x)\n\"","ds"
+"80010e50","CD_newmedia: sarching dir..
+","\"CD_newmedia: sarching dir..\n\"","ds"
+"80010e70","	%08x\,%04x\,%04x\,%s
+","\"\t%08x\,%04x\,%04x\,%s\n\"","ds"
+"80010e84","CD_newmedia: %d dir entries found
+","\"CD_newmedia: %d dir entries found\n\"","ds"
+"80010ea8","CD_cachefile: dir not found
+","\"CD_cachefile: dir not found\n\"","ds"
+"80010ec8","CD_cachefile: searching...
+","\"CD_cachefile: searching...\n\"","ds"
+"80010eec","	(%02x:%02x:%02x) %8d %s
+","\"\t(%02x:%02x:%02x) %8d %s\n\"","ds"
+"80010f08","CD_cachefile: %d files found
+","\"CD_cachefile: %d files found\n\"","ds"
+"80010f2c","CdRead: sector error
+","\"CdRead: sector error\n\"","ds"
+"80010f44","CdRead: Shell open...
+","\"CdRead: Shell open...\n\"","ds"
+"80010f5c","CdRead: retry...
+","\"CdRead: retry...\n\"","ds"
+"80010f7c","Command Error: ","\"Command Error: \"","ds"
+"80010f8c","CD001","\"CD001\"","ds"
+"80010f9c","MDEC_rest:bad option(%d)
+","\"MDEC_rest:bad option(%d)\n\"","ds"
+"80010fb8","MDEC_in_sync","\"MDEC_in_sync\"","ds"
+"80010fc8","MDEC_out_sync","\"MDEC_out_sync\"","ds"
+"80010fd8","%s timeout:
+","\"%s timeout:\n\"","ds"
+"80010fec","0123456789ABCDEF","\"0123456789ABCDEF\"","ds"
+"80011000","0123456789abcdef","\"0123456789abcdef\"","ds"
+"800110cc","$Id: sys.c\,v 1.140 1998/01/12 07:52:27 noda Exp yos $","\"$Id: sys.c\,v 1.140 1998/01/12 07:52:27 noda Exp yos $\"","ds"
+"80011104","ResetGraph:jtb=%08x\,env=%08x
+","\"ResetGraph:jtb=%08x\,env=%08x\n\"","ds"
+"80011124","ResetGraph(%d)...
+","\"ResetGraph(%d)...\n\"","ds"
+"80011138","SetGraphDebug:level:%d\,type:%d reverse:%d
+","\"SetGraphDebug:level:%d\,type:%d reverse:%d\n\"","ds"
+"80011164","SetGrapQue(%d)...
+","\"SetGrapQue(%d)...\n\"","ds"
+"80011178","DrawSyncCallback(%08x)...
+","\"DrawSyncCallback(%08x)...\n\"","ds"
+"80011194","SetDispMask(%d)...
+","\"SetDispMask(%d)...\n\"","ds"
+"800111a8","DrawSync(%d)...
+","\"DrawSync(%d)...\n\"","ds"
+"800111bc","%s:bad RECT","\"%s:bad RECT\"","ds"
+"800111c8","(%d\,%d)-(%d\,%d)
+","\"(%d\,%d)-(%d\,%d)\n\"","ds"
+"800111e0","ClearImage","\"ClearImage\"","ds"
+"800111ec","ClearImage2","\"ClearImage2\"","ds"
+"800111f8","LoadImage","\"LoadImage\"","ds"
+"80011204","StoreImage","\"StoreImage\"","ds"
+"80011210","MoveImage","\"MoveImage\"","ds"
+"8001121c","ClearOTag(%08x\,%d)...
+","\"ClearOTag(%08x\,%d)...\n\"","ds"
+"80011234","ClearOTagR(%08x\,%d)...
+","\"ClearOTagR(%08x\,%d)...\n\"","ds"
+"8001124c","DrawOTag(%08x)...
+","\"DrawOTag(%08x)...\n\"","ds"
+"80011260","PutDrawEnv(%08x)...
+","\"PutDrawEnv(%08x)...\n\"","ds"
+"80011278","DrawOTagEnv(%08x\,&08x)...
+","\"DrawOTagEnv(%08x\,&08x)...\n\"","ds"
+"80011294","PutDispEnv(%08x)...
+","\"PutDispEnv(%08x)...\n\"","ds"
+"800112ac","GPU timeout:que=%d\,stat=%08x\,chcr=%08x\,madr=%08x
+","\"GPU timeout:que=%d\,stat=%08x\,chcr=%08x\,madr=%08x\n\"","ds"
+"800112e0","LoadImage2","\"LoadImage2\"","ds"
+"800112ec","id  =%08x
+","\"id  =%08x\n\"","ds"
+"800112f8","mode=%08x
+","\"mode=%08x\n\"","ds"
+"80011304","timaddr=%08x
+","\"timaddr=%08x\n\"","ds"
+"80011314","analizing TMD...
+","\"analizing TMD...\n\"","ds"
+"80011328","	id=%08X\, flags=%d\, nobj=%d\, objid=%d
+","\"\tid=%08X\, flags=%d\, nobj=%d\, objid=%d\n\"","ds"
+"80011350","	vert=%08X\, nvert=%d
+","\"\tvert=%08X\, nvert=%d\n\"","ds"
+"80011368","	norm=%08X\, nnorm=%d
+","\"\tnorm=%08X\, nnorm=%d\n\"","ds"
+"80011380","	prim=%08X\, nprim=%d
+","\"\tprim=%08X\, nprim=%d\n\"","ds"
+"800113a8","FT3L ","\"FT3L \"","ds"
+"800113b0","GT3L ","\"GT3L \"","ds"
+"800113e0","FT4L ","\"FT4L \"","ds"
+"800113e8","GT4L ","\"GT4L \"","ds"
+"80011408","unsupported type (%08x)
+","\"unsupported type (%08x)\n\"","ds"
+"8001142c","card read error
+","\"card read error\n\"","ds"
+"800516ea","wwwwwwwwwwwwww","\"wwwwwwwwwwwwww\"","ds"
+"80052a20","0123456789ABCDEF","\"0123456789ABCDEF\"","ds"
+"800562a4","y:\menu\us\data\areames\areames","\"y:\\menu\\us\\data\\areames\\areames\"","ds"
+"80057bbc","Error: Can't push matrix\,stack(max 20) is full!
+","\"Error: Can't push matrix\,stack(max 20) is full!\n\"","ds"
+"80057bed","Error: Can't pop matrix\,stack is empty!
+","\"Error: Can't pop matrix\,stack is empty!\n\"","ds"
+"80057c16","This function is not implemented.
+","\"This function is not implemented.\n\"","ds"
+"8005c46c","Library Programs (c) 1993-1997 Sony Computer Entertainment Inc.\, All Rights Reserved.","\"Library Programs (c) 1993-1997 Sony Computer Entertainment Inc.\, All Rights Reserved.\"","ds"
+"8005edb9","El_amlb_sp","\"El_amlb_sp\"","ds"
