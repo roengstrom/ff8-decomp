@@ -11,6 +11,10 @@ OBJCOPY := mipsel-linux-gnu-objcopy
 MASPSX  := python3 tools/maspsx/maspsx.py
 
 ### Paths ###
+VENV       := .venv
+PYTHON     := $(VENV)/bin/python3
+SPLAT      := $(PYTHON) -m splat
+SPLAT_YAML := slus_008.92.yaml
 BUILD_DIR  := build
 ASM_DIR    := asm
 SRC_DIR    := src
@@ -110,7 +114,17 @@ verify: $(BUILT_EXE)
 		exit 1; \
 	fi
 
+# First-time setup: create venv, install dependencies, extract PS-EXE, run splat
+setup:
+	python3 -m venv $(VENV)
+	$(PYTHON) -m pip install -r requirements.txt
+	$(SPLAT) split $(SPLAT_YAML)
+
+# Re-run splat (regenerate asm + linker script)
+split:
+	$(SPLAT) split $(SPLAT_YAML)
+
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all build verify clean
+.PHONY: all build verify setup split clean

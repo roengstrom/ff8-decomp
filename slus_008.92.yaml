@@ -42,6 +42,7 @@ options:
   subalign: 2
   o_as_suffix: True
   use_legacy_include_asm: False
+  generate_asm_macros_files: False
 
 segments:
   # PS-EXE header (2048 bytes)

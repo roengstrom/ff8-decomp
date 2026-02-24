@@ -1,0 +1,2 @@
+splat64[mips]==0.37.3
+spimdisasm==1.40.0
