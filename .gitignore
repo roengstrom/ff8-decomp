@@ -1,1 +1,5 @@
 original/
+build/
+.venv/
+.claude/
+*.d

@@ -1,0 +1,57 @@
+name: SLUS_008.92
+sha1: 40706b4e0553fc6cbeb044ca1e0e9004d5ac2561
+options:
+  basename: slus_008.92
+  target_path: original/SLUS_008.92
+  elf_path: build/slus_008.92.elf
+  base_path: .
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm
+  src_path: src
+  build_path: build
+
+  # Linker
+  ld_script_path: slus_008.92.ld
+  ld_dependencies: True
+
+  # Analysis
+  gp_value: 0x8005EC24
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - symbol_addrs.txt
+  undefined_funcs_auto_path: undefined_funcs_auto.txt
+  undefined_syms_auto_path: undefined_syms_auto.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".rodata", ".text", ".data", ".bss"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+
+segments:
+  # PS-EXE header (2048 bytes)
+  - name: header
+    type: header
+    start: 0x0
+
+  # Main executable
+  - name: main
+    type: code
+    start: 0x800
+    vram: 0x80010000
+    subsegments:
+      - [0x800, rodata]
+      - [0x1C38, asm]
+      - [0x41EE8, data]
+  - [0x191000]
