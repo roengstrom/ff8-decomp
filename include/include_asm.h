@@ -5,14 +5,17 @@
 
 #ifndef INCLUDE_ASM
 #define INCLUDE_ASM(FOLDER, NAME) \
-    __asm__( \
-        ".section .text\n" \
-        "    .set noat\n" \
-        "    .set noreorder\n" \
-        "    .include \"" FOLDER "/" #NAME ".s\"\n" \
-        "    .set reorder\n" \
-        "    .set at\n" \
-    )
+    void __maspsx_include_asm_hack_##NAME(void) { \
+        __asm__( \
+            ".text # maspsx-keep\n" \
+            "\t.align\t2 # maspsx-keep\n" \
+            "\t.set\tnoreorder # maspsx-keep\n" \
+            "\t.set\tnoat # maspsx-keep\n" \
+            "\t.include \"" FOLDER "/" #NAME ".s\" # maspsx-keep\n" \
+            "\t.set\treorder # maspsx-keep\n" \
+            "\t.set\tat # maspsx-keep\n" \
+        ); \
+    }
 #endif
 #ifndef INCLUDE_RODATA
 #define INCLUDE_RODATA(FOLDER, NAME) \
