@@ -2,6 +2,7 @@
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80011438);
 
+// empty stub
 void func_8001152C(void) {
 }
 
@@ -63,6 +64,7 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80013100);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001313C);
 
+// calls func_8001A1E8 with 0x44
 void func_80013168(void) {
     func_8001A1E8(0x44);
 }
@@ -113,33 +115,80 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80014C30);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80014D20);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014DC4);
+// spu_set_reverb_work_area_start - writes SPU register 0x1F801D88 (source: nocash PSX specs)
+void func_80014DC4(u32 val) {
+    *(s16 *)0x1F801D88 = val;
+    *(s16 *)0x1F801D8A = val >> 16;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014DE0);
+// spu_set_irq_addr - writes SPU register 0x1F801D8C (source: nocash PSX specs)
+void func_80014DE0(u32 val) {
+    *(s16 *)0x1F801D8C = val;
+    *(s16 *)0x1F801D8E = val >> 16;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014DFC);
+// spu_set_transfer_control - writes SPU register 0x1F801D98 (source: nocash PSX specs)
+void func_80014DFC(u32 val) {
+    *(s16 *)0x1F801D98 = val;
+    *(s16 *)0x1F801D9A = val >> 16;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014E18);
+// spu_set_data_fifo - writes SPU register 0x1F801D94 (source: nocash PSX specs)
+void func_80014E18(u32 val) {
+    *(s16 *)0x1F801D94 = val;
+    *(s16 *)0x1F801D96 = val >> 16;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014E34);
+// spu_set_transfer_addr - writes SPU register 0x1F801D90 (source: nocash PSX specs)
+void func_80014E34(u32 val) {
+    *(s16 *)0x1F801D90 = val;
+    *(s16 *)0x1F801D92 = val >> 16;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80014E50);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014E98);
+// spu_set_voice_pitch - writes voice register +0x04 (source: nocash PSX specs)
+void func_80014E98(s32 voice, s32 val) {
+    *(s16 *)(0x1F801C04 + voice * 16) = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014EB0);
+// spu_set_voice_start_addr - writes voice register +0x06, addr>>3 (source: nocash PSX specs)
+void func_80014EB0(s32 voice, u32 val) {
+    *(s16 *)(0x1F801C06 + voice * 16) = val >> 3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014ECC);
+// spu_set_voice_repeat_addr - writes voice register +0x0E, addr>>3 (source: nocash PSX specs)
+void func_80014ECC(s32 voice, u32 val) {
+    *(s16 *)(0x1F801C0E + voice * 16) = val >> 3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014EE8);
+// spu_set_voice_adsr_low - writes voice register +0x08 (source: nocash PSX specs)
+void func_80014EE8(s32 voice, s32 val) {
+    *(s16 *)(0x1F801C08 + voice * 16) = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014F00);
+// spu_set_voice_adsr_high - writes voice register +0x0A (source: nocash PSX specs)
+void func_80014F00(s32 voice, s32 val) {
+    *(s16 *)(0x1F801C0A + voice * 16) = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80014F18);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014F48);
+// spu_set_voice_adsr_decay_rate - modifies ADSR low bits [7:4] (source: nocash PSX specs)
+void func_80014F48(s32 voice, u32 a1) {
+    s16 *addr = (s16 *)(0x1F801C08 + voice * 16);
+    s32 val = *(u16 *)addr;
+    val = (val & 0xFF0F) | (a1 << 4);
+    *addr = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014F70);
+// spu_set_voice_adsr_sustain_mode - modifies ADSR low bits [3:0] (source: nocash PSX specs)
+void func_80014F70(s32 voice, u32 a1) {
+    s16 *addr = (s16 *)(0x1F801C08 + voice * 16);
+    s32 val = *(u16 *)addr;
+    val = (val & 0xFFF0) | a1;
+    *addr = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80014F98);
 
@@ -167,7 +216,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80016344);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80016478);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800164C8);
+extern s32 D_80074F1C;
+// store D_80074F1C into struct field at offset 0x50
+void func_800164C8(u8 *a0) {
+    *(s32 *)(a0 + 0x50) = D_80074F1C;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800164D8);
 
@@ -215,7 +268,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8001A198);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001A1E8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001A55C);
+extern s16 D_8007507A;
+// spu_set_cd_volume - writes D_8007507A to SPU CD audio volume L/R (0x1F801DB0/DB2) (source: nocash PSX specs)
+void func_8001A55C(void) {
+    s32 val = D_8007507A;
+    *(s16 *)0x1F801DB0 = val;
+    *(s16 *)0x1F801DB2 = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001A57C);
 
@@ -337,7 +396,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80021894);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80021944);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800219A8);
+// multiply
+s32 func_800219A8(s32 a0, s32 a1) {
+    return a0 * a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800219B8);
 
@@ -397,7 +459,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80022E08);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80023180);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800231B0);
+// clamp_to_byte - clamps value to 0x00-0xFF range
+s32 func_800231B0(s32 a0) {
+    if (a0 >= 0x100) {
+        return 0xFF;
+    }
+    return a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800231C8);
 
@@ -411,6 +479,7 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80023888);
 
 extern u8 D_80078658;
 
+// get pointer to D_80078658
 u8 *func_80023900(void) {
     return &D_80078658;
 }
@@ -503,7 +572,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800281C4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800282F4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800283CC);
+extern u16 D_80083794;
+// get D_80083794 (u16)
+u16 func_800283CC(void) {
+    return D_80083794;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800283DC);
 
@@ -517,7 +590,14 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80028564);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800286FC);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002871C);
+// strcpy
+void func_8002871C(u8 *dst, u8 *src) {
+    s32 c;
+    do {
+        c = *src++;
+        *dst++ = c;
+    } while (c != 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80028738);
 
@@ -531,13 +611,23 @@ void func_80028768(u8 *src, u8 *dst, s32 numBytes) {
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80028790);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800287B0);
+extern s8 D_80082FD4;
+// set D_80082FD4 (s8)
+void func_800287B0(s8 val) {
+    D_80082FD4 = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800287BC);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800287F4);
+// get_bit4 - extracts bit 4 as 0 or 1
+s32 func_800287F4(s32 a0) {
+    return (a0 >> 4) % 2;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80028810);
+// mod4
+s32 func_80028810(s32 a0) {
+    return a0 % 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002882C);
 
@@ -611,7 +701,14 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A128);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A238);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A2A8);
+// strcpy
+void func_8002A2A8(u8 *dst, u8 *src) {
+    s32 c;
+    do {
+        c = *src++;
+        *dst++ = c;
+    } while (c != 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A2C4);
 
@@ -625,7 +722,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A3E8);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A408);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A438);
+extern u8 *D_8005F134;
+// copy_display_coords - copies x,y from D_8005F134 offsets 8/A
+void func_8002A438(u8 *a0) {
+    u8 *p = D_8005F134;
+    *(u16 *)(a0 + 0) = *(u16 *)(p + 8);
+    *(u16 *)(a0 + 2) = *(u16 *)(p + 0xA);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002A45C);
 
@@ -641,11 +744,19 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AAC0);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AB5C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AC74);
+extern u8 D_80083210[];
+// battle_entity_get_ptr - returns &D_80083210[idx * 64]
+u8 *func_8002AC74(s32 idx) {
+    return D_80083210 + idx * 64;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AC88);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002ACBC);
+// battle_entity_get_field_37 - D_80083210 stride 64
+s32 func_8002ACBC(s32 idx) {
+    u8 *p = D_80083210 + idx * 64;
+    return p[0x37];
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002ACD8);
 
@@ -653,13 +764,25 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AD04);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AD3C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE14);
+// battle_entity_get_field_38 - D_80083210 stride 64
+s32 func_8002AE14(s32 idx) {
+    u8 *p = D_80083210 + idx * 64;
+    return p[0x38];
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE30);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE60);
+// battle_entity_set_field_00 - D_80083210 stride 64
+void func_8002AE60(s32 idx, s32 val) {
+    u8 *p = D_80083210 + idx * 64;
+    *(s32 *)p = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE78);
+// battle_entity_set_field_04 - D_80083210 stride 64
+void func_8002AE78(s32 idx, s32 val) {
+    u8 *p = D_80083210 + idx * 64;
+    *(s32 *)(p + 4) = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE90);
 
@@ -667,7 +790,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AEC4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AEF8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AF54);
+// battle_entity_get_field_34 - D_80083210 stride 64
+s32 func_8002AF54(s32 idx) {
+    u8 *p = D_80083210 + idx * 64;
+    return p[0x34];
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AF70);
 
@@ -699,9 +826,16 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C0C4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C100);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C114);
+extern u8 D_80083840;
+// get D_80083840 (u8)
+u8 func_8002C114(void) {
+    return D_80083840;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C124);
+// set D_80083840 (u8)
+void func_8002C124(u8 val) {
+    D_80083840 = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C130);
 
@@ -711,13 +845,32 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C56C);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C734);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C7E0);
+extern u8 D_80082FF0[];
+// sfx_entry_set_fields_29_2A_2C - D_80082FF0 stride 60
+void func_8002C7E0(s32 idx, s32 a1, s32 a2, s32 a3) {
+    u8 *p = D_80082FF0 + idx * 60;
+    p[0x29] = a1;
+    p[0x2A] = a2;
+    p[0x2C] = a3;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C808);
+// sfx_entry_set_field_2B - D_80082FF0 stride 60
+void func_8002C808(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    p[0x2B] = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C828);
+// sfx_entry_set_field_34 - D_80082FF0 stride 60
+void func_8002C828(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    *(s32 *)(p + 0x34) = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C848);
+// sfx_entry_set_field_38 - D_80082FF0 stride 60
+void func_8002C848(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    *(s32 *)(p + 0x38) = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C868);
 
@@ -729,13 +882,32 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C954);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002C9A4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002CA10);
+// sfx_entry_swap_field_16 - D_80082FF0 stride 60, returns old value
+s32 func_8002CA10(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    s32 old = p[0x16];
+    p[0x16] = val;
+    return old;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002CA34);
+// sfx_entry_get_field_16 - D_80082FF0 stride 60
+s32 func_8002CA34(s32 idx) {
+    u8 *p = D_80082FF0 + idx * 60;
+    return p[0x16];
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002CA58);
+// sfx_entry_set_field_10_clear_14 - D_80082FF0 stride 60
+void func_8002CA58(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    *(s16 *)(p + 0x10) = val;
+    *(s16 *)(p + 0x14) = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002CA7C);
+// sfx_entry_set_field_1C - D_80082FF0 stride 60
+void func_8002CA7C(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    *(s16 *)(p + 0x1C) = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002CA9C);
 
@@ -765,7 +937,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002DDFC);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002DE38);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002DE74);
+// sfx_entry_set_field_2F - D_80082FF0 stride 60
+void func_8002DE74(s32 idx, s32 val) {
+    u8 *p = D_80082FF0 + idx * 60;
+    p[0x2F] = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002DE94);
 
@@ -801,13 +977,25 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F2EC);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F320);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F384);
+extern u8 D_80052A20[];
+// lookup_hex_char - D_80052A20 is "0123456789ABCDEF" (source: strings.csv 0x80052A20)
+void func_8002F384(s32 idx, u8 *dst) {
+    *dst = D_80052A20[idx & 0xF];
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F3A0);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F3F0);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F488);
+// u32_to_hex_string - converts u32 to 8-char hex string with configurable base char
+void func_8002F488(u32 val, u8 *dst, s32 base_char) {
+    s32 shift = 28;
+    do {
+        *dst++ = ((val >> shift) & 0xF) + base_char;
+        shift -= 4;
+    } while (shift >= 0);
+    *dst = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F4B0);
 
@@ -825,7 +1013,12 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002FDE8);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002FE0C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002FF24);
+// clear_rgb_fields - zeros bytes at offsets 0x20, 0x21, 0x22
+void func_8002FF24(u8 *a0) {
+    a0[0x20] = 0;
+    a0[0x22] = 0;
+    a0[0x21] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002FF34);
 
@@ -835,10 +1028,15 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800300F8);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80030214);
 
+// empty stub
 void func_80030234(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003023C);
+extern s16 D_800834D4;
+// set D_800834D4 (s16)
+void func_8003023C(s32 val) {
+    D_800834D4 = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80030248);
 
@@ -869,6 +1067,7 @@ void func_80030720(void) {
 
 extern u8 D_80083878;
 
+// get pointer to D_80083878
 u8 *func_80030748(void) {
     return &D_80083878;
 }
@@ -893,6 +1092,7 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80030F10);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80030FDC);
 
+// empty stub
 void func_80031044(void) {
 }
 
@@ -904,7 +1104,23 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80031224);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80031364);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800318EC);
+typedef struct {
+    s16 f0;
+    s16 f2;
+    s16 f4;
+    s16 f6;
+    u8 f8;
+    u8 f9;
+} Struct3754;
+extern Struct3754 D_80083754;
+// init_battle_transition - initializes D_80083754 (Struct3754)
+void func_800318EC(void) {
+    D_80083754.f0 = 9;
+    D_80083754.f4 = 0;
+    D_80083754.f6 = 0;
+    D_80083754.f8 = 0;
+    D_80083754.f9 = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80031910);
 
@@ -931,10 +1147,12 @@ void func_80031F2C(void) {
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80031F50);
 
+// get_battle_alloc_base - returns 0x801F4000
 u32 func_80031F9C(void) {
     return 0x801F4000;
 }
 
+// get_battle_alloc_size - returns 0x4000 (16KB)
 s32 func_80031FA8(void) {
     return 0x4000;
 }
@@ -1007,7 +1225,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80034DBC);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80035118);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80035148);
+extern u8 D_80083928;
+// get D_80083928 (u8)
+u8 func_80035148(void) {
+    return D_80083928;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80035158);
 
@@ -1019,9 +1241,16 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80035360);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80035AA4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80035C54);
+extern u8 D_80085138;
+// set D_80085138 (u8)
+void func_80035C54(u8 val) {
+    D_80085138 = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80035C60);
+// get D_80085138 (u8)
+u8 func_80035C60(void) {
+    return D_80085138;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80035C70);
 
@@ -1053,7 +1282,16 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80036444);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8003646C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800366E8);
+// init_card_hand_slots - initializes 128 card slots (id=0, type=0xFF)
+void func_800366E8(u8 *ptr) {
+    s32 i = 0;
+    do {
+        i++;
+        ptr[1] = 0xFF;
+        ptr[0] = 0;
+        ptr += 2;
+    } while (i < 128);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80036710);
 
@@ -1097,7 +1335,13 @@ u32 func_8003786C(u8 *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80037894);
+// memzero_128 - zeros 128 bytes, matches MC header size (source: hyne)
+void func_80037894(u8 *ptr) {
+    s32 count = 128;
+    do {
+        *ptr++ = 0;
+    } while (--count > 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800378B0);
 
@@ -1145,7 +1389,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800389CC);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80038A60);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80038CE0);
+extern s8 D_8008A3DA;
+// get D_8008A3DA (s8)
+s8 func_80038CE0(void) {
+    return D_8008A3DA;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80038CF0);
 
@@ -1229,15 +1477,44 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8003B8E0);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BA2C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BB78);
+// snd_voice_cmd_play_note - cmd=0x43, sets payload byte
+void func_8003BB78(u8 *a0, s32 a1) {
+    *(u8 *)(a0 + 0x37) = 0x43;
+    *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
+    *(u8 *)(a0 + 0x24) = a1;
+    *(u8 *)(a0 + 0x36) = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BB98);
+// snd_voice_cmd_stop - cmd=0x45, clears data pointer and flag
+void func_8003BB98(u8 *a0) {
+    *(u8 *)(a0 + 0x37) = 0x45;
+    *(s32 *)(a0 + 0x2C) = 0;
+    *(u8 *)(a0 + 0x36) = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BBAC);
+// snd_voice_cmd_set_program - cmd=0x4C, sets payload byte
+void func_8003BBAC(u8 *a0, s32 a1) {
+    *(u8 *)(a0 + 0x37) = 0x4C;
+    *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
+    *(u8 *)(a0 + 0x24) = a1;
+    *(u8 *)(a0 + 0x36) = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BBCC);
+// snd_voice_cmd_set_pitch - cmd=0x46, sets payload byte
+void func_8003BBCC(u8 *a0, s32 a1) {
+    *(u8 *)(a0 + 0x37) = 0x46;
+    *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
+    *(u8 *)(a0 + 0x24) = a1;
+    *(u8 *)(a0 + 0x36) = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BBEC);
+// snd_voice_cmd_set_volume - cmd=0x47, sets payload byte
+void func_8003BBEC(u8 *a0, s32 a1) {
+    *(u8 *)(a0 + 0x37) = 0x47;
+    *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
+    *(u8 *)(a0 + 0x24) = a1;
+    *(u8 *)(a0 + 0x36) = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8003BC0C);
 
@@ -1451,7 +1728,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", S_CRWA_OBJ_170);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8003ED24);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003ED54);
+extern s32 D_80056640;
+// copy D_80056640 to *a0
+void func_8003ED54(s32 *a0) {
+    *a0 = D_80056640;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", rsin);
 

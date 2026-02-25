@@ -1,5 +1,43 @@
+func_80014DC4 = 0x80014DC4; // spu_set_reverb_work_area_start (source: nocash PSX specs)
+func_80014DE0 = 0x80014DE0; // spu_set_irq_addr (source: nocash PSX specs)
+func_80014DFC = 0x80014DFC; // spu_set_transfer_control (source: nocash PSX specs)
+func_80014E18 = 0x80014E18; // spu_set_data_fifo (source: nocash PSX specs)
+func_80014E34 = 0x80014E34; // spu_set_transfer_addr (source: nocash PSX specs)
+func_80014E98 = 0x80014E98; // spu_set_voice_pitch (source: nocash PSX specs)
+func_80014EB0 = 0x80014EB0; // spu_set_voice_start_addr (source: nocash PSX specs)
+func_80014ECC = 0x80014ECC; // spu_set_voice_repeat_addr (source: nocash PSX specs)
+func_80014EE8 = 0x80014EE8; // spu_set_voice_adsr_low (source: nocash PSX specs)
+func_80014F00 = 0x80014F00; // spu_set_voice_adsr_high (source: nocash PSX specs)
+func_80014F48 = 0x80014F48; // spu_set_voice_adsr_decay_rate (source: nocash PSX specs)
+func_80014F70 = 0x80014F70; // spu_set_voice_adsr_sustain_mode (source: nocash PSX specs)
+func_8001A55C = 0x8001A55C; // spu_set_cd_volume (source: nocash PSX specs)
+func_800219A8 = 0x800219A8; // multiply
+func_800231B0 = 0x800231B0; // clamp_to_byte
 func_80028768 = 0x80028768; // copy_bytes
+func_8002871C = 0x8002871C; // strcpy
+func_8002A2A8 = 0x8002A2A8; // strcpy
+func_8002A438 = 0x8002A438; // copy_display_coords
+func_8002AC74 = 0x8002AC74; // battle_entity_get_ptr (D_80083210, stride 64)
+func_8002ACBC = 0x8002ACBC; // battle_entity_get_field_37
+func_8002AE14 = 0x8002AE14; // battle_entity_get_field_38
+func_8002AE60 = 0x8002AE60; // battle_entity_set_field_00
+func_8002AE78 = 0x8002AE78; // battle_entity_set_field_04
+func_8002AF54 = 0x8002AF54; // battle_entity_get_field_34
+func_8002F384 = 0x8002F384; // lookup_hex_char (D_80052A20 = "0123456789ABCDEF")
+func_8002F488 = 0x8002F488; // u32_to_hex_string
+func_80030720 = 0x80030720; // init_battle_camera
+func_800318EC = 0x800318EC; // init_battle_transition
+func_80031F2C = 0x80031F2C; // clear_animation_entries
+func_80031F9C = 0x80031F9C; // get_battle_alloc_base
+func_80031FA8 = 0x80031FA8; // get_battle_alloc_size
+func_800366E8 = 0x800366E8; // init_card_hand_slots
 func_8003786C = 0x8003786C; // mc_xor_checksum (source: hyne)
+func_80037894 = 0x80037894; // memzero_128 (source: hyne, MC header size)
+func_8003BB78 = 0x8003BB78; // snd_voice_cmd_play_note (cmd=0x43)
+func_8003BB98 = 0x8003BB98; // snd_voice_cmd_stop (cmd=0x45)
+func_8003BBAC = 0x8003BBAC; // snd_voice_cmd_set_program (cmd=0x4C)
+func_8003BBCC = 0x8003BBCC; // snd_voice_cmd_set_pitch (cmd=0x46)
+func_8003BBEC = 0x8003BBEC; // snd_voice_cmd_set_volume (cmd=0x47)
 start = 0x80011534;
 main = 0x80011E60;
 __udivdi3 = 0x8002BA80;
