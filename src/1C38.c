@@ -899,7 +899,16 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80031DF4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80031E1C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80031F2C);
+extern u8 D_80083772[];
+// clear_animation_entries
+void func_80031F2C(void) {
+    s32 i;
+    u8 *ptr = D_80083772;
+    for (i = 1; i >= 0; i--) {
+        ptr[0xE] = 0;
+        ptr += 0x10;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80031F50);
 
