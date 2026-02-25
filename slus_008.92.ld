@@ -23,6 +23,9 @@ SECTIONS
         FILL(0x00000000);
         main_RODATA_START = .;
         build/asm/data/800.rodata.o(.rodata);
+        build/asm/data/9FC.rodata.o(.rodata);
+        build/asm/data/F80.rodata.o(.rodata);
+        build/asm/data/116C.rodata.o(.rodata);
         build/src/1C38.o(.rodata);
         main_RODATA_END = .;
         main_RODATA_SIZE = ABSOLUTE(main_RODATA_END - main_RODATA_START);
@@ -32,12 +35,18 @@ SECTIONS
         main_TEXT_SIZE = ABSOLUTE(main_TEXT_END - main_TEXT_START);
         main_DATA_START = .;
         build/asm/data/800.rodata.o(.data);
+        build/asm/data/9FC.rodata.o(.data);
+        build/asm/data/F80.rodata.o(.data);
+        build/asm/data/116C.rodata.o(.data);
         build/src/1C38.o(.data);
         build/asm/data/41EE8.data.o(.data);
         main_DATA_END = .;
         main_DATA_SIZE = ABSOLUTE(main_DATA_END - main_DATA_START);
         main_BSS_START = .;
         build/asm/data/800.rodata.o(.bss);
+        build/asm/data/9FC.rodata.o(.bss);
+        build/asm/data/F80.rodata.o(.bss);
+        build/asm/data/116C.rodata.o(.bss);
         build/src/1C38.o(.bss);
         main_BSS_END = .;
         main_BSS_SIZE = ABSOLUTE(main_BSS_END - main_BSS_START);
