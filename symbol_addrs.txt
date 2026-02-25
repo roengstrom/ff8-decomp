@@ -1,4 +1,5 @@
 func_80028768 = 0x80028768; // copy_bytes
+func_8003786C = 0x8003786C; // mc_xor_checksum (source: hyne)
 start = 0x80011534;
 main = 0x80011E60;
 __udivdi3 = 0x8002BA80;
