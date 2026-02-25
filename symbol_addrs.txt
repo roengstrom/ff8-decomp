@@ -18,6 +18,7 @@ func_8002871C = 0x8002871C; // strcpy
 func_8002A2A8 = 0x8002A2A8; // strcpy
 func_8002A438 = 0x8002A438; // copy_display_coords
 func_8002AC74 = 0x8002AC74; // battle_entity_get_ptr (D_80083210, stride 64)
+func_8002AC88 = 0x8002AC88; // battle_entity_set_field_37_clamped (D_80083210, stride 64)
 func_8002ACBC = 0x8002ACBC; // battle_entity_get_field_37
 func_8002AE14 = 0x8002AE14; // battle_entity_get_field_38
 func_8002AE30 = 0x8002AE30; // battle_entity_set_field_38_and_30

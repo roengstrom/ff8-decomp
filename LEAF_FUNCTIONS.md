@@ -9,7 +9,7 @@ A **leaf function** is a function that does not call any other functions (no `ja
 
 ## Game Functions (func\_\*)
 
-These are the game-specific functions, the primary targets for decompilation. **213 leaf functions, 66 decompiled (31.0%)**.
+These are the game-specific functions, the primary targets for decompilation. **213 leaf functions, 67 decompiled (31.5%)**.
 
 | Function | Size | Instructions | Status |
 |----------|------|-------------|--------|
@@ -121,7 +121,7 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_8002A888 | 0x30 | 12 |      |
 | func_8002AAC0 | 0x9C | 39 |      |
 | func_8002AC74 | 0x14 | 5 | Done |
-| func_8002AC88 | 0x34 | 13 |      |
+| func_8002AC88 | 0x34 | 13 | Done |
 | func_8002ACBC | 0x1C | 7 | Done |
 | func_8002ACD8 | 0x2C | 11 |      |
 | func_8002AD04 | 0x38 | 14 |      |

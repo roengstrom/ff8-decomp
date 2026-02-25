@@ -753,7 +753,20 @@ u8 *func_8002AC74(s32 idx) {
 }
 
 // battle_entity_set_field_37_clamped - clamps val to [3, 11], D_80083210 stride 64
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AC88);
+void func_8002AC88(s32 idx, s32 val) {
+    u8 *p = D_80083210 + idx * 64;
+    s32 v;
+    if (val >= 3) {
+        if (val < 12) {
+            v = val;
+        } else {
+            v = 11;
+        }
+    } else {
+        v = 3;
+    }
+    p[0x37] = v;
+}
 
 // battle_entity_get_field_37 - D_80083210 stride 64
 s32 func_8002ACBC(s32 idx) {
