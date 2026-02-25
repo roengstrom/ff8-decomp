@@ -744,12 +744,15 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AAC0);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AB5C);
 
+// D_80083210 is an array of some datastructure that is 64 bytes in size
+// Below are some functions that fetch entries given an index and some property from that datastructure.
 extern u8 D_80083210[];
 // battle_entity_get_ptr - returns &D_80083210[idx * 64]
 u8 *func_8002AC74(s32 idx) {
     return D_80083210 + idx * 64;
 }
 
+// battle_entity_set_field_37_clamped - clamps val to [3, 11], D_80083210 stride 64
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AC88);
 
 // battle_entity_get_field_37 - D_80083210 stride 64
@@ -770,7 +773,17 @@ s32 func_8002AE14(s32 idx) {
     return p[0x38];
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE30);
+// battle_entity_set_field_38_and_30 - sets field 0x38, computes field 0x30 from bit 0
+void func_8002AE30(s32 idx, s32 val) {
+    u8 *p = D_80083210 + idx * 64;
+    s32 v;
+    p[0x38] = val;
+    v = 0x38;
+    if (val & 1) {
+        v = 0x3A;
+    }
+    *(s32 *)(p + 0x30) = v << 24;
+}
 
 // battle_entity_set_field_00 - D_80083210 stride 64
 void func_8002AE60(s32 idx, s32 val) {
@@ -788,6 +801,7 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE90);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AEC4);
 
+// battle_entity_set_field_34_and_clear - sets field 0x34, if val==0 also clears fields 0x36, 0x04, 0x00
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AEF8);
 
 // battle_entity_get_field_34 - D_80083210 stride 64
