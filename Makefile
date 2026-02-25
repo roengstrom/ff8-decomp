@@ -2,13 +2,13 @@
 # Target: SLUS_008.92 (Final Fantasy VIII, USA)
 
 ### Toolchain ###
-# mipsel = MIPS little-endian (what the PS1 uses)
-CPP     := mipsel-linux-gnu-cpp
-CC1     := tools/gcc-2.8.1-psx/cc1
-AS      := mipsel-linux-gnu-as
-LD      := mipsel-linux-gnu-ld
-OBJCOPY := mipsel-linux-gnu-objcopy
-MASPSX  := python3 tools/maspsx/maspsx.py
+WIBO       := tools/wibo
+PSYQ_DIR   := tools/psyq4.1
+CCPSX      := $(WIBO) $(PSYQ_DIR)/CCPSX.EXE
+AS         := mipsel-linux-gnu-as
+LD         := mipsel-linux-gnu-ld
+OBJCOPY    := mipsel-linux-gnu-objcopy
+MASPSX     := python3 tools/maspsx/maspsx.py
 
 ### Paths ###
 VENV       := .venv
@@ -21,21 +21,11 @@ SRC_DIR    := src
 TARGET     := original/SLUS_008.92
 LD_SCRIPT  := slus_008.92.ld
 
-### Preprocessor flags ###
-CPPFLAGS := -Iinclude -undef -Wall -fno-builtin -lang-c
-
-### Compiler flags (old-gcc cc1) ###
-# -O2           : optimization level 2 (matches original)
-# -G0           : no GP-relative addressing
-# -mcpu=3000    : MIPS I (R3000)
-# -mgas         : output GAS syntax
-# -msoft-float  : software floating point (PS1 has no FPU)
-CC1FLAGS := -quiet -O2 -G0 -mcpu=3000 -mgas -fgnu-linker \
-            -fpeephole -ffunction-cse -fpcc-struct-return \
-            -fcommon -fverbose-asm -msoft-float
+### CCPSX flags (PsyQ 4.1 / gcc cygnus-2.7.2-970404) ###
+CCPSXFLAGS := -O2 -G0
 
 ### maspsx flags ###
-MASPSXFLAGS := --aspsx-version=2.56 --expand-div
+MASPSXFLAGS := --aspsx-version=2.67 --expand-div
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
@@ -65,7 +55,7 @@ BUILT_EXE := $(BUILD_DIR)/SLUS_008.92
 ASM_SRCS := $(wildcard $(ASM_DIR)/*.s) $(wildcard $(ASM_DIR)/data/*.s)
 ASM_OBJS := $(patsubst $(ASM_DIR)/%.s,$(BUILD_DIR)/$(ASM_DIR)/%.o,$(ASM_SRCS))
 
-# C sources (compiled via old-gcc -> maspsx -> as)
+# C sources (compiled via CCPSX -S → maspsx → GAS)
 C_SRCS := $(wildcard $(SRC_DIR)/*.c)
 C_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/$(SRC_DIR)/%.o,$(C_SRCS))
 
@@ -82,11 +72,11 @@ $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-# Compile C: cpp -> cc1 -> maspsx -> as -> .o
+# Compile C: CCPSX -S → maspsx → GAS → .o
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CPP) $(CPPFLAGS) $< | $(CC1) $(CC1FLAGS) | \
-		$(MASPSX) $(MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@
+	SN_PATH=$(PSYQ_DIR) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s
+	cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@
 
 # Link: all .o files -> ELF
 $(ELF): $(ALL_OBJS) $(LD_SCRIPT)
@@ -134,4 +124,12 @@ ifndef FUNC
 endif
 	./permute.sh $(FUNC)
 
-.PHONY: all build verify setup split clean permute
+# Download PsyQ 4.1 toolchain (wibo + CCPSX binaries)
+setup-toolchain:
+	curl -L -o tools/wibo https://github.com/decompals/wibo/releases/download/1.0.1/wibo-x86_64
+	chmod +x tools/wibo
+	curl -L -o /tmp/psyq4.1.tar.gz https://github.com/mkst/esa/releases/download/psyq-binaries/psyq4.1.tar.gz
+	mkdir -p tools/psyq4.1
+	tar xzf /tmp/psyq4.1.tar.gz --strip-components=1 -C tools/psyq4.1
+
+.PHONY: all build verify setup setup-toolchain split clean permute

@@ -16,14 +16,13 @@ PERMUTER_DIR="${SCRIPT_DIR}/tools/decomp-permuter"
 WORK_DIR="${SCRIPT_DIR}/permuter"
 
 # Toolchain (must match Makefile)
-CPP="mipsel-linux-gnu-cpp"
-CC1="${SCRIPT_DIR}/tools/gcc-2.8.1-psx/cc1"
+WIBO="${SCRIPT_DIR}/tools/wibo"
+PSYQ_DIR="${SCRIPT_DIR}/tools/psyq4.1"
+CCPSX="${WIBO} ${PSYQ_DIR}/CCPSX.EXE"
 MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 AS="mipsel-linux-gnu-as"
 
-CPPFLAGS="-Iinclude -undef -Wall -fno-builtin -lang-c"
-CC1FLAGS="-quiet -O2 -G0 -mcpu=3000 -mgas -fgnu-linker -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float"
-MASPSXFLAGS="--aspsx-version=2.56 --expand-div"
+CCPSXFLAGS="-O2 -G0"
 ASFLAGS="-march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude"
 
 # Default source file and asm directory
@@ -122,22 +121,25 @@ COMPILE_EOF
 # Append the toolchain paths using the resolved script dir
 cat >> "${FUNC_DIR}/compile.sh" <<EOF
 DIR="${SCRIPT_DIR}"
-CPP="${CPP}"
-CC1="${CC1}"
-MASPSX="${MASPSX}"
+WIBO="${WIBO}"
+PSYQ_DIR="${PSYQ_DIR}"
+CCPSX="${CCPSX}"
+MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 AS="${AS}"
 EOF
 
 cat >> "${FUNC_DIR}/compile.sh" <<'COMPILE_EOF'
 
 cd "${DIR}"
-${CPP} -Iinclude -DPERMUTER -undef -Wall -fno-builtin -lang-c "${INPUT}" | \
-    ${CC1} -quiet -O2 -G0 -mcpu=3000 -mgas -fgnu-linker \
-        -fpeephole -ffunction-cse -fpcc-struct-return \
-        -fcommon -fverbose-asm -msoft-float | \
-    ${MASPSX} --aspsx-version=2.56 --expand-div \
-        --run-assembler -march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude \
-        -o "${OUTPUT}"
+TMPDIR=$(mktemp -d)
+trap "rm -rf ${TMPDIR}" EXIT
+
+# Compile with CCPSX -S → maspsx → GAS → .o
+SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -Iinclude -DPERMUTER \
+    -O2 -G0 "${INPUT}" -o "${TMPDIR}/out.s"
+cat "${TMPDIR}/out.s" | ${MASPSX} --aspsx-version=2.67 --expand-div \
+    --run-assembler -march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude \
+    -o "${OUTPUT}"
 COMPILE_EOF
 
 chmod +x "${FUNC_DIR}/compile.sh"
@@ -158,7 +160,7 @@ ${AS} ${ASFLAGS} -o "${FUNC_DIR}/target.o" "${FUNC_DIR}/target.s"
 # --- base.c ---
 # Preprocess with -DPERMUTER so INCLUDE_ASM macros become no-ops,
 # then strip to just the target function
-${CPP} ${CPPFLAGS} -DPERMUTER "${SRC_FILE}" > "${FUNC_DIR}/base.c.tmp"
+mipsel-linux-gnu-cpp -Iinclude -DPERMUTER -undef -Wall -fno-builtin -lang-c "${SRC_FILE}" > "${FUNC_DIR}/base.c.tmp"
 
 # Use the permuter's strip_other_fns.py to isolate the function
 # Note: strip_other_fns.py modifies the file in-place

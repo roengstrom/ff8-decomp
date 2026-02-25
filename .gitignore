@@ -9,3 +9,5 @@ __pycache__/
 .idea/
 *.d
 permuter/
+tools/wibo
+tools/psyq4.1/
