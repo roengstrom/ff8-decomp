@@ -846,7 +846,26 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80030288);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800302DC);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80030720);
+typedef struct {
+    s16 f0;
+    s8 f2;
+    s8 f3;
+    s16 f4;
+    s8 f6;
+    s8 f7;
+} BattleCameraState;
+
+extern BattleCameraState D_800834D0;
+
+// init_battle_camera
+void func_80030720(void) {
+    D_800834D0.f3 = 0;
+    D_800834D0.f4 = 0x1000;
+    D_800834D0.f0 = 0;
+    D_800834D0.f2 = 0;
+    D_800834D0.f7 = 0;
+    D_800834D0.f6 = 0;
+}
 
 extern u8 D_80083878;
 
@@ -1066,7 +1085,17 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800375A0);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800376A8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003786C);
+// mc_xor_checksum
+u32 func_8003786C(u8 *a0) {
+    u32 acc = 0;
+    s32 i = 0;
+    do {
+        acc ^= *a0++;
+        i++;
+    } while ((u32)i < 0x7F);
+    return acc & 0xFF;
+}
+
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80037894);
 
