@@ -3,8 +3,9 @@
 
 ### Toolchain ###
 WIBO       := tools/wibo
-PSYQ_DIR   := tools/psyq4.1
-CCPSX      := $(WIBO) $(PSYQ_DIR)/CCPSX.EXE
+PSYQ41_DIR := tools/psyq4.1
+PSYQ43_DIR := tools/psyq4.3
+CCPSX      := $(WIBO) $(PSYQ41_DIR)/CCPSX.EXE
 AS         := mipsel-linux-gnu-as
 LD         := mipsel-linux-gnu-ld
 OBJCOPY    := mipsel-linux-gnu-objcopy
@@ -21,11 +22,20 @@ SRC_DIR    := src
 TARGET     := original/SLUS_008.92
 LD_SCRIPT  := slus_008.92.ld
 
-### CCPSX flags (PsyQ 4.1 / gcc cygnus-2.7.2-970404) ###
+### Compiler flags ###
 CCPSXFLAGS := -O2 -G0
 
-### maspsx flags ###
-MASPSXFLAGS := --aspsx-version=2.67 --expand-div
+### Per-toolchain settings ###
+# PsyQ 4.1: gcc 2.7.2-970404 + aspsx 2.67
+PSYQ41_SN_PATH   := $(PSYQ41_DIR)
+PSYQ41_MASPSXFLAGS := --aspsx-version=2.67 --expand-div
+
+# PsyQ 4.3: gcc 2.8.0 + aspsx 2.77
+PSYQ43_SN_PATH   := $(PSYQ43_DIR)
+PSYQ43_MASPSXFLAGS := --aspsx-version=2.77 --expand-div
+
+# Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
+PSYQ43_SRCS :=
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
@@ -73,10 +83,14 @@ $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 	$(AS) $(ASFLAGS) -o $@ $<
 
 # Compile C: CCPSX -S → maspsx → GAS → .o
+# Select PsyQ 4.1 or 4.3 based on whether the source is in PSYQ43_SRCS
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	SN_PATH=$(PSYQ_DIR) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s
-	cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@
+	$(if $(filter $<,$(PSYQ43_SRCS)), \
+		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
+		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
+		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
+		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
 $(ELF): $(ALL_OBJS) $(LD_SCRIPT)
@@ -111,8 +125,10 @@ setup:
 	$(SPLAT) split $(SPLAT_YAML)
 
 # Re-run splat (regenerate asm + linker script)
+# After splat, patch the linker script to include 3508.o alongside 1C38.o
 split:
 	$(SPLAT) split $(SPLAT_YAML)
+	sed -i '/build\/src\/1C38\.o(\.\(text\|rodata\|data\|bss\))/p; s/1C38/3508/' $(LD_SCRIPT)
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -124,12 +140,15 @@ ifndef FUNC
 endif
 	./permute.sh $(FUNC)
 
-# Download PsyQ 4.1 toolchain (wibo + CCPSX binaries)
+# Download PsyQ toolchains (wibo + CCPSX binaries)
 setup-toolchain:
 	curl -L -o tools/wibo https://github.com/decompals/wibo/releases/download/1.0.1/wibo-x86_64
 	chmod +x tools/wibo
 	curl -L -o /tmp/psyq4.1.tar.gz https://github.com/mkst/esa/releases/download/psyq-binaries/psyq4.1.tar.gz
 	mkdir -p tools/psyq4.1
 	tar xzf /tmp/psyq4.1.tar.gz --strip-components=1 -C tools/psyq4.1
+	curl -L -o /tmp/psyq4.3.tar.gz https://github.com/mkst/esa/releases/download/psyq-binaries/psyq4.3.tar.gz
+	mkdir -p tools/psyq4.3
+	tar xzf /tmp/psyq4.3.tar.gz --strip-components=1 -C tools/psyq4.3
 
 .PHONY: all build verify setup setup-toolchain split clean permute

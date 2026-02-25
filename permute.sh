@@ -17,8 +17,9 @@ WORK_DIR="${SCRIPT_DIR}/permuter"
 
 # Toolchain (must match Makefile)
 WIBO="${SCRIPT_DIR}/tools/wibo"
-PSYQ_DIR="${SCRIPT_DIR}/tools/psyq4.1"
-CCPSX="${WIBO} ${PSYQ_DIR}/CCPSX.EXE"
+PSYQ41_DIR="${SCRIPT_DIR}/tools/psyq4.1"
+PSYQ43_DIR="${SCRIPT_DIR}/tools/psyq4.3"
+CCPSX_DRIVER="${WIBO} ${PSYQ41_DIR}/CCPSX.EXE"
 MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 AS="mipsel-linux-gnu-as"
 
@@ -28,6 +29,9 @@ ASFLAGS="-march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude"
 # Default source file and asm directory
 SRC_FILE="src/1C38.c"
 ASM_SUBDIR="asm/nonmatchings/1C38"
+
+# PsyQ version (4.1 or 4.3)
+PSYQ_VER="4.1"
 
 # Parse arguments
 RUN=0
@@ -52,6 +56,10 @@ while [[ $# -gt 0 ]]; do
             ASM_SUBDIR="$2"
             shift 2
             ;;
+        --psyq)
+            PSYQ_VER="$2"
+            shift 2
+            ;;
         -*)
             PERMUTER_ARGS+=("$1")
             shift
@@ -64,7 +72,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${FUNC_NAME}" ]]; then
-    echo "Usage: $0 [--run] [-j N] [--src SRC_FILE] [--asm-dir ASM_DIR] <function_name>"
+    echo "Usage: $0 [--run] [-j N] [--src SRC_FILE] [--asm-dir ASM_DIR] [--psyq 4.1|4.3] <function_name>"
     exit 1
 fi
 
@@ -81,7 +89,23 @@ if [[ ! -f "${PERMUTER_DIR}/permuter.py" ]]; then
     exit 1
 fi
 
-echo "Setting up permuter for ${FUNC_NAME}..."
+# Select toolchain based on PsyQ version
+case "${PSYQ_VER}" in
+    4.1)
+        PSYQ_DIR="${PSYQ41_DIR}"
+        ASPSX_VER="2.67"
+        ;;
+    4.3)
+        PSYQ_DIR="${PSYQ43_DIR}"
+        ASPSX_VER="2.77"
+        ;;
+    *)
+        echo "Error: unsupported PsyQ version '${PSYQ_VER}' (use 4.1 or 4.3)"
+        exit 1
+        ;;
+esac
+
+echo "Setting up permuter for ${FUNC_NAME} (PsyQ ${PSYQ_VER})..."
 
 # Create working directory
 FUNC_DIR="${WORK_DIR}/${FUNC_NAME}"
@@ -123,9 +147,10 @@ cat >> "${FUNC_DIR}/compile.sh" <<EOF
 DIR="${SCRIPT_DIR}"
 WIBO="${WIBO}"
 PSYQ_DIR="${PSYQ_DIR}"
-CCPSX="${CCPSX}"
+CCPSX="${CCPSX_DRIVER}"
 MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 AS="${AS}"
+ASPSX_VER="${ASPSX_VER}"
 EOF
 
 cat >> "${FUNC_DIR}/compile.sh" <<'COMPILE_EOF'
@@ -137,7 +162,7 @@ trap "rm -rf ${TMPDIR}" EXIT
 # Compile with CCPSX -S → maspsx → GAS → .o
 SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -Iinclude -DPERMUTER \
     -O2 -G0 "${INPUT}" -o "${TMPDIR}/out.s"
-cat "${TMPDIR}/out.s" | ${MASPSX} --aspsx-version=2.67 --expand-div \
+cat "${TMPDIR}/out.s" | ${MASPSX} --aspsx-version=${ASPSX_VER} --expand-div \
     --run-assembler -march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude \
     -o "${OUTPUT}"
 COMPILE_EOF

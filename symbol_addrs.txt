@@ -1,16 +1,16 @@
-func_80014DC4 = 0x80014DC4; // spu_set_reverb_work_area_start (source: nocash PSX specs)
-func_80014DE0 = 0x80014DE0; // spu_set_irq_addr (source: nocash PSX specs)
-func_80014DFC = 0x80014DFC; // spu_set_transfer_control (source: nocash PSX specs)
-func_80014E18 = 0x80014E18; // spu_set_data_fifo (source: nocash PSX specs)
-func_80014E34 = 0x80014E34; // spu_set_transfer_addr (source: nocash PSX specs)
-func_80014E98 = 0x80014E98; // spu_set_voice_pitch (source: nocash PSX specs)
-func_80014EB0 = 0x80014EB0; // spu_set_voice_start_addr (source: nocash PSX specs)
-func_80014ECC = 0x80014ECC; // spu_set_voice_repeat_addr (source: nocash PSX specs)
-func_80014EE8 = 0x80014EE8; // spu_set_voice_adsr_low (source: nocash PSX specs)
-func_80014F00 = 0x80014F00; // spu_set_voice_adsr_high (source: nocash PSX specs)
-func_80014F48 = 0x80014F48; // spu_set_voice_adsr_decay_rate (source: nocash PSX specs)
-func_80014F70 = 0x80014F70; // spu_set_voice_adsr_sustain_mode (source: nocash PSX specs)
-func_8001A55C = 0x8001A55C; // spu_set_cd_volume (source: nocash PSX specs)
+func_80014DC4 = 0x80014DC4; // spu_set_reverb_work_area_start
+func_80014DE0 = 0x80014DE0; // spu_set_irq_addr
+func_80014DFC = 0x80014DFC; // spu_set_transfer_control
+func_80014E18 = 0x80014E18; // spu_set_data_fifo
+func_80014E34 = 0x80014E34; // spu_set_transfer_addr
+func_80014E98 = 0x80014E98; // spu_set_voice_pitch
+func_80014EB0 = 0x80014EB0; // spu_set_voice_start_addr
+func_80014ECC = 0x80014ECC; // spu_set_voice_repeat_addr
+func_80014EE8 = 0x80014EE8; // spu_set_voice_adsr_low
+func_80014F00 = 0x80014F00; // spu_set_voice_adsr_high
+func_80014F48 = 0x80014F48; // spu_set_voice_adsr_decay_rate
+func_80014F70 = 0x80014F70; // spu_set_voice_adsr_sustain_mode
+func_8001A55C = 0x8001A55C; // spu_set_cd_volume
 func_800219A8 = 0x800219A8; // multiply
 func_800231B0 = 0x800231B0; // clamp_to_byte
 func_80028768 = 0x80028768; // copy_bytes
@@ -33,8 +33,8 @@ func_80031F2C = 0x80031F2C; // clear_animation_entries
 func_80031F9C = 0x80031F9C; // get_battle_alloc_base
 func_80031FA8 = 0x80031FA8; // get_battle_alloc_size
 func_800366E8 = 0x800366E8; // init_card_hand_slots
-func_8003786C = 0x8003786C; // mc_xor_checksum (source: hyne)
-func_80037894 = 0x80037894; // memzero_128 (source: hyne, MC header size)
+func_8003786C = 0x8003786C; // mc_xor_checksum
+func_80037894 = 0x80037894; // memzero_128
 func_8003BB78 = 0x8003BB78; // snd_voice_cmd_play_note (cmd=0x43)
 func_8003BB98 = 0x8003BB98; // snd_voice_cmd_stop (cmd=0x45)
 func_8003BBAC = 0x8003BBAC; // snd_voice_cmd_set_program (cmd=0x4C)
