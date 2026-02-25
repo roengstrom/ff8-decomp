@@ -65,9 +65,8 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80013100);
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001313C);
 
 // calls func_8001A1E8 with 0x44
-void func_80013168(void) {
-    func_8001A1E8(0x44);
-}
+// TODO: maspsx schedules addiu $sp into load delay slot instead of jr delay slot
+INCLUDE_ASM("asm/nonmatchings/1C38", func_80013168);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80013188);
 
@@ -1021,7 +1020,8 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F320);
 extern u8 D_80052A20[];
 // lookup_hex_char - D_80052A20 is "0123456789ABCDEF" (source: strings.csv 0x80052A20)
 void func_8002F384(s32 idx, u8 *dst) {
-    *dst = D_80052A20[idx & 0xF];
+    u8 *base = D_80052A20;
+    *dst = base[idx & 0xF];
 }
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002F3A0);
