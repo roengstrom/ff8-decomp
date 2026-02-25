@@ -127,4 +127,11 @@ split:
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all build verify setup split clean
+# Run decomp-permuter for a function: make permute FUNC=func_name
+permute:
+ifndef FUNC
+	$(error Usage: make permute FUNC=<function_name>)
+endif
+	./permute.sh $(FUNC)
+
+.PHONY: all build verify setup split clean permute
