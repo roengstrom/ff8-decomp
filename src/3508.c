@@ -149,7 +149,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80014778);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800147A8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014834);
+void func_80014834(void) {
+    extern volatile s32 D_80074ED4;
+    while (D_80074ED4 == 1) {}
+}
 
 s32 func_80014860(s32 a0, s32 a1) {
     if (func_80014740(a0) != 0) {
@@ -335,7 +338,35 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80015668);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80015AC8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80015F4C);
+s32 func_80015F4C(void) {
+    extern u8 D_80073CB0[];
+    u32 i;
+    u16 min_val;
+    u32 min_idx;
+    u8 *p;
+
+    i = 0;
+    min_val = 0x7FFF;
+    min_idx = 0x18;
+    p = D_80073CB0;
+
+    do {
+        if (*(s16 *)(p + 4) < (s16)min_val) {
+            min_val = *(u16 *)(p + 4);
+            min_idx = i;
+        }
+        i++;
+        p += 8;
+    } while (i < 0x18);
+
+    if ((s16)min_val == 0x7FFF) {
+        return 0x18;
+    }
+    if (min_idx < 0x18) {
+        func_80016280(min_idx);
+    }
+    return min_idx;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80015FE0);
 
@@ -489,9 +520,30 @@ void func_8001C1DC(u8 *a0, s32 a1) {
     func_8001C1A8((s32)a0, (s32)(D_80073E68 + a1 * 16), *(s32 *)(D_80073E68 + a1 * 16));
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001C214);
+void func_8001C214(u8 *a0, s32 a1) {
+    s32 mask = ~a1;
+    D_80075028[0] &= mask;
+    D_80075028[4] &= mask;
+    D_80075028[7] &= mask;
+    D_80075028[8] &= mask;
+    D_80075028[9] &= mask;
+    D_80075028[1] &= mask;
+    D_80075028[2] &= mask;
+    *(s32 *)(a0 + 0x24) = 0;
+    *(s32 *)(a0 + 0x38) = 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001C280);
+s32 func_8001C280(s32 a0, s32 a1) {
+    if ((u32)(a1 - 0x80) < 0x30 || (u32)(a1 - 0xD0) < 0x30) {
+        if (a0 & 2) {
+            return a1 + 0x10;
+        }
+        if (a0 & 4) {
+            return a1 + 0x20;
+        }
+    }
+    return a1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001C2C8);
 
