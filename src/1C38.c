@@ -10,7 +10,33 @@ INCLUDE_ASM("asm/nonmatchings/1C38", start);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800115F0);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800117FC);
+void InitGeom(void);
+void ResetCallback(void);
+void ResetGraph(u8 a);
+void SetDispMask(u8 a);
+void SetGraphDebug(u8 a);
+void SetMem(u8 a);
+void StopCallback(void);
+void VSyncCallback(void (*cb)(void));
+void func_8003DE24(void);
+
+extern void D_8001167C(void);
+extern s8 D_8005F10C;
+extern s16 D_8005F146;
+
+void func_800117FC(void) {
+    SetMem(2);
+    StopCallback();
+    ResetCallback();
+    ResetGraph(0);
+    func_8003DE24();
+    D_8005F10C = 0;
+    D_8005F146 = 0;
+    VSyncCallback(D_8001167C);
+    SetGraphDebug(0);
+    SetDispMask(0);
+    InitGeom();
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80011870);
 

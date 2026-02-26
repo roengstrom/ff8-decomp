@@ -37,6 +37,9 @@ PSYQ43_MASPSXFLAGS := --aspsx-version=2.77 --expand-div
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
 PSYQ43_SRCS := src/3508.c
 
+# Source files compiled without -G0 (default is -G0)
+NO_G0_SRCS := src/1C38.c
+
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
 # -mabi=32      : 32-bit ABI
@@ -84,12 +87,13 @@ $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 
 # Compile C: CCPSX -S → maspsx → GAS → .o
 # Select PsyQ 4.1 or 4.3 based on whether the source is in PSYQ43_SRCS
+# Select -G0 or no -G0 based on whether the source is in NO_G0_SRCS
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
 		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
-		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
+		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
