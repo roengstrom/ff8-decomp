@@ -470,8 +470,16 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AE90);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AEC4);
 
-// battle_entity_set_field_34_and_clear - PsyQ 4.1 non-leaf (unfilled epilogue)
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002AEF8);
+void func_8002AEF8(s32 idx, s32 value) {
+    u8 *p = (u8 *)D_80083210 + (idx << 6);
+
+    p[0x34] = value;
+    if (value == 0) {
+        func_8002AE90(idx, 0);
+        func_8002AE78(idx, 0);
+        func_8002AE60(idx, 0);
+    }
+}
 
 // battle_entity_get_field_34 - D_80083210 stride 64
 s32 func_8002AF54(s32 idx) {
