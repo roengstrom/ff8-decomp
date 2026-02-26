@@ -1277,14 +1277,14 @@ void func_800360D0(s32 a0, s32 a1) {
 }
 
 void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
-    extern u32 D_80053C58[];
+    extern u32 load_table[]; // D_80053C58
     extern s32 D_8008514C;
     extern u8 D_8008520A;
     u32 descriptor;
     s32 dep;
     u32 *p;
 
-    p = D_80053C58 + overlay_id * 2;
+    p = load_table + overlay_id * 2;
     descriptor = *p;
     D_8008514C = -2;
     dep = descriptor & 0xFF;

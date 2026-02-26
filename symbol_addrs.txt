@@ -673,4 +673,5 @@ _card_format = 0x8004DD58;
 FORMAT_OBJ_320 = 0x8004DF34;
 _card_read = 0x8004DF64;
 _card_status = 0x8004DF74;
+load_table = 0x80053C58; // 19-entry file descriptor table (overlays + mngrp.bin + init.out)
 index = 0x80051684;
