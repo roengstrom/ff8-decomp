@@ -42,11 +42,27 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80011870);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800119D4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80011A60);
-
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80011AE0);
-
+extern volatile u16 D_8005F14C;
 extern u32 D_80097410[];
+extern u32 D_800974D0[];
+
+void func_80011A60(void) {
+    if ((s16)D_8005F14C != 6 && (s16)D_8005F14C != 0xA) {
+        func_80038868(D_80097410[0], D_80097410[1], 0x80098000, 0);
+        while (func_800393C8() != 0)
+            ;
+    }
+    func_8001F5C8();
+}
+
+void func_80011AE0(void) {
+    if ((s16)D_8005F14C != 6 && (s16)D_8005F14C != 0xA) {
+        func_80038868(D_800974D0[0], D_800974D0[1], 0x80098000, 0);
+        while (func_800393C8() != 0)
+            ;
+    }
+    func_8001F5C8();
+}
 
 void func_80011B60(void) {
     func_8003882C(D_80097410[2], D_80097410[3], 0x80097940, 0);
@@ -146,6 +162,49 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800127F8);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800129A4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80012B4C);
+void PutDispEnv(void *);
+void PutDrawEnv(void *);
+void DrawOTag(void *);
+
+extern volatile u16 D_8005F114;
+extern volatile u8 D_8005F116;
+extern u8 D_8005F0FC;
+extern u8 D_80067440[];
+extern u8 D_80067388[];
+extern u32 D_8005F128[];
+
+void func_80012B4C(void) {
+    if (D_8005F116 == 0) {
+        return;
+    }
+
+    D_8005F114 = D_8005F114 + 1;
+    D_8005F114 = D_8005F114 & 1;
+
+    if (D_8005F116 == 1) {
+        s32 fc;
+        fc = D_8005F0FC + 1;
+        D_8005F0FC = fc;
+        if ((fc & 0xFF) == 0x80) {
+            D_8005F146 = 0;
+            D_8005F116 = 0;
+        }
+        if (fc & 0x6) {
+            return;
+        }
+    } else {
+        D_8005F0FC = D_8005F0FC + 1;
+        if (D_8005F0FC == 0x22) {
+            D_8005F146 = 0;
+            D_8005F116 = 0;
+        }
+    }
+
+    func_800127F8(2);
+    func_800129A4(0x10);
+    PutDispEnv(&D_80067440[(s16)D_8005F114 * 20]);
+    PutDrawEnv(&D_80067388[(s16)D_8005F114 * 92]);
+    DrawOTag(&D_8005F128[(s16)D_8005F114]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80012CC8);
