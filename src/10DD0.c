@@ -1246,13 +1246,61 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80035E00);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80035E68);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80035FF4);
+void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
+    extern s32 D_80085140;
+    extern s32 D_80085144;
+    extern u8 D_80085168[];
+    u8 *slot;
+    s32 write_idx;
+    s32 was_equal;
+
+    write_idx = D_80085140;
+    slot = D_80085168 + write_idx * 20;
+    *(s16 *)(slot + 0x0) = cmd;
+    *(s16 *)(slot + 0x2) = param;
+    *(s32 *)(slot + 0x8) = load_addr;
+    *(s32 *)(slot + 0xC) = callback1;
+    *(s32 *)(slot + 0x10) = callback2;
+    *(s16 *)(slot + 0x4) = overlay_id;
+    func_800472E4();
+    was_equal = D_80085140;
+    D_80085140 = (was_equal + 1) & 7;
+    was_equal = was_equal == D_80085144;
+    func_800472F4();
+    if (was_equal == 1) {
+        func_80035D30(cmd, overlay_id, param, load_addr);
+    }
+}
 
 void func_800360D0(s32 a0, s32 a1) {
     func_80035FF4(0, 0x11, a0, a1, 0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80036104);
+void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
+    extern u32 D_80053C58[];
+    extern s32 D_8008514C;
+    extern u8 D_8008520A;
+    u32 descriptor;
+    s32 dep;
+    u32 *p;
+
+    p = D_80053C58 + overlay_id * 2;
+    descriptor = *p;
+    D_8008514C = -2;
+    dep = descriptor & 0xFF;
+    descriptor &= 0xFFFFFF00;
+    if (dep != D_8008520A) {
+        if (dep != 0) {
+            func_800360D0(dep, 0x801E0000);
+            D_8008520A = dep;
+        }
+    }
+    func_80035FF4(0, overlay_id, -1, descriptor, a1, a2);
+}
+
+void func_800361C0(s32 a0, s32 a1) {
+    func_80035FF4(0, a0, -1, a1, 0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800361F8);
 
