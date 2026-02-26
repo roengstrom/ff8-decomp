@@ -9,7 +9,7 @@ A **leaf function** is a function that does not call any other functions (no `ja
 
 ## Game Functions (func\_\*)
 
-These are the game-specific functions, the primary targets for decompilation. **213 leaf functions, 146 decompiled (68.5%)**.
+These are the game-specific functions, the primary targets for decompilation. **213 leaf functions, 157 decompiled (73.7%)**.
 
 | Function | Size | Instructions | Status |
 |----------|------|-------------|--------|
@@ -18,7 +18,7 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_800119D4 | 0x8C | 35 |      |
 | func_80012E04 | 0xA8 | 42 |      |
 | func_800146F0 | 0x50 | 20 |      |
-| func_80014834 | 0x2C | 11 |      |
+| func_80014834 | 0x2C | 11 | Done |
 | func_80014DC4 | 0x1C | 7 | Done |
 | func_80014DE0 | 0x1C | 7 | Done |
 | func_80014DFC | 0x1C | 7 | Done |
@@ -60,8 +60,8 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_8001B400 | 0x2C | 11 | Done |
 | func_8001B690 | 0x190 | 100 |      |
 | func_8001C1A8 | 0x34 | 13 |      |
-| func_8001C214 | 0x6C | 27 |      |
-| func_8001C280 | 0x48 | 18 |      |
+| func_8001C214 | 0x6C | 27 | Done |
+| func_8001C280 | 0x48 | 18 | Done |
 | func_8001D280 | 0x60 | 24 | Done |
 | func_8001D2E0 | 0x68 | 26 | Done |
 | func_8001D348 | 0x74 | 29 | Done |
@@ -99,19 +99,19 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_80026F4C | 0x68 | 26 |      |
 | func_80026FD4 | unknown | 3 |      |
 | func_80027038 | 0x78 | 30 |      |
-| func_800273D8 | 0x30 | 12 |      |
+| func_800273D8 | 0x30 | 12 | Done |
 | func_8002795C | 0x70 | 28 |      |
 | func_800279CC | 0x8C | 35 |      |
 | func_80027BA8 | 0x150 | 84 |      |
 | func_80027DB4 | 0x144 | 81 |      |
-| func_80027EF8 | 0x40 | 16 |      |
+| func_80027EF8 | 0x40 | 16 | Done |
 | func_800283CC | 0x10 | 4 | Done |
 | func_800283DC | 0x1C | 7 |      |
 | func_800284BC | 0xA8 | 42 |      |
 | func_8002871C | 0x1C | 7 | Done |
 | func_80028768 | 0x28 | 10 | Done |
 | func_800287B0 | 0xC | 3 | Done |
-| func_800287BC | 0x38 | 14 |      |
+| func_800287BC | 0x38 | 14 | Done |
 | func_800287F4 | 0x1C | 7 | Done |
 | func_80028810 | 0x1C | 7 | Done |
 | func_8002A2A8 | 0x1C | 7 | Done |
@@ -157,9 +157,9 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_8002E298 | 0x10C | 67 |      |
 | func_8002E3A4 | 0x84 | 33 |      |
 | func_8002E428 | 0x84 | 33 |      |
-| func_8002F23C | 0x58 | 22 |      |
-| func_8002F294 | 0x58 | 22 |      |
-| func_8002F2EC | 0x34 | 13 |      |
+| func_8002F23C | 0x58 | 22 | Done |
+| func_8002F294 | 0x58 | 22 | Done |
+| func_8002F2EC | 0x34 | 13 | Done |
 | func_8002F320 | 0x64 | 25 |      |
 | func_8002F384 | 0x1C | 7 | Done |
 | func_8002F488 | 0x28 | 10 | Done |
@@ -195,9 +195,9 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_80036710 | 0x7C | 31 |      |
 | func_8003678C | 0xD0 | 52 |      |
 | func_8003685C | 0x11C | 71 |      |
-| func_80036978 | 0x54 | 21 |      |
+| func_80036978 | 0x54 | 21 | Done |
 | func_80036EC0 | 0xA0 | 40 |      |
-| func_80036F60 | 0x44 | 17 |      |
+| func_80036F60 | 0x44 | 17 | Done |
 | func_80036FA4 | 0x3C | 15 |      |
 | func_8003786C | 0x28 | 10 | Done |
 | func_80037894 | 0x1C | 7 | Done |
