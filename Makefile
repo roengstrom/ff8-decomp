@@ -129,6 +129,7 @@ setup:
 split:
 	$(SPLAT) split $(SPLAT_YAML)
 	sed -i '/build\/src\/1C38\.o(\.\(text\|rodata\|data\|bss\))/p; s/1C38/3508/' $(LD_SCRIPT)
+	sed -i '/build\/src\/3508\.o(\.\(text\|rodata\|data\|bss\))/p; s/3508/10DD0/' $(LD_SCRIPT)
 
 clean:
 	rm -rf $(BUILD_DIR)
