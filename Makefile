@@ -35,7 +35,7 @@ PSYQ43_SN_PATH   := $(PSYQ43_DIR)
 PSYQ43_MASPSXFLAGS := --aspsx-version=2.77 --expand-div
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
-PSYQ43_SRCS :=
+PSYQ43_SRCS := src/3508.c
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
