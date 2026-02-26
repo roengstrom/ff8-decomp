@@ -56,3 +56,36 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `src/` | Decompiled C source (as we progress) |
 | `original/` | Extracted PS-EXE (gitignored) |
 | `build/` | Build output (gitignored) |
+| `tools/analyze_delay_slots.py` | Toolchain analysis — classifies functions by PsyQ version |
+
+## Tools
+
+### analyze_delay_slots.py
+
+Analyzes assembly files in `asm/nonmatchings/1C38/` to classify each function's
+PsyQ toolchain version (4.1 vs 4.3) based on epilogue delay slot patterns.
+
+PsyQ 4.1 (gcc 2.7.2) leaves the `jr $ra` branch delay slot unfilled (`nop`),
+while PsyQ 4.3 (gcc 2.8.0) fills it with `addiu $sp`. Only non-leaf function
+returns are diagnostic — leaf functions produce identical code with both toolchains.
+
+Merged blocks (multiple functions under one splat label) are handled by
+classifying each `jr $ra` individually.
+
+```bash
+# Text list — one line per function with classification
+python3 tools/analyze_delay_slots.py
+
+# Colored terminal map of the address space
+python3 tools/analyze_delay_slots.py --map
+
+# Adjust terminal width (default 160)
+python3 tools/analyze_delay_slots.py --map --width 120
+```
+
+Classifications:
+- **FILLED** — PsyQ 4.3 (gcc 2.8.0), delay slot filled with `addiu $sp`
+- **UNFILLED** — PsyQ 4.1 (gcc 2.7.2), delay slot is `nop`
+- **MIXED** — merged block containing both filled and unfilled non-leaf returns
+- **LEAF** — no non-leaf returns, toolchain indeterminate
+- **NO_JR_RA** — no `jr $ra` found (data, library fragments, noreturn functions)

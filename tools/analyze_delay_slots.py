@@ -1,0 +1,390 @@
+#!/usr/bin/env python3
+"""Analyze .s files in asm/nonmatchings/1C38/ to classify epilogue delay slots.
+
+For each function, checks every jr $ra to determine if its branch delay slot
+is filled (PsyQ 4.3 / gcc 2.8.0) or unfilled with nop (PsyQ 4.1 / gcc 2.7.2).
+
+Merged blocks (multiple functions merged under one label by splat) are handled
+by classifying each jr $ra individually. Only non-leaf returns (where sw $ra
+appears earlier) are used to determine the toolchain — leaf function delay
+slots are ambiguous since both toolchains can fill them.
+
+Usage:
+  python3 tools/analyze_delay_slots.py          # text list (default)
+  python3 tools/analyze_delay_slots.py --map     # terminal color visualization
+"""
+
+import argparse
+import math
+import os
+import re
+import sys
+from pathlib import Path
+
+ASM_DIR = Path("asm/nonmatchings/1C38")
+
+# Address range of the binary
+ADDR_START = 0x80011438
+ADDR_END = 0x80051800  # approximate end
+
+
+def parse_instructions(filepath):
+    """Parse .s file into list of (addr, mnemonic, operands)."""
+    insns = []
+    with open(filepath) as f:
+        for line in f:
+            m = re.match(
+                r"\s*/\*\s+[0-9A-Fa-f]+\s+([0-9A-Fa-f]+)\s+[0-9A-Fa-f]+\s+\*/\s+"
+                r"(\S+)\s*(.*)",
+                line,
+            )
+            if m:
+                addr = int(m.group(1), 16)
+                mnemonic = m.group(2)
+                operands = m.group(3).strip()
+                insns.append((addr, mnemonic, operands))
+    return insns
+
+
+def parse_size(filepath):
+    """Parse function size from the nonmatching directive."""
+    with open(filepath) as f:
+        first_line = f.readline()
+    m = re.search(r"0x([0-9A-Fa-f]+)", first_line)
+    return int(m.group(1), 16) if m else 0
+
+
+def has_trailing_nops(filepath):
+    """Check if there are nop instructions after endlabel."""
+    found_endlabel = False
+    with open(filepath) as f:
+        for line in f:
+            if "endlabel" in line:
+                found_endlabel = True
+                continue
+            if found_endlabel:
+                if re.match(
+                    r"\s*/\*\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+00000000\s+\*/\s+nop",
+                    line,
+                ):
+                    return True
+    return False
+
+
+def is_library(name):
+    """Check if a function name looks like SDK/library code."""
+    if "_OBJ_" in name:
+        return True
+    if name.startswith("func_") or name in ("main", "start"):
+        return False
+    # Named functions that aren't func_ are likely SDK
+    return True
+
+
+def classify_returns(insns):
+    """Classify each jr $ra in the instruction list.
+
+    Returns a list of (addr, slot_type, is_nonleaf) tuples where:
+      slot_type: "FILLED", "UNFILLED", or "OTHER"
+      is_nonleaf: True if sw $ra appears before this return (within 50 insns)
+    """
+    returns = []
+    for i, (addr, mnem, ops) in enumerate(insns):
+        if mnem != "jr" or "$ra" not in ops:
+            continue
+        if i + 1 >= len(insns):
+            continue
+
+        delay_mnem = insns[i + 1][1]
+        delay_ops = insns[i + 1][2]
+
+        # Check if non-leaf: look for sw $ra within 50 instructions before
+        is_nonleaf = any(
+            insns[j][1] == "sw" and "$ra" in insns[j][2]
+            for j in range(max(0, i - 50), i)
+        )
+
+        if delay_mnem == "nop":
+            slot_type = "UNFILLED"
+        elif delay_mnem == "addiu" and "$sp" in delay_ops:
+            slot_type = "FILLED"
+        else:
+            slot_type = "OTHER"
+
+        returns.append((addr, slot_type, is_nonleaf))
+
+    return returns
+
+
+def classify_function(filepath):
+    """Classify a function's toolchain from its epilogue delay slots.
+
+    Returns dict with keys:
+      name, addr, size, classification, detail, is_lib
+    Classification is one of:
+      FILLED   - all non-leaf returns are filled (PsyQ 4.3)
+      UNFILLED - all non-leaf returns are unfilled (PsyQ 4.1)
+      MIXED    - both filled and unfilled non-leaf returns
+      LEAF     - no non-leaf returns, toolchain indeterminate
+      NO_JR_RA - no jr $ra found
+    """
+    name = filepath.stem
+    insns = parse_instructions(filepath)
+    if not insns:
+        return None
+
+    addr = insns[0][0]
+    size = parse_size(filepath)
+    trailing = has_trailing_nops(filepath)
+    lib = is_library(name)
+
+    returns = classify_returns(insns)
+    if not returns:
+        return dict(
+            name=name, addr=addr, size=size, classification="NO_JR_RA",
+            detail="", is_lib=lib, trailing=trailing,
+        )
+
+    nonleaf_returns = [(a, s) for a, s, nl in returns if nl]
+    leaf_returns = [(a, s) for a, s, nl in returns if not nl]
+
+    filled = sum(1 for _, s in nonleaf_returns if s in ("FILLED", "OTHER"))
+    unfilled = sum(1 for _, s in nonleaf_returns if s == "UNFILLED")
+
+    parts = []
+    if len(returns) > 1:
+        parts.append(f"{len(returns)}x_jr_ra")
+    if filled > 0 and unfilled > 0:
+        parts.append(f"F={filled}")
+        parts.append(f"U={unfilled}")
+        parts.append(f"L={len(leaf_returns)}")
+    if trailing:
+        parts.append("+trailing_nops")
+    detail = " " + " ".join(parts) if parts else ""
+
+    if filled == 0 and unfilled == 0:
+        classification = "LEAF"
+    elif filled > 0 and unfilled > 0:
+        classification = "MIXED"
+    elif filled > 0:
+        classification = "FILLED"
+    else:
+        classification = "UNFILLED"
+
+    return dict(
+        name=name, addr=addr, size=size, classification=classification,
+        detail=detail, is_lib=lib, trailing=trailing,
+    )
+
+
+def load_all():
+    """Load and classify all .s files. Returns sorted list of function dicts."""
+    results = []
+    for f in ASM_DIR.glob("*.s"):
+        result = classify_function(f)
+        if result:
+            results.append(result)
+    results.sort(key=lambda r: r["addr"])
+    return results
+
+
+def cmd_list(results):
+    """Print text list output (original behavior)."""
+    counts = {}
+    for r in results:
+        cls = r["classification"]
+        counts[cls] = counts.get(cls, 0) + 1
+        print(f"0x{r['addr']:08X}  {cls:<10s} {r['name']}{r['detail']}")
+
+    print()
+    print("--- Summary ---")
+    for cls in sorted(counts.keys()):
+        print(f"  {cls:<15s} {counts[cls]:>4d}")
+    print(f"  {'TOTAL':<15s} {sum(counts.values()):>4d}")
+
+
+def cmd_map(results, width=160):
+    """Print a colored terminal visualization of the address space."""
+
+    # Build a byte-level map of the address space
+    # Each entry covers a range of addresses; we'll bucket into columns
+    total_range = ADDR_END - ADDR_START
+    # Each row represents a chunk of address space
+    # Pick row size so we get a reasonable number of rows
+    bytes_per_cell = 64  # each character = 64 bytes of address space
+    cols = width - 20  # leave room for address labels
+    bytes_per_row = cols * bytes_per_cell
+    num_rows = math.ceil(total_range / bytes_per_row)
+
+    # Color codes (256-color)
+    # Game:    bold/bright backgrounds
+    # Library: dim/muted backgrounds
+    RESET = "\033[0m"
+
+    # Game code - bright backgrounds (use bg color only, render with spaces)
+    GAME_FILLED = "\033[48;5;27m"      # bright blue bg (4.3)
+    GAME_UNFILLED = "\033[48;5;160m"   # bright red bg (4.1)
+    GAME_MIXED = "\033[48;5;128m"      # magenta bg
+    GAME_LEAF = "\033[48;5;28m"        # green bg
+    GAME_NOJR = "\033[48;5;238m"       # dark gray bg
+
+    # Library code - dimmer backgrounds with textured foreground
+    LIB_FILLED = "\033[38;5;19;48;5;25m"    # dark blue on medium blue (4.3)
+    LIB_UNFILLED = "\033[38;5;88;48;5;124m" # dark red on medium red (4.1)
+    LIB_MIXED = "\033[38;5;90;48;5;127m"    # dark magenta on medium magenta
+    LIB_LEAF = "\033[38;5;22;48;5;29m"      # dark green on medium green
+    LIB_NOJR = "\033[38;5;234;48;5;240m"    # very dark gray on medium gray
+
+    GAP = "\033[48;5;232m"               # near-black bg
+
+    COLOR_MAP = {
+        (False, "FILLED"):   GAME_FILLED,
+        (False, "UNFILLED"): GAME_UNFILLED,
+        (False, "MIXED"):    GAME_MIXED,
+        (False, "LEAF"):     GAME_LEAF,
+        (False, "NO_JR_RA"): GAME_NOJR,
+        (True,  "FILLED"):   LIB_FILLED,
+        (True,  "UNFILLED"): LIB_UNFILLED,
+        (True,  "MIXED"):    LIB_MIXED,
+        (True,  "LEAF"):     LIB_LEAF,
+        (True,  "NO_JR_RA"): LIB_NOJR,
+    }
+
+    # Block characters for dense display
+    CHAR_GAME = " "        # space — color shown via background only
+    CHAR_LIB = "\u2592"    # medium shade for library code (fg+bg)
+    CHAR_GAP = " "
+
+    # Build cell array: for each cell, determine what's there
+    total_cells = num_rows * cols
+    cells = [None] * total_cells  # None = gap
+
+    for r in results:
+        func_start = r["addr"] - ADDR_START
+        func_size = max(r["size"], 4)  # at least one instruction
+        func_end = func_start + func_size
+
+        cell_start = func_start // bytes_per_cell
+        cell_end = max(cell_start + 1, func_end // bytes_per_cell)
+
+        for c in range(cell_start, min(cell_end, total_cells)):
+            # If cell already has something, prefer the more "interesting" one
+            existing = cells[c]
+            new_entry = (r["is_lib"], r["classification"])
+            if existing is None:
+                cells[c] = new_entry
+            else:
+                # Priority: MIXED > FILLED/UNFILLED > LEAF > NO_JR_RA > gap
+                priority = {"MIXED": 5, "FILLED": 4, "UNFILLED": 3, "LEAF": 2, "NO_JR_RA": 1}
+                if priority.get(new_entry[1], 0) > priority.get(existing[1], 0):
+                    cells[c] = new_entry
+
+    # Print header
+    print()
+    print("Address Space Map: SLUS_008.92")
+    print(f"Range: 0x{ADDR_START:08X} - 0x{ADDR_END:08X} ({total_range:,} bytes)")
+    print(f"Resolution: {bytes_per_cell} bytes/char, {bytes_per_row:,} bytes/row")
+    print()
+
+    # Legend
+    G = CHAR_GAME
+    L = CHAR_LIB
+    print("Legend:")
+    print(f"  Game:    {GAME_FILLED}{G}{G}{RESET} 4.3  "
+          f"{GAME_UNFILLED}{G}{G}{RESET} 4.1  "
+          f"{GAME_MIXED}{G}{G}{RESET} Mixed  "
+          f"{GAME_LEAF}{G}{G}{RESET} Leaf  "
+          f"{GAME_NOJR}{G}{G}{RESET} Data/NoRet")
+    print(f"  Library: {LIB_FILLED}{L}{L}{RESET} 4.3  "
+          f"{LIB_UNFILLED}{L}{L}{RESET} 4.1  "
+          f"{LIB_MIXED}{L}{L}{RESET} Mixed  "
+          f"{LIB_LEAF}{L}{L}{RESET} Leaf  "
+          f"{LIB_NOJR}{L}{L}{RESET} Data/NoRet")
+    print(f"  {GAP}  {RESET} = gap (no .s file)")
+    print()
+
+    # Print rows
+    for row in range(num_rows):
+        row_addr = ADDR_START + row * bytes_per_row
+        line = f"0x{row_addr:08X} "
+
+        prev_color = None
+        for col in range(cols):
+            cell_idx = row * cols + col
+            if cell_idx >= total_cells:
+                break
+
+            entry = cells[cell_idx]
+            if entry is None:
+                color = GAP
+                char = CHAR_GAP
+            else:
+                is_lib, cls = entry
+                color = COLOR_MAP.get((is_lib, cls), GAP)
+                char = CHAR_LIB if is_lib else CHAR_GAME
+
+            if color != prev_color:
+                line += color
+                prev_color = color
+            line += char
+
+        line += RESET
+        print(line)
+
+    print()
+
+    # Summary statistics
+    game_filled = sum(1 for r in results if not r["is_lib"] and r["classification"] == "FILLED")
+    game_unfilled = sum(1 for r in results if not r["is_lib"] and r["classification"] == "UNFILLED")
+    game_mixed = sum(1 for r in results if not r["is_lib"] and r["classification"] == "MIXED")
+    game_leaf = sum(1 for r in results if not r["is_lib"] and r["classification"] == "LEAF")
+    game_nojr = sum(1 for r in results if not r["is_lib"] and r["classification"] == "NO_JR_RA")
+    lib_filled = sum(1 for r in results if r["is_lib"] and r["classification"] == "FILLED")
+    lib_unfilled = sum(1 for r in results if r["is_lib"] and r["classification"] == "UNFILLED")
+    lib_leaf = sum(1 for r in results if r["is_lib"] and r["classification"] == "LEAF")
+    lib_nojr = sum(1 for r in results if r["is_lib"] and r["classification"] == "NO_JR_RA")
+
+    print("--- Function Counts ---")
+    print(f"  Game:    FILLED(4.3)={game_filled}  UNFILLED(4.1)={game_unfilled}  "
+          f"MIXED={game_mixed}  LEAF={game_leaf}  NO_JR_RA={game_nojr}")
+    print(f"  Library: FILLED(4.3)={lib_filled}  UNFILLED(4.1)={lib_unfilled}  "
+          f"LEAF={lib_leaf}  NO_JR_RA={lib_nojr}")
+
+    # Byte counts
+    game_43_bytes = sum(r["size"] for r in results if not r["is_lib"] and r["classification"] in ("FILLED",))
+    game_41_bytes = sum(r["size"] for r in results if not r["is_lib"] and r["classification"] in ("UNFILLED",))
+    game_mixed_bytes = sum(r["size"] for r in results if not r["is_lib"] and r["classification"] == "MIXED")
+    game_leaf_bytes = sum(r["size"] for r in results if not r["is_lib"] and r["classification"] == "LEAF")
+    lib_bytes = sum(r["size"] for r in results if r["is_lib"])
+
+    print()
+    print("--- Byte Counts ---")
+    print(f"  Game PsyQ 4.3: {game_43_bytes:,} bytes ({game_43_bytes*100/total_range:.1f}%)")
+    print(f"  Game PsyQ 4.1: {game_41_bytes:,} bytes ({game_41_bytes*100/total_range:.1f}%)")
+    print(f"  Game Mixed:     {game_mixed_bytes:,} bytes ({game_mixed_bytes*100/total_range:.1f}%)")
+    print(f"  Game Leaf:      {game_leaf_bytes:,} bytes ({game_leaf_bytes*100/total_range:.1f}%)")
+    print(f"  Library:        {lib_bytes:,} bytes ({lib_bytes*100/total_range:.1f}%)")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Analyze delay slots in assembly files")
+    parser.add_argument("--map", action="store_true",
+                        help="Show colored terminal visualization")
+    parser.add_argument("--width", type=int, default=160,
+                        help="Terminal width for --map (default: 160)")
+    args = parser.parse_args()
+
+    if not ASM_DIR.exists():
+        print(f"Error: {ASM_DIR} not found", file=sys.stderr)
+        sys.exit(1)
+
+    results = load_all()
+
+    if args.map:
+        cmd_map(results, width=args.width)
+    else:
+        cmd_list(results)
+
+
+if __name__ == "__main__":
+    main()
