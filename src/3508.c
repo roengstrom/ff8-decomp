@@ -6,19 +6,37 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80012D5C);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80012E04);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80012EAC);
+extern s32 D_80075058;
+
+void func_80012EAC(s32 a0) {
+    D_80075058 = a0;
+    func_8001A1E8(0x10);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80012ED4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80012F30);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001302C);
+void func_8001302C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    D_80075058 = a0 & 0x3FF;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    *(&D_80075058 + 3) = a3 & 0x7F;
+    func_8001A1E8(0x20);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001307C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80013100);
+void func_80013100(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    func_8001A1E8(0x21);
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001313C);
+void func_8001313C(s32 a0) {
+    D_80075058 = a0 & 0x3FF;
+    func_8001A1E8(0x30);
+}
 
 // calls func_8001A1E8 with 0x44
 // TODO: maspsx schedules addiu $sp into load delay slot instead of jr delay slot
@@ -32,17 +50,29 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80013300);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001336C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001344C);
+void func_8001344C(s32 a0) {
+    D_80075058 = a0 & 0x7F;
+    func_8001A1E8(0xA8);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80013478);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80013710);
+void func_80013710(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0x7F;
+    func_8001A1E8(0xC0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80013744);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80013A3C);
+void func_80013A3C(void) {
+    func_8001A1E8(0xF1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80013A5C);
+void func_80013A5C(s32 a0, s32 a1) {
+    do {
+    } while (func_80014860(a0, a1) == 1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80013AA8);
 
@@ -257,7 +287,12 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8001BAA8);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001C1A8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001C1DC);
+extern u8 D_80073E68[];
+
+void func_8001C1DC(u8 *a0, s32 a1) {
+    *(s16 *)(a0 + 0x66) = a1;
+    func_8001C1A8((s32)a0, (s32)(D_80073E68 + a1 * 16), *(s32 *)(D_80073E68 + a1 * 16));
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001C214);
 
@@ -499,7 +534,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80027220);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80027360);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800273D8);
+extern u8 D_80082DD0[];
+
+void func_800273D8(s32 idx) {
+    u8 *entry = D_80082DD0 + idx * 196;
+    entry[0x19] = 1;
+    entry[0x0A] = 1;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80027408);
 
@@ -945,7 +986,9 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8002E4AC);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002E744);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002E7A4);
+u16 func_8002E7A4(s32 a0) {
+    return func_8002E4AC(a0, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002E7C4);
 
@@ -1362,7 +1405,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80038760);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800387F8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003882C);
+s32 func_8003882C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    func_80038760(3, a0, a1, a2, a3);
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80038868);
 
