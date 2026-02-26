@@ -84,24 +84,37 @@ def is_library(name):
 def classify_returns(insns):
     """Classify each jr $ra in the instruction list.
 
+    For merged blocks (multiple functions under one splat label), splits at
+    jr $ra boundaries so each sub-function's leaf/non-leaf status is determined
+    only from instructions within its own range. This prevents a non-leaf
+    function's sw $ra from leaking into the next merged function and making
+    a leaf return look non-leaf.
+
     Returns a list of (addr, slot_type, is_nonleaf) tuples where:
       slot_type: "FILLED", "UNFILLED", or "OTHER"
-      is_nonleaf: True if sw $ra appears before this return (within 50 insns)
+      is_nonleaf: True if sw $ra appears within this sub-function's range
     """
-    returns = []
+    # Find all jr $ra positions
+    jr_positions = []
     for i, (addr, mnem, ops) in enumerate(insns):
-        if mnem != "jr" or "$ra" not in ops:
-            continue
-        if i + 1 >= len(insns):
-            continue
+        if mnem == "jr" and "$ra" in ops and i + 1 < len(insns):
+            jr_positions.append(i)
 
-        delay_mnem = insns[i + 1][1]
-        delay_ops = insns[i + 1][2]
+    if not jr_positions:
+        return []
 
-        # Check if non-leaf: look for sw $ra within 50 instructions before
+    returns = []
+    subfunc_start = 0
+
+    for jr_idx in jr_positions:
+        delay_idx = jr_idx + 1
+        delay_mnem = insns[delay_idx][1]
+        delay_ops = insns[delay_idx][2]
+
+        # Check for sw $ra only within this sub-function's instruction range
         is_nonleaf = any(
             insns[j][1] == "sw" and "$ra" in insns[j][2]
-            for j in range(max(0, i - 50), i)
+            for j in range(subfunc_start, jr_idx)
         )
 
         if delay_mnem == "nop":
@@ -111,7 +124,10 @@ def classify_returns(insns):
         else:
             slot_type = "OTHER"
 
-        returns.append((addr, slot_type, is_nonleaf))
+        returns.append((insns[jr_idx][0], slot_type, is_nonleaf))
+
+        # Next sub-function starts after the delay slot
+        subfunc_start = delay_idx + 1
 
     return returns
 
