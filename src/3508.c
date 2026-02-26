@@ -25,7 +25,18 @@ void func_8001302C(s32 a0, s32 a1, s32 a2, s32 a3) {
     func_8001A1E8(0x20);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001307C);
+s32 func_8001307C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 result = func_80014740(a0);
+    if (result != 0) {
+        return result;
+    }
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    *(&D_80075058 + 3) = a3 & 0x7F;
+    func_8001A1E8(0x24);
+    return a0;
+}
 
 void func_80013100(s32 a0, s32 a1) {
     D_80075058 = a0;
@@ -92,7 +103,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800147A8);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80014834);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80014860);
+s32 func_80014860(s32 a0, s32 a1) {
+    if (func_80014740(a0) != 0) {
+        return -1;
+    }
+    func_800148B0(a0, a1, *(s32 *)(a0 + 0x18), *(s32 *)(a0 + 0x10));
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800148B0);
 
@@ -251,7 +268,15 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80017DB0);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80018158);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001A198);
+void func_8001A198(s32 a0) {
+    s32 current;
+    func_8003ED54(&current);
+    if (current != a0) {
+        SpuSetReverb(0);
+        SpuSetReverbModeType(a0 | 0x100);
+        SpuSetReverb(1);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001A1E8);
 
