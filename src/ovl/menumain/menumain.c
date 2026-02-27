@@ -348,7 +348,10 @@ void func_801F1CAC(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F1CE8);
+s32 func_801F1CE8(s32 a0, s32 a1) {
+    u32 *base = (u32 *)(D_801FAB38 + a0 * 8);
+    return (base[a1 / 32] & (1 << (a1 & 0x1F))) != 0;
+}
 
 void func_801F1D2C(void) {
 }
