@@ -1,0 +1,53 @@
+name: menumain.ovl
+sha1: c5c81139efd5e629cf1b3f80f90e8eb012c4dafa
+options:
+  basename: menumain
+  target_path: original/menumain.ovl
+  elf_path: build/ovl/menumain/menumain.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menumain
+  src_path: src/ovl/menumain
+  build_path: build/ovl/menumain
+
+  # Linker
+  ld_script_path: config/menumain.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menumain.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menumain.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menumain.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menumain
+    type: code
+    start: 0x0
+    vram: 0x801EF800
+    subsegments:
+      - [0x0, c, menumain]
+      - [0x84E4, rodata]
+      - [0x8BB8, data]
+  - [0xAA78]

@@ -156,4 +156,59 @@ setup-toolchain:
 	mkdir -p tools/psyq4.3
 	tar xzf /tmp/psyq4.3.tar.gz --strip-components=1 -C tools/psyq4.3
 
-.PHONY: all build verify setup setup-toolchain split clean permute
+### Overlay: menumain.ovl ###
+MENUMAIN_YAML     := config/menumain.ovl.yaml
+MENUMAIN_DIR      := build/ovl/menumain
+MENUMAIN_ASM_DIR  := asm/ovl/menumain
+MENUMAIN_LD       := config/menumain.ovl.ld
+MENUMAIN_TARGET   := original/menumain.ovl
+MENUMAIN_ELF      := $(MENUMAIN_DIR)/menumain.elf
+MENUMAIN_BIN      := $(MENUMAIN_DIR)/menumain.ovl
+
+MENUMAIN_ASM_SRCS := $(wildcard $(MENUMAIN_ASM_DIR)/*.s) $(wildcard $(MENUMAIN_ASM_DIR)/data/*.s)
+MENUMAIN_ASM_OBJS := $(patsubst $(MENUMAIN_ASM_DIR)/%.s,$(MENUMAIN_DIR)/$(MENUMAIN_ASM_DIR)/%.o,$(MENUMAIN_ASM_SRCS))
+MENUMAIN_C_SRCS   := $(wildcard src/ovl/menumain/*.c)
+MENUMAIN_C_OBJS   := $(patsubst src/ovl/menumain/%.c,$(MENUMAIN_DIR)/src/ovl/menumain/%.o,$(MENUMAIN_C_SRCS))
+MENUMAIN_ALL_OBJS := $(MENUMAIN_ASM_OBJS) $(MENUMAIN_C_OBJS)
+
+MENUMAIN_LDFLAGS  := -T $(MENUMAIN_LD) \
+                     -T config/undefined_funcs_auto.menumain.txt \
+                     -T config/undefined_syms_auto.menumain.txt \
+                     --no-check-sections \
+                     -Map $(MENUMAIN_DIR)/menumain.map
+
+split-menumain:
+	$(SPLAT) split $(MENUMAIN_YAML)
+
+$(MENUMAIN_DIR)/$(MENUMAIN_ASM_DIR)/%.o: $(MENUMAIN_ASM_DIR)/%.s
+	@mkdir -p $(dir $@)
+	$(AS) $(ASFLAGS) -o $@ $<
+
+$(MENUMAIN_DIR)/src/ovl/menumain/%.o: src/ovl/menumain/%.c
+	@mkdir -p $(dir $@)
+	SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(MENUMAIN_DIR)/$(*F).s && \
+	cat $(MENUMAIN_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@
+
+$(MENUMAIN_ELF): $(MENUMAIN_ALL_OBJS) $(MENUMAIN_LD)
+	@mkdir -p $(dir $@)
+	$(LD) $(MENUMAIN_LDFLAGS) -o $@ $(MENUMAIN_ALL_OBJS)
+
+$(MENUMAIN_BIN): $(MENUMAIN_ELF)
+	$(OBJCOPY) -O binary $< $@
+
+build-menumain: $(MENUMAIN_BIN)
+
+verify-menumain: $(MENUMAIN_BIN)
+	@echo "Verifying menumain.ovl..."
+	@BUILT=$$(sha1sum $(MENUMAIN_BIN) | cut -d' ' -f1) && \
+	ORIG=$$(sha1sum $(MENUMAIN_TARGET) | cut -d' ' -f1) && \
+	echo "  Original: $$ORIG" && \
+	echo "  Built:    $$BUILT" && \
+	if [ "$$BUILT" = "$$ORIG" ]; then \
+		echo "MATCH!"; \
+	else \
+		echo "MISMATCH!"; \
+		exit 1; \
+	fi
+
+.PHONY: all build verify setup setup-toolchain split clean permute split-menumain build-menumain verify-menumain
