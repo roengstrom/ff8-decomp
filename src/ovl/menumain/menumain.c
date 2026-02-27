@@ -276,7 +276,10 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F1F98);
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F202C);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F21D0);
+s32 func_801F21D0(s32 a0) {
+    s32 base = (s32)D_80077378;
+    return *(u16 *)(base + a0 * 152 + 0x526);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F21FC);
 
@@ -516,7 +519,10 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F784C);
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F78D8);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F7928);
+void func_801F7928(void) {
+    s32 val = D_80077E5C & 2;
+    func_8001327C(val != 0);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F7954);
 
