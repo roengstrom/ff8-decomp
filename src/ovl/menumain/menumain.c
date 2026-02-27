@@ -411,7 +411,7 @@ void func_801F22A8(void) {
     s32 result = 0;
     s32 i;
     s32 base;
-    asm("" : "+r"(result));
+    REGALLOC_BARRIER(result);
     i = 0;
     base = (s32)D_80077378;
 
