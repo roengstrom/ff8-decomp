@@ -53,7 +53,10 @@ extern u8 D_801FAB88[];
 extern u16 D_8007737C;
 extern s32 D_80083848;
 extern u8 D_801FAB00[];
+extern u8 D_801F7FB0[];
+extern u8 D_801F7F74[];
 
+u8 *func_801F08AC(u8 *, s32);
 s32 func_8002E744(s32);
 void func_801F1A40(s32);
 s32 func_801F179C(void *, void *);
@@ -166,7 +169,20 @@ void func_801F0884(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F08AC);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F08D4);
+u8 *func_801F08D4(s32 a0, s32 a1, s32 a2, s32 a3) {
+    u8 *ptr;
+    if (a0) {
+        ptr = (u8 *)0x801E0000;
+    } else {
+        ptr = D_801F7FB0;
+    }
+    if (!ptr) return D_801F7F74;
+    ptr = func_801F08AC(ptr, a1);
+    if (!ptr) return D_801F7F74;
+    ptr = func_801F08AC(ptr, a2 * 2 + a3);
+    if (ptr) return ptr;
+    return D_801F7F74;
+}
 
 void func_801F0948(s32 a0) {
     D_801FAAE0 = a0;
