@@ -426,7 +426,24 @@ void func_80023828(void) {
     } while (i < 16);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80023888);
+void func_80023888(void) {
+    extern u8 D_80078DF8;
+    extern u8 D_80077378[];
+    s32 i;
+    s32 base;
+    s32 ptr;
+
+    D_80078DF8 = 0;
+    i = 0;
+    base = (s32)D_80077378;
+    do {
+        ptr = i + base;
+        func_80022E08(*(u8 *)(ptr + 0xAF4), i);
+        func_800231E0(*(u8 *)(ptr + 0xAF4), i);
+        i++;
+    } while (i < 3);
+    func_80023828();
+}
 
 extern u8 D_80078658;
 
@@ -1277,7 +1294,32 @@ void func_8002DE74(s32 idx, s32 val) {
     p[0x2F] = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002DE94);
+// init_sfx_entity_slot - zeroes struct fields, calls 9 setup functions with defaults
+void func_8002DE94(a0)
+s32 a0;
+{
+    s32 a1 = 0;
+    u8 *entry = D_80082FF0 + a0 * 60;
+    *(s16 *)(entry + 0x14) = 0;
+    *(u8 *)(entry + 0x19) = 0;
+    *(u8 *)(entry + 0x2F) = 0;
+    func_8002D6AC(a0, a1);
+    func_8002CA58(a0, 0x1000);
+    func_8002CA10(a0, 0);
+    func_8002DD78(a0, 3);
+    func_8002CA7C(a0, 0);
+    func_8002CA9C(a0, 0);
+    func_8002DDFC(a0, 6);
+    {
+        s16 buf[4];
+        buf[0] = 0x40;
+        buf[1] = 0x40;
+        buf[2] = 0x80;
+        buf[3] = 0x80;
+        func_8002E064(a0, buf);
+    }
+    func_8002C868(a0, 0x1000);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002DF5C);
 
@@ -1569,7 +1611,22 @@ s32 func_80031FA8(void) {
     return 0x4000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80031FB0);
+// double-buffer flip: switch OT buffer, clear tag, init linked list
+void func_80031FB0(void) {
+    extern s32 D_80083918;
+    extern s32 D_80083920[];
+    s32 buf;
+    s32 ptr;
+
+    buf = D_80083920[0];
+    if (D_80083918 == buf) {
+        buf = D_80083920[1];
+    }
+    D_80083918 = buf;
+    ClearOTag((u32 *)(buf + 0x70), 2);
+    ptr = D_80083918;
+    *(s32 *)(ptr + 0x78) = ptr + 0x7C;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80032010);
 
