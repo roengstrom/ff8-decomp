@@ -1021,7 +1021,25 @@ void func_801F5340(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F537C);
+typedef struct { s32 w0, w1, w2, w3; } CopyBlock16;
+
+/** @brief Recalculate stats for a party slot and copy result table to dst. */
+void func_801F537C(s32 a0, CopyBlock16 *a1) {
+    CopyBlock16 *src;
+    CopyBlock16 *end;
+
+    func_801F5300();
+    func_801F5190(a0);
+
+    src = (CopyBlock16 *)D_80078720;
+    end = (CopyBlock16 *)((u8 *)D_80078720 + 0x1D0);
+    do {
+        *a1++ = *src++;
+    } while (src != end);
+
+    func_801F5340();
+    func_80023888();
+}
 
 /** @brief Recalculate stats for a single party slot after swap. */
 void func_801F5400(s32 a0) {
