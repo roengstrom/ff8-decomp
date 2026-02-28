@@ -2853,7 +2853,11 @@ INCLUDE_ASM("asm/nonmatchings/1C38", ApplyTransposeMatrixLV);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", PadInit);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", PadRead);
+u32 PadRead(void) {
+    extern u32 D_8008A6D0;
+    PAD_dr();
+    return ~D_8008A6D0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", PadStop);
 
