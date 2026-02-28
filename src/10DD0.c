@@ -754,9 +754,21 @@ s32 a0;
     return *(u8 *)(r1 * 4 + base + r2 + 0x2C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80028A98);
+void func_80028A98(s32 a0, u8 a1) {
+    extern u8 D_80082FB4[];
+    s32 base = (s32)D_80082FB4;
+    s32 r1 = func_800287F4(a0);
+    s32 r2 = func_80028810(a0);
+    *(u8 *)(r1 * 4 + base + r2 + 0x2C) = a1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80028AF8);
+void func_80028AF8(s32 a0, u8 a1) {
+    extern u8 D_80082FB4[];
+    s32 base = (s32)D_80082FB4;
+    s32 r1 = func_800287F4(a0);
+    s32 r2 = func_80028810(a0);
+    *(u8 *)(r1 * 4 + base + r2 + 0x34) = a1;
+}
 
 void func_80028B58(s32 a0) { func_80028A98(a0, 1); }
 

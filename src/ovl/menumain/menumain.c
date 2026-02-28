@@ -71,7 +71,7 @@ extern u8 D_80078D38[];
 
 u8 *func_801F08AC(u8 *, s32);
 s32 func_8002E744(s32);
-void func_801F1A40(s32);
+s32 func_801F1A40(s32);
 s32 func_801F179C(void *, void *);
 s32 func_801F42A4();
 s32 func_801F3FE8();
@@ -521,7 +521,24 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F1924);
 /* Cursor/Input Handling                                                    */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F1A40);
+/** @brief Panel input state machine: advance from idle to active. */
+s32 func_801F1A40(s32 a0) {
+    s32 ret = 1;
+    switch (*(u16 *)(a0 + 0x10)) {
+    case 0:
+        *(u16 *)(a0 + 0x10) = ret;
+        break;
+    case 1:
+        if (func_801F0D84() != 0) {
+            break;
+        }
+        func_80035C54(1);
+        break;
+    default:
+        break;
+    }
+    return ret;
+}
 
 /** @brief Default panel callback (identity, returns a2 unchanged). */
 s32 func_801F1AA4(s32 a0, s32 a1, s32 a2) {
@@ -1478,7 +1495,16 @@ s32 func_801F79F8(s32 a0) {
     return D_80077E5F & a0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F7A08);
+/** @brief Update party-data flag bit 0x40 based on slot 0 status. */
+void func_801F7A08(void) {
+    if (func_80027EC8(0) == 0xFF) {
+        s32 base = (s32)D_80077378;
+        *(u16 *)(base + 0xAE4) |= 0x40;
+    } else {
+        s32 base = (s32)D_80077378;
+        *(u16 *)(base + 0xAE4) &= 0xFFBF;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F7A54);
 
