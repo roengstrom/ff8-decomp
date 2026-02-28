@@ -381,7 +381,36 @@ void func_80022C5C(s32 a0) {
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80022CDC);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80022D78);
+void func_80022D78(s32 a0) {
+    s32 i;
+
+    for (i = 0; i < 0x20; i++) {
+        *(u8 *)(a0 + i * 5 + 0x84) = 0;
+        *(u8 *)(a0 + i * 5 + 0x85) = 0;
+        *(u8 *)(a0 + i * 5 + 0x86) = 0;
+        *(u8 *)(a0 + i * 5 + 0x83) = 0;
+        *(u8 *)(a0 + i * 5 + 0x82) = 0;
+    }
+
+    for (i = 0; i < 0x10; i++) {
+        *(u8 *)(a0 + i * 5 + 0x124) = 0;
+        *(u8 *)(a0 + i * 5 + 0x125) = 0;
+        *(u8 *)(a0 + i * 5 + 0x126) = 0;
+        *(u8 *)(a0 + i * 5 + 0x123) = 0;
+        *(u8 *)(a0 + i * 5 + 0x122) = 0;
+    }
+
+    for (i = 0; i < 4; i++) {
+        *(u8 *)(a0 + i * 4 + 0x20) = 0;
+        *(u8 *)(a0 + i * 4 + 0x21) = 0;
+        *(u8 *)(a0 + i * 4 + 0x1F) = 0;
+        *(u8 *)(a0 + i * 4 + 0x1E) = 0;
+    }
+
+    *(u8 *)(a0 + 0x1C) = 0;
+    *(u8 *)(a0 + 0x1D) = 0;
+    *(u16 *)(a0 + 0x14) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80022E08);
 
@@ -795,7 +824,35 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80028B98);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80028CB4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80028F3C);
+s32 func_80028F3C(s32 a0) {
+    s32 counter;
+
+    counter = 0;
+    do {
+        func_8002882C(a0);
+        if (_card_load(a0) != 0) {
+            s32 result = func_800288F8();
+            switch (result) {
+            case 0:
+                func_80028AF8(a0, 0);
+                func_80028A98(a0, 0);
+                return 0;
+            case 3:
+                func_80028AF8(a0, 1);
+                func_80028B58(a0);
+                return 2;
+            case 2:
+                func_80028B58(a0);
+                return 3;
+            default:
+                func_80028B58(a0);
+                return 4;
+            }
+        }
+        counter++;
+    } while (counter < 0xB4);
+    return 4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80029028);
 
