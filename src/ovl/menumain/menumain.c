@@ -92,7 +92,13 @@ void func_80027F38(s32, s32, s32);
 extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
 extern s32 D_8005F134;
+extern s32 D_8005F138;
 void func_80049074(s32, s32);
+void func_80048C50(s32);
+void func_80042634(s32);
+void func_80049480(s32);
+void func_800492B4(s32);
+void func_80049244(s32);
 
 /* ======================================================================== */
 /* Panel/Window Rendering                                                   */
@@ -205,7 +211,27 @@ void func_801F0038(void)
     *((s32 *) (new_var + 0x9C)) = temp;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F00A0);
+/**
+ * @brief Initialize display system and link the active panel.
+ *
+ * Resets the display pipeline, sets D_801FA3C0 as both
+ * the active window (D_8005F138) and draw-list head (D_8005F134),
+ * then initializes rendering from the panel's draw-list at offset 0x70.
+ */
+void func_801F00A0(void)
+{
+    s32 val;
+    s32 arg;
+    func_80048C50(0);
+    func_80042634(0);
+    func_80049480(D_801FA3C0);
+    func_800492B4(D_801FA3C0 + 0x14);
+    val = D_801FA3C0;
+    D_8005F138 = val;
+    arg = *(s32 *)(val + 0x70);
+    D_8005F134 = val + 0x14;
+    func_80049244(arg);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F010C);
 
