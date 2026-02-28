@@ -100,9 +100,39 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80021B58);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80021C10);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80022028);
+s32 func_80022028(s32 a0, s32 a1) {
+    extern u8 D_80077378[];
+    extern u8 D_80078E00[];
+    s32 base1 = (s32)D_80077378;
+    s32 entry = base1 + a0 * 152;
+    s32 base2;
+    u8 idx;
+    u8 val;
+    s32 result1;
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800220E4);
+    base2 = (s32)D_80078E00;
+    idx = *(u8 *)(entry + 0x4F3);
+    val = *(u8 *)(base2 + idx * 60 + 0x23A);
+
+    result1 = func_80021B58(a0, a1);
+    return func_800231B0(*(u8 *)(base2 + result1 * 12 + 0x35BF) + func_800219B8(val, func_80021944(a0, idx)));
+}
+
+s32 func_800220E4(s32 a0, s32 a1) {
+    extern u8 D_80077378[];
+    extern u8 D_80078E00[];
+    s32 base1 = (s32)D_80077378;
+    s32 entry = base1 + a0 * 152;
+    s32 base2;
+    u8 idx;
+    u8 val;
+
+    base2 = (s32)D_80078E00;
+    idx = *(u8 *)(entry + 0x4F2);
+    val = *(u8 *)(base2 + idx * 60 + 0x239);
+
+    return func_800231B0((a1 >> 2) + func_800219B8(val, func_80021944(a0, idx)));
+}
 
 s32 func_8002216C(s32 a0) {
     extern u8 D_80077378[];
@@ -113,7 +143,21 @@ s32 func_8002216C(s32 a0) {
     return *(u8 *)(base2 + idx * 60 + 0x23C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800221B4);
+s32 func_800221B4(s32 a0) {
+    extern u8 D_80077378[];
+    extern u8 D_80078E00[];
+    s32 base1 = (s32)D_80077378;
+    s32 entry = base1 + a0 * 152;
+    s32 base2;
+    u8 idx;
+    u8 val;
+
+    base2 = (s32)D_80078E00;
+    idx = *(u8 *)(entry + 0x4F5);
+    val = *(u8 *)(base2 + idx * 60 + 0x23D);
+
+    return func_800219B8(val, func_80021944(a0, idx));
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80022228);
 
@@ -149,7 +193,21 @@ s32 func_80022370(s32 a0) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80022404);
+s32 func_80022404(s32 a0) {
+    extern u8 D_80077378[];
+    extern u8 D_80078E00[];
+    s32 base1 = (s32)D_80077378;
+    s32 entry = base1 + a0 * 152;
+    s32 base2;
+    u8 idx;
+    u8 val;
+
+    base2 = (s32)D_80078E00;
+    idx = *(u8 *)(entry + 0x4F6);
+    val = *(u8 *)(base2 + idx * 60 + 0x240);
+
+    return func_800219B8(val, func_80021944(a0, idx)) + 100;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8002247C);
 
