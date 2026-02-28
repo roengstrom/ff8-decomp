@@ -2142,7 +2142,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80038760);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800387F8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8003882C);
+s32 func_8003882C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    func_80038760(3, a0, a1, a2, a3);
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80038868);
 
