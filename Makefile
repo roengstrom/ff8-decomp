@@ -28,11 +28,11 @@ CCPSXFLAGS := -O2 -G0
 ### Per-toolchain settings ###
 # PsyQ 4.1: gcc 2.7.2-970404 + aspsx 2.67
 PSYQ41_SN_PATH   := $(PSYQ41_DIR)
-PSYQ41_MASPSXFLAGS := --aspsx-version=2.67 --expand-div
+PSYQ41_MASPSXFLAGS := --aspsx-version=2.67
 
 # PsyQ 4.3: gcc 2.8.0 + aspsx 2.77
 PSYQ43_SN_PATH   := $(PSYQ43_DIR)
-PSYQ43_MASPSXFLAGS := --aspsx-version=2.77 --expand-div
+PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
 PSYQ43_SRCS := src/3508.c
