@@ -90,6 +90,9 @@ s32 func_801F776C(s32, s32);
 void func_80027F38(s32, s32, s32);
 
 extern u8 D_801FA280[];
+extern s32 D_801FA3C0;
+extern s32 D_8005F134;
+void func_80049074(s32, s32);
 
 /* ======================================================================== */
 /* Panel/Window Rendering                                                   */
@@ -177,7 +180,30 @@ s32 func_801F0028(void) {
 /* Menu Panel/Window Management                                             */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F0038);
+/**
+ * @brief Open/advance the current menu panel window.
+ *
+ * If the active window pointer (D_801FA3C0) equals D_801FA280 base,
+ * advances it by 0xA0 bytes. Sets up the draw-list entry at
+ * offset 0x74 and links the panel into the global list (D_8005F134).
+ */
+void func_801F0038(void)
+{
+    s32 val = D_801FA3C0;
+    s32 base = D_801FA280;
+    s32 new_var;
+    s32 temp;
+    if (val == base) {
+        base = (s32)D_801FA280 + 0xA0;
+    }
+    D_801FA3C0 = base;
+    func_80049074(base + 0x74, 9);
+    new_var = D_801FA3C0;
+    temp = *((s32 *) (new_var + 0x98));
+    *((s32 *) (new_var + 0x70)) = new_var + 0x74;
+    D_8005F134 = new_var + 0x14;
+    *((s32 *) (new_var + 0x9C)) = temp;
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F00A0);
 
