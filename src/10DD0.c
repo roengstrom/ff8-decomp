@@ -75,13 +75,27 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_80022028);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800220E4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8002216C);
+s32 func_8002216C(s32 a0) {
+    extern u8 D_80077378[];
+    extern u8 D_80078E00[];
+    s32 base1 = (s32)D_80077378;
+    u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F5);
+    s32 base2 = (s32)D_80078E00;
+    return *(u8 *)(base2 + idx * 60 + 0x23C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_800221B4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80022228);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80022328);
+s32 func_80022328(s32 a0) {
+    extern u8 D_80077378[];
+    extern u8 D_80078E00[];
+    s32 base1 = (s32)D_80077378;
+    u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F6);
+    s32 base2 = (s32)D_80078E00;
+    return *(u16 *)(base2 + idx * 60 + 0x242) & 0x7F;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80022370);
 
