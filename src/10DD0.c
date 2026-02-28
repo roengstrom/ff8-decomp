@@ -2960,11 +2960,20 @@ void EVENT_OBJ_AC(void) {
 
 INCLUDE_ASM("asm/nonmatchings/1C38", EVENT_OBJ_D4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", CdStatus);
+u8 CdStatus(void) {
+    extern u8 D_8005D674;
+    return D_8005D674;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", CdMode);
+u8 CdMode(void) {
+    extern u8 D_8005D684;
+    return D_8005D684;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", CdLastCom);
+u8 CdLastCom(void) {
+    extern u8 D_8005D685;
+    return D_8005D685;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", CdLastPos);
 
@@ -3002,11 +3011,18 @@ INCLUDE_ASM("asm/nonmatchings/1C38", CdControlB);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_538);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", CdMix);
+s32 CdMix(s32 *a0) {
+    CD_vol(a0);
+    return 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", CdGetSector);
+s32 CdGetSector(void *a0, s32 a1) {
+    return CD_getsector(a0, a1) == 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", CdGetSector2);
+s32 CdGetSector2(void *a0, s32 a1) {
+    return CD_getsector2(a0, a1) == 0;
+}
 
 void CdDataCallback(a0) s32 a0; { DMACallback(3, a0); }
 
@@ -3090,7 +3106,9 @@ INCLUDE_ASM("asm/nonmatchings/1C38", ISO9660_OBJ_2A4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", ISO9660_OBJ_2B0);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", ISO9660_OBJ_2D8);
+s32 ISO9660_OBJ_2D8(char *a0, char *a1) {
+    return strncmp(a0, a1, 12) == 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", ISO9660_OBJ_2F8);
 
@@ -3313,7 +3331,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", firstfile2);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SetInitPadFlag);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", ReadInitPadFlag);
+s32 ReadInitPadFlag(void) {
+    extern s32 D_8005E97C;
+    return D_8005E97C;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", PAD_init);
 
@@ -3453,7 +3474,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", SetGraphDebug);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SetGraphQueue);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", GetGraphDebug);
+u8 GetGraphDebug(void) {
+    extern u8 D_8005E9EE;
+    return D_8005E9EE;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", DrawSyncCallback);
 
