@@ -2895,7 +2895,10 @@ void RestartCallback() { D_8005D54C->f6(); }
 extern u16 D_8005C4C6;
 u16 CheckCallback() { return D_8005C4C6; }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", GetIntrMask);
+u16 GetIntrMask(void) {
+    extern u16 *D_8005D554;
+    return *D_8005D554;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SetIntrMask);
 
@@ -2921,7 +2924,12 @@ INCLUDE_ASM("asm/nonmatchings/1C38", startIntrVSync);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", INTR_VB_OBJ_58);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", INTR_VB_OBJ_C4);
+void INTR_VB_OBJ_C4(s32 a0, s32 a1) {
+    extern s32 D_8005D56C[];
+    if (a1 != D_8005D56C[a0]) {
+        D_8005D56C[a0] = a1;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", INTR_VB_OBJ_F0);
 
@@ -2942,9 +2950,13 @@ INCLUDE_ASM("asm/nonmatchings/1C38", CdInit);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", EVENT_OBJ_74);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", EVENT_OBJ_84);
+void EVENT_OBJ_84(void) {
+    DeliverEvent(0xF0000003, 0x20);
+}
 
-INCLUDE_ASM("asm/nonmatchings/1C38", EVENT_OBJ_AC);
+void EVENT_OBJ_AC(void) {
+    DeliverEvent(0xF0000003, 0x40);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", EVENT_OBJ_D4);
 
@@ -3180,7 +3192,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", LIBPRESS_OBJ_560);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", LIBPRESS_OBJ_5E4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", LIBPRESS_OBJ_5F4);
+s32 LIBPRESS_OBJ_5F4(void) {
+    extern s32 *D_8005DB10;
+    return *D_8005DB10;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", LIBPRESS_OBJ_60C);
 
@@ -3532,7 +3547,10 @@ INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_1878);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_18F0);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_18F8);
+s32 SYS_OBJ_18F8(void) {
+    extern s32 *D_8005EAF4;
+    return *D_8005EAF4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_1910);
 
@@ -3570,7 +3588,9 @@ INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_2154);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_219C);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_21CC);
+void SYS_OBJ_21CC(s32 a0, s32 a1, s32 a2) {
+    SYS_OBJ_21F0(a0, a1, 0, a2);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", SYS_OBJ_21F0);
 
