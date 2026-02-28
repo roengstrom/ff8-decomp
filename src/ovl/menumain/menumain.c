@@ -55,6 +55,7 @@ extern s32 D_80083848;
 extern u8 D_801FAB00[];
 extern u8 D_801F7FB0[];
 extern u8 D_801F7F74[];
+extern u8 D_80078D38[];
 
 u8 *func_801F08AC(u8 *, s32);
 s32 func_8002E744(s32);
@@ -508,7 +509,20 @@ s32 func_801F2238(s32 a0) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F2240);
+s32 func_801F2240(s32 a0) {
+    u8 *entry = D_80078D38 + a0 * 12;
+    s16 val = *(s16 *)(entry);
+    s32 result = 0;
+    if (val <= 0) {
+        result = 1;
+    } else {
+        s32 limit = (s16)(*(u16 *)(entry + 2)) >> 2;
+        if (val < limit) {
+            result = 0x100;
+        }
+    }
+    return result;
+}
 
 s32 func_801F2298(void) {
     return D_801FABB8;
@@ -890,7 +904,14 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6888);
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6934);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6A5C);
+s32 func_801F6A5C(void) {
+    extern u8 D_80082DD0[];
+    s32 base = (s32)D_80082DD0;
+    s32 val = *(u16 *)(base + 0x9C2);
+    val = (val * 125 + 14) % 32768;
+    *(u16 *)(base + 0x9C2) = val;
+    return val;
+}
 
 void func_801F6AA4(s32 a0) {
     func_801F08D4(1, 3, a0, 0);

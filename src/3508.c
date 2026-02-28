@@ -52,7 +52,17 @@ void func_80012EAC(s32 a0) {
     func_8001A1E8(0x10);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80012ED4);
+void func_80012ED4(s32 a0) {
+    D_80075058 = a0;
+    func_8001A1E8(0x11);
+}
+
+void func_80012EFC(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    *(&D_80075058 + 2) = a2;
+    func_8001A1E8(0x14);
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80012F30);
 
@@ -370,9 +380,52 @@ s32 func_80015F4C(void) {
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80015FE0);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80016280);
+extern u8 D_80070D60[];
+extern s32 D_80073CA8;
+extern u8 *D_80073C34;
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80016300);
+void func_80016280(s32 a0) {
+    s32 base = (s32)D_80070D60;
+    s32 i = 32;
+    s32 replacement = 24;
+    s32 ptr = base + 0xF4;
+    do {
+        if (a0 == *(s32 *)ptr) {
+            *(s32 *)ptr = replacement;
+        }
+        i--;
+        ptr += 0x110;
+    } while (i != 0);
+    if (D_80073CA8 != 0) {
+        base = (s32)D_80073C34;
+        i = 32;
+        replacement = 24;
+        ptr = base + 0xF4;
+        do {
+            if (a0 == *(s32 *)ptr) {
+                *(s32 *)ptr = replacement;
+            }
+            i--;
+            ptr += 0x110;
+        } while (i != 0);
+    }
+}
+
+// search stride-0x110 array for match, check bitmask
+s32 func_80016300(u8 *a0, s32 a1, s32 a2) {
+    u32 i = 0;
+    s32 bit = 1;
+    do {
+        if (a2 == *(s32 *)(a0 + 0xF4)) {
+            if (a1 & (bit << i)) {
+                return 1;
+            }
+        }
+        i++;
+        a0 += 0x110;
+    } while (i < 0x20);
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80016344);
 
@@ -440,7 +493,22 @@ void func_80016FA8(void *a0, s32 a1) {
     func_8001C1DC(a0, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80017040);
+s32 func_80017040(u8 *a0, s32 a1) {
+    u32 i = 0;
+    s32 result = 0;
+    s32 bit = 1;
+    do {
+        if (a1 & (bit << i)) {
+            s32 val = *(s32 *)(a0 + 0xF4);
+            if ((u32)val < 0x18) {
+                result |= (bit << val);
+            }
+        }
+        i++;
+        a0 += 0x110;
+    } while (i < 0x20);
+    return result;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001708C);
 
@@ -450,7 +518,32 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_800174E4);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80017880);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80017A2C);
+void func_80017A2C(s32 a0) {
+    s32 base = (s32)D_80070D60;
+    s32 i = 32;
+    s32 replacement = 24;
+    s32 ptr = base + 0xF4;
+    do {
+        if (*(s32 *)ptr == a0) {
+            *(s32 *)ptr = replacement;
+        }
+        i--;
+        ptr += 0x110;
+    } while (i != 0);
+    if (D_80073CA8 != 0) {
+        base = (s32)D_80073C34;
+        i = 32;
+        replacement = 24;
+        ptr = base + 0xF4;
+        do {
+            if (*(s32 *)ptr == a0) {
+                *(s32 *)ptr = replacement;
+            }
+            i--;
+            ptr += 0x110;
+        } while (i != 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_80017AAC);
 
@@ -636,7 +729,15 @@ INCLUDE_ASM("asm/nonmatchings/1C38", func_8001EC0C);
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001EDD4);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_8001F0C4);
+s32 func_8001F0C4(s32 *counter) {
+    s32 base = (s32)D_80077298;
+    *(s32 *)(base + 0x28) += 1;
+    (*counter)++;
+    if ((u32)(*(s32 *)(base + 0x3C) - 1) < (u32)*counter) {
+        *counter = 0;
+    }
+    return *counter;
+}
 
 INCLUDE_ASM("asm/nonmatchings/1C38", func_8001F118);
 
