@@ -38,7 +38,7 @@ PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 PSYQ43_SRCS := src/3508.c
 
 # Source files compiled without -G0 (default is -G0)
-NO_G0_SRCS := src/1C38.c
+NO_G0_SRCS := src/1D2C.c
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
@@ -69,7 +69,7 @@ ASM_SRCS := $(wildcard $(ASM_DIR)/*.s) $(wildcard $(ASM_DIR)/data/*.s)
 ASM_OBJS := $(patsubst $(ASM_DIR)/%.s,$(BUILD_DIR)/$(ASM_DIR)/%.o,$(ASM_SRCS))
 
 # C sources (compiled via CCPSX -S → maspsx → GAS)
-C_SRCS := $(wildcard $(SRC_DIR)/*.c)
+C_SRCS := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/psxsdk/*.c) $(wildcard $(SRC_DIR)/psxsdk/*/*.c)
 C_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/$(SRC_DIR)/%.o,$(C_SRCS))
 
 # All objects for linking
@@ -129,11 +129,9 @@ setup:
 	$(SPLAT) split $(SPLAT_YAML)
 
 # Re-run splat (regenerate asm + linker script)
-# After splat, patch the linker script to include 3508.o alongside 1C38.o
 split:
+	rm -rf asm
 	$(SPLAT) split $(SPLAT_YAML)
-	sed -i '/build\/src\/1C38\.o(\.\(text\|rodata\|data\|bss\))/p; s/1C38/3508/' $(LD_SCRIPT)
-	sed -i '/build\/src\/3508\.o(\.\(text\|rodata\|data\|bss\))/p; s/3508/10DD0/' $(LD_SCRIPT)
 
 clean:
 	rm -rf $(BUILD_DIR)

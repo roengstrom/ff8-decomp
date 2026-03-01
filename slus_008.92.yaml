@@ -38,6 +38,7 @@ options:
   data_string_guesser_level: 2
 
   # Misc
+  disassemble_all: True
   section_order: [".rodata", ".text", ".data", ".bss"]
   subalign: 2
   o_as_suffix: True
@@ -60,6 +61,21 @@ segments:
       - [0x9FC, rodata]
       - [0xF80, rodata]
       - [0x116C, rodata]
-      - [0x1C38, c, 1C38]
+      - [0x1D2C, c, 1D2C]
+      - [0x3508, c, 3508]
+      - [0x10DD0, c, 10DD0]
+      - [0x2D004, c, psxsdk/softfloat]
+      - [0x2D954, c, psxsdk/libspu]
+      - [0x2F524, c, psxsdk/libgte]
+      - [0x32D94, c, psxsdk/libetc/pad_init]
+      - [0x32E34, c, psxsdk/libetc]
+      - [0x33AF4, c, psxsdk/libcd]
+      - [0x36E74, c, psxsdk/libpress]
+      - [0x37984, c, psxsdk/libapi]
+      - [0x37FE4, c, psxsdk/libetc/pad]
+      - [0x38454, c, psxsdk/libc]
+      - [0x38E34, c, psxsdk/libgpu]
+      - [0x3E024, c, psxsdk/libcard]
+      - [0x3E7F4, c, psxsdk/libsnd]
       - [0x41EE8, data]
   - [0x191000]
