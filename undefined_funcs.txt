@@ -1,3 +1,7 @@
 /* Manually defined undefined symbols (not overwritten by splat) */
 /* func_89C9BDC8: misinterpreted data at start of text section */
 func_89C9BDC8 = 0x89C9BDC8;
+/* Mid-function labels referenced as data pointers by C code */
+D_8001167C = 0x8001167C;
+D_8001AD60 = 0x8001AD60;
+D_80035F70 = 0x80035F70;

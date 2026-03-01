@@ -1,15 +1,3 @@
-/**
- * @file menumain.c
- * @brief Main menu overlay (menumain.ovl) — the in-game pause menu.
- *
- * Handles the menu opened with Triangle during gameplay, showing:
- * - Party members with name, level, HP/status
- * - Submenus: Junction, Item, Magic, Status, GF, Ability, Switch,
- *   Card, Config, Tutorial, Save
- * - Location name, play time, SeeD rank, Gil
- *
- * Loads at 0x801EF800. PsyQ 4.1 toolchain.
- */
 #include "common.h"
 
 extern u8 D_801FA278;

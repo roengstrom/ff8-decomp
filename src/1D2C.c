@@ -1,14 +1,13 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80011438);
-
-// empty stub
 void func_8001152C(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", start);
+INCLUDE_ASM("asm/nonmatchings/1D2C", start);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800115F0);
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_800115F0);
+
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_8001167C);
 
 void InitGeom(void);
 void ResetCallback(void);
@@ -38,9 +37,9 @@ void func_800117FC(void) {
     InitGeom();
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80011870);
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_80011870);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800119D4);
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_800119D4);
 
 extern volatile u16 D_8005F14C;
 extern u32 D_80097410[];
@@ -156,11 +155,15 @@ void func_80011E18(void) {
         ;
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", main);
+INCLUDE_ASM("asm/nonmatchings/1D2C", main);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800127F8);
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_800127F8);
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_800129A4);
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_80012870);
+
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_800128F8);
+
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_800129A4);
 
 void PutDispEnv(void *);
 void PutDrawEnv(void *);
@@ -207,4 +210,6 @@ void func_80012B4C(void) {
     DrawOTag(&D_8005F128[(s16)D_8005F114]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/1C38", func_80012CC8);
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_80012CC8);
+
+INCLUDE_ASM("asm/nonmatchings/1D2C", func_80012CE8);
