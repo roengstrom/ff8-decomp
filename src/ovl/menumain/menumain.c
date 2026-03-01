@@ -81,12 +81,13 @@ extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
 extern s32 D_8005F134;
 extern s32 D_8005F138;
-void func_80049074(s32, s32);
-void func_80048C50(s32);
-void func_80042634(s32);
-void func_80049480(s32);
-void func_800492B4(s32);
-void func_80049244(s32);
+void ClearOTag(s32, s32);
+void DrawSync(s32);
+void VSync(s32);
+void PutDispEnv(s32);
+void PutDrawEnv(s32);
+void DrawOTag(s32);
+void ClearImage(s32, s32, s32, s32);
 
 /* ======================================================================== */
 /* Panel/Window Rendering                                                   */
@@ -191,7 +192,7 @@ void func_801F0038(void)
         base = (s32)D_801FA280 + 0xA0;
     }
     D_801FA3C0 = base;
-    func_80049074(base + 0x74, 9);
+    ClearOTag(base + 0x74, 9);
     new_var = D_801FA3C0;
     temp = *((s32 *) (new_var + 0x98));
     *((s32 *) (new_var + 0x70)) = new_var + 0x74;
@@ -210,15 +211,15 @@ void func_801F00A0(void)
 {
     s32 val;
     s32 arg;
-    func_80048C50(0);
-    func_80042634(0);
-    func_80049480(D_801FA3C0);
-    func_800492B4(D_801FA3C0 + 0x14);
+    DrawSync(0);
+    VSync(0);
+    PutDispEnv(D_801FA3C0);
+    PutDrawEnv(D_801FA3C0 + 0x14);
     val = D_801FA3C0;
     D_8005F138 = val;
     arg = *(s32 *)(val + 0x70);
     D_8005F134 = val + 0x14;
-    func_80049244(arg);
+    DrawOTag(arg);
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F010C);
@@ -250,7 +251,7 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F03E8);
  * @brief Upload two display regions to VRAM.
  *
  * Configures two 0x180-wide rectangular regions (at x=0 and x=0x200)
- * and transfers them via func_80048DD4/func_80048C50. Initializes
+ * and transfers them via ClearImage/DrawSync. Initializes
  * double-buffered VRAM areas for the menu background.
  */
 void func_801F0464(s32 a0) {
@@ -258,13 +259,13 @@ void func_801F0464(s32 a0) {
     buf[0] = 0;
     *(u16 *)((u8 *)buf + 4) = 0x180;
     *(u16 *)((u8 *)buf + 6) = a0;
-    func_80048DD4(buf, 0, 0, 0);
-    func_80048C50(0);
+    ClearImage(buf, 0, 0, 0);
+    DrawSync(0);
     buf[0] = 0x200;
     *(u16 *)((u8 *)buf + 4) = 0x180;
     *(u16 *)((u8 *)buf + 6) = a0;
-    func_80048DD4(buf, 0, 0, 0);
-    func_80048C50(0);
+    ClearImage(buf, 0, 0, 0);
+    DrawSync(0);
 }
 
 /* ======================================================================== */
