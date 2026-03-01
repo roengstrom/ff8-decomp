@@ -4,6 +4,7 @@
 
 - **No hack build steps.** The build must be a straightforward compile-and-link. Do not add extra build steps (fixup scripts, binary patching, post-processing, etc.) to work around mismatched output. If the output doesn't match, the decompiled code itself needs to be fixed — not papered over with build pipeline hacks. This is the #1 rule of the project.
 - **No proprietary data in the repo.** This is an open source project. ROMs, ISOs, and any extracted proprietary content must never be committed. Users provide their own copy of FF8 Disc 1.
+- **Document code with Doxygen.** When decomping or touching functions, add Doxygen-style comments (`/** ... */`) describing what the function does, its parameters, and return value. If you're not fully certain of a function's purpose, give your best estimation and note the uncertainty (e.g. `@note Purpose uncertain — appears to ...`).
 
 ## Target Binary
 

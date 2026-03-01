@@ -26,6 +26,14 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetGraphDebug);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetGraphQueue);
 
+/**
+ * @brief Returns the current GPU debug level.
+ *
+ * Reads the cached graphics debug level set by SetGraphDebug(). Controls
+ * the verbosity of GPU-related debug output.
+ *
+ * @return The current debug level (0 = no debug output).
+ */
 u8 GetGraphDebug(void) {
     extern u8 D_8005E9EE;
     return D_8005E9EE;
@@ -123,6 +131,14 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_1878);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_18F0);
 
+/**
+ * @brief Returns the current GPU system state value.
+ *
+ * Reads and returns the value from the internal GPU system state pointer,
+ * used by libgpu for tracking GPU hardware status.
+ *
+ * @return The current GPU system state word.
+ */
 s32 SYS_OBJ_18F8(void) {
     extern s32 *D_8005EAF4;
     return *D_8005EAF4;
@@ -164,6 +180,16 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_2154);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_219C);
 
+/**
+ * @brief Wrapper for GPU system operation with a default third parameter of 0.
+ *
+ * Calls the underlying SYS_OBJ_21F0 function, inserting 0 as the third
+ * argument. Part of the internal GPU command dispatching mechanism.
+ *
+ * @param a0 First parameter passed through to SYS_OBJ_21F0.
+ * @param a1 Second parameter passed through to SYS_OBJ_21F0.
+ * @param a2 Fourth parameter passed through to SYS_OBJ_21F0.
+ */
 void SYS_OBJ_21CC(s32 a0, s32 a1, s32 a2) {
     SYS_OBJ_21F0(a0, a1, 0, a2);
 }
@@ -202,6 +228,12 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_2AF4);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_2B04);
 
+/**
+ * @brief Empty stub in the GPU system object table.
+ *
+ * Placeholder function in the libgpu internal dispatch table.
+ * No-op in this SDK version.
+ */
 void SYS_OBJ_2B9C(void) {
 }
 

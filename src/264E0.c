@@ -1,17 +1,21 @@
 #include "common.h"
 
 
+/** @brief Empty stub (no-op). */
 void func_80035CE0(void) {
 }
 
 
+/** @brief Empty stub (no-op). */
 void func_80035CE8(void) {
 }
 
 
+/** @brief Wrapper that initiates a CD-ROM read via func_8003882C. */
 void func_80035CF0(void) { func_8003882C(); }
 
 
+/** @brief Wrapper that initiates an async CD-ROM read via func_80038868. */
 void func_80035D10(void) { func_80038868(); }
 
 
@@ -21,21 +25,31 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80035D30);
 extern s32 D_8008514C;
 extern volatile u16 D_80085208;
 
+/** @brief Wrapper that polls CD-ROM read completion via func_800393C8. */
 void func_80035E00(void) {
     func_800393C8();
 }
 
 
+/** @brief Wrapper that calls func_800389CC (CD-ROM related). */
 void func_80035E20(void) {
     func_800389CC();
 }
 
 
+/**
+ * @brief Get overlay load status.
+ * @return Current value of D_8008514C (overlay load result code).
+ */
 s32 func_80035E40(void) {
     return D_8008514C;
 }
 
 
+/**
+ * @brief Get a signed 16-bit game state value.
+ * @return D_80085208 sign-extended to s32.
+ */
 s32 func_80035E50(void) {
     return (s16)D_80085208;
 }
@@ -50,6 +64,20 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80035E8C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80035F70);
 
 
+/**
+ * @brief Enqueue an overlay load command into the circular command queue.
+ *
+ * Writes a 20-byte command entry to D_80085168, advances the write index
+ * (D_80085140) with wrap-around at 8 slots, and immediately dispatches
+ * via func_80035D30 if the queue was previously empty.
+ *
+ * @param cmd       Command type.
+ * @param overlay_id Overlay identifier.
+ * @param param     Command-specific parameter.
+ * @param load_addr Destination load address for the overlay.
+ * @param callback1 First callback address (or 0).
+ * @param callback2 Second callback address (or 0).
+ */
 void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
     extern s32 D_80085140;
     extern s32 D_80085144;
@@ -77,11 +105,28 @@ void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callba
 }
 
 
+/**
+ * @brief Enqueue a type-0x11 overlay load (dependency/sub-overlay).
+ * @param a0 Parameter passed as the command param.
+ * @param a1 Destination load address.
+ */
 void func_800360D0(s32 a0, s32 a1) {
     func_80035FF4(0, 0x11, a0, a1, 0, 0);
 }
 
 
+/**
+ * @brief Load an overlay by ID, resolving dependencies from load_table.
+ *
+ * Looks up the overlay descriptor from load_table (D_80053C58), extracts
+ * the dependency byte (low 8 bits), and loads the dependency first if
+ * it differs from the currently loaded dependency (D_8008520A). Then
+ * enqueues the main overlay load with callbacks a1 and a2.
+ *
+ * @param overlay_id Index into the overlay load table.
+ * @param a1         Callback address invoked on load completion (or 0).
+ * @param a2         Second callback address (or 0).
+ */
 void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
     extern u32 load_table[]; // D_80053C58
     extern s32 D_8008514C;
@@ -105,6 +150,11 @@ void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
 }
 
 
+/**
+ * @brief Enqueue an overlay load by explicit ID and address, no callbacks.
+ * @param a0 Overlay identifier.
+ * @param a1 Destination load address.
+ */
 void func_800361C0(s32 a0, s32 a1) {
     func_80035FF4(0, a0, -1, a1, 0, 0);
 }
@@ -114,16 +164,38 @@ extern u8 D_80035F70[];
 extern s32 D_80085140;
 extern s32 D_80085144;
 
+/**
+ * @brief Enqueue a type-0x11 overlay load with a completion callback.
+ *
+ * Uses func_80035F70 as the first callback and the load address as the
+ * second callback argument.
+ *
+ * @param a0 Parameter passed as the command param.
+ * @param a1 Destination load address (also used as callback2).
+ */
 void func_800361F8(s32 a0, s32 a1) {
     func_80035FF4(0, 0x11, a0, a1, (s32)D_80035F70, a1);
 }
 
 
+/**
+ * @brief Check if the overlay command queue is empty.
+ * @return 1 if the write index equals the read index (queue empty), 0 otherwise.
+ */
 s32 func_80036234(void) {
     return D_80085140 == D_80085144;
 }
 
 
+/**
+ * @brief Save VRAM framebuffer contents, clear, and optionally relocate a region.
+ *
+ * Stores the current framebuffer (D_80053CF0 rect) to 0x801BF000 in main RAM,
+ * clears the framebuffer area, and if a0 < 0, moves a 128x224 VRAM region
+ * from x=0x300 to x=0x180 (swaps display/draw pages).
+ *
+ * @param a0 If negative, performs the VRAM region move.
+ */
 void func_80036254(s32 a0) {
     extern u8 D_80053CF0[];
     DrawSync(0);
@@ -150,6 +222,7 @@ void func_80036254(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003631C);
 
 
+/** @brief Load overlay 0 (default/main module) with no callbacks. */
 void func_80036444(void) {
     func_80036104(0, 0, 0);
 }
@@ -163,6 +236,13 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003646C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80036690);
 
 
+/**
+ * @brief Initialize 128 card hand slots to empty.
+ *
+ * Sets each 2-byte slot: byte 0 (card ID) = 0, byte 1 (card type) = 0xFF.
+ *
+ * @param ptr Pointer to the card hand array (256 bytes).
+ */
 void func_800366E8(u8 *ptr) {
     s32 i = 0;
     do {
@@ -183,6 +263,16 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003678C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003685C);
 
 
+/**
+ * @brief Map a card ID to its rarity level (0-6).
+ *
+ * Divides the card ID range into 7 tiers:
+ * 0-19 = level 0, 20-38 = level 1, 39-57 = level 2,
+ * 58-77 = level 3, 78-82 = level 4, 83-91 = level 5, 92+ = level 6.
+ *
+ * @param a0 Card ID.
+ * @return Rarity level (0-6).
+ */
 s32 func_80036978(s32 a0) {
     s32 result;
     if (a0 < 0x14) {
@@ -216,6 +306,14 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80036C74);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80036D44);
 
 
+/**
+ * @brief Set the active party leader and clear the other two party slots.
+ *
+ * Writes a0 to D_80077378+0xAF4 (party slot 0), sets slots 1 and 2 to
+ * 0xFF (empty), then calls func_80023888 to apply the party change.
+ *
+ * @param a0 Character ID for the party leader.
+ */
 void func_80036E8C(s32 a0) {
     extern u8 D_80077378[];
     D_80077378[0xAF4] = a0;
@@ -228,6 +326,15 @@ void func_80036E8C(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80036EC0);
 
 
+/**
+ * @brief Build a 16-bit bitmask of GF availability flags.
+ *
+ * Iterates over 16 GF entries in D_80077378 (stride 0x44 = 68 bytes),
+ * checking bit 0 of byte +0x61 (availability flag). Sets the corresponding
+ * bit in the result mask for each available GF.
+ *
+ * @return Bitmask where bit N is set if GF N is available.
+ */
 u16 func_80036F60(void) {
     extern u8 D_80077378[];
     u16 mask;
@@ -250,6 +357,14 @@ u16 func_80036F60(void) {
 }
 
 
+/**
+ * @brief Copy a GF's current HP from the character table to the GF table.
+ *
+ * Reads a u16 from D_80078720 + a0*12 + 0x61A and writes it to
+ * D_80077378 + a0*68 + 0x62.
+ *
+ * @param a0 GF index (0-15).
+ */
 void func_80036FA4(s32 a0) {
     extern u8 D_80077378[];
     extern u8 D_80078720[];
@@ -304,6 +419,15 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003777C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800377B4);
 
 
+/**
+ * @brief Compute an XOR checksum over 127 bytes (memory card frame header).
+ *
+ * XORs each of the first 127 bytes together and returns the low 8 bits.
+ * Used to compute byte 0x7F of a memory card block header.
+ *
+ * @param a0 Pointer to the 128-byte memory card frame.
+ * @return XOR checksum (0-255).
+ */
 u32 func_8003786C(u8 *a0) {
     u32 acc = 0;
     s32 i = 0;
@@ -315,7 +439,10 @@ u32 func_8003786C(u8 *a0) {
 }
 
 
-// memzero_128 - zeros 128 bytes, matches MC header size (source: hyne)
+/**
+ * @brief Zero 128 bytes of memory (memory card frame header size).
+ * @param ptr Pointer to the buffer to clear.
+ */
 void func_80037894(u8 *ptr) {
     s32 count = 128;
     do {
@@ -324,6 +451,14 @@ void func_80037894(u8 *ptr) {
 }
 
 
+/**
+ * @brief Initialize a memory card header frame (block 0, "MC" magic).
+ *
+ * Zeroes the 128-byte frame, sets bytes 0-1 to 'M','C' (0x4D, 0x43),
+ * then computes and stores the XOR checksum at byte 0x7F.
+ *
+ * @param a0 Pointer to the 128-byte frame buffer.
+ */
 void func_800378B0(u8 *a0) {
     func_80037894(a0);
     a0[0] = 0x4D;
@@ -332,6 +467,14 @@ void func_800378B0(u8 *a0) {
 }
 
 
+/**
+ * @brief Initialize a memory card directory frame (used save slot, type 0xA0).
+ *
+ * Zeroes the 128-byte frame, sets byte 0 to 0xA0 (in-use flag),
+ * bytes 8-9 to 0xFF, then computes and stores the XOR checksum.
+ *
+ * @param a0 Pointer to the 128-byte frame buffer.
+ */
 void func_800378F4(u8 *a0) {
     func_80037894(a0);
     a0[0] = 0xA0;
@@ -341,6 +484,15 @@ void func_800378F4(u8 *a0) {
 }
 
 
+/**
+ * @brief Initialize a memory card free/unused directory frame.
+ *
+ * Zeroes the 128-byte frame, sets bytes 0-3 and 8-9 to 0xFF
+ * (marks the directory entry as free), then computes and stores
+ * the XOR checksum.
+ *
+ * @param a0 Pointer to the 128-byte frame buffer.
+ */
 void func_8003793C(u8 *a0) {
     func_80037894(a0);
     a0[0] = 0xFF;
@@ -440,6 +592,16 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_800385B0);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003863C);
 
 
+/**
+ * @brief Initialize the CD-ROM subsystem.
+ *
+ * Clears CD state variables (D_8008A3D8, D_8008A3D0). If a0 is nonzero,
+ * spins until CdInit succeeds, disables CD debug output, sends a
+ * CdControlB command (0xE = SetMode, double-speed 0x80), waits 3 vsyncs,
+ * then reads the disc ID via func_800385B0 and stores it.
+ *
+ * @param a0 If nonzero, perform full CD hardware initialization.
+ */
 void func_80038668(s32 a0) {
     extern u8 D_8008A3D8;
     extern s16 D_8008A3D0;
@@ -479,6 +641,18 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80038760);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800387F8);
 
 
+/**
+ * @brief Initiate a CD-ROM read operation.
+ *
+ * Delegates to func_80038760 with mode=3, passing through all four
+ * parameters (sector, count, destination, etc.).
+ *
+ * @param a0 First CD read parameter (e.g. sector number).
+ * @param a1 Second CD read parameter (e.g. sector count).
+ * @param a2 Third CD read parameter (e.g. destination address).
+ * @param a3 Fourth CD read parameter.
+ * @return Always 0.
+ */
 s32 func_8003882C(s32 a0, s32 a1, s32 a2, s32 a3) {
     func_80038760(3, a0, a1, a2, a3);
     return 0;
@@ -491,6 +665,18 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80038868);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800388CC);
 
 
+/**
+ * @brief Perform a synchronous (blocking) CD-ROM read.
+ *
+ * Initiates a CD read via func_8003882C, then busy-waits on func_800393C8
+ * until the read is complete.
+ *
+ * @param a0 First CD read parameter.
+ * @param a1 Second CD read parameter.
+ * @param a2 Third CD read parameter.
+ * @param a3 Fourth CD read parameter.
+ * @return Always 0.
+ */
 s32 func_80038920(s32 a0, s32 a1, s32 a2, s32 a3) {
     do {
     } while (func_8003882C(a0, a1, a2, a3) != 0);
@@ -500,6 +686,14 @@ s32 func_80038920(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
+/**
+ * @brief Perform a synchronous async-initiated CD-ROM read.
+ *
+ * Calls func_80038868 to start an async read, saves its return value,
+ * then busy-waits on func_800393C8 until the read completes.
+ *
+ * @return The value returned by func_80038868 (async read handle/status).
+ */
 s32 func_80038994(void) {
     s32 saved = func_80038868();
     do {
@@ -518,7 +712,10 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80038A60);
 
 
 extern s8 D_8008A3DA;
-// get D_8008A3DA (s8)
+/**
+ * @brief Get the current disc ID.
+ * @return Disc identifier as a signed byte (D_8008A3DA).
+ */
 s8 func_80038CE0(void) {
     return D_8008A3DA;
 }
@@ -527,16 +724,30 @@ s8 func_80038CE0(void) {
 extern u16 D_8008A3D2;
 extern u8 D_8008A3D9;
 
+/**
+ * @brief Set the current disc number.
+ * @param a0 Disc number to store in D_8008A3D2.
+ */
 void func_80038CF0(s32 a0) {
     D_8008A3D2 = a0;
 }
 
 
+/**
+ * @brief Get the current CD-ROM subsystem state.
+ * @return CD state machine phase (D_8008A3D9).
+ */
 u32 func_80038CFC(void) {
     return D_8008A3D9;
 }
 
 
+/**
+ * @brief Stop the CD-ROM drive and flush pending commands.
+ *
+ * Calls CdFlush to clear the CD command queue, then issues CdControl(9)
+ * which is the CdlPause command to halt disc spinning.
+ */
 void func_80038D0C(void) {
     CdFlush();
     CdControl(9, 0, 0);
@@ -546,6 +757,7 @@ void func_80038D0C(void) {
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038D3C);
 
 
+/** @brief Empty stub (no-op), placeholder in CD-ROM subsystem. */
 void func_80038D74(void) {
 }
 
@@ -556,6 +768,16 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80038D7C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038DD4);
 
 
+/**
+ * @brief Poll CD-ROM read state and handle completion or timeout.
+ *
+ * Checks CdSync(1, 0) for asynchronous read status:
+ * - Case 2 (complete): resets timeout counter, advances to state 5,
+ *   calls func_80038ED4 for post-read processing.
+ * - Case 5 (error/retry): increments timeout counter; if >= 0x708 (1800)
+ *   frames, resets counter and plays an error sound via func_8001313C.
+ *   Calls VSync(0) and returns to state 3 to retry.
+ */
 void func_80038E28(void) {
     extern u32 D_8008A3C8;
     extern u8 D_8008A3D9;
@@ -588,6 +810,15 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80038F88);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80039040);
 
 
+/**
+ * @brief Poll CD-ROM seek/read state and handle completion or timeout.
+ *
+ * Similar to func_80038E28 but for a different CD operation phase:
+ * - Case 2 (complete): resets timeout counter, advances to state 9,
+ *   calls func_80039140 for post-seek processing.
+ * - Case 5 (error/retry): increments timeout counter; if >= 0x708 (1800)
+ *   frames, resets and plays error sound. Returns to state 7 to retry.
+ */
 void func_80039094(void) {
     extern u32 D_8008A3C8;
     extern u8 D_8008A3D9;
@@ -620,6 +851,12 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80039218);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80039344);
 
 
+/**
+ * @brief Break (cancel) a CD-ROM read if it has completed.
+ *
+ * Polls CdSync(1, 0); if the result is 2 (complete), calls CdReadBreak
+ * to abort the read and resets the CD state machine to state 0 (idle).
+ */
 void func_80039388(void) {
     extern u8 D_8008A3D9;
     if (CdSync(1, 0) == 2) {
@@ -710,9 +947,11 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003A700);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003A7C4);
 
 
+/** @brief Wrapper that calls func_80039AA0. */
 void func_8003AB64(void) { func_80039AA0(); }
 
 
+/** @brief Wrapper that calls func_80039AB4. */
 void func_8003AB84(void) { func_80039AB4(); }
 
 
@@ -743,12 +982,25 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003AF88);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003AFD0);
 
 
+/**
+ * @brief Set a sound voice's data pointer and parameter byte.
+ * @param a0 Pointer to the voice control structure.
+ * @param a1 Value to store at offset +0x28 (data pointer/address).
+ * @param a2 Value to store at offset +0x34 (parameter byte).
+ */
 void func_8003B024(u8 *a0, s32 a1, s32 a2) {
     *(s32 *)(a0 + 0x28) = a1;
     a0[0x34] = a2;
 }
 
 
+/**
+ * @brief Set a sound voice's command, data pointer, and payload size.
+ * @param a0 Pointer to the voice control structure.
+ * @param a1 Command byte to store at offset +0x37.
+ * @param a2 Data pointer to store at offset +0x2C.
+ * @param a3 Payload size byte to store at offset +0x36.
+ */
 void func_8003B030(u8 *a0, s32 a1, s32 a2, s32 a3) {
     a0[0x37] = a1;
     *(s32 *)(a0 + 0x2C) = a2;
@@ -756,6 +1008,16 @@ void func_8003B030(u8 *a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
+/**
+ * @brief Dispatch a sound voice action based on the command type at offset +0x46.
+ *
+ * Reads the command type from a0[0x46] and dispatches:
+ * - 2: stop voice (func_8003BB98)
+ * - 3: set program from a0[0xE4] (func_8003BBAC)
+ * - 4: set volume from a0[0x47] (func_8003BBEC)
+ *
+ * @param a0 Pointer to the voice control structure.
+ */
 void func_8003B040(u8 *a0) {
     switch (a0[0x46]) {
         case 2:
@@ -774,6 +1036,16 @@ void func_8003B040(u8 *a0) {
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003B0C4);
 
 
+/**
+ * @brief Calculate the total data size for a sound voice's sequence data.
+ *
+ * Computes the size from three components at different offsets in the
+ * voice structure: a0[0xE3] (part1), a0[0xE9] (part2), and the u16
+ * at a0+0xEC (part3). The formula aligns parts to 4-byte boundaries.
+ *
+ * @param a0 Pointer to the voice control structure.
+ * @return Total computed data size in bytes.
+ */
 s32 func_8003B334(u8 *a0) {
     s32 v0 = a0[0xE3];
     s32 a1val = a0[0xE9];
@@ -813,6 +1085,16 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003BAC4);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003BB18);
 
 
+/**
+ * @brief Send a "play note" command (0x43) to a sound voice.
+ *
+ * Sets the command byte to 0x43, points the data pointer to the
+ * voice's own buffer at offset +0x24, writes the note value a1
+ * there, and sets the payload size to 1.
+ *
+ * @param a0 Pointer to the voice control structure.
+ * @param a1 Note value to play.
+ */
 void func_8003BB78(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x43;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
@@ -821,7 +1103,14 @@ void func_8003BB78(u8 *a0, s32 a1) {
 }
 
 
-// snd_voice_cmd_stop - cmd=0x45, clears data pointer and flag
+/**
+ * @brief Send a "stop" command (0x45) to a sound voice.
+ *
+ * Sets the command byte to 0x45, clears the data pointer to 0,
+ * and sets the payload size to 0.
+ *
+ * @param a0 Pointer to the voice control structure.
+ */
 void func_8003BB98(u8 *a0) {
     *(u8 *)(a0 + 0x37) = 0x45;
     *(s32 *)(a0 + 0x2C) = 0;
@@ -829,7 +1118,15 @@ void func_8003BB98(u8 *a0) {
 }
 
 
-// snd_voice_cmd_set_program - cmd=0x4C, sets payload byte
+/**
+ * @brief Send a "set program" command (0x4C) to a sound voice.
+ *
+ * Sets the command byte to 0x4C, points the data pointer to offset +0x24,
+ * writes the program number a1 there, and sets the payload size to 1.
+ *
+ * @param a0 Pointer to the voice control structure.
+ * @param a1 Program/instrument number.
+ */
 void func_8003BBAC(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x4C;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
@@ -838,7 +1135,15 @@ void func_8003BBAC(u8 *a0, s32 a1) {
 }
 
 
-// snd_voice_cmd_set_pitch - cmd=0x46, sets payload byte
+/**
+ * @brief Send a "set pitch" command (0x46) to a sound voice.
+ *
+ * Sets the command byte to 0x46, points the data pointer to offset +0x24,
+ * writes the pitch value a1 there, and sets the payload size to 1.
+ *
+ * @param a0 Pointer to the voice control structure.
+ * @param a1 Pitch value.
+ */
 void func_8003BBCC(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x46;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
@@ -847,7 +1152,15 @@ void func_8003BBCC(u8 *a0, s32 a1) {
 }
 
 
-// snd_voice_cmd_set_volume - cmd=0x47, sets payload byte
+/**
+ * @brief Send a "set volume" command (0x47) to a sound voice.
+ *
+ * Sets the command byte to 0x47, points the data pointer to offset +0x24,
+ * writes the volume value a1 there, and sets the payload size to 1.
+ *
+ * @param a0 Pointer to the voice control structure.
+ * @param a1 Volume level.
+ */
 void func_8003BBEC(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x47;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);

@@ -3,7 +3,15 @@
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", func_8003ED24);
 
 extern s32 D_80056640;
-// copy D_80056640 to *a0
+/**
+ * @brief Retrieves the GTE (Geometry Transformation Engine) flag register value.
+ *
+ * Copies the cached GTE flag register value from the internal variable
+ * D_80056640 into the caller-provided output location. The GTE flag register
+ * contains overflow and error flags from the most recent GTE operation.
+ *
+ * @param a0 Pointer to a 32-bit integer where the GTE flag value is stored.
+ */
 void func_8003ED54(s32 *a0) {
     *a0 = D_80056640;
 }
@@ -18,6 +26,12 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", GEO_00_OBJ_C4);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", rcos);
 
+/**
+ * @brief Empty stub in the GTE geometry object table.
+ *
+ * Placeholder function in the libgte internal geometry dispatch table (GEO_01).
+ * No-op in this SDK version.
+ */
 void GEO_01_OBJ_98(void) {
 }
 

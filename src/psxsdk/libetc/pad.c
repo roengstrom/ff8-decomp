@@ -2,6 +2,15 @@
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc/pad", SetInitPadFlag);
 
+/**
+ * @brief Returns the controller pad initialization status flag.
+ *
+ * Reads the internal flag indicating whether the controller pad subsystem
+ * has been initialized via InitPAD. Used to check if pad communication
+ * is ready.
+ *
+ * @return Non-zero if pad has been initialized, 0 otherwise.
+ */
 s32 ReadInitPadFlag(void) {
     extern s32 D_8005E97C;
     return D_8005E97C;

@@ -34,16 +34,34 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _spu_Fr);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _spu_FsetRXX);
 
+/**
+ * @brief Empty stub following _spu_FsetRXX in the SPU object table.
+ *
+ * Placeholder function in the libspu internal register access table.
+ * No-op in this SDK version.
+ */
 void SPU_OBJ_948(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _spu_FsetRXXa);
 
+/**
+ * @brief Empty stub following _spu_FsetRXXa in the SPU object table.
+ *
+ * Placeholder function in the libspu internal register access table.
+ * No-op in this SDK version.
+ */
 void SPU_OBJ_9EC(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _spu_FgetRXXa);
 
+/**
+ * @brief Empty stub following _spu_FgetRXXa in the SPU object table.
+ *
+ * Placeholder function in the libspu internal register access table.
+ * No-op in this SDK version.
+ */
 void SPU_OBJ_A28(void) {
 }
 
@@ -63,6 +81,13 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SPU_OBJ_B18);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DDF4);
 
+/**
+ * @brief Initializes the SPU (Sound Processing Unit) with default settings.
+ *
+ * Calls _SpuInit with mode 0, which performs a full SPU hardware reset
+ * including clearing all voice attributes, resetting the SPU control
+ * register, and initializing the sound RAM management.
+ */
 void func_8003DE24(void) { _SpuInit(0); }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DE44);
@@ -83,6 +108,12 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _SpuIsInAllocateArea);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", S_M_UTIL_OBJ_2C);
 
+/**
+ * @brief Empty stub in the SPU memory utility object table.
+ *
+ * Placeholder function in the libspu sound RAM allocation utility table.
+ * No-op in this SDK version.
+ */
 void S_M_UTIL_OBJ_78(void) {
 }
 

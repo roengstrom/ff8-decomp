@@ -74,11 +74,23 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libapi", SetRCnt);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libapi", COUNTER_OBJ_74);
 
+/**
+ * @brief Empty stub for root counter object initialization (SetRCnt post-hook).
+ *
+ * Part of the PsyQ BIOS root counter interface. Called after SetRCnt to
+ * perform any additional counter setup. No-op in this SDK version.
+ */
 void COUNTER_OBJ_94(void) {
 }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libapi", GetRCnt);
 
+/**
+ * @brief Empty stub for root counter object read completion (GetRCnt post-hook).
+ *
+ * Part of the PsyQ BIOS root counter interface. Called after GetRCnt to
+ * perform any additional processing. No-op in this SDK version.
+ */
 void COUNTER_OBJ_CC(void) {
 }
 
