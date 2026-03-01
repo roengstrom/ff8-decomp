@@ -29,6 +29,10 @@ SECTIONS
         build/src/1D2C.o(.rodata);
         build/src/3508.o(.rodata);
         build/src/10DD0.o(.rodata);
+        build/src/psxsdk/libgcc.o(.rodata);
+        build/src/1C2A0.o(.rodata);
+        build/src/psxsdk/libsnd_reverb.o(.rodata);
+        build/src/264E0.o(.rodata);
         build/src/psxsdk/softfloat.o(.rodata);
         build/src/psxsdk/libspu.o(.rodata);
         build/src/psxsdk/libgte.o(.rodata);
@@ -48,6 +52,10 @@ SECTIONS
         build/src/1D2C.o(.text);
         build/src/3508.o(.text);
         build/src/10DD0.o(.text);
+        build/src/psxsdk/libgcc.o(.text);
+        build/src/1C2A0.o(.text);
+        build/src/psxsdk/libsnd_reverb.o(.text);
+        build/src/264E0.o(.text);
         build/src/psxsdk/softfloat.o(.text);
         build/src/psxsdk/libspu.o(.text);
         build/src/psxsdk/libgte.o(.text);
@@ -71,6 +79,10 @@ SECTIONS
         build/src/1D2C.o(.data);
         build/src/3508.o(.data);
         build/src/10DD0.o(.data);
+        build/src/psxsdk/libgcc.o(.data);
+        build/src/1C2A0.o(.data);
+        build/src/psxsdk/libsnd_reverb.o(.data);
+        build/src/264E0.o(.data);
         build/src/psxsdk/softfloat.o(.data);
         build/src/psxsdk/libspu.o(.data);
         build/src/psxsdk/libgte.o(.data);
@@ -95,6 +107,10 @@ SECTIONS
         build/src/1D2C.o(.bss);
         build/src/3508.o(.bss);
         build/src/10DD0.o(.bss);
+        build/src/psxsdk/libgcc.o(.bss);
+        build/src/1C2A0.o(.bss);
+        build/src/psxsdk/libsnd_reverb.o(.bss);
+        build/src/264E0.o(.bss);
         build/src/psxsdk/softfloat.o(.bss);
         build/src/psxsdk/libspu.o(.bss);
         build/src/psxsdk/libgte.o(.bss);
