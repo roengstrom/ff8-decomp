@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BAA0);

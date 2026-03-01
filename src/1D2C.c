@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 /** @brief Empty stub, called at the very start of main before initialization.
  *  @note Purpose uncertain — may be a debug hook or placeholder that was
@@ -16,7 +17,19 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", start);
  *  until rendering completes. Used to ensure the display is blank during
  *  transitions (e.g. waiting for a fade to finish).
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_800115F0);
+
+void func_800115F0(void) {
+    u32 prim[4];
+    u32 ot[2];
+
+    ClearOTag(ot, 2);
+    SetDrawStp(prim, 0);
+    addPrim(ot, prim);
+    DrawOTag(ot);
+
+    do {
+    } while (DrawSync(1) != 0);
+}
 
 /** @brief VSync callback handler, registered via VSyncCallback in func_800117FC.
  *
@@ -35,9 +48,6 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", func_8001167C);
 
 void InitGeom(void);
 void ResetCallback(void);
-void ResetGraph(u8 a);
-void SetDispMask(u8 a);
-void SetGraphDebug(u8 a);
 void SetMem(u8 a);
 void StopCallback(void);
 void VSyncCallback(void (*cb)(void));
@@ -321,10 +331,6 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", func_800128F8);
  *            fade effects.
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", func_800129A4);
-
-void PutDispEnv(void *);
-void PutDrawEnv(void *);
-void DrawOTag(void *);
 
 extern volatile u16 D_8005F114;
 extern volatile u8 D_8005F116;

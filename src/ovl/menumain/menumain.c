@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 extern u8 D_801FA278;
 extern u8 D_801FA279;
@@ -81,13 +82,7 @@ extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
 extern s32 D_8005F134;
 extern s32 D_8005F138;
-void ClearOTag(s32, s32);
-void DrawSync(s32);
 void VSync(s32);
-void PutDispEnv(s32);
-void PutDrawEnv(s32);
-void DrawOTag(s32);
-void ClearImage(s32, s32, s32, s32);
 
 /* ======================================================================== */
 /* Panel/Window Rendering                                                   */

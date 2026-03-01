@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 
 /** @brief Empty stub (no-op). */
