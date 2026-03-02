@@ -26,6 +26,31 @@ s32 func_801E5800(s32 a0) {
     return func_801F08D4(1, 0xD, a0, 0);
 }
 
+/**
+ * Computes a scroll-adjusted Y position from D_801E79BC table entries and
+ * D_801FA3C8 animation table, then calls func_801F0A34 to apply it.
+ * @param a0 Display mode parameter (passed through to func_801F0A34)
+ * @param a1 Menu state structure pointer
+ * @note Non-matching: register allocation mismatch — compiler assigns t0/a2
+ *       differently in the multiply chain (tblVal * 3 << 7 / 4096).
+ *       Instruction count and structure match, but register numbers differ.
+ * @code
+ * void func_801E582C(s32 a0, s32 a1) {
+ *     s32 base = (s32)&D_801E79BC;
+ *     s32 idx = *(u8 *)(a1 + 0x2F);
+ *     s16 t0 = *(s16 *)(base + idx * 8) + 0x22;
+ *     s16 height = *(s16 *)(base + idx * 8 + 2) + 0x23;
+ *     s16 scroll = *(s16 *)(a1 + 0x2A);
+ *     s32 v;
+ *     if (scroll < 0) scroll += 0x3F;
+ *     v = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
+ *     v = (v * 3) << 7;
+ *     if (v < 0) v += 0xFFF;
+ *     v >>= 12;
+ *     func_801F0A34(a0, 0, t0 - v, height);
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E582C);
 
 /**
@@ -66,6 +91,20 @@ void func_801E58B8(void) {
     func_8002A2A8((s32)&D_801E7ADC, (s32)p);
 }
 
+/**
+ * Text/string parser that processes encoded character data into display buffers.
+ * Redirects GP to PS1 scratchpad (0x1F800300) for fast temporary storage,
+ * then iterates over encoded input, handling control codes (0x00=end, 0x01=end,
+ * 0x02=reset, 0x07=end, 0x0A=special decode, 0x0B=new line), character decoding
+ * via func_8002F294/func_8002F2EC, and glyph width accumulation via func_8002E428.
+ * @param a0 Pointer to encoded input string
+ * @param a1 Output text buffer
+ * @param a2 Output glyph position buffer (8 bytes per entry)
+ * @return Number of lines processed (via $fp counter)
+ * @note Non-decompilable: handwritten assembly with direct GP manipulation
+ *       (`addi gp, gp, 0x80` / `addi gp, gp, -0x80`). The C compiler cannot
+ *       produce GP register manipulation instructions.
+ */
 INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E59B4);
 
 /**
@@ -83,12 +122,140 @@ void func_801E5D18(s32 a0, s32 a1) {
     *(s16 *)&D_801E7ABC = func_801E59B4(a0 + offset + 1, &D_801E69BC, &D_801E79BC);
 }
 
+/**
+ * Menu test state machine — drives all menu navigation and display logic.
+ * Uses a 28-case switch on *(u16 *)(a0 + 0x10) as state variable, with cases
+ * handling: initial display (0), VSync wait (1), page transition checks (2),
+ * resource allocation (3,6), fade-in animation (4,7,10,15), input polling (5,8,11),
+ * text decode (9), scroll animation (13,14,19,20,25,26), page navigation (16,17),
+ * confirmation (21,22), and cleanup/exit (27).
+ * Reads input via func_801F0948/func_80035E00, updates scroll position at +0x24,
+ * manages page index at +0x2D and +0x2E, and dispatches rendering via func_801E582C,
+ * func_801E5D18, func_801E58B8, func_801F6800.
+ * @param a0 Menu state structure pointer (s1=a0, s2=a0+0x10, s3/s0 from D_801FAB00)
+ * @note Non-matching: scrambled prologue (s1,s2,ra,s3,s0) with s-reg assignment
+ *       locked by graph coloring. Also contains a 28-entry jump table
+ *       (jtbl_801E6948) requiring rodata placement.
+ */
 INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E5D74);
 
+/**
+ * Sets up a GPU frame with centered text display for the header area.
+ * Measures text width via func_8002E680, centers it within 0xF4 pixels,
+ * draws via func_8002EAD0, configures D_801FAB00 display struct
+ * (0x18, 0x6, 0xF4, 0x16), and submits via func_801EF9AC.
+ * @param a0 Display list pointer
+ * @param a1 OT pointer
+ * @return Result of func_801EF9AC
+ * @note Non-matching: scrambled prologue (s2,s1,s0,ra,s3). Compiler assigns
+ *       disp→s1, ot→s3, but original needs disp→s2, ot→s1. Tested 13 variants
+ *       (declaration order, init order, asm barriers, REGALLOC_BARRIER, casts) —
+ *       all produce identical s-reg assignment. Graph coloring is locked.
+ * @code
+ * s32 func_801E64B4(s32 a0, s32 a1) {
+ *     s32 disp = a0;
+ *     s32 ot = a1;
+ *     s32 text = (s32)&D_801E71BC;
+ *     s32 maxW;
+ *     s32 v0;
+ *     s32 buf;
+ *     v0 = func_8002E680(text);
+ *     maxW = 0xF4;
+ *     v0 = (maxW - v0) / 2;
+ *     func_8002EAD0(disp, v0 + 0x18, 0xC, text);
+ *     buf = (s32)&D_801FAB00;
+ *     *(u8 *)(buf + 0x10) = 0;
+ *     *(u8 *)(buf + 0x11) = 0;
+ *     *(s16 *)&D_801FAB00 = 0x18;
+ *     *(s16 *)(buf + 2) = 6;
+ *     *(s16 *)(buf + 4) = maxW;
+ *     *(s16 *)(buf + 6) = 0x16;
+ *     return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E64B4);
 
+/**
+ * Sets up GPU display for the scrollable text body area.
+ * Computes scroll offset from D_801FA3C8 animation table (same pattern as
+ * func_801E582C), draws text at scroll-adjusted Y position via func_8002EAD0,
+ * then configures two D_801FAB00 display regions:
+ * first (0x1C, 0x21, 0x148, 0x9F) submitted via func_801EF800,
+ * second (0x18, 0x1D, 0x150, 0xA7) submitted via func_801EF9AC.
+ * @param a0 Menu state structure
+ * @param a1 Display list pointer
+ * @param a2 OT pointer
+ * @return Result of func_801EF9AC
+ * @note Non-matching: scrambled prologue (s3,s0,s1,s4,ra,s2) with 6 callee-saved
+ *       registers. S-reg assignment locked by graph coloring.
+ * @code
+ * s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
+ *     s32 disp = a1;
+ *     s32 ot = a2;
+ *     s32 yPos = 0x22;
+ *     s32 buf = (s32)&D_801FAB00;
+ *     s16 scroll = *(s16 *)(a0 + 0x2A);
+ *     s32 v0;
+ *     if (scroll < 0) scroll += 0x3F;
+ *     v0 = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
+ *     v0 = (v0 * 3) << 7;
+ *     if (v0 < 0) v0 += 0xFFF;
+ *     yPos -= v0 >> 12;
+ *     ot = func_801EF8D8(disp, ot);
+ *     func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
+ *     *(s16 *)&D_801FAB00 = 0x1C;
+ *     *(s16 *)(buf + 2) = 0x21;
+ *     *(s16 *)(buf + 4) = 0x148;
+ *     *(s16 *)(buf + 6) = 0x9F;
+ *     v0 = func_801EF800(disp, ot, buf);
+ *     *(u8 *)(buf + 0x10) = 0;
+ *     *(u8 *)(buf + 0x11) = 0;
+ *     *(s16 *)&D_801FAB00 = 0x18;
+ *     *(s16 *)(buf + 2) = 0x1D;
+ *     *(s16 *)(buf + 4) = 0x150;
+ *     *(s16 *)(buf + 6) = 0xA7;
+ *     return func_801EF9AC(disp, v0, 0x1000, D_80083848);
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E6570);
 
+/**
+ * Sets up GPU display for a secondary text area, similar to func_801E64B4.
+ * Centers text from *(a0 + 0x20) within 0x150 pixels, draws via func_8002EAD0
+ * at Y=0xC8, configures D_801FAB00 (0x18, 0xC4, 0x150, 0x14), and submits
+ * via func_801EF9AC.
+ * @param a0 Menu state structure
+ * @param a1 Display list pointer
+ * @param a2 OT pointer
+ * @return Result of func_801EF9AC
+ * @note Non-matching: scrambled prologue (s1,s2,ra,s3,s0). Compiler assigns
+ *       state→s0, disp→s1, ot→s2, but original needs state→s1, disp→s2, ot→s0
+ *       (all shifted by 1). S-reg assignment locked by graph coloring.
+ * @code
+ * s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
+ *     s32 state = a0;
+ *     s32 disp = a1;
+ *     s32 ot = a2;
+ *     s32 maxW;
+ *     s32 v0;
+ *     s32 buf;
+ *     v0 = func_8002E680(*(s32 *)(state + 0x20));
+ *     maxW = 0x150;
+ *     v0 = (maxW - v0) / 2;
+ *     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
+ *     buf = (s32)&D_801FAB00;
+ *     *(u8 *)(buf + 0x10) = 0;
+ *     *(u8 *)(buf + 0x11) = 0;
+ *     *(s16 *)&D_801FAB00 = 0x18;
+ *     *(s16 *)(buf + 2) = 0xC4;
+ *     *(s16 *)(buf + 4) = maxW;
+ *     *(s16 *)(buf + 6) = 0x14;
+ *     return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E66A8);
 
 /**
