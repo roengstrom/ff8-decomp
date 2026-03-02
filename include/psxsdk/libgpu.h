@@ -28,6 +28,13 @@ typedef struct {
 #define addPrims(ot, p0, p1) setaddr(p1, getaddr(ot)), setaddr(ot, p0)
 #define termPrim(p)        setaddr(p, 0xFFFFFF)
 
+/**
+ * @brief Rectangle (position + size), used by GPU primitives.
+ */
+typedef struct {
+    s16 x, y, w, h;
+} RECT;
+
 /* --- GPU function declarations --- */
 
 void ResetGraph(s32 mode);

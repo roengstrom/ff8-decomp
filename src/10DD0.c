@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800205D0);
 
@@ -1872,7 +1873,16 @@ void func_8002A3C8(void) { func_80020E4C(); }
 void func_8002A3E8(void) { func_80020DB8(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A408);
+/**
+ * @brief Copy 8-byte display field from *D_8005F134 to destination.
+ *
+ * @param dst Destination for the 8-byte unaligned copy (RECT-sized).
+ */
+void func_8002A408(RECT *dst) {
+    extern u8 *D_8005F134;
+    RECT *src = (RECT *)D_8005F134;
+    *dst = *src;
+}
 
 
 extern u8 *D_8005F134;
@@ -2019,7 +2029,17 @@ void func_8002ACD8(s32 idx, s32 offset, s32 val) {
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ACF4);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AD04);
+/**
+ * @brief Set a battle entity's 8-byte field at offset 8 (bounding rect).
+ *
+ * @param a0 Entity index into D_80083210 (stride 64 bytes).
+ * @param src Source RECT to copy (8 bytes).
+ */
+void func_8002AD04(s32 a0, RECT *src) {
+    extern u8 D_80083210[];
+    u8 *entity = D_80083210 + a0 * 64;
+    *(RECT *)(entity + 8) = *src;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AD3C);
@@ -2027,10 +2047,30 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AD3C);
 
 // battle_entity_get_field_38 - D_80083210 stride 64
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ADA4);
+/**
+ * @brief Get a battle entity's 8-byte field at offset 8 (bounding rect).
+ *
+ * @param a0 Entity index into D_80083210 (stride 64 bytes).
+ * @param dst Destination for the 8-byte copy.
+ */
+void func_8002ADA4(s32 a0, RECT *dst) {
+    extern u8 D_80083210[];
+    u8 *entity = D_80083210 + a0 * 64;
+    *dst = *(RECT *)(entity + 8);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ADDC);
+/**
+ * @brief Get a battle entity's 8-byte field at offset 0x10.
+ *
+ * @param a0 Entity index into D_80083210 (stride 64 bytes).
+ * @param dst Destination for the 8-byte copy.
+ */
+void func_8002ADDC(s32 a0, RECT *dst) {
+    extern u8 D_80083210[];
+    u8 *entity = D_80083210 + a0 * 64;
+    *dst = *(RECT *)(entity + 0x10);
+}
 
 
 /**

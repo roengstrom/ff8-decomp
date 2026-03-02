@@ -525,7 +525,17 @@ s32 a0;
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DF5C);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E028);
+/**
+ * @brief Copy 8-byte field from D_80082FF0 entry to destination.
+ *
+ * @param a0 Entry index into D_80082FF0 (stride 60 bytes).
+ * @param dst Destination for the 8-byte copy (RECT-sized).
+ */
+void func_8002E028(s32 a0, RECT *dst) {
+    extern u8 D_80082FF0[];
+    u8 *entry = D_80082FF0 + a0 * 60;
+    *dst = *(RECT *)entry;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E064);
@@ -1064,7 +1074,19 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031D68);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031D8C);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031DF4);
+/**
+ * @brief Copy 4-byte field from source to D_80083772 entry.
+ *
+ * @param a0 Entry index into D_80083772 (stride 16 bytes).
+ * @param src Source for the 4-byte unaligned copy.
+ */
+void func_80031DF4(s32 a0, void *src) {
+    typedef struct { s16 a, b; } S16Pair;
+    extern u8 D_80083772[];
+    s32 base = (s32)D_80083772;
+    base += a0 * 16;
+    *(S16Pair *)base = *(S16Pair *)src;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031E1C);
@@ -1237,13 +1259,35 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8003283C);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_800330F4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80033298);
+/**
+ * Wrapper for func_800330F4 with fixed 6th argument of 7.
+ *
+ * @param a0 First argument passed through
+ * @param a1 Second argument passed through
+ * @param a2 Third argument passed through
+ * @param a3 Fourth argument passed through
+ * @param arg4 Fifth argument passed through from caller's stack
+ */
+void func_80033298(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    func_800330F4(a0, a1, a2, a3, arg4, 7);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_800332C4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8003331C);
+/**
+ * Calls func_800330F4 with D_80083848 as the 5th arg and 7 as the 6th.
+ *
+ * @param a0 First argument passed through
+ * @param a1 Second argument passed through
+ * @param a2 Third argument passed through
+ * @param a3 Fourth argument passed through
+ */
+void func_8003331C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    extern s32 D_80083848;
+    func_800330F4(a0, a1, a2, a3, D_80083848, 7);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8003334C);

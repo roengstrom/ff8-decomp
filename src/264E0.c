@@ -414,7 +414,18 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80037308);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800375A0);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80037678);
+/**
+ * Wrapper for func_800375A0 with fixed 6th argument 0x64808080.
+ *
+ * @param a0 First argument passed through
+ * @param a1 Second argument passed through
+ * @param a2 Third argument passed through
+ * @param a3 Fourth argument passed through
+ * @param arg4 Fifth argument passed through from caller's stack
+ */
+void func_80037678(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    func_800375A0(a0, a1, a2, a3, arg4, 0x64808080);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800376A8);
@@ -691,7 +702,19 @@ void func_80038708(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038720);
+/**
+ * @brief Flush CD subsystem and wait for completion.
+ *
+ * Calls the CD clear, flush, and init routines, then polls until
+ * the CD subsystem reports ready.
+ */
+void func_80038720(void) {
+    func_800386F0();
+    CdFlush();
+    func_800389CC();
+    do {
+    } while (func_800393C8() != 0);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038760);
@@ -813,7 +836,21 @@ void func_80038D0C(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038D3C);
+/**
+ * @brief Clear CD status flag and invoke pending callback if set.
+ *
+ * Clears the status byte at D_8008A3D8+1, then calls the function pointer
+ * stored at D_8008A3D8+0x20 if it is non-NULL.
+ */
+void func_80038D3C(void) {
+    extern u8 D_8008A3D8[];
+    s32 base = (s32)D_8008A3D8;
+    void (*callback)(void) = *(void (**)(void))(base + 0x20);
+    *(u8 *)(base + 1) = 0;
+    if (callback != 0) {
+        callback();
+    }
+}
 
 
 /** @brief Empty stub (no-op), placeholder in CD-ROM subsystem. */
