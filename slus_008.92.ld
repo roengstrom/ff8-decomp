@@ -27,7 +27,7 @@ SECTIONS
         build/asm/data/F80.rodata.o(.rodata);
         build/asm/data/116C.rodata.o(.rodata);
         build/src/1D2C.o(.rodata);
-        build/src/3508.o(.rodata);
+        build/src/34C8.o(.rodata);
         build/src/10DD0.o(.rodata);
         build/src/psxsdk/libgcc.o(.rodata);
         build/src/1C2A0.o(.rodata);
@@ -50,7 +50,7 @@ SECTIONS
         main_RODATA_SIZE = ABSOLUTE(main_RODATA_END - main_RODATA_START);
         main_TEXT_START = .;
         build/src/1D2C.o(.text);
-        build/src/3508.o(.text);
+        build/src/34C8.o(.text);
         build/src/10DD0.o(.text);
         build/src/psxsdk/libgcc.o(.text);
         build/src/1C2A0.o(.text);
@@ -77,7 +77,7 @@ SECTIONS
         build/asm/data/F80.rodata.o(.data);
         build/asm/data/116C.rodata.o(.data);
         build/src/1D2C.o(.data);
-        build/src/3508.o(.data);
+        build/src/34C8.o(.data);
         build/src/10DD0.o(.data);
         build/src/psxsdk/libgcc.o(.data);
         build/src/1C2A0.o(.data);
@@ -105,7 +105,7 @@ SECTIONS
         build/asm/data/F80.rodata.o(.bss);
         build/asm/data/116C.rodata.o(.bss);
         build/src/1D2C.o(.bss);
-        build/src/3508.o(.bss);
+        build/src/34C8.o(.bss);
         build/src/10DD0.o(.bss);
         build/src/psxsdk/libgcc.o(.bss);
         build/src/1C2A0.o(.bss);

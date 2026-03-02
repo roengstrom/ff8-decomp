@@ -62,7 +62,7 @@ segments:
       - [0xF80, rodata]
       - [0x116C, rodata]
       - [0x1D2C, c, 1D2C]
-      - [0x34C8, c, 3508]
+      - [0x34C8, c, 34C8]
       - [0x10DD0, c, 10DD0]
       - [0x1BBA0, c, psxsdk/libgcc]
       - [0x1C2A0, c, 1C2A0]

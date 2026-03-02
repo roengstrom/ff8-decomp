@@ -35,7 +35,7 @@ PSYQ43_SN_PATH   := $(PSYQ43_DIR)
 PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
-PSYQ43_SRCS := src/3508.c
+PSYQ43_SRCS := src/34C8.c
 
 # Source files compiled without -G0 (default is -G0)
 NO_G0_SRCS := src/1D2C.c

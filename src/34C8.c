@@ -81,7 +81,7 @@ s32 func_80012D5C(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012E04);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012E04);
 
 extern s32 D_80075058;
 extern s32 *D_80074F08;
@@ -91,7 +91,7 @@ extern s32 D_80074EB8[];
 extern s32 D_80077298[];
 
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012E40);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012E40);
 
 /** @brief Sends SPU command 0x10 with parameter @p a0 via the command buffer. */
 void func_80012EAC(s32 a0) {
@@ -118,15 +118,15 @@ void func_80012EFC(s32 a0, s32 a1, s32 a2) {
     func_8001A1E8(0x14);
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012F30);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F30);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012F50);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F50);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012F84);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F84);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012FBC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012FBC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80012FEC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80012FEC);
 
 /**
  * @brief Sends SPU command 0x20 (play sound effect) with voice and playback parameters.
@@ -197,17 +197,17 @@ void func_80013168(void) {
     func_8001A1E8(0x44);
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013188);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013188);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800131A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800131A8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013210);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013210);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001327C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001327C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800132B0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800132B0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800132D8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800132D8);
 
 /**
  * @brief Selects and sends a reverb mode command based on a mode index.
@@ -228,11 +228,11 @@ void func_80013300(u32 a0) {
     func_8001A1E8(val);
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001336C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001336C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800133D8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800133D8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001340C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001340C);
 
 /**
  * @brief Sends SPU command 0xA8 with a 7-bit volume parameter.
@@ -243,27 +243,27 @@ void func_8001344C(s32 a0) {
     func_8001A1E8(0xA8);
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013478);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013478);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800134AC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800134AC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800134F0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800134F0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013538);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013538);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013564);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013564);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013598);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013598);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800135DC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800135DC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013624);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013624);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013650);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013650);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013684);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013684);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800136C8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800136C8);
 
 /**
  * @brief Sends SPU command 0xC0 with a channel index and 7-bit parameter.
@@ -276,35 +276,35 @@ void func_80013710(s32 a0, s32 a1) {
     func_8001A1E8(0xC0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013744);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013744);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001377C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001377C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800137BC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800137BC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800137E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800137E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013814);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013814);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013848);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013848);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013874);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013874);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800138A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800138A8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800138E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800138E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013910);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013910);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013944);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013944);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013980);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013980);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800139AC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800139AC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800139E0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800139E0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013A1C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013A1C);
 
 /** @brief Sends SPU command 0xF1 (system/engine reset or flush). */
 void func_80013A3C(void) {
@@ -326,57 +326,57 @@ void func_80013A5C(s32 a0, s32 a1) {
     } while (func_80014860(a0, a1) == 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013AA8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013AA8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013CA4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CA4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013CB4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CB4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013CD4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CD4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013EE4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013EE4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80013F38);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80013F38);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014034);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014034);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014094);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014094);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014190);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014190);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014250);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014250);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800142E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800142E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014348);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014348);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014368);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014368);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014398);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014398);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800143D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800143D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014400);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014400);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800144E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800144E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001451C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001451C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800145E0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800145E0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001466C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001466C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800146F0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800146F0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014740);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014740);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014754);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014754);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014778);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014778);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800147A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800147A8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800147F8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800147F8);
 
 /**
  * @brief Busy-waits until SPU DMA transfer completes.
@@ -408,9 +408,9 @@ s32 func_80014860(s32 a0, s32 a1) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800148B0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800148B0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014974);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014974);
 
 /**
  * @brief Initializes the SPU hardware and sets up the sound engine timer.
@@ -732,15 +732,15 @@ void func_80014FCC(s32 voice, u32 a1, u32 a2) {
     *addr = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80014FFC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80014FFC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800150A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800150A8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800151C4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800151C4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80015668);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80015668);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80015AC8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80015AC8);
 
 /**
  * @brief Finds the SPU voice with the lowest priority and frees it for reuse.
@@ -781,7 +781,7 @@ s32 func_80015F4C(void) {
     return min_idx;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80015FE0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80015FE0);
 
 extern u8 D_80070D60[];
 extern s32 D_80073CA8;
@@ -851,9 +851,9 @@ s32 func_80016300(u8 *a0, s32 a1, s32 a2) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016344);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016344);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016478);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016478);
 
 extern s32 D_80074F1C;
 /**
@@ -868,19 +868,19 @@ void func_800164C8(u8 *a0) {
     *(s32 *)(a0 + 0x50) = D_80074F1C;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800164D8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800164D8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016A1C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016A1C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016A7C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016A7C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016C28);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016C28);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016DB4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016DB4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016E08);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016E08);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80016E5C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80016E5C);
 
 /**
  * @brief Determines which sound bank group a given identifier belongs to.
@@ -973,13 +973,13 @@ s32 func_80017040(u8 *a0, s32 a1) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001708C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001708C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017410);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017410);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800174E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800174E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017880);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017880);
 
 /**
  * @brief Releases a voice from all active sequence tracks (duplicate of func_80016280).
@@ -1017,117 +1017,117 @@ void func_80017A2C(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017AAC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017AAC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017C9C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017C9C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017D14);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017D14);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017D5C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017D5C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80017DB0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80017DB0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018158);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018158);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800181D4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800181D4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018234);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018234);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018358);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018358);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018438);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018438);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018610);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018610);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018650);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018650);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001869C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001869C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001871C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001871C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018784);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018784);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800188B4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800188B4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800188E0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800188E0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018908);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018908);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018A74);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018A74);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018B28);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018B28);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018C48);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018C48);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018D40);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018D40);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018D74);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018D74);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018DDC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018DDC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018E4C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018E4C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80018F34);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80018F34);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800190B4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800190B4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019130);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019130);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800191F8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800191F8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800192D8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800192D8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019450);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019450);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800194C8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800194C8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001958C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001958C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001966C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001966C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_800197F4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_800197F4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001984C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001984C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019918);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019918);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019934);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019934);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001999C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001999C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019A10);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019A10);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019A2C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019A2C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019A94);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019A94);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019B08);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019B08);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019B58);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019B58);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019BC0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019BC0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019C9C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019C9C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019CFC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019CFC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019D5C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019D5C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019D9C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019D9C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019DB0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019DB0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019EA0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019EA0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_80019F3C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_80019F3C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A058);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A058);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A0EC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A0EC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A13C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A13C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A190);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A190);
 
 /**
  * @brief Configures the SPU reverb mode if it differs from the current setting.
@@ -1148,7 +1148,7 @@ void func_8001A198(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A1E8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A1E8);
 
 extern s16 D_8007507A;
 /**
@@ -1164,19 +1164,19 @@ void func_8001A55C(void) {
     *(s16 *)0x1F801DB2 = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A57C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A57C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A5FC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A5FC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001A674);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A674);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001AA28);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001AA28);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001ACCC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001ACCC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001AD60);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001AD60);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001B1F4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001B1F4);
 
 /**
  * @brief Adjusts a note/instrument value based on a flag and range check.
@@ -1195,15 +1195,15 @@ s32 func_8001B400(s32 a0, s32 a1) {
     return a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001B42C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001B42C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001B690);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001B690);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001B820);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001B820);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001BAA8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001BAA8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C1A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C1A8);
 
 extern u8 D_80073E68[];
 
@@ -1270,97 +1270,97 @@ s32 func_8001C280(s32 a0, s32 a1) {
     return a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C2C8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C2C8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C39C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C39C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C3E8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C3E8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C490);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C490);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C530);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C530);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C5D8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C5D8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C604);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C604);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C65C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C65C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C684);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C684);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C708);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C708);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C738);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C738);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C7C4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C7C4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C854);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C854);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C868);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C868);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C87C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C87C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C890);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C890);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C898);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C898);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C8DC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C8DC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C968);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C968);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001C99C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C99C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CA28);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA28);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CA44);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA44);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CA5C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA5C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CA74);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA74);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CB1C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CB1C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CBA4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CBA4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CC30);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CC30);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CC78);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CC78);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CC9C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CC9C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CCC8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CCC8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CD10);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD10);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CD48);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD48);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CD50);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD50);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CDB0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CDB0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CE14);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CE14);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CF0C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CF0C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CF6C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CF6C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CFD8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CFD8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001CFFC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CFFC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D0AC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D0AC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D0D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D0D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D140);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D140);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D164);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D164);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D1D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D1D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D1F0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D1F0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D25C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D25C);
 
 /**
  * @brief Enables noise mode for the given voice bitmask on the appropriate SPU channel.
@@ -1464,19 +1464,19 @@ void func_8001D424(s32 *a0, s32 a1) {
     D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D484);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D484);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D4E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D4E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D4F0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D4F0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D4F8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D4F8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D500);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D500);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D508);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D508);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D5A4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D5A4);
 
 /**
  * @brief Reads a byte from the sequence data stream and sets a track parameter.
@@ -1496,79 +1496,79 @@ void func_8001D5E8(s32 a0, s32 a1) {
     *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x1000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D61C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D61C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D64C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D64C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D690);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D690);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D6D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D6D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D714);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D714);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D78C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D78C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D7D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D7D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D7E4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D7E4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D7EC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D7EC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D83C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D83C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D8D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D8D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D93C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D93C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001D9B8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D9B8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DA0C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA0C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DA34);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA34);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DA7C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA7C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DAB4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DAB4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DACC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DACC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DB04);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DB04);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DB40);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DB40);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DB7C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DB7C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DBC0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DBC0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DBF0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DBF0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DC34);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DC34);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DC64);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DC64);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DCCC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DCCC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DCE0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DCE0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DCF4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DCF4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DD08);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DD08);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DD1C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DD1C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DDD4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DDD4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DE18);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DE18);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DECC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DECC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DEE0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DEE0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DF10);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DF10);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DF30);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DF30);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DF50);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DF50);
 
 /**
  * @brief Disables SPU IRQ and clears the IRQ voice mask from the engine state.
@@ -1590,51 +1590,51 @@ void func_8001DF70(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001DFF4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DFF4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E084);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E084);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E0CC);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E0CC);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E308);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E308);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E4C4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E4C4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E594);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E594);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E5F8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E5F8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E65C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E65C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E7A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E7A8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E7D8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E7D8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E808);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E808);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E838);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E838);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E868);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E868);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E8B0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E8B0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E8D0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E8D0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E940);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E940);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001E9C0);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E9C0);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001EB0C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001EB0C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001EB38);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001EB38);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001EC0C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001EC0C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001EDD4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001EDD4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F034);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F034);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F080);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F080);
 
 /**
  * @brief Advances a sequence loop/repeat counter with wraparound.
@@ -1656,18 +1656,18 @@ s32 func_8001F0C4(s32 *counter) {
     return *counter;
 }
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F118);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F118);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F2A8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F2A8);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F370);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F370);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F3D4);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F3D4);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F51C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F51C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F54C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F54C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F57C);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F57C);
 
-INCLUDE_ASM("asm/nonmatchings/3508", func_8001F5C8);
+INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F5C8);
