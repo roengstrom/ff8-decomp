@@ -33,7 +33,19 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BF24);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C030);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C070);
+/** @brief Finds the first available battle entity slot (0-7) and marks it as active.
+ *  @return Slot index (0-7), or -1 if none available.
+ */
+s32 func_8002C070(void) {
+    s32 i;
+    for (i = 0; i < 8; i++) {
+        if (func_8002AF54(i) == 0) {
+            func_8002AEF8(i, 1);
+            return i;
+        }
+    }
+    return -1;
+}
 
 
 /**
@@ -214,7 +226,16 @@ void func_8002C954(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C9A4);
+/** @brief Reads s16 at offset 0x1A of D_80082FF0[a0], passes it to func_8002C954 and func_80030058.
+ *  @param a0 Entity index (stride 60).
+ */
+void func_8002C9A4(s32 a0) {
+    extern u8 D_80082FF0[];
+    u8 *entry = D_80082FF0 + a0 * 60;
+    s32 val = *(s16 *)(entry + 0x1A);
+    func_8002C954(val);
+    func_80030058(val);
+}
 
 
 // sfx_entry_swap_field_16 - D_80082FF0 stride 60, returns old value

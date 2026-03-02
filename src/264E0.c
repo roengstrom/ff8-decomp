@@ -514,7 +514,15 @@ void func_8003793C(u8 *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003798C);
+/** @brief Fills 128 bytes at a0 with 0xFF.
+ *  @param a0 Pointer to buffer.
+ */
+void func_8003798C(u8 *a0) {
+    s32 i = 128;
+    do {
+        *a0++ = 0xFF;
+    } while (--i > 0);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800379AC);
@@ -539,9 +547,7 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80037AEC);
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80037B44);
 
-
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80037B7C);
-
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80037BB0);
 

@@ -1099,7 +1099,6 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027B38);
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027B7C);
 
-
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027BA8);
 
 
@@ -1186,7 +1185,16 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800282F4);
 extern u16 D_80083794;
 // get D_80083794 (u16)
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002837C);
+/** @brief Initializes D_80082FB2 to 0, calls func_80039764(0), then loops twice calling func_800281C4(i, 0). */
+void func_8002837C(void) {
+    extern u8 D_80082FB2;
+    s32 i;
+    D_80082FB2 = 0;
+    func_80039764(0);
+    for (i = 0; i < 2; i++) {
+        func_800281C4(i, 0);
+    }
+}
 
 
 /** @brief Get the current value of D_80083794 (global u16 state variable). */

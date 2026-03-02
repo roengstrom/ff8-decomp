@@ -133,7 +133,17 @@ void func_80012F50(s32 a0, s32 a1) {
     func_8001A1E8(0x19);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F84);
+/** @brief Stores a0, a1, and a2 (masked to 7 bits) to SPU command buffer, sends command 0x1A.
+ *  @param a0 First command parameter (voice/channel).
+ *  @param a1 Second command parameter.
+ *  @param a2 Third command parameter (masked to 0x7F).
+ */
+void func_80012F84(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    *(&D_80075058 + 2) = a2 & 0x7F;
+    func_8001A1E8(0x1A);
+}
 
 /** @brief Stores a0 and a1 to SPU command buffer, sends command 0x12.
  *  @param a0 First command parameter.
@@ -225,7 +235,16 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_800131A8);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013210);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001327C);
+/** @brief Sends SPU command 0x81 if a0 == 1, else 0x80.
+ *  @param a0 Selects command (1 = 0x81, else 0x80).
+ */
+void func_8001327C(s32 a0) {
+    if (a0 == 1) {
+        func_8001A1E8(0x81);
+    } else {
+        func_8001A1E8(0x80);
+    }
+}
 
 /** @brief Stores a0 to SPU command buffer, sends command 0x90.
  *  @param a0 Command parameter.
@@ -262,7 +281,19 @@ void func_80013300(u32 a0) {
     func_8001A1E8(val);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001336C);
+/** @brief Sends SPU command based on mode selector (1→0x9A, 2→0x9C, 3→0x9E, default→0x98).
+ *  @param a0 Mode selector.
+ */
+void func_8001336C(u32 a0) {
+    s32 val;
+    switch (a0) {
+        case 1: val = 0x9A; break;
+        case 2: val = 0x9C; break;
+        case 3: val = 0x9E; break;
+        default: val = 0x98; break;
+    }
+    func_8001A1E8(val);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800133D8);
 
@@ -287,9 +318,31 @@ void func_80013478(s32 a0, s32 a1) {
     func_8001A1E8(0xA9);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800134AC);
+/** @brief Stores a0, 24-bit masked a1, and 7-bit masked a2 to SPU command buffer, sends command 0xA0.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 24 bits.
+ *  @param a2 Third parameter, masked to 7 bits.
+ */
+void func_800134AC(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2 & 0x7F;
+    func_8001A1E8(0xA0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800134F0);
+/** @brief Stores a0, 24-bit masked a1, a2, and 7-bit masked a3 to SPU command buffer, sends command 0xA1.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 24 bits.
+ *  @param a2 Third command parameter.
+ *  @param a3 Fourth parameter, masked to 7 bits.
+ */
+void func_800134F0(s32 a0, s32 a1, s32 a2, s32 a3) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2;
+    *(&D_80075058 + 3) = a3 & 0x7F;
+    func_8001A1E8(0xA1);
+}
 
 /** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xAA.
  *  @param a0 Command parameter, masked to 8 bits.
@@ -309,9 +362,31 @@ void func_80013564(s32 a0, s32 a1) {
     func_8001A1E8(0xAB);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013598);
+/** @brief Stores a0, 24-bit masked a1, and 8-bit masked a2 to SPU command buffer, sends command 0xA2.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 24 bits.
+ *  @param a2 Third parameter, masked to 8 bits.
+ */
+void func_80013598(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    func_8001A1E8(0xA2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800135DC);
+/** @brief Stores a0, 24-bit masked a1, a2, and 8-bit masked a3 to SPU command buffer, sends command 0xA3.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 24 bits.
+ *  @param a2 Third command parameter.
+ *  @param a3 Fourth parameter, masked to 8 bits.
+ */
+void func_800135DC(s32 a0, s32 a1, s32 a2, s32 a3) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2;
+    *(&D_80075058 + 3) = a3 & 0xFF;
+    func_8001A1E8(0xA3);
+}
 
 /** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xAC.
  *  @param a0 Command parameter, masked to 8 bits.
@@ -331,9 +406,31 @@ void func_80013650(s32 a0, s32 a1) {
     func_8001A1E8(0xAD);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013684);
+/** @brief Stores a0, 24-bit masked a1, and 8-bit masked a2 to SPU command buffer, sends command 0xA4.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 24 bits.
+ *  @param a2 Third parameter, masked to 8 bits.
+ */
+void func_80013684(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    func_8001A1E8(0xA4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800136C8);
+/** @brief Stores a0, 24-bit masked a1, a2, and 8-bit masked a3 to SPU command buffer, sends command 0xA5.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 24 bits.
+ *  @param a2 Third command parameter.
+ *  @param a3 Fourth parameter, masked to 8 bits.
+ */
+void func_800136C8(s32 a0, s32 a1, s32 a2, s32 a3) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFFFFFF;
+    *(&D_80075058 + 2) = a2;
+    *(&D_80075058 + 3) = a3 & 0xFF;
+    func_8001A1E8(0xA5);
+}
 
 /**
  * @brief Sends SPU command 0xC0 with a channel index and 7-bit parameter.
@@ -346,9 +443,31 @@ void func_80013710(s32 a0, s32 a1) {
     func_8001A1E8(0xC0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013744);
+/** @brief Stores a0, a1, and 7-bit masked a2 to SPU command buffer, sends command 0xC1.
+ *  @param a0 First command parameter.
+ *  @param a1 Second command parameter.
+ *  @param a2 Third parameter, masked to 7 bits.
+ */
+void func_80013744(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    *(&D_80075058 + 2) = a2 & 0x7F;
+    func_8001A1E8(0xC1);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001377C);
+/** @brief Stores a0, a1, 7-bit masked a2, and 7-bit masked a3 to SPU command buffer, sends command 0xC2.
+ *  @param a0 First command parameter.
+ *  @param a1 Second command parameter.
+ *  @param a2 Third parameter, masked to 7 bits.
+ *  @param a3 Fourth parameter, masked to 7 bits.
+ */
+void func_8001377C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    *(&D_80075058 + 2) = a2 & 0x7F;
+    *(&D_80075058 + 3) = a3 & 0x7F;
+    func_8001A1E8(0xC2);
+}
 
 /** @brief Stores a0 to SPU command buffer, sends command 0xC8.
  *  @param a0 Command parameter.
@@ -398,7 +517,17 @@ void func_80013874(s32 a0, s32 a1) {
     func_8001A1E8(0xD1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800138A8);
+/** @brief Stores a0, 8-bit masked a1, and 8-bit masked a2 to SPU command buffer, sends command 0xD2.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ *  @param a2 Third parameter, masked to 8 bits.
+ */
+void func_800138A8(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    func_8001A1E8(0xD2);
+}
 
 /** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xD4.
  *  @param a0 Command parameter, masked to 8 bits.
@@ -418,7 +547,17 @@ void func_80013910(s32 a0, s32 a1) {
     func_8001A1E8(0xD5);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013944);
+/** @brief Stores a0, 8-bit masked a1, and 8-bit masked a2 to SPU command buffer, sends command 0xD6.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ *  @param a2 Third parameter, masked to 8 bits.
+ */
+void func_80013944(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    func_8001A1E8(0xD6);
+}
 
 /** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xD8.
  *  @param a0 Command parameter, masked to 8 bits.
@@ -438,7 +577,17 @@ void func_800139AC(s32 a0, s32 a1) {
     func_8001A1E8(0xD9);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800139E0);
+/** @brief Stores a0, 8-bit masked a1, and 8-bit masked a2 to SPU command buffer, sends command 0xDA.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ *  @param a2 Third parameter, masked to 8 bits.
+ */
+void func_800139E0(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0xFF;
+    *(&D_80075058 + 2) = a2 & 0xFF;
+    func_8001A1E8(0xDA);
+}
 
 /** @brief Sends SPU command 0xF0. */
 void func_80013A1C(void) {
@@ -537,13 +686,25 @@ u32 func_80014740(u32 *a0) {
     return *a0 + 0xB0BEB4BF;
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014754);
+/** @brief Calls func_8003E494(0) and clears D_80074ED4. */
+void func_80014754(void) {
+    extern s32 D_80074ED4;
+    func_8003E494(0);
+    D_80074ED4 = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014778);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800147A8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800147F8);
+/** @brief Calls func_80014778, then SpuRead with a0/a1 as arguments.
+ *  @param a0 SPU read address.
+ *  @param a1 SPU read size.
+ */
+void func_800147F8(s32 a0, s32 a1) {
+    func_80014778();
+    SpuRead(a0, a1);
+}
 
 /**
  * @brief Busy-waits until SPU DMA transfer completes.
@@ -1452,11 +1613,27 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C490);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C530);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C5D8);
+/** @brief Reads a signed 16-bit little-endian offset from the stream cursor and advances cursor by that offset.
+ *  @param a0 Pointer to stream state (a0[0] = cursor pointer).
+ */
+void func_8001C5D8(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 offset = (s16)(ptr[0] | (ptr[1] << 8));
+    *(u8 **)a0 = ptr + offset;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C604);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C65C);
+/** @brief Reads one byte from stream, advances cursor, ORs 3 into flags, stores byte << 8 as halfword at +0x80.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001C65C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    u8 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)(a0 + 0xF8) |= 3;
+    *(u16 *)(a0 + 0x80) = val << 8;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C684);
 
@@ -1511,15 +1688,55 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CB1C);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CBA4);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CC30);
+/** @brief Looks up D_80073E68 table by a0[0x66] index, copies fields to a0, ORs flags, masks a0[0x30].
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CC30(u8 *a0) {
+    extern u8 D_80073E68[];
+    u8 *entry = D_80073E68 + *(u16 *)(a0 + 0x66) * 16;
+    *(u16 *)(a0 + 0x106) = *(u16 *)(entry + 0xC);
+    *(u16 *)(a0 + 0x108) = *(u16 *)(entry + 0xE);
+    *(s32 *)(a0 + 0xF8) |= 0xFF00;
+    *(s32 *)(a0 + 0x30) &= (s32)0xE6FFFFFF;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CC78);
+/** @brief Reads one byte from stream, sign-extends to s8, stores as halfword at a0+0xE4.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CC78(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s8 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s16 *)(a0 + 0xE4) = val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CC9C);
+/** @brief Reads one byte from stream, sign-extends, adds to halfword at a0+0xE4.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CC9C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s8 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xE4) = *(u16 *)(a0 + 0xE4) + val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CCC8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD10);
+/** @brief Reads one byte from stream as duration. If zero, stores 0x100. Clears tempo/timer fields.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CD10(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x98) = val;
+    if (val != 0) goto skip;
+    *(u16 *)(a0 + 0x98) = 0x100;
+skip:
+    *(u16 *)(a0 + 0xEC) = 0;
+    *(u16 *)(a0 + 0x96) = 0;
+    *(u16 *)(a0 + 0x9A) = 1;
+}
 
 /** @brief Clears the halfword at offset 0x98 of a0. */
 void func_8001CD48(u8 *a0) {

@@ -46,12 +46,12 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | Source File | Toolchain | C Functions | INCLUDE\_ASM | Total | % Decomped |
 |-------------|-----------|-------------|-------------|-------|------------|
 | `src/1D2C.c` | PsyQ 4.1 | 17 | 5 | 22 | 77.3% |
-| `src/34C8.c` | PsyQ 4.3 | 114 | 224 | 338 | 33.7% |
-| `src/10DD0.c` | PsyQ 4.1 | 103 | 159 | 262 | 39.3% |
-| `src/1C2A0.c` | PsyQ 4.1 | 77 | 134 | 211 | 36.5% |
-| `src/264E0.c` | PsyQ 4.1 | 57 | 127 | 184 | 31.0% |
+| `src/34C8.c` | PsyQ 4.3 | 136 | 202 | 338 | 40.2% |
+| `src/10DD0.c` | PsyQ 4.1 | 104 | 158 | 262 | 39.7% |
+| `src/1C2A0.c` | PsyQ 4.1 | 79 | 132 | 211 | 37.4% |
+| `src/264E0.c` | PsyQ 4.1 | 58 | 126 | 184 | 31.5% |
 | `src/ovl/menumain/menumain.c` | PsyQ 4.1 | 115 | 84 | 199 | 57.8% |
-| **Total (game code)** | | **483** | **733** | **1216** | **39.7%** |
+| **Total (game code)** | | **509** | **707** | **1216** | **41.8%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, 751 functions) are not tracked — they are third-party code.
 
