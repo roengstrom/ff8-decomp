@@ -1,0 +1,53 @@
+name: menucrd.ovl
+sha1: e0dcfb6ced55dbeab770422f650dcf9f9103d661
+options:
+  basename: menucrd
+  target_path: original/menucrd.ovl
+  elf_path: build/ovl/menucrd/menucrd.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menucrd
+  src_path: src/ovl/menucrd
+  build_path: build/ovl/menucrd
+
+  # Linker
+  ld_script_path: config/menucrd.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menucrd.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menucrd.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menucrd.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menucrd
+    type: code
+    start: 0x0
+    vram: 0x801E5800
+    subsegments:
+      - [0x0, c, menucrd]
+      - [0x14A8, rodata]
+      - [0x2164, data]
+  - [0x2564]

@@ -51,7 +51,23 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `src/1C2A0.c` | PsyQ 4.1 | 79 | 132 | 211 | 37.4% |
 | `src/264E0.c` | PsyQ 4.1 | 59 | 125 | 184 | 32.1% |
 | `src/ovl/menumain/menumain.c` | PsyQ 4.1 | 115 | 84 | 199 | 57.8% |
-| **Total (game code)** | | **524** | **692** | **1216** | **43.1%** |
+| `src/ovl/menucfg/menucfg.c` | PsyQ 4.1 | 0 | 18 | 18 | 0.0% |
+| `src/ovl/menupty/menupty.c` | PsyQ 4.1 | 0 | 49 | 49 | 0.0% |
+| `src/ovl/menusts/menusts.c` | PsyQ 4.1 | 0 | 44 | 44 | 0.0% |
+| `src/ovl/menuabl/menuabl.c` | PsyQ 4.1 | 0 | 17 | 17 | 0.0% |
+| `src/ovl/menushop/menushop.c` | PsyQ 4.1 | 0 | 53 | 53 | 0.0% |
+| `src/ovl/menuext/menuext.c` | PsyQ 4.1 | 0 | 47 | 47 | 0.0% |
+| `src/ovl/menuitem/menuitem.c` | PsyQ 4.1 | 0 | 99 | 99 | 0.0% |
+| `src/ovl/menumgc/menumgc.c` | PsyQ 4.1 | 0 | 51 | 51 | 0.0% |
+| `src/ovl/menugf/menugf.c` | PsyQ 4.1 | 0 | 22 | 22 | 0.0% |
+| `src/ovl/menujnc2/menujnc2.c` | PsyQ 4.1 | 0 | 86 | 86 | 0.0% |
+| `src/ovl/menusav/menusav.c` | PsyQ 4.1 | 0 | 124 | 124 | 0.0% |
+| `src/ovl/menucrd/menucrd.c` | PsyQ 4.1 | 0 | 21 | 21 | 0.0% |
+| `src/ovl/menututo/menututo.c` | PsyQ 4.1 | 0 | 28 | 28 | 0.0% |
+| `src/ovl/menutmag/menutmag.c` | PsyQ 4.1 | 0 | 15 | 15 | 0.0% |
+| `src/ovl/menutips/menutips.c` | PsyQ 4.1 | 0 | 16 | 16 | 0.0% |
+| `src/ovl/menutest/menutest.c` | PsyQ 4.1 | 0 | 11 | 11 | 0.0% |
+| **Total (game code)** | | **524** | **1393** | **1917** | **27.3%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, 751 functions) are not tracked — they are third-party code.
 

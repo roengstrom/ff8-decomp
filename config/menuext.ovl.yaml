@@ -1,0 +1,52 @@
+name: menuext.ovl
+sha1: 6f67e81fce1891f9b7d0db4dfd8c28bee155c7cb
+options:
+  basename: menuext
+  target_path: original/menuext.ovl
+  elf_path: build/ovl/menuext/menuext.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menuext
+  src_path: src/ovl/menuext
+  build_path: build/ovl/menuext
+
+  # Linker
+  ld_script_path: config/menuext.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menuext.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menuext.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menuext.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menuext
+    type: code
+    start: 0x0
+    vram: 0x801E5800
+    subsegments:
+      - [0x0, c, menuext]
+      - [0x3220, rodata]
+  - [0x3410]

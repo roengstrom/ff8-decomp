@@ -1,0 +1,52 @@
+name: menucfg.ovl
+sha1: 2a553ef68db3219eee28dfffef665909b8eeaf68
+options:
+  basename: menucfg
+  target_path: original/menucfg.ovl
+  elf_path: build/ovl/menucfg/menucfg.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menucfg
+  src_path: src/ovl/menucfg
+  build_path: build/ovl/menucfg
+
+  # Linker
+  ld_script_path: config/menucfg.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menucfg.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menucfg.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menucfg.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menucfg
+    type: code
+    start: 0x0
+    vram: 0x801E5800
+    subsegments:
+      - [0x0, c, menucfg]
+      - [0x176C, rodata]
+  - [0x18EC]

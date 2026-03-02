@@ -1,0 +1,52 @@
+name: menusav.ovl
+sha1: 11db278b2b7d0bf82d49003a789c316c8db78517
+options:
+  basename: menusav
+  target_path: original/menusav.ovl
+  elf_path: build/ovl/menusav/menusav.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menusav
+  src_path: src/ovl/menusav
+  build_path: build/ovl/menusav
+
+  # Linker
+  ld_script_path: config/menusav.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menusav.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menusav.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menusav.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menusav
+    type: code
+    start: 0x0
+    vram: 0x801E2800
+    subsegments:
+      - [0x0, c, menusav]
+      - [0x91E0, rodata]
+  - [0x9A90]

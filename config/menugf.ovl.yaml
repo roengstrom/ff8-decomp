@@ -1,0 +1,52 @@
+name: menugf.ovl
+sha1: 811ffe461aa34a437a4c4f7b46af8fc0d57ab78c
+options:
+  basename: menugf
+  target_path: original/menugf.ovl
+  elf_path: build/ovl/menugf/menugf.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menugf
+  src_path: src/ovl/menugf
+  build_path: build/ovl/menugf
+
+  # Linker
+  ld_script_path: config/menugf.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menugf.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menugf.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menugf.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menugf
+    type: code
+    start: 0x0
+    vram: 0x801E5800
+    subsegments:
+      - [0x0, c, menugf]
+      - [0x2550, rodata]
+  - [0x25D4]

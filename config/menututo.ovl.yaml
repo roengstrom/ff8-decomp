@@ -1,0 +1,52 @@
+name: menututo.ovl
+sha1: b13208a2f10c733cdddd93aa056c82ca468bf7b3
+options:
+  basename: menututo
+  target_path: original/menututo.ovl
+  elf_path: build/ovl/menututo/menututo.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menututo
+  src_path: src/ovl/menututo
+  build_path: build/ovl/menututo
+
+  # Linker
+  ld_script_path: config/menututo.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menututo.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menututo.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menututo.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menututo
+    type: code
+    start: 0x0
+    vram: 0x801E2800
+    subsegments:
+      - [0x0, c, menututo]
+      - [0x2538, rodata]
+  - [0x26C0]

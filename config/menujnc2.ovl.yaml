@@ -1,0 +1,52 @@
+name: menujnc2.ovl
+sha1: 7f56b35f983faa8fa62d8003348913d74653ccd6
+options:
+  basename: menujnc2
+  target_path: original/menujnc2.ovl
+  elf_path: build/ovl/menujnc2/menujnc2.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menujnc2
+  src_path: src/ovl/menujnc2
+  build_path: build/ovl/menujnc2
+
+  # Linker
+  ld_script_path: config/menujnc2.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menujnc2.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menujnc2.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menujnc2.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menujnc2
+    type: code
+    start: 0x0
+    vram: 0x801E5800
+    subsegments:
+      - [0x0, c, menujnc2]
+      - [0x90C4, rodata]
+  - [0x9450]

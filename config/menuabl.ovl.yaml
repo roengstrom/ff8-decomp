@@ -1,0 +1,52 @@
+name: menuabl.ovl
+sha1: 919eb2f43bb652fbb89dff205dd304194681977e
+options:
+  basename: menuabl
+  target_path: original/menuabl.ovl
+  elf_path: build/ovl/menuabl/menuabl.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/menuabl
+  src_path: src/ovl/menuabl
+  build_path: build/ovl/menuabl
+
+  # Linker
+  ld_script_path: config/menuabl.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.menuabl.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.menuabl.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.menuabl.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: menuabl
+    type: code
+    start: 0x0
+    vram: 0x801E2800
+    subsegments:
+      - [0x0, c, menuabl]
+      - [0x1508, rodata]
+  - [0x1584]
