@@ -64,15 +64,82 @@ void func_800115F0(void) {
 /** @brief VSync callback handler, registered via VSyncCallback in func_800117FC.
  *
  *  Dispatches per-frame rendering based on the game mode (D_8005F146):
- *  - 0: calls func_80012B4C (normal frame draw/swap with fade)
- *  - 1: calls func_80026D8C (battle VSync handler)
- *  - 2: calls func_800D0608 (overlay-loaded VSync handler)
- *  - 3/4: calls func_800205D0 (game code VSync handler)
+ *  - 0: no action (rendering idle)
+ *  - 1: calls func_80012B4C (normal frame draw/swap with fade)
+ *  - 2: calls func_80026D8C (battle VSync handler)
+ *  - 3: calls func_800D0608 (overlay-loaded VSync handler)
+ *  - 4: calls func_800205D0 (game code VSync handler)
  *
  *  Also maintains two fixed-point frame timing accumulators (D_8005F154 and
  *  D_8005F15C) that increment by 0x88F per VSync. On bit-17 rollover (~every
- *  30 frames at 60Hz), one increments a game frame counter at D_80077378+0xCD0
+ *  12 frames), one increments a game frame counter at D_80077378+0xCD0
  *  and the other decrements a countdown timer at D_80077378+0xCD4.
+ *
+ *  @note Non-matching. CC1PSX fills the beqz delay slot for the countdown==0
+ *        check with `addu v0, v0, -1` (the countdown decrement) instead of
+ *        the original `li v0, 1` (early-return value). This avoids clobbering
+ *        $v0, eliminating a 3-instruction reload sequence in the original.
+ *        Also requires rodata reordering: the switch generates a jump table
+ *        that must be placed at 0x80010000 (before asm rodata) via linker
+ *        script: move 1D2C.o(.rodata) first, add `. = ALIGN(8);` after it.
+ *
+ *  @code
+ *  void func_8001167C(void) {
+ *      extern volatile s32 D_8005F154;
+ *      extern volatile s32 D_8005F15C;
+ *      extern u16 D_8005F11E;
+ *      extern u8 D_80077378[];
+ *
+ *      switch ((s16)D_8005F146) {
+ *      case 0:
+ *          break;
+ *      case 1:
+ *          func_80012B4C();
+ *          break;
+ *      case 2:
+ *          func_80026D8C();
+ *          break;
+ *      case 3:
+ *          func_800D0608();
+ *          break;
+ *      case 4:
+ *          func_800205D0();
+ *          break;
+ *      }
+ *
+ *      if (func_800283CC() != 0) {
+ *          D_8005F11E = 1;
+ *          return;
+ *      }
+ *
+ *      if (D_8005F10C != 0) {
+ *          D_8005F11E = 1;
+ *          return;
+ *      }
+ *
+ *      D_8005F154 += 0x88F;
+ *      if (D_8005F154 >> 17) {
+ *          s32 base = D_80077378;
+ *          *(s32 *)(base + 0xCD0) += 1;
+ *          asm("");
+ *          D_8005F154 &= 0xFFFF;
+ *      }
+ *
+ *      D_8005F15C += 0x88F;
+ *      if (D_8005F15C >> 17) {
+ *          s32 base = (s32)D_80077378;
+ *          if (*(s32 *)(base + 0xCD4) == 0) {
+ *              D_8005F11E = 1;
+ *              return;
+ *          }
+ *          *(s32 *)(base + 0xCD4) -= 1;
+ *          asm("");
+ *          D_8005F15C &= 0xFFFF;
+ *      }
+ *
+ *      D_8005F11E = 1;
+ *  }
+ *  @endcode
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", func_8001167C);
 
@@ -84,8 +151,8 @@ void VSyncCallback(void (*cb)(void));
 void func_8003DE24(void);
 
 extern void D_8001167C(void);
-extern s8 D_8005F10C;
-extern s16 D_8005F146;
+extern u8 D_8005F10C;
+extern volatile u16 D_8005F146;
 
 /** @brief Initializes PS1 hardware subsystems.
  *
