@@ -75,13 +75,13 @@ void func_800115F0(void) {
  *  12 frames), one increments a game frame counter at D_80077378+0xCD0
  *  and the other decrements a countdown timer at D_80077378+0xCD4.
  *
- *  @note Non-matching. CC1PSX fills the beqz delay slot for the countdown==0
- *        check with `addu v0, v0, -1` (the countdown decrement) instead of
- *        the original `li v0, 1` (early-return value). This avoids clobbering
- *        $v0, eliminating a 3-instruction reload sequence in the original.
- *        Also requires rodata reordering: the switch generates a jump table
- *        that must be placed at 0x80010000 (before asm rodata) via linker
- *        script: move 1D2C.o(.rodata) first, add `. = ALIGN(8);` after it.
+ *  @note Non-matching (3 instructions shorter). Two codegen differences:
+ *        1. CC1PSX fills beqz delay slot with `addu v0,v0,-1` (countdown
+ *           decrement) instead of original `li v0,1` (early-return value),
+ *           eliminating a 3-instruction reload sequence.
+ *        2. Switch jump table rodata must be at 0x80010000 (before asm
+ *           rodata) — requires linker script reorder: move 1D2C.o(.rodata)
+ *           first, add `. = ALIGN(8);` after it.
  *
  *  @code
  *  void func_8001167C(void) {
