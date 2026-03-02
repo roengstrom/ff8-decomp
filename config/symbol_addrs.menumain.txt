@@ -1,0 +1,7 @@
+VSync = 0x80042634;
+DrawSync = 0x80048C50;
+ClearImage = 0x80048DD4;
+ClearOTag = 0x80049074;
+DrawOTag = 0x80049244;
+PutDrawEnv = 0x800492B4;
+PutDispEnv = 0x80049480;
