@@ -1762,7 +1762,15 @@ void func_8001CFD8(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CFFC);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D0AC);
+/** @brief Reads one byte from stream, advances cursor, masks to 7 bits, shifts left 8, stores to halfword at a0+0xBC.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001D0AC(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xBC) = (val & 0x7F) << 8;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D0D0);
 
@@ -1775,7 +1783,15 @@ void func_8001D140(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D164);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D1D0);
+/** @brief Reads one byte from stream, advances cursor, shifts left 7, stores to halfword at a0+0xCA.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001D1D0(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xCA) = val << 7;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D1F0);
 
@@ -1980,11 +1996,35 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DB40);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DB7C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DBC0);
+/** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD0, else stores 0x101.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001DBC0(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (val != 0) {
+        *(u16 *)(a0 + 0xD0) = val + 1;
+    } else {
+        *(u16 *)(a0 + 0xD0) = 0x101;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DBF0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DC34);
+/** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD2, else stores 0x101.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001DC34(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (val != 0) {
+        *(u16 *)(a0 + 0xD2) = val + 1;
+    } else {
+        *(u16 *)(a0 + 0xD2) = 0x101;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DC64);
 

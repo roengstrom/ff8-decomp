@@ -601,7 +601,14 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003837C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800383B8);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038424);
+/** @brief Looks up byte from D_8005644B table at index a0 (masked to 8 bits).
+ *  @param a0 Table index (only low 8 bits used).
+ *  @return The byte value at D_8005644B[a0 & 0xFF].
+ */
+u8 func_80038424(s32 a0) {
+    extern u8 D_8005644B[];
+    return D_8005644B[a0 & 0xFF];
+}
 
 
 /** @brief Returns halfword from D_800562C8 table indexed by D_80077E5A. */
