@@ -147,19 +147,21 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E5D74);
  * @param a0 Display list pointer
  * @param a1 OT pointer
  * @return Result of func_801EF9AC
- * @note Non-matching: scrambled prologue (s2,s1,s0,ra,s3). Compiler assigns
- *       disp→s1, ot→s3, but original needs disp→s2, ot→s1. Tested 13 variants
- *       (declaration order, init order, asm barriers, REGALLOC_BARRIER, casts) —
- *       all produce identical s-reg assignment. Graph coloring is locked.
+ * @note Non-matching: register asm("$16/$17/$18") gets correct s-reg assignment
+ *       (text→s0, ot→s1, disp→s2) but the scheduler places the lui/addiu for
+ *       &D_801E71BC (text init) BEFORE the ot save/init, while the original has
+ *       ot save/init first. The prologue instruction order is s2→s0→s1 (compiled)
+ *       vs s2→s1→s0 (original). All register numbers and body instructions match.
  * @code
  * s32 func_801E64B4(s32 a0, s32 a1) {
- *     s32 disp = a0;
- *     s32 ot = a1;
- *     s32 text = (s32)&D_801E71BC;
+ *     register s32 disp asm("$18") = a0;
+ *     register s32 ot asm("$17") = a1;
+ *     register s32 text asm("$16") = (s32)&D_801E71BC;
  *     s32 maxW;
  *     s32 v0;
  *     s32 buf;
  *     v0 = func_8002E680(text);
+ *     REGALLOC_BARRIER(v0);
  *     maxW = 0xF4;
  *     v0 = (maxW - v0) / 2;
  *     func_8002EAD0(disp, v0 + 0x18, 0xC, text);
@@ -188,14 +190,19 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E64B4);
  * @param a2 OT pointer
  * @return Result of func_801EF9AC
  * @note Non-matching: scrambled prologue (s3,s0,s1,s4,ra,s2) with 6 callee-saved
- *       registers. S-reg assignment locked by graph coloring.
+ *       registers. register asm("$19/$16") gets disp→s3 and ot→s0 correct, and
+ *       the compiler naturally assigns yPos→s1, buf→s2, %hi(FAB00)→s4. However,
+ *       the prologue save ordering still differs, and the scroll computation has
+ *       register differences: compiler uses $3 for sll result (original uses $2),
+ *       and fills the bgez delay slot with sra (original has nop). Use s32 for
+ *       scroll variable (not s16) to get correct lh+sra pattern.
  * @code
  * s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
- *     s32 disp = a1;
- *     s32 ot = a2;
+ *     register s32 disp asm("$19") = a1;
+ *     register s32 ot asm("$16") = a2;
  *     s32 yPos = 0x22;
  *     s32 buf = (s32)&D_801FAB00;
- *     s16 scroll = *(s16 *)(a0 + 0x2A);
+ *     s32 scroll = *(s16 *)(a0 + 0x2A);
  *     s32 v0;
  *     if (scroll < 0) scroll += 0x3F;
  *     v0 = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
@@ -230,33 +237,29 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E6570);
  * @param a1 Display list pointer
  * @param a2 OT pointer
  * @return Result of func_801EF9AC
- * @note Non-matching: scrambled prologue (s1,s2,ra,s3,s0). Compiler assigns
- *       state→s0, disp→s1, ot→s2, but original needs state→s1, disp→s2, ot→s0
- *       (all shifted by 1). S-reg assignment locked by graph coloring.
- * @code
- * s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
- *     s32 state = a0;
- *     s32 disp = a1;
- *     s32 ot = a2;
- *     s32 maxW;
- *     s32 v0;
- *     s32 buf;
- *     v0 = func_8002E680(*(s32 *)(state + 0x20));
- *     maxW = 0x150;
- *     v0 = (maxW - v0) / 2;
- *     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
- *     buf = (s32)&D_801FAB00;
- *     *(u8 *)(buf + 0x10) = 0;
- *     *(u8 *)(buf + 0x11) = 0;
- *     *(s16 *)&D_801FAB00 = 0x18;
- *     *(s16 *)(buf + 2) = 0xC4;
- *     *(s16 *)(buf + 4) = maxW;
- *     *(s16 *)(buf + 6) = 0x14;
- *     return func_801EF9AC(disp, ot, 0x1000, D_80083848);
- * }
- * @endcode
  */
-INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E66A8);
+s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
+    register s32 ot asm("$16") = a2; /* FIXME: MIPS-specific, not portable */
+    s32 state = a0;
+    s32 disp = a1;
+    s32 maxW;
+    s32 v0;
+    s32 buf;
+
+    v0 = func_8002E680(*(s32 *)(state + 0x20));
+    REGALLOC_BARRIER(v0);
+    maxW = 0x150;
+    v0 = (maxW - v0) / 2;
+    func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
+    buf = (s32)&D_801FAB00;
+    *(u8 *)(buf + 0x10) = 0;
+    *(u8 *)(buf + 0x11) = 0;
+    *(s16 *)&D_801FAB00 = 0x18;
+    *(s16 *)(buf + 2) = 0xC4;
+    *(s16 *)(buf + 4) = maxW;
+    *(s16 *)(buf + 6) = 0x14;
+    return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+}
 
 /**
  * Sets up menu display rendering pipeline.
