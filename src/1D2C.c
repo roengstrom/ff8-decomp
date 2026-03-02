@@ -495,7 +495,27 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", func_800127F8);
  *  primitive slots at D_80070474 (32 bytes apart). These are used for screen
  *  clearing during frame rendering.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_80012870);
+void func_80012870(void) {
+    extern u8 D_80070474[];
+    u8 *ptr;
+    s32 i;
+
+    i = 0;
+    ptr = D_80070474;
+top:
+    func_8004D704(ptr);
+    func_8004D604(ptr, 1);
+    func_8004D634(ptr, 1);
+    *(u16 *)(ptr + 0xC) = 0x140;
+    *(u8 *)(ptr + 0x4) = 0;
+    *(u8 *)(ptr + 0x5) = 0;
+    *(u8 *)(ptr + 0x6) = 0;
+    *(u16 *)(ptr + 0xE) = 0xE0;
+    *(u16 *)(ptr + 0x8) = 0;
+    *(u16 *)(ptr + 0xA) = 0;
+    ptr += 0x20;
+    if (++i < 2) goto top;
+}
 
 /** @brief Copies the framebuffer from the current display buffer to the other.
  *
@@ -503,7 +523,24 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", func_80012870);
  *  content. Reads source/destination coordinates from the DISPENV array at
  *  D_80067440. Spins on DrawSync until the GPU transfer completes.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_800128F8);
+void func_800128F8(void) {
+    extern u8 D_80067440[];
+    extern volatile u16 D_8005F114;
+    s32 base;
+    s32 ofs1;
+
+    ofs1 = (s16)D_8005F114 * 20;
+    base = D_80067440;
+
+    MoveImage(
+        (void *)(ofs1 + base),
+        *(s16 *)(((s16)D_8005F114 + 1 & 1) * 20 + base),
+        *(s16 *)(((s16)D_8005F114 + 1 & 1) * 20 + base + 2)
+    );
+
+    do {
+    } while (DrawSync(1) != 0);
+}
 
 /** @brief Builds and chains the per-frame GPU primitive list for rendering.
  *
