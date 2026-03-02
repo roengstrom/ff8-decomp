@@ -546,7 +546,20 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E298);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E3A4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E428);
+/** @brief Extracts a 4-bit nibble from packed byte array D_800834D8.
+ *  Even indices return the low nibble; odd indices return the high nibble.
+ *  @param a0 Nibble index.
+ *  @return The 4-bit value (0-15).
+ */
+s32 func_8002E428(s32 a0) {
+    extern u8 D_800834D8[];
+    s32 base = (s32)D_800834D8;
+    u32 val = *(u8 *)(base + (a0 >> 1));
+    if (a0 & 1) {
+        val >>= 4;
+    }
+    return val & 0xF;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E454);

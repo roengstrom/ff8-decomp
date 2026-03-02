@@ -1130,7 +1130,15 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003B4E8);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003B8E0);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003B948);
+/** @brief Sets command byte 0x4D, state byte 6, and copies field 0x20 to 0x2C.
+ *  @param a0 Pointer to entity structure.
+ */
+void func_8003B948(u8 *a0) {
+    s32 val = *(s32 *)(a0 + 0x20);
+    *(u8 *)(a0 + 0x37) = 0x4D;
+    *(u8 *)(a0 + 0x36) = 6;
+    *(s32 *)(a0 + 0x2C) = val;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003B964);
