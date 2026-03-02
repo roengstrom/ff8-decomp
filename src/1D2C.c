@@ -487,7 +487,14 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", main);
  *  @param a0 Texture page semi-transparency mode (passed to GetTPage).
  *            Value 2 (8-bit) is used from func_80012B4C.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_800127F8);
+void func_800127F8(s32 a0) {
+    extern u8 D_80070468[];
+    u16 tpage;
+
+    tpage = GetTPage(0, a0, 0, 0);
+    SetDrawMode(D_80070468, 0, 0, tpage, 0);
+    SetDrawMode(D_80070468 + 0x20, 0, 0, tpage, 0);
+}
 
 /** @brief Initializes two full-screen black TILE primitives for screen clearing.
  *
