@@ -118,13 +118,32 @@ void func_80012EFC(s32 a0, s32 a1, s32 a2) {
     func_8001A1E8(0x14);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F30);
+/** @brief Sends SPU command 0x40. */
+void func_80012F30(void) {
+    func_8001A1E8(0x40);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F50);
+/** @brief Stores a0 and masked a1 to SPU command buffer, sends command 0x19.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 7 bits.
+ */
+void func_80012F50(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0x7F;
+    func_8001A1E8(0x19);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80012F84);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012FBC);
+/** @brief Stores a0 and a1 to SPU command buffer, sends command 0x12.
+ *  @param a0 First command parameter.
+ *  @param a1 Second command parameter.
+ */
+void func_80012FBC(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    func_8001A1E8(0x12);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80012FEC);
 
@@ -197,7 +216,10 @@ void func_80013168(void) {
     func_8001A1E8(0x44);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013188);
+/** @brief Sends SPU command 0x45. */
+void func_80013188(void) {
+    func_8001A1E8(0x45);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800131A8);
 
@@ -205,9 +227,21 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_80013210);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001327C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800132B0);
+/** @brief Stores a0 to SPU command buffer, sends command 0x90.
+ *  @param a0 Command parameter.
+ */
+void func_800132B0(s32 a0) {
+    D_80075058 = a0;
+    func_8001A1E8(0x90);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800132D8);
+/** @brief Stores a0 to SPU command buffer, sends command 0x92.
+ *  @param a0 Command parameter.
+ */
+void func_800132D8(s32 a0) {
+    D_80075058 = a0;
+    func_8001A1E8(0x92);
+}
 
 /**
  * @brief Selects and sends a reverb mode command based on a mode index.
@@ -243,23 +277,59 @@ void func_8001344C(s32 a0) {
     func_8001A1E8(0xA8);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013478);
+/** @brief Stores a0 and 7-bit masked a1 to SPU command buffer, sends command 0xA9.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 7 bits.
+ */
+void func_80013478(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1 & 0x7F;
+    func_8001A1E8(0xA9);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800134AC);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800134F0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013538);
+/** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xAA.
+ *  @param a0 Command parameter, masked to 8 bits.
+ */
+void func_80013538(s32 a0) {
+    D_80075058 = (u8)a0;
+    func_8001A1E8(0xAA);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013564);
+/** @brief Stores a0 and u8-masked a1 to SPU command buffer, sends command 0xAB.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ */
+void func_80013564(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = (u8)a1;
+    func_8001A1E8(0xAB);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013598);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800135DC);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013624);
+/** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xAC.
+ *  @param a0 Command parameter, masked to 8 bits.
+ */
+void func_80013624(s32 a0) {
+    D_80075058 = (u8)a0;
+    func_8001A1E8(0xAC);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013650);
+/** @brief Stores a0 and u8-masked a1 to SPU command buffer, sends command 0xAD.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ */
+void func_80013650(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = (u8)a1;
+    func_8001A1E8(0xAD);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013684);
 
@@ -280,31 +350,100 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_80013744);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001377C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800137BC);
+/** @brief Stores a0 to SPU command buffer, sends command 0xC8.
+ *  @param a0 Command parameter.
+ */
+void func_800137BC(s32 a0) {
+    D_80075058 = a0;
+    func_8001A1E8(0xC8);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800137E4);
+/** @brief Stores a0 and a1 to SPU command buffer, sends command 0xC9.
+ *  @param a0 First command parameter.
+ *  @param a1 Second command parameter.
+ */
+void func_800137E4(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    func_8001A1E8(0xC9);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013814);
+/** @brief Stores a0, a1 and a2 to SPU command buffer, sends command 0xCA.
+ *  @param a0 First command parameter.
+ *  @param a1 Second command parameter.
+ *  @param a2 Third command parameter.
+ */
+void func_80013814(s32 a0, s32 a1, s32 a2) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    *(&D_80075058 + 2) = a2;
+    func_8001A1E8(0xCA);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013848);
+/** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xD0.
+ *  @param a0 Command parameter, masked to 8 bits.
+ */
+void func_80013848(s32 a0) {
+    D_80075058 = (u8)a0;
+    func_8001A1E8(0xD0);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013874);
+/** @brief Stores a0 and u8-masked a1 to SPU command buffer, sends command 0xD1.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ */
+void func_80013874(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = (u8)a1;
+    func_8001A1E8(0xD1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800138A8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800138E4);
+/** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xD4.
+ *  @param a0 Command parameter, masked to 8 bits.
+ */
+void func_800138E4(s32 a0) {
+    D_80075058 = (u8)a0;
+    func_8001A1E8(0xD4);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013910);
+/** @brief Stores a0 and u8-masked a1 to SPU command buffer, sends command 0xD5.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ */
+void func_80013910(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = (u8)a1;
+    func_8001A1E8(0xD5);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013944);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013980);
+/** @brief Stores u8-masked a0 to SPU command buffer, sends command 0xD8.
+ *  @param a0 Command parameter, masked to 8 bits.
+ */
+void func_80013980(s32 a0) {
+    D_80075058 = (u8)a0;
+    func_8001A1E8(0xD8);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800139AC);
+/** @brief Stores a0 and u8-masked a1 to SPU command buffer, sends command 0xD9.
+ *  @param a0 First command parameter.
+ *  @param a1 Second parameter, masked to 8 bits.
+ */
+void func_800139AC(s32 a0, s32 a1) {
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = (u8)a1;
+    func_8001A1E8(0xD9);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800139E0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013A1C);
+/** @brief Sends SPU command 0xF0. */
+void func_80013A1C(void) {
+    func_8001A1E8(0xF0);
+}
 
 /** @brief Sends SPU command 0xF1 (system/engine reset or flush). */
 void func_80013A3C(void) {
@@ -334,7 +473,13 @@ s32 func_80013CA4(void) {
     return D_80074ED4;
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CB4);
+/** @brief Clears D_8007735C, sets bit 0x1 in D_80077288, returns 0. */
+s32 func_80013CB4(void) {
+    extern s32 D_8007735C;
+    D_8007735C = 0;
+    D_80077288[0] |= 0x1;
+    return 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CD4);
 
@@ -352,13 +497,28 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_80014250);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800142E4);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014348);
+/** @brief Sends SPU command 0xE2. */
+void func_80014348(void) {
+    func_8001A1E8(0xE2);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014368);
+/** @brief Stores 7-bit masked a0, shifted left 8, to SPU command buffer. Sends command 0xE4.
+ *  @param a0 Parameter, masked to 7 bits then shifted left 8.
+ */
+void func_80014368(s32 a0) {
+    D_80075058 = (a0 & 0x7F) << 8;
+    func_8001A1E8(0xE4);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014398);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800143D0);
+/** @brief Stores u8-masked a0, shifted left 8, to SPU command buffer. Sends command 0xE6.
+ *  @param a0 Parameter, masked to 8 bits then shifted left 8.
+ */
+void func_800143D0(s32 a0) {
+    D_80075058 = (u8)a0 << 8;
+    func_8001A1E8(0xE6);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014400);
 
@@ -1335,9 +1495,15 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C99C);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA28);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA44);
+/** @brief Increments halfword at a0+0x92, wraps modulo 16. */
+void func_8001CA44(u8 *a0) {
+    *(u16 *)(a0 + 0x92) = (*(u16 *)(a0 + 0x92) + 1) & 0xF;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA5C);
+/** @brief Decrements halfword at a0+0x92, wraps modulo 16. */
+void func_8001CA5C(u8 *a0) {
+    *(u16 *)(a0 + 0x92) = (*(u16 *)(a0 + 0x92) - 1) & 0xF;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CA74);
 
@@ -1370,7 +1536,12 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CF0C);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CF6C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CFD8);
+/** @brief Clears bit 0x1 in a0+0x30, sets bit 0x10 in a0+0xF8, zeroes a0+0xEE. */
+void func_8001CFD8(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x1;
+    *(s32 *)(a0 + 0xF8) |= 0x10;
+    *(u16 *)(a0 + 0xEE) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CFFC);
 
@@ -1378,7 +1549,12 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D0AC);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D0D0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D140);
+/** @brief Clears bit 0x2 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF0. */
+void func_8001D140(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x2;
+    *(s32 *)(a0 + 0xF8) |= 0x3;
+    *(u16 *)(a0 + 0xF0) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D164);
 
@@ -1386,7 +1562,12 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D1D0);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D1F0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D25C);
+/** @brief Clears bit 0x4 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF2. */
+void func_8001D25C(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x4;
+    *(s32 *)(a0 + 0xF8) |= 0x3;
+    *(u16 *)(a0 + 0xF2) = 0;
+}
 
 /**
  * @brief Enables noise mode for the given voice bitmask on the appropriate SPU channel.
@@ -1568,7 +1749,11 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA34);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA7C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DAB4);
+/** @brief Clears bit 0x8 in a0+0x30 and zeroes halfword at a0+0x10A. */
+void func_8001DAB4(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x8;
+    *(u16 *)(a0 + 0x10A) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DACC);
 
@@ -1586,13 +1771,25 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DC34);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DC64);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DCCC);
+/** @brief Sets bit 0x10 in word at a0+0x30. */
+void func_8001DCCC(u8 *a0) {
+    *(s32 *)(a0 + 0x30) |= 0x10;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DCE0);
+/** @brief Clears bit 0x10 in word at a0+0x30. */
+void func_8001DCE0(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x10;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DCF4);
+/** @brief Sets bit 0x20 in word at a0+0x30. */
+void func_8001DCF4(u8 *a0) {
+    *(s32 *)(a0 + 0x30) |= 0x20;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DD08);
+/** @brief Clears bit 0x20 in word at a0+0x30. */
+void func_8001DD08(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x20;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DD1C);
 
@@ -1600,15 +1797,33 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DDD4);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DE18);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DECC);
+/** @brief Sets bit 0x100000 in word at a0+0x30. */
+void func_8001DECC(u8 *a0) {
+    *(s32 *)(a0 + 0x30) |= 0x100000;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DEE0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DF10);
+/** @brief ORs a1 into the word at D_80074F08+0x8 (set flags).
+ *  @param a0 Unused.
+ *  @param a1 Bits to set.
+ */
+void func_8001DF10(s32 a0, s32 a1) {
+    *(s32 *)((u8 *)D_80074F08 + 0x8) |= a1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DF30);
+/** @brief ANDs ~a1 into the word at D_80074F08+0x8 (clear flags).
+ *  @param a0 Unused.
+ *  @param a1 Bits to clear.
+ */
+void func_8001DF30(s32 a0, s32 a1) {
+    *(s32 *)((u8 *)D_80074F08 + 0x8) &= ~a1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DF50);
+/** @brief Calls func_8001C2C8. */
+void func_8001DF50(void) {
+    func_8001C2C8();
+}
 
 /**
  * @brief Disables SPU IRQ and clears the IRQ voice mask from the engine state.
@@ -1656,7 +1871,10 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E838);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E868);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E8B0);
+/** @brief Calls func_8001DF70. */
+void func_8001E8B0(void) {
+    func_8001DF70();
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E8D0);
 

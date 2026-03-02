@@ -9,7 +9,14 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020608);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020644);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020670);
+/** @brief Sets bit 0x1 in byte at D_80077378[a0 * 68 + 0x61].
+ *  @param a0 Table index (stride 68 bytes).
+ */
+void func_80020670(s32 a0) {
+    extern u8 D_80077378[];
+    s32 base = (s32)D_80077378;
+    *(u8 *)(base + a0 * 68 + 0x61) |= 1;
+}
 
 
 /** @brief Returns a pointer to global D_800773B4. */
@@ -1021,7 +1028,14 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027448);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027558);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800275A8);
+/** @brief Returns byte at D_80082DD0[a0 * 196 + 0x0B].
+ *  @param a0 Entity index (stride 196 bytes).
+ */
+s32 func_800275A8(s32 a0) {
+    extern u8 D_80082DD0[];
+    u8 *entry = D_80082DD0 + a0 * 196;
+    return entry[0x0B];
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800275D4);
@@ -1101,7 +1115,14 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027CF8);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027DB4);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027EC8);
+/** @brief Returns byte at D_80082DD0[(a0 & 1) * 196 + 0x1B].
+ *  @param a0 Entity index, masked to 0 or 1.
+ */
+s32 func_80027EC8(s32 a0) {
+    extern u8 D_80082DD0[];
+    u8 *entry = D_80082DD0 + (a0 & 1) * 196;
+    return entry[0x1B];
+}
 
 
 /**
@@ -1126,7 +1147,19 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027F38);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027F78);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027FBC);
+/** @brief Stores two u16 values into D_80082DD0 at (a0 & 1) * 4.
+ *  @param a0 Entity index, masked to 0 or 1.
+ *  @param a1 Value stored at offset 0x1D0.
+ *  @param a2 Value stored at offset 0x1D2.
+ */
+void func_80027FBC(s32 a0, s16 a1, s16 a2) {
+    extern u8 D_80082DD0[];
+    s32 base;
+    a0 &= 1;
+    base = (s32)D_80082DD0;
+    *(u16 *)(base + a0 * 4 + 0x1D0) = a1;
+    *(u16 *)(base + a0 * 4 + 0x1D2) = a2;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027FDC);
@@ -1203,7 +1236,12 @@ void func_800283F8(void) {
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80028444);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002848C);
+/** @brief Calls func_8002A128, func_800286FC, and func_8002A090 in sequence. */
+void func_8002848C(void) {
+    func_8002A128();
+    func_800286FC();
+    func_8002A090();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800284BC);
@@ -1674,7 +1712,11 @@ void func_8002A090(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A128);
+/** @brief Calls func_80027448 and func_8003ABA4 in sequence. */
+void func_8002A128(void) {
+    func_80027448();
+    func_8003ABA4();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A150);
@@ -1781,10 +1823,21 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A5E8);
 
 extern s32 D_800834C0;
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A834);
+/** @brief Calls func_8002A5E8(a0, 0) then func_80030CB0(a0).
+ *  @param a0 Parameter passed to both calls.
+ */
+void func_8002A834(s32 a0) {
+    func_8002A5E8(a0, 0);
+    func_80030CB0(a0);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A868);
+/** @brief Calls func_8002A5E8(a0, 1).
+ *  @param a0 First parameter.
+ */
+void func_8002A868(s32 a0) {
+    func_8002A5E8(a0, 1);
+}
 
 
 /**

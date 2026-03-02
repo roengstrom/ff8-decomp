@@ -101,7 +101,17 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C734);
 extern u8 D_80082FF0[];
 // sfx_entry_set_fields_29_2A_2C - D_80082FF0 stride 60
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C7BC);
+/** @brief Stores a u16 and u8 into D_80082FF0[a0 * 60].
+ *  @param a0 Array index (stride 60).
+ *  @param a1 Value stored as u16 at offset 0x30.
+ *  @param a2 Value stored as u8 at offset 0x32.
+ */
+void func_8002C7BC(s32 a0, s32 a1, s32 a2) {
+    extern u8 D_80082FF0[];
+    u8 *entry = D_80082FF0 + a0 * 60;
+    *(u16 *)(entry + 0x30) = a1;
+    entry[0x32] = a2;
+}
 
 
 /**
@@ -400,7 +410,14 @@ void func_8002DD58(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DD78);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DDD8);
+/** @brief Returns unsigned byte at D_80082FF0[a0 * 60 + 0x28].
+ *  @param a0 Array index (stride 60).
+ */
+s32 func_8002DDD8(s32 a0) {
+    extern u8 D_80082FF0[];
+    u8 *entry = D_80082FF0 + a0 * 60;
+    return entry[0x28];
+}
 
 
 /**
@@ -532,7 +549,10 @@ void func_8002E764(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E784);
+/** @brief Calls func_8002E4AC(a0, 1) and returns the result as u16. */
+u16 func_8002E784(s32 a0) {
+    return (u16)func_8002E4AC(a0, 1);
+}
 
 
 /**
@@ -793,7 +813,15 @@ void func_8003023C(s32 val) {
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80030248);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80030274);
+/** @brief Stores u16 and u8 to adjacent fields of D_800834D0.
+ *  @param a0 Value stored as u16.
+ *  @param a1 Value stored as u8 at offset 2.
+ */
+void func_80030274(s32 a0, s32 a1) {
+    extern u16 D_800834D0;
+    D_800834D0 = a0;
+    *((u8 *)&D_800834D0 + 2) = a1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80030288);

@@ -401,7 +401,11 @@ u8 *func_800372D0(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_800372DC);
+/** @brief Sets bit 0x1 in the byte at D_800786D8. */
+void func_800372DC(void) {
+    u8 *p = func_800372D0();
+    *p |= 0x1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80037308);
@@ -594,10 +598,22 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_800383B8);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038424);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038440);
+/** @brief Returns halfword from D_800562C8 table indexed by D_80077E5A. */
+u16 func_80038440(void) {
+    extern u8 D_80077E5A;
+    extern u16 D_800562C8[];
+    return D_800562C8[D_80077E5A];
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038464);
+/** @brief Linear congruential generator: D_800562D4 = D_800562D4 * 0x41C64E6D + 0x3039.
+ *  @return Bits 16-30 of the new state (0-32767).
+ */
+s32 func_80038464(void) {
+    extern s32 D_800562D4;
+    D_800562D4 = D_800562D4 * 0x41C64E6D + 0x3039;
+    return ((u32)D_800562D4 >> 16) & 0x7FFF;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038490);
@@ -606,7 +622,12 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80038490);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800385B0);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003863C);
+/** @brief Calls func_8001313C with a0 passed through and fixed constants.
+ *  @param a0 First parameter passed through.
+ */
+void func_8003863C(s32 a0) {
+    func_8001313C(a0, 0, 0x80, 0x7F, 0);
+}
 
 
 /**
@@ -980,7 +1001,10 @@ void func_8003AB64(void) { func_80039AA0(); }
 void func_8003AB84(void) { func_80039AB4(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003ABA4);
+/** @brief Calls func_80039B80. */
+void func_8003ABA4(void) {
+    func_80039B80();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003ABC4);
