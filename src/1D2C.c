@@ -1,6 +1,26 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 
+/** @brief Layout of the snapshot region within D_80077378 (offsets 0xD40–0xD5C).
+ *  Used by func_80011870 (save) and func_800119D4 (restore).
+ */
+typedef struct {
+    u8  pad0[0xD40];   /* 0x000..0xD3F */
+    u16 vsync_rate;    /* 0xD40 */
+    u16 music_track;   /* 0xD42 */
+    u16 field_120;     /* 0xD44 */
+    u16 field_04;      /* 0xD46 */
+    u8  pad1[4];       /* 0xD48..0xD4B */
+    u16 field_06;      /* 0xD4C */
+    u8  pad2[4];       /* 0xD4E..0xD51 */
+    u16 field_0C;      /* 0xD52 */
+    u8  pad3[4];       /* 0xD54..0xD57 */
+    u8  field_0E;      /* 0xD58 */
+    u8  pad4[2];       /* 0xD59..0xD5A */
+    u8  fade1;         /* 0xD5B */
+    u8  fade0;         /* 0xD5C */
+} SnapshotBuf;
+
 /** @brief Empty stub, called at the very start of main before initialization.
  *  @note Purpose uncertain — may be a debug hook or placeholder that was
  *        never filled in the retail build.
@@ -88,16 +108,120 @@ void func_800117FC(void) {
  *  @note Purpose uncertain for some saved fields — offsets 0x190/0x194 are
  *        likely X/Y positions and 0x1FA is likely a facing angle, inferred
  *        from the fixed-point shift and structure layout.
+ *
+ *
+ *  @note Non-matching decomp attempt (2 instructions shorter than original):
+ *        - Compiler hoists lui %hi(D_80085224) out of the loop (original keeps
+ *          both lui+lw inside loop using same register $a3)
+ *        - Compiler targets t1/t2 directly via addiu (original does addiu $v0
+ *          then addu to t1/t2, costing 2 extra move instructions)
+ *        - Register swap: idx in $a0 vs $a1, idx*2 in $a1 vs $a0
+ *        - File compiled without -G0 (NO_G0_SRCS) but original uses lui/$v0
+ *          for globals (suggesting -G0 was used originally)
+ *
+ *  @code
+ *  void func_80011870(void) {
+ *      extern volatile u16 D_8005F14C;
+ *      extern u16 D_8005F14E;
+ *      extern u8 D_8005F150;
+ *      extern u8 D_8005F151;
+ *      extern u16 D_800780B8;
+ *      extern u8 D_80077378[];
+ *      extern u8 D_800704A8[];
+ *      extern s32 D_80085224;
+ *      s32 i;
+ *      s32 base;
+ *      s32 src;
+ *      s16 idx;
+ *      s32 entities;
+ *
+ *      if ((s16)D_8005F14C == 2) {
+ *          D_800780B8 = 2;
+ *      } else {
+ *          D_800780B8 = 1;
+ *      }
+ *
+ *      i = 0;
+ *      base = D_80077378;
+ *      src = D_800704A8;
+ *      *(u16 *)(base + 0xD42) = D_8005F14E;
+ *      *(u16 *)(base + 0xD44) = *(u16 *)(src + 0x120);
+ *
+ *      do {
+ *          u8 member;
+ *          idx = (s16)i;
+ *          member = *(u8 *)(src + idx + 0x12);
+ *          entities = D_80085224;
+ *          *(s16 *)(base + idx * 2 + 0xD46) =
+ *              *(s32 *)(entities + member * 612 + 0x190) >> 12;
+ *          member = *(u8 *)(src + idx + 0x12);
+ *          *(s16 *)(base + idx * 2 + 0xD4C) =
+ *              *(s32 *)(entities + member * 612 + 0x194) >> 12;
+ *          member = *(u8 *)(src + idx + 0x12);
+ *          *(u16 *)(base + idx * 2 + 0xD52) =
+ *              *(u16 *)(entities + member * 612 + 0x1FA);
+ *          i++;
+ *          member = *(u8 *)(src + idx + 0x12);
+ *          *(u8 *)(base + idx + 0xD58) =
+ *              *(u8 *)(entities + member * 612 + 0x241);
+ *      } while ((s16)i < 3);
+ *
+ *      base = D_80077378;
+ *      *(u8 *)(base + 0xD5B) = D_8005F151;
+ *      *(u8 *)(base + 0xD5C) = D_8005F150;
+ *  }
+ *  @endcode
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", func_80011870);
 
 /** @brief Restores a previously saved camera/field state snapshot.
  *
- *  Inverse of func_80011870. Reads the snapshot from D_80077378+0xD38..0xD5C
+ *  Inverse of func_80011870. Reads the snapshot from D_80077378+0xD40..0xD5C
  *  and writes values back into D_8005F14E (music track), D_800704A8 (field
  *  state structure), D_8005F158 (VSync rate), and fade state variables.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_800119D4);
+void func_800119D4(void) {
+    extern u8 D_80077378[];
+    extern volatile u16 D_8005F158;
+    extern u16 D_8005F14E;
+    extern u8 D_8005F150;
+    extern u8 D_8005F151;
+    extern u8 D_800704A8[];
+    SnapshotBuf *buf;
+    s32 src;
+    u16 v0, v1, a0, a1, a2;
+    u8 a3, t0, t1;
+
+    buf = (SnapshotBuf *)(s32)D_80077378;
+
+    D_8005F158 = buf->vsync_rate;
+    if (D_8005F158 == 0) {
+        D_8005F158 = 1;
+    }
+
+    v0 = buf->music_track;
+    v1 = buf->field_120;
+    a0 = buf->field_04;
+    a1 = buf->field_06;
+    a2 = buf->field_0C;
+
+    D_8005F14E = v0;
+
+    src = D_800704A8;
+
+    a3 = buf->field_0E;
+    t0 = buf->fade1;
+    t1 = buf->fade0;
+
+    *(u16 *)(src + 0x120) = v1;
+    *(u16 *)(src + 0x4) = a0;
+    *(u16 *)(src + 0x6) = a1;
+    *(u16 *)(src + 0xC) = a2;
+    *(u16 *)(src + 0xE) = a3;
+
+    D_8005F151 = t0;
+    D_8005F150 = t1;
+}
 
 extern volatile u16 D_8005F14C;
 extern u32 D_80097410[];
