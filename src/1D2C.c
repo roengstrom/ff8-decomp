@@ -5,21 +5,31 @@
  *  Used by func_80011870 (save) and func_800119D4 (restore).
  */
 typedef struct {
-    u8  pad0[0xD40];   /* 0x000..0xD3F */
-    u16 vsync_rate;    /* 0xD40 */
-    u16 music_track;   /* 0xD42 */
-    u16 field_120;     /* 0xD44 */
-    u16 field_04;      /* 0xD46 */
-    u8  pad1[4];       /* 0xD48..0xD4B */
-    u16 field_06;      /* 0xD4C */
-    u8  pad2[4];       /* 0xD4E..0xD51 */
-    u16 field_0C;      /* 0xD52 */
-    u8  pad3[4];       /* 0xD54..0xD57 */
-    u8  field_0E;      /* 0xD58 */
-    u8  pad4[2];       /* 0xD59..0xD5A */
-    u8  fade1;         /* 0xD5B */
-    u8  fade0;         /* 0xD5C */
+    u8  pad0[0xD40];      /* 0x000..0xD3F */
+    u16 vsync_rate;       /* 0xD40 */
+    u16 music_track;      /* 0xD42 */
+    u16 field_120;        /* 0xD44 */
+    u16 positions_x[3];   /* 0xD46..0xD4B */
+    u16 positions_y[3];   /* 0xD4C..0xD51 */
+    u16 rotations[3];     /* 0xD52..0xD57 */
+    u8  anim_states[3];   /* 0xD58..0xD5A */
+    u8  fade1;            /* 0xD5B */
+    u8  fade0;            /* 0xD5C */
 } SnapshotBuf;
+
+/** @brief Battle entity structure (stride 612 / 0x264 bytes).
+ *  Accessed via pointer at D_80085224. Fields named from func_80011870 usage.
+ */
+typedef struct {
+    u8  pad0[0x190];   /* 0x000..0x18F */
+    s32 pos_x;         /* 0x190  fixed-point 20.12 */
+    s32 pos_y;         /* 0x194  fixed-point 20.12 */
+    u8  pad1[0x62];    /* 0x198..0x1F9 */
+    u16 rotation;      /* 0x1FA */
+    u8  pad2[0x45];    /* 0x1FC..0x240 */
+    u8  anim_state;    /* 0x241 */
+    u8  pad3[0x22];    /* 0x242..0x263 */
+} BattleEntity;        /* total: 0x264 = 612 */
 
 /** @brief Empty stub, called at the very start of main before initialization.
  *  @note Purpose uncertain — may be a debug hook or placeholder that was
@@ -102,22 +112,15 @@ void func_800117FC(void) {
  *
  *  Records party member positions (fixed-point 20.12 → integer), rotations,
  *  animation states, and display parameters from the battle entity array
- *  (stride 612 at D_80085224) into D_80077378+0xD38..0xD5C. The snapshot
+ *  (stride 612 at D_80085224) into D_80077378+0xD40..0xD5C. The snapshot
  *  is later restored by func_800119D4 when returning from battle.
  *
- *  @note Purpose uncertain for some saved fields — offsets 0x190/0x194 are
- *        likely X/Y positions and 0x1FA is likely a facing angle, inferred
- *        from the fixed-point shift and structure layout.
- *
- *
- *  @note Non-matching decomp attempt (2 instructions shorter than original):
- *        - Compiler hoists lui %hi(D_80085224) out of the loop (original keeps
- *          both lui+lw inside loop using same register $a3)
- *        - Compiler targets t1/t2 directly via addiu (original does addiu $v0
- *          then addu to t1/t2, costing 2 extra move instructions)
- *        - Register swap: idx in $a0 vs $a1, idx*2 in $a1 vs $a0
- *        - File compiled without -G0 (NO_G0_SRCS) but original uses lui/$v0
- *          for globals (suggesting -G0 was used originally)
+ *  @note Non-matching. Two codegen differences vs original:
+ *        1. Compiler targets $t1/$t2 directly via addiu; original goes through
+ *           $v0 then copies (2 extra instructions, cannot reproduce at -O2).
+ *        2. Compiler caches BattleEntity pointer across loop body stores;
+ *           original reloads member and recomputes entity address (×612)
+ *           before each field access due to aliasing conservatism.
  *
  *  @code
  *  void func_80011870(void) {
@@ -128,12 +131,10 @@ void func_800117FC(void) {
  *      extern u16 D_800780B8;
  *      extern u8 D_80077378[];
  *      extern u8 D_800704A8[];
- *      extern s32 D_80085224;
- *      s32 i;
- *      s32 base;
+ *      extern BattleEntity *D_80085224;
+ *      SnapshotBuf *buf;
  *      s32 src;
- *      s16 idx;
- *      s32 entities;
+ *      s32 i;
  *
  *      if ((s16)D_8005F14C == 2) {
  *          D_800780B8 = 2;
@@ -142,33 +143,25 @@ void func_800117FC(void) {
  *      }
  *
  *      i = 0;
- *      base = D_80077378;
+ *      buf = (SnapshotBuf *)(s32)D_80077378;
  *      src = D_800704A8;
- *      *(u16 *)(base + 0xD42) = D_8005F14E;
- *      *(u16 *)(base + 0xD44) = *(u16 *)(src + 0x120);
+ *      buf->music_track = D_8005F14E;
+ *      buf->field_120 = *(u16 *)(src + 0x120);
  *
  *      do {
- *          u8 member;
- *          idx = (s16)i;
- *          member = *(u8 *)(src + idx + 0x12);
- *          entities = D_80085224;
- *          *(s16 *)(base + idx * 2 + 0xD46) =
- *              *(s32 *)(entities + member * 612 + 0x190) >> 12;
- *          member = *(u8 *)(src + idx + 0x12);
- *          *(s16 *)(base + idx * 2 + 0xD4C) =
- *              *(s32 *)(entities + member * 612 + 0x194) >> 12;
- *          member = *(u8 *)(src + idx + 0x12);
- *          *(u16 *)(base + idx * 2 + 0xD52) =
- *              *(u16 *)(entities + member * 612 + 0x1FA);
+ *          s16 idx = (s16)i;
+ *          u8 member = *(u8 *)(src + idx + 0x12);
+ *
+ *          buf->positions_x[idx] = D_80085224[member].pos_x >> 12;
+ *          buf->positions_y[idx] = D_80085224[member].pos_y >> 12;
+ *          buf->rotations[idx] = D_80085224[member].rotation;
  *          i++;
- *          member = *(u8 *)(src + idx + 0x12);
- *          *(u8 *)(base + idx + 0xD58) =
- *              *(u8 *)(entities + member * 612 + 0x241);
+ *          buf->anim_states[idx] = D_80085224[member].anim_state;
  *      } while ((s16)i < 3);
  *
- *      base = D_80077378;
- *      *(u8 *)(base + 0xD5B) = D_8005F151;
- *      *(u8 *)(base + 0xD5C) = D_8005F150;
+ *      buf = (SnapshotBuf *)(s32)D_80077378;
+ *      buf->fade1 = D_8005F151;
+ *      buf->fade0 = D_8005F150;
  *  }
  *  @endcode
  */
@@ -201,15 +194,15 @@ void func_800119D4(void) {
 
     v0 = buf->music_track;
     v1 = buf->field_120;
-    a0 = buf->field_04;
-    a1 = buf->field_06;
-    a2 = buf->field_0C;
+    a0 = buf->positions_x[0];
+    a1 = buf->positions_y[0];
+    a2 = buf->rotations[0];
 
     D_8005F14E = v0;
 
     src = D_800704A8;
 
-    a3 = buf->field_0E;
+    a3 = buf->anim_states[0];
     t0 = buf->fade1;
     t1 = buf->fade0;
 
