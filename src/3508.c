@@ -1,5 +1,27 @@
 #include "common.h"
 
+/** @brief Initializes the SPU (Sound Processing Unit).
+ *
+ *  Wrapper that calls func_80014C30 (which runs the full SPU init sequence:
+ *  SpuStart, SpuInitMalloc, transfer mode setup, IRQ, and root counter timer)
+ *  and returns 0.
+ */
+s32 func_80012CC8(void) {
+    func_80014C30();
+    return 0;
+}
+
+/** @brief Shuts down the SPU and cleans up sound resources.
+ *
+ *  Wrapper that calls func_80014D20 (which stops the root counter timer,
+ *  disables/closes the timer event, resets the SPU IRQ address to 0xFFFFFF,
+ *  and reinitializes the SPU) and returns 0.
+ */
+s32 func_80012CE8(void) {
+    func_80014D20();
+    return 0;
+}
+
 /**
  * @brief Parses a sound bank header and sets up audio data pointers.
  *
