@@ -41,16 +41,46 @@ Reference `ot` in the first jal's argument expression:
 v0 = func_8002E680(*(s32 *)(state + 0x20));
 
 // After: ot gets s0 (now live BEFORE the jal, gets first s-reg)
-v0 = func_8002E680(*(s32 *)(state + 0x20) + ot - ot);
+v0 = func_8002E680(ot + *(s32 *)(state + 0x20) - ot);
 ```
 
 ### Why it works
 
-- `+ ot - ot` makes `ot` live at the point of the jal call
+- `+ var - var` (or `var + expr - var`) makes `var` live at the point of the jal call
 - The compiler must preserve it in a callee-saved register across the jal
 - Since `ot` is now the first variable needing preservation, it gets the lowest s-reg
-- The `+ ot - ot` arithmetic is completely optimized away by the compiler
+- The arithmetic is completely optimized away by the compiler
   (zero extra instructions in the output)
+
+### Equivalent forms
+
+All of these produce identical output:
+
+| Form | Notes |
+|------|-------|
+| `expr + ot - ot` | Decomp convention |
+| `ot + expr - ot` | Most natural — looks like a developer typo/correction |
+| `expr - ot + ot` | Reversed subtraction order |
+| `*(s32 *)(addr + ot - ot)` | Inside pointer offset |
+| `expr + a2 - a2` | Using raw parameter name instead of local variable |
+
+These do NOT work (compiler optimizes away the reference before register allocation):
+
+| Form | Why it fails |
+|------|-------------|
+| `ot * 0` | Constant-folded to 0 at compile time |
+| `ot ^ ot` | Constant-folded to 0 at compile time |
+| `ot & 0` | Constant-folded to 0 at compile time |
+| `(ot, expr)` | Comma operator — no data dependency on ot |
+| `(void)ot;` before call | Cast to void generates no code |
+| Passing ot as extra function arg | Changes all register assignments |
+
+### Plausible original source
+
+The `var + expr - var` form is the most likely original: the developer started typing
+`ot` (perhaps intending a different argument), realized the mistake, and subtracted it
+back rather than retyping. This is a common developer "correction" pattern that happens
+to affect register allocation.
 
 ### Verified
 
@@ -117,11 +147,14 @@ func_801E66A8 in menutest.ovl: `maxW` shifted from s0 to s3, byte-match verified
 ## Combining the techniques
 
 func_801E66A8 needed two s-reg swaps simultaneously:
-- `ot`: s2 -> s0 (fixed with `+ ot - ot`)
-- `maxW`: s0 -> s3 (fixed with `do { break } while (1)`)
+- `ot`: s2 -> s0 (fixed with `ot + expr - ot`)
+- `maxW`: s0 -> s3 (fixed with `do { break } while (1)` via `CalcCenter` macro)
 
 Combined:
 ```c
+#define CalcCenter(maxW, tw, w) \
+    do { (maxW) = (w); (tw) = ((maxW) - (tw)) / 2; break; } while (1)
+
 s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
     s32 state = a0;
     s32 disp = a1;
@@ -130,8 +163,8 @@ s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
     s32 v0;
     s32 buf;
 
-    v0 = func_8002E680(*(s32 *)(state + 0x20) + ot - ot);
-    do { maxW = 0x150; v0 = (maxW - v0) / 2; break; } while (1);
+    v0 = func_8002E680(ot + *(s32 *)(state + 0x20) - ot);
+    CalcCenter(maxW, v0, 0x150);
     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
     buf = (s32)&D_801FAB00;
     *(u8 *)(buf + 0x10) = 0;

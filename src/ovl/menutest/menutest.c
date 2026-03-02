@@ -15,6 +15,10 @@ extern u8 D_800780AB;
 extern u8 D_80077378;
 extern u32 D_801E69B8;
 
+/** Center offset: maxW = width, tw = (maxW - tw) / 2 */
+#define CalcCenter(maxW, tw, w) \
+    do { (maxW) = (w); (tw) = ((maxW) - (tw)) / 2; break; } while (1)
+
 void func_801E5D74(s32 a0);
 
 /**
@@ -31,27 +35,30 @@ s32 func_801E5800(s32 a0) {
  * D_801FA3C8 animation table, then calls func_801F0A34 to apply it.
  * @param a0 Display mode parameter (passed through to func_801F0A34)
  * @param a1 Menu state structure pointer
- * @note Non-matching: register allocation mismatch — compiler assigns t0/a2
- *       differently in the multiply chain (tblVal * 3 << 7 / 4096).
- *       Instruction count and structure match, but register numbers differ.
- * @code
- * void func_801E582C(s32 a0, s32 a1) {
- *     s32 base = (s32)&D_801E79BC;
- *     s32 idx = *(u8 *)(a1 + 0x2F);
- *     s16 t0 = *(s16 *)(base + idx * 8) + 0x22;
- *     s16 height = *(s16 *)(base + idx * 8 + 2) + 0x23;
- *     s16 scroll = *(s16 *)(a1 + 0x2A);
- *     s32 v;
- *     if (scroll < 0) scroll += 0x3F;
- *     v = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
- *     v = (v * 3) << 7;
- *     if (v < 0) v += 0xFFF;
- *     v >>= 12;
- *     func_801F0A34(a0, 0, t0 - v, height);
- * }
- * @endcode
+ * @note Separating load and add (e.g. `yOff = *(s16*)entry; yOff += 0x22;`)
+ *       makes the compiler load directly into the target register (t0/a3),
+ *       rather than through intermediary v0/v1.
  */
-INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E582C);
+void func_801E582C(s32 a0, s32 a1) {
+    s32 base = (s32)&D_801E79BC;
+    s32 idx = *(u8 *)(a1 + 0x2F);
+    s32 scroll = *(s16 *)(a1 + 0x2A);
+    s32 entry = base + idx * 8;
+    s32 yOff;
+    s32 height;
+    s32 v0;
+    s32 v1;
+
+    yOff = *(s16 *)entry;
+    height = *(s16 *)(entry + 2);
+    yOff += 0x22;
+    height += 0x23;
+    if (scroll < 0) scroll += 0x3F;
+    v1 = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
+    v0 = (v1 * 3) << 7;
+    if (v0 < 0) v0 += 0xFFF;
+    func_801F0A34(a0, 0, yOff - (v0 >> 12), height);
+}
 
 /**
  * Decodes a string using func_801F7A54 key and func_8002F294/func_8002F2EC,
@@ -147,36 +154,30 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E5D74);
  * @param a0 Display list pointer
  * @param a1 OT pointer
  * @return Result of func_801EF9AC
- * @note Non-matching: register asm("$16/$17/$18") gets correct s-reg assignment
- *       (text→s0, ot→s1, disp→s2) but the scheduler places the lui/addiu for
- *       &D_801E71BC (text init) BEFORE the ot save/init, while the original has
- *       ot save/init first. The prologue instruction order is s2→s0→s1 (compiled)
- *       vs s2→s1→s0 (original). All register numbers and body instructions match.
- * @code
- * s32 func_801E64B4(s32 a0, s32 a1) {
- *     register s32 disp asm("$18") = a0;
- *     register s32 ot asm("$17") = a1;
- *     register s32 text asm("$16") = (s32)&D_801E71BC;
- *     s32 maxW;
- *     s32 v0;
- *     s32 buf;
- *     v0 = func_8002E680(text);
- *     REGALLOC_BARRIER(v0);
- *     maxW = 0xF4;
- *     v0 = (maxW - v0) / 2;
- *     func_8002EAD0(disp, v0 + 0x18, 0xC, text);
- *     buf = (s32)&D_801FAB00;
- *     *(u8 *)(buf + 0x10) = 0;
- *     *(u8 *)(buf + 0x11) = 0;
- *     *(s16 *)&D_801FAB00 = 0x18;
- *     *(s16 *)(buf + 2) = 6;
- *     *(s16 *)(buf + 4) = maxW;
- *     *(s16 *)(buf + 6) = 0x16;
- *     return func_801EF9AC(disp, ot, 0x1000, D_80083848);
- * }
- * @endcode
+ * @note Uses `ot + text - ot` liveness trick to force ot→s1 (see
+ *       docs/s-reg-allocation.md Technique 1). CalcCenter macro with
+ *       do{break}while(1) shifts maxW→s3 via interference graph change.
  */
-INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E64B4);
+s32 func_801E64B4(s32 a0, s32 a1) {
+    s32 disp = a0;
+    s32 ot = a1;
+    s32 text = (s32)&D_801E71BC;
+    s32 maxW;
+    s32 v0;
+    s32 buf;
+
+    v0 = func_8002E680(ot + text - ot);
+    CalcCenter(maxW, v0, 0xF4);
+    func_8002EAD0(disp, v0 + 0x18, 0xC, text);
+    buf = (s32)&D_801FAB00;
+    *(u8 *)(buf + 0x10) = 0;
+    *(u8 *)(buf + 0x11) = 0;
+    *(s16 *)&D_801FAB00 = 0x18;
+    *(s16 *)(buf + 2) = 6;
+    *(s16 *)(buf + 4) = maxW;
+    *(s16 *)(buf + 6) = 0x16;
+    return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+}
 
 /**
  * Sets up GPU display for the scrollable text body area.
@@ -189,44 +190,41 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E64B4);
  * @param a1 Display list pointer
  * @param a2 OT pointer
  * @return Result of func_801EF9AC
- * @note Non-matching: scrambled prologue (s3,s0,s1,s4,ra,s2) with 6 callee-saved
- *       registers. register asm("$19/$16") gets disp→s3 and ot→s0 correct, and
- *       the compiler naturally assigns yPos→s1, buf→s2, %hi(FAB00)→s4. However,
- *       the prologue save ordering still differs, and the scroll computation has
- *       register differences: compiler uses $3 for sll result (original uses $2),
- *       and fills the bgez delay slot with sra (original has nop). Use s32 for
- *       scroll variable (not s16) to get correct lh+sra pattern.
- * @code
- * s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
- *     register s32 disp asm("$19") = a1;
- *     register s32 ot asm("$16") = a2;
- *     s32 yPos = 0x22;
- *     s32 buf = (s32)&D_801FAB00;
- *     s32 scroll = *(s16 *)(a0 + 0x2A);
- *     s32 v0;
- *     if (scroll < 0) scroll += 0x3F;
- *     v0 = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
- *     v0 = (v0 * 3) << 7;
- *     if (v0 < 0) v0 += 0xFFF;
- *     yPos -= v0 >> 12;
- *     ot = func_801EF8D8(disp, ot);
- *     func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
- *     *(s16 *)&D_801FAB00 = 0x1C;
- *     *(s16 *)(buf + 2) = 0x21;
- *     *(s16 *)(buf + 4) = 0x148;
- *     *(s16 *)(buf + 6) = 0x9F;
- *     v0 = func_801EF800(disp, ot, buf);
- *     *(u8 *)(buf + 0x10) = 0;
- *     *(u8 *)(buf + 0x11) = 0;
- *     *(s16 *)&D_801FAB00 = 0x18;
- *     *(s16 *)(buf + 2) = 0x1D;
- *     *(s16 *)(buf + 4) = 0x150;
- *     *(s16 *)(buf + 6) = 0xA7;
- *     return func_801EF9AC(disp, v0, 0x1000, D_80083848);
- * }
- * @endcode
+ * @note Uses `a2 + a0 + 0x2A - a2` liveness trick to force a2→s0 (see
+ *       docs/s-reg-allocation.md Technique 1). Separate v1 variable for lhu
+ *       result ensures multiply uses correct register (v0, not v1).
  */
-INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E6570);
+s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
+    s32 disp = a1;
+    s32 yPos = 0x22;
+    s32 buf = (s32)&D_801FAB00;
+    s32 scroll = *(s16 *)(a2 + a0 + 0x2A - a2);
+    s32 v0;
+    s32 v1;
+
+    if (scroll < 0) scroll += 0x3F;
+    v1 = *(u16 *)((s32)&D_801FA3C8 + (scroll >> 6) * 2);
+    v0 = (v1 * 3) << 7;
+    if (v0 < 0) v0 += 0xFFF;
+    yPos -= v0 >> 12;
+
+    a2 = func_801EF8D8(disp, a2);
+    func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
+
+    *(s16 *)&D_801FAB00 = 0x1C;
+    *(s16 *)(buf + 2) = 0x21;
+    *(s16 *)(buf + 4) = 0x148;
+    *(s16 *)(buf + 6) = 0x9F;
+    v0 = func_801EF800(disp, a2, buf);
+
+    *(u8 *)(buf + 0x10) = 0;
+    *(u8 *)(buf + 0x11) = 0;
+    *(s16 *)&D_801FAB00 = 0x18;
+    *(s16 *)(buf + 2) = 0x1D;
+    *(s16 *)(buf + 4) = 0x150;
+    *(s16 *)(buf + 6) = 0xA7;
+    return func_801EF9AC(disp, v0, 0x1000, D_80083848);
+}
 
 /**
  * Sets up GPU display for a secondary text area, similar to func_801E64B4.
@@ -246,8 +244,8 @@ s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
     s32 v0;
     s32 buf;
 
-    v0 = func_8002E680(*(s32 *)(state + 0x20) + ot - ot);
-    do { maxW = 0x150; v0 = (maxW - v0) / 2; break; } while (1);
+    v0 = func_8002E680(ot + *(s32 *)(state + 0x20) - ot);
+    CalcCenter(maxW, v0, 0x150);
     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
     buf = (s32)&D_801FAB00;
     *(u8 *)(buf + 0x10) = 0;
