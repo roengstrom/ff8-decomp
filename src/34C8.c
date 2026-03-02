@@ -297,7 +297,15 @@ void func_8001336C(u32 a0) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800133D8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001340C);
+/** @brief If a0 is non-zero, sets bit 0x10 in D_80077288[1]; otherwise clears it. Returns 0. */
+s32 func_8001340C(s32 a0) {
+    if (a0 != 0) {
+        D_80077288[1] |= 0x10;
+    } else {
+        D_80077288[1] &= ~0x10;
+    }
+    return 0;
+}
 
 /**
  * @brief Sends SPU command 0xA8 with a 7-bit volume parameter.
@@ -1375,7 +1383,10 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001871C);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80018784);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800188B4);
+/** @brief Calls func_800174E4 with two words loaded from the input pointer. */
+void func_800188B4(s32 *a0) {
+    func_800174E4(a0[0], a0[1]);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800188E0);
 
@@ -1976,7 +1987,18 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D93C);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D9B8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA0C);
+/** @brief Reads byte from stream, stores to three halfword fields (0x64, 0x62, 0xD6), clears 0xD8.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001DA0C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xD8) = 0;
+    *(u16 *)(a0 + 0x64) = val;
+    *(u16 *)(a0 + 0x62) = val;
+    *(u16 *)(a0 + 0xD6) = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001DA34);
 
@@ -2118,13 +2140,29 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E5F8);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E65C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E7A8);
+void func_8001E7D8(void);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E7D8);
+/** @brief Calls func_8001E65C with SPU transfer params (0x1100, 0x1100, 0x800) and callback func_8001E7D8. */
+void func_8001E7A8(void) {
+    func_8001E65C(0x1100, 0x1100, 0x800, func_8001E7D8);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E808);
+/** @brief Calls func_8001E65C with SPU transfer params (0x2100, 0x2100, 0x800) and callback func_8001E7A8. */
+void func_8001E7D8(void) {
+    func_8001E65C(0x2100, 0x2100, 0x800, func_8001E7A8);
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E838);
+void func_8001E838(void);
+
+/** @brief Calls func_8001E65C with SPU transfer params (0x1100, 0x1900, 0x1000) and callback func_8001E838. */
+void func_8001E808(void) {
+    func_8001E65C(0x1100, 0x1900, 0x1000, func_8001E838);
+}
+
+/** @brief Calls func_8001E65C with SPU transfer params (0x2100, 0x2900, 0x1000) and callback func_8001E808. */
+void func_8001E838(void) {
+    func_8001E65C(0x2100, 0x2900, 0x1000, func_8001E808);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E868);
 
@@ -2139,7 +2177,11 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E940);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001E9C0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001EB0C);
+/** @brief Sets SPU IRQ address to 0x1038 and registers func_8001DF70 as the IRQ callback. */
+void func_8001EB0C(void) {
+    SpuSetIRQAddr(0x1038);
+    SpuSetIRQCallback(func_8001DF70);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001EB38);
 
@@ -2179,9 +2221,17 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F370);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F3D4);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F51C);
+void func_8001F54C(void);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F54C);
+/** @brief Calls func_8001F3D4 with SPU transfer params (0x1100, 0x1900, 0x1000) and callback func_8001F54C. */
+void func_8001F51C(void) {
+    func_8001F3D4(0x1100, 0x1900, 0x1000, func_8001F54C);
+}
+
+/** @brief Calls func_8001F3D4 with SPU transfer params (0x2100, 0x2900, 0x1000) and callback func_8001F51C. */
+void func_8001F54C(void) {
+    func_8001F3D4(0x2100, 0x2900, 0x1000, func_8001F51C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001F57C);
 

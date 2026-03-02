@@ -33,7 +33,12 @@ u8 *func_800206A8(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800206B4);
+/** @brief Resolves a halfword from D_80078E00 table (stride 20, offset 0x4A6C) via func_80020FBC. */
+s32 func_800206B4(s32 a0) {
+    extern u8 D_80078E00[];
+    s32 base = (s32)D_80078E00;
+    return func_80020FBC(*(u16 *)(base + a0 * 20 + 0x4A6C), *(s32 *)(base + 0xD8));
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800206F4);
@@ -187,13 +192,28 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020DB8);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020E4C);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020EB4);
+/** @brief Resolves a halfword from D_80078E00 table (stride 12, offset 0x35B8) via func_80020FBC. */
+s32 func_80020EB4(s32 a0) {
+    extern u8 D_80078E00[];
+    s32 base = (s32)D_80078E00;
+    return func_80020FBC(*(u16 *)(base + a0 * 12 + 0x35B8), *(s32 *)(base + 0x90));
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020EF4);
+/** @brief Resolves a halfword from D_80078E00 table (stride 8, offset 0xE4) via func_80020FBC. */
+s32 func_80020EF4(s32 a0) {
+    extern u8 D_80078E00[];
+    s32 base = (s32)D_80078E00;
+    return func_80020FBC(*(u16 *)(base + a0 * 8 + 0xE4), *(s32 *)(base + 0x80));
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020F2C);
+/** @brief Resolves a halfword from D_80078E00 table (stride 8, offset 0xE6) via func_80020FBC. */
+s32 func_80020F2C(s32 a0) {
+    extern u8 D_80078E00[];
+    s32 base = (s32)D_80078E00;
+    return func_80020FBC(*(u16 *)(base + a0 * 8 + 0xE6), *(s32 *)(base + 0x80));
+}
 
 
 /** @brief Wrapper that calls func_80020F84 with argument 3. */
