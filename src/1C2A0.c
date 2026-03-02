@@ -957,7 +957,19 @@ void func_80030D48(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80030D78);
+/**
+ * @brief Play sound effect from D_80052A34 table.
+ *
+ * Loads a byte from D_80052A34[a0] and calls func_8001302C
+ * with default volume/pan parameters (0, 0x80, 0x7F).
+ *
+ * @param a0 Index into D_80052A34 sound table.
+ */
+void func_80030D78(s32 a0) {
+    extern u8 D_80052A34[];
+    u8 *ptr = D_80052A34 + a0;
+    func_8001302C(*ptr, 0, 0x80, 0x7F);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80030DB0);
@@ -1068,7 +1080,20 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031A18);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031CDC);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031D68);
+/**
+ * @brief Clear bit 7 of animation entry flags.
+ *
+ * Clears the high bit of the byte at offset 0xE in D_80083772[a0]
+ * (stride 16), effectively marking the entry as inactive.
+ *
+ * @param a0 Entry index into D_80083772.
+ */
+void func_80031D68(s32 a0) {
+    extern u8 D_80083772[];
+    s32 base = (s32)D_80083772;
+    base = a0 * 16 + base;
+    *(u8 *)(base + 0xE) &= 0x7F;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031D8C);
@@ -1095,10 +1120,26 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031E1C);
 extern u8 D_80083772[];
 // clear_animation_entries
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031EBC);
+/**
+ * @brief Call func_80031E1C with truncated a1 and constant 7th arg (0x60).
+ *
+ * Passes through all 6 caller args, truncates a1 to u8,
+ * and appends 0x60 as the 7th argument.
+ */
+void func_80031EBC(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
+    func_80031E1C(a0, a1, a2, a3, arg4, arg5, 0x60);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80031EF4);
+/**
+ * @brief Call func_80031E1C with truncated a1, passing all 7 args through.
+ *
+ * Truncates a1 to u8 and passes all caller arguments
+ * through to func_80031E1C.
+ */
+void func_80031EF4(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
+    func_80031E1C(a0, a1, a2, a3, arg4, arg5, arg6);
+}
 
 
 /**

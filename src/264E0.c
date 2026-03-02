@@ -433,7 +433,15 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_800376A8);
 
 // mc_xor_checksum
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003777C);
+/**
+ * @brief Call func_800376A8 with constant 7th arg (0x64808080).
+ *
+ * Passes through all 6 caller args and appends 0x64808080
+ * as the 7th argument.
+ */
+void func_8003777C(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
+    func_800376A8(a0, a1, a2, a3, arg4, arg5, 0x64808080);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800377B4);

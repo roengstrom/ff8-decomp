@@ -938,7 +938,22 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80023B14);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80023BB4);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80023C08);
+/**
+ * @brief Look up a byte from func_80023900 result table.
+ *
+ * Calls func_80023900(a0) to get a base pointer. If a0 >= 0x4D,
+ * returns the byte at base[a0]; otherwise returns 0.
+ *
+ * @param a0 Index value (also passed through to func_80023900).
+ * @return Byte at base[a0] if a0 >= 0x4D, else 0.
+ */
+s32 func_80023C08(s32 a0) {
+    u8 *base = func_80023900();
+    if (a0 >= 0x4D) {
+        return base[a0];
+    }
+    return 0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80023C48);
@@ -1701,7 +1716,20 @@ void func_800295D0(void) { nextfile(); }
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800295F0);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80029660);
+/**
+ * @brief Check if func_80029550 succeeds with a local buffer.
+ *
+ * Calls func_80029550 with a0, a1, and a stack-allocated buffer.
+ * Returns 1 if the result is nonzero, 0 otherwise.
+ *
+ * @param a0 First parameter passed through.
+ * @param a1 Second parameter passed through.
+ * @return Boolean: 1 if func_80029550 returned nonzero.
+ */
+s32 func_80029660(s32 a0, s32 a1) {
+    s32 buf[10];
+    return func_80029550(a0, a1, buf) != 0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80029680);
