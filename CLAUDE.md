@@ -18,6 +18,51 @@
 - **Functions**: ~1300 (Ghidra), ~868 (ff8decomp, game code only)
 - **Instructions**: ~50602 (Ghidra)
 
+## Decomp Tools
+
+### permute.sh (decomp-permuter)
+
+Automatically tries C source permutations to find a byte-matching decomp. Use this when a function is close but has register allocation, scheduling, or instruction ordering differences that are hard to solve by hand.
+
+```bash
+# Setup only (creates permuter/<func_name>/ with base.c, target.s, compile.sh):
+./permute.sh --src src/ovl/menutest/menutest.c \
+    --asm-dir asm/ovl/menutest/nonmatchings/menutest \
+    func_801E64B4
+
+# Setup + run (tries random permutations):
+./permute.sh --run -j4 --src src/10DD0.c --asm-dir asm/nonmatchings/10DD0 func_80022B04
+
+# PsyQ 4.3 functions:
+./permute.sh --psyq 4.3 --src src/34C8.c --asm-dir asm/nonmatchings/34C8 func_80014E98
+```
+
+The permuter modifies variable ordering, casts, expression structure, etc. in `base.c` and compiles each variant, looking for one that matches `target.o`. When it finds a match (score 0), copy the winning C back into the source file.
+
+### decomp-index (cross-project search)
+
+Searches 9+ PS1 decompilation projects (~10K functions) for assembly patterns similar to a given function. Use this when stuck on a decomp pattern — other projects may have solved the same idiom.
+
+```bash
+# Find functions with similar assembly to a given .s file:
+python3 -m decomp_index.cli --db ~/source/decomp-index/decomp.db \
+    search asm/ovl/menutest/nonmatchings/menutest/func_801E64B4.s
+
+# Show a specific function's assembly + C source:
+python3 -m decomp_index.cli --db ~/source/decomp-index/decomp.db \
+    show <project> <func_name>
+
+# Find recurring instruction idioms:
+python3 -m decomp_index.cli --db ~/source/decomp-index/decomp.db idioms
+```
+
+## Decomp Pattern Reference
+
+Detailed documentation of compiler quirks, matching techniques, and known pitfalls:
+
+- **[docs/decomp-patterns.md](docs/decomp-patterns.md)** — Scheduling, optimization prevention, register allocation, GPU/PsyQ patterns, loop patterns, and known non-matching patterns.
+- **[docs/s-reg-allocation.md](docs/s-reg-allocation.md)** — S-reg allocation tricks: `+ var - var` liveness extension, `do{break}while(1)` CFG manipulation, and the full checklist for scrambled prologues.
+
 ## Setup Workflow
 
 Before any development can happen, a contributor must:

@@ -239,17 +239,15 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E6570);
  * @return Result of func_801EF9AC
  */
 s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
-    register s32 ot asm("$16") = a2; /* FIXME: MIPS-specific, not portable */
     s32 state = a0;
     s32 disp = a1;
+    s32 ot = a2;
     s32 maxW;
     s32 v0;
     s32 buf;
 
-    v0 = func_8002E680(*(s32 *)(state + 0x20));
-    REGALLOC_BARRIER(v0);
-    maxW = 0x150;
-    v0 = (maxW - v0) / 2;
+    v0 = func_8002E680(*(s32 *)(state + 0x20) + ot - ot);
+    do { maxW = 0x150; v0 = (maxW - v0) / 2; break; } while (1);
     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
     buf = (s32)&D_801FAB00;
     *(u8 *)(buf + 0x10) = 0;
