@@ -235,7 +235,23 @@ s32 func_80020F84(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020FBC);
+/**
+ * @brief Resolve a data pointer for a given entity index.
+ * @param a0 Entity index (0xFFFF = no entity, returns default pointer).
+ * @param a1 Base offset into the data region.
+ * @return Pointer into D_80078E00 at offset a1+a0, or D_80052898 if a0 is 0xFFFF.
+ */
+u8 *func_80020FBC(u16 a0, s32 a1) {
+    extern u8 D_80078E00[];
+    extern u8 D_80052898[];
+    u8 *result;
+    if (a0 != 0xFFFF) {
+        result = a1 + (a0 + D_80078E00);
+    } else {
+        result = D_80052898;
+    }
+    return result;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020FEC);

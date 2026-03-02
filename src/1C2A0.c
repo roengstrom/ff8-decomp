@@ -547,7 +547,20 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E1B4);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E1E8);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E254);
+/**
+ * @brief Look up entity byte and dispatch through two functions.
+ *
+ * Loads byte at offset 0x18 from D_80082FF0[a0 * 60], passes it
+ * to func_8002ACBC, then passes the result to func_8002BEEC.
+ *
+ * @param a0 Entity index into D_80082FF0 (stride 60 bytes).
+ */
+void func_8002E254(s32 a0) {
+    extern u8 D_80082FF0[];
+    u8 *entry = D_80082FF0 + a0 * 60;
+    s32 val = func_8002ACBC(entry[0x18]);
+    func_8002BEEC(val);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E298);
