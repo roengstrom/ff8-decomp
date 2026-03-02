@@ -394,7 +394,11 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003720C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80037240);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_800372D0);
+/** @brief Returns a pointer to global D_800786D8. */
+u8 *func_800372D0(void) {
+    extern u8 D_800786D8;
+    return &D_800786D8;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800372DC);
@@ -512,10 +516,18 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003798C);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_800379AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80037ACC);
+/** @brief Sets global D_80085218 to 1. */
+void func_80037ACC(void) {
+    extern u8 D_80085218;
+    D_80085218 = 1;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80037ADC);
+/** @brief Returns the unsigned byte value of global D_80085218. */
+u32 func_80037ADC(void) {
+    extern u8 D_80085218;
+    return D_80085218;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80037AEC);
@@ -566,7 +578,11 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_800381BC);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038308);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038364);
+/** @brief Returns bits 3-4 of the flags word at offset 0x68 through D_800562C4. */
+s32 func_80038364(void) {
+    extern u8 *D_800562C4;
+    return *(s32 *)(D_800562C4 + 0x68) & 0x18;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003837C);
@@ -627,10 +643,18 @@ void func_80038668(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_800386F0);
+/** @brief Clears bit 1 in global D_8008A3D8. */
+void func_800386F0(void) {
+    extern u8 D_8008A3D8;
+    D_8008A3D8 &= 0xFD;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80038708);
+/** @brief Sets bit 1 in global D_8008A3D8. */
+void func_80038708(void) {
+    extern u8 D_8008A3D8;
+    D_8008A3D8 |= 0x02;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80038720);
@@ -1182,7 +1206,12 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_8003BD84);
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003BDEC);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003BEE0);
+/** @brief Moves byte at offset 0x37 to offset 0x38 and clears 0x37. */
+void func_8003BEE0(u8 *a0) {
+    u8 tmp = a0[0x37];
+    a0[0x37] = 0;
+    a0[0x38] = tmp;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003BEF0);

@@ -209,7 +209,16 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C9A4);
 
 // sfx_entry_swap_field_16 - D_80082FF0 stride 60, returns old value
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C9F0);
+/** @brief Stores a byte value into array D_80082FF0 (stride 60).
+ *
+ *  @param idx Array index (stride 60 bytes).
+ *  @param val Byte value to store at offset 0x18.
+ */
+void func_8002C9F0(s32 idx, s32 val) {
+    extern u8 D_80082FF0[];
+    u8 *entry = D_80082FF0 + idx * 60;
+    entry[0x18] = val;
+}
 
 
 /**
@@ -291,10 +300,18 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002CC4C);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002CDE4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002CE68);
+/** @brief Stores a byte to global D_800831DC. */
+void func_8002CE68(s32 a0) {
+    extern s8 D_800831DC;
+    D_800831DC = a0;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002CE74);
+/** @brief Returns the signed byte value of global D_800831DC. */
+s32 func_8002CE74(void) {
+    extern s8 D_800831DC;
+    return D_800831DC;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002CE84);
@@ -503,10 +520,16 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E4AC);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E680);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E744);
+/** @brief Calls func_8002E4AC with a1=1. */
+void func_8002E744(s32 a0) {
+    func_8002E4AC(a0, 1);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E764);
+/** @brief Calls func_8002E4AC with a1=1. */
+void func_8002E764(s32 a0) {
+    func_8002E4AC(a0, 1);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E784);
@@ -908,13 +931,20 @@ typedef struct {
 extern Struct3754 D_80083754;
 // init_battle_transition - initializes D_80083754 (Struct3754)
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_800316C4);
+/** @brief Sets D_80083754.f0 to 7. */
+void func_800316C4(void) {
+    D_80083754.f0 = 7;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_800316D4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_800318E0);
+/** @brief Stores a byte to global D_80083756. */
+void func_800318E0(s32 a0) {
+    extern u8 D_80083756;
+    D_80083756 = a0;
+}
 
 
 /**
@@ -1311,10 +1341,18 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80035B28);
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80035B70);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80035BB4);
+/** @brief Stores a word to global D_80083798. */
+void func_80035BB4(s32 a0) {
+    extern s32 D_80083798;
+    D_80083798 = a0;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80035BC0);
+/** @brief Stores a word to global D_8008379C. */
+void func_80035BC0(s32 a0) {
+    extern s32 D_8008379C;
+    D_8008379C = a0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_80035BCC);

@@ -328,7 +328,11 @@ void func_80013A5C(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013AA8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CA4);
+/** @brief Returns the value of global D_80074ED4. */
+s32 func_80013CA4(void) {
+    extern s32 D_80074ED4;
+    return D_80074ED4;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CB4);
 
@@ -368,7 +372,10 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001466C);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800146F0);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014740);
+/** @brief Adds magic constant 0xB0BEB4BF to value at pointer. */
+u32 func_80014740(u32 *a0) {
+    return *a0 + 0xB0BEB4BF;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014754);
 
@@ -1113,7 +1120,10 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_80019CFC);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80019D5C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80019D9C);
+/** @brief Copies halfword from a0 to offset 0x60 in struct pointed to by D_80074F08. */
+void func_80019D9C(u16 *a0) {
+    *(u16 *)((u8 *)D_80074F08 + 0x60) = *a0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80019DB0);
 
@@ -1127,7 +1137,9 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A0EC);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A13C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001A190);
+/** @brief Empty stub — no operation. */
+void func_8001A190(void) {
+}
 
 /**
  * @brief Configures the SPU reverb mode if it differs from the current setting.
@@ -1294,13 +1306,24 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C738);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C7C4);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C854);
+/** @brief Sets bit 6 (0x40) in the flags word at offset 0x30 of a0. */
+void func_8001C854(u8 *a0) {
+    *(u32 *)(a0 + 0x30) |= 0x40;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C868);
+/** @brief Clears bit 6 (0x40) in the flags word at offset 0x30 of a0. */
+void func_8001C868(u8 *a0) {
+    *(u32 *)(a0 + 0x30) &= ~0x40;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C87C);
+/** @brief Increments the word at a0 by 2. */
+void func_8001C87C(s32 *a0) {
+    *a0 += 2;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C890);
+/** @brief Empty stub — no operation. */
+void func_8001C890(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001C898);
 
@@ -1332,7 +1355,10 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CCC8);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD10);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD48);
+/** @brief Clears the halfword at offset 0x98 of a0. */
+void func_8001CD48(u8 *a0) {
+    *(u16 *)(a0 + 0x98) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001CD50);
 
@@ -1466,13 +1492,22 @@ void func_8001D424(s32 *a0, s32 a1) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D484);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D4E4);
+/** @brief Sets the halfword at offset 0x9A of a0 to 1. */
+void func_8001D4E4(u8 *a0) {
+    *(u16 *)(a0 + 0x9A) = 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D4F0);
+/** @brief Empty stub — no operation. */
+void func_8001D4F0(void) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D4F8);
+/** @brief Empty stub — no operation. */
+void func_8001D4F8(void) {
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D500);
+/** @brief Empty stub — no operation. */
+void func_8001D500(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D508);
 
@@ -1508,9 +1543,14 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D714);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D78C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D7D0);
+/** @brief Increments the word at a0 by 1. */
+void func_8001D7D0(s32 *a0) {
+    *a0 += 1;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D7E4);
+/** @brief Empty stub — no operation. */
+void func_8001D7E4(void) {
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001D7EC);
 

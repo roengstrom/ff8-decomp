@@ -12,10 +12,18 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020644);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020670);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002069C);
+/** @brief Returns a pointer to global D_800773B4. */
+u8 *func_8002069C(void) {
+    extern u8 D_800773B4;
+    return &D_800773B4;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800206A8);
+/** @brief Returns a pointer to global D_800773A8. */
+u8 *func_800206A8(void) {
+    extern u8 D_800773A8;
+    return &D_800773A8;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800206B4);
@@ -131,7 +139,10 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020EF4);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020F2C);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020F64);
+/** @brief Wrapper that calls func_80020F84 with argument 3. */
+s32 func_80020F64(void) {
+    return func_80020F84(3);
+}
 
 
 /**
@@ -831,7 +842,10 @@ s32 a1;
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800239A8);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80023A34);
+/** @brief Wrapper that calls func_8002390C with a1=0. */
+s32 func_80023A34(s32 a0) {
+    return func_8002390C(a0, 0);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80023A54);
@@ -1198,10 +1212,16 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800284BC);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80028564);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800286BC);
+/** @brief Wrapper that calls func_80050BC4. */
+void func_800286BC(void) {
+    func_80050BC4();
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800286DC);
+/** @brief Wrapper that calls func_8004E720. */
+void func_800286DC(void) {
+    func_8004E720();
+}
 
 
 /** @brief Wrapper that calls func_8004DFF4 (likely a CD subsystem tick or finalization). */
@@ -1503,13 +1523,20 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800292AC);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80029360);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800293F0);
+/** @brief Returns the signed byte value at D_80082FD4. */
+s32 func_800293F0(void) {
+    extern s8 D_80082FD4;
+    return D_80082FD4;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80029400);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002947C);
+/** @brief Wrapper that calls func_80029400. */
+void func_8002947C(void) {
+    func_80029400();
+}
 
 
 /**
@@ -1781,7 +1808,11 @@ s32 func_8002A8A0(void) {
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A8B8);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A91C);
+/** @brief Returns the value of D_800834C0 plus 8. */
+s32 func_8002A91C(void) {
+    extern s32 D_800834C0;
+    return D_800834C0 + 8;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002A92C);
@@ -1841,7 +1872,17 @@ s32 func_8002ACBC(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ACD8);
+/** @brief Stores a byte value into the battle entity array at D_80083210.
+ *
+ *  @param idx Entity index (stride 64 bytes).
+ *  @param offset Additional byte offset within the entity.
+ *  @param val Byte value to store at offset 0x3A.
+ */
+void func_8002ACD8(s32 idx, s32 offset, s32 val) {
+    extern u8 D_80083210[];
+    u8 *entry = D_80083210 + idx * 64;
+    *(u8 *)(entry + offset + 0x3A) = val;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ACF4);
