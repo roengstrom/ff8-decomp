@@ -104,15 +104,45 @@ void func_801E58B8(void) {
  * then iterates over encoded input, handling control codes (0x00=end, 0x01=end,
  * 0x02=reset, 0x07=end, 0x0A=special decode, 0x0B=new line), character decoding
  * via func_8002F294/func_8002F2EC, and glyph width accumulation via func_8002E428.
+ *
+ * Register allocation:
+ *   s7 = input      (a0 — encoded string pointer, advanced by func_8002F548)
+ *   s3 = textOut     (a1 — decoded text output buffer)
+ *   s5 = glyphBuf    (a2 — glyph position buffer, 8 bytes per entry: x, y, h, pad)
+ *   fp = lineCount   (return value — number of 0x0B newline codes encountered)
+ *   s4 = xPos        (horizontal glyph accumulator, reset by 0x02 control code)
+ *   s6 = yPos        (vertical position, advanced +16 by 0x02 control code)
+ *   s2 = scratch     (scratchpad decode buffer pointer, from 0x1F800300)
+ *   s1 = buf/ptr     (local decode buffer at sp+0x10, or D_801E7ADC for case 0x26)
+ *   s0 = iter        (character decode loop iterator)
+ *
+ * Stack layout (0x80 bytes):
+ *   sp+0x10  local decode buffer (64 bytes)
+ *   sp+0x50  scratchpad base pointer (0x1F800300)
+ *   sp+0x54  saved original GP value
+ *   sp+0x58  saved s0–s7, fp, ra (0x58–0x7C)
+ *
  * @param a0 Pointer to encoded input string
  * @param a1 Output text buffer
  * @param a2 Output glyph position buffer (8 bytes per entry)
  * @return Number of lines processed (via $fp counter)
- * @note Non-decompilable: handwritten assembly with direct GP manipulation
- *       (`addi gp, gp, 0x80` / `addi gp, gp, -0x80`). The C compiler cannot
- *       produce GP register manipulation instructions.
+ * @note Handwritten assembly. Uses `addi $gp` (opcode 0x08, traps on overflow)
+ *       for GP scratchpad redirection — the C compiler only emits `addiu`
+ *       (opcode 0x09). Also uses $fp as a general-purpose counter and chains
+ *       zero-initialization through registers (s4=fp, s6=s4), patterns the
+ *       compiler cannot reproduce.
  */
-INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E59B4);
+static void __maspsx_include_asm_hack_func_801E59B4(void) {
+    __asm__(
+        ".text # maspsx-keep\n"
+        "\t.align\t2 # maspsx-keep\n"
+        "\t.set\tnoreorder # maspsx-keep\n"
+        "\t.set\tnoat # maspsx-keep\n"
+        "\t.include \"src/ovl/menutest/func_801E59B4.s\" # maspsx-keep\n"
+        "\t.set\treorder # maspsx-keep\n"
+        "\t.set\tat # maspsx-keep\n"
+    );
+}
 
 /**
  * Reads a string descriptor from a table and dispatches to func_801E59B4.
@@ -140,11 +170,21 @@ void func_801E5D18(s32 a0, s32 a1) {
  * manages page index at +0x2D and +0x2E, and dispatches rendering via func_801E582C,
  * func_801E5D18, func_801E58B8, func_801F6800.
  * @param a0 Menu state structure pointer (s1=a0, s2=a0+0x10, s3/s0 from D_801FAB00)
- * @note Non-matching: scrambled prologue (s1,s2,ra,s3,s0) with s-reg assignment
- *       locked by graph coloring. Also contains a 28-entry jump table
- *       (jtbl_801E6948) requiring rodata placement.
+ * @note Scrambled prologue (s1,s2,ra,s3,s0) with s-reg assignment locked by graph
+ *       coloring — C compiler cannot reproduce the exact register allocation.
+ *       See src/ovl/menutest/func_801E5D74.s for documented disassembly.
  */
-INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E5D74);
+static void __maspsx_include_asm_hack_func_801E5D74(void) {
+    __asm__(
+        ".text # maspsx-keep\n"
+        "\t.align\t2 # maspsx-keep\n"
+        "\t.set\tnoreorder # maspsx-keep\n"
+        "\t.set\tnoat # maspsx-keep\n"
+        "\t.include \"src/ovl/menutest/func_801E5D74.s\" # maspsx-keep\n"
+        "\t.set\treorder # maspsx-keep\n"
+        "\t.set\tat # maspsx-keep\n"
+    );
+}
 
 /**
  * Sets up a GPU frame with centered text display for the header area.
