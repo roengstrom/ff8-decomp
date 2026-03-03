@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 
 extern s16 D_801E7ABC;
 extern u8 D_801E7ABE;
@@ -8,7 +9,7 @@ extern u8 D_801E69BC;
 extern u8 D_801E71BC;
 extern u8 D_801E79BC;
 extern u16 D_801FA3C8;
-extern u8 D_801FAB00;
+extern MenuDisplayConfig D_801FAB00;
 extern u8 D_801FABD4;
 extern s32 D_80083848;
 extern u8 D_800780AB;
@@ -211,13 +212,12 @@ s32 func_801E64B4(s32 a0, s32 a1) {
     v0 = func_8002E680(ot + text - ot);
     CalcCenter(maxW, v0, 0xF4);
     func_8002EAD0(disp, v0 + 0x18, 0xC, text);
-    buf = (s32)&D_801FAB00;
-    *(u8 *)(buf + 0x10) = 0;
-    *(u8 *)(buf + 0x11) = 0;
-    *(s16 *)&D_801FAB00 = 0x18;
-    *(s16 *)(buf + 2) = 6;
-    *(s16 *)(buf + 4) = maxW;
-    *(s16 *)(buf + 6) = 0x16;
+    D_801FAB00.iconType = 0;
+    D_801FAB00.iconSubType = 0;
+    D_801FAB00.x = 0x18;
+    D_801FAB00.y = 6;
+    D_801FAB00.w = maxW;
+    D_801FAB00.h = 0x16;
     return func_801EF9AC(disp, ot, 0x1000, D_80083848);
 }
 
@@ -253,18 +253,18 @@ s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     a2 = func_801EF8D8(disp, a2);
     func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
 
-    *(s16 *)&D_801FAB00 = 0x1C;
-    *(s16 *)(buf + 2) = 0x21;
-    *(s16 *)(buf + 4) = 0x148;
-    *(s16 *)(buf + 6) = 0x9F;
+    *(s16 *)&D_801FAB00 = 0x1C;     /* x */
+    *(s16 *)(buf + 2) = 0x21;       /* y */
+    *(s16 *)(buf + 4) = 0x148;      /* w */
+    *(s16 *)(buf + 6) = 0x9F;       /* h */
     v0 = func_801EF800(disp, a2, buf);
 
-    *(u8 *)(buf + 0x10) = 0;
-    *(u8 *)(buf + 0x11) = 0;
-    *(s16 *)&D_801FAB00 = 0x18;
-    *(s16 *)(buf + 2) = 0x1D;
-    *(s16 *)(buf + 4) = 0x150;
-    *(s16 *)(buf + 6) = 0xA7;
+    *(u8 *)(buf + 0x10) = 0;        /* iconType */
+    *(u8 *)(buf + 0x11) = 0;        /* iconSubType */
+    *(s16 *)&D_801FAB00 = 0x18;     /* x */
+    *(s16 *)(buf + 2) = 0x1D;       /* y */
+    *(s16 *)(buf + 4) = 0x150;      /* w */
+    *(s16 *)(buf + 6) = 0xA7;       /* h */
     return func_801EF9AC(disp, v0, 0x1000, D_80083848);
 }
 
@@ -284,18 +284,16 @@ s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
     s32 ot = a2;
     s32 maxW;
     s32 v0;
-    s32 buf;
 
     v0 = func_8002E680(ot + *(s32 *)(state + 0x20) - ot);
     CalcCenter(maxW, v0, 0x150);
     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
-    buf = (s32)&D_801FAB00;
-    *(u8 *)(buf + 0x10) = 0;
-    *(u8 *)(buf + 0x11) = 0;
-    *(s16 *)&D_801FAB00 = 0x18;
-    *(s16 *)(buf + 2) = 0xC4;
-    *(s16 *)(buf + 4) = maxW;
-    *(s16 *)(buf + 6) = 0x14;
+    D_801FAB00.iconType = 0;
+    D_801FAB00.iconSubType = 0;
+    D_801FAB00.x = 0x18;
+    D_801FAB00.y = 0xC4;
+    D_801FAB00.w = maxW;
+    D_801FAB00.h = 0x14;
     return func_801EF9AC(disp, ot, 0x1000, D_80083848);
 }
 
