@@ -47,7 +47,11 @@ typedef struct {
     s16 volume;      /**< 0x1A: Volume / intensity (0x1000 = default). */
     s16 field1C;     /**< 0x1C: Unknown s16. */
     s16 rateDelta;   /**< 0x1E: Rate of change (negative = fade out). */
-    u8 pad20[8];     /**< 0x20..0x27: Unknown fields. */
+    u8 field20;      /**< 0x20: Data stream position index. */
+    u8 field21;      /**< 0x21: Repeat / loop counter. */
+    u8 field22;      /**< 0x22: Frame tick counter. */
+    u8 field23;      /**< 0x23: Loop count limit (compared against field21). */
+    s32 seqState;    /**< 0x24: Sequence interpreter state (0..0x11). */
     u8 field28;      /**< 0x28: Unknown byte. */
     u8 field29;      /**< 0x29: Unknown byte. */
     u8 field2A;      /**< 0x2A: Unknown byte. */

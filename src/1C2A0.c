@@ -209,17 +209,17 @@ void func_8002C920(void) {
  *
  * Divides the input by 32, masks to 8 bits, replicates across the low 24 bits
  * (R=G=B), sets the high byte to 0x64 (alpha/command), and stores the result
- * in D_800831D4 before triggering an SFX update.
+ * in g_flashColor before triggering an SFX update.
  *
  * @param a0 Scalar intensity value (divided by 32, clamped to 0-255).
  */
 void func_8002C954(s32 a0) {
-    extern s32 D_800831D4;
+    extern s32 g_flashColor;
     a0 /= 32;
     a0 &= 0xFF;
     a0 |= (a0 << 16) | (a0 << 8);
     a0 |= 0x64000000;
-    D_800831D4 = a0;
+    g_flashColor = a0;
     func_8002C8A4();
 }
 
