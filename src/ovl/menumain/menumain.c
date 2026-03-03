@@ -1,4 +1,5 @@
 #include "common.h"
+#include "battle.h"
 #include "menu.h"
 #include "psxsdk/libgpu.h"
 
@@ -1262,7 +1263,7 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6934);
 
 /** @brief Advance pseudo-random number generator (LCG: val*125+14 mod 32768). */
 s32 func_801F6A5C(void) {
-    extern u8 g_battleAnims[];
+    extern BattleAnimEntity g_battleAnims[];
     s32 base = (s32)g_battleAnims;
     s32 val = *(u16 *)(base + 0x9C2);
     val = (val * 125 + 14) % 32768;
