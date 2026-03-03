@@ -1351,20 +1351,20 @@ s32 func_801F7394(s32 a0) {
  * the list, scroll indicator, and footer/help text.
  */
 void func_801F739C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    s32 cfg = (s32)&D_801FAB00;
+    s32 base = (s32)&D_801FAB00;
     s32 ret1;
     s32 ret2;
 
-    MDC_U8(cfg, iconType) = 74;
-    MDC_U8(cfg, iconSubType) = 0;
-    *(s16 *)&D_801FAB00 = a2;
-    MDC_S16(cfg, w) = 154;
-    MDC_S16(cfg, y) = a3;
-    MDC_S16(cfg, h) = 64;
-    MDC_U8(cfg, columnCount) = 4;
-    MDC_U8(cfg, itemId) = a4;
+    *(u8 *)(base + 0x10) = 0x4A;  /* iconType */
+    *(u8 *)(base + 0x11) = 0;     /* iconSubType */
+    *(s16 *)&D_801FAB00 = a2;     /* x */
+    *(s16 *)(base + 4) = 0x9A;    /* w */
+    *(s16 *)(base + 2) = a3;      /* y */
+    *(s16 *)(base + 6) = 0x40;    /* h */
+    *(u8 *)(base + 0x13) = 4;     /* columnCount */
+    *(u8 *)(base + 0x1E) = a4;    /* itemId */
 
-    ret1 = func_801F5F30(a0, a1, a2 + 0x24, a3, D_80083848, MDC_U8(cfg, pageStart));
+    ret1 = func_801F5F30(a0, a1, a2 + 0x24, a3, D_80083848, *(u8 *)(base + 0x16) /* pageStart */);
     ret2 = func_801F5F60(a0, ret1, D_80083848, 3);
     func_801EFBB4(a0, ret2, a5);
 }
