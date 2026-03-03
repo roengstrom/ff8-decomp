@@ -2013,7 +2013,7 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AAC0);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AB5C);
 
 
-extern u8 D_80083210[];
+extern BattleDisplayEntity D_80083210[];
 
 /**
  * @brief Get a pointer to a battle entity by index.
@@ -2021,7 +2021,7 @@ extern u8 D_80083210[];
  * @return Pointer to the start of the entity's 64-byte record.
  */
 u8 *func_8002AC74(s32 idx) {
-    return D_80083210 + idx * 64;
+    return (u8 *)&D_80083210[idx];
 }
 
 /**
@@ -2030,7 +2030,7 @@ u8 *func_8002AC74(s32 idx) {
  * @param val Value to set; clamped to minimum 3 and maximum 11.
  */
 void func_8002AC88(s32 idx, s32 val) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     s32 v;
     if (val >= 3) {
         if (val < 12) {
@@ -2051,7 +2051,7 @@ void func_8002AC88(s32 idx, s32 val) {
  * @return Animation speed value for the entity.
  */
 s32 func_8002ACBC(s32 idx) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     return entity->animSpeed;
 }
 
@@ -2063,8 +2063,8 @@ s32 func_8002ACBC(s32 idx) {
  * @param val Byte value to store.
  */
 void func_8002ACD8(s32 idx, s32 offset, s32 val) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
-    *(u8 *)((u8 *)entity + offset + 0x3A) = val;
+    BattleDisplayEntity *entity = &D_80083210[idx];
+    entity->subFields[offset] = val;
 }
 
 
@@ -2077,7 +2077,7 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ACF4);
  * @param src Source RECT to copy.
  */
 void func_8002AD04(s32 a0, RECT *src) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     entity->boundRect = *src;
 }
 
@@ -2093,7 +2093,7 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AD3C);
  * @param dst Destination RECT to copy into.
  */
 void func_8002ADA4(s32 a0, RECT *dst) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     *dst = entity->boundRect;
 }
 
@@ -2104,7 +2104,7 @@ void func_8002ADA4(s32 a0, RECT *dst) {
  * @param dst Destination RECT to copy into.
  */
 void func_8002ADDC(s32 a0, RECT *dst) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     *dst = entity->dispRect;
 }
 
@@ -2115,7 +2115,7 @@ void func_8002ADDC(s32 a0, RECT *dst) {
  * @return Entity type value.
  */
 s32 func_8002AE14(s32 idx) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     return entity->entityType;
 }
 
@@ -2126,7 +2126,7 @@ s32 func_8002AE14(s32 idx) {
  * @param val Entity type; if bit 0 is set, drawMode = 0x3A000000, else 0x38000000.
  */
 void func_8002AE30(s32 idx, s32 val) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     s32 v;
     entity->entityType = val;
     v = 0x38;
@@ -2143,7 +2143,7 @@ void func_8002AE30(s32 idx, s32 val) {
  * @param val Value to store.
  */
 void func_8002AE60(s32 idx, s32 val) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     entity->field00 = val;
 }
 
@@ -2154,7 +2154,7 @@ void func_8002AE60(s32 idx, s32 val) {
  * @param val Value to store.
  */
 void func_8002AE78(s32 idx, s32 val) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     entity->field04 = val;
 }
 
@@ -2165,7 +2165,7 @@ void func_8002AE78(s32 idx, s32 val) {
  * @param a1 Value to store.
  */
 void func_8002AE90(s32 a0, s32 a1) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     entity->field36 = a1;
 }
 
@@ -2176,7 +2176,7 @@ void func_8002AE90(s32 a0, s32 a1) {
  * @return Value of field36.
  */
 u32 func_8002AEA8(s32 a0) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     return entity->field36;
 }
 
@@ -2187,7 +2187,7 @@ u32 func_8002AEA8(s32 a0) {
  * @param a1 Value to store.
  */
 void func_8002AEC4(s32 a0, s32 a1) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     entity->field35 = a1;
 }
 
@@ -2198,7 +2198,7 @@ void func_8002AEC4(s32 a0, s32 a1) {
  * @return Value of field35.
  */
 u32 func_8002AEDC(s32 a0) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     return entity->field35;
 }
 
@@ -2209,7 +2209,7 @@ u32 func_8002AEDC(s32 a0) {
  * @param value Active flag; if 0, also clears field36, field04, and field00.
  */
 void func_8002AEF8(s32 idx, s32 value) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)((u8 *)D_80083210 + (idx << 6));
+    BattleDisplayEntity *entity = &D_80083210[idx];
 
     entity->activeFlag = value;
     if (value == 0) {
@@ -2226,7 +2226,7 @@ void func_8002AEF8(s32 idx, s32 value) {
  * @return Active flag value (0 = inactive).
  */
 s32 func_8002AF54(s32 idx) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    BattleDisplayEntity *entity = &D_80083210[idx];
     return entity->activeFlag;
 }
 
@@ -2237,7 +2237,7 @@ s32 func_8002AF54(s32 idx) {
  * @param a1 Scale value (0x1000 = 1.0).
  */
 void func_8002AF70(s32 a0, s32 a1) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     entity->scale = a1;
 }
 
@@ -2248,7 +2248,7 @@ void func_8002AF70(s32 a0, s32 a1) {
  * @return Scale value (0x1000 = 1.0).
  */
 s32 func_8002AF88(s32 a0) {
-    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    BattleDisplayEntity *entity = &D_80083210[a0];
     return entity->scale;
 }
 

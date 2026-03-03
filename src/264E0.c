@@ -83,13 +83,13 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80035F70);
 void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
     extern s32 D_80085140;
     extern s32 D_80085144;
-    extern u8 D_80085168[];
+    extern OvlCmdEntry D_80085168[];
     OvlCmdEntry *slot;
     s32 write_idx;
     s32 was_equal;
 
     write_idx = D_80085140;
-    slot = (OvlCmdEntry *)(D_80085168 + write_idx * 20);
+    slot = &D_80085168[write_idx];
     slot->cmd = cmd;
     slot->param = param;
     slot->loadAddr = load_addr;
