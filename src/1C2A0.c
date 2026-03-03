@@ -120,7 +120,7 @@ extern SfxEntry g_sfxEntries[];
  * @param a2 Value for field32.
  */
 void func_8002C7BC(s32 a0, s32 a1, s32 a2) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry* entry = &g_sfxEntries[a0];
     entry->field30 = a1;
     entry->field32 = a2;
 }
@@ -134,7 +134,7 @@ void func_8002C7BC(s32 a0, s32 a1, s32 a2) {
  * @param a3 Value for field2C.
  */
 void func_8002C7E0(s32 idx, s32 a1, s32 a2, s32 a3) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field29 = a1;
     entry->field2A = a2;
     entry->field2C = a3;
@@ -147,7 +147,7 @@ void func_8002C7E0(s32 idx, s32 a1, s32 a2, s32 a3) {
  * @param val Value to store.
  */
 void func_8002C808(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field2B = val;
 }
 
@@ -158,7 +158,7 @@ void func_8002C808(s32 idx, s32 val) {
  * @param val 32-bit value to store.
  */
 void func_8002C828(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field34 = val;
 }
 
@@ -169,7 +169,7 @@ void func_8002C828(s32 idx, s32 val) {
  * @param val 32-bit value to store.
  */
 void func_8002C848(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field38 = val;
 }
 
@@ -180,7 +180,7 @@ void func_8002C848(s32 idx, s32 val) {
  * @param a1 Volume value (0x1000 = default).
  */
 void func_8002C868(s32 a0, s32 a1) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     entry->volume = a1;
     func_8002AF70(entry->entityIdx, a1);
 }
@@ -229,7 +229,7 @@ void func_8002C954(s32 a0) {
  * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
  */
 void func_8002C9A4(s32 a0) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     s32 val = entry->volume;
     func_8002C954(val);
     func_80030058(val);
@@ -244,7 +244,7 @@ void func_8002C9A4(s32 a0) {
  * @param val Battle entity index.
  */
 void func_8002C9F0(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->entityIdx = val;
 }
 
@@ -256,7 +256,7 @@ void func_8002C9F0(s32 idx, s32 val) {
  * @return Previous state value.
  */
 s32 func_8002CA10(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     s32 old = entry->state;
     entry->state = val;
     return old;
@@ -269,7 +269,7 @@ s32 func_8002CA10(s32 idx, s32 val) {
  * @return State value (0 = inactive, 1 = active).
  */
 s32 func_8002CA34(s32 idx) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     return entry->state;
 }
 
@@ -280,7 +280,7 @@ s32 func_8002CA34(s32 idx) {
  * @param val Pitch value.
  */
 void func_8002CA58(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->pitch = val;
     entry->field14 = 0;
 }
@@ -292,7 +292,7 @@ void func_8002CA58(s32 idx, s32 val) {
  * @param val Value to store.
  */
 void func_8002CA7C(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field1C = val;
 }
 
@@ -303,7 +303,7 @@ void func_8002CA7C(s32 idx, s32 val) {
  * @param a1 Rate delta value (negative = fade out).
  */
 void func_8002CA9C(s32 a0, s32 a1) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     entry->rateDelta = a1;
 }
 
@@ -314,7 +314,7 @@ void func_8002CA9C(s32 a0, s32 a1) {
  * @return Signed 16-bit value.
  */
 s32 func_8002CABC(s32 a0) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     return entry->field1C;
 }
 
@@ -384,7 +384,7 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DBF8);
  * @param a2 Playback mode byte.
  */
 void func_8002DCA4(s32 a0, s32 a1, s32 a2) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     entry->state = 1;
     entry->rateDelta = a1;
     entry->mode = a2;
@@ -434,7 +434,7 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DD78);
  * @return Value of field28.
  */
 s32 func_8002DDD8(s32 a0) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     return entry->field28;
 }
 
@@ -449,7 +449,7 @@ s32 func_8002DDD8(s32 a0) {
  * @param a1 Flag value to OR with 8 before storing.
  */
 void func_8002DDFC(s32 a0, s32 a1) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     func_8002AE30(entry->entityIdx, a1 | 8);
 }
 
@@ -459,7 +459,7 @@ void func_8002DDFC(s32 a0, s32 a1) {
  * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
  */
 void func_8002DE38(s32 a0) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     func_8002AE14(entry->entityIdx);
 }
 
@@ -470,7 +470,7 @@ void func_8002DE38(s32 a0) {
  * @param val Value to store.
  */
 void func_8002DE74(s32 idx, s32 val) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + idx * 60);
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field2F = val;
 }
 
@@ -489,7 +489,7 @@ void func_8002DE94(a0)
 s32 a0;
 {
     s32 a1 = 0;
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     entry->field14 = 0;
     entry->field19 = 0;
     entry->field2F = 0;
@@ -521,7 +521,7 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DF5C);
  * @param dst Destination RECT.
  */
 void func_8002E028(s32 a0, RECT *dst) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     *dst = entry->rect;
 }
 
@@ -544,7 +544,7 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E1E8);
  * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
  */
 void func_8002E254(s32 a0) {
-    SfxEntry *entry = (SfxEntry *)((u8 *)g_sfxEntries + a0 * 60);
+    SfxEntry *entry = &g_sfxEntries[a0];
     s32 val = func_8002ACBC(entry->entityIdx);
     func_8002BEEC(val);
 }
