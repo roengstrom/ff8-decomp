@@ -1100,24 +1100,23 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027220);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027360);
 
 
-extern u8 D_80082DD0[];
+extern BattleAnimEntity g_battleAnims[];
 
 /**
- * @brief Mark a D_80082DD0 entry as active by setting fields 0x19 and 0x0A to 1.
- * @param idx Index into D_80082DD0 array (stride 196 bytes).
- * @note Purpose uncertain -- appears to enable or activate an entity entry.
+ * @brief Mark a battle animation entity as active.
+ * @param idx Index into g_battleAnims array.
  */
 void func_800273D8(s32 idx) {
-    u8 *entry = D_80082DD0 + idx * 196;
-    entry[0x19] = 1;
-    entry[0x0A] = 1;
+    BattleAnimEntity *entry = &g_battleAnims[idx];
+    entry->field19 = 1;
+    entry->field0A = 1;
 }
 
 
 /**
- * @brief Initialize two data blocks for a structure at address a0 via func_80027220.
- * @param a0 Base address of the structure to initialize.
- * @note Initializes two regions: one at the base with mode 0, and one at offset 0xC4 with mode 0x10.
+ * @brief Initialize two consecutive BattleAnimEntity entries via func_80027220.
+ * @param a0 Base address of the first entry.
+ * @note Initializes the first entry with mode 0, and the second (at +0xC4) with mode 0x10.
  */
 void func_80027408(s32 a0) {
     func_80027220(a0, a0, 0);
@@ -1131,13 +1130,13 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027448);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027558);
 
 
-/** @brief Returns byte at D_80082DD0[a0 * 196 + 0x0B].
- *  @param a0 Entity index (stride 196 bytes).
+/**
+ * @brief Read field0B from a battle animation entity.
+ * @param idx Entity index.
  */
-s32 func_800275A8(s32 a0) {
-    extern u8 D_80082DD0[];
-    u8 *entry = D_80082DD0 + a0 * 196;
-    return entry[0x0B];
+s32 func_800275A8(s32 idx) {
+    BattleAnimEntity *entry = &g_battleAnims[idx];
+    return entry->field0B;
 }
 
 
@@ -1145,48 +1144,48 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800275D4);
 
 
 /**
- * @brief Get an animation frame value from a D_80082DD0 entry's sub-table.
- * @param a0 Entity index (masked to 0 or 1).
- * @param a1 Frame offset subtracted from the current frame counter.
- * @return u16 value from a 20-byte-stride sub-table at offset 0x1E within the linked entry.
- * @note Resolves a secondary entry via field 0xC2, then indexes into its sub-table using
- *       (current_frame - a1) & 7 as a circular buffer index.
+ * @brief Get an animation frame parameter from a linked entity's frame buffer.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param offset Frame offset subtracted from the current frame counter.
+ * @return field02 of the resolved AnimFrame.
+ * @note Resolves a secondary entry via linkedIdx, then indexes into its
+ *       frames[] circular buffer using (frameCounter - offset) & 7.
  */
-u16 func_8002795C(s32 a0, s32 a1) {
+u16 func_8002795C(s32 idx, s32 offset) {
     u8 *base;
     u8 *entry;
-    u8 *entry2;
+    u8 *linked;
     s32 sub_idx;
-    a0 &= 1;
-    base = D_80082DD0;
-    entry = base + a0 * 196;
-    entry2 = base + entry[0xC2] * 196;
-    sub_idx = (entry2[0x18] - a1) & 7;
-    return *(u16 *)(entry2 + sub_idx * 20 + 0x1E);
+    idx &= 1;
+    base = (u8 *)g_battleAnims;
+    entry = base + idx * 196;
+    linked = base + entry[0xC2] * 196;
+    sub_idx = (linked[0x18] - offset) & 7;
+    return *(u16 *)(linked + sub_idx * 20 + 0x1E);
 }
 
 
 /**
- * @brief Get a combined flags/status value by OR'ing 4 u16 fields from a D_80082DD0 sub-table entry.
- * @param a0 Entity index (masked to 0 or 1).
- * @param a1 Frame offset subtracted from the current frame counter.
- * @return Bitwise OR of u16 fields at offsets +8, +0xA, +0xC, +0xE within the sub-table entry.
- * @note Same sub-table lookup as func_8002795C but reads 4 adjacent u16 values instead of one.
+ * @brief Get combined status flags from a linked entity's animation frame.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param offset Frame offset subtracted from the current frame counter.
+ * @return Bitwise OR of field08, field0A, field0C, field0E in the resolved AnimFrame.
+ * @note Same lookup as func_8002795C but ORs 4 adjacent u16 values.
  */
-u16 func_800279CC(s32 a0, s32 a1) {
+u16 func_800279CC(s32 idx, s32 offset) {
     u8 *base;
     u8 *entry;
-    u8 *entry2;
+    u8 *linked;
     s32 sub_idx;
     s32 off;
     u8 *p;
-    a0 &= 1;
-    base = D_80082DD0;
-    entry = base + a0 * 196;
-    entry2 = base + entry[0xC2] * 196;
-    sub_idx = (entry2[0x18] - a1) & 7;
+    idx &= 1;
+    base = (u8 *)g_battleAnims;
+    entry = base + idx * 196;
+    linked = base + entry[0xC2] * 196;
+    sub_idx = (linked[0x18] - offset) & 7;
     off = sub_idx * 20 + 0x1C;
-    p = entry2 + off;
+    p = linked + off;
     return *(u16 *)(p + 8) | *(u16 *)(p + 0xA) | *(u16 *)(p + 0xC) | *(u16 *)(p + 0xE);
 }
 
@@ -1217,28 +1216,28 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027CF8);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027DB4);
 
 
-/** @brief Returns byte at D_80082DD0[(a0 & 1) * 196 + 0x1B].
- *  @param a0 Entity index, masked to 0 or 1.
+/**
+ * @brief Get opacity of a battle animation entity.
+ * @param idx Entity index (masked to 0 or 1).
+ * @return Opacity value (0xFF = visible, 0 = hidden).
  */
-s32 func_80027EC8(s32 a0) {
-    extern u8 D_80082DD0[];
-    u8 *entry = D_80082DD0 + (a0 & 1) * 196;
-    return entry[0x1B];
+s32 func_80027EC8(s32 idx) {
+    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
+    return entry->opacity;
 }
 
 
 /**
- * @brief Set or clear the opacity/visibility field (0x1B) of a D_80082DD0 entry.
- * @param a0 Entity index (masked to 0 or 1).
- * @param a1 If nonzero, set field 0x1B to 0xFF (fully visible); otherwise set to 0 (hidden).
+ * @brief Set or clear opacity of a battle animation entity.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param val If nonzero, set to 0xFF (visible); otherwise 0 (hidden).
  */
-void func_80027EF8(s32 a0, s32 a1) {
-    extern u8 D_80082DD0[];
-    u8 *entry = D_80082DD0 + (a0 & 1) * 196;
-    if (a1 != 0) {
-        entry[0x1B] = 0xFF;
+void func_80027EF8(s32 idx, s32 val) {
+    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
+    if (val != 0) {
+        entry->opacity = 0xFF;
     } else {
-        entry[0x1B] = 0;
+        entry->opacity = 0;
     }
 }
 
@@ -1249,18 +1248,19 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027F38);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80027F78);
 
 
-/** @brief Stores two u16 values into D_80082DD0 at (a0 & 1) * 4.
- *  @param a0 Entity index, masked to 0 or 1.
- *  @param a1 Value stored at offset 0x1D0.
- *  @param a2 Value stored at offset 0x1D2.
+/**
+ * @brief Store two u16 values into global state area beyond g_battleAnims entries.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param a1 Value stored at offset 0x1D0.
+ * @param a2 Value stored at offset 0x1D2.
+ * @note Offsets 0x1D0+ are global state beyond the 2 BattleAnimEntity entries.
  */
-void func_80027FBC(s32 a0, s16 a1, s16 a2) {
-    extern u8 D_80082DD0[];
+void func_80027FBC(s32 idx, s16 a1, s16 a2) {
     s32 base;
-    a0 &= 1;
-    base = (s32)D_80082DD0;
-    *(u16 *)(base + a0 * 4 + 0x1D0) = a1;
-    *(u16 *)(base + a0 * 4 + 0x1D2) = a2;
+    idx &= 1;
+    base = (s32)g_battleAnims;
+    *(u16 *)(base + idx * 4 + 0x1D0) = a1;
+    *(u16 *)(base + idx * 4 + 0x1D2) = a2;
 }
 
 
@@ -1330,12 +1330,11 @@ void func_800283EC(s32 a0) {
 
 /**
  * @brief Initialize or reset the CD audio/streaming subsystem state.
- * @note Calls several initialization functions and resets a counter at D_80082DD0 + 0x9C4 to 0.
- *       Passes two D_80082DD0 buffer pointers (offsets 0x188 and 0x1AC) to func_8003BC24.
+ * @note Calls several initialization functions and resets a counter at g_battleAnims + 0x9C4 to 0.
+ *       Passes two g_battleAnims buffer pointers (offsets 0x188 and 0x1AC) to func_8003BC24.
  */
 void func_800283F8(void) {
-    extern u8 D_80082DD0[];
-    u8 *base = D_80082DD0;
+    u8 *base = (u8 *)g_battleAnims;
     func_800982B8();
     func_8003BC24(base + 0x188, base + 0x1AC);
     func_8003AB84();

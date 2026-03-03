@@ -5,6 +5,58 @@
 #include "psxsdk/libgpu.h"
 
 /**
+ * @brief Animation frame sub-entry within BattleAnimEntity (stride 20 bytes).
+ *
+ * Each BattleAnimEntity has a circular buffer of 8 frames, indexed by
+ * (frameCounter - offset) & 7.
+ */
+typedef struct {
+    u8 field00;      /**< 0x00: Active flag (nonzero = occupied). */
+    u8 field01;      /**< 0x01: Type/flags (upper 4 bits = animation type). */
+    u16 field02;     /**< 0x02: Parameter value. */
+    u8 field04;      /**< 0x04: Direction value. */
+    u8 field05;      /**< 0x05: Unknown byte. */
+    u8 field06;      /**< 0x06: Unknown byte. */
+    u8 field07;      /**< 0x07: Unknown byte. */
+    u16 field08;     /**< 0x08: Unknown u16. */
+    u16 field0A;     /**< 0x0A: Unknown u16. */
+    u16 field0C;     /**< 0x0C: Unknown u16. */
+    u16 field0E;     /**< 0x0E: Unknown u16. */
+    u16 field10;     /**< 0x10: Unknown u16. */
+    u16 field12;     /**< 0x12: Unknown u16. */
+} AnimFrame;         /* 0x14 = 20 bytes */
+
+/**
+ * @brief Battle animation entity (g_battleAnims, stride 196 bytes).
+ *
+ * Controls animation state for a battle participant. Contains a circular
+ * buffer of 8 AnimFrame sub-entries and links to a secondary entity via
+ * linkedIdx. The array at g_battleAnims holds 2 active entities (indexed
+ * with a0 & 1) plus extra global state beyond offset 0x188.
+ */
+typedef struct {
+    u8 pad00[6];          /**< 0x00..0x05: Unknown fields. */
+    u8 field06;           /**< 0x06: Unknown byte. */
+    u8 field07;           /**< 0x07: Unknown byte. */
+    u8 pad08[2];          /**< 0x08..0x09: Unknown fields. */
+    u8 field0A;           /**< 0x0A: Active flag (1 = active). */
+    u8 field0B;           /**< 0x0B: Unknown byte. */
+    u8 field0C;           /**< 0x0C: Default color value. */
+    u8 field0D;           /**< 0x0D: Default color value. */
+    u8 field0E;           /**< 0x0E: Default color value. */
+    u8 field0F;           /**< 0x0F: Default color value. */
+    u8 pad10[8];          /**< 0x10..0x17: Unknown fields (s16 array). */
+    u8 frameCounter;      /**< 0x18: Frame counter (circular, & 7). */
+    u8 field19;           /**< 0x19: Active flag (1 = active). */
+    s8 field1A;           /**< 0x1A: State indicator (0, 2, 6 tested). */
+    u8 opacity;           /**< 0x1B: Opacity (0xFF = visible, 0 = hidden). */
+    AnimFrame frames[8];  /**< 0x1C..0xBB: 8 animation frame sub-entries. */
+    u8 padBC[6];          /**< 0xBC..0xC1: Unknown fields. */
+    u8 linkedIdx;         /**< 0xC2: Index into same array (linked entity). */
+    u8 fieldC3;           /**< 0xC3: Control (bit 7 = mirror, low 7 = intensity). */
+} BattleAnimEntity;       /* 0xC4 = 196 bytes */
+
+/**
  * @brief Battle display entity (D_80083210, stride 64 bytes).
  *
  * Each entity represents a visual element in the battle scene (characters,
