@@ -37,4 +37,23 @@ typedef struct {
     /* 0x20 */ s32 dataPtr;       /**< Pointer to item data array */
 } MenuDisplayConfig; /* 0x24 bytes */
 
+/**
+ * @brief Field access macros for MenuDisplayConfig via opaque pointer.
+ *
+ * When a function stores to D_801FAB00 fields and also loads an unrelated
+ * global (e.g. D_80083848) in the same basic block, the compiler's alias
+ * analysis with typed struct access proves non-aliasing and hoists the
+ * load before the stores, changing instruction scheduling. These macros
+ * access fields by name through a local `s32 cfg = (s32)&D_801FAB00`
+ * variable, which prevents the alias analysis while keeping field names.
+ *
+ * Use direct struct access (D_801FAB00.field) when the function has no
+ * interleaved loads from other globals — it matches naturally.
+ */
+#define MDC_OFFSETOF(field) ((s32)&((MenuDisplayConfig *)0)->field)
+#define MDC_U8(base, field)   (*(u8 *)((base) + MDC_OFFSETOF(field)))
+#define MDC_S16(base, field)  (*(s16 *)((base) + MDC_OFFSETOF(field)))
+#define MDC_U16(base, field)  (*(u16 *)((base) + MDC_OFFSETOF(field)))
+#define MDC_S32(base, field)  (*(s32 *)((base) + MDC_OFFSETOF(field)))
+
 #endif /* MENU_H */

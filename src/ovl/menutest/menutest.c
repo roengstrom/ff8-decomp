@@ -239,7 +239,7 @@ s32 func_801E64B4(s32 a0, s32 a1) {
 s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     s32 disp = a1;
     s32 yPos = 0x22;
-    s32 buf = (s32)&D_801FAB00;
+    s32 cfg = (s32)&D_801FAB00;
     s32 scroll = *(s16 *)(a2 + a0 + 0x2A - a2);
     s32 v0;
     s32 v1;
@@ -253,18 +253,18 @@ s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     a2 = func_801EF8D8(disp, a2);
     func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
 
-    *(s16 *)&D_801FAB00 = 0x1C;     /* x */
-    *(s16 *)(buf + 2) = 0x21;       /* y */
-    *(s16 *)(buf + 4) = 0x148;      /* w */
-    *(s16 *)(buf + 6) = 0x9F;       /* h */
-    v0 = func_801EF800(disp, a2, buf);
+    *(s16 *)&D_801FAB00 = 0x1C;
+    MDC_S16(cfg, y) = 0x21;
+    MDC_S16(cfg, w) = 0x148;
+    MDC_S16(cfg, h) = 0x9F;
+    v0 = func_801EF800(disp, a2, cfg);
 
-    *(u8 *)(buf + 0x10) = 0;        /* iconType */
-    *(u8 *)(buf + 0x11) = 0;        /* iconSubType */
-    *(s16 *)&D_801FAB00 = 0x18;     /* x */
-    *(s16 *)(buf + 2) = 0x1D;       /* y */
-    *(s16 *)(buf + 4) = 0x150;      /* w */
-    *(s16 *)(buf + 6) = 0xA7;       /* h */
+    MDC_U8(cfg, iconType) = 0;
+    MDC_U8(cfg, iconSubType) = 0;
+    *(s16 *)&D_801FAB00 = 0x18;
+    MDC_S16(cfg, y) = 0x1D;
+    MDC_S16(cfg, w) = 0x150;
+    MDC_S16(cfg, h) = 0xA7;
     return func_801EF9AC(disp, v0, 0x1000, D_80083848);
 }
 
