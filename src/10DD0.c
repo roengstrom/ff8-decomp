@@ -1152,16 +1152,16 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800275D4);
  *       frames[] circular buffer using (frameCounter - offset) & 7.
  */
 u16 func_8002795C(s32 idx, s32 offset) {
-    u8 *base;
-    u8 *entry;
-    u8 *linked;
+    BattleAnimEntity *base;
+    BattleAnimEntity *entry;
+    BattleAnimEntity *linked;
     s32 sub_idx;
     idx &= 1;
-    base = (u8 *)g_battleAnims;
-    entry = base + idx * 196;
-    linked = base + entry[0xC2] * 196;
-    sub_idx = (linked[0x18] - offset) & 7;
-    return *(u16 *)(linked + sub_idx * 20 + 0x1E);
+    base = g_battleAnims;
+    entry = base + idx;
+    linked = base + entry->linkedIdx;
+    sub_idx = (linked->frameCounter - offset) & 7;
+    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x1E);
 }
 
 
@@ -1173,19 +1173,19 @@ u16 func_8002795C(s32 idx, s32 offset) {
  * @note Same lookup as func_8002795C but ORs 4 adjacent u16 values.
  */
 u16 func_800279CC(s32 idx, s32 offset) {
-    u8 *base;
-    u8 *entry;
-    u8 *linked;
+    BattleAnimEntity *base;
+    BattleAnimEntity *entry;
+    BattleAnimEntity *linked;
     s32 sub_idx;
     s32 off;
     u8 *p;
     idx &= 1;
-    base = (u8 *)g_battleAnims;
-    entry = base + idx * 196;
-    linked = base + entry[0xC2] * 196;
-    sub_idx = (linked[0x18] - offset) & 7;
+    base = g_battleAnims;
+    entry = base + idx;
+    linked = base + entry->linkedIdx;
+    sub_idx = (linked->frameCounter - offset) & 7;
     off = sub_idx * 20 + 0x1C;
-    p = linked + off;
+    p = (u8 *)linked + off;
     return *(u16 *)(p + 8) | *(u16 *)(p + 0xA) | *(u16 *)(p + 0xC) | *(u16 *)(p + 0xE);
 }
 
