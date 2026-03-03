@@ -232,15 +232,17 @@ s32 func_801E64B4(s32 a0, s32 a1) {
  * @param a1 Display list pointer
  * @param a2 OT pointer
  * @return Result of func_801EF9AC
- * @note Uses `a2 + a0 + 0x2A - a2` liveness trick to force a2→s0 (see
- *       docs/s-reg-allocation.md Technique 1). Separate v1 variable for lhu
- *       result ensures multiply uses correct register (v0, not v1).
+ * @note Uses `a2 + a0 + 0x2A - a2` liveness trick to force a2→s0,
+ *       `disp + cfgAddr - cfgAddr` to force D_801FAB00 address into s-regs
+ *       from prologue, and `register asm("$17")` to fix yPos→s1 allocation.
+ *       Separate v1 variable for lhu result ensures multiply uses correct
+ *       register (v0, not v1).
  */
 s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     s32 disp = a1;
-    s32 yPos = 0x22;
-    s32 buf = (s32)&D_801FAB00;
+    register s32 yPos asm("$17") = 0x22;
     s32 scroll = *(s16 *)(a2 + a0 + 0x2A - a2);
+    s32 cfgAddr = (s32)&D_801FAB00;
     s32 v0;
     s32 v1;
 
@@ -250,21 +252,21 @@ s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     if (v0 < 0) v0 += 0xFFF;
     yPos -= v0 >> 12;
 
-    a2 = func_801EF8D8(disp, a2);
+    a2 = func_801EF8D8(disp + cfgAddr - cfgAddr, a2);
     func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
 
-    *(s16 *)&D_801FAB00 = 0x1C;     /* x */
-    *(s16 *)(buf + 2) = 0x21;       /* y */
-    *(s16 *)(buf + 4) = 0x148;      /* w */
-    *(s16 *)(buf + 6) = 0x9F;       /* h */
-    v0 = func_801EF800(disp, a2, buf);
+    D_801FAB00.x = 0x1C;
+    D_801FAB00.y = 0x21;
+    D_801FAB00.w = 0x148;
+    D_801FAB00.h = 0x9F;
+    v0 = func_801EF800(disp, a2, cfgAddr);
 
-    *(u8 *)(buf + 0x10) = 0;        /* iconType */
-    *(u8 *)(buf + 0x11) = 0;        /* iconSubType */
-    *(s16 *)&D_801FAB00 = 0x18;     /* x */
-    *(s16 *)(buf + 2) = 0x1D;       /* y */
-    *(s16 *)(buf + 4) = 0x150;      /* w */
-    *(s16 *)(buf + 6) = 0xA7;       /* h */
+    D_801FAB00.iconType = 0;
+    D_801FAB00.iconSubType = 0;
+    D_801FAB00.x = 0x18;
+    D_801FAB00.y = 0x1D;
+    D_801FAB00.w = 0x150;
+    D_801FAB00.h = 0xA7;
     return func_801EF9AC(disp, v0, 0x1000, D_80083848);
 }
 
