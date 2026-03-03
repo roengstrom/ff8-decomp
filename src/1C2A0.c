@@ -119,8 +119,8 @@ extern SfxEntry g_sfxEntries[];
  * @param a1 Value for field30.
  * @param a2 Value for field32.
  */
-void func_8002C7BC(s32 a0, s32 a1, s32 a2) {
-    SfxEntry* entry = &g_sfxEntries[a0];
+void func_8002C7BC(s32 idx, s32 a1, s32 a2) {
+    SfxEntry* entry = &g_sfxEntries[idx];
     entry->field30 = a1;
     entry->field32 = a2;
 }
@@ -176,13 +176,13 @@ void func_8002C848(s32 idx, s32 val) {
 
 /**
  * @brief Set volume on an SFX entry and propagate to its linked battle entity's scale.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
- * @param a1 Volume value (0x1000 = default).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Volume value (0x1000 = default).
  */
-void func_8002C868(s32 a0, s32 a1) {
-    SfxEntry *entry = &g_sfxEntries[a0];
-    entry->volume = a1;
-    func_8002AF70(entry->entityIdx, a1);
+void func_8002C868(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->volume = val;
+    func_8002AF70(entry->entityIdx, val);
 }
 
 
@@ -226,10 +226,10 @@ void func_8002C954(s32 a0) {
 
 /**
  * @brief Read volume from an SFX entry and dispatch to color/effect updates.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002C9A4(s32 a0) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+void func_8002C9A4(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     s32 val = entry->volume;
     func_8002C954(val);
     func_80030058(val);
@@ -299,22 +299,22 @@ void func_8002CA7C(s32 idx, s32 val) {
 
 /**
  * @brief Set the rate delta on an SFX entry.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
- * @param a1 Rate delta value (negative = fade out).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Rate delta value (negative = fade out).
  */
-void func_8002CA9C(s32 a0, s32 a1) {
-    SfxEntry *entry = &g_sfxEntries[a0];
-    entry->rateDelta = a1;
+void func_8002CA9C(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->rateDelta = val;
 }
 
 
 /**
  * @brief Get field1C of an SFX entry.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @return Signed 16-bit value.
  */
-s32 func_8002CABC(s32 a0) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+s32 func_8002CABC(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     return entry->field1C;
 }
 
@@ -379,49 +379,49 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DBF8);
 
 /**
  * @brief Configure an SFX entry for playback: mark as active, set rate, and set mode.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
- * @param a1 Playback rate value (e.g. 0x200, 0x1000).
- * @param a2 Playback mode byte.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param rate Playback rate value (e.g. 0x200, 0x1000).
+ * @param mode Playback mode byte.
  */
-void func_8002DCA4(s32 a0, s32 a1, s32 a2) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+void func_8002DCA4(s32 idx, s32 rate, s32 mode) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->state = 1;
-    entry->rateDelta = a1;
-    entry->mode = a2;
+    entry->rateDelta = rate;
+    entry->mode = mode;
 }
 
 
 /** @brief Start SFX entry playback at slow rate (0x200). */
-void func_8002DCD0(s32 a0) {
-    func_8002DCA4(a0, 0x200, 0);
+void func_8002DCD0(s32 idx) {
+    func_8002DCA4(idx, 0x200, 0);
 }
 
 
 /** @brief Start SFX entry playback at normal rate (0x1000). */
-void func_8002DCF4(s32 a0) {
-    func_8002DCA4(a0, 0x1000, 0);
+void func_8002DCF4(s32 idx) {
+    func_8002DCA4(idx, 0x1000, 0);
 }
 
 
 /**
  * @brief Set the rate delta (field 0x1E) for an SFX entry.
- * @param a0 Index into the SFX entry array.
- * @param a1 Rate delta value (negative values = fade out).
+ * @param idx Index into the SFX entry array.
+ * @param val Rate delta value (negative values = fade out).
  */
-void func_8002DD18(s32 a0, s32 a1) {
-    func_8002CA9C(a0, a1);
+void func_8002DD18(s32 idx, s32 val) {
+    func_8002CA9C(idx, val);
 }
 
 
 /** @brief Set SFX entry to fade out at slow rate (-0x200). */
-void func_8002DD38(s32 a0) {
-    func_8002DD18(a0, -0x200);
+void func_8002DD38(s32 idx) {
+    func_8002DD18(idx, -0x200);
 }
 
 
 /** @brief Set SFX entry to fade out at fast rate (-0x1000). */
-void func_8002DD58(s32 a0) {
-    func_8002DD18(a0, -0x1000);
+void func_8002DD58(s32 idx) {
+    func_8002DD18(idx, -0x1000);
 }
 
 
@@ -430,11 +430,11 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DD78);
 
 /**
  * @brief Get field28 of an SFX entry.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @return Value of field28.
  */
-s32 func_8002DDD8(s32 a0) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+s32 func_8002DDD8(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     return entry->field28;
 }
 
@@ -445,21 +445,21 @@ s32 func_8002DDD8(s32 a0) {
  * Reads the entity index from the SFX entry, then sets entity type
  * (and derived draw mode) on that battle entity with the value OR'd with 8.
  *
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
- * @param a1 Flag value to OR with 8 before storing.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Flag value to OR with 8 before storing.
  */
-void func_8002DDFC(s32 a0, s32 a1) {
-    SfxEntry *entry = &g_sfxEntries[a0];
-    func_8002AE30(entry->entityIdx, a1 | 8);
+void func_8002DDFC(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    func_8002AE30(entry->entityIdx, val | 8);
 }
 
 
 /**
  * @brief Read the entity type of the battle entity linked to an SFX entry.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002DE38(s32 a0) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+void func_8002DE38(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     func_8002AE14(entry->entityIdx);
 }
 
@@ -482,33 +482,33 @@ void func_8002DE74(s32 idx, s32 val) {
  * pitch = 0x1000, state = 0, reverb mode = 3, rate = 0, delta = 0,
  * entity flags = 6|8, display rect = (64,64,128,128), volume = 0x1000.
  *
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002DE94(a0)
+void func_8002DE94(idx)
 
-s32 a0;
+s32 idx;
 {
     s32 a1 = 0;
-    SfxEntry *entry = &g_sfxEntries[a0];
+    SfxEntry *entry = &g_sfxEntries[idx];
     entry->field14 = 0;
     entry->field19 = 0;
     entry->field2F = 0;
-    func_8002D6AC(a0, a1);
-    func_8002CA58(a0, 0x1000);
-    func_8002CA10(a0, 0);
-    func_8002DD78(a0, 3);
-    func_8002CA7C(a0, 0);
-    func_8002CA9C(a0, 0);
-    func_8002DDFC(a0, 6);
+    func_8002D6AC(idx, a1);
+    func_8002CA58(idx, 0x1000);
+    func_8002CA10(idx, 0);
+    func_8002DD78(idx, 3);
+    func_8002CA7C(idx, 0);
+    func_8002CA9C(idx, 0);
+    func_8002DDFC(idx, 6);
     {
         s16 buf[4];
         buf[0] = 0x40;
         buf[1] = 0x40;
         buf[2] = 0x80;
         buf[3] = 0x80;
-        func_8002E064(a0, buf);
+        func_8002E064(idx, buf);
     }
-    func_8002C868(a0, 0x1000);
+    func_8002C868(idx, 0x1000);
 }
 
 
@@ -517,11 +517,11 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002DF5C);
 
 /**
  * @brief Copy an SFX entry's source rectangle to destination.
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param dst Destination RECT.
  */
-void func_8002E028(s32 a0, RECT *dst) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+void func_8002E028(s32 idx, RECT *dst) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     *dst = entry->rect;
 }
 
@@ -541,10 +541,10 @@ INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002E1E8);
  * Reads the entity index from the SFX entry, gets its animation speed,
  * then passes the result to func_8002BEEC.
  *
- * @param a0 Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002E254(s32 a0) {
-    SfxEntry *entry = &g_sfxEntries[a0];
+void func_8002E254(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
     s32 val = func_8002ACBC(entry->entityIdx);
     func_8002BEEC(val);
 }
