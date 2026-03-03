@@ -69,7 +69,7 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80035F70);
 /**
  * @brief Enqueue an overlay load command into the circular command queue.
  *
- * Writes a 20-byte command entry to D_80085168, advances the write index
+ * Writes a 20-byte command entry to g_ovlCmdQueue, advances the write index
  * (D_80085140) with wrap-around at 8 slots, and immediately dispatches
  * via func_80035D30 if the queue was previously empty.
  *
@@ -83,13 +83,13 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80035F70);
 void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
     extern s32 D_80085140;
     extern s32 D_80085144;
-    extern OvlCmdEntry D_80085168[];
+    extern OvlCmdEntry g_ovlCmdQueue[];
     OvlCmdEntry *slot;
     s32 write_idx;
     s32 was_equal;
 
     write_idx = D_80085140;
-    slot = &D_80085168[write_idx];
+    slot = &g_ovlCmdQueue[write_idx];
     slot->cmd = cmd;
     slot->param = param;
     slot->loadAddr = load_addr;
