@@ -2018,10 +2018,10 @@ extern BattleDisplayEntity D_80083210[];
 /**
  * @brief Get a pointer to a battle entity by index.
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @return Pointer to the start of the entity's 64-byte record.
+ * @return Pointer to the entity.
  */
-u8 *func_8002AC74(s32 idx) {
-    return (u8 *)&D_80083210[idx];
+BattleDisplayEntity *func_8002AC74(s32 idx) {
+    return &D_80083210[idx];
 }
 
 /**
