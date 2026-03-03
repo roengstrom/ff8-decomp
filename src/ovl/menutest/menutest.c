@@ -133,6 +133,7 @@ void func_801E58B8(void) {
  *       compiler cannot reproduce.
  */
 static void __maspsx_include_asm_hack_func_801E59B4(void) {
+	// TODO: FIXME
     __asm__(
         ".text # maspsx-keep\n"
         "\t.align\t2 # maspsx-keep\n"
@@ -175,6 +176,7 @@ void func_801E5D18(s32 a0, s32 a1) {
  *       See src/ovl/menutest/func_801E5D74.s for documented disassembly.
  */
 static void __maspsx_include_asm_hack_func_801E5D74(void) {
+	// TODO: FIXME
     __asm__(
         ".text # maspsx-keep\n"
         "\t.align\t2 # maspsx-keep\n"
