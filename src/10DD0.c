@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "battle.h"
 
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800205D0);
 
@@ -2012,8 +2013,6 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AAC0);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AB5C);
 
 
-/* D_80083210 is an array of some datastructure that is 64 bytes in size.
-   Below are some functions that fetch entries given an index and some property from that datastructure. */
 extern u8 D_80083210[];
 
 /**
@@ -2026,12 +2025,12 @@ u8 *func_8002AC74(s32 idx) {
 }
 
 /**
- * @brief Set a battle entity's field 0x37 (likely animation speed/priority), clamped to [3, 11].
+ * @brief Set a battle entity's animation speed, clamped to [3, 11].
  * @param idx Entity index into D_80083210 (stride 64 bytes).
  * @param val Value to set; clamped to minimum 3 and maximum 11.
  */
 void func_8002AC88(s32 idx, s32 val) {
-    u8 *p = D_80083210 + idx * 64;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
     s32 v;
     if (val >= 3) {
         if (val < 12) {
@@ -2042,31 +2041,30 @@ void func_8002AC88(s32 idx, s32 val) {
     } else {
         v = 3;
     }
-    p[0x37] = v;
+    entity->animSpeed = v;
 }
 
 
 /**
- * @brief Get a battle entity's field 0x37 value.
+ * @brief Get a battle entity's animation speed.
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @return Value of field 0x37 for the entity.
+ * @return Animation speed value for the entity.
  */
 s32 func_8002ACBC(s32 idx) {
-    u8 *p = D_80083210 + idx * 64;
-    return p[0x37];
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    return entity->animSpeed;
 }
 
 
-/** @brief Stores a byte value into the battle entity array at D_80083210.
- *
- *  @param idx Entity index (stride 64 bytes).
- *  @param offset Additional byte offset within the entity.
- *  @param val Byte value to store at offset 0x3A.
+/**
+ * @brief Store a byte value into a battle entity's subFields array.
+ * @param idx Entity index (stride 64 bytes).
+ * @param offset Index into the subFields array (0 or 1).
+ * @param val Byte value to store.
  */
 void func_8002ACD8(s32 idx, s32 offset, s32 val) {
-    extern u8 D_80083210[];
-    u8 *entry = D_80083210 + idx * 64;
-    *(u8 *)(entry + offset + 0x3A) = val;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    *(u8 *)((u8 *)entity + offset + 0x3A) = val;
 }
 
 
@@ -2074,15 +2072,13 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002ACF4);
 
 
 /**
- * @brief Set a battle entity's 8-byte field at offset 8 (bounding rect).
- *
+ * @brief Set a battle entity's bounding rectangle.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @param src Source RECT to copy (8 bytes).
+ * @param src Source RECT to copy.
  */
 void func_8002AD04(s32 a0, RECT *src) {
-    extern u8 D_80083210[];
-    u8 *entity = D_80083210 + a0 * 64;
-    *(RECT *)(entity + 8) = *src;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    entity->boundRect = *src;
 }
 
 
@@ -2092,136 +2088,130 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002AD3C);
 // battle_entity_get_field_38 - D_80083210 stride 64
 
 /**
- * @brief Get a battle entity's 8-byte field at offset 8 (bounding rect).
- *
+ * @brief Get a battle entity's bounding rectangle.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @param dst Destination for the 8-byte copy.
+ * @param dst Destination RECT to copy into.
  */
 void func_8002ADA4(s32 a0, RECT *dst) {
-    extern u8 D_80083210[];
-    u8 *entity = D_80083210 + a0 * 64;
-    *dst = *(RECT *)(entity + 8);
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    *dst = entity->boundRect;
 }
 
 
 /**
- * @brief Get a battle entity's 8-byte field at offset 0x10.
- *
+ * @brief Get a battle entity's display rectangle.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @param dst Destination for the 8-byte copy.
+ * @param dst Destination RECT to copy into.
  */
 void func_8002ADDC(s32 a0, RECT *dst) {
-    extern u8 D_80083210[];
-    u8 *entity = D_80083210 + a0 * 64;
-    *dst = *(RECT *)(entity + 0x10);
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    *dst = entity->dispRect;
 }
 
 
 /**
- * @brief Get a battle entity's field 0x38 (likely entity type or state).
+ * @brief Get a battle entity's entity type.
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @return Value of field 0x38 for the entity.
+ * @return Entity type value.
  */
 s32 func_8002AE14(s32 idx) {
-    u8 *p = D_80083210 + idx * 64;
-    return p[0x38];
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    return entity->entityType;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x38 and compute field 0x30 based on bit 0.
+ * @brief Set a battle entity's type and compute draw mode from bit 0.
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @param val Value to store in field 0x38; if bit 0 is set, field 0x30 becomes 0x3A000000,
- *            otherwise 0x38000000.
+ * @param val Entity type; if bit 0 is set, drawMode = 0x3A000000, else 0x38000000.
  */
 void func_8002AE30(s32 idx, s32 val) {
-    u8 *p = D_80083210 + idx * 64;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
     s32 v;
-    p[0x38] = val;
+    entity->entityType = val;
     v = 0x38;
     if (val & 1) {
         v = 0x3A;
     }
-    *(s32 *)(p + 0x30) = v << 24;
+    entity->drawMode = v << 24;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x00 (first s32 word, likely a pointer or ID).
+ * @brief Set a battle entity's field00 (first word).
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @param val s32 value to store at offset 0x00.
+ * @param val Value to store.
  */
 void func_8002AE60(s32 idx, s32 val) {
-    u8 *p = D_80083210 + idx * 64;
-    *(s32 *)p = val;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    entity->field00 = val;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x04 (second s32 word).
+ * @brief Set a battle entity's field04 (second word).
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @param val s32 value to store at offset 0x04.
+ * @param val Value to store.
  */
 void func_8002AE78(s32 idx, s32 val) {
-    u8 *p = D_80083210 + idx * 64;
-    *(s32 *)(p + 4) = val;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    entity->field04 = val;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x36.
+ * @brief Set a battle entity's field36.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @param a1 Value to store at offset 0x36.
+ * @param a1 Value to store.
  */
 void func_8002AE90(s32 a0, s32 a1) {
-    u8 *p = D_80083210 + a0 * 64;
-    p[0x36] = a1;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    entity->field36 = a1;
 }
 
 
 /**
- * @brief Get a battle entity's field 0x36 value.
+ * @brief Get a battle entity's field36.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @return Value of field 0x36 for the entity.
+ * @return Value of field36.
  */
 u32 func_8002AEA8(s32 a0) {
-    u8 *p = D_80083210 + a0 * 64;
-    return p[0x36];
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    return entity->field36;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x35.
+ * @brief Set a battle entity's field35.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @param a1 Value to store at offset 0x35.
+ * @param a1 Value to store.
  */
 void func_8002AEC4(s32 a0, s32 a1) {
-    u8 *p = D_80083210 + a0 * 64;
-    p[0x35] = a1;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    entity->field35 = a1;
 }
 
 
 /**
- * @brief Get a battle entity's field 0x35 value.
+ * @brief Get a battle entity's field35.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @return Value of field 0x35 for the entity.
+ * @return Value of field35.
  */
 u32 func_8002AEDC(s32 a0) {
-    u8 *p = D_80083210 + a0 * 64;
-    return p[0x35];
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    return entity->field35;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x34 and clear related fields if value is 0.
+ * @brief Set a battle entity's active flag; if 0, fully deactivate the entity.
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @param value Value to store at offset 0x34; if 0, also clears fields 0x36, 0x04, and 0x00.
- * @note Setting to 0 appears to fully deactivate the entity.
+ * @param value Active flag; if 0, also clears field36, field04, and field00.
  */
 void func_8002AEF8(s32 idx, s32 value) {
-    u8 *p = (u8 *)D_80083210 + (idx << 6);
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)((u8 *)D_80083210 + (idx << 6));
 
-    p[0x34] = value;
+    entity->activeFlag = value;
     if (value == 0) {
         func_8002AE90(idx, 0);
         func_8002AE78(idx, 0);
@@ -2231,35 +2221,35 @@ void func_8002AEF8(s32 idx, s32 value) {
 
 
 /**
- * @brief Get a battle entity's field 0x34 (likely active/type indicator).
+ * @brief Get a battle entity's active flag.
  * @param idx Entity index into D_80083210 (stride 64 bytes).
- * @return Value of field 0x34 for the entity.
+ * @return Active flag value (0 = inactive).
  */
 s32 func_8002AF54(s32 idx) {
-    u8 *p = D_80083210 + idx * 64;
-    return p[0x34];
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + idx * 64);
+    return entity->activeFlag;
 }
 
 
 /**
- * @brief Set a battle entity's field 0x3C (s16, likely a scale or distance value).
+ * @brief Set a battle entity's scale factor.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @param a1 s16 value to store at offset 0x3C.
+ * @param a1 Scale value (0x1000 = 1.0).
  */
 void func_8002AF70(s32 a0, s32 a1) {
-    u8 *p = D_80083210 + a0 * 64;
-    *(s16 *)(p + 0x3C) = a1;
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    entity->scale = a1;
 }
 
 
 /**
- * @brief Get a battle entity's field 0x3C value (s16).
+ * @brief Get a battle entity's scale factor.
  * @param a0 Entity index into D_80083210 (stride 64 bytes).
- * @return s16 value at offset 0x3C for the entity.
+ * @return Scale value (0x1000 = 1.0).
  */
 s32 func_8002AF88(s32 a0) {
-    u8 *p = D_80083210 + a0 * 64;
-    return *(s16 *)(p + 0x3C);
+    BattleDisplayEntity *entity = (BattleDisplayEntity *)(D_80083210 + a0 * 64);
+    return entity->scale;
 }
 
 

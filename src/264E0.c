@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "overlay.h"
 
 
 /** @brief Empty stub (no-op). */
@@ -83,18 +84,18 @@ void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callba
     extern s32 D_80085140;
     extern s32 D_80085144;
     extern u8 D_80085168[];
-    u8 *slot;
+    OvlCmdEntry *slot;
     s32 write_idx;
     s32 was_equal;
 
     write_idx = D_80085140;
-    slot = D_80085168 + write_idx * 20;
-    *(s16 *)(slot + 0x0) = cmd;
-    *(s16 *)(slot + 0x2) = param;
-    *(s32 *)(slot + 0x8) = load_addr;
-    *(s32 *)(slot + 0xC) = callback1;
-    *(s32 *)(slot + 0x10) = callback2;
-    *(s16 *)(slot + 0x4) = overlay_id;
+    slot = (OvlCmdEntry *)(D_80085168 + write_idx * 20);
+    slot->cmd = cmd;
+    slot->param = param;
+    slot->loadAddr = load_addr;
+    slot->callback1 = callback1;
+    slot->callback2 = callback2;
+    slot->ovlId = overlay_id;
     func_800472E4();
     was_equal = D_80085140;
     D_80085140 = (was_equal + 1) & 7;
