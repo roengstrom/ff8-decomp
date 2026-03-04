@@ -1,0 +1,222 @@
+#include "common.h"
+#include "psxsdk/libgpu.h"
+#include "battle.h"
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026ADC);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026CA0);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026CF0);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026D10);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026D8C);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026E20);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026E70);
+
+
+/**
+ * @brief Open a thread with interrupt protection.
+ * @param a0 Thread program counter / entry point address.
+ * @param a1 Thread stack pointer.
+ * @return Thread handle from OpenTh.
+ * @note Wraps PsyQ OpenTh with func_800472E4/func_800472F4 (likely interrupt disable/enable).
+ */
+s32 func_80026EC4(s32 a0, s32 a1) {
+    s32 result;
+    func_800472E4(a0);
+    result = OpenTh(a0, a1, 0);
+    func_800472F4();
+    return result;
+}
+
+
+/**
+ * @brief Close a thread with interrupt protection.
+ * @param a0 Thread handle to close.
+ * @note Wraps PsyQ CloseTh with func_800472E4/func_800472F4 (likely interrupt disable/enable).
+ */
+void func_80026F14(s32 a0) {
+    func_800472E4(a0);
+    CloseTh(a0);
+    func_800472F4();
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026F4C);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026F90);
+
+
+/** @brief Wrapper that calls func_80047384 (likely returns interrupt/thread status). */
+void func_80026FB4(void) { func_80047384(); }
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80026FD4);
+
+
+/**
+ * @brief Switch to a thread, using a fallback address if a0 is 0.
+ * @param a0 Thread handle to switch to; 0 defaults to 0xFF000000.
+ * @note If func_80047384 returns bit 2 set, uses func_80026F4C instead of PsyQ ChangeTh.
+ */
+void func_80026FE0(s32 a0) {
+    if (a0 == 0) {
+        a0 = (s32)0xFF000000;
+    }
+    if (func_80047384() & 4) {
+        func_80026F4C(a0);
+    } else {
+        ChangeTh(a0);
+    }
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027038);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_800270B0);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027220);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027360);
+
+
+extern BattleAnimEntity g_battleAnims[];
+
+/**
+ * @brief Mark a battle animation entity as active.
+ * @param idx Index into g_battleAnims array.
+ */
+void func_800273D8(s32 idx) {
+    BattleAnimEntity *entry = &g_battleAnims[idx];
+    entry->field19 = 1;
+    entry->field0A = 1;
+}
+
+
+/**
+ * @brief Initialize two consecutive BattleAnimEntity entries via func_80027220.
+ * @param a0 Base address of the first entry.
+ * @note Initializes the first entry with mode 0, and the second (at +0xC4) with mode 0x10.
+ */
+void func_80027408(s32 a0) {
+    func_80027220(a0, a0, 0);
+    func_80027220(a0, a0 + 0xC4, 0x10);
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027448);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027558);
+
+
+/**
+ * @brief Read field0B from a battle animation entity.
+ * @param idx Entity index.
+ */
+s32 func_800275A8(s32 idx) {
+    BattleAnimEntity *entry = &g_battleAnims[idx];
+    return entry->field0B;
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_800275D4);
+
+
+/**
+ * @brief Get an animation frame parameter from a linked entity's frame buffer.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param offset Frame offset subtracted from the current frame counter.
+ * @return field02 of the resolved AnimFrame.
+ * @note Resolves a secondary entry via linkedIdx, then indexes into its
+ *       frames[] circular buffer using (frameCounter - offset) & 7.
+ */
+u16 func_8002795C(s32 idx, s32 offset) {
+    BattleAnimEntity *base;
+    BattleAnimEntity *entry;
+    BattleAnimEntity *linked;
+    s32 sub_idx;
+    idx &= 1;
+    base = g_battleAnims;
+    entry = base + idx;
+    linked = base + entry->linkedIdx;
+    sub_idx = (linked->frameCounter - offset) & 7;
+    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x1E);
+}
+
+
+/**
+ * @brief Get combined status flags from a linked entity's animation frame.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param offset Frame offset subtracted from the current frame counter.
+ * @return Bitwise OR of field08, field0A, field0C, field0E in the resolved AnimFrame.
+ * @note Same lookup as func_8002795C but ORs 4 adjacent u16 values.
+ */
+u16 func_800279CC(s32 idx, s32 offset) {
+    BattleAnimEntity *base;
+    BattleAnimEntity *entry;
+    BattleAnimEntity *linked;
+    s32 sub_idx;
+    s32 off;
+    u8 *p;
+    idx &= 1;
+    base = g_battleAnims;
+    entry = base + idx;
+    linked = base + entry->linkedIdx;
+    sub_idx = (linked->frameCounter - offset) & 7;
+    off = sub_idx * 20 + 0x1C;
+    p = (u8 *)linked + off;
+    return *(u16 *)(p + 8) | *(u16 *)(p + 0xA) | *(u16 *)(p + 0xC) | *(u16 *)(p + 0xE);
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027A58);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027AC8);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027B38);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027B7C);
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027BA8);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027C00);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027C90);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027CF8);
+
+
+INCLUDE_ASM("asm/nonmatchings/172DC", func_80027DB4);
+
+
+/**
+ * @brief Get opacity of a battle animation entity.
+ * @param idx Entity index (masked to 0 or 1).
+ * @return Opacity value (0xFF = visible, 0 = hidden).
+ */
+s32 func_80027EC8(s32 idx) {
+    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
+    return entry->opacity;
+}
+
+

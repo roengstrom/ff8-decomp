@@ -1,0 +1,695 @@
+#include "common.h"
+
+extern s32 *D_80074F08;
+extern s32 D_80075028[];
+extern s32 D_80077288[];
+extern s32 D_80077298[];
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C1A8);
+
+extern u8 D_80073E68[];
+
+/**
+ * @brief Applies an instrument table entry to a sequence track.
+ *
+ * Stores the instrument index at track offset +0x66, then looks up the
+ * instrument in D_80073E68 (stride 16 bytes) and calls func_8001C1A8 to
+ * copy the instrument parameters into the track structure.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Instrument table index to apply.
+ */
+void func_8001C1DC(u8 *a0, s32 a1) {
+    *(s16 *)(a0 + 0x66) = a1;
+    func_8001C1A8((s32)a0, (s32)(D_80073E68 + a1 * 16), *(s32 *)(D_80073E68 + a1 * 16));
+}
+
+/**
+ * @brief Clears voice bits from multiple SPU control bitmasks and resets track state.
+ *
+ * Applies ~a1 mask to clear bits in D_80075028 entries [0], [1], [2], [4],
+ * [7], [8], and [9] (key-on, reverb, noise, and other voice control masks).
+ * Also zeroes the track's status fields at offsets +0x24 and +0x38.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to clear from all control registers.
+ */
+void func_8001C214(u8 *a0, s32 a1) {
+    s32 mask = ~a1;
+    D_80075028[0] &= mask;
+    D_80075028[4] &= mask;
+    D_80075028[7] &= mask;
+    D_80075028[8] &= mask;
+    D_80075028[9] &= mask;
+    D_80075028[1] &= mask;
+    D_80075028[2] &= mask;
+    *(s32 *)(a0 + 0x24) = 0;
+    *(s32 *)(a0 + 0x38) = 0;
+}
+
+/**
+ * @brief Transposes a note value based on flag bits, for percussion mapping.
+ *
+ * If @p a1 falls in range [0x80, 0xB0) or [0xD0, 0x100), applies an offset
+ * based on bits in @p a0: bit 1 adds +0x10, bit 2 adds +0x20.
+ *
+ * @note Purpose uncertain -- appears to select alternate percussion banks
+ *       or drum kit variations based on channel flags.
+ *
+ * @param a0 Channel/track flags; bits 1-2 select the transposition amount.
+ * @param a1 Note or percussion instrument index.
+ * @return Transposed note value, or @p a1 unchanged if outside valid ranges.
+ */
+s32 func_8001C280(s32 a0, s32 a1) {
+    if ((u32)(a1 - 0x80) < 0x30 || (u32)(a1 - 0xD0) < 0x30) {
+        if (a0 & 2) {
+            return a1 + 0x10;
+        }
+        if (a0 & 4) {
+            return a1 + 0x20;
+        }
+    }
+    return a1;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C2C8);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C39C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C3E8);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C490);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C530);
+
+/** @brief Reads a signed 16-bit little-endian offset from the stream cursor and advances cursor by that offset.
+ *  @param a0 Pointer to stream state (a0[0] = cursor pointer).
+ */
+void func_8001C5D8(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 offset = (s16)(ptr[0] | (ptr[1] << 8));
+    *(u8 **)a0 = ptr + offset;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C604);
+
+/** @brief Reads one byte from stream, advances cursor, ORs 3 into flags, stores byte << 8 as halfword at +0x80.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001C65C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    u8 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)(a0 + 0xF8) |= 3;
+    *(u16 *)(a0 + 0x80) = val << 8;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C684);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C708);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C738);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C7C4);
+
+/** @brief Sets bit 6 (0x40) in the flags word at offset 0x30 of a0. */
+void func_8001C854(u8 *a0) {
+    *(u32 *)(a0 + 0x30) |= 0x40;
+}
+
+/** @brief Clears bit 6 (0x40) in the flags word at offset 0x30 of a0. */
+void func_8001C868(u8 *a0) {
+    *(u32 *)(a0 + 0x30) &= ~0x40;
+}
+
+/** @brief Increments the word at a0 by 2. */
+void func_8001C87C(s32 *a0) {
+    *a0 += 2;
+}
+
+/** @brief Empty stub — no operation. */
+void func_8001C890(void) {
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C898);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C8DC);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C968);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C99C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CA28);
+
+/** @brief Increments halfword at a0+0x92, wraps modulo 16. */
+void func_8001CA44(u8 *a0) {
+    *(u16 *)(a0 + 0x92) = (*(u16 *)(a0 + 0x92) + 1) & 0xF;
+}
+
+/** @brief Decrements halfword at a0+0x92, wraps modulo 16. */
+void func_8001CA5C(u8 *a0) {
+    *(u16 *)(a0 + 0x92) = (*(u16 *)(a0 + 0x92) - 1) & 0xF;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CA74);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CB1C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CBA4);
+
+/** @brief Looks up D_80073E68 table by a0[0x66] index, copies fields to a0, ORs flags, masks a0[0x30].
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CC30(u8 *a0) {
+    extern u8 D_80073E68[];
+    u8 *entry = D_80073E68 + *(u16 *)(a0 + 0x66) * 16;
+    *(u16 *)(a0 + 0x106) = *(u16 *)(entry + 0xC);
+    *(u16 *)(a0 + 0x108) = *(u16 *)(entry + 0xE);
+    *(s32 *)(a0 + 0xF8) |= 0xFF00;
+    *(s32 *)(a0 + 0x30) &= (s32)0xE6FFFFFF;
+}
+
+/** @brief Reads one byte from stream, sign-extends to s8, stores as halfword at a0+0xE4.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CC78(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s8 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s16 *)(a0 + 0xE4) = val;
+}
+
+/** @brief Reads one byte from stream, sign-extends, adds to halfword at a0+0xE4.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CC9C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s8 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xE4) = *(u16 *)(a0 + 0xE4) + val;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CCC8);
+
+/** @brief Reads one byte from stream as duration. If zero, stores 0x100. Clears tempo/timer fields.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001CD10(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x98) = val;
+    if (val != 0) goto skip;
+    *(u16 *)(a0 + 0x98) = 0x100;
+skip:
+    *(u16 *)(a0 + 0xEC) = 0;
+    *(u16 *)(a0 + 0x96) = 0;
+    *(u16 *)(a0 + 0x9A) = 1;
+}
+
+/** @brief Clears the halfword at offset 0x98 of a0. */
+void func_8001CD48(u8 *a0) {
+    *(u16 *)(a0 + 0x98) = 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CD50);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CDB0);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CE14);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CF0C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CF6C);
+
+/** @brief Clears bit 0x1 in a0+0x30, sets bit 0x10 in a0+0xF8, zeroes a0+0xEE. */
+void func_8001CFD8(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x1;
+    *(s32 *)(a0 + 0xF8) |= 0x10;
+    *(u16 *)(a0 + 0xEE) = 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CFFC);
+
+/** @brief Reads one byte from stream, advances cursor, masks to 7 bits, shifts left 8, stores to halfword at a0+0xBC.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001D0AC(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xBC) = (val & 0x7F) << 8;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D0D0);
+
+/** @brief Clears bit 0x2 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF0. */
+void func_8001D140(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x2;
+    *(s32 *)(a0 + 0xF8) |= 0x3;
+    *(u16 *)(a0 + 0xF0) = 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D164);
+
+/** @brief Reads one byte from stream, advances cursor, shifts left 7, stores to halfword at a0+0xCA.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001D1D0(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xCA) = val << 7;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D1F0);
+
+/** @brief Clears bit 0x4 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF2. */
+void func_8001D25C(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x4;
+    *(s32 *)(a0 + 0xF8) |= 0x3;
+    *(u16 *)(a0 + 0xF2) = 0;
+}
+
+/**
+ * @brief Enables noise mode for the given voice bitmask on the appropriate SPU channel.
+ *
+ * If the track's channel (offset +0x60) is 0, sets bits in the primary SPU
+ * state (D_80074F08[0x3C/4]); otherwise sets bits in D_80075028[0x1C/4].
+ * Marks the SPU dirty flags (D_80077288) with 0x110 to schedule an update.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to enable noise mode for.
+ */
+void func_8001D280(s32 *a0, s32 a1) {
+    if (*(u16 *)((s32)a0 + 0x60) == 0) {
+        s32 *p = D_80074F08;
+        p[0x3C / 4] = p[0x3C / 4] | a1;
+    } else {
+        D_80075028[0x1C / 4] = D_80075028[0x1C / 4] | a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x110;
+}
+
+/**
+ * @brief Disables noise mode for the given voice bitmask and clears track state.
+ *
+ * Clears the voice bits from the noise enable register (primary or secondary
+ * depending on channel at offset +0x60). Marks SPU dirty flags with 0x110
+ * and zeroes the track's noise state field at offset +0xD0.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to disable noise mode for.
+ */
+void func_8001D2E0(s32 *a0, s32 a1) {
+    if (*(u16 *)((s32)a0 + 0x60) == 0) {
+        s32 *p = D_80074F08;
+        p[0x3C / 4] = p[0x3C / 4] & ~a1;
+    } else {
+        D_80075028[0x1C / 4] = D_80075028[0x1C / 4] & ~a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x110;
+    *(u16 *)((s32)a0 + 0xD0) = 0;
+}
+
+/**
+ * @brief Enables reverb for the given voice bitmask on the appropriate SPU channel.
+ *
+ * If the track's channel (offset +0x60) is 0, sets bits in the primary SPU
+ * state (D_80074F08[0x44/4]); otherwise checks flag 0x10000 at offset +0x30
+ * before setting bits in D_80075028[0x24/4]. Marks dirty flags with 0x100.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to enable reverb for.
+ */
+void func_8001D348(s32 *a0, s32 a1) {
+    if (*(u16 *)((s32)a0 + 0x60) == 0) {
+        s32 *p = D_80074F08;
+        p[0x44 / 4] = p[0x44 / 4] | a1;
+    } else if (*(s32 *)((s32)a0 + 0x30) & 0x10000) {
+        D_80075028[0x24 / 4] = D_80075028[0x24 / 4] | a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
+}
+
+/**
+ * @brief Disables reverb for the given voice bitmask and clears track state.
+ *
+ * Clears voice bits from the reverb enable register (primary or secondary
+ * depending on channel at offset +0x60). Marks SPU dirty flags with 0x100
+ * and zeroes the track's reverb state field at offset +0xD2.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to disable reverb for.
+ */
+void func_8001D3BC(s32 *a0, s32 a1) {
+    if (*(u16 *)((s32)a0 + 0x60) == 0) {
+        s32 *p = D_80074F08;
+        p[0x44 / 4] = p[0x44 / 4] & ~a1;
+    } else {
+        D_80075028[0x24 / 4] = D_80075028[0x24 / 4] & ~a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
+    *(u16 *)((s32)a0 + 0xD2) = 0;
+}
+
+/**
+ * @brief Enables pitch modulation for the given voice bitmask on the appropriate channel.
+ *
+ * If the track's channel (offset +0x60) is 0, sets bits in the primary SPU
+ * state (D_80074F08[0x40/4]); otherwise sets bits in D_80075028[0x20/4].
+ * Marks SPU dirty flags with 0x100 to schedule an update.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to enable pitch modulation for.
+ */
+void func_8001D424(s32 *a0, s32 a1) {
+    if (*(u16 *)((s32)a0 + 0x60) == 0) {
+        s32 *p = D_80074F08;
+        p[0x40 / 4] = p[0x40 / 4] | a1;
+    } else {
+        D_80075028[0x20 / 4] = D_80075028[0x20 / 4] | a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D484);
+
+/** @brief Sets the halfword at offset 0x9A of a0 to 1. */
+void func_8001D4E4(u8 *a0) {
+    *(u16 *)(a0 + 0x9A) = 1;
+}
+
+/** @brief Empty stub — no operation. */
+void func_8001D4F0(void) {
+}
+
+/** @brief Empty stub — no operation. */
+void func_8001D4F8(void) {
+}
+
+/** @brief Empty stub — no operation. */
+void func_8001D500(void) {
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D508);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D5A4);
+
+/**
+ * @brief Reads a byte from the sequence data stream and sets a track parameter.
+ *
+ * Reads one byte from the current position in the sequence data (pointer
+ * at offset +0x00), advances the read pointer, and writes the byte into
+ * bits [7:4] of the track's control field at offset +0x106. Also sets
+ * flag 0x1000 in the track's dirty flags at offset +0xF8.
+ *
+ * @param a0 Pointer to the sequence track structure (as s32 for pointer arithmetic).
+ * @param a1 Unused parameter.
+ */
+void func_8001D5E8(s32 a0, s32 a1) {
+    s32 byte = *(u8 *)(*(s32 *)a0);
+    *(s32 *)a0 = *(s32 *)a0 + 1;
+    *(u16 *)(a0 + 0x106) = (*(u16 *)(a0 + 0x106) & 0xFF0F) | (byte << 4);
+    *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x1000;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D61C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D64C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D690);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D6D0);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D714);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D78C);
+
+/** @brief Increments the word at a0 by 1. */
+void func_8001D7D0(s32 *a0) {
+    *a0 += 1;
+}
+
+/** @brief Empty stub — no operation. */
+void func_8001D7E4(void) {
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D7EC);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D83C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D8D0);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D93C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D9B8);
+
+/** @brief Reads byte from stream, stores to three halfword fields (0x64, 0x62, 0xD6), clears 0xD8.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001DA0C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0xD8) = 0;
+    *(u16 *)(a0 + 0x64) = val;
+    *(u16 *)(a0 + 0x62) = val;
+    *(u16 *)(a0 + 0xD6) = val;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DA34);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DA7C);
+
+/** @brief Clears bit 0x8 in a0+0x30 and zeroes halfword at a0+0x10A. */
+void func_8001DAB4(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x8;
+    *(u16 *)(a0 + 0x10A) = 0;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DACC);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB04);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB40);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB7C);
+
+/** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD0, else stores 0x101.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001DBC0(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (val != 0) {
+        *(u16 *)(a0 + 0xD0) = val + 1;
+    } else {
+        *(u16 *)(a0 + 0xD0) = 0x101;
+    }
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DBF0);
+
+/** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD2, else stores 0x101.
+ *  @param a0 Pointer to stream state.
+ */
+void func_8001DC34(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (val != 0) {
+        *(u16 *)(a0 + 0xD2) = val + 1;
+    } else {
+        *(u16 *)(a0 + 0xD2) = 0x101;
+    }
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DC64);
+
+/** @brief Sets bit 0x10 in word at a0+0x30. */
+void func_8001DCCC(u8 *a0) {
+    *(s32 *)(a0 + 0x30) |= 0x10;
+}
+
+/** @brief Clears bit 0x10 in word at a0+0x30. */
+void func_8001DCE0(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x10;
+}
+
+/** @brief Sets bit 0x20 in word at a0+0x30. */
+void func_8001DCF4(u8 *a0) {
+    *(s32 *)(a0 + 0x30) |= 0x20;
+}
+
+/** @brief Clears bit 0x20 in word at a0+0x30. */
+void func_8001DD08(u8 *a0) {
+    *(s32 *)(a0 + 0x30) &= ~0x20;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DD1C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DDD4);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DE18);
+
+/** @brief Sets bit 0x100000 in word at a0+0x30. */
+void func_8001DECC(u8 *a0) {
+    *(s32 *)(a0 + 0x30) |= 0x100000;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DEE0);
+
+/** @brief ORs a1 into the word at D_80074F08+0x8 (set flags).
+ *  @param a0 Unused.
+ *  @param a1 Bits to set.
+ */
+void func_8001DF10(s32 a0, s32 a1) {
+    *(s32 *)((u8 *)D_80074F08 + 0x8) |= a1;
+}
+
+/** @brief ANDs ~a1 into the word at D_80074F08+0x8 (clear flags).
+ *  @param a0 Unused.
+ *  @param a1 Bits to clear.
+ */
+void func_8001DF30(s32 a0, s32 a1) {
+    *(s32 *)((u8 *)D_80074F08 + 0x8) &= ~a1;
+}
+
+/** @brief Calls func_8001C2C8. */
+void func_8001DF50(void) {
+    func_8001C2C8();
+}
+
+/**
+ * @brief Disables SPU IRQ and clears the IRQ voice mask from the engine state.
+ *
+ * If D_80077298[3] (the active IRQ voice bitmask) is non-zero, disables
+ * SPU IRQ, clears the IRQ callback, resets the IRQ address to the stored
+ * value, clears the corresponding bits in D_80075028[8], marks dirty flags,
+ * and zeroes the IRQ voice mask.
+ */
+void func_8001DF70(void) {
+    s32 *s0 = D_80077298;
+    if (s0[3] != 0) {
+        SpuSetIRQ(0);
+        SpuSetIRQCallback(0);
+        func_80014DE0(s0[3]);
+        D_80075028[8] &= ~s0[3];
+        D_80077288[2] |= 0x100;
+        s0[3] = 0;
+    }
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DFF4);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E084);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E0CC);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E308);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E4C4);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E594);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E5F8);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E65C);
+
+void func_8001E7D8(void);
+
+/** @brief Calls func_8001E65C with SPU transfer params (0x1100, 0x1100, 0x800) and callback func_8001E7D8. */
+void func_8001E7A8(void) {
+    func_8001E65C(0x1100, 0x1100, 0x800, func_8001E7D8);
+}
+
+/** @brief Calls func_8001E65C with SPU transfer params (0x2100, 0x2100, 0x800) and callback func_8001E7A8. */
+void func_8001E7D8(void) {
+    func_8001E65C(0x2100, 0x2100, 0x800, func_8001E7A8);
+}
+
+void func_8001E838(void);
+
+/** @brief Calls func_8001E65C with SPU transfer params (0x1100, 0x1900, 0x1000) and callback func_8001E838. */
+void func_8001E808(void) {
+    func_8001E65C(0x1100, 0x1900, 0x1000, func_8001E838);
+}
+
+/** @brief Calls func_8001E65C with SPU transfer params (0x2100, 0x2900, 0x1000) and callback func_8001E808. */
+void func_8001E838(void) {
+    func_8001E65C(0x2100, 0x2900, 0x1000, func_8001E808);
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E868);
+
+/** @brief Calls func_8001DF70. */
+void func_8001E8B0(void) {
+    func_8001DF70();
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E8D0);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E940);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E9C0);
+
+/** @brief Sets SPU IRQ address to 0x1038 and registers func_8001DF70 as the IRQ callback. */
+void func_8001EB0C(void) {
+    SpuSetIRQAddr(0x1038);
+    SpuSetIRQCallback(func_8001DF70);
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EB38);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EC0C);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EDD4);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F034);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F080);
+
+/**
+ * @brief Advances a sequence loop/repeat counter with wraparound.
+ *
+ * Increments the global tick count at D_80077298 offset +0x28, then
+ * increments @p counter. If @p counter exceeds the loop limit
+ * (D_80077298[0x3C/4] - 1), wraps it back to 0.
+ *
+ * @param counter Pointer to the current loop/repeat index.
+ * @return The new value of @p counter after increment and possible wraparound.
+ */
+s32 func_8001F0C4(s32 *counter) {
+    s32 base = (s32)D_80077298;
+    *(s32 *)(base + 0x28) += 1;
+    (*counter)++;
+    if ((u32)(*(s32 *)(base + 0x3C) - 1) < (u32)*counter) {
+        *counter = 0;
+    }
+    return *counter;
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F118);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F2A8);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F370);
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F3D4);
+
+void func_8001F54C(void);
+
+/** @brief Calls func_8001F3D4 with SPU transfer params (0x1100, 0x1900, 0x1000) and callback func_8001F54C. */
+void func_8001F51C(void) {
+    func_8001F3D4(0x1100, 0x1900, 0x1000, func_8001F54C);
+}
+
+/** @brief Calls func_8001F3D4 with SPU transfer params (0x2100, 0x2900, 0x1000) and callback func_8001F51C. */
+void func_8001F54C(void) {
+    func_8001F3D4(0x2100, 0x2900, 0x1000, func_8001F51C);
+}
+
+INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F57C);
+

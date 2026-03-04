@@ -1,0 +1,445 @@
+#include "common.h"
+#include "psxsdk/libgpu.h"
+#include "battle.h"
+
+extern SfxEntry g_sfxEntries[];
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002C8A4);
+
+
+/**
+ * @brief Decrement byte at offset 0x1E3 in g_sfxEntries and trigger an SFX update.
+ *
+ * Offset 0x1E3 falls within entry index 8 (8 * 60 = 480 = 0x1E0, +3 = 0x1E3),
+ * at field offset 0x03 of that entry. After decrementing, calls func_8002C8A4
+ * to process the change.
+ */
+void func_8002C920(void) {
+    s32 base = (s32)g_sfxEntries;
+    (*(u8 *)(base + 0x1E3))--;
+    func_8002C8A4();
+}
+
+
+/**
+ * @brief Build a packed RGBA-like color value from a scalar and store it as an
+ *        SFX control word.
+ *
+ * Divides the input by 32, masks to 8 bits, replicates across the low 24 bits
+ * (R=G=B), sets the high byte to 0x64 (alpha/command), and stores the result
+ * in g_flashColor before triggering an SFX update.
+ *
+ * @param a0 Scalar intensity value (divided by 32, clamped to 0-255).
+ */
+void func_8002C954(s32 a0) {
+    extern s32 g_flashColor;
+    a0 /= 32;
+    a0 &= 0xFF;
+    a0 |= (a0 << 16) | (a0 << 8);
+    a0 |= 0x64000000;
+    g_flashColor = a0;
+    func_8002C8A4();
+}
+
+
+/**
+ * @brief Read volume from an SFX entry and dispatch to color/effect updates.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ */
+void func_8002C9A4(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    s32 val = entry->volume;
+    func_8002C954(val);
+    func_80030058(val);
+}
+
+
+// sfx_entry_swap_field_16 - g_sfxEntries stride 60, returns old value
+
+/**
+ * @brief Set the linked battle entity index on an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Battle entity index.
+ */
+void func_8002C9F0(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->entityIdx = val;
+}
+
+
+/**
+ * @brief Swap the state of an SFX entry, returning the old value.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val New state value.
+ * @return Previous state value.
+ */
+s32 func_8002CA10(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    s32 old = entry->state;
+    entry->state = val;
+    return old;
+}
+
+
+/**
+ * @brief Get the state of an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @return State value (0 = inactive, 1 = active).
+ */
+s32 func_8002CA34(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    return entry->state;
+}
+
+
+/**
+ * @brief Set pitch and clear field14 on an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Pitch value.
+ */
+void func_8002CA58(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->pitch = val;
+    entry->field14 = 0;
+}
+
+
+/**
+ * @brief Set field1C on an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Value to store.
+ */
+void func_8002CA7C(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->field1C = val;
+}
+
+
+/**
+ * @brief Set the rate delta on an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Rate delta value (negative = fade out).
+ */
+void func_8002CA9C(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->rateDelta = val;
+}
+
+
+/**
+ * @brief Get field1C of an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @return Signed 16-bit value.
+ */
+s32 func_8002CABC(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    return entry->field1C;
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CAE0);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CC4C);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CDE4);
+
+
+/** @brief Stores a byte to global D_800831DC. */
+void func_8002CE68(s32 a0) {
+    extern s8 D_800831DC;
+    D_800831DC = a0;
+}
+
+
+/** @brief Returns the signed byte value of global D_800831DC. */
+s32 func_8002CE74(void) {
+    extern s8 D_800831DC;
+    return D_800831DC;
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CE84);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CECC);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CF54);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D040);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D6AC);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D744);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D784);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D818);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D8CC);
+
+
+// sfx_entry_init_fields_16_1E_2D - g_sfxEntries stride 60
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D970);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DBF8);
+
+
+/**
+ * @brief Configure an SFX entry for playback: mark as active, set rate, and set mode.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param rate Playback rate value (e.g. 0x200, 0x1000).
+ * @param mode Playback mode byte.
+ */
+void func_8002DCA4(s32 idx, s32 rate, s32 mode) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->state = 1;
+    entry->rateDelta = rate;
+    entry->mode = mode;
+}
+
+
+/** @brief Start SFX entry playback at slow rate (0x200). */
+void func_8002DCD0(s32 idx) {
+    func_8002DCA4(idx, 0x200, 0);
+}
+
+
+/** @brief Start SFX entry playback at normal rate (0x1000). */
+void func_8002DCF4(s32 idx) {
+    func_8002DCA4(idx, 0x1000, 0);
+}
+
+
+/**
+ * @brief Set the rate delta (field 0x1E) for an SFX entry.
+ * @param idx Index into the SFX entry array.
+ * @param val Rate delta value (negative values = fade out).
+ */
+void func_8002DD18(s32 idx, s32 val) {
+    func_8002CA9C(idx, val);
+}
+
+
+/** @brief Set SFX entry to fade out at slow rate (-0x200). */
+void func_8002DD38(s32 idx) {
+    func_8002DD18(idx, -0x200);
+}
+
+
+/** @brief Set SFX entry to fade out at fast rate (-0x1000). */
+void func_8002DD58(s32 idx) {
+    func_8002DD18(idx, -0x1000);
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DD78);
+
+
+/**
+ * @brief Get field28 of an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @return Value of field28.
+ */
+s32 func_8002DDD8(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    return entry->field28;
+}
+
+
+/**
+ * @brief Set entity type flags on the battle entity linked to an SFX entry.
+ *
+ * Reads the entity index from the SFX entry, then sets entity type
+ * (and derived draw mode) on that battle entity with the value OR'd with 8.
+ *
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Flag value to OR with 8 before storing.
+ */
+void func_8002DDFC(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    func_8002AE30(entry->entityIdx, val | 8);
+}
+
+
+/**
+ * @brief Read the entity type of the battle entity linked to an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ */
+void func_8002DE38(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    func_8002AE14(entry->entityIdx);
+}
+
+
+/**
+ * @brief Set field2F on an SFX entry.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Value to store.
+ */
+void func_8002DE74(s32 idx, s32 val) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->field2F = val;
+}
+
+
+/**
+ * @brief Initialize an SFX entity slot to default values.
+ *
+ * Zeros out field14, field19, field2F, then configures defaults:
+ * pitch = 0x1000, state = 0, reverb mode = 3, rate = 0, delta = 0,
+ * entity flags = 6|8, display rect = (64,64,128,128), volume = 0x1000.
+ *
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ */
+void func_8002DE94(idx)
+
+s32 idx;
+{
+    s32 a1 = 0;
+    SfxEntry *entry = &g_sfxEntries[idx];
+    entry->field14 = 0;
+    entry->field19 = 0;
+    entry->field2F = 0;
+    func_8002D6AC(idx, a1);
+    func_8002CA58(idx, 0x1000);
+    func_8002CA10(idx, 0);
+    func_8002DD78(idx, 3);
+    func_8002CA7C(idx, 0);
+    func_8002CA9C(idx, 0);
+    func_8002DDFC(idx, 6);
+    {
+        s16 buf[4];
+        buf[0] = 0x40;
+        buf[1] = 0x40;
+        buf[2] = 0x80;
+        buf[3] = 0x80;
+        func_8002E064(idx, buf);
+    }
+    func_8002C868(idx, 0x1000);
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DF5C);
+
+
+/**
+ * @brief Copy an SFX entry's source rectangle to destination.
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param dst Destination RECT.
+ */
+void func_8002E028(s32 idx, RECT *dst) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    *dst = entry->rect;
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E064);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E1B4);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E1E8);
+
+
+/**
+ * @brief Look up linked entity's animation speed and dispatch.
+ *
+ * Reads the entity index from the SFX entry, gets its animation speed,
+ * then passes the result to func_8002BEEC.
+ *
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ */
+void func_8002E254(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries[idx];
+    s32 val = func_8002ACBC(entry->entityIdx);
+    func_8002BEEC(val);
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E298);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E3A4);
+
+
+/** @brief Extracts a 4-bit nibble from packed byte array D_800834D8.
+ *  Even indices return the low nibble; odd indices return the high nibble.
+ *  @param a0 Nibble index.
+ *  @return The 4-bit value (0-15).
+ */
+s32 func_8002E428(s32 a0) {
+    extern u8 D_800834D8[];
+    s32 base = (s32)D_800834D8;
+    u32 val = *(u8 *)(base + (a0 >> 1));
+    if (a0 & 1) {
+        val >>= 4;
+    }
+    return val & 0xF;
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E454);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E4AC);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E680);
+
+
+/** @brief Calls func_8002E4AC with a1=1. */
+void func_8002E744(s32 a0) {
+    func_8002E4AC(a0, 1);
+}
+
+
+/** @brief Calls func_8002E4AC with a1=1. */
+void func_8002E764(s32 a0) {
+    func_8002E4AC(a0, 1);
+}
+
+
+/** @brief Calls func_8002E4AC(a0, 1) and returns the result as u16. */
+u16 func_8002E784(s32 a0) {
+    return (u16)func_8002E4AC(a0, 1);
+}
+
+
+/**
+ * @brief Wrapper that calls func_8002E4AC with second argument 0 and returns result as u16.
+ * @param a0 First argument passed through to func_8002E4AC.
+ * @return Result of func_8002E4AC truncated to 16 bits.
+ * @note Purpose uncertain -- appears to query a 16-bit status value.
+ */
+u16 func_8002E7A4(s32 a0) {
+    return (u16)func_8002E4AC(a0, 0);
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E7C4);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E810);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E8DC);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002EAD0);
+
+
+INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002EE10);
+
+
