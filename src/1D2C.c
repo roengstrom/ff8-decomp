@@ -532,7 +532,7 @@ top:
  */
 void func_800128F8(void) {
     extern DISPENV g_dispEnvs[];
-    extern volatile u16 g_bufferIndex;
+    extern volatile u16 g_bufferIndex; /* volatile for codegen match */
     s32 base;
     s32 ofs1;
 
@@ -560,8 +560,8 @@ void func_800128F8(void) {
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", func_800129A4);
 
-extern volatile u16 g_bufferIndex;
-extern volatile u8 g_fadeMode;
+extern volatile u16 g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
+extern volatile u8 g_fadeMode; /* volatile for codegen match (forces reload each access) */
 extern u8 g_fadeCounter;
 extern DISPENV g_dispEnvs[];
 extern DRAWENV g_drawEnvs[];
