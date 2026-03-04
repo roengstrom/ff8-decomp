@@ -505,7 +505,7 @@ void func_800127F8(s32 a0) {
  *  primitive slots at g_clearTiles (32 bytes apart). These are used for screen
  *  clearing during frame rendering.
  */
-void func_80012870(void) {
+void InitClearTiles(void) {
     extern TILE g_clearTiles[];
     s32 i = 0;
     TILE *tile = &g_clearTiles[0];

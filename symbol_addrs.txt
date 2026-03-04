@@ -679,5 +679,6 @@ g_flashColor = 0x800831D4;
 g_battleAnims = 0x80082DD0;
 g_ovlCmdQueue = 0x80085168;
 g_clearTiles = 0x80070474;
+InitClearTiles = 0x80012870;
 load_table = 0x80053C58; // 19-entry file descriptor table (overlays + mngrp.bin + init.out)
 index = 0x80051684;

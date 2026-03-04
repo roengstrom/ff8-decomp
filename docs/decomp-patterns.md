@@ -86,7 +86,7 @@ s32 i = 0;           // -> sw s1 / move s1, $0
 
 Use this to match scrambled prologue save orders in the original.
 
-*Example: func_80012870*
+*Example: InitClearTiles*
 
 ### Operand order in addu
 
@@ -369,7 +369,7 @@ out:
 **Note on `++i` vs `i++`:** `++i` inside the conditional keeps the increment after
 stores. Separate `i++` lets the compiler schedule it before stores.
 
-*Example: func_80012870*
+*Example: InitClearTiles*
 
 ### for-loop fixes i++ scheduling
 
