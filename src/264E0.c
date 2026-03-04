@@ -311,16 +311,16 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80036D44);
 /**
  * @brief Set the active party leader and clear the other two party slots.
  *
- * Writes a0 to D_80077378+0xAF4 (party slot 0), sets slots 1 and 2 to
+ * Writes a0 to g_gameState+0xAF4 (party slot 0), sets slots 1 and 2 to
  * 0xFF (empty), then calls func_80023888 to apply the party change.
  *
  * @param a0 Character ID for the party leader.
  */
 void func_80036E8C(s32 a0) {
-    extern u8 D_80077378[];
-    D_80077378[0xAF4] = a0;
-    D_80077378[0xAF5] = 0xFF;
-    D_80077378[0xAF6] = 0xFF;
+    extern u8 g_gameState[];
+    g_gameState[0xAF4] = a0;
+    g_gameState[0xAF5] = 0xFF;
+    g_gameState[0xAF6] = 0xFF;
     func_80023888();
 }
 
@@ -331,14 +331,14 @@ INCLUDE_ASM("asm/nonmatchings/264E0", func_80036EC0);
 /**
  * @brief Build a 16-bit bitmask of GF availability flags.
  *
- * Iterates over 16 GF entries in D_80077378 (stride 0x44 = 68 bytes),
+ * Iterates over 16 GF entries in g_gameState (stride 0x44 = 68 bytes),
  * checking bit 0 of byte +0x61 (availability flag). Sets the corresponding
  * bit in the result mask for each available GF.
  *
  * @return Bitmask where bit N is set if GF N is available.
  */
 u16 func_80036F60(void) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     u16 mask;
     s32 i;
     s32 bit;
@@ -347,7 +347,7 @@ u16 func_80036F60(void) {
     mask = 0;
     i = 0;
     bit = 1;
-    p = D_80077378;
+    p = g_gameState;
     do {
         if (p[0x61] & 1) {
             mask |= (bit << i);
@@ -363,14 +363,14 @@ u16 func_80036F60(void) {
  * @brief Copy a GF's current HP from the character table to the GF table.
  *
  * Reads a u16 from D_80078720 + a0*12 + 0x61A and writes it to
- * D_80077378 + a0*68 + 0x62.
+ * g_gameState + a0*68 + 0x62.
  *
  * @param a0 GF index (0-15).
  */
 void func_80036FA4(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078720[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 off1 = a0 * 68;
     s32 base2 = (s32)D_80078720;
     *(s16 *)(base1 + off1 + 0x62) = *(u16 *)(base2 + a0 * 12 + 0x61A);

@@ -11,12 +11,12 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020608);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020644);
 
 
-/** @brief Sets bit 0x1 in byte at D_80077378[a0 * 68 + 0x61].
+/** @brief Sets bit 0x1 in byte at g_gameState[a0 * 68 + 0x61].
  *  @param a0 Table index (stride 68 bytes).
  */
 void func_80020670(s32 a0) {
-    extern u8 D_80077378[];
-    s32 base = (s32)D_80077378;
+    extern u8 g_gameState[];
+    s32 base = (s32)g_gameState;
     *(u8 *)(base + a0 * 68 + 0x61) |= 1;
 }
 
@@ -269,7 +269,7 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800211B4);
 
 /**
  * @brief Check if a character's ability list contains a specific ability ID.
- * @param a0 Character index used to look up a slot ID in D_80077378 at offset 0xAF4.
+ * @param a0 Character index used to look up a slot ID in g_gameState at offset 0xAF4.
  * @param a1 Ability ID to search for; returns 0 immediately if a1 is 0.
  * @return 1 if the ability is found in the character's 20-entry ability list, 0 otherwise.
  */
@@ -278,7 +278,7 @@ s32 func_80021290(a0, a1)
 s32 a0;
 s32 a1;
 {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 base;
     u8 slot_id;
     s32 i;
@@ -286,7 +286,7 @@ s32 a1;
 
     if (a1 == 0) return 0;
 
-    base = (s32)D_80077378;
+    base = (s32)g_gameState;
     slot_id = *(u8 *)(a0 + base + 0xAF4);
     i = 0;
     ptr = base + slot_id * 152;
@@ -308,15 +308,15 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021358);
 
 /**
  * @brief Add a value to a character's stat at offset 0x02, clamping the result to 9999.
- * @param a0 Character index used to resolve a slot ID via D_80077378.
+ * @param a0 Character index used to resolve a slot ID via g_gameState.
  * @param a1 Amount to add to the stat.
  * @note The stat at ptr+2 (likely HP or experience) is read as u16, added to a1, then clamped by func_800231C8.
  */
 void func_800214E0(s32 a0, s32 a1) {
-    extern u8 D_80077378[];
-    u8 *base = D_80077378 + a0;
+    extern u8 g_gameState[];
+    u8 *base = g_gameState + a0;
     u8 idx = base[0xAF4];
-    u8 *ptr = D_80077378 + 0x490 + idx * 152;
+    u8 *ptr = g_gameState + 0x490 + idx * 152;
     *(s16 *)(ptr + 2) = func_800231C8(*(u16 *)(ptr + 2) + a1);
 }
 
@@ -379,7 +379,7 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021894);
 
 /**
  * @brief Search a character's junction list for a specific junction ID and return its value.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @param a1 Junction ID to search for; returns 0 immediately if a1 is 0.
  * @return The junction value (byte at offset +1 from matching entry), or 0 if not found.
  * @note Scans up to 32 entries (2 bytes each: ID at +0x4A0, value at +0x4A1).
@@ -389,13 +389,13 @@ s32 func_80021944(a0, a1)
 s32 a0;
 s32 a1;
 {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 i = 0;
     s32 base;
 
     if (a1 == 0) return 0;
 
-    base = (s32)D_80077378;
+    base = (s32)g_gameState;
     a0 = a0 * 152;
     while (i < 32) {
         u8 *ptr = (u8 *)(a0 + base);
@@ -425,18 +425,18 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_800219B8);
 
 /**
  * @brief Compute an elemental or status modifier percentage from a character's equipped abilities.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @param a1 Element or status type to match against.
  * @return Base value of 100 plus any matching ability bonuses from D_80078E00 table.
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x27..0x39 are looked up
  *       in D_80078E00 (stride 8, offset 0x421D for type, 0x421E for bonus).
  */
 s32 func_800219E0(s32 a0, s32 a1) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
     s32 result = 100;
     s32 i = 0;
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 base2;
     s32 off = base1 + a0 * 152;
     base2 = (s32)D_80078E00;
@@ -466,16 +466,16 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021C10);
 
 /**
  * @brief Compute a derived stat (likely magic power) for a character, clamped to 0-255.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @param a1 Modifier or stat type passed to func_80021B58.
  * @return Clamped u8 result combining a base value, a junction bonus, and a level-based lookup.
  * @note Reads GF/junction index from offset 0x4F3, looks up base value from D_80078E00 (stride 60),
  *       then adds a bonus from func_800219B8 scaled by junction quantity.
  */
 s32 func_80022028(s32 a0, s32 a1) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
     s32 base2;
     u8 idx;
@@ -493,15 +493,15 @@ s32 func_80022028(s32 a0, s32 a1) {
 
 /**
  * @brief Compute a derived stat (likely spirit/magic defense) for a character, clamped to 0-255.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @param a1 Base value that is divided by 4 before adding junction bonus.
  * @return Clamped u8 result combining (a1/4) with a junction-scaled bonus from D_80078E00.
  * @note Reads GF/junction index from offset 0x4F2, looks up multiplier from D_80078E00 (stride 60, offset 0x239).
  */
 s32 func_800220E4(s32 a0, s32 a1) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
     s32 base2;
     u8 idx;
@@ -517,14 +517,14 @@ s32 func_800220E4(s32 a0, s32 a1) {
 
 /**
  * @brief Get a base stat value for a character's junctioned GF.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @return u8 value from D_80078E00 at stride 60, offset 0x23C for the character's GF index at slot 0x4F5.
  * @note Purpose uncertain -- appears to retrieve a GF compatibility or stat modifier base value.
  */
 s32 func_8002216C(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F5);
     s32 base2 = (s32)D_80078E00;
     return *(u8 *)(base2 + idx * 60 + 0x23C);
@@ -533,14 +533,14 @@ s32 func_8002216C(s32 a0) {
 
 /**
  * @brief Compute a junction-scaled stat bonus for a character.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @return Product of a GF multiplier (from D_80078E00 offset 0x23D) and the junction quantity.
  * @note Reads GF index from offset 0x4F5, then computes multiplier * func_80021944(a0, idx).
  */
 s32 func_800221B4(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
     s32 base2;
     u8 idx;
@@ -559,14 +559,14 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80022228);
 
 /**
  * @brief Get the lower 7 bits of a GF's flags field for a character.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @return Lower 7 bits (0x7F mask) of a u16 flags field from D_80078E00 at offset 0x242.
  * @note Reads GF index from character slot offset 0x4F6, then looks up flags in GF data (stride 60).
  */
 s32 func_80022328(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F6);
     s32 base2 = (s32)D_80078E00;
     return *(u16 *)(base2 + idx * 60 + 0x242) & 0x7F;
@@ -575,15 +575,15 @@ s32 func_80022328(s32 a0) {
 
 /**
  * @brief Decode a GF's status immunity/attribute flags into a game-engine bitmask.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @return Bitmask with remapped flag bits from the GF's u16 flags field at D_80078E00 offset 0x242.
  * @note Maps source bits to result bits: 0x80->0x1, 0x100->0x4, 0x200->0x8,
  *       0x400->0x200, 0x800->0x4000, 0x1000->0x8000.
  */
 s32 func_80022370(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 base2;
     u8 idx;
     u16 flags;
@@ -606,14 +606,14 @@ s32 func_80022370(s32 a0) {
 
 /**
  * @brief Compute a hit/accuracy percentage for a character, starting at 100 and adding a junction bonus.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @return 100 + junction-scaled bonus from GF index at offset 0x4F6, D_80078E00 offset 0x240.
  * @note Calls func_800219B8 to scale the GF multiplier by junction quantity.
  */
 s32 func_80022404(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
     s32 base2;
     u8 idx;
@@ -653,17 +653,17 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80022B04);
 
 /**
  * @brief Accumulate status immunity flags as an RGB-packed bitmask from a character's equipped abilities.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @return Packed bitmask: (B << 16) | (G << 8) | R, OR'd across up to 4 matching ability slots.
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x3A..0x4D are looked up
  *       in D_80078E00 (stride 8, offsets 0x42B5/B6/B7 for R/G/B status immunity bytes).
  */
 s32 func_80022B48(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
     s32 result = 0;
     s32 i = 0;
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 base2;
     s32 off = base1 + a0 * 152;
     base2 = (s32)D_80078E00;
@@ -721,17 +721,17 @@ s32 func_80022C04(s32 a0) {
 
 /**
  * @brief Apply party ability flags from a character's equipped abilities to D_80078720.
- * @param a0 Character slot index (stride 152 in D_80077378).
+ * @param a0 Character slot index (stride 152 in g_gameState).
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x4E..0x52 are looked up
  *       in D_80078E00 (stride 8, offset 0x4355) and OR'd into D_80078720 offset 0x6D8.
  *       Likely enables field/world abilities (e.g., encounter-none, rare-item).
  */
 void func_80022C5C(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_80078E00[];
     extern u8 D_80078720[];
     s32 i = 0;
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 base3;
     s32 base2;
     s32 off = base1 + a0 * 152;
@@ -844,13 +844,13 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8002363C);
 
 /**
  * @brief Iterate over 16 GF entries and recalculate stats for each active one.
- * @note Checks D_80077378 entries (stride 0x44) for bit 0 of field 0x61 (active flag).
+ * @note Checks g_gameState entries (stride 0x44) for bit 0 of field 0x61 (active flag).
  *       Calls func_8002363C for each active GF to recalculate its derived stats.
  */
 void func_80023828(void) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 i = 0;
-    u8 *ptr = D_80077378;
+    u8 *ptr = g_gameState;
     do {
         if (ptr[0x61] & 1) {
             func_8002363C(i);
@@ -868,14 +868,14 @@ void func_80023828(void) {
  */
 void func_80023888(void) {
     extern u8 D_80078DF8;
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 i;
     s32 base;
     s32 ptr;
 
     D_80078DF8 = 0;
     i = 0;
-    base = (s32)D_80077378;
+    base = (s32)g_gameState;
     do {
         ptr = i + base;
         func_80022E08(*(u8 *)(ptr + 0xAF4), i);

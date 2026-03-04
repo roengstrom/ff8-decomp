@@ -18,8 +18,8 @@ typedef enum {
     RENDER_GAME    = 4
 } RenderMode;
 
-/** @brief Layout of the snapshot region within D_80077378 (offsets 0xD40–0xD5C).
- *  Used by func_80011870 (save) and func_800119D4 (restore).
+/** @brief Layout of the snapshot region within g_gameState (offsets 0xD40–0xD5C).
+ *  Used by func_80011870 (save) and RestoreSnapshot (restore).
  */
 typedef struct {
     u8  pad0[0xD40];      /* 0x000..0xD3F */
@@ -33,6 +33,24 @@ typedef struct {
     u8  fade1;            /* 0xD5B */
     u8  fade0;            /* 0xD5C */
 } SnapshotBuf;
+
+/** @brief Field entity state structure at g_fieldEntity (0x800704A8).
+ *  Contains party member positions, rotations, and animation states
+ *  for the field/overworld. Used by RestoreSnapshot and func_80011870.
+ */
+typedef struct {
+    u8  state;            /* 0x000  exit/state flag (4 = exit) */
+    u8  pad0[0x3];        /* 0x001..0x003 */
+    u16 position_x;       /* 0x004 */
+    u16 position_y;       /* 0x006 */
+    u8  pad1[0x4];        /* 0x008..0x00B */
+    u16 rotation;         /* 0x00C */
+    u16 anim_state;       /* 0x00E */
+    u8  pad2[0x2];        /* 0x010..0x011 */
+    u8  member_index;     /* 0x012 */
+    u8  pad3[0x10D];      /* 0x013..0x11F */
+    u16 field_120;        /* 0x120 */
+} FieldEntity;
 
 /** @brief Battle entity structure (stride 612 / 0x264 bytes).
  *  Accessed via pointer at D_80085224. Fields named from func_80011870 usage.
@@ -89,8 +107,8 @@ void func_800115F0(void) {
  *
  *  Also maintains two fixed-point frame timing accumulators (D_8005F154 and
  *  D_8005F15C) that increment by 0x88F per VSync. On bit-17 rollover (~every
- *  12 frames), one increments a game frame counter at D_80077378+0xCD0
- *  and the other decrements a countdown timer at D_80077378+0xCD4.
+ *  12 frames), one increments a game frame counter at g_gameState+0xCD0
+ *  and the other decrements a countdown timer at g_gameState+0xCD4.
  *
  *  @note Non-matching (3 instructions shorter). Two codegen differences:
  *        1. CC1PSX fills beqz delay slot with `addu v0,v0,-1` (countdown
@@ -105,7 +123,7 @@ void func_800115F0(void) {
  *      extern volatile s32 D_8005F154;
  *      extern volatile s32 D_8005F15C;
  *      extern u16 D_8005F11E;
- *      extern u8 D_80077378[];
+ *      extern u8 g_gameState[];
  *
  *      switch ((s16)g_renderMode) {
  *      case 0:
@@ -136,7 +154,7 @@ void func_800115F0(void) {
  *
  *      D_8005F154 += 0x88F;
  *      if (D_8005F154 >> 17) {
- *          s32 base = D_80077378;
+ *          s32 base = g_gameState;
  *          *(s32 *)(base + 0xCD0) += 1;
  *          asm("");
  *          D_8005F154 &= 0xFFFF;
@@ -144,7 +162,7 @@ void func_800115F0(void) {
  *
  *      D_8005F15C += 0x88F;
  *      if (D_8005F15C >> 17) {
- *          s32 base = (s32)D_80077378;
+ *          s32 base = (s32)g_gameState;
  *          if (*(s32 *)(base + 0xCD4) == 0) {
  *              D_8005F11E = 1;
  *              return;
@@ -196,8 +214,8 @@ void InitHardware(void) {
  *
  *  Records party member positions (fixed-point 20.12 → integer), rotations,
  *  animation states, and display parameters from the battle entity array
- *  (stride 612 at D_80085224) into D_80077378+0xD40..0xD5C. The snapshot
- *  is later restored by func_800119D4 when returning from battle.
+ *  (stride 612 at D_80085224) into g_gameState+0xD40..0xD5C. The snapshot
+ *  is later restored by RestoreSnapshot when returning from battle.
  *
  *  @note Non-matching. Two codegen differences vs original:
  *        1. Compiler targets $t1/$t2 directly via addiu; original goes through
@@ -209,12 +227,12 @@ void InitHardware(void) {
  *  @code
  *  void func_80011870(void) {
  *      extern volatile u16 D_8005F14C;
- *      extern u16 D_8005F14E;
+ *      extern u16 g_currentMusicTrack;
  *      extern u8 D_8005F150;
  *      extern u8 D_8005F151;
  *      extern u16 D_800780B8;
- *      extern u8 D_80077378[];
- *      extern u8 D_800704A8[];
+ *      extern u8 g_gameState[];
+ *      extern u8 g_fieldEntity[];
  *      extern BattleEntity *D_80085224;
  *      SnapshotBuf *buf;
  *      s32 src;
@@ -227,9 +245,9 @@ void InitHardware(void) {
  *      }
  *
  *      i = 0;
- *      buf = (SnapshotBuf *)(s32)D_80077378;
- *      src = D_800704A8;
- *      buf->music_track = D_8005F14E;
+ *      buf = (SnapshotBuf *)(s32)g_gameState;
+ *      src = g_fieldEntity;
+ *      buf->music_track = g_currentMusicTrack;
  *      buf->field_120 = *(u16 *)(src + 0x120);
  *
  *      do {
@@ -243,7 +261,7 @@ void InitHardware(void) {
  *          buf->anim_states[idx] = D_80085224[member].anim_state;
  *      } while ((s16)i < 3);
  *
- *      buf = (SnapshotBuf *)(s32)D_80077378;
+ *      buf = (SnapshotBuf *)(s32)g_gameState;
  *      buf->fade1 = D_8005F151;
  *      buf->fade0 = D_8005F150;
  *  }
@@ -253,51 +271,39 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", func_80011870);
 
 /** @brief Restores a previously saved camera/field state snapshot.
  *
- *  Inverse of func_80011870. Reads the snapshot from D_80077378+0xD40..0xD5C
- *  and writes values back into D_8005F14E (music track), D_800704A8 (field
- *  state structure), D_8005F158 (VSync rate), and fade state variables.
+ *  Inverse of func_80011870. Reads the snapshot from g_gameState+0xD40..0xD5C
+ *  and writes values back into g_currentMusicTrack (music track), g_fieldEntity (field
+ *  state structure), g_vsyncRate (VSync rate), and fade state variables.
  */
-void func_800119D4(void) {
-    extern u8 D_80077378[];
-    extern volatile u16 D_8005F158;
-    extern u16 D_8005F14E;
+void RestoreSnapshot(void) {
+    extern u8 g_gameState[];
+    extern volatile u16 g_vsyncRate;
+    extern u16 g_currentMusicTrack;
     extern u8 D_8005F150;
     extern u8 D_8005F151;
-    extern u8 D_800704A8[];
+    extern FieldEntity g_fieldEntity;
     SnapshotBuf *buf;
-    s32 src;
-    u16 v0, v1, a0, a1, a2;
-    u8 a3, t0, t1;
+    FieldEntity *entity;
 
-    buf = (SnapshotBuf *)(s32)D_80077378;
+    buf = (SnapshotBuf *)(s32)g_gameState;
 
-    D_8005F158 = buf->vsync_rate;
-    if (D_8005F158 == 0) {
-        D_8005F158 = 1;
+    g_vsyncRate = buf->vsync_rate;
+    if (g_vsyncRate == 0) {
+        g_vsyncRate = 1;
     }
 
-    v0 = buf->music_track;
-    v1 = buf->field_120;
-    a0 = buf->positions_x[0];
-    a1 = buf->positions_y[0];
-    a2 = buf->rotations[0];
+    g_currentMusicTrack = buf->music_track;
 
-    D_8005F14E = v0;
+    entity = &g_fieldEntity;
 
-    src = D_800704A8;
+    entity->field_120 = buf->field_120;
+    entity->position_x = buf->positions_x[0];
+    entity->position_y = buf->positions_y[0];
+    entity->rotation = buf->rotations[0];
+    entity->anim_state = buf->anim_states[0];
 
-    a3 = buf->anim_states[0];
-    t0 = buf->fade1;
-    t1 = buf->fade0;
-
-    *(u16 *)(src + 0x120) = v1;
-    *(u16 *)(src + 0x4) = a0;
-    *(u16 *)(src + 0x6) = a1;
-    *(u16 *)(src + 0xC) = a2;
-    *(u16 *)(src + 0xE) = a3;
-
-    D_8005F151 = t0;
-    D_8005F150 = t1;
+    D_8005F151 = buf->fade1;
+    D_8005F150 = buf->fade0;
 }
 
 extern volatile u16 D_8005F14C;
@@ -484,7 +490,7 @@ void func_80011E18(void) {
  *  Initialization sequence: hardware init, CD-ROM init, loads file table,
  *  sound engine, overlays, and field/battle data.
  *
- *  Main loop runs until D_800704A8[0] == 4 (game exit). Uses D_8005F158
+ *  Main loop runs until g_fieldEntity[0] == 4 (game exit). Uses g_vsyncRate
  *  as the state variable (decremented per iteration, dispatched via switch):
  *  - State 1: Load field audio, run overlay update.
  *  - State 2: Field-to-battle transition setup.
@@ -492,7 +498,7 @@ void func_80011E18(void) {
  *  - State 4: Post-battle fade-out/transition.
  *  - State 5+: Disc change handling.
  *
- *  On exit (D_800704A8[0] == 4), shuts down sound, resets GPU, and
+ *  On exit (g_fieldEntity[0] == 4), shuts down sound, resets GPU, and
  *  reinitializes everything from the top.
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", main);

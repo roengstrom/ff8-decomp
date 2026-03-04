@@ -13,7 +13,7 @@ extern MenuDisplayConfig D_801FAB00;
 extern u8 D_801FABD4;
 extern s32 D_80083848;
 extern u8 D_800780AB;
-extern u8 D_80077378;
+extern u8 g_gameState;
 extern u32 D_801E69B8;
 
 /** Center offset: maxW = width, tw = (maxW - tw) / 2 */
