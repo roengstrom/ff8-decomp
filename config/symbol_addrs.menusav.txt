@@ -1,0 +1,1 @@
+g_battleAnims = 0x80082DD0;
