@@ -9,6 +9,15 @@ typedef enum {
     FADE_OUT  = 2
 } FadeMode;
 
+/** @brief VSync rendering dispatch mode. */
+typedef enum {
+    RENDER_IDLE    = 0,
+    RENDER_FADE    = 1,
+    RENDER_BATTLE  = 2,
+    RENDER_OVERLAY = 3,
+    RENDER_GAME    = 4
+} RenderMode;
+
 /** @brief Layout of the snapshot region within D_80077378 (offsets 0xD40–0xD5C).
  *  Used by func_80011870 (save) and func_800119D4 (restore).
  */
@@ -176,7 +185,7 @@ void func_800117FC(void) {
     ResetGraph(0);
     func_8003DE24();
     D_8005F10C = 0;
-    g_renderMode = 0;
+    g_renderMode = RENDER_IDLE;
     VSyncCallback(D_8001167C);
     SetGraphDebug(0);
     SetDispMask(0);
@@ -592,7 +601,7 @@ extern u32 g_orderingTablePtrs[];
  *  - FADE_IN: fade-in mode — updates every 4th frame for 128 frames total.
  *  - FADE_OUT: fade-out mode — updates every frame for 34 frames total.
  *
- *  When the fade counter expires, sets g_renderMode=0 and g_fadeMode=0 to
+ *  When the fade counter expires, sets g_renderMode=RENDER_IDLE and g_fadeMode=FADE_NONE to
  *  signal completion to the main loop.
  */
 void ProcessFade(void) {
@@ -608,7 +617,7 @@ void ProcessFade(void) {
         fc = g_fadeCounter + 1;
         g_fadeCounter = fc;
         if ((fc & 0xFF) == 0x80) {
-            g_renderMode = 0;
+            g_renderMode = RENDER_IDLE;
             g_fadeMode = FADE_NONE;
         }
         if (fc & 0x6) {
@@ -617,7 +626,7 @@ void ProcessFade(void) {
     } else {
         g_fadeCounter = g_fadeCounter + 1;
         if (g_fadeCounter == 0x22) {
-            g_renderMode = 0;
+            g_renderMode = RENDER_IDLE;
             g_fadeMode = FADE_NONE;
         }
     }
