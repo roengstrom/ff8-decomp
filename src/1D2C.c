@@ -555,7 +555,7 @@ void func_800128F8(void) {
  *  color to the given brightness, and chains the TILE and DR_MODE primitives
  *  into the OT for submission via DrawOTag.
  *
- *  @param a0 Fill brightness (uniform RGB). 0x10 (dark grey) is used during
+ *  @param a0 Fill brightness (uniform RGB). 16 (dark grey) is used during
  *            fade effects.
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", BuildPrimList);
@@ -609,7 +609,7 @@ void RenderFrame(void) {
     }
 
     SetupDrawMode(2);
-    BuildPrimList(0x10);
+    BuildPrimList(16);
     PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
     PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
     DrawOTag(&g_orderingTablePtrs[(s16)g_bufferIndex]);
