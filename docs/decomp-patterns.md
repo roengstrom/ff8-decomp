@@ -437,4 +437,4 @@ f(val != 0);
 - `volatile u8` forces reload on every access
 - Scope `s32` variables to if-blocks to control register allocation in else-path
 
-*Example: func_8001167C — D_8005F14C, D_8005F114, D_8005F116*
+*Example: func_8001167C — D_8005F14C, g_bufferIndex, g_fadeMode*

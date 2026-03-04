@@ -528,21 +528,21 @@ top:
  *
  *  Uses MoveImage to synchronize both framebuffers so they contain the same
  *  content. Reads source/destination coordinates from the DISPENV array at
- *  D_80067440. Spins on DrawSync until the GPU transfer completes.
+ *  g_dispEnvs. Spins on DrawSync until the GPU transfer completes.
  */
 void func_800128F8(void) {
-    extern u8 D_80067440[];
-    extern volatile u16 D_8005F114;
+    extern DISPENV g_dispEnvs[];
+    extern volatile u16 g_bufferIndex;
     s32 base;
     s32 ofs1;
 
-    ofs1 = (s16)D_8005F114 * 20;
-    base = D_80067440;
+    ofs1 = (s16)g_bufferIndex * 20;
+    base = g_dispEnvs;
 
     MoveImage(
         (void *)(ofs1 + base),
-        *(s16 *)(((s16)D_8005F114 + 1 & 1) * 20 + base),
-        *(s16 *)(((s16)D_8005F114 + 1 & 1) * 20 + base + 2)
+        *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base),
+        *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base + 2)
     );
 
     do {
@@ -560,12 +560,12 @@ void func_800128F8(void) {
  */
 INCLUDE_ASM("asm/nonmatchings/1D2C", func_800129A4);
 
-extern volatile u16 D_8005F114;
-extern volatile u8 D_8005F116;
-extern u8 D_8005F0FC;
-extern u8 D_80067440[];
-extern u8 D_80067388[];
-extern u32 D_8005F128[];
+extern volatile u16 g_bufferIndex;
+extern volatile u8 g_fadeMode;
+extern u8 g_fadeCounter;
+extern DISPENV g_dispEnvs[];
+extern DRAWENV g_drawEnvs[];
+extern u32 g_orderingTablePtrs[];
 
 /** @brief Main frame rendering function with double-buffer swap and fade effects.
  *
@@ -573,45 +573,45 @@ extern u32 D_8005F128[];
  *  double buffer index, manages fade-in/fade-out frame counters, and submits
  *  the GPU primitive list for the current frame.
  *
- *  Fade behavior depends on D_8005F116:
+ *  Fade behavior depends on g_fadeMode:
  *  - 0: rendering disabled, returns immediately.
  *  - 1: fade-in mode — updates every 4th frame for 128 frames total.
  *  - 2+: fade-out mode — updates every frame for 34 frames total.
  *
- *  When the fade counter expires, sets D_8005F146=0 and D_8005F116=0 to
+ *  When the fade counter expires, sets D_8005F146=0 and g_fadeMode=0 to
  *  signal completion to the main loop.
  */
 void func_80012B4C(void) {
-    if (D_8005F116 == 0) {
+    if (g_fadeMode == 0) {
         return;
     }
 
-    D_8005F114 = D_8005F114 + 1;
-    D_8005F114 = D_8005F114 & 1;
+    g_bufferIndex = g_bufferIndex + 1;
+    g_bufferIndex = g_bufferIndex & 1;
 
-    if (D_8005F116 == 1) {
+    if (g_fadeMode == 1) {
         s32 fc;
-        fc = D_8005F0FC + 1;
-        D_8005F0FC = fc;
+        fc = g_fadeCounter + 1;
+        g_fadeCounter = fc;
         if ((fc & 0xFF) == 0x80) {
             D_8005F146 = 0;
-            D_8005F116 = 0;
+            g_fadeMode = 0;
         }
         if (fc & 0x6) {
             return;
         }
     } else {
-        D_8005F0FC = D_8005F0FC + 1;
-        if (D_8005F0FC == 0x22) {
+        g_fadeCounter = g_fadeCounter + 1;
+        if (g_fadeCounter == 0x22) {
             D_8005F146 = 0;
-            D_8005F116 = 0;
+            g_fadeMode = 0;
         }
     }
 
     func_800127F8(2);
     func_800129A4(0x10);
-    PutDispEnv(&D_80067440[(s16)D_8005F114 * 20]);
-    PutDrawEnv(&D_80067388[(s16)D_8005F114 * 92]);
-    DrawOTag(&D_8005F128[(s16)D_8005F114]);
+    PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
+    PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
+    DrawOTag(&g_orderingTablePtrs[(s16)g_bufferIndex]);
 }
 

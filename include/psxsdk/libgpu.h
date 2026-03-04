@@ -48,6 +48,49 @@ typedef struct {
     u16 w, h;
 } TILE;
 
+/**
+ * @brief GPU draw environment command packet.
+ *
+ * Contains pre-built GP0 commands for setting the draw environment.
+ * 64 bytes: 4-byte tag + 15 command words.
+ */
+typedef struct {
+    u32 tag;
+    u32 code[15];
+} DR_ENV;
+
+/**
+ * @brief Display environment configuration.
+ *
+ * 20 bytes. Defines the VRAM region shown on screen.
+ */
+typedef struct {
+    RECT disp;
+    RECT screen;
+    u8 isinter;
+    u8 isrgb24;
+    u8 pad0, pad1;
+} DISPENV;
+
+/**
+ * @brief Drawing environment configuration.
+ *
+ * 92 bytes. Defines the GPU drawing region, texture window, and
+ * background clear settings. Includes a DR_ENV with pre-built
+ * GP0 commands.
+ */
+typedef struct {
+    RECT clip;
+    s16 ofs[2];
+    RECT tw;
+    u16 tpage;
+    u8 dtd;
+    u8 dfe;
+    u8 isbg;
+    u8 r0, g0, b0;
+    DR_ENV dr_env;
+} DRAWENV;
+
 /* --- GPU function declarations --- */
 
 void ResetGraph(s32 mode);
