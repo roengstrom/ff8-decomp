@@ -1,4 +1,5 @@
 #include "common.h"
+#include "cd.h"
 #include "psxsdk/libgpu.h"
 
 /** @brief Layout of the snapshot region within D_80077378 (offsets 0xD40–0xD5C).
@@ -284,18 +285,19 @@ void func_800119D4(void) {
 }
 
 extern volatile u16 D_8005F14C;
-extern u32 D_80097410[];
-extern u32 D_800974D0[];
+extern CdFileDesc D_80097410[];
+extern CdFileDesc D_800974D0[];
 
 /** @brief Loads field data set A from CD into 0x80098000.
  *
- *  Uses D_80097410[0..1] as the CD sector/size descriptor. Skips loading if
- *  D_8005F14C is 6 (menu) or 0xA (special mode), since field data is not
- *  needed in those states. Calls func_8001F5C8 (sound state reset) afterward.
+ *  Uses D_80097410[0] as the CD file descriptor (.sector, .size). Skips
+ *  loading if D_8005F14C is 6 (menu) or 0xA (special mode), since field data
+ *  is not needed in those states. Calls func_8001F5C8 (sound state reset)
+ *  afterward.
  */
 void func_80011A60(void) {
     if ((s16)D_8005F14C != 6 && (s16)D_8005F14C != 0xA) {
-        func_80038868(D_80097410[0], D_80097410[1], 0x80098000, 0);
+        func_80038868(D_80097410[0].sector, D_80097410[0].size, 0x80098000, 0);
         while (func_800393C8() != 0)
             ;
     }
@@ -304,7 +306,7 @@ void func_80011A60(void) {
 
 /** @brief Loads field data set B from CD into 0x80098000.
  *
- *  Identical to func_80011A60 but uses D_800974D0[0..1] as the source
+ *  Identical to func_80011A60 but uses D_800974D0[0] as the source
  *  descriptor. Same state-skip logic and post-load sound reset.
  *
  *  @note Purpose uncertain — the difference between data sets A and B may
@@ -312,7 +314,7 @@ void func_80011A60(void) {
  */
 void func_80011AE0(void) {
     if ((s16)D_8005F14C != 6 && (s16)D_8005F14C != 0xA) {
-        func_80038868(D_800974D0[0], D_800974D0[1], 0x80098000, 0);
+        func_80038868(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, 0);
         while (func_800393C8() != 0)
             ;
     }
@@ -321,14 +323,14 @@ void func_80011AE0(void) {
 
 /** @brief Loads a secondary data block from CD into 0x80097940.
  *
- *  Uses D_80097410[2..3] as the sector/size descriptor with synchronous
- *  CD read (func_8003882C). No state-skip check — always loads.
+ *  Uses D_80097410[1] as the CD file descriptor (.sector, .size) with
+ *  synchronous CD read (func_8003882C). No state-skip check — always loads.
  *
  *  @note Purpose uncertain — destination is near the file table area,
  *        possibly a secondary asset table used during initialization.
  */
 void func_80011B60(void) {
-    func_8003882C(D_80097410[2], D_80097410[3], 0x80097940, 0);
+    func_8003882C(D_80097410[1].sector, D_80097410[1].size, 0x80097940, 0);
     while (func_800393C8() != 0)
         ;
 }
@@ -336,60 +338,61 @@ void func_80011B60(void) {
 /** @brief Initializes the sound/music engine by loading audio assets from CD.
  *
  *  1. Calls func_80012CC8 to initialize the SPU hardware.
- *  2. Loads the sound bank header from CD into D_80067468 and parses it
- *     via func_80012D08.
- *  3. Loads two sample banks from CD into a scratch buffer at 0x801B0000
- *     and uploads each to SPU RAM via func_80013A5C.
+ *  2. Loads the sound bank header from CD (D_800974D8[0]) into D_80067468
+ *     and parses it via func_80012D08.
+ *  3. Loads two sample banks from CD (D_800974D8[1], D_800974D8[2]) into a
+ *     scratch buffer at 0x801B0000 and uploads each to SPU RAM via
+ *     func_80013A5C.
  */
 void func_80011BA8(void) {
     extern u8 D_80067468[];
-    extern u32 D_800974D8[];
+    extern CdFileDesc D_800974D8[];
 
     func_80012CC8();
 
-    func_8003882C(D_800974D8[0], D_800974D8[1], (s32)D_80067468, 0);
+    func_8003882C(D_800974D8[0].sector, D_800974D8[0].size, (s32)D_80067468, 0);
     while (func_800393C8() != 0)
         ;
 
     func_80012D08((s32)D_80067468);
 
-    func_8003882C(D_800974D8[2], D_800974D8[3], 0x801B0000, 0);
+    func_8003882C(D_800974D8[1].sector, D_800974D8[1].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
 
     func_80013A5C(0x801B0000, 1);
 
-    func_8003882C(D_800974D8[4], D_800974D8[5], 0x801B0000, 0);
+    func_8003882C(D_800974D8[2].sector, D_800974D8[2].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
 
     func_80013A5C(0x801B0000, 1);
 }
 
-extern u32 D_80097400[];
+extern CdFileDesc D_80097400[];
 
 /** @brief Loads an overlay from CD into 0x80098000.
  *
- *  Uses D_80097400[0..1] as the sector/size descriptor. The specific overlay
- *  loaded depends on what D_80097400 was populated with (set by func_80011E18
- *  which loads the master file table).
+ *  Uses D_80097400[0] as the CD file descriptor (.sector, .size). The
+ *  specific overlay loaded depends on what D_80097400 was populated with
+ *  (set by func_80011E18 which loads the master file table).
  */
 void func_80011C68(void) {
-    func_8003882C(D_80097400[0], D_80097400[1], 0x80098000, 0);
+    func_8003882C(D_80097400[0].sector, D_80097400[0].size, 0x80098000, 0);
     while (func_800393C8() != 0)
         ;
 }
 
-extern u32 D_80097808[];
+extern CdFileDesc D_80097808[];
 
 /** @brief Loads texture data from CD and uploads it to VRAM.
  *
- *  Reads data from CD (D_80097808[0..1]) into scratch buffer 0x801B0000,
- *  then calls func_8002C3AC to process and upload the textures to GPU VRAM.
- *  Spins on DrawSync until the GPU transfer completes.
+ *  Reads data from CD using D_80097808[0] (.sector, .size) into scratch
+ *  buffer 0x801B0000, then calls func_8002C3AC to process and upload the
+ *  textures to GPU VRAM. Spins on DrawSync until the GPU transfer completes.
  */
 void func_80011CB0(void) {
-    func_8003882C(D_80097808[0], D_80097808[1], 0x801B0000, 0);
+    func_8003882C(D_80097808[0].sector, D_80097808[0].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
     func_8002C3AC(0x801B0000, 0);
@@ -418,7 +421,7 @@ void func_80011D0C(void) {
  *  6. Loads additional data and stores its pointer via func_8002C100.
  */
 void func_80011D3C(void) {
-    extern u32 D_80097808[];
+    extern CdFileDesc D_80097808[];
     extern u8 D_8006A468[];
     extern u8 D_8005F188[];
 
@@ -426,36 +429,36 @@ void func_80011D3C(void) {
     func_8002AB5C((s32)D_8006A468, 0x6000);
     func_80011CB0();
 
-    func_8003882C(D_80097808[2], D_80097808[3], 0x801B0000, 0);
+    func_8003882C(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
 
     func_80028564(0x801B0000);
 
-    func_8003882C(D_80097808[6], D_80097808[7], 0x80090000, 0);
+    func_8003882C(D_80097808[3].sector, D_80097808[3].size, 0x80090000, 0);
     while (func_800393C8() != 0)
         ;
 
     func_80039678((s32)D_8005F188, 0x80090000, 0x200);
 
-    func_8003882C(D_80097808[4], D_80097808[5], 0x80090000, 0);
+    func_8003882C(D_80097808[2].sector, D_80097808[2].size, 0x80090000, 0);
     while (func_800393C8() != 0)
         ;
 
     func_8002C100(0x80090000);
 }
 
-extern u32 D_80051694[];
+extern CdFileDesc g_fileTableDesc[];
 
 /** @brief Loads the master file descriptor table from CD into 0x80097400.
  *
- *  Uses the hard-coded descriptor at D_80051694[0..1]. This must be called
- *  before any other CD loading functions, since all other load descriptors
- *  (D_80097410, D_800974D0, D_800974D8, D_80097808) reside within the
- *  table loaded here.
+ *  Uses the hard-coded bootstrap descriptor g_fileTableDesc[0] (.sector,
+ *  .size). This must be called before any other CD loading functions, since
+ *  all other load descriptors (D_80097410, D_800974D0, D_800974D8,
+ *  D_80097808) reside within the table loaded here.
  */
 void func_80011E18(void) {
-    func_8003882C(D_80051694[0], D_80051694[1], 0x80097400, 0);
+    func_8003882C(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, 0);
     while (func_800393C8() != 0)
         ;
 }
