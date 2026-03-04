@@ -84,8 +84,8 @@ These are the game-specific functions, the primary targets for decompilation. **
 | func_8002216C | 0x48 | 18 |      |
 | func_80022328 | 0x48 | 18 |      |
 | func_80022370 | 0x94 | 37 |      |
-| func_800227F4 | 0x100 | 64 |      |
-| func_800228F4 | 0x48 | 18 |      |
+| GetAbilityCap | 0x100 | 64 |      |
+| FindAbilitySlot | 0x48 | 18 |      |
 | func_80022B04 | 0x44 | 17 |      |
 | func_80022B48 | 0x88 | 34 |      |
 | func_80022BD0 | 0x34 | 13 | Done |

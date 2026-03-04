@@ -13,17 +13,17 @@ INCLUDE_ASM("asm/nonmatchings/131FC", func_80022B04);
  * @param a0 Character slot index (stride 152 in g_gameState).
  * @return Packed bitmask: (B << 16) | (G << 8) | R, OR'd across up to 4 matching ability slots.
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x3A..0x4D are looked up
- *       in D_80078E00 (stride 8, offsets 0x42B5/B6/B7 for R/G/B status immunity bytes).
+ *       in g_gfData (stride 8, offsets 0x42B5/B6/B7 for R/G/B status immunity bytes).
  */
 s32 func_80022B48(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 D_80078E00[];
+    extern u8 g_gfData[];
     s32 result = 0;
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
     s32 base2;
     s32 off = base1 + a0 * 152;
-    base2 = (s32)D_80078E00;
+    base2 = (s32)g_gfData;
     do {
         s32 val = *(u8 *)(off + i + 0x4E4);
         s32 idx = val - 0x3A;
@@ -80,12 +80,12 @@ s32 func_80022C04(s32 a0) {
  * @brief Apply party ability flags from a character's equipped abilities to D_80078720.
  * @param a0 Character slot index (stride 152 in g_gameState).
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x4E..0x52 are looked up
- *       in D_80078E00 (stride 8, offset 0x4355) and OR'd into D_80078720 offset 0x6D8.
+ *       in g_gfData (stride 8, offset 0x4355) and OR'd into D_80078720 offset 0x6D8.
  *       Likely enables field/world abilities (e.g., encounter-none, rare-item).
  */
 void func_80022C5C(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 D_80078E00[];
+    extern u8 g_gfData[];
     extern u8 D_80078720[];
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
@@ -93,7 +93,7 @@ void func_80022C5C(s32 a0) {
     s32 base2;
     s32 off = base1 + a0 * 152;
     base3 = (s32)D_80078720;
-    base2 = (s32)D_80078E00;
+    base2 = (s32)g_gfData;
     do {
         s32 val = *(u8 *)(off + i + 0x4E4);
         s32 idx = val - 0x4E;

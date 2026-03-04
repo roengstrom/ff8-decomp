@@ -40,10 +40,10 @@ u8 *func_800206A8(void) {
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 20, offset 0x4A6C) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 20, offset 0x4A6C) via func_80020FBC. */
 s32 func_800206B4(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 20 + 0x4A6C), *(s32 *)(base + 0xD8));
 }
 
@@ -51,82 +51,82 @@ s32 func_800206B4(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800206F4);
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 32, offset 0x48B8) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 32, offset 0x48B8) via func_80020FBC. */
 s32 func_80020740(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 32 + 0x48B8), *(s32 *)(base + 0xD0));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 32, offset 0x48BA) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 32, offset 0x48BA) via func_80020FBC. */
 s32 func_80020778(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 32 + 0x48BA), *(s32 *)(base + 0xD0));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 24, offset 0x47F8) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x47F8) via func_80020FBC. */
 s32 func_800207B0(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x47F8), *(s32 *)(base + 0xCC));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 24, offset 0x47FA) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x47FA) via func_80020FBC. */
 s32 func_800207F0(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x47FA), *(s32 *)(base + 0xCC));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 24, offset 0x3744) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x3744) via func_80020FBC. */
 s32 func_80020830(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x3744), *(s32 *)(base + 0x94));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 24, offset 0x3746) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x3746) via func_80020FBC. */
 s32 func_80020870(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x3746), *(s32 *)(base + 0x94));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 16, offset 0x44F8) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 16, offset 0x44F8) via func_80020FBC. */
 s32 func_800208B0(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 16 + 0x44F8), *(s32 *)(base + 0xC8));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 16, offset 0x44FA) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 16, offset 0x44FA) via func_80020FBC. */
 s32 func_800208E8(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 16 + 0x44FA), *(s32 *)(base + 0xC8));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 24, offset 0x4480) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x4480) via func_80020FBC. */
 s32 func_80020920(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x4480), *(s32 *)(base + 0xC4));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 24, offset 0x4482) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x4482) via func_80020FBC. */
 s32 func_80020960(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x4482), *(s32 *)(base + 0xC4));
 }
 
@@ -144,23 +144,23 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020C6C);
 
 
 /**
- * @brief Look up a parameter from D_80078E00 tables and pass it to func_80020FBC.
+ * @brief Look up a parameter from g_gfData tables and pass it to func_80020FBC.
  * @param a0 Index into the lookup table; values >= 0x21 use a secondary table at offset 0x3C48.
  * @return Result of func_80020FBC with the looked-up parameter and a base pointer.
  * @note Purpose uncertain -- appears to resolve a stat or attribute using two different table layouts.
  */
 s32 func_80020CE0(s32 a0) {
-    extern u8 D_80078E00[];
+    extern u8 g_gfData[];
     u16 param;
     s32 arg2;
 
     if (a0 >= 0x21) {
-        s32 base = (s32)D_80078E00;
+        s32 base = (s32)g_gfData;
         s32 idx = a0 - 0x21;
         param = *(u16 *)(base + idx * 4 + 0x3C48);
         arg2 = *(s32 *)(base + 0xA0);
     } else {
-        s32 base = (s32)D_80078E00;
+        s32 base = (s32)g_gfData;
         param = *(u16 *)(base + a0 * 24 + 0x3930);
         arg2 = *(s32 *)(base + 0x9C);
     }
@@ -169,23 +169,23 @@ s32 func_80020CE0(s32 a0) {
 
 
 /**
- * @brief Look up a second parameter from D_80078E00 tables and pass it to func_80020FBC.
+ * @brief Look up a second parameter from g_gfData tables and pass it to func_80020FBC.
  * @param a0 Index into the lookup table; values >= 0x21 use a secondary table at offset 0x3C4A.
  * @return Result of func_80020FBC with the looked-up parameter and a base pointer.
  * @note Purpose uncertain -- appears to resolve an alternate stat/attribute, offset +2 from func_80020CE0 tables.
  */
 s32 func_80020D4C(s32 a0) {
-    extern u8 D_80078E00[];
+    extern u8 g_gfData[];
     u16 param;
     s32 arg2;
 
     if (a0 >= 0x21) {
-        s32 base = (s32)D_80078E00;
+        s32 base = (s32)g_gfData;
         s32 idx = a0 - 0x21;
         param = *(u16 *)(base + idx * 4 + 0x3C4A);
         arg2 = *(s32 *)(base + 0xA0);
     } else {
-        s32 base = (s32)D_80078E00;
+        s32 base = (s32)g_gfData;
         param = *(u16 *)(base + a0 * 24 + 0x3932);
         arg2 = *(s32 *)(base + 0x9C);
     }
@@ -199,26 +199,26 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020DB8);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020E4C);
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 12, offset 0x35B8) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 12, offset 0x35B8) via func_80020FBC. */
 s32 func_80020EB4(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 12 + 0x35B8), *(s32 *)(base + 0x90));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 8, offset 0xE4) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 8, offset 0xE4) via func_80020FBC. */
 s32 func_80020EF4(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 8 + 0xE4), *(s32 *)(base + 0x80));
 }
 
 
-/** @brief Resolves a halfword from D_80078E00 table (stride 8, offset 0xE6) via func_80020FBC. */
+/** @brief Resolves a halfword from g_gfData table (stride 8, offset 0xE6) via func_80020FBC. */
 s32 func_80020F2C(s32 a0) {
-    extern u8 D_80078E00[];
-    s32 base = (s32)D_80078E00;
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 8 + 0xE6), *(s32 *)(base + 0x80));
 }
 
@@ -230,13 +230,13 @@ s32 func_80020F64(void) {
 
 
 /**
- * @brief Look up a u16 value from D_80078E00 table at offset 0x4D08 and pass it to func_80020FBC.
+ * @brief Look up a u16 value from g_gfData table at offset 0x4D08 and pass it to func_80020FBC.
  * @param a0 Index into the lookup table (stride 2 bytes).
  * @return Result of func_80020FBC with the table entry and a pointer from offset 0xE0.
  */
 s32 func_80020F84(s32 a0) {
-    extern u8 D_80078E00[];
-    u8 *base = D_80078E00;
+    extern u8 g_gfData[];
+    u8 *base = g_gfData;
     return func_80020FBC(*(u16 *)(base + a0 * 2 + 0x4D08), *(s32 *)(base + 0xE0));
 }
 
@@ -245,14 +245,14 @@ s32 func_80020F84(s32 a0) {
  * @brief Resolve a data pointer for a given entity index.
  * @param a0 Entity index (0xFFFF = no entity, returns default pointer).
  * @param a1 Base offset into the data region.
- * @return Pointer into D_80078E00 at offset a1+a0, or D_80052898 if a0 is 0xFFFF.
+ * @return Pointer into g_gfData at offset a1+a0, or D_80052898 if a0 is 0xFFFF.
  */
 u8 *func_80020FBC(u16 a0, s32 a1) {
-    extern u8 D_80078E00[];
+    extern u8 g_gfData[];
     extern u8 D_80052898[];
     u8 *result;
     if (a0 != 0xFFFF) {
-        result = a1 + (a0 + D_80078E00);
+        result = a1 + (a0 + g_gfData);
     } else {
         result = D_80052898;
     }

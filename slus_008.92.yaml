@@ -71,7 +71,7 @@ segments:
       - [0xC9A8, c, C9A8]
       - [0xFDC8, c, 10DD0]
       - [0x11D3C, c, 11D3C]
-      - [0x12FF4, c, 12FF4]
+      - [0x12FF4, c, ability]
       - [0x131FC, c, 131FC]
       - [0x14100, c, 14100]
       - [0x16120, c, 16120]

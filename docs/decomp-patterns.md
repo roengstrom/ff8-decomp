@@ -117,7 +117,7 @@ slotEntry[0x24] = val;
 The intermediate variable makes the pointer addition explicit, and the compiler puts
 the base pointer register as rs in the resulting `addu`.
 
-*Example: func_8002293C*
+*Example: AddAbilityExp*
 
 ### Struct field access vs raw pointer casts
 
@@ -267,7 +267,7 @@ if (idx < 0x13U) {
 The compiler naturally shares the `lui` across adjacent branch pairs via delay slots,
 matching the original's pattern of `lui` in branch delay slots.
 
-*Example: func_800227F4*
+*Example: GetAbilityCap*
 
 ### Implicit pointer-to-int (no cast) keeps same register
 
@@ -336,7 +336,7 @@ its original register naturally:
 entityIdx *= 132;  // stays in $a0, no new variable needed
 ```
 
-*Example: func_800228F4*
+*Example: FindAbilitySlot*
 
 ### Don't reuse variables across jal for different register targets
 
@@ -580,7 +580,7 @@ These are compiler behaviors we cannot reproduce from C and must leave as INCLUD
 | Frame pointer ($fp) | Some functions use `addu fp, sp`; -O2 enables -fomit-frame-pointer | func_80026E20 |
 | LUI hoisting in loops | -G0 splits lui/lw across registers and hoists lui out of loops | various |
 | Cross-jumping optimization | gcc merges switch case bodies sharing the same suffix | func_801F0274 |
-| u8 return type causes caller andi | Function returning `u8` inserts `andi v0, v0, 0xff` in callers; use `s32` return when `lbu` already zero-extends | func_800227F4 |
+| u8 return type causes caller andi | Function returning `u8` inserts `andi v0, v0, 0xff` in callers; use `s32` return when `lbu` already zero-extends | GetAbilityCap |
 | Increment through temp reg | Original uses `addiu $a0,$t0,1; addu $t0,$a0,$zero` (2 insns); compiler produces direct `addiu $t0,$t0,1` (1 insn) | func_80011870 |
 | Loop body temp reg rotation | All 4 loop temp registers ($a0-$a3) consistently shifted from original, regardless of C-level tricks | func_80011870 |
 | Struct caches entity index | Struct field access lets compiler prove non-aliasing, caching a `lbu` across 4 uses (1 load vs 4); raw pointers preserve per-use reload | func_80011870 |
