@@ -502,28 +502,25 @@ void func_800127F8(s32 a0) {
 /** @brief Initializes two full-screen black TILE primitives for screen clearing.
  *
  *  Sets up a 320x224 black fill rectangle in each of the two double-buffered
- *  primitive slots at D_80070474 (32 bytes apart). These are used for screen
+ *  primitive slots at g_clearTiles (32 bytes apart). These are used for screen
  *  clearing during frame rendering.
  */
 void func_80012870(void) {
-    extern u8 D_80070474[];
-    u8 *ptr;
-    s32 i;
-
-    i = 0;
-    ptr = D_80070474;
+    extern TILE g_clearTiles[];
+    s32 i = 0;
+    TILE *tile = &g_clearTiles[0];
 top:
-    func_8004D704(ptr);
-    func_8004D604(ptr, 1);
-    func_8004D634(ptr, 1);
-    *(u16 *)(ptr + 0xC) = 0x140;
-    *(u8 *)(ptr + 0x4) = 0;
-    *(u8 *)(ptr + 0x5) = 0;
-    *(u8 *)(ptr + 0x6) = 0;
-    *(u16 *)(ptr + 0xE) = 0xE0;
-    *(u16 *)(ptr + 0x8) = 0;
-    *(u16 *)(ptr + 0xA) = 0;
-    ptr += 0x20;
+    func_8004D704(tile);
+    func_8004D604(tile, 1);
+    func_8004D634(tile, 1);
+    tile->w = 320;
+    tile->r0 = 0;
+    tile->g0 = 0;
+    tile->b0 = 0;
+    tile->h = 224;
+    tile->x0 = 0;
+    tile->y0 = 0;
+    tile += 2;
     if (++i < 2) goto top;
 }
 

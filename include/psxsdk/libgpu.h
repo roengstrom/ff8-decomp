@@ -35,6 +35,19 @@ typedef struct {
     s16 x, y, w, h;
 } RECT;
 
+/**
+ * @brief GPU TILE primitive (flat-shaded rectangle).
+ *
+ * 16-byte GPU packet: 4-byte tag + RGB/code + position + size.
+ * Code 0x60 identifies this as a TILE primitive.
+ */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u16 w, h;
+} TILE;
+
 /* --- GPU function declarations --- */
 
 void ResetGraph(s32 mode);
