@@ -692,6 +692,6 @@ g_orderingTablePtrs = 0x8005F128;
 g_renderMode = 0x8005F146;
 SetupDrawMode = 0x800127F8;
 BuildPrimList = 0x800129A4;
-RenderFrame = 0x80012B4C;
+ProcessFade = 0x80012B4C;
 load_table = 0x80053C58; // 19-entry file descriptor table (overlays + mngrp.bin + init.out)
 index = 0x80051684;

@@ -73,7 +73,7 @@ void func_800115F0(void) {
  *
  *  Dispatches per-frame rendering based on the game mode (g_renderMode):
  *  - 0: no action (rendering idle)
- *  - 1: calls RenderFrame (normal frame draw/swap with fade)
+ *  - 1: calls ProcessFade (normal frame draw/swap with fade)
  *  - 2: calls func_80026D8C (battle VSync handler)
  *  - 3: calls func_800D0608 (overlay-loaded VSync handler)
  *  - 4: calls func_800205D0 (game code VSync handler)
@@ -102,7 +102,7 @@ void func_800115F0(void) {
  *      case 0:
  *          break;
  *      case 1:
- *          RenderFrame();
+ *          ProcessFade();
  *          break;
  *      case 2:
  *          func_80026D8C();
@@ -495,7 +495,7 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", main);
  *  rendering system.
  *
  *  @param a0 Texture page semi-transparency mode (passed to GetTPage).
- *            Value 2 (8-bit) is used from RenderFrame.
+ *            Value 2 (8-bit) is used from ProcessFade.
  */
 void SetupDrawMode(s32 a0) {
     extern u8 D_80070468[];
@@ -588,7 +588,7 @@ extern u32 g_orderingTablePtrs[];
  *  When the fade counter expires, sets g_renderMode=0 and g_fadeMode=0 to
  *  signal completion to the main loop.
  */
-void RenderFrame(void) {
+void ProcessFade(void) {
     if (g_fadeMode == FADE_NONE) {
         return;
     }
