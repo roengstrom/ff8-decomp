@@ -64,9 +64,9 @@ void func_800115F0(void) {
 
 /** @brief VSync callback handler, registered via VSyncCallback in func_800117FC.
  *
- *  Dispatches per-frame rendering based on the game mode (D_8005F146):
+ *  Dispatches per-frame rendering based on the game mode (g_renderMode):
  *  - 0: no action (rendering idle)
- *  - 1: calls func_80012B4C (normal frame draw/swap with fade)
+ *  - 1: calls RenderFrame (normal frame draw/swap with fade)
  *  - 2: calls func_80026D8C (battle VSync handler)
  *  - 3: calls func_800D0608 (overlay-loaded VSync handler)
  *  - 4: calls func_800205D0 (game code VSync handler)
@@ -91,11 +91,11 @@ void func_800115F0(void) {
  *      extern u16 D_8005F11E;
  *      extern u8 D_80077378[];
  *
- *      switch ((s16)D_8005F146) {
+ *      switch ((s16)g_renderMode) {
  *      case 0:
  *          break;
  *      case 1:
- *          func_80012B4C();
+ *          RenderFrame();
  *          break;
  *      case 2:
  *          func_80026D8C();
@@ -153,7 +153,7 @@ void func_8003DE24(void);
 
 extern void D_8001167C(void);
 extern u8 D_8005F10C;
-extern volatile u16 D_8005F146;
+extern volatile u16 g_renderMode;
 
 /** @brief Initializes PS1 hardware subsystems.
  *
@@ -169,7 +169,7 @@ void func_800117FC(void) {
     ResetGraph(0);
     func_8003DE24();
     D_8005F10C = 0;
-    D_8005F146 = 0;
+    g_renderMode = 0;
     VSyncCallback(D_8001167C);
     SetGraphDebug(0);
     SetDispMask(0);
@@ -488,9 +488,9 @@ INCLUDE_ASM("asm/nonmatchings/1D2C", main);
  *  rendering system.
  *
  *  @param a0 Texture page semi-transparency mode (passed to GetTPage).
- *            Value 2 (8-bit) is used from func_80012B4C.
+ *            Value 2 (8-bit) is used from RenderFrame.
  */
-void func_800127F8(s32 a0) {
+void SetupDrawMode(s32 a0) {
     extern u8 D_80070468[];
     u16 tpage;
 
@@ -558,7 +558,7 @@ void func_800128F8(void) {
  *  @param a0 Fill brightness (uniform RGB). 0x10 (dark grey) is used during
  *            fade effects.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_800129A4);
+INCLUDE_ASM("asm/nonmatchings/1D2C", BuildPrimList);
 
 extern volatile u16 g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
 extern volatile u8 g_fadeMode; /* volatile for codegen match (forces reload each access) */
@@ -578,10 +578,10 @@ extern u32 g_orderingTablePtrs[];
  *  - 1: fade-in mode — updates every 4th frame for 128 frames total.
  *  - 2+: fade-out mode — updates every frame for 34 frames total.
  *
- *  When the fade counter expires, sets D_8005F146=0 and g_fadeMode=0 to
+ *  When the fade counter expires, sets g_renderMode=0 and g_fadeMode=0 to
  *  signal completion to the main loop.
  */
-void func_80012B4C(void) {
+void RenderFrame(void) {
     if (g_fadeMode == 0) {
         return;
     }
@@ -594,7 +594,7 @@ void func_80012B4C(void) {
         fc = g_fadeCounter + 1;
         g_fadeCounter = fc;
         if ((fc & 0xFF) == 0x80) {
-            D_8005F146 = 0;
+            g_renderMode = 0;
             g_fadeMode = 0;
         }
         if (fc & 0x6) {
@@ -603,13 +603,13 @@ void func_80012B4C(void) {
     } else {
         g_fadeCounter = g_fadeCounter + 1;
         if (g_fadeCounter == 0x22) {
-            D_8005F146 = 0;
+            g_renderMode = 0;
             g_fadeMode = 0;
         }
     }
 
-    func_800127F8(2);
-    func_800129A4(0x10);
+    SetupDrawMode(2);
+    BuildPrimList(0x10);
     PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
     PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
     DrawOTag(&g_orderingTablePtrs[(s16)g_bufferIndex]);

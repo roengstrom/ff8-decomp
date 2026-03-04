@@ -5,3 +5,4 @@ ClearOTag = 0x80049074;
 DrawOTag = 0x80049244;
 PutDrawEnv = 0x800492B4;
 PutDispEnv = 0x80049480;
+g_battleAnims = 0x80082DD0;
