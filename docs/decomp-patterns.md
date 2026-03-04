@@ -100,6 +100,25 @@ generated `addu`:
 
 Check the original's `addu` encoding to pick the right C expression order.
 
+### Explicit intermediate pointer controls addu operand order
+
+When accessing `entity[slot + offset]`, the compiler may put the index register first
+in the `addu`. Creating an explicit intermediate pointer forces pointer-first order:
+
+```c
+// May produce: addu s1, v0, s2  (slot first)
+*(entity + slot)[0x24] = val;
+
+// Produces: addu s1, s2, v0  (entity first)
+u8 *slotEntry = entity + slot;
+slotEntry[0x24] = val;
+```
+
+The intermediate variable makes the pointer addition explicit, and the compiler puts
+the base pointer register as rs in the resulting `addu`.
+
+*Example: func_8002293C*
+
 ### Struct field access vs raw pointer casts
 
 The compiler treats struct field access and raw pointer casts differently for
@@ -219,6 +238,37 @@ for (i = 0; i < N; i++) {
 
 *Example: func_80022D78*
 
+### Scoped base loads prevent cross-branch CSE
+
+When a function has multiple if-return branches all loading the same symbol, the
+compiler may hoist the symbol load to the top (CSE). Use scoped local variables to
+create independent loads per branch:
+
+```c
+// BAD: compiler hoists D_80078E00 load to function entry
+s32 base = (s32)D_80078E00;
+if (id < 0x14) {
+    return *(u8 *)(base + id * 8 + 0x40E4);
+}
+// ... more branches using base ...
+
+// GOOD: each branch loads independently, scheduler shares lui via delay slots
+if (id < 0x14) {
+    s32 b = D_80078E00;
+    return *(u8 *)(b + id * 8 + 0x40E4);
+}
+idx = id - 0x14;
+if (idx < 0x13U) {
+    s32 b = D_80078E00;
+    return *(u8 *)(b + idx * 8 + 0x4184);
+}
+```
+
+The compiler naturally shares the `lui` across adjacent branch pairs via delay slots,
+matching the original's pattern of `lui` in branch delay slots.
+
+*Example: func_800227F4*
+
 ### Implicit pointer-to-int (no cast) keeps same register
 
 ```c
@@ -238,17 +288,55 @@ the cast.
 
 ## Register Allocation
 
-### Declaration order controls register numbering
+### Declaration order controls register numbering AND instruction order
 
-First-declared local gets the lowest available register:
+First-declared local gets the lowest available register, AND the initialization
+order controls instruction emission:
 
 ```c
-s32 a = expr1;  // -> $2 (v0)
-s32 b = expr2;  // -> $3 (v1)
-s32 c = expr3;  // -> $4 (a0)
+s32 a = expr1;  // -> $2 (v0), emitted first
+s32 b = expr2;  // -> $3 (v1), emitted second
+s32 c = expr3;  // -> $4 (a0), emitted third
 ```
 
+**Critical:** Declaration+initialization controls BOTH properties simultaneously and
+they cannot be separated. Splitting declaration from initialization (e.g.
+`s32 a; s32 b; a = expr1; b = expr2;`) changes register allocation entirely.
+
 Match declaration order to desired register numbering.
+
+### REGALLOC_BARRIER on parameter changes other variables' allocation
+
+When declaration order gives the right init order but wrong registers (or vice
+versa), adding `REGALLOC_BARRIER(param)` before a parameter's first use can change
+the interference graph enough to shift other variables' register assignments:
+
+```c
+// Problem: i first → correct init order, wrong register ($a2)
+//          off first → correct register ($v1), wrong init order
+s32 i = 0;
+s32 base = (s32)D_80078E00;
+entityIdx *= 132;  // i=$a2, base=$a3 — wrong
+
+// Solution: barrier on param changes interference graph
+s32 i = 0;
+s32 base = (s32)D_80078E00;
+REGALLOC_BARRIER(entityIdx);  // increases entityIdx priority
+entityIdx *= 132;  // i=$v1, base=$a2 — correct!
+```
+
+The barrier creates an extra use+def of the parameter, changing its priority in the
+graph coloring allocator. This ripples through the interference graph and shifts
+which registers are assigned to other variables.
+
+Also works well with parameter reuse — modifying a parameter in-place keeps it in
+its original register naturally:
+
+```c
+entityIdx *= 132;  // stays in $a0, no new variable needed
+```
+
+*Example: func_800228F4*
 
 ### Don't reuse variables across jal for different register targets
 
@@ -492,6 +580,7 @@ These are compiler behaviors we cannot reproduce from C and must leave as INCLUD
 | Frame pointer ($fp) | Some functions use `addu fp, sp`; -O2 enables -fomit-frame-pointer | func_80026E20 |
 | LUI hoisting in loops | -G0 splits lui/lw across registers and hoists lui out of loops | various |
 | Cross-jumping optimization | gcc merges switch case bodies sharing the same suffix | func_801F0274 |
+| u8 return type causes caller andi | Function returning `u8` inserts `andi v0, v0, 0xff` in callers; use `s32` return when `lbu` already zero-extends | func_800227F4 |
 | Increment through temp reg | Original uses `addiu $a0,$t0,1; addu $t0,$a0,$zero` (2 insns); compiler produces direct `addiu $t0,$t0,1` (1 insn) | func_80011870 |
 | Loop body temp reg rotation | All 4 loop temp registers ($a0-$a3) consistently shifted from original, regardless of C-level tricks | func_80011870 |
 | Struct caches entity index | Struct field access lets compiler prove non-aliasing, caching a `lbu` across 4 uses (1 load vs 4); raw pointers preserve per-use reload | func_80011870 |
