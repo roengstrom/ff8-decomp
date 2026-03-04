@@ -62,8 +62,6 @@ segments:
       - [0xF80, rodata]
       - [0x116C, rodata]
       - [0x1D2C, c, 1D2C]
-      - [0x2070, c, 2070]
-      - [0x21D4, c, 21D4]
       - [0x34C8, c, 34C8]
       - [0x4EF0, c, 4EF0]
       - [0x57FC, c, 57FC]

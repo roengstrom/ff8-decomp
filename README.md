@@ -45,9 +45,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 
 | Source File | Toolchain | C Functions | INCLUDE\_ASM | Total | % Decomped |
 |-------------|-----------|-------------|-------------|-------|------------|
-| `src/1D2C.c` | PsyQ 4.1 | 3 | 2 | 5 | 60.0% |
-| `src/2070.c` | PsyQ 4.1 | 0 | 1 | 1 | 0.0% |
-| `src/21D4.c` | PsyQ 4.1 | 14 | 2 | 16 | 87.5% |
+| `src/1D2C.c` | PsyQ 4.1 | 17 | 5 | 22 | 77.3% |
 | `src/34C8.c` | PsyQ 4.3 | 58 | 21 | 79 | 73.4%  |
 | `src/4EF0.c` | PsyQ 4.3 | 23 | 5 | 28 | 82.1% |
 | `src/57FC.c` | PsyQ 4.3 | 4 | 12 | 16 | 25.0% |
