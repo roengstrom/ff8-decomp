@@ -78,7 +78,7 @@ void func_800115F0(void) {
     } while (DrawSync(1) != 0);
 }
 
-/** @brief VSync callback handler, registered via VSyncCallback in func_800117FC.
+/** @brief VSync callback handler, registered via VSyncCallback in InitHardware.
  *
  *  Dispatches per-frame rendering based on the game mode (g_renderMode):
  *  - 0: no action (rendering idle)
@@ -101,7 +101,7 @@ void func_800115F0(void) {
  *           first, add `. = ALIGN(8);` after it.
  *
  *  @code
- *  void func_8001167C(void) {
+ *  void VsyncHandler(void) {
  *      extern volatile s32 D_8005F154;
  *      extern volatile s32 D_8005F15C;
  *      extern u16 D_8005F11E;
@@ -129,7 +129,7 @@ void func_800115F0(void) {
  *          return;
  *      }
  *
- *      if (D_8005F10C != 0) {
+ *      if (g_vsyncSkip != 0) {
  *          D_8005F11E = 1;
  *          return;
  *      }
@@ -158,35 +158,35 @@ void func_800115F0(void) {
  *  }
  *  @endcode
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_8001167C);
+INCLUDE_ASM("asm/nonmatchings/1D2C", VsyncHandler);
 
 void InitGeom(void);
 void ResetCallback(void);
 void SetMem(u8 a);
 void StopCallback(void);
 void VSyncCallback(void (*cb)(void));
-void func_8003DE24(void);
+void InitSpu(void);
 
-extern void D_8001167C(void);
-extern u8 D_8005F10C;
+extern void VsyncHandler(void);
+extern u8 g_vsyncSkip;
 extern volatile u16 g_renderMode;
 
 /** @brief Initializes PS1 hardware subsystems.
  *
  *  Called once at the start of main. Sets up memory mode, resets the callback
- *  system, initializes GPU and GTE, starts SPU via func_8003DE24 (SpuInit
+ *  system, initializes GPU and GTE, starts SPU via InitSpu (SpuInit
  *  wrapper), registers the VSync callback, and disables display output until
  *  the game is ready to show content.
  */
-void func_800117FC(void) {
+void InitHardware(void) {
     SetMem(2);
     StopCallback();
     ResetCallback();
     ResetGraph(0);
-    func_8003DE24();
-    D_8005F10C = 0;
+    InitSpu();
+    g_vsyncSkip = 0;
     g_renderMode = RENDER_IDLE;
-    VSyncCallback(D_8001167C);
+    VSyncCallback(VsyncHandler);
     SetGraphDebug(0);
     SetDispMask(0);
     InitGeom();
@@ -592,7 +592,7 @@ extern u32 g_orderingTablePtrs[];
 
 /** @brief Main frame rendering function with double-buffer swap and fade effects.
  *
- *  Called from the VSync callback (func_8001167C, case 0). Toggles the
+ *  Called from the VSync callback (VsyncHandler, case 0). Toggles the
  *  double buffer index, manages fade-in/fade-out frame counters, and submits
  *  the GPU primitive list for the current frame.
  *

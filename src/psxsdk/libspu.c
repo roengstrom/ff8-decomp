@@ -88,7 +88,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DDF4);
  * including clearing all voice attributes, resetting the SPU control
  * register, and initializing the sound RAM management.
  */
-void func_8003DE24(void) { _SpuInit(0); }
+void InitSpu(void) { _SpuInit(0); }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DE44);
 
