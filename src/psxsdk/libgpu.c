@@ -317,9 +317,9 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", AddPrim);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", AddPrims);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", func_8004D604);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetSemiTrans);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", func_8004D634);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetShadeTex);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", func_8004D664);
 
@@ -331,7 +331,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", func_8004D6C4);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", func_8004D6E4);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", func_8004D704);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetTile);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetDrawTPage);
 

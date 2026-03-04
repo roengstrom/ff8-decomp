@@ -510,9 +510,9 @@ void InitClearTiles(void) {
     s32 i = 0;
     TILE *tile = &g_clearTiles[0];
 top:
-    func_8004D704(tile);
-    func_8004D604(tile, 1);
-    func_8004D634(tile, 1);
+    SetTile(tile);
+    SetSemiTrans(tile, 1);
+    SetShadeTex(tile, 1);
     tile->w = 320;
     tile->r0 = 0;
     tile->g0 = 0;
