@@ -41,7 +41,9 @@ func_8003BB98 = 0x8003BB98; // snd_voice_cmd_stop (cmd=0x45)
 func_8003BBAC = 0x8003BBAC; // snd_voice_cmd_set_program (cmd=0x4C)
 func_8003BBCC = 0x8003BBCC; // snd_voice_cmd_set_pitch (cmd=0x46)
 func_8003BBEC = 0x8003BBEC; // snd_voice_cmd_set_volume (cmd=0x47)
+func_8001152C = 0x8001152C;
 start = 0x80011534;
+func_800115F0 = 0x800115F0;
 main = 0x80011E60;
 __udivdi3 = 0x8002BA80;
 SsUtReverbOff = 0x80035CC0;

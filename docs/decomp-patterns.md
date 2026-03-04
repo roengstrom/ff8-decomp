@@ -288,6 +288,81 @@ matching the original.
 register and scheduling. Don't use volatile to control which register — use
 declaration order and `REGALLOC_BARRIER` instead.
 
+### "Through $v0" address copy pattern
+
+The original compiler sometimes loads a symbol address into `$v0` with same-register
+`addiu` (`lui $v0; addiu $v0,$v0,%lo`), then copies to the target register
+(`addu $t1,$v0,$zero`). Our compiler targets the final register directly
+(`lui $v1; addiu $t0,$v1,%lo`), saving an instruction but not matching.
+
+Fix: use `register s32 tmp asm("$2")` to force the address into `$v0`, then copy
+to the real variable. A `REGALLOC_BARRIER` between the two prevents the compiler
+from merging them:
+
+```c
+register s32 tmp asm("$2");
+s32 buf;
+
+tmp = (s32)g_gameState;
+REGALLOC_BARRIER(tmp);
+buf = tmp;
+```
+
+If `tmp` is used between the load and the copy (e.g. for a store), no barrier is
+needed — the use prevents merging naturally:
+
+```c
+tmp = (s32)g_fieldEntity;
+*(u16 *)(buf + 0xD44) = *(u16 *)(tmp + 0x120);  // use of tmp prevents merging
+src = tmp;
+```
+
+*Example: func_80011870 pre-loop address setup*
+
+### REGALLOC_BARRIER increases variable priority
+
+GCC 2.7.2's graph coloring allocator assigns lower register numbers to higher-priority
+variables (by reference count / live range). Adding `REGALLOC_BARRIER(var)` inside a
+loop body creates an extra use+def, increasing the variable's reference count and
+giving it a lower register number.
+
+```c
+i = 0;
+REGALLOC_BARRIER(i);  // +1 reference count outside loop
+
+top:
+    /* loop body */
+    i++;
+    REGALLOC_BARRIER(i);  // +1 reference count per iteration
+    if ((s16)i < 3) goto top;
+```
+
+Without barriers, `i` might get `$t1` (higher) while `buf` gets `$t0` (lower).
+With barriers, `i` gets higher priority → `$t0`, pushing `buf` to `$t1`.
+
+**Caveat:** Each `REGALLOC_BARRIER` in a goto-based loop generates `#APP`/`#NO_APP`
+directives, which maspsx treats as load delay boundaries, potentially inserting extra
+`nop` instructions. Only use when the register swap is essential.
+
+*Example: func_80011870 loop counter allocation*
+
+### Separate local for computation order
+
+Declaring a separate local variable for a sub-expression controls when the compiler
+evaluates it relative to other computations:
+
+```c
+// entity offset computed BEFORE stp (matches original addu before sll)
+s16 idx = (s16)i;
+s32 eoff = idx + src;     // addu first
+s32 stp = idx * 2 + buf;  // sll second
+```
+
+Without the separate `eoff` variable, the compiler may evaluate `idx * 2 + buf`
+first, producing `sll` before `addu`.
+
+*Example: func_80011870 loop body*
+
 ### Register allocation diagnostic checklist
 
 For near-match functions where registers are wrong:
@@ -340,7 +415,7 @@ s32 buf[2];
 
 ## Loop Patterns
 
-### goto-based loops prevent LICM and loop inversion
+### goto-based loops prevent LICM, loop inversion, LUI hoisting, and pre-shifting
 
 `while`/`do-while`/`for` loops trigger Loop-Invariant Code Motion (LICM), which
 hoists constants into s-regs and inflates register pressure. goto-based loops are
@@ -369,7 +444,20 @@ out:
 **Note on `++i` vs `i++`:** `++i` inside the conditional keeps the increment after
 stores. Separate `i++` lets the compiler schedule it before stores.
 
-*Example: InitClearTiles*
+**Additional benefits of goto-based loops (with -G0):**
+
+- **Prevents LUI hoisting:** With `-G0`, recognized loops cause the compiler to split
+  `lui $reg, %hi(sym)` / `lw $reg, %lo(sym)($reg)` across registers — hoisting the
+  `lui` out of the loop. goto-based loops keep both `lui` and `lw` inside the loop
+  body (same register).
+
+- **Prevents loop counter pre-shifting:** Recognized loops may store the loop counter
+  pre-shifted by 16, replacing `sll + sra` sign extension with just `sra`. goto loops
+  preserve the correct `sll / sra` pattern and `addiu $t0, $t0, 1` increment.
+  `REGALLOC_BARRIER(i)` after the increment also prevents pre-shifting, but adds
+  a nop from maspsx.
+
+*Example: InitClearTiles, func_80011870*
 
 ### for-loop fixes i++ scheduling
 
@@ -404,6 +492,9 @@ These are compiler behaviors we cannot reproduce from C and must leave as INCLUD
 | Frame pointer ($fp) | Some functions use `addu fp, sp`; -O2 enables -fomit-frame-pointer | func_80026E20 |
 | LUI hoisting in loops | -G0 splits lui/lw across registers and hoists lui out of loops | various |
 | Cross-jumping optimization | gcc merges switch case bodies sharing the same suffix | func_801F0274 |
+| Increment through temp reg | Original uses `addiu $a0,$t0,1; addu $t0,$a0,$zero` (2 insns); compiler produces direct `addiu $t0,$t0,1` (1 insn) | func_80011870 |
+| Loop body temp reg rotation | All 4 loop temp registers ($a0-$a3) consistently shifted from original, regardless of C-level tricks | func_80011870 |
+| Struct caches entity index | Struct field access lets compiler prove non-aliasing, caching a `lbu` across 4 uses (1 load vs 4); raw pointers preserve per-use reload | func_80011870 |
 
 ### Separate OR ops for bit-expansion
 

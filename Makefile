@@ -38,7 +38,7 @@ PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 PSYQ43_SRCS := src/34C8.c
 
 # Source files compiled without -G0 (default is -G0)
-NO_G0_SRCS := src/1D2C.c
+NO_G0_SRCS := src/1D2C.c src/21D4.c
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
