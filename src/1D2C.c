@@ -536,6 +536,13 @@ top:
  *  Uses MoveImage to synchronize both framebuffers so they contain the same
  *  content. Reads source/destination coordinates from the DISPENV array at
  *  g_dispEnvs. Spins on DrawSync until the GPU transfer completes.
+ *
+ *  Logically equivalent to:
+ *    DISPENV *src = &g_dispEnvs[g_bufferIndex];
+ *    DISPENV *dst = &g_dispEnvs[(g_bufferIndex + 1) & 1];
+ *    MoveImage(&src->disp, dst->disp.x, dst->disp.y);
+ *  Raw pointer arithmetic is used for codegen matching (volatile triple-load,
+ *  implicit ptr-to-int, explicit stride).
  */
 void func_800128F8(void) {
     extern DISPENV g_dispEnvs[];
