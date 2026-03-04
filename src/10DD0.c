@@ -2,6 +2,11 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
+/** @brief Empty stub at the end of the sound engine region.
+ *  Followed by ~4KB of zero padding before the game code resumes.
+ */
+INCLUDE_ASM("asm/nonmatchings/10DD0", func_8001F5C8);
+
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800205D0);
 
 
