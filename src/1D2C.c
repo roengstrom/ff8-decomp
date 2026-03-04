@@ -2,6 +2,13 @@
 #include "cd.h"
 #include "psxsdk/libgpu.h"
 
+/** @brief Fade effect mode for the rendering system. */
+typedef enum {
+    FADE_NONE = 0,
+    FADE_IN   = 1,
+    FADE_OUT  = 2
+} FadeMode;
+
 /** @brief Layout of the snapshot region within D_80077378 (offsets 0xD40–0xD5C).
  *  Used by func_80011870 (save) and func_800119D4 (restore).
  */
@@ -574,28 +581,28 @@ extern u32 g_orderingTablePtrs[];
  *  the GPU primitive list for the current frame.
  *
  *  Fade behavior depends on g_fadeMode:
- *  - 0: rendering disabled, returns immediately.
- *  - 1: fade-in mode — updates every 4th frame for 128 frames total.
- *  - 2+: fade-out mode — updates every frame for 34 frames total.
+ *  - FADE_NONE: rendering disabled, returns immediately.
+ *  - FADE_IN: fade-in mode — updates every 4th frame for 128 frames total.
+ *  - FADE_OUT: fade-out mode — updates every frame for 34 frames total.
  *
  *  When the fade counter expires, sets g_renderMode=0 and g_fadeMode=0 to
  *  signal completion to the main loop.
  */
 void RenderFrame(void) {
-    if (g_fadeMode == 0) {
+    if (g_fadeMode == FADE_NONE) {
         return;
     }
 
     g_bufferIndex = g_bufferIndex + 1;
     g_bufferIndex = g_bufferIndex & 1;
 
-    if (g_fadeMode == 1) {
+    if (g_fadeMode == FADE_IN) {
         s32 fc;
         fc = g_fadeCounter + 1;
         g_fadeCounter = fc;
         if ((fc & 0xFF) == 0x80) {
             g_renderMode = 0;
-            g_fadeMode = 0;
+            g_fadeMode = FADE_NONE;
         }
         if (fc & 0x6) {
             return;
@@ -604,7 +611,7 @@ void RenderFrame(void) {
         g_fadeCounter = g_fadeCounter + 1;
         if (g_fadeCounter == 0x22) {
             g_renderMode = 0;
-            g_fadeMode = 0;
+            g_fadeMode = FADE_NONE;
         }
     }
 
