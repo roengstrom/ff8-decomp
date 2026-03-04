@@ -1,1 +1,2 @@
 g_battleAnims = 0x80082DD0;
+g_gameState = 0x80077378;
