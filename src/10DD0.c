@@ -626,7 +626,7 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021108);
  */
 s32 func_800211B4(s32 entityIdx, s32 abilityId) {
     extern u8 g_gameState[];
-    register s32 i asm("$7") = 0;
+    register s32 i asm("$7") = 0; //FIXME: forces i to a3 for register allocation match
     s32 entry;
     s32 newCount;
 
