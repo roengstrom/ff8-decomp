@@ -111,8 +111,11 @@ typedef struct {
  * The header region (0x00–0xE3) contains s32 pointers into the sub-table
  * regions that follow. These pointers are populated at runtime.
  *
- * @note This struct is documentation only. Decomped code accesses g_gfData
- *       via raw pointer arithmetic to preserve instruction-level matching.
+ * @note Decomped code accesses g_gfData via raw pointer arithmetic with
+ *       `(s32)` casts to prevent CC1PSX symbol+constant folding. Struct array
+ *       indexing (e.g. `entries[a0].statParam0`) changes instruction scheduling
+ *       vs `*(u16 *)(base + a0 * 8 + offset)`, breaking byte-matching.
+ *       Comments in the C source map hex offsets back to these field names.
  */
 typedef struct {
     /* --- Header region: runtime pointers into sub-tables --- */

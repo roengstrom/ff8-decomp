@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gf.h"
 
 /** @brief Empty stub at the end of the sound engine region.
  *  Followed by ~4KB of zero padding before the game code resumes.
@@ -72,16 +73,17 @@ u8 *func_800206A8(void) {
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 20, offset 0x4A6C) via func_80020FBC. */
+/** @brief Resolves param from GfData.subTableU[a0] (stride 20) via func_80020FBC. */
 s32 func_800206B4(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableU (+0x4A6C), ptrSubTableU (+0xD8) */
     return func_80020FBC(*(u16 *)(base + a0 * 20 + 0x4A6C), *(s32 *)(base + 0xD8));
 }
 
 
 /**
- * @brief Resolve GF name pointer from g_gfData tables.
+ * @brief Resolve GF name pointer from GfData.subTableT[a0] (stride 8).
  * @param a0 GF index (0 returns default D_800773A8 pointer).
  * @return Pointer from func_80020FBC lookup, or &D_800773A8 if a0 is 0.
  */
@@ -92,6 +94,7 @@ u8 *func_800206F4(s32 a0) {
 
     if (a0 != 0) {
         s32 base = (s32)g_gfData;
+        /* subTableT (+0x4A5C), ptrSubTableT (+0xD4) */
         result = func_80020FBC(*(u16 *)(base + a0 * 8 + 0x4A5C), *(s32 *)(base + 0xD4));
     } else {
         result = &D_800773A8;
@@ -100,91 +103,100 @@ u8 *func_800206F4(s32 a0) {
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 32, offset 0x48B8) via func_80020FBC. */
+/** @brief Resolves param0 from GfData.subTableS[a0] (stride 32) via func_80020FBC. */
 s32 func_80020740(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableS (+0x48B8), ptrSubTableS (+0xD0) */
     return func_80020FBC(*(u16 *)(base + a0 * 32 + 0x48B8), *(s32 *)(base + 0xD0));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 32, offset 0x48BA) via func_80020FBC. */
+/** @brief Resolves param1 from GfData.subTableS[a0] (stride 32, +2) via func_80020FBC. */
 s32 func_80020778(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableS (+0x48BA), ptrSubTableS (+0xD0) */
     return func_80020FBC(*(u16 *)(base + a0 * 32 + 0x48BA), *(s32 *)(base + 0xD0));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x47F8) via func_80020FBC. */
+/** @brief Resolves param0 from GfData.subTableR[a0] (stride 24) via func_80020FBC. */
 s32 func_800207B0(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableR (+0x47F8), ptrSubTableR (+0xCC) */
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x47F8), *(s32 *)(base + 0xCC));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x47FA) via func_80020FBC. */
+/** @brief Resolves param1 from GfData.subTableR[a0] (stride 24, +2) via func_80020FBC. */
 s32 func_800207F0(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableR (+0x47FA), ptrSubTableR (+0xCC) */
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x47FA), *(s32 *)(base + 0xCC));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x3744) via func_80020FBC. */
+/** @brief Resolves param0 from GfData.elementData24[a0] (stride 24) via func_80020FBC. */
 s32 func_80020830(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* elementData24 (+0x3744), ptrElementData24 (+0x94) */
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x3744), *(s32 *)(base + 0x94));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x3746) via func_80020FBC. */
+/** @brief Resolves param1 from GfData.elementData24[a0] (stride 24, +2) via func_80020FBC. */
 s32 func_80020870(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* elementData24 (+0x3746), ptrElementData24 (+0x94) */
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x3746), *(s32 *)(base + 0x94));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 16, offset 0x44F8) via func_80020FBC. */
+/** @brief Resolves param0 from GfData.subTableQ[a0] (stride 16) via func_80020FBC. */
 s32 func_800208B0(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableQ (+0x44F8), ptrSubTableQ (+0xC8) */
     return func_80020FBC(*(u16 *)(base + a0 * 16 + 0x44F8), *(s32 *)(base + 0xC8));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 16, offset 0x44FA) via func_80020FBC. */
+/** @brief Resolves param1 from GfData.subTableQ[a0] (stride 16, +2) via func_80020FBC. */
 s32 func_800208E8(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableQ (+0x44FA), ptrSubTableQ (+0xC8) */
     return func_80020FBC(*(u16 *)(base + a0 * 16 + 0x44FA), *(s32 *)(base + 0xC8));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x4480) via func_80020FBC. */
+/** @brief Resolves param0 from GfData.subTableP[a0] (stride 24) via func_80020FBC. */
 s32 func_80020920(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableP (+0x4480), ptrSubTableP (+0xC4) */
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x4480), *(s32 *)(base + 0xC4));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 24, offset 0x4482) via func_80020FBC. */
+/** @brief Resolves param1 from GfData.subTableP[a0] (stride 24, +2) via func_80020FBC. */
 s32 func_80020960(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* subTableP (+0x4482), ptrSubTableP (+0xC4) */
     return func_80020FBC(*(u16 *)(base + a0 * 24 + 0x4482), *(s32 *)(base + 0xC4));
 }
 
 
 /**
- * @brief Multi-range lookup table dispatcher for GF stat A values.
- * @param a0 Index that determines which g_gfData sub-table to query.
- *           Ranges: 0-0x13, 0x14-0x26, 0x27-0x39, 0x3A-0x4D, 0x4E-0x52, 0x53-0x5B, 0x5C+
- * @return Result of func_80020FBC with parameters from the appropriate table.
+ * @brief Resolve AbilityEntry.statParam0 from the appropriate ability range table.
+ * @param a0 Ability ID that selects the sub-table (see AbilityEntry ranges in gf.h).
+ * @return Result of func_80020FBC with the entry's statParam0 and the range base pointer.
  */
 u8 *func_800209A0(s32 a0) {
     extern u8 g_gfData[];
@@ -193,26 +205,31 @@ u8 *func_800209A0(s32 a0) {
 
     if (a0 < 0x14) {
         s32 base = (s32)g_gfData;
+        /* abilityRangeI (+0x40E0), AbilityEntry.statParam0 */
         param = *(u16 *)(base + a0 * 8 + 0x40E0);
         arg2 = *(s32 *)(base + 0xA8);
     } else if ((u32)(a0 - 0x14) < 0x13) {
         s32 idx = a0 - 0x14;
         s32 base = (s32)g_gfData;
+        /* abilityRangeJ (+0x4180) */
         param = *(u16 *)(base + idx * 8 + 0x4180);
         arg2 = *(s32 *)(base + 0xAC);
     } else if ((u32)(a0 - 0x27) < 0x13) {
         s32 idx = a0 - 0x27;
         s32 base = (s32)g_gfData;
+        /* abilityRangeK (+0x4218) */
         param = *(u16 *)(base + idx * 8 + 0x4218);
         arg2 = *(s32 *)(base + 0xB0);
     } else if ((u32)(a0 - 0x3A) < 0x14) {
         s32 idx = a0 - 0x3A;
         s32 base = (s32)g_gfData;
+        /* abilityRangeL (+0x42B0) */
         param = *(u16 *)(base + idx * 8 + 0x42B0);
         arg2 = *(s32 *)(base + 0xB4);
     } else if ((u32)(a0 - 0x4E) < 0x5) {
         s32 idx = a0 - 0x4E;
         s32 base = (s32)g_gfData;
+        /* abilityRangeM (+0x4350) */
         param = *(u16 *)(base + idx * 8 + 0x4350);
         arg2 = *(s32 *)(base + 0xB8);
     } else {
@@ -220,10 +237,12 @@ u8 *func_800209A0(s32 a0) {
         if ((u32)idx >= 0x9) {
             s32 base = (s32)g_gfData;
             s32 idx2 = a0 - 0x5C;
+            /* abilityRangeO (+0x43C0) */
             param = *(u16 *)(base + idx2 * 8 + 0x43C0);
             arg2 = *(s32 *)(base + 0xC0);
         } else {
             s32 base = (s32)g_gfData;
+            /* abilityRangeN (+0x4378) */
             param = *(u16 *)(base + idx * 8 + 0x4378);
             arg2 = *(s32 *)(base + 0xBC);
         }
@@ -233,9 +252,9 @@ u8 *func_800209A0(s32 a0) {
 
 
 /**
- * @brief Multi-range lookup table dispatcher for GF stat B values (offset +2 from stat A).
- * @param a0 Index that determines which g_gfData sub-table to query.
- * @return Result of func_80020FBC with parameters from the appropriate table.
+ * @brief Resolve AbilityEntry.statParam1 from the appropriate ability range table.
+ * @param a0 Ability ID that selects the sub-table (see AbilityEntry ranges in gf.h).
+ * @return Result of func_80020FBC with the entry's statParam1 and the range base pointer.
  */
 u8 *func_80020AD4(s32 a0) {
     extern u8 g_gfData[];
@@ -244,26 +263,31 @@ u8 *func_80020AD4(s32 a0) {
 
     if (a0 < 0x14) {
         s32 base = (s32)g_gfData;
+        /* abilityRangeI (+0x40E2), AbilityEntry.statParam1 */
         param = *(u16 *)(base + a0 * 8 + 0x40E2);
         arg2 = *(s32 *)(base + 0xA8);
     } else if ((u32)(a0 - 0x14) < 0x13) {
         s32 idx = a0 - 0x14;
         s32 base = (s32)g_gfData;
+        /* abilityRangeJ (+0x4182) */
         param = *(u16 *)(base + idx * 8 + 0x4182);
         arg2 = *(s32 *)(base + 0xAC);
     } else if ((u32)(a0 - 0x27) < 0x13) {
         s32 idx = a0 - 0x27;
         s32 base = (s32)g_gfData;
+        /* abilityRangeK (+0x421A) */
         param = *(u16 *)(base + idx * 8 + 0x421A);
         arg2 = *(s32 *)(base + 0xB0);
     } else if ((u32)(a0 - 0x3A) < 0x14) {
         s32 idx = a0 - 0x3A;
         s32 base = (s32)g_gfData;
+        /* abilityRangeL (+0x42B2) */
         param = *(u16 *)(base + idx * 8 + 0x42B2);
         arg2 = *(s32 *)(base + 0xB4);
     } else if ((u32)(a0 - 0x4E) < 0x5) {
         s32 idx = a0 - 0x4E;
         s32 base = (s32)g_gfData;
+        /* abilityRangeM (+0x4352) */
         param = *(u16 *)(base + idx * 8 + 0x4352);
         arg2 = *(s32 *)(base + 0xB8);
     } else {
@@ -271,10 +295,12 @@ u8 *func_80020AD4(s32 a0) {
         if ((u32)idx >= 0x9) {
             s32 base = (s32)g_gfData;
             s32 idx2 = a0 - 0x5C;
+            /* abilityRangeO (+0x43C2) */
             param = *(u16 *)(base + idx2 * 8 + 0x43C2);
             arg2 = *(s32 *)(base + 0xC0);
         } else {
             s32 base = (s32)g_gfData;
+            /* abilityRangeN (+0x437A) */
             param = *(u16 *)(base + idx * 8 + 0x437A);
             arg2 = *(s32 *)(base + 0xBC);
         }
@@ -285,8 +311,8 @@ u8 *func_80020AD4(s32 a0) {
 
 /**
  * @brief Resolve a data pointer for a character or GF entity.
- * @param a0 Entity index; >= 0x40 returns a direct pointer into D_800762C8 (stride 68),
- *           otherwise resolves via g_gfData lookup (stride 60, offset 0x21C).
+ * @param a0 Entity index; < 0x40 resolves via GfJunctionEntry[a0] in GfData.junctionData,
+ *           >= 0x40 returns direct pointer into D_800762C8 (stride 68).
  * @return Resolved data pointer.
  */
 u8 *func_80020C08(s32 a0) {
@@ -295,6 +321,7 @@ u8 *func_80020C08(s32 a0) {
 
     if (a0 < 0x40) {
         u8 *gfBase = g_gfData;
+        /* junctionData (+0x21C, stride 60), ptrGfSpellData (+0x84) */
         return (u8 *)func_80020FBC(*(u16 *)(gfBase + a0 * 60 + 0x21C), *(s32 *)(gfBase + 0x84));
     }
     return D_800762C8 + a0 * 68;
@@ -303,8 +330,8 @@ u8 *func_80020C08(s32 a0) {
 
 /**
  * @brief Resolve a secondary data pointer for a character or GF entity.
- * @param a0 Entity index; >= 0x40 uses g_gfData with stride 132 (offset 0xF7A, base 0x88),
- *           otherwise uses stride 60 (offset 0x21E, base 0x84).
+ * @param a0 Entity index; < 0x40 uses GfJunctionEntry[a0]+2 in junctionData,
+ *           >= 0x40 uses GfAbilityTableEntry[idx] in abilityTable132.
  * @return Resolved data pointer via func_80020FBC.
  */
 s32 func_80020C6C(s32 a0) {
@@ -312,21 +339,22 @@ s32 func_80020C6C(s32 a0) {
 
     if (a0 < 0x40) {
         u8 *gfBase = g_gfData;
+        /* junctionData (+0x21E, stride 60), ptrGfSpellData (+0x84) */
         return func_80020FBC(*(u16 *)(gfBase + a0 * 60 + 0x21E), *(s32 *)(gfBase + 0x84));
     }
     {
         u8 *gfBase = g_gfData;
         s32 idx = a0 - 0x40;
+        /* abilityTable132 (+0xF7A, stride 132), ptrAbilityTable132 (+0x88) */
         return func_80020FBC(*(u16 *)(gfBase + idx * 132 + 0xF7A), *(s32 *)(gfBase + 0x88));
     }
 }
 
 
 /**
- * @brief Look up a parameter from g_gfData tables and pass it to func_80020FBC.
- * @param a0 Index into the lookup table; values >= 0x21 use a secondary table at offset 0x3C48.
- * @return Result of func_80020FBC with the looked-up parameter and a base pointer.
- * @note Purpose uncertain -- appears to resolve a stat or attribute using two different table layouts.
+ * @brief Resolve stat param0 from GfData stat tables.
+ * @param a0 Stat index; >= 0x21 uses statTable4 (stride 4), otherwise statTable24 (stride 24).
+ * @return Result of func_80020FBC.
  */
 s32 func_80020CE0(s32 a0) {
     extern u8 g_gfData[];
@@ -336,10 +364,12 @@ s32 func_80020CE0(s32 a0) {
     if (a0 >= 0x21) {
         s32 base = (s32)g_gfData;
         s32 idx = a0 - 0x21;
+        /* statTable4 (+0x3C48), ptrStatTable4 (+0xA0) */
         param = *(u16 *)(base + idx * 4 + 0x3C48);
         arg2 = *(s32 *)(base + 0xA0);
     } else {
         s32 base = (s32)g_gfData;
+        /* statTable24 (+0x3930), ptrStatTable24 (+0x9C) */
         param = *(u16 *)(base + a0 * 24 + 0x3930);
         arg2 = *(s32 *)(base + 0x9C);
     }
@@ -348,10 +378,9 @@ s32 func_80020CE0(s32 a0) {
 
 
 /**
- * @brief Look up a second parameter from g_gfData tables and pass it to func_80020FBC.
- * @param a0 Index into the lookup table; values >= 0x21 use a secondary table at offset 0x3C4A.
- * @return Result of func_80020FBC with the looked-up parameter and a base pointer.
- * @note Purpose uncertain -- appears to resolve an alternate stat/attribute, offset +2 from func_80020CE0 tables.
+ * @brief Resolve stat param1 from GfData stat tables (+2 offset from func_80020CE0).
+ * @param a0 Stat index; >= 0x21 uses statTable4 (stride 4), otherwise statTable24 (stride 24).
+ * @return Result of func_80020FBC.
  */
 s32 func_80020D4C(s32 a0) {
     extern u8 g_gfData[];
@@ -361,10 +390,12 @@ s32 func_80020D4C(s32 a0) {
     if (a0 >= 0x21) {
         s32 base = (s32)g_gfData;
         s32 idx = a0 - 0x21;
+        /* statTable4 (+0x3C4A), ptrStatTable4 (+0xA0) */
         param = *(u16 *)(base + idx * 4 + 0x3C4A);
         arg2 = *(s32 *)(base + 0xA0);
     } else {
         s32 base = (s32)g_gfData;
+        /* statTable24 (+0x3932), ptrStatTable24 (+0x9C) */
         param = *(u16 *)(base + a0 * 24 + 0x3932);
         arg2 = *(s32 *)(base + 0x9C);
     }
@@ -373,9 +404,10 @@ s32 func_80020D4C(s32 a0) {
 
 
 /**
- * @brief Resolve a data pointer from D_80078720 entity table.
- * @param a0 Entity index (stride 464 in D_80078720). Reads byte at offset 0x1C3:
- *           0 returns D_80077390, 4 returns D_8007739C, else resolves via func_80020FBC.
+ * @brief Resolve a data pointer from D_80078720 entity table (stride 464).
+ * @param a0 Entity index. Reads entity type at offset 0x1C3:
+ *           0 returns D_80077390, 4 returns D_8007739C,
+ *           else looks up GfCurveEntry in GfData.xpCurves36.
  * @return Resolved data pointer.
  */
 s32 func_80020DB8(s32 a0) {
@@ -396,6 +428,7 @@ s32 func_80020DB8(s32 a0) {
     }
     {
         u8 *gfBase = g_gfData;
+        /* xpCurves36 (+0x37A4, stride 36), ptrGfCurve36 (+0x98) */
         return func_80020FBC(
             *(u16 *)(gfBase + entry[0x1C3] * 36 + 0x37A4),
             *(s32 *)(gfBase + 0x98));
@@ -406,7 +439,7 @@ s32 func_80020DB8(s32 a0) {
 /**
  * @brief Resolve a data pointer based on entity type.
  * @param a0 Entity type; 0 returns D_80077390, 4 returns D_8007739C,
- *           otherwise resolves via g_gfData (stride 36, offset 0x37A4, base 0x98).
+ *           otherwise looks up GfCurveEntry[a0] in GfData.xpCurves36.
  * @return Resolved data pointer.
  */
 u8 *func_80020E4C(s32 a0) {
@@ -422,31 +455,35 @@ u8 *func_80020E4C(s32 a0) {
     }
     {
         s32 base = (s32)g_gfData;
+        /* xpCurves36 (+0x37A4, stride 36), ptrGfCurve36 (+0x98) */
         return func_80020FBC(*(u16 *)(base + a0 * 36 + 0x37A4), *(s32 *)(base + 0x98));
     }
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 12, offset 0x35B8) via func_80020FBC. */
+/** @brief Resolves param from GfData.levelCurve12[a0] (stride 12) via func_80020FBC. */
 s32 func_80020EB4(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* levelCurve12 (+0x35B8, stride 12), ptrLevelCurve12 (+0x90) */
     return func_80020FBC(*(u16 *)(base + a0 * 12 + 0x35B8), *(s32 *)(base + 0x90));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 8, offset 0xE4) via func_80020FBC. */
+/** @brief Resolves AbilityEntry.statParam0 from GfData.statTable8[a0] via func_80020FBC. */
 s32 func_80020EF4(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* statTable8 (+0xE4, stride 8), ptrStatTable8 (+0x80) */
     return func_80020FBC(*(u16 *)(base + a0 * 8 + 0xE4), *(s32 *)(base + 0x80));
 }
 
 
-/** @brief Resolves a halfword from g_gfData table (stride 8, offset 0xE6) via func_80020FBC. */
+/** @brief Resolves AbilityEntry.statParam1 from GfData.statTable8[a0] via func_80020FBC. */
 s32 func_80020F2C(s32 a0) {
     extern u8 g_gfData[];
     s32 base = (s32)g_gfData;
+    /* statTable8 (+0xE6, stride 8), ptrStatTable8 (+0x80) */
     return func_80020FBC(*(u16 *)(base + a0 * 8 + 0xE6), *(s32 *)(base + 0x80));
 }
 
@@ -458,13 +495,14 @@ s32 func_80020F64(void) {
 
 
 /**
- * @brief Look up a u16 value from g_gfData table at offset 0x4D08 and pass it to func_80020FBC.
- * @param a0 Index into the lookup table (stride 2 bytes).
- * @return Result of func_80020FBC with the table entry and a pointer from offset 0xE0.
+ * @brief Look up a u16 from GfData.subTableV[a0] (stride 2) and resolve via func_80020FBC.
+ * @param a0 Index into subTableV.
+ * @return Resolved data pointer.
  */
 s32 func_80020F84(s32 a0) {
     extern u8 g_gfData[];
     u8 *base = g_gfData;
+    /* subTableV (+0x4D08, stride 2), ptrSubTableV (+0xE0) */
     return func_80020FBC(*(u16 *)(base + a0 * 2 + 0x4D08), *(s32 *)(base + 0xE0));
 }
 
