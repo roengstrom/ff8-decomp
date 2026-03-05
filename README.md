@@ -46,7 +46,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | Source File | Toolchain | C Functions | INCLUDE\_ASM | Total | % Decomped |
 |-------------|-----------|-------------|-------------|-------|------------|
 | `src/1D2C.c` | PsyQ 4.1 | 17 | 5 | 22 | 77.3% |
-| `src/34C8.c` | PsyQ 4.3 | 58 | 21 | 79 | 73.4%  |
+| `src/34C8.c` | PsyQ 4.3 | 62 | 17 | 79 | 78.5%  |
 | `src/4EF0.c` | PsyQ 4.3 | 23 | 5 | 28 | 82.1% |
 | `src/57FC.c` | PsyQ 4.3 | 4 | 12 | 16 | 25.0% |
 | `src/75B4.c` | PsyQ 4.3 | 5 | 42 | 47 | 10.6% |
@@ -60,7 +60,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `src/14100.c` | PsyQ 4.1 | 3 | 10 | 13 | 23.1% |
 | `src/16120.c` | PsyQ 4.1 | 0 | 7 | 7 | 0.0% |
 | `src/172DC.c` | PsyQ 4.1 | 10 | 26 | 36 | 27.8% |
-| `src/186F8.c` | PsyQ 4.1 | 63 | 53 | 116 | 54.3% |
+| `src/186F8.c` | PsyQ 4.1 | 66 | 50 | 116 | 56.9% |
 | `src/1B630.c` | PsyQ 4.1 | 12 | 2 | 14 | 85.7% |
 | `src/1C2A0.c` | PsyQ 4.1 | 13 | 10 | 23 | 56.5% |
 | `src/1D0A4.c` | PsyQ 4.1 | 29 | 30 | 59 | 49.2% |
@@ -92,7 +92,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `src/ovl/menutmag/menutmag.c` | PsyQ 4.1 | 0 | 15 | 15 | 0.0% |
 | `src/ovl/menutips/menutips.c` | PsyQ 4.1 | 0 | 16 | 16 | 0.0% |
 | `src/ovl/menutest/menutest.c` | PsyQ 4.1 | 11 | 0 | 11 | 100.0% |
-| **Total (game code)** | | **591** | **1337** | **1928** | **30.7%** |
+| **Total (game code)** | | **596** | **1332** | **1928** | **30.9%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, 751 functions) are not tracked — they are third-party code.
 

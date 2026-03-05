@@ -640,7 +640,23 @@ s32 func_80013CB4(void) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CD4);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013EE4);
+/**
+ * @brief Process audio parameters via func_80013AA8 and dispatch to func_800148B0.
+ *
+ * Calls func_80013AA8 to compute two intermediate values (stored on the stack),
+ * then passes those along with the original parameters to func_800148B0.
+ * Returns the result of func_80013AA8, not func_800148B0.
+ *
+ * @param a0 First parameter (passed through to both calls).
+ * @param a1 Second parameter (passed through to func_800148B0).
+ * @return Result of func_80013AA8.
+ */
+s32 func_80013EE4(s32 a0, s32 a1) {
+    s32 val1, val2;
+    s32 result = func_80013AA8(a0, &val1, &val2);
+    func_800148B0(a0, a1, val1, val2);
+    return result;
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013F38);
 
@@ -652,7 +668,27 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_80014190);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014250);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800142E4);
+/**
+ * @brief Conditionally dispatch SPU command 0xE0 with three parameters.
+ *
+ * Calls func_80014740 first; if it returns 0, stores a0, (a1 & 0xFF) << 8,
+ * and a2 into the SPU command buffer and dispatches command 0xE0.
+ *
+ * @param a0 First word written to D_80075058.
+ * @param a1 Masked and shifted into second word of command buffer.
+ * @param a2 Third word of command buffer.
+ */
+void func_800142E4(s32 a0, s32 a1, s32 a2) {
+    extern s32 D_80075058;
+    if (func_80014740() == 0) {
+        register s32 cmd asm("$4") = 0xE0; // FIXME: register+barrier forces li into bne delay slot
+        REGALLOC_BARRIER(cmd);
+        D_80075058 = a0;
+        *(&D_80075058 + 1) = (a1 & 0xFF) << 8;
+        *(&D_80075058 + 2) = a2;
+        func_8001A1E8(cmd);
+    }
+}
 
 /** @brief Sends SPU command 0xE2. */
 void func_80014348(void) {
@@ -667,7 +703,17 @@ void func_80014368(s32 a0) {
     func_8001A1E8(0xE4);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014398);
+/**
+ * @brief Write a0 to SPU command buffer, write masked/shifted a1 to second word, dispatch 0xE5.
+ * @param a0 First word stored directly to D_80075058.
+ * @param a1 Second parameter, masked to 7 bits and shifted left 8.
+ */
+void func_80014398(s32 a0, s32 a1) {
+    extern s32 D_80075058;
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = (a1 & 0x7F) << 8;
+    func_8001A1E8(0xE5);
+}
 
 /** @brief Stores u8-masked a0, shifted left 8, to SPU command buffer. Sends command 0xE6.
  *  @param a0 Parameter, masked to 8 bits then shifted left 8.
@@ -679,7 +725,17 @@ void func_800143D0(s32 a0) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014400);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800144E4);
+/**
+ * @brief Write masked volume to SPU command buffer and dispatch.
+ * @param a0 Volume value (masked to 8 bits, shifted left 8).
+ * @param a1 Secondary parameter stored at D_80075058+4.
+ */
+void func_800144E4(s32 a0, s32 a1) {
+    extern s32 D_80075058;
+    D_80075058 = (a0 & 0xFF) << 8;
+    *(&D_80075058 + 1) = a1;
+    func_8001A1E8(0xED);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001451C);
 

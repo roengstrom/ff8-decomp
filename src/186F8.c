@@ -670,7 +670,20 @@ void func_8002A2C4(u8 *dst, u8 *src) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A2F4);
+/**
+ * @brief Count the number of non-zero bytes from a0 until a null terminator.
+ * @param a0 Pointer to null-terminated byte string.
+ * @return Number of bytes before the null terminator (string length).
+ */
+s32 func_8002A2F4(u8 *a0) {
+    s32 count = 0;
+    goto test;
+inc:
+    count++;
+test:
+    if (*a0++ != 0) goto inc;
+    return count;
+}
 
 
 /**
