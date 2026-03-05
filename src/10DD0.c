@@ -617,7 +617,68 @@ s32 func_80021034(s32 itemId, s32 amount) {
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021108);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800211B4);
+/**
+ * @brief Add or increment an ability in an entity's ability slot table.
+ * Searches 32 slots (2 bytes each: ID + count) in g_gameState at offset 0x4A0.
+ * @param entityIdx Entity index (stride 152 in g_gameState).
+ * @param abilityId Ability ID to add/increment.
+ * @return 0 if added/incremented, 1 if count already >= 100, 2 if all slots full.
+ */
+s32 func_800211B4(s32 entityIdx, s32 abilityId) {
+    extern u8 g_gameState[];
+    register s32 i asm("$7") = 0;
+    s32 entry;
+    s32 newCount;
+
+    if (abilityId != 0) goto search;
+    return 0;
+
+increment:
+    *(u8 *)(entry + 0x4A1) = newCount;
+    return 0;
+
+new_slot:
+    {
+        s32 count = *(u8 *)(entityIdx + 0x4A1);
+        *(u8 *)(entityIdx + 0x4A0) = abilityId;
+        count++;
+        *(u8 *)(entityIdx + 0x4A1) = count;
+    }
+    return 0;
+
+search:
+    {
+        s32 base = (s32)g_gameState;
+        s32 off = entityIdx * 152;
+    loop1:
+        entry = off + base;
+        if (*(u8 *)(entry + 0x4A0) == abilityId) {
+            u32 count = *(u8 *)(entry + 0x4A1);
+            if (count < 100) {
+                newCount = count + 1;
+                goto increment;
+            }
+            return 1;
+        }
+        i++;
+        off += 2;
+        if (i < 0x20) goto loop1;
+    }
+
+    i = 0;
+    {
+        s32 base = (s32)g_gameState;
+        s32 off = entityIdx * 152;
+    loop2:
+        entityIdx = off + base;
+        if (*(u8 *)(entityIdx + 0x4A0) == 0) goto new_slot;
+        i++;
+        off += 2;
+        if (i < 0x20) goto loop2;
+    }
+
+    return 2;
+}
 
 
 /**
