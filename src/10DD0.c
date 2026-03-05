@@ -10,10 +10,42 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_8001F5C8);
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_800205D0);
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020608);
+/**
+ * @brief Zero memory in 16-byte (4-word) chunks.
+ * @param ptr Pointer to memory to clear.
+ * @param count Number of 16-byte iterations.
+ */
+void func_80020608(s32 *ptr, s32 count) {
+    s32 i = 0;
+    if (count <= 0) return;
+    do {
+        *ptr = 0;
+        ptr++;
+        *ptr = 0;
+        ptr++;
+        *ptr = 0;
+        ptr++;
+        *ptr = 0;
+        ptr++;
+    } while (++i < count);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020644);
+/**
+ * @brief Copy a0 bytes from src to dst.
+ * @param src Source byte pointer.
+ * @param dst Destination byte pointer.
+ * @param len Number of bytes to copy.
+ */
+void func_80020644(u8 *src, u8 *dst, s32 len) {
+    s32 i = 0;
+    if (len <= 0) return;
+    do {
+        *dst = *src;
+        src++;
+        dst++;
+    } while (++i < len);
+}
 
 
 /** @brief Sets bit 0x1 in byte at g_gameState[a0 * 68 + 0x61].
@@ -48,7 +80,24 @@ s32 func_800206B4(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800206F4);
+/**
+ * @brief Resolve GF name pointer from g_gfData tables.
+ * @param a0 GF index (0 returns default D_800773A8 pointer).
+ * @return Pointer from func_80020FBC lookup, or &D_800773A8 if a0 is 0.
+ */
+u8 *func_800206F4(s32 a0) {
+    extern u8 g_gfData[];
+    extern u8 D_800773A8;
+    u8 *result;
+
+    if (a0 != 0) {
+        s32 base = (s32)g_gfData;
+        result = func_80020FBC(*(u16 *)(base + a0 * 8 + 0x4A5C), *(s32 *)(base + 0xD4));
+    } else {
+        result = &D_800773A8;
+    }
+    return result;
+}
 
 
 /** @brief Resolves a halfword from g_gfData table (stride 32, offset 0x48B8) via func_80020FBC. */
@@ -131,16 +180,146 @@ s32 func_80020960(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800209A0);
+/**
+ * @brief Multi-range lookup table dispatcher for GF stat A values.
+ * @param a0 Index that determines which g_gfData sub-table to query.
+ *           Ranges: 0-0x13, 0x14-0x26, 0x27-0x39, 0x3A-0x4D, 0x4E-0x52, 0x53-0x5B, 0x5C+
+ * @return Result of func_80020FBC with parameters from the appropriate table.
+ */
+u8 *func_800209A0(s32 a0) {
+    extern u8 g_gfData[];
+    u16 param;
+    s32 arg2;
+
+    if (a0 < 0x14) {
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + a0 * 8 + 0x40E0);
+        arg2 = *(s32 *)(base + 0xA8);
+    } else if ((u32)(a0 - 0x14) < 0x13) {
+        s32 idx = a0 - 0x14;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x4180);
+        arg2 = *(s32 *)(base + 0xAC);
+    } else if ((u32)(a0 - 0x27) < 0x13) {
+        s32 idx = a0 - 0x27;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x4218);
+        arg2 = *(s32 *)(base + 0xB0);
+    } else if ((u32)(a0 - 0x3A) < 0x14) {
+        s32 idx = a0 - 0x3A;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x42B0);
+        arg2 = *(s32 *)(base + 0xB4);
+    } else if ((u32)(a0 - 0x4E) < 0x5) {
+        s32 idx = a0 - 0x4E;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x4350);
+        arg2 = *(s32 *)(base + 0xB8);
+    } else {
+        s32 idx = a0 - 0x53;
+        if ((u32)idx >= 0x9) {
+            s32 base = (s32)g_gfData;
+            s32 idx2 = a0 - 0x5C;
+            param = *(u16 *)(base + idx2 * 8 + 0x43C0);
+            arg2 = *(s32 *)(base + 0xC0);
+        } else {
+            s32 base = (s32)g_gfData;
+            param = *(u16 *)(base + idx * 8 + 0x4378);
+            arg2 = *(s32 *)(base + 0xBC);
+        }
+    }
+    return func_80020FBC(param, arg2);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020AD4);
+/**
+ * @brief Multi-range lookup table dispatcher for GF stat B values (offset +2 from stat A).
+ * @param a0 Index that determines which g_gfData sub-table to query.
+ * @return Result of func_80020FBC with parameters from the appropriate table.
+ */
+u8 *func_80020AD4(s32 a0) {
+    extern u8 g_gfData[];
+    u16 param;
+    s32 arg2;
+
+    if (a0 < 0x14) {
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + a0 * 8 + 0x40E2);
+        arg2 = *(s32 *)(base + 0xA8);
+    } else if ((u32)(a0 - 0x14) < 0x13) {
+        s32 idx = a0 - 0x14;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x4182);
+        arg2 = *(s32 *)(base + 0xAC);
+    } else if ((u32)(a0 - 0x27) < 0x13) {
+        s32 idx = a0 - 0x27;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x421A);
+        arg2 = *(s32 *)(base + 0xB0);
+    } else if ((u32)(a0 - 0x3A) < 0x14) {
+        s32 idx = a0 - 0x3A;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x42B2);
+        arg2 = *(s32 *)(base + 0xB4);
+    } else if ((u32)(a0 - 0x4E) < 0x5) {
+        s32 idx = a0 - 0x4E;
+        s32 base = (s32)g_gfData;
+        param = *(u16 *)(base + idx * 8 + 0x4352);
+        arg2 = *(s32 *)(base + 0xB8);
+    } else {
+        s32 idx = a0 - 0x53;
+        if ((u32)idx >= 0x9) {
+            s32 base = (s32)g_gfData;
+            s32 idx2 = a0 - 0x5C;
+            param = *(u16 *)(base + idx2 * 8 + 0x43C2);
+            arg2 = *(s32 *)(base + 0xC0);
+        } else {
+            s32 base = (s32)g_gfData;
+            param = *(u16 *)(base + idx * 8 + 0x437A);
+            arg2 = *(s32 *)(base + 0xBC);
+        }
+    }
+    return func_80020FBC(param, arg2);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020C08);
+/**
+ * @brief Resolve a data pointer for a character or GF entity.
+ * @param a0 Entity index; >= 0x40 returns a direct pointer into D_800762C8 (stride 68),
+ *           otherwise resolves via g_gfData lookup (stride 60, offset 0x21C).
+ * @return Resolved data pointer.
+ */
+u8 *func_80020C08(s32 a0) {
+    extern u8 g_gfData[];
+    extern u8 D_800762C8[];
+
+    if (a0 < 0x40) {
+        u8 *gfBase = g_gfData;
+        return (u8 *)func_80020FBC(*(u16 *)(gfBase + a0 * 60 + 0x21C), *(s32 *)(gfBase + 0x84));
+    }
+    return D_800762C8 + a0 * 68;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020C6C);
+/**
+ * @brief Resolve a secondary data pointer for a character or GF entity.
+ * @param a0 Entity index; >= 0x40 uses g_gfData with stride 132 (offset 0xF7A, base 0x88),
+ *           otherwise uses stride 60 (offset 0x21E, base 0x84).
+ * @return Resolved data pointer via func_80020FBC.
+ */
+s32 func_80020C6C(s32 a0) {
+    extern u8 g_gfData[];
+
+    if (a0 < 0x40) {
+        u8 *gfBase = g_gfData;
+        return func_80020FBC(*(u16 *)(gfBase + a0 * 60 + 0x21E), *(s32 *)(gfBase + 0x84));
+    }
+    {
+        u8 *gfBase = g_gfData;
+        s32 idx = a0 - 0x40;
+        return func_80020FBC(*(u16 *)(gfBase + idx * 132 + 0xF7A), *(s32 *)(gfBase + 0x88));
+    }
+}
 
 
 /**
@@ -193,10 +372,59 @@ s32 func_80020D4C(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020DB8);
+/**
+ * @brief Resolve a data pointer from D_80078720 entity table.
+ * @param a0 Entity index (stride 464 in D_80078720). Reads byte at offset 0x1C3:
+ *           0 returns D_80077390, 4 returns D_8007739C, else resolves via func_80020FBC.
+ * @return Resolved data pointer.
+ */
+s32 func_80020DB8(s32 a0) {
+    extern u8 D_80078720[];
+    extern u8 g_gfData[];
+    extern u8 D_80077390[];
+    extern u8 D_8007739C[];
+    u8 *base = D_80078720;
+    u8 *entry;
+
+    entry = base + a0 * 464;
+
+    if (entry[0x1C3] == 0) {
+        return (s32)D_80077390;
+    }
+    if (entry[0x1C3] == 4) {
+        return (s32)D_8007739C;
+    }
+    {
+        u8 *gfBase = g_gfData;
+        return func_80020FBC(
+            *(u16 *)(gfBase + entry[0x1C3] * 36 + 0x37A4),
+            *(s32 *)(gfBase + 0x98));
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020E4C);
+/**
+ * @brief Resolve a data pointer based on entity type.
+ * @param a0 Entity type; 0 returns D_80077390, 4 returns D_8007739C,
+ *           otherwise resolves via g_gfData (stride 36, offset 0x37A4, base 0x98).
+ * @return Resolved data pointer.
+ */
+u8 *func_80020E4C(s32 a0) {
+    extern u8 D_80077390;
+    extern u8 D_8007739C;
+    extern u8 g_gfData[];
+
+    if (a0 == 0) {
+        return &D_80077390;
+    }
+    if (a0 == 4) {
+        return &D_8007739C;
+    }
+    {
+        s32 base = (s32)g_gfData;
+        return func_80020FBC(*(u16 *)(base + a0 * 36 + 0x37A4), *(s32 *)(base + 0x98));
+    }
+}
 
 
 /** @brief Resolves a halfword from g_gfData table (stride 12, offset 0x35B8) via func_80020FBC. */
@@ -260,12 +488,94 @@ u8 *func_80020FBC(u16 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80020FEC);
+/**
+ * @brief Decrement the count byte for all entries matching itemId in the
+ * status array at g_gameState + 0xB44.
+ * @param itemId The ID to match. If 0, the function returns immediately.
+ */
+void func_80020FEC(s32 itemId) {
+    extern u8 g_gameState[];
+    u8 *ptr;
+    s32 i;
+
+    if (itemId == 0) {
+        return;
+    }
+
+    i = 0;
+    ptr = g_gameState;
+top:
+    if (ptr[0xB44] == itemId) {
+        ptr[0xB45] = ptr[0xB45] - 1;
+    }
+    i++;
+    ptr += 2;
+    if (i < 0xC6) goto top;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021034);
+/**
+ * @brief Add an item to the inventory array D_80077EBC.
+ * Searches for an existing entry with matching ID to increment count,
+ * or places the item in the first empty slot. Count is capped at 100.
+ * @param itemId Item identifier to add (0 = no-op).
+ * @param amount Quantity to add.
+ * @return 0 if added successfully (count < 100), 1 if capped or inventory full.
+ */
+s32 func_80021034(s32 itemId, s32 amount) {
+    extern u8 D_80077EBC[];
+    u8 *base = D_80077EBC;
+    u8 *ptr;
+    s32 i;
+
+    if (itemId == 0) return 0;
+
+    ptr = base;
+    i = 0;
+
+    do {
+        if (*ptr == itemId) {
+            s32 newCount;
+            ptr++;
+            newCount = *ptr + amount;
+            *ptr = newCount;
+            if ((u32)(newCount & 0xFF) < 100) return 0;
+            *ptr = 100;
+            return 1;
+        }
+        i++;
+        ptr += 2;
+    } while (i < 0xC6);
+
+    ptr = base;
+    i = 0;
+
+    do {
+        if (*ptr == 0) {
+            s32 newCount;
+            *ptr = itemId;
+            ptr++;
+            newCount = *ptr + amount;
+            *ptr = newCount;
+            if ((u32)(newCount & 0xFF) < 100) return 0;
+            *ptr = 100;
+            return 1;
+        }
+        i++;
+        ptr += 2;
+    } while (i < 0xC6);
+
+    return 1;
+}
 
 
+/**
+ * @brief Check if an entity has a specific ability and whether its count is maxed.
+ * Searches 32 ability slots (2 bytes each: ID + count) in g_gameState at offset 0x4A0.
+ * @param entityIdx Entity index (stride 152 in g_gameState).
+ * @param abilityId Ability ID to search for.
+ * @return 0 if ability not maxed or empty slot exists, 1 if ability count >= 100, 2 if all slots full.
+ */
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021108);
 
 
@@ -305,9 +615,18 @@ s32 a1;
 }
 
 
+/**
+ * @brief Search D_8005289C array for the value stored at D_80082C08.
+ * @return 1 if found, 0 if not found or array is empty (0xFFFF terminated).
+ */
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021300);
 
 
+/**
+ * @brief Main state machine loop driven by g_vsyncRate.
+ * Processes rendering/audio states: 4=render, 3=init+render, 5=transition, 8=alt render.
+ * Loops until an unhandled state value is encountered, which sets g_vsyncRate=4 and returns.
+ */
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021358);
 
 
