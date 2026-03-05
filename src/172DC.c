@@ -54,7 +54,20 @@ void func_80026F14(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/172DC", func_80026F4C);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026F90);
+/**
+ * @brief Compute an address offset from a 24-bit color value.
+ *
+ * Masks the input to 24 bits, multiplies by 192, and adds to the base
+ * address loaded from kernel memory at 0x110.
+ *
+ * @param a0 Input value (only lower 24 bits used).
+ * @return Base address + masked input * 192.
+ */
+s32 func_80026F90(s32 a0) {
+    s32 base = *(s32 *)0x110;
+    a0 &= 0xFFFFFF;
+    return base + a0 * 192;
+}
 
 
 /** @brief Wrapper that calls func_80047384 (likely returns interrupt/thread status). */

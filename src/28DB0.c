@@ -103,7 +103,23 @@ s32 func_8003882C(s32 a0, s32 a1, s32 a2, s32 a3) {
 INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038868);
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_800388CC);
+/**
+ * @brief Perform a synchronous CD-ROM read with retry.
+ *
+ * Calls func_800387F8(a0, a1) in a busy-wait loop until it returns 0,
+ * then waits for func_800393C8 to complete.
+ *
+ * @param a0 First CD read parameter.
+ * @param a1 Second CD read parameter.
+ * @return Always 0.
+ */
+s32 func_800388CC(s32 a0, s32 a1) {
+    do {
+    } while (func_800387F8(a0, a1) != 0);
+    do {
+    } while (func_800393C8() != 0);
+    return 0;
+}
 
 
 /**
@@ -143,7 +159,26 @@ s32 func_80038994(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_800389CC);
+/**
+ * @brief Reset CD state unless already idle (0) or in final state (0xB).
+ *
+ * Checks state byte at D_8008A3D8+1. If it's 0 or 0xB, returns immediately.
+ * Otherwise clears three control fields and sets state to 0xC, then calls
+ * func_80039388 to finalize.
+ */
+void func_800389CC(void) {
+    extern u8 D_8008A3D8;
+    s32 base = (s32)&D_8008A3D8;
+    u8 state = *(u8 *)(base + 1);
+
+    if (state == 0xB || state == 0) return;
+
+    *(s32 *)(base + 0x1C) = 0;
+    *(s32 *)(base + 0x08) = 0;
+    *(s32 *)(base + 0x20) = 0;
+    *(u8 *)(base + 1) = 0xC;
+    func_80039388();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038A18);

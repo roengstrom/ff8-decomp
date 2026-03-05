@@ -57,7 +57,17 @@ s32 func_80035E50(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80035E68);
+/**
+ * @brief Reset overlay queue state — clears read/write indices and sets result to -1.
+ */
+void func_80035E68(void) {
+    extern s32 D_80085140;
+    extern s32 D_80085144;
+    extern volatile s32 D_8008514C;
+    D_80085140 = 0;
+    D_80085144 = 0;
+    D_8008514C = -1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80035E8C);

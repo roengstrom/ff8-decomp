@@ -110,7 +110,19 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_80039140);
 INCLUDE_ASM("asm/nonmatchings/2953C", func_80039218);
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_80039344);
+/**
+ * @brief Check CD drive status and handle stopped state.
+ *
+ * Issues CdControl(1) (CdlNop/GetStat), checks if bit 4 (shell open)
+ * is set in the result. If not set, calls func_80038A60 to handle it.
+ */
+void func_80039344(void) {
+    u8 buf[8];
+    CdControl(1, 0, buf);
+    if ((buf[0] & 0x10) == 0) {
+        func_80038A60();
+    }
+}
 
 
 /**
@@ -174,6 +186,12 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_80039AA0);
 INCLUDE_ASM("asm/nonmatchings/2953C", func_80039AB4);
 
 
+/**
+ * @brief Disable the CD-ROM interrupt handler.
+ *
+ * Enters a critical section, removes the CD interrupt callback from
+ * RCnt(3) via ChangeClearRCnt and SysDeqIntRP, then exits the critical section.
+ */
 INCLUDE_ASM("asm/nonmatchings/2953C", func_80039B80);
 
 

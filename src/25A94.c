@@ -2,7 +2,13 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-INCLUDE_ASM("asm/nonmatchings/25A94", func_80035294);
+/**
+ * @brief Call func_80026FE0 with a value loaded from scratchpad memory.
+ * @note Reads a 32-bit value from PS1 scratchpad address 0x1F80001C.
+ */
+void func_80035294(void) {
+    func_80026FE0(*(s32 *)0x1F80001C);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/25A94", func_800352BC);
@@ -65,10 +71,40 @@ void func_80035BC0(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/25A94", func_80035BCC);
+/**
+ * @brief Dispatch a VSync callback or execute default VSync actions.
+ *
+ * If D_80083798 is non-NULL, calls it as a function pointer. Otherwise,
+ * calls func_80013300 with parameters 1 and 3 sequentially.
+ */
+void func_80035BCC(void) {
+    extern s32 D_80083798;
+    void (*fp)(void) = (void (*)(void))D_80083798;
+    if (fp != 0) {
+        fp();
+    } else {
+        func_80013300(1);
+        func_80013300(3);
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/25A94", func_80035C10);
+/**
+ * @brief Dispatch a draw callback or execute default draw actions.
+ *
+ * If D_8008379C is non-NULL, calls it as a function pointer. Otherwise,
+ * calls func_8001336C with parameters 3 and 1 sequentially.
+ */
+void func_80035C10(void) {
+    extern s32 D_8008379C;
+    void (*fp)(void) = (void (*)(void))D_8008379C;
+    if (fp != 0) {
+        fp();
+    } else {
+        func_8001336C(3);
+        func_8001336C(1);
+    }
+}
 
 
 /**

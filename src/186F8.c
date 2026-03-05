@@ -673,10 +673,36 @@ void func_8002A2C4(u8 *dst, u8 *src) {
 INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A2F4);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A318);
+/**
+ * @brief Copy n bytes from source to destination (forward copy).
+ * @param src Source address.
+ * @param dst Destination address.
+ * @param n Number of bytes to copy.
+ */
+void func_8002A318(u8 *src, u8 *dst, s32 n) {
+    while (n > 0) {
+        *dst++ = *src++;
+        n--;
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A340);
+/**
+ * @brief Copy n bytes from source to destination (backward/reverse copy).
+ * @param src Source address.
+ * @param dst Destination address.
+ * @param n Number of bytes to copy.
+ */
+void func_8002A340(u8 *src, u8 *dst, s32 n) {
+    src += n;
+    dst += n;
+    while (n > 0) {
+        dst--;
+        src--;
+        *dst = *src;
+        n--;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A36C);

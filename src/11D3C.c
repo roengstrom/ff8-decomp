@@ -5,13 +5,53 @@
 INCLUDE_ASM("asm/nonmatchings/11D3C", func_8002153C);
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_80021628);
+/**
+ * @brief Quadratic XP/stat curve evaluation.
+ * @param a0 Level input.
+ * @param a1 Linear coefficient.
+ * @param a2 Quadratic coefficient.
+ * @return a1 * (a0 * 10) + (a0 * a0 * a2) / 256.
+ */
+s32 func_80021628(s32 a0, s32 a1, s32 a2) {
+    s32 sq = a0 * a0 * a2;
+    s32 x = a0 * 10;
+    return a1 * x + sq / 256;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_8002166C);
+/**
+ * @brief Look up GF ability XP curve parameters and compute a value.
+ * @param a0 GF index (stride 132 in g_gfData ability table).
+ * @param a1 Level value passed through as first arg to func_80021628.
+ * @return Result of func_80021628(a1, linearCoeff, quadDivisor).
+ */
+s32 func_8002166C(s32 a0, s32 a1) {
+    extern u8 g_gfData[];
+    s32 base = (s32)g_gfData;
+    s32 entry = base + a0 * 132;
+    return func_80021628(a1, *(u8 *)(entry + 0xF90), *(u8 *)(entry + 0xF91));
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_800216B0);
+/**
+ * @brief Find the level at which a GF ability curve reaches a given XP threshold.
+ * @param a0 XP threshold to check against.
+ * @param a1 GF index (stride 132 in g_gfData ability table).
+ * @return Level (1–100) where the curve value first exceeds a0, or 100 if never exceeded.
+ */
+s32 func_800216B0(s32 a0, s32 a1) {
+    extern u8 g_gfData[];
+    s32 i = 1;
+    s32 base = (s32)g_gfData;
+    s32 entry = base + a1 * 132;
+    do {
+        if (a0 < func_80021628(i, *(u8 *)(entry + 0xF90), *(u8 *)(entry + 0xF91))) {
+            return i;
+        }
+        i++;
+    } while (i < 100);
+    return i;
+}
 
 
 /**
@@ -52,10 +92,60 @@ s32 func_8002178C(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_800217F4);
+/**
+ * @brief Find the level at which a GF XP curve (via character slot) reaches a threshold.
+ * @param a0 XP threshold to check against.
+ * @param a1 Character slot index (stride 152 in g_gameState).
+ * @return Level (1–100) where the curve value first exceeds a0, or 100 if never exceeded.
+ * @note Reads a GF index from g_gameState offset 0x498, then uses g_gfData (stride 36) at offset 0x37AA.
+ */
+s32 func_800217F4(s32 a0, s32 a1) {
+    extern u8 g_gameState[];
+    extern u8 g_gfData[];
+    s32 i = 1;
+    s32 base1 = (s32)g_gameState;
+    u8 idx = *(u8 *)(base1 + a1 * 152 + 0x498);
+    s32 base2 = (s32)g_gfData;
+    s32 entry = base2 + idx * 36;
+    do {
+        if (a0 < func_80021628(i, *(u8 *)(entry + 0x37AA), *(u8 *)(entry + 0x37AB))) {
+            return i;
+        }
+        i++;
+    } while (i < 100);
+    return i;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_80021894);
+/**
+ * @brief Compute an XP-to-next-level value for a GF, via a character slot lookup.
+ * @param a0 Current XP value.
+ * @param a1 Character slot index (stride 152 in g_gameState).
+ * @return XP needed to reach the next level, or 0 if at max level (100).
+ * @note Similar to func_800217F4 but returns the difference between the curve value and a0,
+ *       or 0 if level 100 is reached.
+ */
+s32 func_80021894(s32 a0, s32 a1) {
+    extern u8 g_gameState[];
+    extern u8 g_gfData[];
+    s32 i = 1;
+    s32 base1 = (s32)g_gameState;
+    u8 idx = *(u8 *)(base1 + a1 * 152 + 0x498);
+    s32 base2 = (s32)g_gfData;
+    s32 entry = base2 + idx * 36;
+    s32 curveVal;
+    do {
+        curveVal = func_80021628(i, *(u8 *)(entry + 0x37AA), *(u8 *)(entry + 0x37AB));
+        if (a0 < curveVal) {
+            break;
+        }
+        i++;
+    } while (i < 100);
+    if (i == 100) {
+        return 0;
+    }
+    return curveVal - a0;
+}
 
 
 /**
@@ -101,7 +191,15 @@ s32 func_800219A8(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_800219B8);
+/**
+ * @brief Compute (a0 * a1) / 100, using the compiler's integer division optimization.
+ * @param a0 First multiplicand.
+ * @param a1 Second multiplicand.
+ * @return Product divided by 100 (truncated toward zero).
+ */
+s32 func_800219B8(s32 a0, s32 a1) {
+    return a0 * a1 / 100;
+}
 
 
 /**

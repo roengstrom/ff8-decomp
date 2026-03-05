@@ -5,13 +5,41 @@
 INCLUDE_ASM("asm/nonmatchings/278AC", func_800370AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037198);
+/**
+ * @brief Set a bit in the global bitfield array D_8007809B.
+ * @param a0 Bit index to set.
+ */
+void func_80037198(s32 a0) {
+    extern u8 D_8007809B[];
+    u8 *base = D_8007809B;
+    s32 byteIdx = a0 / 8;
+    base[byteIdx] |= (1 << (a0 & 7));
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800371D0);
+/**
+ * @brief Clear a bit in the global bitfield array D_8007809B.
+ * @param a0 Bit index to clear.
+ */
+void func_800371D0(s32 a0) {
+    extern u8 D_8007809B[];
+    u8 *base = D_8007809B;
+    s32 byteIdx = a0 / 8;
+    base[byteIdx] &= ~(1 << (a0 & 7));
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_8003720C);
+/**
+ * @brief Test a bit in the global bitfield array D_8007809B.
+ * @param a0 Bit index to test.
+ * @return Non-zero if bit is set, zero otherwise.
+ */
+s32 func_8003720C(s32 a0) {
+    extern u8 D_8007809B[];
+    u8 *base = D_8007809B;
+    s32 byteIdx = a0 / 8;
+    return base[byteIdx] & (1 << (a0 & 7));
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/278AC", func_80037240);

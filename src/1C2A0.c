@@ -31,7 +31,22 @@ s32 func_8002BEEC(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BF24);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C030);
+/**
+ * @brief Dispatch a battle entity's function pointer.
+ *
+ * Looks up the entity at index a0 in g_battleEntities (stride 64). If the
+ * first word (function pointer) is non-NULL, calls it with the entity address.
+ *
+ * @param a0 Entity index.
+ */
+void func_8002C030(s32 a0) {
+    extern u8 g_battleEntities[];
+    s32 entry = (s32)g_battleEntities + a0 * 64;
+    void (*fp)(s32) = (void (*)(s32))*(s32 *)entry;
+    if (fp != 0) {
+        fp(entry);
+    }
+}
 
 
 /** @brief Finds the first available battle entity slot (0-7) and marks it as active.

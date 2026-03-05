@@ -109,12 +109,38 @@ void func_8002F3A0(s32 byte, u8 *buf) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F3F0);
+/**
+ * @brief Convert a 16-bit value to a 2-character hex string via func_8002F3A0.
+ *
+ * Splits the 16-bit value into high and low bytes, converts each to a
+ * 2-character hex string, and null-terminates the result.
+ *
+ * @param a0 16-bit value to convert.
+ * @param a1 Output buffer (at least 5 bytes).
+ */
+void func_8002F3F0(s32 a0, u8 *a1) {
+    func_8002F3A0(a0 >> 8, a1);
+    a1 += 2;
+    func_8002F3A0(a0 & 0xFF, a1);
+    a1[2] = 0;
+}
 
 
-// u32_to_hex_string - converts u32 to 8-char hex string with configurable base char
-
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F43C);
+/**
+ * @brief Convert a 32-bit value to a 4-character hex string via func_8002F3F0.
+ *
+ * Splits the 32-bit value into high and low 16-bit halves, converts each
+ * to a 4-character hex string, and null-terminates the result.
+ *
+ * @param a0 32-bit value to convert.
+ * @param a1 Output buffer (at least 9 bytes).
+ */
+void func_8002F43C(s32 a0, u8 *a1) {
+    func_8002F3F0(a0 >> 16, a1);
+    a1 += 4;
+    func_8002F3F0(a0 & 0xFFFF, a1);
+    a1[4] = 0;
+}
 
 
 /**
