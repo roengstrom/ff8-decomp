@@ -2,11 +2,11 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-extern u8 D_80078658;
+extern u8 g_tripleTriad;
 
-/** @brief Return a pointer to the global item/key item inventory array D_80078658. */
+/** @brief Return a pointer to the global item/key item inventory array g_tripleTriad. */
 u8 *func_80023900(void) {
-    return &D_80078658;
+    return &g_tripleTriad;
 }
 
 /**

@@ -1,1 +1,3 @@
 g_gameState = 0x80077378;
+g_characters = 0x80077808;
+g_characterMagic = 0x80077818;

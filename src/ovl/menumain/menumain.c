@@ -33,13 +33,13 @@ extern s32 D_801FAAE4;
 extern s32 D_801FAAE8;
 extern u16 D_801FAAF2;
 extern u8 D_80077E5F;
-extern u16 D_80077E5C;
+extern u16 g_configFlags;
 extern u8 D_801F889C[];
 extern u8 D_801F7F98[];
 extern u8 g_gameState[];
 extern u8 D_80077E6C[];
 extern u8 D_801FABC8[];
-extern u8 D_80077818[];
+extern u8 g_characterMagic[];
 extern u8 D_80077EBC[];
 extern u8 D_801FAB38[];
 extern u8 D_80078720[];
@@ -49,7 +49,7 @@ extern s16 D_801FAA1E;
 extern u8 D_801FABC4[];
 extern u8 D_801F8BB8[];
 extern u16 D_800780E8;
-extern u8 D_80077864[];
+extern u8 g_characterAbilities[];
 extern u8 D_80056290[];
 extern u8 D_801F7E6C[];
 extern u8 D_801FAB88[];
@@ -1416,12 +1416,12 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F776C);
 /**
  * @brief Find ability slot by ID in character data.
  *
- * Searches 19 ability slots in D_80077864 for value a1.
+ * Searches 19 ability slots in g_characterAbilities for value a1.
  * Returns the slot index if found, or a2 (default) if not.
  */
 s32 func_801F77F8(s32 a0, s32 a1, s32 a2) {
     s32 offset = a0 * 152;
-    u8 *ptr = (u8 *)((s32)D_80077864 + offset);
+    u8 *ptr = (u8 *)((s32)g_characterAbilities + offset);
     s32 i;
     for (i = 0; i < 19; i++) {
         if (*ptr++ != a1) continue;
@@ -1446,7 +1446,7 @@ void func_801F784C(s32 a0, s32 a1, s32 a2) {
 /** @brief Remove ability a1 from character a0's junction slots. */
 void func_801F78D8(s32 a0, s32 a1) {
     s32 offset = a0 * 152;
-    u8 *ptr = (u8 *)((s32)D_80077864 + offset);
+    u8 *ptr = (u8 *)((s32)g_characterAbilities + offset);
     s32 i;
     for (i = 0; i < 19; i++) {
         if (*ptr == a1) {
@@ -1460,16 +1460,16 @@ void func_801F78D8(s32 a0, s32 a1) {
 /* Misc/Utility                                                             */
 /* ======================================================================== */
 
-/** @brief Apply vibration config setting from D_80077E5C bit 1. */
+/** @brief Apply vibration config setting from g_configFlags bit 1. */
 void func_801F7928(void) {
-    s32 val = D_80077E5C & 2;
+    s32 val = g_configFlags & 2;
     func_8001327C(val != 0);
 }
 
-/** @brief Apply ATB/screen brightness setting from D_80077E5C bit 6. */
+/** @brief Apply ATB/screen brightness setting from g_configFlags bit 6. */
 void func_801F7954(void) {
     s32 a1 = 0;
-    if (D_80077E5C & 0x40) {
+    if (g_configFlags & 0x40) {
         a1 = 0xFF;
     }
     func_80027EF8(0, a1);
@@ -1505,7 +1505,7 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F7AD4);
  */
 void func_801F7B10(s32 a0) {
     s32 offset = a0 * 152;
-    s32 base = (s32)D_80077818;
+    s32 base = (s32)g_characterMagic;
     u8 *ptr = (u8 *)(base + offset);
     s32 i;
     for (i = 0; i < 32; i++) {

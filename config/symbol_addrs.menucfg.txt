@@ -1,1 +1,2 @@
 g_gameState = 0x80077378;
+g_configFlags = 0x80077E5C;

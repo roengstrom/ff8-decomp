@@ -45,14 +45,14 @@ s32 func_8003720C(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/278AC", func_80037240);
 
 
-/** @brief Returns a pointer to global D_800786D8. */
+/** @brief Returns a pointer to global g_chocoboWorld. */
 u8 *func_800372D0(void) {
-    extern u8 D_800786D8;
-    return &D_800786D8;
+    extern u8 g_chocoboWorld;
+    return &g_chocoboWorld;
 }
 
 
-/** @brief Sets bit 0x1 in the byte at D_800786D8. */
+/** @brief Sets bit 0x1 in the byte at g_chocoboWorld. */
 void func_800372DC(void) {
     u8 *p = func_800372D0();
     *p |= 0x1;
