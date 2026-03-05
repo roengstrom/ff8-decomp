@@ -109,7 +109,7 @@ void func_8002AEF8(s32 idx, s32 value) {
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @return Active flag value (0 = inactive).
  */
-s32 func_8002AF54(s32 idx) {
+s32 GetActiveFlag(s32 idx) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     return entity->activeFlag;
 }

@@ -55,7 +55,7 @@ void func_8002C030(s32 a0) {
 s32 func_8002C070(void) {
     s32 i;
     for (i = 0; i < 8; i++) {
-        if (func_8002AF54(i) == 0) {
+        if (GetActiveFlag(i) == 0) {
             func_8002AEF8(i, 1);
             return i;
         }

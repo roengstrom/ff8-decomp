@@ -81,14 +81,32 @@ s32 func_80012D5C(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012E04);
-
 extern s32 D_80075058;
 extern s32 *D_80074F08;
+extern s32 *D_80073CA8;
+
+/**
+ * @brief Check sound subsystem status flags.
+ *
+ * Returns a bitfield: bit 0 set if D_80074F08->field04 is nonzero,
+ * bit 1 set if D_80073CA8 is non-NULL and its field04 is nonzero.
+ *
+ * @return Status bitfield.
+ */
+s32 func_80012E04(void) {
+    s32 *ptr = D_80074F08;
+    s32 *ptr2 = D_80073CA8;
+    s32 result = ptr[1] != 0;
+    if (ptr2 != 0 && ptr2[1] != 0) {
+        result |= 2;
+    }
+    return result;
+}
 extern s32 D_80075028[];
 extern s32 D_80077288[];
 extern s32 D_80074EB8[];
 extern s32 D_80077298[];
+extern s32 D_800772CC;
 
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80012E40);
@@ -660,7 +678,24 @@ s32 func_80013EE4(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80013F38);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014034);
+/**
+ * @brief Configure audio playback address based on sound structure state.
+ *
+ * If the sound structure has active fields (field04|field1C nonzero) and
+ * field00 bit 10 is set, uses address 0x3D000; otherwise uses 0x5D000.
+ * Calls func_800148B0 with the determined address and level 0xB0.
+ *
+ * @param a0 First parameter (passed through to func_800148B0).
+ * @param a1 Second parameter (passed through to func_800148B0).
+ */
+void func_80014034(s32 a0, s32 a1) {
+    s32 *ptr = D_80074F08;
+    s32 addr = 0x5D000;
+    if ((ptr[1] | ptr[7]) && (ptr[0] & 0x400)) {
+        addr = 0x3D000;
+    }
+    func_800148B0(a0, a1, 0xB0, addr);
+}
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014094);
 
@@ -739,7 +774,58 @@ void func_800144E4(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_8001451C);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800145E0);
+/**
+ * @brief Initialize SPU IRQ and sound engine state for playback.
+ *
+ * If @p a1 is zero, returns -1. Otherwise disables SPU IRQ, clears the IRQ
+ * address, stores both parameters into the SPU command buffer, initializes
+ * several sound engine counters in D_80077298, sets the frame limit from
+ * @p a1 >> 12, and issues command 0xE8 via func_8001A1E8.
+ *
+ * @param a0 First SPU command parameter (stored at D_80075058).
+ * @param a1 Second SPU command parameter / frame limit source (stored at D_80075058+4).
+ * @return 0 on success, -1 if @p a1 is zero.
+ */
+s32 func_800145E0(s32 a0, s32 a1) {
+    if (a1 == 0) {
+        return -1;
+    }
+    SpuSetIRQ(0);
+    SpuSetIRQAddr(0);
+    D_80075058 = a0;
+    *(&D_80075058 + 1) = a1;
+    D_80077298[13] = -1;
+    D_80077298[8] = 0;
+    D_80077298[9] = 0;
+    D_80077298[10] = 0;
+    D_80077298[14] = 0;
+    D_80077298[15] = (u32)a1 >> 12;
+    func_8001A1E8(0xE8);
+    return 0;
+}
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001466C);
+/**
+ * @brief Advance sound engine tick and frame counters; trigger IRQ callback if needed.
+ *
+ * Increments the tick counter (offset 0x24) and wraps the frame counter
+ * (offset 0x38) at the limit (offset 0x3C). If bit 24 of the flags word
+ * (offset 0x08) is set and the frame counter >= 3, calls func_8001F118.
+ *
+ * @return The value of D_800772CC (current sound engine state word).
+ */
+s32 func_8001466C(void) {
+    s32 *ptr = D_80077298;
+    s32 counter;
+
+    ptr[9]++;
+    counter = ptr[14] + 1;
+    ptr[14] = counter;
+    if ((u32)counter > (u32)(ptr[15] - 1)) {
+        ptr[14] = 0;
+    }
+    if ((ptr[2] & 0x1000000) && (u32)ptr[14] >= 3) {
+        func_8001F118();
+    }
+    return D_800772CC;
+}
 

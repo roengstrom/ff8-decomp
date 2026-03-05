@@ -28,7 +28,7 @@ func_8002AE30 = 0x8002AE30; // battle_entity_set_field_38_and_30
 func_8002AE60 = 0x8002AE60; // battle_entity_set_field_00
 func_8002AE78 = 0x8002AE78; // battle_entity_set_field_04
 func_8002AEF8 = 0x8002AEF8; // type:func battle_entity_set_field_34_and_clear
-func_8002AF54 = 0x8002AF54; // type:func battle_entity_get_field_34
+GetActiveFlag = 0x8002AF54; // type:func battle_entity_get_field_34
 func_8002F384 = 0x8002F384; // lookup_hex_char (D_80052A20 = "0123456789ABCDEF")
 func_8002F488 = 0x8002F488; // u32_to_hex_string
 func_80030720 = 0x80030720; // init_battle_camera
