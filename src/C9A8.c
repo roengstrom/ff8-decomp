@@ -96,6 +96,20 @@ void func_8001C5D8(u8 *a0) {
     *(u8 **)a0 = ptr + offset;
 }
 
+/**
+ * @brief Conditional branch in music sequence: reads voice index and optional offset.
+ *
+ * Reads a byte from the stream. If the byte is within the valid voice count
+ * (D_80074F08+0x60), reads a 16-bit signed offset from the next two bytes
+ * and jumps the stream cursor by that offset. Otherwise skips the 2-byte
+ * offset field. Both paths end with storing the new cursor and returning.
+ *
+ * @param a0 Pointer to the stream state (cursor at +0x00).
+ *
+ * @note Non-matching: compiler adds unnecessary andi for zero-extension after
+ *       lhu/lbu, uses sltu instead of slt, and schedules the cursor store
+ *       into the branch delay slot instead of before the conditional block.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C604);
 
 /** @brief Reads one byte from stream, advances cursor, ORs 3 into flags, stores byte << 8 as halfword at +0x80.

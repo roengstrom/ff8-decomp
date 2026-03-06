@@ -173,6 +173,19 @@ void func_80012FBC(s32 a0, s32 a1) {
     func_8001A1E8(0x12);
 }
 
+/**
+ * @brief Query the current SPU transfer position as a packed 32-bit value.
+ *
+ * Returns 0 if neither field +0x04 nor +0x1C of the sound engine state
+ * (D_80074F08) is set. Otherwise returns the current position as
+ * (field_0x6C << 16) | (field_0x66 + 1).
+ *
+ * @return Packed position value, or 0 if inactive.
+ *
+ * @note Non-matching: branch direction inversion (original uses beqz to skip
+ *       computation, compiler generates bnez to jump to it) and register
+ *       allocation (pointer in $5 original vs $4 ours).
+ */
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80012FEC);
 
 /**

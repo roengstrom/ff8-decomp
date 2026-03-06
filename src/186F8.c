@@ -770,10 +770,47 @@ void func_8002A438(u8 *a0) {
 INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A45C);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A528);
+/**
+ * @brief Swap the active display list buffer and clear the new OT.
+ *
+ * Toggles between two display list buffers at g_battleAnims+0x640 and
+ * g_battleAnims+0x698. Stores the new active buffer at +0x6F0, clears
+ * its ordering table (18 entries), and copies the GPU packet pointer
+ * from offset +0x54 to offset +0x00.
+ */
+void func_8002A528(void) {
+    s32 base = (s32)g_battleAnims;
+    s32 cur = *(s32 *)(base + 0x6F0);
+    s32 newBuf = base + 0x640;
+    s32 v1;
+    if (cur == newBuf) {
+        newBuf = base + 0x698;
+    }
+    *(s32 *)(base + 0x6F0) = newBuf;
+    ClearOTag((u32 *)(newBuf + 8), 0x12);
+    v1 = *(s32 *)(base + 0x6F0);
+    *(s32 *)v1 = *(s32 *)(v1 + 0x54);
+}
 
-
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A588);
+/**
+ * @brief Swap the active display list buffer and clear the new OT (duplicate).
+ *
+ * Identical logic to func_8002A528 — toggles display list buffers,
+ * clears OT, copies GPU packet pointer.
+ */
+void func_8002A588(void) {
+    s32 base = (s32)g_battleAnims;
+    s32 cur = *(s32 *)(base + 0x6F0);
+    s32 newBuf = base + 0x640;
+    s32 v1;
+    if (cur == newBuf) {
+        newBuf = base + 0x698;
+    }
+    *(s32 *)(base + 0x6F0) = newBuf;
+    ClearOTag((u32 *)(newBuf + 8), 0x12);
+    v1 = *(s32 *)(base + 0x6F0);
+    *(s32 *)v1 = *(s32 *)(v1 + 0x54);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A5E8);
