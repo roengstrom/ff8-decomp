@@ -171,7 +171,26 @@ void func_8001C898(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C8DC);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C968);
+/**
+ * @brief Reads a note byte from the stream and sets pitch/flag fields.
+ *
+ * Reads one byte from the stream cursor, advances it, sets flag bits 0-1
+ * at offset +0xF8, clears +0x8E, and stores (byte + 0x40) << 8 at +0x8C.
+ *
+ * @param a0 Pointer to the track structure (stream ptr at +0x00).
+ */
+void func_8001C968(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    u32 val = *ptr;
+    s32 flags = *(s32 *)(a0 + 0xF8);
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x8E) = 0;
+    *(s32 *)(a0 + 0xF8) = flags | 3;
+    val += 0x40;
+    val &= 0xFF;
+    val <<= 8;
+    *(u16 *)(a0 + 0x8C) = val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C99C);
 
@@ -235,6 +254,14 @@ void func_8001CC9C(u8 *a0) {
     *(u16 *)(a0 + 0xE4) = *(u16 *)(a0 + 0xE4) + val;
 }
 
+/**
+ * @brief Reads duration and delta from stream and stores to track fields.
+ *
+ * Reads a byte for duration, storing at +0x94 (or 0x100 if the byte was 0).
+ * Then reads a signed byte for delta, storing sign-extended at +0xEA.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CCC8);
 
 /** @brief Reads one byte from stream as duration. If zero, stores 0x100. Clears tempo/timer fields.
@@ -602,8 +629,26 @@ void func_8001DAB4(u8 *a0) {
     *(u16 *)(a0 + 0x10A) = 0;
 }
 
+/**
+ * @brief Reads two bytes from stream, stores to D_80074F08+0x68 and +0x64,
+ *        then clears +0x6A and +0x66.
+ *
+ * @param a0 Pointer to the stream state.
+ *
+ * @note Non-matching: register allocation — compiler assigns dest to $3 (v1)
+ *       instead of $5 (a1). Declaration order doesn't affect assignment.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DACC);
 
+/**
+ * @brief Reads two bytes from stream and combines into 16-bit value at
+ *        D_80074F08+0x6C (low byte first, high byte shifted left 8).
+ *
+ * @param a0 Pointer to the stream state.
+ *
+ * @note Non-matching: register allocation — compiler assigns ptr to $3 (v1)
+ *       instead of $5 (a1). Same leaf register allocation issue as func_8001DACC.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB04);
 
 /**

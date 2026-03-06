@@ -166,7 +166,26 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80018358);
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018438);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018610);
+/**
+ * @brief Process a sound voice and compute the remaining play count.
+ *
+ * Calls func_80018158 on the voice structure, then reads the play count
+ * at offset +0x0C. If non-zero, decrements by 1 and stores to D_80074EB0;
+ * otherwise stores 0.
+ *
+ * @param a0 Pointer to the sound voice structure.
+ */
+void func_80018610(u8 *a0) {
+    extern s32 D_80074EB0;
+    s32 val, result;
+    func_80018158(a0);
+    val = *(s32 *)(a0 + 0xC);
+    result = 0;
+    if (val != 0) {
+        result = val - 1;
+    }
+    D_80074EB0 = result;
+}
 
 /**
  * @brief Saves current sound parameters, replaces with defaults, and triggers playback.
@@ -188,9 +207,44 @@ void func_80018650(s32 *a0) {
     func_80017AAC(a0, a1, a2, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_8001869C);
+/**
+ * @brief Set default sound parameters, look up voice, and play.
+ *
+ * Resolves the SPU voice address via func_80017C9C, sets default volume
+ * (0x2000000), pan (0x80), and envelope (0x7F) on the parameter structure,
+ * looks up the instrument group via D_80074ED8, and plays via func_80017AAC.
+ *
+ * @param a0 Pointer to the sound parameter structure.
+ */
+void func_8001869C(s32 *a0) {
+    extern u8 *D_80074ED8;
+    s32 local10, local14;
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_8001871C);
+    func_80017C9C(&local10, &local14, a0[0]);
+    a0[1] = 0x2000000;
+    a0[2] = 0x80;
+    a0[3] = 0x7F;
+    a0[4] = func_80016F3C(*(u16 *)(D_80074ED8 + a0[0] * 2));
+    func_80017AAC(a0, local10, local14, 0);
+}
+
+/**
+ * @brief Look up and play a sound voice by index.
+ *
+ * Resolves the SPU voice address via func_80017C9C, reads the sample pitch
+ * from D_80074ED8 table, processes it with func_80016F3C, stores the result
+ * at offset +0x10 of the parameter structure, and plays via func_80017AAC.
+ *
+ * @param a0 Pointer to the sound parameter structure.
+ */
+void func_8001871C(s32 *a0) {
+    extern u8 *D_80074ED8;
+    s32 local10, local14;
+
+    func_80017C9C(&local10, &local14, a0[0]);
+    a0[4] = func_80016F3C(*(u16 *)(D_80074ED8 + a0[0] * 2));
+    func_80017AAC(a0, local10, local14, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018784);
 

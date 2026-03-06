@@ -175,7 +175,25 @@ INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D040);
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D6AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D744);
+/**
+ * @brief Skips past a given number of null-terminated strings, then calls func_8002D6AC.
+ *
+ * Advances @p a1 past @p a2 null-terminated strings by scanning bytes until
+ * null is found for each string. After skipping, calls func_8002D6AC with
+ * the original @p a0 and @p a1.
+ *
+ * @param a0 First parameter passed through to func_8002D6AC.
+ * @param a1 Pointer to the start of the string data.
+ * @param a2 Number of strings to skip.
+ */
+void func_8002D744(s32 a0, u8 *a1, s32 a2) {
+    while (a2 > 0) {
+        while (*a1++ != 0) {
+        }
+        a2--;
+    }
+    func_8002D6AC(a0, a1);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D784);

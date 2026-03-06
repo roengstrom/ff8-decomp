@@ -313,6 +313,12 @@ void func_8001336C(u32 a0) {
     func_8001A1E8(val);
 }
 
+/**
+ * @brief Multiply input by 256, call func_8003ED24 with sign-extended 16-bit value, return full shifted result.
+ *
+ * @param a0 Input value to shift.
+ * @return a0 * 256 (full 32-bit result, not truncated).
+ */
 INCLUDE_ASM("asm/nonmatchings/34C8", func_800133D8);
 
 /** @brief If a0 is non-zero, sets bit 0x10 in D_80077288[1]; otherwise clears it. Returns 0. */
@@ -701,7 +707,38 @@ INCLUDE_ASM("asm/nonmatchings/34C8", func_80014094);
 
 INCLUDE_ASM("asm/nonmatchings/34C8", func_80014190);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014250);
+/**
+ * @brief Set CD audio volume mixing levels and apply via CdMix.
+ *
+ * If D_8007728C bit 1 is set, scales @p a0 by a fixed factor
+ * ((a0 * 46448) >> 17) and sets all four attenuation bytes equally.
+ * Otherwise, sets left-to-left and right-to-right = a0, crosstalk = 0.
+ * Calls CdMix to apply the settings.
+ *
+ * @param a0 Volume level (0-128).
+ * @return Always 0.
+ */
+s32 func_80014250(s32 a0) {
+    extern s32 D_8007728C;
+    extern u8 D_80073C30[];
+
+    if (D_8007728C & 2) {
+        s32 base = (s32)D_80073C30;
+        s32 vol = (u32)(a0 * 46448) >> 17;
+        *(u8 *)(base + 3) = vol;
+        *(u8 *)(base + 1) = vol;
+        *(u8 *)(base + 2) = vol;
+        *(u8 *)(base + 0) = vol;
+    } else {
+        s32 base = (s32)D_80073C30;
+        *(u8 *)(base + 2) = a0;
+        *(u8 *)(base + 0) = a0;
+        *(u8 *)(base + 3) = 0;
+        *(u8 *)(base + 1) = 0;
+    }
+    CdMix((s32 *)D_80073C30);
+    return 0;
+}
 
 /**
  * @brief Conditionally dispatch SPU command 0xE0 with three parameters.

@@ -22,9 +22,33 @@ void func_80014754(void) {
  * Sets D_80074ED4 to 1 (DMA active), then registers func_80014754 as
  * the transfer completion callback via func_8003E494.
  */
-INCLUDE_ASM("asm/nonmatchings/4EF0", func_80014778);
+/**
+ * @brief Sets the SPU DMA active flag and registers the completion callback.
+ *
+ * Sets D_80074ED4 to 1 (DMA active), then registers func_80014754 as
+ * the transfer completion callback via func_8003E494.
+ */
+void func_80014778(void) {
+    extern volatile s32 D_80074ED4;
+    D_80074ED4 = 1;
+    func_8003E494((s32)func_80014754);
+}
 
-INCLUDE_ASM("asm/nonmatchings/4EF0", func_800147A8);
+/**
+ * @brief Sets the SPU DMA active flag, registers callback, and initiates SPU write.
+ *
+ * Sets D_80074ED4 to 1, registers func_80014754 as the completion callback,
+ * then calls func_8003E3A4 to begin the SPU write with the given address and size.
+ *
+ * @param a0 SPU destination address.
+ * @param a1 Transfer size in bytes.
+ */
+void func_800147A8(s32 a0, s32 a1) {
+    extern volatile s32 D_80074ED4;
+    D_80074ED4 = 1;
+    func_8003E494((s32)func_80014754);
+    func_8003E3A4(a0, a1);
+}
 
 /** @brief Calls func_80014778, then SpuRead with a0/a1 as arguments.
  *  @param a0 SPU read address.

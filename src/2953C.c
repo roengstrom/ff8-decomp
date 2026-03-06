@@ -174,6 +174,18 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_80039764);
 void func_80039910(void);
 void func_800398A8(void);
 
+/**
+ * @brief Initialize CD callback table with handler function pointers.
+ *
+ * Sets up a callback structure centered on D_8008A404:
+ * - D_8008A404+0x00 = func_80039910 (primary handler)
+ * - D_8008A404+0x04 = func_800398A8 (secondary handler)
+ * - D_8008A404-0x04 = 0 (status cleared)
+ * - D_8008A404+0x08 = 0 (status cleared)
+ *
+ * @note Non-matching: scheduler interleaves lui for func_80039910 into
+ *       D_8008A404 load delay, and folds %lo(D_8008A404) into sw immediate.
+ */
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003987C);
 
 
@@ -260,12 +272,48 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_8003ADD4);
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003AEA8);
 
 
+/**
+ * @brief Calls a function pointer from D_80056568, then passes result to func_8003B8E0.
+ *
+ * Loads a function pointer from D_80056568 and calls it with @p a0.
+ * Passes the return value and @p a1 to func_8003B8E0.
+ *
+ * @param a0 Parameter passed to the indirect call.
+ * @param a1 Second parameter passed through to func_8003B8E0.
+ *
+ * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
+ *       this file (compiled with PsyQ 4.1).
+ */
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003AF50);
 
-
+/**
+ * @brief Calls a function pointer from D_80056568, then passes result to func_8003BA2C.
+ *
+ * Loads a function pointer from D_80056568 and calls it with @p a0.
+ * Passes the return value, (u8)a1, and (u8)a2 to func_8003BA2C.
+ *
+ * @param a0 Parameter passed to the indirect call.
+ * @param a1 Note value (truncated to 8-bit).
+ * @param a2 Velocity value (truncated to 8-bit).
+ *
+ * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
+ *       this file (compiled with PsyQ 4.1).
+ */
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003AF88);
 
-
+/**
+ * @brief Calls a function pointer from D_80056568, then passes result to func_8003B024.
+ *
+ * Loads a function pointer from D_80056568 and calls it with @p a0.
+ * Passes the return value, a1, and a2 to func_8003B024.
+ *
+ * @param a0 Parameter passed to the indirect call.
+ * @param a1 Data pointer value.
+ * @param a2 Parameter byte value.
+ *
+ * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
+ *       this file (compiled with PsyQ 4.1).
+ */
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003AFD0);
 
 
