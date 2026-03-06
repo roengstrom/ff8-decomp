@@ -5,6 +5,11 @@ extern s32 D_80075028[];
 extern s32 D_80077288[];
 extern s32 D_80077298[];
 
+void func_8001E594(void);
+void func_8001E7A8(void);
+void func_8001E808(void);
+void func_8001F51C(void);
+
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C1A8);
 
 extern u8 D_80073E68[];
@@ -591,7 +596,23 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB04);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB40);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB7C);
+/**
+ * @brief Reads byte from stream; computes duration (byte+1 or 0x101 if zero),
+ *        stores to +0xD0, then calls func_8001D280 with voice bitmask.
+ * @param a0 Pointer to stream state.
+ * @param a1 Voice bitmask passed through to func_8001D280.
+ */
+void func_8001DB7C(u8 *a0, s32 a1) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (val != 0) {
+        *(u16 *)(a0 + 0xD0) = val + 1;
+    } else {
+        *(u16 *)(a0 + 0xD0) = 0x101;
+    }
+    func_8001D280((s32 *)a0, a1);
+}
 
 /** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD0, else stores 0x101.
  *  @param a0 Pointer to stream state.
@@ -607,7 +628,23 @@ void func_8001DBC0(u8 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DBF0);
+/**
+ * @brief Reads byte from stream; computes duration (byte+1 or 0x101 if zero),
+ *        stores to +0xD2, then calls func_8001D348 with voice bitmask.
+ * @param a0 Pointer to stream state.
+ * @param a1 Voice bitmask passed through to func_8001D348.
+ */
+void func_8001DBF0(u8 *a0, s32 a1) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (val != 0) {
+        *(u16 *)(a0 + 0xD2) = val + 1;
+    } else {
+        *(u16 *)(a0 + 0xD2) = 0x101;
+    }
+    func_8001D348((s32 *)a0, a1);
+}
 
 /** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD2, else stores 0x101.
  *  @param a0 Pointer to stream state.
@@ -623,7 +660,20 @@ void func_8001DC34(u8 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DC64);
+/**
+ * @brief Clears bits 0x30 and 0x08 in flags at +0x30, then calls
+ *        func_8001D2E0, func_8001D3BC, func_8001D484, and clears
+ *        bits 0x5 in halfword at +0x9A.
+ * @param a0 Pointer to stream state.
+ * @param a1 Second argument passed to func_8001D3BC and func_8001D484.
+ */
+void func_8001DC64(u8 *a0, s32 a1) {
+    *(s32 *)(a0 + 0x30) &= ~0x37;
+    func_8001D2E0((s32 *)a0, a1);
+    func_8001D3BC((s32 *)a0, a1);
+    func_8001D484((s32 *)a0, a1);
+    *(u16 *)(a0 + 0x9A) = *(u16 *)(a0 + 0x9A) & 0xFFFA;
+}
 
 /** @brief Sets bit 0x10 in word at a0+0x30. */
 void func_8001DCCC(u8 *a0) {
@@ -647,7 +697,21 @@ void func_8001DD08(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DD1C);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DDD4);
+/**
+ * @brief Reads byte from stream, sets flags |= 0x800, clears +0x6C,
+ *        stores byte<<8 to +0x6A, then calls func_8001D424.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001DDD4(u8 *a0, s32 a1) {
+    u8 *ptr = *(u8 **)a0;
+    s32 flags = *(s32 *)(a0 + 0x30);
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x6C) = 0;
+    *(s32 *)(a0 + 0x30) = flags | 0x800;
+    *(u16 *)(a0 + 0x6A) = val << 8;
+    func_8001D424((s32 *)a0, a1);
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DE18);
 
@@ -712,7 +776,16 @@ void func_8001DF70(void) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DFF4);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E084);
+/**
+ * @brief Sets up SPU transfer at address 0x2100, registers callback
+ *        func_8001E594, and initiates DMA transfer of 0x800 bytes.
+ */
+void func_8001E084(void) {
+    s32 addr = D_80077298[0] + 0x800;
+    SpuSetTransferStartAddr(0x2100);
+    func_8003E494(func_8001E594);
+    func_8003E3A4(addr, 0x800);
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E0CC);
 
@@ -720,9 +793,27 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E308);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E4C4);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E594);
+/**
+ * @brief Sets up SPU voice parameters for both channels, then registers
+ *        callback for 0x1000-byte streaming at addresses 0x1100/0x2100.
+ */
+void func_8001E594(void) {
+    s32 *base = D_80077298;
+    func_8001E308(base[4], 0, 0x1100, 0x2100);
+    func_8001E308(base[4] + 1, 0, 0x1100, 0x2100);
+    func_8001E4C4(0x1000, 0x2100, func_8001E7A8);
+}
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E5F8);
+/**
+ * @brief Sets up SPU voice parameters for dual-channel streaming, then registers
+ *        callback for 0x2000-byte streaming at addresses 0x1100-0x2900.
+ */
+void func_8001E5F8(void) {
+    s32 *base = D_80077298;
+    func_8001E308(base[4], 1, 0x1100, 0x2100);
+    func_8001E308(base[4] + 1, 2, 0x1900, 0x2900);
+    func_8001E4C4(0x2000, 0x2100, func_8001E808);
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E65C);
 
@@ -750,7 +841,15 @@ void func_8001E838(void) {
     func_8001E65C(0x2100, 0x2900, 0x1000, func_8001E808);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E868);
+/**
+ * @brief Unpacks struct fields into args, calls func_8001E0CC, then clears
+ *        the IRQ voice bits from D_80075028[0].
+ * @param a0 Pointer to 3-word struct: [data_ptr, loop_flag, callback].
+ */
+void func_8001E868(s32 *a0) {
+    func_8001E0CC(a0[0], a0[1], a0[2]);
+    D_80075028[0] &= ~D_80077298[3];
+}
 
 /** @brief Calls func_8001DF70. */
 void func_8001E8B0(void) {
@@ -775,9 +874,25 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EC0C);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EDD4);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F034);
+/**
+ * @brief Unpacks struct fields into 4 args, calls func_8001EC0C, then clears
+ *        the IRQ voice bits from D_80075028[0].
+ * @param a0 Pointer to 4-word struct.
+ */
+void func_8001F034(s32 *a0) {
+    func_8001EC0C(a0[0], a0[1], a0[2], a0[3]);
+    D_80075028[0] &= ~D_80077298[3];
+}
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F080);
+/**
+ * @brief Unpacks struct fields into 2 args, calls func_8001EDD4, then clears
+ *        the IRQ voice bits from D_80075028[0].
+ * @param a0 Pointer to 2-word struct.
+ */
+void func_8001F080(s32 *a0) {
+    func_8001EDD4(a0[0], a0[1]);
+    D_80075028[0] &= ~D_80077298[3];
+}
 
 /**
  * @brief Advances a sequence loop/repeat counter with wraparound.
@@ -803,7 +918,16 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F118);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F2A8);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F370);
+/**
+ * @brief Sets up SPU voice parameters for dual-channel streaming, then calls
+ *        func_8001F2A8 with callback func_8001F51C.
+ */
+void func_8001F370(void) {
+    s32 *base = D_80077298;
+    func_8001E308(base[4], 1, 0x1100, 0x2100);
+    func_8001E308(base[4] + 1, 2, 0x1900, 0x2900);
+    func_8001F2A8(0x2000, 0x2100, func_8001F51C);
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F3D4);
 
@@ -819,5 +943,16 @@ void func_8001F54C(void) {
     func_8001F3D4(0x2100, 0x2900, 0x1000, func_8001F51C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F57C);
+/**
+ * @brief Disables SPU IRQ, then sets up engine state from the given param struct.
+ * @param a0 Pointer to 2-word struct: [field_0x2C, field_0x30].
+ */
+void func_8001F57C(s32 *a0) {
+    s32 *base;
+    func_8001DF70();
+    base = D_80077298;
+    base[2] = 0x1000000;
+    base[11] = a0[0];
+    base[12] = a0[1];
+}
 
