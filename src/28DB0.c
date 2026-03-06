@@ -184,7 +184,20 @@ void func_800389CC(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038A18);
+/**
+ * @brief Reset CD drive mode and set state to complete.
+ *
+ * Sends CdControlB command 0xE (SetMode) with null parameters, waits
+ * 3 VSync periods, sends command 0x8 (Pause), then marks the CD state
+ * byte D_8008A3D9 as 0xB (complete).
+ */
+void func_80038A18(void) {
+    extern s8 D_8008A3D9;
+    CdControlB(0xE, 0, 0);
+    VSync(3);
+    CdControlB(8, 0, 0);
+    D_8008A3D9 = 0xB;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038A60);

@@ -440,6 +440,12 @@ void func_8001D500(void) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D508);
 
+/**
+ * @brief Reads byte from stream. ORs 0x900 into flags at +0xF8, ORs
+ *        0x1000000 into +0x30, masks +0x106 to keep bits 0-7 and 15,
+ *        ORs in byte shifted left 8.
+ * @param a0 Pointer to stream state.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D5A4);
 
 /**
@@ -466,7 +472,7 @@ void func_8001D5E8(s32 a0, s32 a1) {
  *        flags at +0xF8.
  * @param a0 Pointer to stream state.
  */
-void func_8001D61C(u8 *a0) {
+void func_8001D61C(u8 *a0, s32 a1) {
     u8 *ptr = *(u8 **)a0;
     s32 val = *ptr;
     *(u8 **)a0 = ptr + 1;
@@ -474,6 +480,12 @@ void func_8001D61C(u8 *a0) {
     *(u16 *)(a0 + 0x106) = (*(u16 *)(a0 + 0x106) & 0xFFF0) | val;
 }
 
+/**
+ * @brief Reads byte from stream. ORs 0x2200 into flags at +0xF8, ORs
+ *        0x8000000 into +0x30, masks +0x108 to keep bits 0-5 and 13-15,
+ *        ORs in byte shifted left 6.
+ * @param a0 Pointer to stream state.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D64C);
 
 /**
@@ -594,7 +606,19 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DACC);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB04);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB40);
+/**
+ * @brief Reads a byte from stream and sets both hi and lo nibble track parameters.
+ *
+ * Calls func_8001D5E8 to set bits [7:4] of offset +0x106, then calls
+ * func_8001D61C to set bits [3:0] of offset +0x106.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Voice bitmask (passed through to func_8001D5E8).
+ */
+void func_8001DB40(s32 a0, s32 a1) {
+    func_8001D5E8(a0, a1);
+    func_8001D61C((u8 *)a0, a1);
+}
 
 /**
  * @brief Reads byte from stream; computes duration (byte+1 or 0x101 if zero),
@@ -695,7 +719,55 @@ void func_8001DD08(u8 *a0) {
     *(s32 *)(a0 + 0x30) &= ~0x20;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DD1C);
+/**
+ * @brief Reads two 16-bit LE offsets from the stream, resolves pointers,
+ *        sets up D_80074EE8 with volume/pan data, and calls func_80017AAC.
+ *
+ * For each offset, if non-zero, computes a pointer as (stream_base + offset + 2);
+ * otherwise passes NULL. Sets D_80074EE8[0..1] to 0, [2] to the upper byte of
+ * the halfword at a0+0x8C, [3] to a0+0x44 >> 23. Advances the stream pointer by 4.
+ *
+ * @param a0 Pointer to the stream/voice state structure.
+ */
+void func_8001DD1C(u8 *a0) {
+    extern s32 D_80074EE8[];
+    u8 *ptr = *(u8 **)a0;
+    u16 off;
+    s32 a5;
+    s32 a6;
+
+    {
+        s32 hi = ptr[1];
+        s32 lo = ptr[0];
+        off = (hi << 8) | lo;
+    }
+    if (off != 0) {
+        a5 = (s32)(ptr + off + 2);
+    } else {
+        a5 = 0;
+    }
+
+    ptr += 2;
+
+    {
+        s32 hi = ptr[1];
+        s32 lo = ptr[0];
+        off = (hi << 8) | lo;
+    }
+    if (off != 0) {
+        a6 = (s32)(ptr + off + 2);
+    } else {
+        a6 = 0;
+    }
+
+    D_80074EE8[0] = 0;
+    D_80074EE8[1] = 0;
+    D_80074EE8[2] = *(u16 *)(a0 + 0x8C) >> 8;
+    D_80074EE8[3] = *(s32 *)(a0 + 0x44) >> 23;
+    func_80017AAC(D_80074EE8, a5, a6, 0);
+
+    *(u8 **)a0 = *(u8 **)a0 + 4;
+}
 
 /**
  * @brief Reads byte from stream, sets flags |= 0x800, clears +0x6C,
@@ -856,7 +928,26 @@ void func_8001E8B0(void) {
     func_8001DF70();
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E8D0);
+/**
+ * @brief Sets stereo panning volumes for two consecutive SPU voices.
+ *
+ * Dereferences @p a0 for the raw volume value, stores it at D_80077298+0x40,
+ * clears D_80077298+0x48. If the active flag at D_80077298+0xC is set,
+ * sets left volume on the first voice and right volume on the second.
+ *
+ * @param a0 Pointer to the raw volume/pan value.
+ */
+void func_8001E8D0(s32 *a0) {
+    u8 *base = (u8 *)D_80077298;
+    s32 rawVal = *a0;
+    *(s32 *)(base + 0x48) = 0;
+    *(s32 *)(base + 0x40) = rawVal;
+    if (*(s32 *)(base + 0xC) != 0) {
+        s32 vol = (rawVal << 15) >> 16;
+        func_80014E50(*(s32 *)(base + 0x10), vol, 0, 0);
+        func_80014E50(*(s32 *)(base + 0x10) + 1, 0, (*(s32 *)(base + 0x40) << 15) >> 16, 0);
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E940);
 

@@ -16,6 +16,12 @@ void func_80014754(void) {
     D_80074ED4 = 0;
 }
 
+/**
+ * @brief Sets the SPU DMA active flag and registers the completion callback.
+ *
+ * Sets D_80074ED4 to 1 (DMA active), then registers func_80014754 as
+ * the transfer completion callback via func_8003E494.
+ */
 INCLUDE_ASM("asm/nonmatchings/4EF0", func_80014778);
 
 INCLUDE_ASM("asm/nonmatchings/4EF0", func_800147A8);

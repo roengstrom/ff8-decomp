@@ -19,7 +19,30 @@ void func_80033298(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800332C4);
+/**
+ * @brief Call func_800330F4 with a color from D_80083848 selected by arg4.
+ *
+ * If arg4 >= 8, subtracts 8 and uses D_80083848[1]; otherwise uses
+ * D_80083848[0]. Passes the selected color as the 5th arg and the
+ * modified arg4 as the 6th.
+ *
+ * @param a0 First argument passed through.
+ * @param a1 Second argument passed through.
+ * @param a2 Third argument passed through.
+ * @param a3 Fourth argument passed through.
+ * @param arg4 Mode index; values >= 8 select the alternate color table.
+ */
+void func_800332C4(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    extern s32 D_80083848[];
+    s32 idx;
+    if (arg4 >= 8) {
+        arg4 -= 8;
+        idx = 1;
+    } else {
+        idx = 0;
+    }
+    func_800330F4(a0, a1, a2, a3, D_80083848[idx], arg4);
+}
 
 
 /**

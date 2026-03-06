@@ -16,10 +16,37 @@ void func_8002FF24(u8 *a0) {
 INCLUDE_ASM("asm/nonmatchings/20724", func_8002FF34);
 
 
+/**
+ * @brief Build a packed grayscale GPU color from a scalar and store it.
+ *
+ * Divides the input by 32 (signed), masks to 8 bits, replicates across
+ * R/G/B channels, sets the command byte to 0x64, and stores to D_800834C8.
+ *
+ * @param a0 Scalar intensity value.
+ */
 INCLUDE_ASM("asm/nonmatchings/20724", func_80030058);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030094);
+/**
+ * @brief Build a packed RGB GPU color from three scalars and store it.
+ *
+ * Divides each channel by 32 (signed), masks to 8 bits, packs as
+ * R | (G << 8) | (B << 16) | 0x64000000, and stores to D_800834C8.
+ *
+ * @param a0 Red intensity.
+ * @param a1 Green intensity.
+ * @param a2 Blue intensity.
+ */
+void func_80030094(s32 a0, s32 a1, s32 a2) {
+    extern s32 D_800834C8;
+    a0 /= 32;
+    a1 /= 32;
+    a2 /= 32;
+    a0 &= 0xFF;
+    a1 &= 0xFF;
+    a2 &= 0xFF;
+    D_800834C8 = a0 | (a1 << 8) | (a2 << 16) | 0x64000000;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/20724", func_800300F8);
@@ -44,26 +71,15 @@ void func_8003023C(s32 val) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030248);
-
-
-/** @brief Stores u16 and u8 to adjacent fields of D_800834D0.
- *  @param a0 Value stored as u16.
- *  @param a1 Value stored as u8 at offset 2.
+/**
+ * @brief Set control byte and optionally load game state into D_800834D0 fields.
+ *
+ * Always stores @p a0 as a byte at D_800834D0+3. If @p a0 is non-zero,
+ * also clears byte at +6 and copies game state byte from g_gameState+0xCD4
+ * into +7.
+ *
+ * @param a0 Control value; stored as byte, also acts as enable flag.
  */
-void func_80030274(s32 a0, s32 a1) {
-    extern u16 D_800834D0;
-    D_800834D0 = a0;
-    *((u8 *)&D_800834D0 + 2) = a1;
-}
-
-
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030288);
-
-
-INCLUDE_ASM("asm/nonmatchings/20724", func_800302DC);
-
-
 typedef struct {
     s16 f0;
     s8 f2;
@@ -74,6 +90,25 @@ typedef struct {
 } BattleCameraState;
 
 extern BattleCameraState D_800834D0;
+
+
+INCLUDE_ASM("asm/nonmatchings/20724", func_80030248);
+
+
+/** @brief Stores u16 and u8 to adjacent fields of D_800834D0.
+ *  @param a0 Value stored as u16.
+ *  @param a1 Value stored as u8 at offset 2.
+ */
+void func_80030274(s32 a0, s32 a1) {
+    *(u16 *)&D_800834D0 = a0;
+    *((u8 *)&D_800834D0 + 2) = a1;
+}
+
+
+INCLUDE_ASM("asm/nonmatchings/20724", func_80030288);
+
+
+INCLUDE_ASM("asm/nonmatchings/20724", func_800302DC);
 
 // init_battle_camera
 

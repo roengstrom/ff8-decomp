@@ -68,7 +68,25 @@ INCLUDE_ASM("asm/nonmatchings/14100", func_80023A88);
 INCLUDE_ASM("asm/nonmatchings/14100", func_80023B14);
 
 
-INCLUDE_ASM("asm/nonmatchings/14100", func_80023BB4);
+/**
+ * @brief Sum all positive results from func_80023B14 for indices 0..109.
+ *
+ * Iterates over indices 0 through 0x6D, calling func_80023B14 for each.
+ * Accumulates the return value only when positive (> 0).
+ *
+ * @return Sum of all positive func_80023B14 results.
+ */
+s32 func_80023BB4(void) {
+    s32 sum = 0;
+    s32 i = sum;
+    for (; i < 0x6E; i++) {
+        s32 result = func_80023B14(i);
+        if (result > 0) {
+            sum += result;
+        }
+    }
+    return sum;
+}
 
 
 /**

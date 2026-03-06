@@ -168,7 +168,25 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80018438);
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018610);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018650);
+/**
+ * @brief Saves current sound parameters, replaces with defaults, and triggers playback.
+ *
+ * Saves the first two words of the structure at @p a0, then overwrites
+ * with default volume/pan parameters (0x400, 0x1000000, 0x80, 0x7F, 0)
+ * and calls func_80017AAC with the saved values.
+ *
+ * @param a0 Pointer to a sound parameter structure (5 words).
+ */
+void func_80018650(s32 *a0) {
+    s32 a1 = a0[0];
+    s32 a2 = a0[1];
+    a0[0] = 0x400;
+    a0[1] = 0x1000000;
+    a0[2] = 0x80;
+    a0[3] = 0x7F;
+    a0[4] = 0;
+    func_80017AAC(a0, a1, a2, 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_8001869C);
 
@@ -203,7 +221,21 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80018B28);
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018C48);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018D40);
+/**
+ * @brief Clears the sound fade counter and sets SPU transfer address.
+ *
+ * Sets D_80074FE4 to 0, loads the halfword at @p a0, shifts it left 16,
+ * stores to D_80075078, and calls func_8001A55C.
+ *
+ * @param a0 Pointer to a halfword containing the SPU address high bits.
+ */
+void func_80018D40(u16 *a0) {
+    extern u16 D_80074FE4;
+    extern s32 D_80075078;
+    D_80074FE4 = 0;
+    D_80075078 = *a0 << 16;
+    func_8001A55C();
+}
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018D74);
 

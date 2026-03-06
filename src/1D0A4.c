@@ -243,6 +243,15 @@ void func_8002DD58(s32 idx) {
 }
 
 
+/**
+ * @brief Set reverb mode on the SFX entry's linked entity, clamped to [3, 11].
+ *
+ * Adds 3 to @p val, clamps to [3, 11], then calls func_8002AC88 with
+ * the entry's entityIdx and the clamped value.
+ *
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param val Base reverb mode value.
+ */
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DD78);
 
 
@@ -428,7 +437,28 @@ u16 func_8002E7A4(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E7C4);
+/**
+ * @brief Store raw intensity and build packed grayscale color for SFX overlay.
+ *
+ * Stores the raw value in D_80083850, then divides by 32, masks to 8 bits,
+ * replicates across R/G/B, sets command byte to 0x64, and stores to
+ * D_80083848 before triggering an SFX update.
+ *
+ * @param a0 Scalar intensity value.
+ */
+void func_8002E7C4(s32 a0) {
+    extern s32 D_80083850;
+    extern s32 D_80083848;
+    D_80083850 = a0;
+    {
+        s32 val = (u32)a0 >> 5;
+        a0 = val & 0xFF;
+    }
+    a0 |= (a0 << 16) | (a0 << 8);
+    a0 |= 0x64000000;
+    D_80083848 = a0;
+    func_8002C8A4();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E810);

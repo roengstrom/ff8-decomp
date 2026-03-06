@@ -255,7 +255,31 @@ INCLUDE_ASM("asm/nonmatchings/278AC", func_80038030);
 INCLUDE_ASM("asm/nonmatchings/278AC", func_800381BC);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80038308);
+/**
+ * @brief Clear entity flag bits 0x44 from active battle entities, then update.
+ *
+ * Iterates over D_80085388 entries at stride 0x264 (612 bytes) starting
+ * from D_80085224 + 0x160, clearing bits 2 and 6 of the flags word at
+ * each entry. Then calls func_800381BC to apply the changes.
+ */
+void func_80038308(void) {
+    extern s32 D_80085224;
+    extern u8 D_80085388;
+    s32 base = D_80085224;
+    s32 count = D_80085388;
+    s32 i = 0;
+
+    if (count != 0) {
+        s32 mask = ~0x44;
+        s32 ptr = base + 0x160;
+        do {
+            *(s32 *)ptr &= mask;
+            i++;
+            ptr += 0x264;
+        } while (i < count);
+    }
+    func_800381BC();
+}
 
 
 /** @brief Returns bits 3-4 of the flags word at offset 0x68 through D_800562C4. */

@@ -202,7 +202,37 @@ INCLUDE_ASM("asm/nonmatchings/172DC", func_80027A58);
 INCLUDE_ASM("asm/nonmatchings/172DC", func_80027AC8);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027B38);
+/**
+ * @brief Compute angle from (a0, a1) with special-case axis handling.
+ *
+ * Returns a fixed angle when either component is zero:
+ * - (0, <=0): 0xC00 (270 degrees)
+ * - (0, >0):  0x400 (90 degrees)
+ * - (<0, 0):  0x800 (180 degrees)
+ * - (>0, 0):  0x000 (0 degrees)
+ * Otherwise delegates to ratan2.
+ *
+ * @param a0 X component (horizontal).
+ * @param a1 Y component (vertical).
+ * @return Angle in fixed-point (0x1000 = 360 degrees).
+ */
+s32 func_80027B38(s32 a0, s32 a1) {
+    s32 v0;
+    if (a0 != 0) goto a0_nonzero;
+    v0 = 0xC00;
+    if (a1 <= 0) goto end;
+    v0 = 0x400;
+    goto end;
+a0_nonzero:
+    v0 = (a0 < 1);
+    if (a1 != 0) goto both_nonzero;
+    v0 <<= 11;
+    goto end;
+both_nonzero:
+    v0 = ratan2(a0, a1);
+end:
+    return v0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/172DC", func_80027B7C);
