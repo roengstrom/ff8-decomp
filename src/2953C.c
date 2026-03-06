@@ -171,6 +171,9 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_8003974C);
 INCLUDE_ASM("asm/nonmatchings/2953C", func_80039764);
 
 
+void func_80039910(void);
+void func_800398A8(void);
+
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003987C);
 
 

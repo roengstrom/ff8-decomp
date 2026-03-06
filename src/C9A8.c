@@ -106,7 +106,21 @@ void func_8001C65C(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C684);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C708);
+/**
+ * @brief Reads one byte from stream, advances cursor, ORs 3 into flags,
+ *        clears halfwords at +0x86 and +0x88, stores byte << 23 at +0x44.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001C708(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *(s8 *)ptr;
+    s32 flags = *(s32 *)(a0 + 0xF8) | 3;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x86) = 0;
+    *(s32 *)(a0 + 0xF8) = flags;
+    *(u16 *)(a0 + 0x88) = 0;
+    *(s32 *)(a0 + 0x44) = val << 23;
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C738);
 
@@ -131,7 +145,24 @@ void func_8001C87C(s32 *a0) {
 void func_8001C890(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C898);
+/**
+ * @brief Reads one byte from stream, advances cursor. Clears halfword at +0x8A,
+ *        stores byte << 8 at +0xDE. If bit 8 of flags at +0x30 is set, ORs 3
+ *        into flags at +0xF8.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001C898(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    s32 flags30;
+    *(u8 **)a0 = ptr + 1;
+    flags30 = *(s32 *)(a0 + 0x30);
+    *(u16 *)(a0 + 0x8A) = 0;
+    *(u16 *)(a0 + 0xDE) = (val << 8) & 0xFFFF;
+    if (flags30 & 0x100) {
+        *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 3;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C8DC);
 
@@ -139,7 +170,17 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C968);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C99C);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CA28);
+/**
+ * @brief Reads one byte from stream, advances cursor, stores byte as
+ *        halfword at +0x92.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001CA28(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    u16 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x92) = val;
+}
 
 /** @brief Increments halfword at a0+0x92, wraps modulo 16. */
 void func_8001CA44(u8 *a0) {
@@ -414,17 +455,80 @@ void func_8001D5E8(s32 a0, s32 a1) {
     *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x1000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D61C);
+/**
+ * @brief Reads one byte from stream, advances cursor. Masks field at +0x106
+ *        to clear low 4 bits and ORs in the byte. Sets bit 15 (0x8000) in
+ *        flags at +0xF8.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001D61C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)(a0 + 0xF8) |= 0x8000;
+    *(u16 *)(a0 + 0x106) = (*(u16 *)(a0 + 0x106) & 0xFFF0) | val;
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D64C);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D690);
+/**
+ * @brief Reads one byte from stream, advances cursor. ORs 0x4400 into flags
+ *        at +0xF8, ORs 0x10000000 into field at +0x30, masks +0x108 to keep
+ *        bits 5-15, ORs in byte (low 5 bits).
+ * @param a0 Pointer to stream state.
+ */
+void func_8001D690(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 flags = *(s32 *)(a0 + 0xF8);
+    s32 val;
+    s32 f30;
+    u16 f108;
+    val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)(a0 + 0xF8) = flags | 0x4400;
+    f30 = *(s32 *)(a0 + 0x30);
+    f108 = *(u16 *)(a0 + 0x108);
+    *(s32 *)(a0 + 0x30) = f30 | 0x10000000;
+    *(u16 *)(a0 + 0x108) = (f108 & 0xFFE0) | val;
+}
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D6D0);
+/**
+ * @brief Reads one byte from stream, advances cursor. Clears bit 15 of +0x106.
+ *        If byte == 5, sets bit 15 of +0x106. ORs 0x100 into flags at +0xF8.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001D6D0(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    u16 f106 = *(u16 *)(a0 + 0x106);
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    f106 &= 0x7FFF;
+    *(u16 *)(a0 + 0x106) = f106;
+    if (val == 5) {
+        *(u16 *)(a0 + 0x106) = f106 | 0x8000;
+    }
+    *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x100;
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D714);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D78C);
+/**
+ * @brief Reads one byte from stream, advances cursor. Clears bit 5 of +0x108.
+ *        If byte == 7, sets bit 5 of +0x108. ORs 0x400 into flags at +0xF8.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001D78C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    u16 f108 = *(u16 *)(a0 + 0x108);
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    f108 &= 0xFFDF;
+    *(u16 *)(a0 + 0x108) = f108;
+    if (val == 7) {
+        *(u16 *)(a0 + 0x108) = f108 | 0x20;
+    }
+    *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x400;
+}
 
 /** @brief Increments the word at a0 by 1. */
 void func_8001D7D0(s32 *a0) {
@@ -460,7 +564,20 @@ void func_8001DA0C(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DA34);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DA7C);
+/**
+ * @brief Conditionally updates field at +0x30 based on D_80074F08->0x34.
+ *
+ * If the word at D_80074F08+0x34 is nonzero, clears bits 0x19001008 and sets
+ * bit 3 (0x8) in the word at a0+0x30.
+ *
+ * @param a0 Pointer to stream state.
+ */
+void func_8001DA7C(u8 *a0) {
+    s32 check = *(s32 *)((u8 *)D_80074F08 + 0x34);
+    if (check != 0) {
+        *(s32 *)(a0 + 0x30) = (*(s32 *)(a0 + 0x30) & (s32)0xE6FFEFF7) | 8;
+    }
+}
 
 /** @brief Clears bit 0x8 in a0+0x30 and zeroes halfword at a0+0x10A. */
 void func_8001DAB4(u8 *a0) {
@@ -539,7 +656,18 @@ void func_8001DECC(u8 *a0) {
     *(s32 *)(a0 + 0x30) |= 0x100000;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DEE0);
+/**
+ * @brief Reads one byte from stream, advances cursor, adds D_80051824 base
+ *        to get address, stores into field +0x38 of D_80074F08.
+ * @param a0 Pointer to stream state.
+ */
+void func_8001DEE0(u8 *a0) {
+    extern u8 D_80051824;
+    u8 *ptr = *(u8 **)a0;
+    s32 val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)((u8 *)D_80074F08 + 0x38) = val + (s32)&D_80051824;
+}
 
 /** @brief ORs a1 into the word at D_80074F08+0x8 (set flags).
  *  @param a0 Unused.

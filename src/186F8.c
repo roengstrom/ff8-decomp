@@ -48,7 +48,13 @@ void func_80027FBC(s32 idx, s16 a1, s16 a2) {
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80027FDC);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028098);
+/**
+ * @brief Checks if all battle animation entities are inactive.
+ * @return 1 if all inactive (func_800280C0(0, 0) returns -1), 0 otherwise.
+ */
+s32 func_80028098(void) {
+    return (u32)~func_800280C0(0, 0) >> 31;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_800280C0);

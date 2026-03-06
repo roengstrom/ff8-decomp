@@ -181,7 +181,19 @@ void func_800188B4(s32 *a0) {
     func_800174E4(a0[0], a0[1]);
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800188E0);
+/**
+ * @brief Clears 12 entries (stride 16) in the D_80074F20 array.
+ * Writes zero to offset 0 of each entry, iterating backward.
+ */
+void func_800188E0(void) {
+    extern u8 D_80074F20;
+    s32 i = 12;
+    s32 base = (s32)&D_80074F20;
+top:
+    i--;
+    *(s32 *)(base + i * 16) = 0;
+    if (i != 0) goto top;
+}
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018908);
 

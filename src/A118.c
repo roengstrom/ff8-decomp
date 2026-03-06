@@ -2,13 +2,33 @@
 
 extern s32 *D_80074F08;
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019918);
+/**
+ * @brief Clears D_80073E62, stores *a0 << 16 into D_80077284.
+ * @param a0 Pointer to a byte value.
+ */
+void func_80019918(s8 *a0) {
+    extern u16 D_80073E62;
+    extern s32 D_80077284;
+    s32 val = *a0;
+    D_80073E62 = 0;
+    D_80077284 = val << 16;
+}
 
 INCLUDE_ASM("asm/nonmatchings/A118", func_80019934);
 
 INCLUDE_ASM("asm/nonmatchings/A118", func_8001999C);
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019A10);
+/**
+ * @brief Clears D_80073E60, stores *a0 << 16 into D_80077280.
+ * @param a0 Pointer to a byte value.
+ */
+void func_80019A10(s8 *a0) {
+    extern u16 D_80073E60;
+    extern s32 D_80077280;
+    s32 val = *a0;
+    D_80073E60 = 0;
+    D_80077280 = val << 16;
+}
 
 INCLUDE_ASM("asm/nonmatchings/A118", func_80019A2C);
 
