@@ -10,7 +10,23 @@ u8 *func_80020FBC(u16 a0, s32 a1);
  */
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_8001F5C8);
 
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_800205D0);
+/**
+ * @brief Game code VSync handler. Clears render mode if func_80035148 signals completion.
+ *
+ * Called from the VSync dispatch (g_renderMode == 4). Invokes func_80035294
+ * for per-frame processing, then checks func_80035148's return. If non-zero,
+ * sets g_renderMode to 0 (RENDER_IDLE) to signal the main loop.
+ */
+void func_800205D0(void) {
+    extern s16 g_renderMode;
+    void func_80035294(void);
+    s32 func_80035148(void);
+
+    func_80035294();
+    if (func_80035148() != 0) {
+        g_renderMode = 0;
+    }
+}
 
 
 /**
@@ -61,17 +77,17 @@ void func_80020670(s32 a0) {
 }
 
 
-/** @brief Returns a pointer to global D_800773B4. */
+/** @brief Returns a pointer to the Boko name field in the save header (g_gameState + 0x3C). */
 u8 *func_8002069C(void) {
-    extern u8 D_800773B4;
-    return &D_800773B4;
+    extern u8 g_gameState[];
+    return g_gameState + 0x3C;
 }
 
 
-/** @brief Returns a pointer to global D_800773A8. */
+/** @brief Returns a pointer to the Angelo name field in the save header (g_gameState + 0x30). */
 u8 *func_800206A8(void) {
-    extern u8 D_800773A8;
-    return &D_800773A8;
+    extern u8 g_gameState[];
+    return g_gameState + 0x30;
 }
 
 
@@ -91,7 +107,7 @@ s32 func_800206B4(s32 a0) {
  */
 u8 *func_800206F4(s32 a0) {
     extern u8 g_gfData[];
-    extern u8 D_800773A8;
+    extern u8 g_gameState[];
     u8 *result;
 
     if (a0 != 0) {
@@ -99,7 +115,7 @@ u8 *func_800206F4(s32 a0) {
         /* subTableT (+0x4A5C), ptrSubTableT (+0xD4) */
         result = func_80020FBC(*(u16 *)(base + a0 * 8 + 0x4A5C), *(s32 *)(base + 0xD4));
     } else {
-        result = &D_800773A8;
+        result = g_gameState + 0x30;
     }
     return result;
 }
@@ -415,18 +431,17 @@ s32 func_80020D4C(s32 a0) {
 s32 func_80020DB8(s32 a0) {
     extern u8 D_80078720[];
     extern u8 g_gfData[];
-    extern u8 D_80077390[];
-    extern u8 D_8007739C[];
+    extern u8 g_gameState[];
     u8 *base = D_80078720;
     u8 *entry;
 
     entry = base + a0 * 464;
 
     if (entry[0x1C3] == 0) {
-        return (s32)D_80077390;
+        return (s32)(g_gameState + 0x18);
     }
     if (entry[0x1C3] == 4) {
-        return (s32)D_8007739C;
+        return (s32)(g_gameState + 0x24);
     }
     {
         u8 *gfBase = g_gfData;
@@ -445,15 +460,14 @@ s32 func_80020DB8(s32 a0) {
  * @return Resolved data pointer.
  */
 u8 *func_80020E4C(s32 a0) {
-    extern u8 D_80077390;
-    extern u8 D_8007739C;
+    extern u8 g_gameState[];
     extern u8 g_gfData[];
 
     if (a0 == 0) {
-        return &D_80077390;
+        return g_gameState + 0x18;
     }
     if (a0 == 4) {
-        return &D_8007739C;
+        return g_gameState + 0x24;
     }
     {
         s32 base = (s32)g_gfData;
