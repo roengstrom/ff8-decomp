@@ -160,6 +160,21 @@ s32 func_8002CE74(void) {
 }
 
 
+/**
+ * @brief Get the remaining duration for an SFX entry.
+ *
+ * Looks up the entry at g_sfxEntries + idx * 60. If the entry's active
+ * flag (signed byte at +0x19) is zero, returns -1. Otherwise returns
+ * the difference between the total length (+0x2B) and current position (+0x29).
+ *
+ * @param idx Index into the SFX entry array (stride 60).
+ * @return Remaining duration, or -1 if inactive.
+ */
+/**
+ * @note Non-matching: leaf register allocation (entry in $a0 instead of $v0),
+ *       branch direction inversion (beqz vs bnez), and compiler fills j
+ *       delay slot with subu making function 1 instruction shorter.
+ */
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CE84);
 
 
@@ -270,7 +285,23 @@ void func_8002DD58(s32 idx) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Base reverb mode value.
  */
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DD78);
+void func_8002DD78(s32 idx, s32 val) {
+    s32 off;
+    s32 base;
+    s32 clamped;
+    val += 3;
+    if (val >= 3) {
+        clamped = 11;
+        if (val < 12) {
+            clamped = val;
+        }
+    } else {
+        clamped = 3;
+    }
+    off = idx * 60;
+    base = (s32)g_sfxEntries;
+    func_8002AC88(*(u8 *)(off + base + 0x18), clamped);
+}
 
 
 /**

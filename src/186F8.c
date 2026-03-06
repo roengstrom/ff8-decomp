@@ -66,7 +66,25 @@ INCLUDE_ASM("asm/nonmatchings/186F8", func_800281A4);
 INCLUDE_ASM("asm/nonmatchings/186F8", func_800281C4);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002828C);
+/**
+ * @brief Initialize a battle entity's color fields from the global default.
+ *
+ * Copies the byte at g_battleAnims+0x1E0 into the entity's color fields
+ * at offsets +0x0C through +0x0F (RGBX), then calls func_800281C4 to
+ * perform further entity initialization.
+ *
+ * @param a0 Entity index (stride 196 into g_battleAnims).
+ */
+void func_8002828C(s32 a0) {
+    s32 off = a0 * 196;
+    s32 base = (s32)g_battleAnims;
+    u8 *entry = (u8 *)(off + base);
+    entry[0xC] = *(u8 *)(base + 0x1E0);
+    entry[0xD] = *(u8 *)(base + 0x1E0);
+    entry[0xE] = *(u8 *)(base + 0x1E0);
+    entry[0xF] = *(u8 *)(base + 0x1E0);
+    func_800281C4(a0, 0);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_800282F4);
@@ -130,6 +148,16 @@ void func_800283F8(void) {
 }
 
 
+/**
+ * @brief Initialize GPU display and clear battle animation state fields.
+ *
+ * Calls GsInitGraph (func_800982D8), GsDefDispBuff (func_800980D0), and
+ * func_800283F8. Then clears g_battleAnims fields at +0x6FC, +0x9C8,
+ * +0x9CC to zero and sets +0x9C2 to 0x4611.
+ *
+ * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
+ *       this file (compiled with PsyQ 4.1).
+ */
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80028444);
 
 
@@ -396,6 +424,17 @@ INCLUDE_ASM("asm/nonmatchings/186F8", func_80028B98);
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80028CB4);
 
 
+/**
+ * @brief Initialize the memory card data block at D_80082FB4.
+ *
+ * Clears byte at +0x21, fills 2 sets of 4 consecutive bytes starting at
+ * +0x27 (then +0x2B) with the value 2, then calls func_80028CB4.
+ *
+ * @note Non-matching: register allocation differs — original keeps base
+ *       address in $v0 for initial store then copies to $a0 for loop;
+ *       compiler loads directly into $a0. Also const 2 is placed before
+ *       the loop in original but inside in ours (1 instruction shorter).
+ */
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80028D20);
 
 
@@ -728,6 +767,18 @@ void func_8002A340(u8 *src, u8 *dst, s32 n) {
 }
 
 
+/**
+ * @brief Compare two byte arrays for equality.
+ *
+ * @param a Pointer to first byte array.
+ * @param b Pointer to second byte array.
+ * @param count Number of bytes to compare.
+ * @return 1 if all bytes match (or count <= 0), 0 on first mismatch.
+ *
+ * @note Non-matching: compiler loop-inverts the blez pre-check + bgtz do-while
+ *       into j-to-check + bgtz (1 instruction longer). Also inverts beq
+ *       (skip over mismatch return) to bne (jump to mismatch at end).
+ */
 INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A36C);
 
 
@@ -853,7 +904,29 @@ s32 func_8002A8A0(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A8B8);
+/**
+ * @brief Store a GPU packet pointer and check for OT overflow.
+ *
+ * Writes @p pkt to the active display list buffer's current position,
+ * then checks if the pointer exceeds the buffer's limit. If it overflows
+ * (and is within the valid address range <= 0x801AFFFF), prints an error
+ * with the overflow amount.
+ *
+ * @param pkt GPU packet pointer to store.
+ */
+void func_8002A8B8(s32 pkt) {
+    extern u8 D_800101D0[];
+    s32 base = (s32)g_battleAnims;
+    s32 limit;
+    *(s32 *)*(s32 *)(base + 0x6F0) = pkt;
+    base = *(s32 *)(base + 0x6F0);
+    limit = *(s32 *)(base + 4);
+    if ((u32)limit < (u32)pkt) {
+        if ((u32)pkt <= 0x801AFFFFU) {
+            printf((char *)D_800101D0, (u32)pkt - (u32)limit);
+        }
+    }
+}
 
 
 /** @brief Returns the value of D_800834C0 plus 8. */
