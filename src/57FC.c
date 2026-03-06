@@ -1,5 +1,7 @@
 #include "common.h"
 
+void func_80016280(s32 a0);
+
 INCLUDE_ASM("asm/nonmatchings/57FC", func_80014FFC);
 
 INCLUDE_ASM("asm/nonmatchings/57FC", func_800150A8);

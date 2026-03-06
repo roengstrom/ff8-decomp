@@ -3,6 +3,8 @@
 #include "battle.h"
 #include "gf.h"
 
+u8 *func_80020FBC(u16 a0, s32 a1);
+
 /** @brief Empty stub at the end of the sound engine region.
  *  Followed by ~4KB of zero padding before the game code resumes.
  */

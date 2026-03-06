@@ -4,6 +4,10 @@
 
 extern BattleAnimEntity g_battleAnims[];
 
+void func_800286FC(void);
+void func_8002A090(void);
+void func_8002A128(void);
+
 /**
  * @brief Set or clear opacity of a battle animation entity.
  * @param idx Entity index (masked to 0 or 1).

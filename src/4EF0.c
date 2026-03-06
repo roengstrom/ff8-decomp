@@ -1,5 +1,7 @@
 #include "common.h"
 
+void func_80014DE0(u32 val);
+
 INCLUDE_ASM("asm/nonmatchings/4EF0", func_800146F0);
 
 /** @brief Adds magic constant 0xB0BEB4BF to value at pointer. */

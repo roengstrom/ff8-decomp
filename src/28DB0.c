@@ -2,6 +2,9 @@
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
 
+void func_800389CC(void);
+void func_80038CF0(s32 a0);
+
 INCLUDE_ASM("asm/nonmatchings/28DB0", func_800385B0);
 
 
