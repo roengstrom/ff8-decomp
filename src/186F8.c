@@ -501,7 +501,40 @@ void func_80028CB4(void) {
  * 8 bytes (2 groups of 4) starting at D_80082FB4+0x24 with value 2.
  * Finally calls func_80028CB4 to complete initialization.
  */
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028D20);
+/**
+ * @brief Initialize card data slots and reset card state.
+ *
+ * Clears the status byte at D_80082FB4+0x21 to zero, fills 8 bytes
+ * (2 groups of 4) starting at D_80082FB4+0x24 with value 2, then
+ * calls func_80028CB4 to complete initialization.
+ */
+void func_80028D20(void) {
+    extern u8 D_80082FB4[];
+    register u8 *base asm("$2") = D_80082FB4;
+    s32 i;
+    s32 val;
+    u8 *ptr;
+    s32 j;
+    u8 *p;
+
+    REGALLOC_BARRIER(base);
+    i = 0;
+    val = 2;
+    base[0x21] = 0;
+    ptr = base;
+    top:
+    j = 3;
+    p = ptr + 0x27;
+    inner:
+    *p = val;
+    j--;
+    p--;
+    if (j >= 0) goto inner;
+    i++;
+    ptr += 4;
+    if (i < 2) goto top;
+    func_80028CB4();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80028D80);

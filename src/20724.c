@@ -24,7 +24,20 @@ INCLUDE_ASM("asm/nonmatchings/20724", func_8002FF34);
  *
  * @param a0 Scalar intensity value.
  */
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030058);
+/**
+ * @brief Build a packed monochrome GPU color from a single scalar and store it.
+ *
+ * Divides a0 by 32 (signed), masks to 8 bits, replicates the byte across
+ * all 3 color channels, ORs with 0x64000000, and stores to D_800834C8.
+ *
+ * @param a0 Intensity value (same for all channels).
+ */
+void func_80030058(s32 a0) {
+    extern s32 D_800834C8;
+    a0 /= 32;
+    a0 &= 0xFF;
+    D_800834C8 = a0 | (a0 << 8) | (a0 << 16) | 0x64000000;
+}
 
 
 /**
