@@ -133,7 +133,21 @@ void func_80027408(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/172DC", func_80027448);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027558);
+/**
+ * @brief Copy a rectangle's bounds to g_battleAnims clip region.
+ *
+ * Copies x, y from @p a0 to g_battleAnims+0x1D8/0x1DA, and computes
+ * x+w-1, y+h-1 for the right/bottom edges at +0x1DC/0x1DE.
+ *
+ * @param a0 Pointer to a RECT (x, y, w, h as u16).
+ */
+void func_80027558(u8 *a0) {
+    s32 dst = (s32)g_battleAnims;
+    *(u16 *)(dst + 0x1D8) = *(u16 *)a0;
+    *(u16 *)(dst + 0x1DA) = *(u16 *)(a0 + 2);
+    *(u16 *)(dst + 0x1DC) = *(u16 *)a0 + *(u16 *)(a0 + 4) - 1;
+    *(u16 *)(dst + 0x1DE) = *(u16 *)(a0 + 2) + *(u16 *)(a0 + 6) - 1;
+}
 
 
 /**
