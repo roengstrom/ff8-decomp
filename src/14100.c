@@ -50,7 +50,26 @@ s32 a1;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/14100", func_800239A8);
+/**
+ * @brief Mark an inventory item as present and set its flag byte to 0xF0.
+ *
+ * For item slots < 0x4D: sets the high bit (0x80) of the item byte.
+ * For key item slots >= 0x4D: sets the corresponding bit in the key item
+ * bitfield (starting at offset 0x6E). Then calls func_8002390C(a0, 0xF0).
+ *
+ * @param a0 Inventory slot index.
+ */
+void func_800239A8(s32 a0) {
+    u8 *base = func_80023900();
+    if (a0 < 0x4D) {
+        base[a0] |= 0x80;
+    } else {
+        s32 idx = a0 - 0x4D;
+        s32 byte_idx = idx / 8;
+        (base + byte_idx)[0x6E] |= 1 << (idx - byte_idx * 8);
+    }
+    func_8002390C(a0, 0xF0);
+}
 
 
 /** @brief Wrapper that calls func_8002390C with a1=0. */
@@ -62,7 +81,32 @@ s32 func_80023A34(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/14100", func_80023A54);
 
 
-INCLUDE_ASM("asm/nonmatchings/14100", func_80023A88);
+/**
+ * @brief Check if an inventory item is present or a key item bit is set.
+ *
+ * For item slots < 0x4D: returns 1 if the high bit (0x80) of the item byte is set.
+ * For key item slots >= 0x4D: returns 1 if the corresponding bit in the key item
+ * bitfield (starting at offset 0x6E) is set.
+ *
+ * @param a0 Inventory slot index.
+ * @return 1 if the item/key item is flagged, 0 otherwise.
+ */
+s32 func_80023A88(s32 a0) {
+    u8 *base = func_80023900();
+    s32 byte_idx;
+    if (a0 < 0x4D) {
+        if (base[a0] & 0x80) {
+            return 1;
+        }
+    } else {
+        a0 -= 0x4D;
+        byte_idx = a0 / 8;
+        if (((base + byte_idx)[0x6E] >> (a0 - byte_idx * 8)) & 1) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/14100", func_80023B14);

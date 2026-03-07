@@ -368,7 +368,28 @@ void func_80031D68(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031D8C);
+/**
+ * @brief Update a D_80083772 entry with position and optionally store result.
+ *
+ * Calls func_80031910 with fields from the entry at index a0 (stride 16).
+ * Always stores a1 to entry offset 0x8. If bit 1 of entry byte 0xE is set,
+ * also stores the return value to entry offset 0xC.
+ *
+ * @param a0 Entry index into D_80083772 (stride 16 bytes).
+ * @param a1 Value to store at entry offset 0x8.
+ */
+void func_80031D8C(s32 a0, s32 a1) {
+    extern u8 D_80083772;
+    s32 base = (s32)&D_80083772;
+    s16 result;
+
+    base = a0 * 16 + base;
+    result = func_80031910(*(s16 *)(base + 4), *(s16 *)(base + 6), a1, *(s16 *)(base + 0xA));
+    *(s16 *)(base + 8) = a1;
+    if (*(u8 *)(base + 0xE) & 2) {
+        *(s16 *)(base + 0xC) = result;
+    }
+}
 
 
 /**
