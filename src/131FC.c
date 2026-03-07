@@ -5,7 +5,29 @@
 INCLUDE_ASM("asm/nonmatchings/131FC", func_800229FC);
 
 
-INCLUDE_ASM("asm/nonmatchings/131FC", func_80022B04);
+/**
+ * @brief Initialize a GF entry's animation index and look up display data.
+ *
+ * Stores @p a2 at entry[0x1E] (animation index), looks up g_gfData table
+ * (stride 8) to copy bytes at +0xE9 and +0xEA to entry[0x1F] and [0x20],
+ * and clears entry[0x21].
+ *
+ * @param a0 Base pointer for GF entries.
+ * @param a1 Entry index (stride 4).
+ * @param a2 Animation index to set.
+ */
+void func_80022B04(u8 *a0, s32 a1, s32 a2) {
+    extern u8 g_gfData[];
+    u8 *entry = a0 + a1 * 4;
+    u8 *table = g_gfData;
+    s32 idx;
+    *(volatile u8 *)(entry + 0x1E) = a2;
+    idx = *(volatile u8 *)(entry + 0x1E);
+    entry[0x1F] = *(u8 *)(table + idx * 8 + 0xE9);
+    idx = *(volatile u8 *)(entry + 0x1E);
+    entry[0x21] = 0;
+    entry[0x20] = *(u8 *)(table + idx * 8 + 0xEA);
+}
 
 
 /**
