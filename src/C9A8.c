@@ -526,7 +526,14 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D508);
  *        ORs in byte shifted left 8.
  * @param a0 Pointer to stream state.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D5A4);
+void func_8001D5A4(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 byte = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)(a0 + 0xF8) |= 0x900;
+    *(s32 *)(a0 + 0x30) |= 0x1000000;
+    *(u16 *)(a0 + 0x106) = (*(u16 *)(a0 + 0x106) & 0x80FF) | (byte << 8);
+}
 
 /**
  * @brief Reads a byte from the sequence data stream and sets a track parameter.
@@ -566,7 +573,14 @@ void func_8001D61C(u8 *a0, s32 a1) {
  *        ORs in byte shifted left 6.
  * @param a0 Pointer to stream state.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D64C);
+void func_8001D64C(u8 *a0) {
+    u8 *ptr = *(u8 **)a0;
+    s32 byte = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(s32 *)(a0 + 0xF8) |= 0x2200;
+    *(s32 *)(a0 + 0x30) |= 0x8000000;
+    *(u16 *)(a0 + 0x108) = (*(u16 *)(a0 + 0x108) & 0xE03F) | (byte << 6);
+}
 
 /**
  * @brief Reads one byte from stream, advances cursor. ORs 0x4400 into flags

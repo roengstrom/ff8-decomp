@@ -80,6 +80,15 @@ s32 func_80028098(void) {
 INCLUDE_ASM("asm/nonmatchings/186F8", func_800280C0);
 
 
+/**
+ * @brief Set a battle animation value at two offsets for a given slot.
+ *
+ * Stores @p a2 at g_battleAnims + a1*2 + 0x10 and + 0xD4.
+ *
+ * @param a0 Unused.
+ * @param a1 Slot index (halfword stride).
+ * @param a2 Value to store.
+ */
 INCLUDE_ASM("asm/nonmatchings/186F8", func_800281A4);
 
 

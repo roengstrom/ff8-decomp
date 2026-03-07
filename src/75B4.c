@@ -156,6 +156,15 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80017D5C);
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80017DB0);
 
+/**
+ * @brief Plays or stops a sound depending on the active sequence ID.
+ *
+ * Checks the halfword at D_80073DF0+0x5E (active sequence ID). If non-zero
+ * and matches a0[8], calls func_80017DB0(a0[0], 0) to stop. Otherwise calls
+ * func_8001708C(a0[0], -1) and stores a0[8] into D_80074F08+0x5E.
+ *
+ * @param a0 Pointer to a sound config structure (word 0 = track ID, halfword 8 = sequence ID).
+ */
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018158);
 
 /**

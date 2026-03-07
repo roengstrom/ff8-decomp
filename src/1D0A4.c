@@ -187,7 +187,37 @@ INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CF54);
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D040);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D6AC);
+/**
+ * @brief Initialize a sound effect entry for playback.
+ *
+ * Computes the entry address as g_sfxEntries + a0 * 60, clears various
+ * fields, stores the data pointer (a1) at offsets +0x08 and +0x0C,
+ * modifies the status word at +0x14 (sets nibble to 0x7, rotates top nibble
+ * down), calls func_8002FF24, and sets default volume bytes.
+ *
+ * @param a0 Sound effect index.
+ * @param a1 Data pointer to store.
+ */
+void func_8002D6AC(s32 a0, s32 a1) {
+    s32 mask1 = 0x0FFFFFFF;
+    s32 mask2 = (s32)0xF0FFFFFF;
+    u8 *entry = (u8 *)g_sfxEntries + a0 * 60;
+    s32 status = *(s32 *)(entry + 0x14);
+    *(u8 *)(entry + 0x28) = 0;
+    *(s32 *)(entry + 0x08) = a1;
+    *(s32 *)(entry + 0x0C) = a1;
+    *(u16 *)(entry + 0x12) = 0;
+    *(s32 *)(entry + 0x24) = 0;
+    status &= mask1;
+    status |= 0x70000000;
+    mask2 &= status;
+    mask2 |= (u32)status >> 28 << 24;
+    *(s32 *)(entry + 0x14) = mask2;
+    func_8002FF24(entry);
+    *(u8 *)(entry + 0x29) = 0xFF;
+    *(u8 *)(entry + 0x2A) = 0xFF;
+    *(u8 *)(entry + 0x19) = 0;
+}
 
 
 /**

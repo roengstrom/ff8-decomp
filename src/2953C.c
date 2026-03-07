@@ -285,7 +285,7 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_80039764);
 
 
 void func_80039910(void);
-void func_800398A8(void);
+s32 func_800398A8(void);
 
 /**
  * @brief Initialize CD callback table with handler function pointers.
@@ -302,6 +302,15 @@ void func_800398A8(void);
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003987C);
 
 
+/**
+ * @brief Check if the CD subsystem is ready and call a callback if so.
+ *
+ * Checks bit 0 of D_800565B4[4] and D_800565B4[0]. If both are set,
+ * calls the function pointer at D_8005657C (if non-NULL) and returns 1.
+ * Otherwise returns 0.
+ *
+ * @return 1 if ready and callback invoked, 0 otherwise.
+ */
 INCLUDE_ASM("asm/nonmatchings/2953C", func_800398A8);
 
 
