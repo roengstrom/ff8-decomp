@@ -167,7 +167,20 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80018158);
  *
  * @param a0 Pointer to audio config struct.
  */
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800181D4);
+void func_800181D4(s32 *a0) {
+    extern s32 *D_80074F08;
+    extern s32 D_80074EB0;
+    register s32 result asm("$4");
+    s32 val;
+    func_8001708C(a0[0], a0[3]);
+    *(u16 *)((u8 *)D_80074F08 + 0x5E) = *(u16 *)((u8 *)a0 + 8);
+    val = a0[4];
+    result = 0;
+    if (val != 0) {
+        result = val - 1;
+    }
+    D_80074EB0 = result;
+}
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018234);
 

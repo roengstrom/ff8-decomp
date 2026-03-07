@@ -232,7 +232,29 @@ void func_8001CA5C(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CA74);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CB1C);
+/**
+ * @brief Read instrument index from stream and apply to track.
+ *
+ * Reads one byte from the stream cursor, resolves the instrument via
+ * func_8001B400, applies the instrument table entry via func_8001C1A8,
+ * stores the instrument index, clears field 0x10A, and masks field 0x30.
+ *
+ * @param a0 Pointer to the track structure.
+ */
+void func_8001CB1C(u8 *a0) {
+    extern s32 *D_80074F08;
+    extern u8 D_80073E68[];
+    s32 *bankPtr = D_80074F08;
+    u8 *ptr = *(u8 **)a0;
+    s32 byte = *ptr;
+    s32 inst;
+    *(u8 **)a0 = ptr + 1;
+    inst = func_8001B400(*bankPtr, byte);
+    func_8001C1A8(a0, D_80073E68 + inst * 16, 0x1010);
+    *(u16 *)(a0 + 0x66) = inst;
+    *(u16 *)(a0 + 0x10A) = 0;
+    *(s32 *)(a0 + 0x30) &= (s32)0xE6FFEFF7;
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CBA4);
 

@@ -108,7 +108,27 @@ void func_80019CFC(void) {
     func_80017D5C();
 }
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019D5C);
+/**
+ * @brief Stores *a0 to D_8007507C and sets bits 0+1 on all 32 track entries.
+ *
+ * Iterates over 32 entries in D_80070D60 (stride 0x110), ORing 0x3 into
+ * the word at offset +0xF8 of each entry.
+ *
+ * @param a0 Pointer to word value to store in D_8007507C.
+ */
+void func_80019D5C(s32 *a0) {
+    extern u8 D_80070D60[];
+    extern s32 D_8007507C;
+    s32 i = 0;
+    s32 base = (s32)D_80070D60;
+    s32 *ptr = (s32 *)(base + 0xF8);
+    D_8007507C = *a0;
+    do {
+        *ptr |= 3;
+        i++;
+        ptr = (s32 *)((u8 *)ptr + 0x110);
+    } while ((u32)i < 0x20);
+}
 
 /** @brief Copies halfword from a0 to offset 0x60 in struct pointed to by D_80074F08. */
 void func_80019D9C(u16 *a0) {
