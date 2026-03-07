@@ -79,7 +79,25 @@ s32 func_8001C280(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C2C8);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C39C);
+/**
+ * @brief Read 2 bytes from stream, build 32-bit tempo value, store to bank.
+ *
+ * Reads byte0 from stream, shifts left 16 and stores to D_80074F08+0x20.
+ * Then reads byte1, shifts left 24, ORs with previous value, stores again.
+ * Advances stream pointer by 2. Clears halfword at D_80074F08+0x5C.
+ *
+ * @param a0 Pointer to stream state (first word is stream cursor).
+ */
+void func_8001C39C(u8 *a0) {
+    extern s32 *D_80074F08;
+    s32 byte0 = *(u8 *)(*(s32 *)a0) << 16;
+    s32 *bank = D_80074F08;
+    *(s32 *)((u8 *)bank + 0x20) = byte0;
+    byte0 |= *(u8 *)(*(s32 *)a0 + 1) << 24;
+    *(s32 *)((u8 *)bank + 0x20) = byte0;
+    *(s32 *)a0 = *(s32 *)a0 + 2;
+    *(u16 *)((u8 *)bank + 0x5C) = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C3E8);
 
