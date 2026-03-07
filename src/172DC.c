@@ -237,7 +237,22 @@ end:
 
 INCLUDE_ASM("asm/nonmatchings/172DC", func_80027B7C);
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027BA8);
+/**
+ * @brief Look up a battle animation byte through a two-level table.
+ *
+ * Uses the low bit of a0 as an index into g_battleAnims (stride 196).
+ * Reads the byte at offset 0xC2 of that entry as a second index,
+ * then returns bits [6:0] of offset 0xC3 of the second entry, shifted left 8.
+ *
+ * @param a0 Slot selector (only bit 0 used).
+ * @return (g_battleAnims[slot].byte_C3 & 0x7F) << 8.
+ */
+s32 func_80027BA8(s32 a0) {
+    s32 slot;
+    a0 &= 1;
+    slot = g_battleAnims[a0].linkedIdx;
+    return (g_battleAnims[slot].fieldC3 & 0x7F) << 8;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/172DC", func_80027C00);

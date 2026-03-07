@@ -63,6 +63,15 @@ Detailed documentation of compiler quirks, matching techniques, and known pitfal
 - **[docs/decomp-patterns.md](docs/decomp-patterns.md)** — Scheduling, optimization prevention, register allocation, GPU/PsyQ patterns, loop patterns, and known non-matching patterns.
 - **[docs/s-reg-allocation.md](docs/s-reg-allocation.md)** — S-reg allocation tricks: `+ var - var` liveness extension, `do{break}while(1)` CFG manipulation, and the full checklist for scrambled prologues.
 
+## Decomp Methodology
+
+- **Consult the pattern docs first.** Before decomping a function, read [docs/decomp-patterns.md](docs/decomp-patterns.md) and [docs/s-reg-allocation.md](docs/s-reg-allocation.md). They contain hard-won discoveries about compiler quirks, matching tricks, and known pitfalls that save hours of trial-and-error. Key topics: scheduling barriers (`asm("")`, `REGALLOC_BARRIER`), struct vs pointer aliasing, prologue interleaving, goto-based loops, P_TAG/addPrim, symbol+constant folding prevention, register allocation control, and s-reg scrambling tricks (`+var-var` liveness, `do{break}while(1)` CFG manipulation).
+- **Experiment with compiler flags when stuck.** If a function doesn't match with the file's default flags, try different `-G` values (`-G0`, `-G4`, `-G8`, or no `-G` flag) and `-O` levels. The correct flags for a source file may differ from what's currently in the Makefile — the build config was reverse-engineered and may need adjustment. Test on decomp.me or locally.
+- **Check the `-G` flag impact.** Without `-G0`, CC1PSX emits pseudo-instructions for global access (e.g. `sh $0, sym`) that GAS expands using `$at`. With `-G0`, CC1PSX does its own expansion using `$v0`/`$v1`. If the original uses `$at` for global stores, the function was likely compiled without `-G0`.
+- **Use unsized arrays to prevent GP-relative access.** `extern u8 g_gameState[];` (unsized) forces CC1PSX to self-expand addresses with delay slot filling, matching the original 3-instruction `lui/jr/addiu` pattern. Sized globals may use GP-relative addressing depending on `-G` flag.
+- **Use structs and proper data types.** Access data through struct fields rather than raw pointer offsets — this affects compiler scheduling and alias analysis, often producing different (and correct) codegen. See "Struct field access vs raw pointer casts" in decomp-patterns.md.
+- **Try goto-based loops.** When `while`/`for`/`do-while` loops produce wrong code (LICM, strength reduction, base-offset folding), try `top: ...; if (cond) goto top;` which GCC 2.7.2 doesn't recognize as a loop. See "Loop Patterns" in decomp-patterns.md.
+
 ## Setup Workflow
 
 Before any development can happen, a contributor must:

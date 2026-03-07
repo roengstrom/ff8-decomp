@@ -23,7 +23,27 @@ void func_80027EF8(s32 idx, s32 val) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80027F38);
+/**
+ * @brief Set animation parameters on a battle entity.
+ *
+ *  Computes the entry address as g_battleAnims + (a0 & 1) * 196.
+ *  Conditionally stores a1 to field 7 and a2 to field 6 (only if >= 0).
+ *  Always stores 1 to field 0xA.
+ *
+ * @param a0 Entity index (masked to 0 or 1).
+ * @param a1 Value for field 7 (-1 to skip).
+ * @param a2 Value for field 6 (-1 to skip).
+ */
+void func_80027F38(s32 a0, s32 a1, s32 a2) {
+    u8 *entry = (u8 *)g_battleAnims + (a0 & 1) * 196;
+    if (a1 >= 0) {
+        entry[7] = a1;
+    }
+    if (a2 >= 0) {
+        entry[6] = a2;
+    }
+    entry[0xA] = 1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80027F78);
@@ -87,7 +107,30 @@ void func_8002828C(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800282F4);
+/**
+ * @brief Initialize battle animation state and wait for completion.
+ *
+ * Sets D_80082FB2 to 1, initializes both animation slots via func_800281C4,
+ * triggers a fade via func_80039764(3), then polls func_80027360 up to 24
+ * frames. Finishes with VSync(2).
+ */
+void func_800282F4(void) {
+    extern u8 D_80082FB2;
+    s32 i;
+
+    D_80082FB2 = 1;
+    for (i = 0; i < 2; i++) {
+        func_800281C4(i, 0);
+    }
+    func_80039764(3);
+    for (i = 0; i < 24; i++) {
+        VSync(0);
+        if (func_80027360(0) != 0) {
+            break;
+        }
+    }
+    VSync(2);
+}
 
 
 extern u16 D_80083794;
@@ -421,7 +464,23 @@ void func_80028B78(void) { func_80028A44(); }
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80028B98);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028CB4);
+/**
+ * @brief Initialize all memory card event handlers.
+ *
+ * Iterates over 2 ports and 4 events per port, calling func_800287BC
+ * to get an event handle and func_8002882C to configure it. Then calls
+ * func_80028950 to finalize.
+ */
+void func_80028CB4(void) {
+    s32 j;
+    s32 i;
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            func_8002882C(func_800287BC(i, j));
+        }
+    }
+    func_80028950();
+}
 
 
 /**
@@ -434,6 +493,13 @@ INCLUDE_ASM("asm/nonmatchings/186F8", func_80028CB4);
  *       address in $v0 for initial store then copies to $a0 for loop;
  *       compiler loads directly into $a0. Also const 2 is placed before
  *       the loop in original but inside in ours (1 instruction shorter).
+ */
+/**
+ * @brief Initialize SFX entry command bytes and reset state.
+ *
+ * Clears the status byte at D_80082FB4+0x21 to zero, then fills
+ * 8 bytes (2 groups of 4) starting at D_80082FB4+0x24 with value 2.
+ * Finally calls func_80028CB4 to complete initialization.
  */
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80028D20);
 
@@ -616,13 +682,49 @@ INCLUDE_ASM("asm/nonmatchings/186F8", func_80029A20);
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80029BA0);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029C44);
+/**
+ * @brief Seek to an offset in a file and write data, returning fd on success.
+ * @param a0 File descriptor.
+ * @param a1 Pointer to data buffer to write.
+ * @param a2 Number of bytes to write.
+ * @param a3 File offset to seek to before writing.
+ * @return File descriptor on success, -1 on failure.
+ */
+s32 func_80029C44(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 result;
+    if (lseek(a0, a3, 0) < 0) {
+        return -1;
+    }
+    result = write(a0, a1, a2);
+    if (result != 0) {
+        return -1;
+    }
+    return a0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80029CB8);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029D38);
+/**
+ * @brief Seek to an offset in a file and read data, returning fd on success.
+ * @param a0 File descriptor.
+ * @param a1 Pointer to destination buffer.
+ * @param a2 Number of bytes to read.
+ * @param a3 File offset to seek to before reading.
+ * @return File descriptor on success, -1 on failure.
+ */
+s32 func_80029D38(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 result;
+    if (lseek(a0, a3, 0) < 0) {
+        return -1;
+    }
+    result = read(a0, a1, a2);
+    if (result != 0) {
+        return -1;
+    }
+    return a0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80029DAC);
@@ -631,7 +733,30 @@ INCLUDE_ASM("asm/nonmatchings/186F8", func_80029DAC);
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80029E40);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029EE4);
+/**
+ * @brief Erase a memory card file.
+ *
+ * Sets up the card subsystem, checks if the file exists via func_80029660,
+ * builds the filename via func_80029360, and calls erase. If erase succeeds
+ * (returns non-zero), returns 1. Otherwise calls cleanup and returns -1.
+ *
+ * @param a0 Packed card identifier.
+ * @param a1 File index or name parameter.
+ * @return 1 if erase succeeded, -1 on failure.
+ */
+s32 func_80029EE4(s32 a0, s32 a1) {
+    s32 buf[8];
+    func_80028CB4();
+    if (func_80029660(a0, a1) == 0) {
+        return -1;
+    }
+    func_80029360(a0, a1, (s32)buf);
+    if (erase((s32)buf) != 0) {
+        return 1;
+    }
+    func_80028B58(a0);
+    return -1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/186F8", func_80029F5C);

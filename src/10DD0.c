@@ -628,7 +628,7 @@ s32 func_80021034(s32 itemId, s32 amount) {
  * Searches 32 ability slots (2 bytes each: ID + count) in g_gameState at offset 0x4A0.
  * @param entityIdx Entity index (stride 152 in g_gameState).
  * @param abilityId Ability ID to search for.
- * @return 0 if ability not maxed or empty slot exists, 1 if ability count >= 100, 2 if all slots full.
+ * @return 0 if abilityId is 0 or empty slot exists, 1 if ability count >= 100, 2 if all slots full.
  */
 INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021108);
 
@@ -742,7 +742,72 @@ INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021300);
  * Processes rendering/audio states: 4=render, 3=init+render, 5=transition, 8=alt render.
  * Loops until an unhandled state value is encountered, which sets g_vsyncRate=4 and returns.
  */
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021358);
+void func_80021358(void) {
+    extern volatile u16 g_vsyncRate;
+    extern volatile s16 g_renderMode;
+    extern s32 D_800974C0[2];
+    extern s32 D_800974C8[2];
+    extern s32 D_800974B8[2];
+
+    void func_80038920(s32, s32, s32, s32);
+    void func_8001F5C8(void);
+    void func_80098238(void);
+    void func_8003023C(s32);
+    void func_80030248(s32);
+    s32 func_80021300(void);
+    void func_80023D60(s32);
+    void func_80038994(s32, s32, s32, s32);
+    void func_80099D30(void);
+    void func_80098304(void);
+    void func_80035360(void);
+
+    s32 mode = 4;
+    s16 state;
+
+top:
+    state = (s16)g_vsyncRate;
+    if (state == mode) goto case4;
+    if (state < 5) {
+        if (state == 3) goto case3;
+        goto default_case;
+    }
+    if (state == 5) goto case5;
+    if (state == 8) goto case8;
+    goto default_case;
+
+case4:
+    func_80038920(D_800974C0[0], D_800974C0[1], 0x80098000, 0);
+    func_8001F5C8();
+    func_80098238();
+    goto top;
+
+case3:
+    func_8003023C(0);
+    func_80030248(0);
+    func_80023D60(func_80021300());
+    func_80020608((s32 *)0x80098000, 0xA400);
+    func_80038920(D_800974C8[0], D_800974C8[1], 0x80098000, 0);
+    func_8001F5C8();
+    func_80099D30();
+    goto top;
+
+case8:
+    g_renderMode = 0;
+    func_80038994(D_800974B8[0], D_800974B8[1], 0x80098000, 0);
+    func_8001F5C8();
+    func_80098304();
+    goto top;
+
+case5:
+    func_80035360();
+    g_renderMode = mode;
+    func_8001F5C8();
+    g_vsyncRate = 100;
+    goto top;
+
+default_case:
+    g_vsyncRate = mode;
+}
 
 
 /**

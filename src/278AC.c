@@ -219,31 +219,189 @@ INCLUDE_ASM("asm/nonmatchings/278AC", func_80037B44);
 
 INCLUDE_ASM("asm/nonmatchings/278AC", func_80037B7C);
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037BB0);
+/**
+ * @brief Search g_gameState party slots (offset 0xD38) for a matching byte.
+ *
+ * Iterates through 3 bytes at g_gameState[0xD38..0xD3A] looking for
+ * a match with the low byte of a0.
+ *
+ * @param a0 Value to search for (low 8 bits used).
+ * @return Slot index (0-2) if found, 0xFF if not found.
+ */
+s32 func_80037BB0(s32 a0) {
+    extern u8 g_gameState[];
+    s32 i = 0;
+    s32 base = (s32)g_gameState;
+    a0 &= 0xFF;
+    do {
+        if (*(u8 *)(i + base + 0xD38) == a0) {
+            return (u8)i;
+        }
+        i++;
+    } while (i < 3);
+    return 0xFF;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037BF0);
+/**
+ * @brief Search g_gameState slots (offset 0xAF4) for a matching byte.
+ *
+ * Iterates through 3 bytes at g_gameState[0xAF4..0xAF6] looking for
+ * a match with the low byte of a0.
+ *
+ * @param a0 Value to search for (low 8 bits used).
+ * @return Slot index (0-2) if found, 0xFF if not found.
+ */
+s32 func_80037BF0(s32 a0) {
+    extern u8 g_gameState[];
+    s32 i = 0;
+    s32 base = (s32)g_gameState;
+    a0 &= 0xFF;
+    do {
+        if (*(u8 *)(i + base + 0xAF4) == a0) {
+            return (u8)i;
+        }
+        i++;
+    } while (i < 3);
+    return 0xFF;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037C30);
+/**
+ * @brief Search for a card value in the hand slots.
+ *
+ * Iterates through 8 hand slots (stride 0x98 in g_gameState, offset 0x498)
+ * looking for a match with the low byte of a0.
+ *
+ * @param a0 Card value to search for (low 8 bits used).
+ * @return Slot index (0-7) if found, 0xFF if not found.
+ */
+s32 func_80037C30(s32 a0) {
+    extern u8 g_gameState[];
+    s32 i = 0;
+    s32 base;
+    a0 &= 0xFF;
+    base = (s32)g_gameState;
+    do {
+        if (*(u8 *)(base + 0x498) == a0) {
+            return (u8)i;
+        }
+        i++;
+        base += 0x98;
+    } while (i < 8);
+    return 0xFF;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/278AC", func_80037C6C);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037CD4);
+/**
+ * @brief Stop all playing sound channels and reset sound state.
+ *
+ * Reads two sound handles from the entity pointer at D_800562C4 (offsets
+ * 0x6C and 0x70), stops each via func_80013744. Then calls func_80013168
+ * to flush sound state and func_80013478 to reset channel 0.
+ */
+void func_80037CD4(void) {
+    extern u8 *D_800562C4;
+    s32 val;
+    func_80013744(*(s32 *)(D_800562C4 + 0x6C), 15, 0);
+    val = *(s32 *)(D_800562C4 + 0x70);
+    if (val != -1) {
+        func_80013744(val, 15, 0);
+    }
+    func_80013168();
+    func_80013478(0, 15);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/278AC", func_80037D40);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037E14);
+/**
+ * @brief Toggle the sound bank selector and return the corresponding bank table.
+ *
+ * XORs byte at D_800562C4[0xC9] with 1, then reloads and checks:
+ * returns D_80063388 if the toggled value is non-zero, D_8005F388 otherwise.
+ *
+ * @return Pointer to the selected sound bank table.
+ */
+u8 *func_80037E14(void) {
+    extern u8 *D_800562C4;
+    extern u8 D_8005F388[];
+    extern u8 D_80063388[];
+
+    *(u8 *)(D_800562C4 + 0xC9) ^= 1;
+    if (*(s8 *)(D_800562C4 + 0xC9) == 0) {
+        return D_8005F388;
+    }
+    return D_80063388;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037E60);
+/**
+ * @brief Load and apply sound data from disc (variant A).
+ *
+ * Polls func_80013CA4 until it returns 0, then reads sound data from
+ * D_80085220 using func_80039728 and plays it via func_80013EE4.
+ * Reads sound data a second time, selects a bank table (D_8005F388
+ * or D_80063388) based on D_800562C4 field 0xC9, and calls
+ * func_80039678. Sets the completion flag at D_800562C4 + 0xD6.
+ */
+void func_80037E60(void) {
+    extern s32 D_80085220;
+    extern u8 *D_800562C4;
+    extern u8 D_8005F388[];
+    extern u8 D_80063388[];
+    s32 size;
+    s32 result;
+    u8 *table;
+
+    do {
+    } while (func_80013CA4() != 0);
+    result = func_80039728(D_80085220, 1, &size);
+    func_80013EE4(result, 1);
+    result = func_80039728(D_80085220, 0, &size);
+    if (*(s8 *)(D_800562C4 + 0xC9) != 0) {
+        table = D_8005F388;
+    } else {
+        table = D_80063388;
+    }
+    func_80039678((s32)table, result, size);
+    *(u8 *)(D_800562C4 + 0xD6) = 1;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037F08);
+/**
+ * @brief Load and apply sound data from disc (variant B).
+ *
+ * Same as func_80037E60, but the bank table selection is inverted:
+ * uses D_80063388 when D_800562C4 field 0xC9 is non-zero, and
+ * D_8005F388 when it is zero.
+ */
+void func_80037F08(void) {
+    extern s32 D_80085220;
+    extern u8 *D_800562C4;
+    extern u8 D_8005F388[];
+    extern u8 D_80063388[];
+    s32 size;
+    s32 result;
+    u8 *table;
+
+    do {
+    } while (func_80013CA4() != 0);
+    result = func_80039728(D_80085220, 1, &size);
+    func_80013EE4(result, 1);
+    result = func_80039728(D_80085220, 0, &size);
+    if (*(s8 *)(D_800562C4 + 0xC9) == 0) {
+        table = D_8005F388;
+    } else {
+        table = D_80063388;
+    }
+    func_80039678((s32)table, result, size);
+    *(u8 *)(D_800562C4 + 0xD6) = 1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/278AC", func_80037FB0);
@@ -289,7 +447,25 @@ s32 func_80038364(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_8003837C);
+/**
+ * @brief Extract a 2-bit field from the packed bitfield array at D_800562C4+0x74.
+ *
+ * Treats the byte array as a packed 2-bit-per-entry table. Computes byte
+ * index (a0/4) and bit position ((a0%4)*2), then extracts and returns
+ * the 2-bit value.
+ *
+ * @param a0 Entry index (low 8 bits used).
+ * @return The 2-bit value (0-3) at the given index.
+ */
+s32 func_8003837C(s32 a0) {
+    extern u8 *D_800562C4;
+    u8 *ptr = D_800562C4;
+    s32 idx;
+
+    a0 &= 0xFF;
+    idx = a0 / 4;
+    return (*(u8 *)(ptr + idx + 0x74) >> ((a0 - idx * 4) * 2)) & 3;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/278AC", func_800383B8);

@@ -26,6 +26,12 @@ AS="mipsel-linux-gnu-as"
 CCPSXFLAGS="-O2 -G0"
 ASFLAGS="-march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude"
 
+# Sources compiled without -G0 (must match Makefile NO_G0_SRCS)
+NO_G0_SRCS="src/1D2C.c"
+
+# Sources compiled with -G4 (must match Makefile G4_SRCS)
+G4_SRCS="src/10DD0.c"
+
 # Default source file and asm directory
 SRC_FILE="src/1C38.c"
 ASM_SUBDIR="asm/nonmatchings/1C38"
@@ -105,7 +111,22 @@ case "${PSYQ_VER}" in
         ;;
 esac
 
-echo "Setting up permuter for ${FUNC_NAME} (PsyQ ${PSYQ_VER})..."
+# Auto-detect compile flags based on source file
+COMPILE_FLAGS="-O2 -G0"
+for ng0 in ${NO_G0_SRCS}; do
+    if [[ "${SRC_FILE}" == "${ng0}" ]]; then
+        COMPILE_FLAGS="-O2"
+        break
+    fi
+done
+for g4 in ${G4_SRCS}; do
+    if [[ "${SRC_FILE}" == "${g4}" ]]; then
+        COMPILE_FLAGS="-O2 -G4"
+        break
+    fi
+done
+
+echo "Setting up permuter for ${FUNC_NAME} (PsyQ ${PSYQ_VER}, flags: ${COMPILE_FLAGS})..."
 
 # Create working directory
 FUNC_DIR="${WORK_DIR}/${FUNC_NAME}"
@@ -151,6 +172,7 @@ CCPSX="${CCPSX_DRIVER}"
 MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 AS="${AS}"
 ASPSX_VER="${ASPSX_VER}"
+COMPILE_FLAGS="${COMPILE_FLAGS}"
 EOF
 
 cat >> "${FUNC_DIR}/compile.sh" <<'COMPILE_EOF'
@@ -161,7 +183,7 @@ trap "rm -rf ${TMPDIR}" EXIT
 
 # Compile with CCPSX -S → maspsx → GAS → .o
 SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -Iinclude -DPERMUTER \
-    -O2 -G0 "${INPUT}" -o "${TMPDIR}/out.s"
+    ${COMPILE_FLAGS} "${INPUT}" -o "${TMPDIR}/out.s"
 cat "${TMPDIR}/out.s" | ${MASPSX} --aspsx-version=${ASPSX_VER} --expand-div \
     --run-assembler -march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude \
     -o "${OUTPUT}"

@@ -158,6 +158,15 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80017DB0);
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018158);
 
+/**
+ * @brief Configure audio track and update playback globals.
+ *
+ * Calls func_8001708C with the first and fourth fields of the input struct,
+ * copies field8 to D_80074F08->0x5E, and sets D_80074EB0 to field10-1
+ * (or 0 if field10 is 0).
+ *
+ * @param a0 Pointer to audio config struct.
+ */
 INCLUDE_ASM("asm/nonmatchings/75B4", func_800181D4);
 
 INCLUDE_ASM("asm/nonmatchings/75B4", func_80018234);

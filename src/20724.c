@@ -146,7 +146,32 @@ INCLUDE_ASM("asm/nonmatchings/20724", func_80030754);
 INCLUDE_ASM("asm/nonmatchings/20724", func_800307F8);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030848);
+/**
+ * @brief Check if a battle command matches the expected source entity.
+ *
+ * Returns 0 if a0 is zero. Otherwise, looks up the entry at
+ * func_80030748()[(a0 & 3) * 36], checks if byte 0x22 is nonzero,
+ * then compares halfword 0x20 against (a0 >> 4).
+ *
+ * @param a0 Packed command: bits [1:0] = entry index, bits [15:4] = source ID.
+ * @return 1 if valid and source matches, 0 otherwise.
+ */
+s32 func_80030848(s32 a0) {
+    u8 *base;
+    s32 idx;
+
+    if (a0 == 0) {
+        return 0;
+    }
+    base = func_80030748();
+    idx = (a0 & 3) * 36;
+    if (*(s8 *)(base + idx + 0x22) != 0) {
+        if (*(u16 *)(base + idx + 0x20) == (a0 >> 4)) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/20724", func_800308B0);
@@ -164,7 +189,29 @@ INCLUDE_ASM("asm/nonmatchings/20724", func_80030B2C);
 INCLUDE_ASM("asm/nonmatchings/20724", func_80030CB0);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030CFC);
+/**
+ * @brief Initialize 4 battle command entries and clear D_80083750.
+ *
+ * Calls func_80030748() to get the entry table base, then for each of
+ * the 4 entries (stride 0x24, starting at offset 0x20): sets the index
+ * at byte +3, clears byte +2, and sets halfword +0 to 1.
+ * Finally zeroes D_80083750.
+ */
+void func_80030CFC(void) {
+    extern s32 D_80083750;
+    u8 *base = func_80030748();
+    s32 i = 0;
+    s32 one = 1;
+    u8 *ptr = base + 0x20;
+top:
+    ptr[3] = i;
+    i++;
+    ptr[2] = 0;
+    *(s16 *)ptr = one;
+    ptr += 0x24;
+    if (i < 4) goto top;
+    D_80083750 = 0;
+}
 
 
 /**

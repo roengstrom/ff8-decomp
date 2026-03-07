@@ -276,7 +276,24 @@ void func_8001CC9C(u8 *a0) {
  *
  * @param a0 Pointer to the track structure.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CCC8);
+void func_8001CCC8(u8 *a0) {
+    u8 *ptr;
+    s32 val;
+
+    ptr = *(u8 **)a0;
+    val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    *(u16 *)(a0 + 0x94) = val;
+    if (val == 0) {
+        *(u16 *)(a0 + 0x94) = 0x100;
+    }
+    ptr = *(u8 **)a0;
+    val = *ptr;
+    *(u8 **)a0 = ptr + 1;
+    val <<= 24;
+    val >>= 24;
+    *(u16 *)(a0 + 0xEA) = val;
+}
 
 /** @brief Reads one byte from stream as duration. If zero, stores 0x100. Clears tempo/timer fields.
  *  @param a0 Pointer to stream state.
@@ -597,6 +614,15 @@ void func_8001D7D0(s32 *a0) {
 void func_8001D7E4(void) {
 }
 
+/**
+ * @brief Advance to the next voice slot in the circular buffer.
+ *
+ * Increments the slot index (D4, mod 4), saves the current stream pointer
+ * to the slot's table entry, clears the slot's counter, and copies the
+ * current voice index to the new slot.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D7EC);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D83C);
@@ -605,6 +631,15 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D8D0);
 
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D93C);
 
+/**
+ * @brief Advance to next voice entry: increment counter, update stream ptr and voice.
+ *
+ * Increments the 16-bit counter at a0 + D4*2 + 0x70, sets the stream
+ * pointer (a0[0]) from the table at a0 + D4*4 + 4, and copies the
+ * voice index from a0 + D4*2 + 0x78 to a0 + 0x6E.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D9B8);
 
 /** @brief Reads byte from stream, stores to three halfword fields (0x64, 0x62, 0xD6), clears 0xD8.
@@ -620,7 +655,32 @@ void func_8001DA0C(u8 *a0) {
     *(u16 *)(a0 + 0xD6) = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DA34);
+/**
+ * @brief Read a signed delta byte from the stream and adjust the volume field.
+ *
+ * Loads a signed byte from the stream. If non-zero, adds it to the current
+ * volume at offset 0xD6 and clamps the result to [1, 255]. Stores the
+ * result (or 0 if delta was zero) at offset 0xD8.
+ *
+ * @param a0 Pointer to the track state structure.
+ */
+void func_8001DA34(u8 *a0) {
+    u8 *ptr;
+    s32 delta;
+
+    ptr = *(u8 **)a0;
+    delta = *(s8 *)ptr;
+    *(u8 **)a0 = ptr + 1;
+    if (delta != 0) {
+        delta += *(s16 *)(a0 + 0xD6);
+        if (delta <= 0) {
+            delta = 1;
+        } else if (delta >= 256) {
+            delta = 255;
+        }
+    }
+    *(u16 *)(a0 + 0xD8) = delta;
+}
 
 /**
  * @brief Conditionally updates field at +0x30 based on D_80074F08->0x34.

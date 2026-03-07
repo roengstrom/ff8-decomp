@@ -73,7 +73,36 @@ void func_80035E68(void) {
 INCLUDE_ASM("asm/nonmatchings/264E0", func_80035E8C);
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80035F70);
+/**
+ * @brief Process a TIM image packet and upload to VRAM.
+ *
+ * If the packet type byte is 0x10 (TIM format), optionally loads
+ * a CLUT (if bit 3 of flags byte is set), then always loads the
+ * pixel data via LoadImage.
+ *
+ * @param a0 Pointer to the TIM packet header.
+ */
+void func_80035F70(u8 *a0) {
+    u8 *base = a0;
+    u8 *ptr;
+    u8 *extra;
+
+    if (base[0] != 0x10) {
+        return;
+    }
+    if (base[4] & 8) {
+        extra = base + 8;
+        ptr = base + (*(s32 *)(base + 8) + 8);
+    } else {
+        extra = 0;
+        ptr = base + 8;
+    }
+    if (extra != 0) {
+        LoadImage((RECT *)(extra + 4), (u32 *)(extra + 0xC));
+        DrawSync(0);
+    }
+    LoadImage((RECT *)(ptr + 4), (u32 *)(ptr + 0xC));
+}
 
 
 /**
@@ -243,8 +272,35 @@ void func_80036444(void) {
 INCLUDE_ASM("asm/nonmatchings/264E0", func_8003646C);
 
 
-// init_card_hand_slots - initializes 128 card slots (id=0, type=0xFF)
+/** @brief Initialize or reset card hand slot states.
+ *
+ *  If @p a0 is non-zero, sets g_gameState[0x498] = 8 and sets bit 0 of
+ *  g_gameState[0xD22]. If @p a0 is zero, clears bit 0 of g_gameState[0xD22]
+ *  and fills 8 slots (stride 0x98) with descending index values (7 down to 0).
+ *
+ *  @param a0 Non-zero to set single slot, zero to reset all 8 slots.
+ */
+void func_80036690(s32 a0) {
+    extern u8 g_gameState[];
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80036690);
+    if (a0 != 0) {
+        s32 base = (s32)g_gameState;
+        u8 flags = *(u8 *)(base + 0xD22);
+        *(u8 *)(base + 0x498) = 8;
+        *(u8 *)(base + 0xD22) = flags | 1;
+    } else {
+        s32 base;
+        s32 ptr;
+        a0 = 7;
+        base = (s32)g_gameState;
+        *(u8 *)(base + 0xD22) = *(u8 *)(base + 0xD22) & 0xFE;
+        ptr = base + 0x428;
+        do {
+            *(u8 *)(ptr + 0x498) = a0;
+            a0--;
+            ptr -= 0x98;
+        } while (a0 >= 0);
+    }
+}
 
 

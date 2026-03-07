@@ -408,7 +408,28 @@ INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E064);
 INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E1B4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E1E8);
+/**
+ * @brief Reset all SFX entries and clear global SFX state.
+ *
+ * Sets g_sfxEntries[0x1EC] to -1, calls func_8002DF5C for each of the 8
+ * SFX slots, clears D_800831D3 and several fields in g_sfxEntries, then
+ * calls func_8002C130 to finalize.
+ */
+void func_8002E1E8(void) {
+    extern u8 D_800831D3;
+    s32 i;
+    s32 base = (s32)g_sfxEntries;
+    *(s8 *)(base + 0x1EC) = -1;
+    for (i = 0; i < 8; i++) {
+        func_8002DF5C(i);
+    }
+    D_800831D3 = 0;
+    *(u16 *)(base + 0x1F8) = 0;
+    *(u16 *)(base + 0x1FA) = 0;
+    *(u8 *)(base + 0x1F4) = 0;
+    *(u8 *)(base + 0x1F5) = 0;
+    func_8002C130();
+}
 
 
 /**

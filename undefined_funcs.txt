@@ -7,6 +7,8 @@ D_8001AD60 = 0x8001AD60;
 D_80035F70 = 0x80035F70;
 /* Data symbols renamed from auto-generated names (splat regenerates as D_XXXXXXXX) */
 g_fileTableDesc = 0x80051694;
+/* CC1PSX inserts jal __main for functions named main(); use alias to avoid.
+   When GameMain is decomped to C, uncomment to alias: main = GameMain; */
 /* PsyQ BIOS functions referenced by libetc/pad and libsnd */
 EnterCriticalSection = 0x800472E4;
 ExitCriticalSection = 0x800472F4;

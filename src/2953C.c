@@ -24,10 +24,45 @@ void func_80038D74(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_80038D7C);
+/**
+ * @brief Initiate a synchronous CD-ROM read command.
+ *
+ * Calls CdSync(1, 0) to wait for the previous operation to finish.
+ * If the result is 2 (ready), issues a CdControl read command (type 2)
+ * with parameters from D_8008A3DC, sets state byte D_8008A3D9 to 1,
+ * and calls func_80038D3C to continue processing.
+ */
+void func_80038D7C(void) {
+    extern u8 D_8008A3DC[];
+    u8 *p;
+    if (CdSync(1, 0) != 2) {
+        return;
+    }
+    p = D_8008A3DC;
+    CdControl(2, p, 0);
+    *(p - 3) = 1;
+    func_80038D3C();
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_80038DD4);
+/**
+ * @brief Initiate an asynchronous CD-ROM read command (read phase).
+ *
+ * Calls CdSync(1, 0) to wait for the previous operation. If the result
+ * is 2 (ready), issues CdControlF(2, D_8008A3DC), sets state byte
+ * D_8008A3D9 to 4, and calls func_80038E28 to poll for completion.
+ */
+void func_80038DD4(void) {
+    extern u8 D_8008A3DC[];
+    u8 *p;
+    if (CdSync(1, 0) != 2) {
+        return;
+    }
+    p = D_8008A3DC;
+    CdControlF(2, p);
+    *(p - 3) = 4;
+    func_80038E28();
+}
 
 
 /**
@@ -63,13 +98,91 @@ void func_80038E28(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_80038ED4);
+/**
+ * @brief Issue a CD-ROM sector read and handle the result.
+ *
+ * Reads sectors using CdRead with parameters from D_8008A3D8. On success
+ * (non-zero return), resets the timeout counter D_8008A3C8, sets state to 6,
+ * and calls func_80038F88. On failure, increments the timeout counter;
+ * if it reaches 0x708 (1800 frames), resets it and plays an error sound.
+ * Then waits for VSync, sets state to 3, flushes the CD, and issues
+ * a CdControl pause command (type 9).
+ */
+void func_80038ED4(void) {
+    extern u8 D_8008A3D8[];
+    extern u32 D_8008A3C8;
+    u8 *p = D_8008A3D8;
+
+    if (CdRead(*(s32 *)(p + 8), *(s32 *)(p + 0x1C), 0x80) == 0) {
+        D_8008A3C8++;
+        if (D_8008A3C8 >= 0x708) {
+            D_8008A3C8 = 0;
+            func_8001313C(0x10, 0, 0x80, 0x7F, 0);
+        }
+        VSync(0);
+        *(p + 1) = 3;
+        CdFlush();
+        CdControl(9, 0, 0);
+    } else {
+        D_8008A3C8 = 0;
+        *(p + 1) = 6;
+        func_80038F88();
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_80038F88);
+/**
+ * @brief Handle CD-ROM read synchronization result.
+ *
+ * Calls CdReadSync(1, 0) to check read completion status:
+ * - On success (0): resets error counter, sets state to 1, calls func_80038D3C.
+ * - On error (-1): increments error counter, plays error sound if threshold
+ *   (0x708) reached, waits for VSync, sets state to 3, flushes and re-seeks.
+ * - Otherwise: returns without action (read still in progress).
+ */
+void func_80038F88(void) {
+    extern u32 D_8008A3C8;
+    extern u8 D_8008A3D9;
+    s32 result = CdReadSync(1, 0);
+    if (result != -1) {
+        if (result == 0) {
+            D_8008A3C8 = 0;
+            D_8008A3D9 = 1;
+            func_80038D3C();
+        }
+    } else {
+        D_8008A3C8++;
+        if (D_8008A3C8 >= 0x708) {
+            D_8008A3C8 = 0;
+            func_8001313C(0x10, 0, 0x80, 0x7F, 0);
+        }
+        VSync(0);
+        D_8008A3D9 = 3;
+        CdFlush();
+        CdControl(9, 0, 0);
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_80039040);
+/**
+ * @brief Initiate an asynchronous CD-ROM seek/read command.
+ *
+ * Calls CdSync(1, 0) to wait for the previous operation to finish.
+ * If the result is 2 (ready), issues a CdControlF seek command (type 2)
+ * with parameters from D_8008A3DC, sets state byte D_8008A3D9 to 8,
+ * and calls func_80039094 to continue processing.
+ */
+void func_80039040(void) {
+    extern u8 D_8008A3DC[];
+    u8 *p;
+    if (CdSync(1, 0) != 2) {
+        return;
+    }
+    p = D_8008A3DC;
+    CdControlF(2, p);
+    *(p - 3) = 8;
+    func_80039094();
+}
 
 
 /**
@@ -394,7 +507,29 @@ s32 func_8003B334(u8 *a0) {
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003B36C);
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_8003B440);
+/**
+ * @brief Dispatch a CD-ROM command based on the command byte at a0[0x46].
+ *
+ * @param a0 Pointer to CD command structure.
+ */
+void func_8003B440(u8 *a0) {
+    u8 cmd = a0[0x46];
+    switch (cmd) {
+    case 2:
+        func_8003BBAC(a0, a0[0x47]);
+        break;
+    case 3:
+        func_8003BBCC(a0, a0[0x47]);
+        break;
+    case 4:
+        if (a0[0x48] == 0) {
+            func_8003BBEC(a0, a0[0x47]);
+        } else {
+            func_8003BC0C(a0);
+        }
+        break;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/2953C", func_8003B4E8);
@@ -422,9 +557,54 @@ INCLUDE_ASM("asm/nonmatchings/2953C", func_8003BA2C);
 
 // snd_voice_cmd_play_note - cmd=0x43, sets payload byte
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_8003BAC4);
+/**
+ * @brief Configure a CD command struct based on its command type.
+ *
+ * Reads byte 0x46 of the struct. If 2, sets field_37=0x44,
+ * field_2C=a0+0x51, field_36=cmd. If 3, sets field_37=0x4D,
+ * field_2C=a0+0x5D, field_36=6. Otherwise does nothing.
+ *
+ * @param a0 Pointer to the CD command struct.
+ */
+void func_8003BAC4(u8 *a0) {
+    s32 cmd = a0[0x46];
+    switch (cmd) {
+    case 2:
+        a0[0x37] = 0x44;
+        *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x51);
+        a0[0x36] = cmd;
+        break;
+    case 3:
+        a0[0x37] = 0x4D;
+        *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x5D);
+        a0[0x36] = 6;
+        break;
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/2953C", func_8003BB18);
+/**
+ * @brief Process a CD command completion state.
+ *
+ * If byte 0x53 of the command struct is zero, calls the function pointer
+ * stored in D_80056558 and returns 0. If nonzero and byte 0x46 == 2,
+ * returns 1 (command complete). Otherwise sets byte 0x46 to 0xFE
+ * (error state) and returns 0.
+ *
+ * @param a0 Pointer to the CD command struct.
+ * @return 1 if command complete, 0 otherwise.
+ */
+s32 func_8003BB18(u8 *a0) {
+    extern s32 D_80056558;
+    if (a0[0x53] != 0) {
+        if (a0[0x46] == 2) {
+            return 1;
+        }
+        a0[0x46] = 0xFE;
+        return 0;
+    }
+    ((void (*)(void))D_80056558)();
+    return 0;
+}
 
 

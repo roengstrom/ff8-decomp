@@ -5,7 +5,36 @@
 void func_800389CC(void);
 void func_80038CF0(s32 a0);
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_800385B0);
+/**
+ * @brief Detect the disc number by searching for disc-specific files.
+ *
+ * Calls VSync(30), then tries CdSearchFile with four disc-identifier
+ * filenames (D_8001092C–D_8001095C). Returns 1–4 for the first match,
+ * or -1 if none found.
+ *
+ * @return Disc number (1–4), or -1 on failure.
+ */
+s32 func_800385B0(void) {
+    extern u8 D_8001092C[];
+    extern u8 D_8001093C[];
+    extern u8 D_8001094C[];
+    extern u8 D_8001095C[];
+    u8 buf[24];
+    VSync(30);
+    if (CdSearchFile(buf, D_8001092C)) {
+        return 1;
+    }
+    if (CdSearchFile(buf, D_8001093C)) {
+        return 2;
+    }
+    if (CdSearchFile(buf, D_8001094C)) {
+        return 3;
+    }
+    if (CdSearchFile(buf, D_8001095C)) {
+        return 4;
+    }
+    return -1;
+}
 
 
 /** @brief Calls func_8001313C with a0 passed through and fixed constants.

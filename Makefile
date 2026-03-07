@@ -38,7 +38,10 @@ PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 PSYQ43_SRCS := src/34C8.c src/4EF0.c src/57FC.c src/75B4.c src/A118.c src/AD5C.c src/C9A8.c
 
 # Source files compiled without -G0 (default is -G0)
-NO_G0_SRCS := src/1D2C.c src/10DD0.c
+NO_G0_SRCS := src/1D2C.c
+
+# Source files compiled with -G4 (globals ≤4 bytes use assembler pseudo expansion)
+G4_SRCS := src/10DD0.c
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
@@ -93,7 +96,7 @@ $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
 		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
-		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)) $< -o $(BUILD_DIR)/$(*F).s && \
+		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS))) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF

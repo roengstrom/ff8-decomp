@@ -508,7 +508,20 @@ void func_80011E18(void) {
  *
  *  On exit (g_fieldEntity[0] == 4), shuts down sound, resets GPU, and
  *  reinitializes everything from the top.
+ *
+ *  @note Non-matching (+3 instructions, 617 vs 614). Three codegen differences:
+ *        1. CC1PSX uses $v0 (caller-saved) for `lui %hi(g_fieldEntity)` temp,
+ *           preventing it from being scheduled into a jal delay slot. Target
+ *           uses $fp (callee-saved) which survives across calls.
+ *        2. CC1PSX caches literal constants 2 and 0x4B in callee-saved regs
+ *           ($s6, $s8) at pre-loop point. Target uses inline `li $v0` in
+ *           delay slots instead, saving 2 instructions.
+ *        These are fundamental compiler register allocation decisions not
+ *        controllable from C source.
+ *
+ *  @see permuter/GameMain/base.c for the C decomp attempt.
  */
+INCLUDE_RODATA("asm/nonmatchings/1D2C", main_rodata);
 INCLUDE_ASM("asm/nonmatchings/1D2C", main);
 
 /** @brief Sets up the GPU draw mode for both display buffers.
