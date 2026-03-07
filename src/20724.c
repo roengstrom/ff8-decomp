@@ -199,7 +199,26 @@ INCLUDE_ASM("asm/nonmatchings/20724", func_80030A54);
 INCLUDE_ASM("asm/nonmatchings/20724", func_80030B2C);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030CB0);
+/**
+ * @brief Add to the battle timer and call func_80030B2C for each full tick.
+ *
+ * Adds @p a0 to D_80083750. While the counter >= 4, subtracts 4 and calls
+ * func_80030B2C(). Stores the remainder back to D_80083750.
+ *
+ * @param a0 Amount to add to the timer.
+ */
+void func_80030CB0(s32 a0) {
+    extern s32 D_80083750;
+    s32 counter = D_80083750;
+    counter += a0;
+top:
+    if (counter >= 4) {
+        func_80030B2C();
+        counter -= 4;
+        goto top;
+    }
+    D_80083750 = counter;
+}
 
 
 /**
