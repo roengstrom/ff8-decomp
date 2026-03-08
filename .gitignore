@@ -2,7 +2,6 @@ original/
 disc/
 build/
 asm/
-!src/asm/
 .venv/
 .claude/
 __pycache__/

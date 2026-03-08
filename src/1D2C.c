@@ -520,7 +520,6 @@ void func_80011E18(void) {
  *        This only affects files without -G0 (1D2C.c), where CC1PSX emits
  *        assembler pseudo-instructions instead of explicit lui/lw sequences.
  */
-INCLUDE_RODATA("src/asm", 1D2C_rodata);
 INCLUDE_ASM("asm/nonmatchings/1D2C", main);
 
 /** @brief Sets up the GPU draw mode for both display buffers.
