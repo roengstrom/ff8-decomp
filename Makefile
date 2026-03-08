@@ -25,6 +25,12 @@ LD_SCRIPT  := slus_008.92.ld
 ### Compiler flags ###
 CCPSXFLAGS := -O2 -G0
 
+# Set NON_MATCHING=1 to compile C decomps that don't byte-match yet
+# (e.g. due to ASPSX vs GAS assembler differences)
+ifdef NON_MATCHING
+NON_MATCHING_FLAGS := -DNON_MATCHING
+endif
+
 ### Per-toolchain settings ###
 # PsyQ 4.1: gcc 2.7.2-970404 + aspsx 2.67
 PSYQ41_SN_PATH   := $(PSYQ41_DIR)
@@ -80,7 +86,7 @@ ALL_OBJS := $(ASM_OBJS) $(C_OBJS)
 
 ### Targets ###
 
-# Default: build and verify
+# Default: build and verify everything
 all: verify
 
 # Assemble: .s -> .o
@@ -94,9 +100,9 @@ $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
-		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
+		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
-		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS))) $< -o $(BUILD_DIR)/$(*F).s && \
+		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS))) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
@@ -108,33 +114,45 @@ $(ELF): $(ALL_OBJS) $(LD_SCRIPT)
 $(BUILT_EXE): $(ELF)
 	$(OBJCOPY) -O binary $< $@
 
-# Build everything
-build: $(BUILT_EXE)
+# Build everything (main + overlays)
+build: $(BUILT_EXE) build-overlays
 
-# Build and compare SHA1 against original
-verify: $(BUILT_EXE)
-	@echo "Verifying..."
-	@BUILT=$$(sha1sum $(BUILT_EXE) | cut -d' ' -f1) && \
-	ORIG=$$(sha1sum $(TARGET) | cut -d' ' -f1) && \
-	echo "  Original: $$ORIG" && \
-	echo "  Built:    $$BUILT" && \
+# Build and compare SHA1 against originals (main + overlays)
+verify: $(BUILT_EXE) build-overlays
+	@FAIL=0; \
+	printf "%-20s  %-40s  %-40s  %s\n" "Name" "Expected" "Actual" "State"; \
+	printf "%-20s  %-40s  %-40s  %s\n" "--------------------" "----------------------------------------" "----------------------------------------" "--------"; \
+	BUILT=$$(sha1sum $(BUILT_EXE) | cut -d' ' -f1); \
+	ORIG=$$(sha1sum $(TARGET) | cut -d' ' -f1); \
 	if [ "$$BUILT" = "$$ORIG" ]; then \
-		echo "MATCH!"; \
+		printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "SLUS_008.92" "$$ORIG" "$$BUILT" "Match"; \
 	else \
-		echo "MISMATCH!"; \
-		exit 1; \
-	fi
+		printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "SLUS_008.92" "$$ORIG" "$$BUILT" "Mismatch"; \
+		FAIL=1; \
+	fi; \
+	$(foreach ovl,$(OVERLAYS), \
+		BUILT=$$(sha1sum $($(ovl)_BIN) | cut -d' ' -f1); \
+		ORIG=$$(sha1sum $($(ovl)_TARGET) | cut -d' ' -f1); \
+		if [ "$$BUILT" = "$$ORIG" ]; then \
+			printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(ovl).ovl" "$$ORIG" "$$BUILT" "Match"; \
+		else \
+			printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(ovl).ovl" "$$ORIG" "$$BUILT" "Mismatch"; \
+			FAIL=1; \
+		fi; \
+	) \
+	if [ "$$FAIL" = "1" ]; then exit 1; fi
 
-# First-time setup: create venv, install dependencies, extract PS-EXE, run splat
+# First-time setup: create venv, install dependencies, run splat
 setup:
 	python3 -m venv $(VENV)
 	$(PYTHON) -m pip install -r requirements.txt
-	$(SPLAT) split $(SPLAT_YAML)
+	$(MAKE) split
 
-# Re-run splat (regenerate asm + linker script)
+# Re-run splat for main binary + all overlays
 split:
 	rm -rf asm
 	$(SPLAT) split $(SPLAT_YAML)
+	$(foreach ovl,$(OVERLAYS),$(SPLAT) split $($(ovl)_YAML);)
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -222,15 +240,8 @@ endef
 
 $(foreach ovl,$(OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl))))
 
-# Meta-targets for all overlays
-split-overlays: $(foreach ovl,$(OVERLAYS),split-$(ovl))
+# Internal: build all overlay binaries
 build-overlays: $(foreach ovl,$(OVERLAYS),build-$(ovl))
-verify-overlays: $(foreach ovl,$(OVERLAYS),verify-$(ovl))
 
-OVL_SPLIT_TARGETS  := $(foreach ovl,$(OVERLAYS),split-$(ovl))
-OVL_BUILD_TARGETS  := $(foreach ovl,$(OVERLAYS),build-$(ovl))
-OVL_VERIFY_TARGETS := $(foreach ovl,$(OVERLAYS),verify-$(ovl))
-
-.PHONY: all build verify setup setup-toolchain split clean permute \
-        $(OVL_SPLIT_TARGETS) $(OVL_BUILD_TARGETS) $(OVL_VERIFY_TARGETS) \
-        split-overlays build-overlays verify-overlays
+.PHONY: all build verify setup setup-toolchain split clean permute build-overlays \
+        $(foreach ovl,$(OVERLAYS),split-$(ovl) build-$(ovl) verify-$(ovl))
