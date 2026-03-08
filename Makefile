@@ -215,9 +215,11 @@ $(1)_BIN_SRCS := $$(wildcard assets/*.bin)
 $(1)_BIN_OBJS := $$(patsubst assets/%.bin,$$($(1)_DIR)/assets/%.o,$$($(1)_BIN_SRCS))
 $(1)_ALL_OBJS := $$($(1)_ASM_OBJS) $$($(1)_C_OBJS) $$($(1)_BIN_OBJS)
 
+$(1)_MANUAL_SYMS := $$(wildcard config/undefined_syms.$(1).txt)
 $(1)_LDFLAGS  := -T $$($(1)_LD) \
                  -T config/undefined_funcs_auto.$(1).txt \
                  -T config/undefined_syms_auto.$(1).txt \
+                 $$(foreach f,$$($(1)_MANUAL_SYMS),-T $$(f)) \
                  --no-check-sections \
                  -Map $$($(1)_DIR)/$(1).map
 

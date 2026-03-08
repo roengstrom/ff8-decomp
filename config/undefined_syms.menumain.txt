@@ -1,0 +1,15 @@
+/* Named symbol aliases for menumain overlay.
+   These map named C externs to their addresses. splat auto-generates
+   only D_XXXX-style names, so named symbols must be maintained here. */
+g_gameState = 0x80077378;
+g_characterMagic = 0x80077818;
+g_characterAbilities = 0x80077864;
+g_configFlags = 0x80077E5C;
+g_battleAnims = 0x80082DD0;
+ClearImage = 0x80048DD4;
+ClearOTag = 0x80049074;
+DrawOTag = 0x80049244;
+DrawSync = 0x80048C50;
+PutDrawEnv = 0x800492B4;
+PutDispEnv = 0x80049480;
+VSync = 0x80042634;

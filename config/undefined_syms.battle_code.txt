@@ -1,0 +1,4 @@
+/* Manual undefined symbols for battle_code overlay.
+   These are not auto-detected by splat because they fall within
+   the overlay's VRAM range but are actually external references. */
+D_800E19B4 = 0x800E19B4;
