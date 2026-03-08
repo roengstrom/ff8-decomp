@@ -47,8 +47,7 @@ func_8003BBEC = 0x8003BBEC; // snd_voice_cmd_set_volume (cmd=0x47)
 func_8001152C = 0x8001152C;
 start = 0x80011534;
 func_800115F0 = 0x800115F0;
-main = 0x80011E60;
-GameMain = 0x80011E60;
+main = 0x80011E60; // GameMain
 __udivdi3 = 0x8002BA80;
 SsUtReverbOff = 0x80035CC0;
 __addsf3 = 0x8003C804;
