@@ -2,7 +2,7 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-INCLUDE_ASM("asm/nonmatchings/131FC", func_800229FC);
+INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
 
 
 /**
@@ -127,7 +127,7 @@ void func_80022C5C(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/131FC", func_80022CDC);
+INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022CDC);
 
 
 /**
@@ -169,7 +169,7 @@ void func_80022D78(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/131FC", func_80022E08);
+INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022E08);
 
 
 /**
@@ -215,10 +215,10 @@ s32 func_800231C8(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/131FC", func_800231E0);
+INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800231E0);
 
 
-INCLUDE_ASM("asm/nonmatchings/131FC", func_8002363C);
+INCLUDE_ASM("asm/nonmatchings/gf_anim", func_8002363C);
 
 
 /**

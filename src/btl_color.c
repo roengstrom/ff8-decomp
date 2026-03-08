@@ -13,7 +13,7 @@ void func_8002FF24(u8 *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_8002FF34);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_8002FF34);
 
 
 /**
@@ -62,7 +62,7 @@ void func_80030094(s32 a0, s32 a1, s32 a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_800300F8);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_800300F8);
 
 
 /** @brief Call func_80030058 with the default parameter value 0x1000. */
@@ -105,7 +105,7 @@ typedef struct {
 extern BattleCameraState D_800834D0;
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030248);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030248);
 
 
 /** @brief Stores u16 and u8 to adjacent fields of D_800834D0.
@@ -118,14 +118,14 @@ void func_80030274(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030288);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030288);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_800302DC);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_800302DC);
 
 // init_battle_camera
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030518);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030518);
 
 
 /**
@@ -153,10 +153,10 @@ u8 *func_80030748(void) {
     return &D_80083878;
 }
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030754);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030754);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_800307F8);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_800307F8);
 
 
 /**
@@ -187,16 +187,16 @@ s32 func_80030848(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_800308B0);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_800308B0);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_8003093C);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003093C);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030A54);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030A54);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030B2C);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030B2C);
 
 
 /**
@@ -276,19 +276,19 @@ void func_80030D78(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030DB0);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030DB0);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030E60);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030E60);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030F10);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030F10);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030FA0);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030FA0);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80030FDC);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030FDC);
 
 
 /** @brief Empty stub -- no operation. */
@@ -296,16 +296,16 @@ void func_80031044(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_8003104C);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003104C);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031188);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031188);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031224);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031224);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031364);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031364);
 
 
 typedef struct {
@@ -325,7 +325,7 @@ void func_800316C4(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_800316D4);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_800316D4);
 
 
 /** @brief Stores a byte to global D_80083756. */
@@ -375,13 +375,13 @@ s32 func_80031910(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031954);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031954);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031A18);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031CDC);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031CDC);
 
 
 /**
@@ -439,7 +439,7 @@ void func_80031DF4(s32 a0, void *src) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80031E1C);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031E1C);
 
 
 extern u8 D_80083772[];
@@ -557,12 +557,12 @@ void func_80031FB0(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80032010);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80032010);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_800320BC);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_800320BC);
 
 
-INCLUDE_ASM("asm/nonmatchings/20724", func_80032204);
+INCLUDE_ASM("asm/nonmatchings/btl_color", func_80032204);
 
 

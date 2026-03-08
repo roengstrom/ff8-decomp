@@ -2,7 +2,7 @@
 
 void func_80014DE0(u32 val);
 
-INCLUDE_ASM("asm/nonmatchings/4EF0", func_800146F0);
+INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800146F0);
 
 /** @brief Adds magic constant 0xB0BEB4BF to value at pointer. */
 u32 func_80014740(u32 *a0) {
@@ -89,9 +89,9 @@ s32 func_80014860(s32 a0, s32 a1) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/4EF0", func_800148B0);
+INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800148B0);
 
-INCLUDE_ASM("asm/nonmatchings/4EF0", func_80014974);
+INCLUDE_ASM("asm/nonmatchings/snd_dma", func_80014974);
 
 /**
  * @brief Initializes the SPU hardware and sets up the sound engine timer.

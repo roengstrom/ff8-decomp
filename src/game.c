@@ -8,7 +8,7 @@ u8 *func_80020FBC(u16 a0, s32 a1);
 /** @brief Empty stub at the end of the sound engine region.
  *  Followed by ~4KB of zero padding before the game code resumes.
  */
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_8001F5C8);
+INCLUDE_ASM("asm/nonmatchings/game", func_8001F5C8);
 
 /**
  * @brief Game code VSync handler. Clears render mode if func_80035148 signals completion.
@@ -630,7 +630,7 @@ s32 func_80021034(s32 itemId, s32 amount) {
  * @param abilityId Ability ID to search for.
  * @return 0 if abilityId is 0 or empty slot exists, 1 if ability count >= 100, 2 if all slots full.
  */
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021108);
+INCLUDE_ASM("asm/nonmatchings/game", func_80021108);
 
 
 /**
@@ -734,7 +734,7 @@ s32 a1;
  * @brief Search D_8005289C array for the value stored at D_80082C08.
  * @return 1 if found, 0 if not found or array is empty (0xFFFF terminated).
  */
-INCLUDE_ASM("asm/nonmatchings/10DD0", func_80021300);
+INCLUDE_ASM("asm/nonmatchings/game", func_80021300);
 
 
 /**

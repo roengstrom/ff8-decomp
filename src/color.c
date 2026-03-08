@@ -2,7 +2,7 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800330F4);
+INCLUDE_ASM("asm/nonmatchings/color", func_800330F4);
 
 
 /**
@@ -59,13 +59,13 @@ void func_8003331C(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_8003334C);
+INCLUDE_ASM("asm/nonmatchings/color", func_8003334C);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033380);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033380);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_8003346C);
+INCLUDE_ASM("asm/nonmatchings/color", func_8003346C);
 
 
 /**
@@ -92,52 +92,52 @@ void func_80033534(s32 a0, s32 a1, u16 *a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800335AC);
+INCLUDE_ASM("asm/nonmatchings/color", func_800335AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033688);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033688);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033768);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033768);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800337FC);
+INCLUDE_ASM("asm/nonmatchings/color", func_800337FC);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033A28);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033A28);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033C7C);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033C7C);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033D5C);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033D5C);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80033F1C);
+INCLUDE_ASM("asm/nonmatchings/color", func_80033F1C);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_8003406C);
+INCLUDE_ASM("asm/nonmatchings/color", func_8003406C);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800341BC);
+INCLUDE_ASM("asm/nonmatchings/color", func_800341BC);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_8003431C);
+INCLUDE_ASM("asm/nonmatchings/color", func_8003431C);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80034830);
+INCLUDE_ASM("asm/nonmatchings/color", func_80034830);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800348C4);
+INCLUDE_ASM("asm/nonmatchings/color", func_800348C4);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_800349F4);
+INCLUDE_ASM("asm/nonmatchings/color", func_800349F4);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80034C74);
+INCLUDE_ASM("asm/nonmatchings/color", func_80034C74);
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80034DBC);
+INCLUDE_ASM("asm/nonmatchings/color", func_80034DBC);
 
 
 /**
@@ -164,6 +164,6 @@ u8 func_80035148(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/238F4", func_80035158);
+INCLUDE_ASM("asm/nonmatchings/color", func_80035158);
 
 

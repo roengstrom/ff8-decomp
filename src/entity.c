@@ -2,16 +2,16 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-INCLUDE_ASM("asm/nonmatchings/22A8C", func_8003228C);
+INCLUDE_ASM("asm/nonmatchings/entity", func_8003228C);
 
 
-INCLUDE_ASM("asm/nonmatchings/22A8C", func_80032350);
+INCLUDE_ASM("asm/nonmatchings/entity", func_80032350);
 
 
-INCLUDE_ASM("asm/nonmatchings/22A8C", func_80032534);
+INCLUDE_ASM("asm/nonmatchings/entity", func_80032534);
 
 
-INCLUDE_ASM("asm/nonmatchings/22A8C", func_80032688);
+INCLUDE_ASM("asm/nonmatchings/entity", func_80032688);
 
 
 /**
@@ -55,6 +55,6 @@ s32 func_80032808(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/22A8C", func_8003283C);
+INCLUDE_ASM("asm/nonmatchings/entity", func_8003283C);
 
 

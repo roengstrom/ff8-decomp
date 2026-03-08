@@ -4,7 +4,7 @@
 
 extern SfxEntry g_sfxEntries[];
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002C8A4);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002C8A4);
 
 
 /**
@@ -137,13 +137,13 @@ s32 func_8002CABC(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CAE0);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CAE0);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CC4C);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CC4C);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CDE4);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CDE4);
 
 
 /** @brief Stores a byte to global D_800831DC. */
@@ -175,16 +175,16 @@ s32 func_8002CE74(void) {
  *       branch direction inversion (beqz vs bnez), and compiler fills j
  *       delay slot with subu making function 1 instruction shorter.
  */
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CE84);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CE84);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CECC);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CECC);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002CF54);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CF54);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D040);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D040);
 
 
 /**
@@ -241,21 +241,21 @@ void func_8002D744(s32 a0, u8 *a1, s32 a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D784);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D784);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D818);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D818);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D8CC);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D8CC);
 
 
 // sfx_entry_init_fields_16_1E_2D - g_sfxEntries stride 60
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002D970);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D970);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DBF8);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DBF8);
 
 
 /**
@@ -418,7 +418,7 @@ s32 idx;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002DF5C);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DF5C);
 
 
 /**
@@ -432,10 +432,10 @@ void func_8002E028(s32 idx, RECT *dst) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E064);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E064);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E1B4);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E1B4);
 
 
 /**
@@ -477,10 +477,10 @@ void func_8002E254(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E298);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E298);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E3A4);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E3A4);
 
 
 /** @brief Extracts a 4-bit nibble from packed byte array D_800834D8.
@@ -499,13 +499,13 @@ s32 func_8002E428(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E454);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E454);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E4AC);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E4AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E680);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E680);
 
 
 /** @brief Calls func_8002E4AC with a1=1. */
@@ -561,15 +561,15 @@ void func_8002E7C4(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E810);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E810);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002E8DC);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E8DC);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002EAD0);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002EAD0);
 
 
-INCLUDE_ASM("asm/nonmatchings/1D0A4", func_8002EE10);
+INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002EE10);
 
 

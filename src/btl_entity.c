@@ -3,16 +3,16 @@
 #include "battle.h"
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BAA0);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BAA0);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BC10);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BC10);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BC6C);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BC6C);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BE48);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BE48);
 
 
 /**
@@ -28,7 +28,7 @@ s32 func_8002BEEC(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002BF24);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BF24);
 
 
 /**
@@ -114,16 +114,16 @@ void func_8002C124(u8 val) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C130);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002C130);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C3AC);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002C3AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C56C);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002C56C);
 
 
-INCLUDE_ASM("asm/nonmatchings/1C2A0", func_8002C734);
+INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002C734);
 
 
 extern SfxEntry g_sfxEntries[];

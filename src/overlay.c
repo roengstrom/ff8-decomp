@@ -21,7 +21,7 @@ void func_80035CF0(void) { func_8003882C(); }
 void func_80035D10(void) { func_80038868(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80035D30);
+INCLUDE_ASM("asm/nonmatchings/overlay", func_80035D30);
 
 
 extern s32 D_8008514C;
@@ -70,7 +70,7 @@ void func_80035E68(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_80035E8C);
+INCLUDE_ASM("asm/nonmatchings/overlay", func_80035E8C);
 
 
 /**
@@ -260,7 +260,7 @@ void func_80036254(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003631C);
+INCLUDE_ASM("asm/nonmatchings/overlay", func_8003631C);
 
 
 /** @brief Load overlay 0 (default/main module) with no callbacks. */
@@ -269,7 +269,7 @@ void func_80036444(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/264E0", func_8003646C);
+INCLUDE_ASM("asm/nonmatchings/overlay", func_8003646C);
 
 
 /** @brief Initialize or reset card hand slot states.

@@ -14,9 +14,9 @@ void func_80019918(s8 *a0) {
     D_80077284 = val << 16;
 }
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019934);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019934);
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_8001999C);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001999C);
 
 /**
  * @brief Clears D_80073E60, stores *a0 << 16 into D_80077280.
@@ -30,9 +30,9 @@ void func_80019A10(s8 *a0) {
     D_80077280 = val << 16;
 }
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019A2C);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019A2C);
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019A94);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019A94);
 
 /**
  * @brief Transfers sound data for main and optional secondary sound sources.
@@ -68,7 +68,7 @@ void func_80019B58(s32 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019BC0);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019BC0);
 
 /**
  * @brief Starts sound playback mode 1 for primary and optional secondary sources.
@@ -135,13 +135,13 @@ void func_80019D9C(u16 *a0) {
     *(u16 *)((u8 *)D_80074F08 + 0x60) = *a0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019DB0);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019DB0);
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019EA0);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019EA0);
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_80019F3C);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019F3C);
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_8001A058);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001A058);
 
 /**
  * @brief Mutes two consecutive SPU voices if active flag is set.
@@ -196,5 +196,5 @@ void func_8001A198(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/A118", func_8001A1E8);
+INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001A1E8);
 

@@ -2,25 +2,25 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026ADC);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026ADC);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026CA0);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026CA0);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026CF0);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026CF0);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026D10);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026D10);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026D8C);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026D8C);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026E20);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026E20);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026E70);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026E70);
 
 
 /**
@@ -51,7 +51,7 @@ void func_80026F14(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026F4C);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026F4C);
 
 
 /**
@@ -74,7 +74,7 @@ s32 func_80026F90(s32 a0) {
 void func_80026FB4(void) { func_80047384(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80026FD4);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80026FD4);
 
 
 /**
@@ -94,16 +94,16 @@ void func_80026FE0(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027038);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027038);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_800270B0);
+INCLUDE_ASM("asm/nonmatchings/thread", func_800270B0);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027220);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027220);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027360);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027360);
 
 
 extern BattleAnimEntity g_battleAnims[];
@@ -130,7 +130,7 @@ void func_80027408(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027448);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027448);
 
 
 /**
@@ -160,7 +160,7 @@ s32 func_800275A8(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_800275D4);
+INCLUDE_ASM("asm/nonmatchings/thread", func_800275D4);
 
 
 /**
@@ -210,10 +210,10 @@ u16 func_800279CC(s32 idx, s32 offset) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027A58);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027A58);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027AC8);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027AC8);
 
 
 /**
@@ -249,7 +249,7 @@ end:
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027B7C);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027B7C);
 
 /**
  * @brief Look up a battle animation byte through a two-level table.
@@ -269,16 +269,16 @@ s32 func_80027BA8(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027C00);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027C00);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027C90);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027C90);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027CF8);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027CF8);
 
 
-INCLUDE_ASM("asm/nonmatchings/172DC", func_80027DB4);
+INCLUDE_ASM("asm/nonmatchings/thread", func_80027DB4);
 
 
 /**

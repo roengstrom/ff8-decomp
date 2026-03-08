@@ -2,15 +2,15 @@
 
 void func_80016280(s32 a0);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80014FFC);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80014FFC);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_800150A8);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800150A8);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_800151C4);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800151C4);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80015668);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015668);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80015AC8);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015AC8);
 
 /**
  * @brief Finds the SPU voice with the lowest priority and frees it for reuse.
@@ -51,7 +51,7 @@ s32 func_80015F4C(void) {
     return min_idx;
 }
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80015FE0);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015FE0);
 
 extern u8 D_80070D60[];
 extern s32 D_80073CA8;
@@ -121,9 +121,9 @@ s32 func_80016300(u8 *a0, s32 a1, s32 a2) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80016344);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016344);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80016478);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016478);
 
 extern s32 D_80074F1C;
 /**
@@ -138,11 +138,11 @@ void func_800164C8(u8 *a0) {
     *(s32 *)(a0 + 0x50) = D_80074F1C;
 }
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_800164D8);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80016A1C);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016A1C);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80016A7C);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016A7C);
 
-INCLUDE_ASM("asm/nonmatchings/57FC", func_80016C28);
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016C28);
 

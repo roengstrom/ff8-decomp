@@ -2,7 +2,7 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_8002153C);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002153C);
 
 
 /**
@@ -234,13 +234,13 @@ s32 func_800219E0(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_80021A64);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80021A64);
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_80021B58);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80021B58);
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_80021C10);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80021C10);
 
 
 /**
@@ -333,7 +333,7 @@ s32 func_800221B4(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_80022228);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80022228);
 
 
 /**
@@ -406,12 +406,12 @@ s32 func_80022404(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_8002247C);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002247C);
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_8002257C);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002257C);
 
 
-INCLUDE_ASM("asm/nonmatchings/11D3C", func_8002274C);
+INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002274C);
 
 

@@ -74,7 +74,7 @@ void func_8001152C(void) {
 }
 
 /** @brief CRT0 entry point. Clears BSS, sets up GP register, and calls main. */
-INCLUDE_ASM("asm/nonmatchings/1D2C", start);
+INCLUDE_ASM("asm/nonmatchings/main", start);
 
 /** @brief Clears the GPU ordering tables and flushes the GPU pipeline.
  *
@@ -176,7 +176,7 @@ void func_800115F0(void) {
  *  }
  *  @endcode
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", VsyncHandler);
+INCLUDE_ASM("asm/nonmatchings/main", VsyncHandler);
 
 void InitGeom(void);
 void ResetCallback(void);
@@ -275,7 +275,7 @@ void InitHardware(void) {
  *  }
  *  @endcode
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", func_80011870);
+INCLUDE_ASM("asm/nonmatchings/main", func_80011870);
 
 /** @brief Restores a previously saved camera/field state snapshot.
  *
@@ -520,7 +520,7 @@ void func_80011E18(void) {
  *        This only affects files without -G0 (1D2C.c), where CC1PSX emits
  *        assembler pseudo-instructions instead of explicit lui/lw sequences.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", main);
+INCLUDE_ASM("asm/nonmatchings/main", main);
 
 /** @brief Sets up the GPU draw mode for both display buffers.
  *
@@ -606,7 +606,7 @@ void func_800128F8(void) {
  *  @param a0 Fill brightness (uniform RGB). 16 (dark grey) is used during
  *            fade effects.
  */
-INCLUDE_ASM("asm/nonmatchings/1D2C", BuildPrimList);
+INCLUDE_ASM("asm/nonmatchings/main", BuildPrimList);
 
 extern volatile u16 g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
 extern volatile u8 g_fadeMode; /* volatile for codegen match (forces reload each access) */

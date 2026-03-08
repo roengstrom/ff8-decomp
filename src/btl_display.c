@@ -166,7 +166,7 @@ void func_8002AFA4(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1B630", func_8002B080);
+INCLUDE_ASM("asm/nonmatchings/btl_display", func_8002B080);
 
 
-INCLUDE_ASM("asm/nonmatchings/1B630", func_8002B16C);
+INCLUDE_ASM("asm/nonmatchings/btl_display", func_8002B16C);

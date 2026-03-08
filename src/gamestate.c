@@ -2,7 +2,7 @@
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800370AC);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800370AC);
 
 
 /**
@@ -42,7 +42,7 @@ s32 func_8003720C(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037240);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037240);
 
 
 /** @brief Returns a pointer to global g_chocoboWorld. */
@@ -59,10 +59,10 @@ void func_800372DC(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037308);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037308);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800375A0);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800375A0);
 
 
 /**
@@ -79,7 +79,7 @@ void func_80037678(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800376A8);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800376A8);
 
 
 // mc_xor_checksum
@@ -95,7 +95,7 @@ void func_8003777C(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800377B4);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800377B4);
 
 
 /**
@@ -195,7 +195,7 @@ void func_8003798C(u8 *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800379AC);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800379AC);
 
 
 /** @brief Sets global D_80085218 to 1. */
@@ -212,12 +212,12 @@ u32 func_80037ADC(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037AEC);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037AEC);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037B44);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B44);
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037B7C);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B7C);
 
 /**
  * @brief Search g_gameState party slots (offset 0xD38) for a matching byte.
@@ -293,7 +293,7 @@ s32 func_80037C30(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037C6C);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037C6C);
 
 
 /**
@@ -316,7 +316,7 @@ void func_80037CD4(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037D40);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037D40);
 
 
 /**
@@ -404,13 +404,13 @@ void func_80037F08(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80037FB0);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037FB0);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80038030);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80038030);
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800381BC);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800381BC);
 
 
 /**
@@ -468,7 +468,7 @@ s32 func_8003837C(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_800383B8);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_800383B8);
 
 
 /** @brief Looks up byte from D_8005644B table at index a0 (masked to 8 bits).
@@ -499,6 +499,6 @@ s32 func_80038464(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/278AC", func_80038490);
+INCLUDE_ASM("asm/nonmatchings/gamestate", func_80038490);
 
 

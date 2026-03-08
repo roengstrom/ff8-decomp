@@ -5,11 +5,11 @@ extern u8 D_80070D60[];
 extern s32 D_80073CA8;
 extern u8 *D_80073C34;
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80016DB4);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016DB4);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80016E08);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016E08);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80016E5C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016E5C);
 
 /**
  * @brief Determines which sound bank group a given identifier belongs to.
@@ -102,13 +102,13 @@ s32 func_80017040(u8 *a0, s32 a1) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_8001708C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001708C);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017410);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017410);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800174E4);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800174E4);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017880);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017880);
 
 /**
  * @brief Releases a voice from all active sequence tracks (duplicate of func_80016280).
@@ -146,15 +146,15 @@ void func_80017A2C(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017AAC);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017C9C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017D14);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D14);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017D5C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D5C);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80017DB0);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
 
 /**
  * @brief Plays or stops a sound depending on the active sequence ID.
@@ -165,7 +165,7 @@ INCLUDE_ASM("asm/nonmatchings/75B4", func_80017DB0);
  *
  * @param a0 Pointer to a sound config structure (word 0 = track ID, halfword 8 = sequence ID).
  */
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018158);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018158);
 
 /**
  * @brief Configure audio track and update playback globals.
@@ -191,11 +191,11 @@ void func_800181D4(s32 *a0) {
     D_80074EB0 = result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018234);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018234);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018358);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018358);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018438);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018438);
 
 /**
  * @brief Process a sound voice and compute the remaining play count.
@@ -277,7 +277,7 @@ void func_8001871C(s32 *a0) {
     func_80017AAC(a0, local10, local14, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018784);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018784);
 
 /** @brief Calls func_800174E4 with two words loaded from the input pointer. */
 void func_800188B4(s32 *a0) {
@@ -298,13 +298,13 @@ top:
     if (i != 0) goto top;
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018908);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018908);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018A74);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018A74);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018B28);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018B28);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018C48);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018C48);
 
 /**
  * @brief Clears the sound fade counter and sets SPU transfer address.
@@ -322,31 +322,31 @@ void func_80018D40(u16 *a0) {
     func_8001A55C();
 }
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018D74);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018D74);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018DDC);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018DDC);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018E4C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018E4C);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80018F34);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018F34);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800190B4);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800190B4);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80019130);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80019130);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800191F8);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800191F8);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800192D8);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800192D8);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_80019450);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80019450);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800194C8);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800194C8);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_8001958C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001958C);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_8001966C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001966C);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_800197F4);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800197F4);
 
-INCLUDE_ASM("asm/nonmatchings/75B4", func_8001984C);
+INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001984C);
 

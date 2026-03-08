@@ -41,13 +41,13 @@ PSYQ43_SN_PATH   := $(PSYQ43_DIR)
 PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
-PSYQ43_SRCS := src/34C8.c src/4EF0.c src/57FC.c src/75B4.c src/A118.c src/AD5C.c src/C9A8.c
+PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c
 
 # Source files compiled without -G0 (default is -G0)
-NO_G0_SRCS := src/1D2C.c
+NO_G0_SRCS := src/main.c
 
 # Source files compiled with -G4 (globals ≤4 bytes use assembler pseudo expansion)
-G4_SRCS := src/10DD0.c
+G4_SRCS := src/game.c
 
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)

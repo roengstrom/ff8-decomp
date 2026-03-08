@@ -47,7 +47,7 @@ void func_800352EC(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/25A94", func_80035360);
+INCLUDE_ASM("asm/nonmatchings/render", func_80035360);
 
 
 /**
@@ -125,10 +125,10 @@ s32 func_80035AE4(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/25A94", func_80035B28);
+INCLUDE_ASM("asm/nonmatchings/render", func_80035B28);
 
 
-INCLUDE_ASM("asm/nonmatchings/25A94", func_80035B70);
+INCLUDE_ASM("asm/nonmatchings/render", func_80035B70);
 
 
 /** @brief Stores a word to global D_80083798. */

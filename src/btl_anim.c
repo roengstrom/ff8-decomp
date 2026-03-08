@@ -46,7 +46,7 @@ void func_80027F38(s32 a0, s32 a1, s32 a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80027F78);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027F78);
 
 
 /**
@@ -65,7 +65,7 @@ void func_80027FBC(s32 idx, s16 a1, s16 a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80027FDC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027FDC);
 
 
 /**
@@ -77,7 +77,7 @@ s32 func_80028098(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800280C0);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800280C0);
 
 
 /**
@@ -89,10 +89,10 @@ INCLUDE_ASM("asm/nonmatchings/186F8", func_800280C0);
  * @param a1 Slot index (halfword stride).
  * @param a2 Value to store.
  */
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800281A4);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281A4);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800281C4);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281C4);
 
 
 /**
@@ -210,7 +210,7 @@ void func_800283F8(void) {
  * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
  *       this file (compiled with PsyQ 4.1).
  */
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028444);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028444);
 
 
 /** @brief Calls func_8002A128, func_800286FC, and func_8002A090 in sequence. */
@@ -221,10 +221,10 @@ void func_8002848C(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800284BC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800284BC);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028564);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028564);
 
 
 /** @brief Wrapper that calls func_80050BC4. */
@@ -470,7 +470,7 @@ void func_80028B58(s32 a0) { func_80028A98(a0, 1); }
 void func_80028B78(void) { func_80028A44(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028B98);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028B98);
 
 
 /**
@@ -546,7 +546,7 @@ void func_80028D20(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80028D80);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028D80);
 
 
 /**
@@ -587,22 +587,22 @@ s32 func_80028F3C(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029028);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029028);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800290C0);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800290C0);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029150);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029150);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800291FC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800291FC);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800292AC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800292AC);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029360);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029360);
 
 
 /** @brief Returns the signed byte value at D_80082FD4. */
@@ -612,7 +612,7 @@ s32 func_800293F0(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029400);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029400);
 
 
 /** @brief Wrapper that calls func_80029400. */
@@ -656,14 +656,14 @@ s32 func_800294E4(s32 a0, s32 a1, s32 a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029550);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029550);
 
 
 /** @brief Advance to the next file in the memory card directory listing (PsyQ nextfile wrapper). */
 void func_800295D0(void) { nextfile(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_800295F0);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800295F0);
 
 
 /**
@@ -682,7 +682,7 @@ s32 func_80029660(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029680);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029680);
 
 
 /**
@@ -715,13 +715,13 @@ s32 func_800297E4(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029850);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029850);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029A20);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029A20);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029BA0);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029BA0);
 
 
 /**
@@ -745,7 +745,7 @@ s32 func_80029C44(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029CB8);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029CB8);
 
 
 /**
@@ -769,10 +769,10 @@ s32 func_80029D38(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029DAC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029DAC);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029E40);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029E40);
 
 
 /**
@@ -801,10 +801,10 @@ s32 func_80029EE4(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029F5C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029F5C);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_80029FDC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029FDC);
 
 
 /**
@@ -835,7 +835,7 @@ void func_8002A128(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A150);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A150);
 
 
 /**
@@ -946,7 +946,7 @@ void func_8002A340(u8 *src, u8 *dst, s32 n) {
  *       into j-to-check + bgtz (1 instruction longer). Also inverts beq
  *       (skip over mismatch return) to bne (jump to mismatch at end).
  */
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A36C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A36C);
 
 
 /** @brief Wrapper for func_80020E4C. */
@@ -985,7 +985,7 @@ void func_8002A438(u8 *a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A45C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A45C);
 
 
 /**
@@ -1031,7 +1031,7 @@ void func_8002A588(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A5E8);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A5E8);
 
 
 extern s32 D_800834C0;
@@ -1103,16 +1103,16 @@ s32 func_8002A91C(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002A92C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002AA18);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002AAC0);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002AB5C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AB5C);
 
 
 extern BattleDisplayEntity g_battleEntities[];
@@ -1170,7 +1170,7 @@ void func_8002ACD8(s32 idx, s32 offset, s32 val) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002ACF4);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002ACF4);
 
 
 /**
@@ -1184,7 +1184,7 @@ void func_8002AD04(s32 idx, RECT *src) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/186F8", func_8002AD3C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AD3C);
 
 
 // battle_entity_get_field_38 - g_battleEntities stride 64

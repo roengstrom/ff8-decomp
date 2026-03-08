@@ -14,19 +14,19 @@ void func_8001A55C(void) {
     *(s16 *)0x1F801DB2 = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001A57C);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001A57C);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001A5FC);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001A5FC);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001A674);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001A674);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001AA28);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001AA28);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001ACCC);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001ACCC);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001AD60);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001AD60);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001B1F4);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B1F4);
 
 /**
  * @brief Adjusts a note/instrument value based on a flag and range check.
@@ -45,11 +45,11 @@ s32 func_8001B400(s32 a0, s32 a1) {
     return a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001B42C);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B42C);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001B690);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B690);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001B820);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B820);
 
-INCLUDE_ASM("asm/nonmatchings/AD5C", func_8001BAA8);
+INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001BAA8);
 

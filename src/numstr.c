@@ -82,7 +82,7 @@ void func_8002F2EC(u8 *a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F320);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F320);
 
 
 extern u8 D_80052A20[];
@@ -163,22 +163,22 @@ void func_8002F488(u32 val, u8 *dst, s32 base_char) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F4B0);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F4B0);
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F548);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F548);
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F5B4);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F5B4);
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F610);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F610);
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002F688);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F688);
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002FD28);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FD28);
 
 
 /**
@@ -212,6 +212,6 @@ void func_8002FDE8(s32 *a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/1FA3C", func_8002FE0C);
+INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FE0C);
 
 

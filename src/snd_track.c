@@ -10,7 +10,7 @@ void func_8001E7A8(void);
 void func_8001E808(void);
 void func_8001F51C(void);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C1A8);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C1A8);
 
 extern u8 D_80073E68[];
 
@@ -77,7 +77,7 @@ s32 func_8001C280(s32 a0, s32 a1) {
     return a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C2C8);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C2C8);
 
 /**
  * @brief Read 2 bytes from stream, build 32-bit tempo value, store to bank.
@@ -99,11 +99,11 @@ void func_8001C39C(u8 *a0) {
     *(u16 *)((u8 *)bank + 0x5C) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C3E8);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C3E8);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C490);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C490);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C530);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C530);
 
 /** @brief Reads a signed 16-bit little-endian offset from the stream cursor and advances cursor by that offset.
  *  @param a0 Pointer to stream state (a0[0] = cursor pointer).
@@ -128,7 +128,7 @@ void func_8001C5D8(u8 *a0) {
  *       lhu/lbu, uses sltu instead of slt, and schedules the cursor store
  *       into the branch delay slot instead of before the conditional block.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C604);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C604);
 
 /** @brief Reads one byte from stream, advances cursor, ORs 3 into flags, stores byte << 8 as halfword at +0x80.
  *  @param a0 Pointer to stream state.
@@ -141,7 +141,7 @@ void func_8001C65C(u8 *a0) {
     *(u16 *)(a0 + 0x80) = val << 8;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C684);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C684);
 
 /**
  * @brief Reads one byte from stream, advances cursor, ORs 3 into flags,
@@ -159,9 +159,9 @@ void func_8001C708(u8 *a0) {
     *(s32 *)(a0 + 0x44) = val << 23;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C738);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C738);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C7C4);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C7C4);
 
 /** @brief Sets bit 6 (0x40) in the flags word at offset 0x30 of a0. */
 void func_8001C854(u8 *a0) {
@@ -201,7 +201,7 @@ void func_8001C898(u8 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C8DC);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C8DC);
 
 /**
  * @brief Reads a note byte from the stream and sets pitch/flag fields.
@@ -224,7 +224,7 @@ void func_8001C968(u8 *a0) {
     *(u16 *)(a0 + 0x8C) = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001C99C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C99C);
 
 /**
  * @brief Reads one byte from stream, advances cursor, stores byte as
@@ -248,7 +248,7 @@ void func_8001CA5C(u8 *a0) {
     *(u16 *)(a0 + 0x92) = (*(u16 *)(a0 + 0x92) - 1) & 0xF;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CA74);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CA74);
 
 /**
  * @brief Read instrument index from stream and apply to track.
@@ -274,7 +274,7 @@ void func_8001CB1C(u8 *a0) {
     *(s32 *)(a0 + 0x30) &= (s32)0xE6FFEFF7;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CBA4);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CBA4);
 
 /** @brief Looks up D_80073E68 table by a0[0x66] index, copies fields to a0, ORs flags, masks a0[0x30].
  *  @param a0 Pointer to stream state.
@@ -356,15 +356,15 @@ void func_8001CD48(u8 *a0) {
     *(u16 *)(a0 + 0x98) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CD50);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CD50);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CDB0);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CDB0);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CE14);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CE14);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CF0C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CF0C);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CF6C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CF6C);
 
 /** @brief Clears bit 0x1 in a0+0x30, sets bit 0x10 in a0+0xF8, zeroes a0+0xEE. */
 void func_8001CFD8(u8 *a0) {
@@ -373,7 +373,7 @@ void func_8001CFD8(u8 *a0) {
     *(u16 *)(a0 + 0xEE) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001CFFC);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CFFC);
 
 /** @brief Reads one byte from stream, advances cursor, masks to 7 bits, shifts left 8, stores to halfword at a0+0xBC.
  *  @param a0 Pointer to stream state.
@@ -385,7 +385,7 @@ void func_8001D0AC(u8 *a0) {
     *(u16 *)(a0 + 0xBC) = (val & 0x7F) << 8;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D0D0);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D0D0);
 
 /** @brief Clears bit 0x2 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF0. */
 void func_8001D140(u8 *a0) {
@@ -394,7 +394,7 @@ void func_8001D140(u8 *a0) {
     *(u16 *)(a0 + 0xF0) = 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D164);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D164);
 
 /** @brief Reads one byte from stream, advances cursor, shifts left 7, stores to halfword at a0+0xCA.
  *  @param a0 Pointer to stream state.
@@ -406,7 +406,7 @@ void func_8001D1D0(u8 *a0) {
     *(u16 *)(a0 + 0xCA) = val << 7;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D1F0);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D1F0);
 
 /** @brief Clears bit 0x4 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF2. */
 void func_8001D25C(u8 *a0) {
@@ -517,7 +517,7 @@ void func_8001D424(s32 *a0, s32 a1) {
     D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D484);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D484);
 
 /** @brief Sets the halfword at offset 0x9A of a0 to 1. */
 void func_8001D4E4(u8 *a0) {
@@ -536,7 +536,7 @@ void func_8001D4F8(void) {
 void func_8001D500(void) {
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D508);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D508);
 
 /**
  * @brief Reads byte from stream. ORs 0x900 into flags at +0xF8, ORs
@@ -639,7 +639,7 @@ void func_8001D6D0(u8 *a0) {
     *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D714);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D714);
 
 /**
  * @brief Reads one byte from stream, advances cursor. Clears bit 5 of +0x108.
@@ -677,13 +677,13 @@ void func_8001D7E4(void) {
  *
  * @param a0 Pointer to the track structure.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D7EC);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D7EC);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D83C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D83C);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D8D0);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D8D0);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D93C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D93C);
 
 /**
  * @brief Advance to next voice entry: increment counter, update stream ptr and voice.
@@ -694,7 +694,7 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D93C);
  *
  * @param a0 Pointer to the track structure.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001D9B8);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D9B8);
 
 /** @brief Reads byte from stream, stores to three halfword fields (0x64, 0x62, 0xD6), clears 0xD8.
  *  @param a0 Pointer to stream state.
@@ -766,7 +766,7 @@ void func_8001DAB4(u8 *a0) {
  * @note Non-matching: register allocation — compiler assigns dest to $3 (v1)
  *       instead of $5 (a1). Declaration order doesn't affect assignment.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DACC);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DACC);
 
 /**
  * @brief Reads two bytes from stream and combines into 16-bit value at
@@ -777,7 +777,7 @@ INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DACC);
  * @note Non-matching: register allocation — compiler assigns ptr to $3 (v1)
  *       instead of $5 (a1). Same leaf register allocation issue as func_8001DACC.
  */
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DB04);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DB04);
 
 /**
  * @brief Reads a byte from stream and sets both hi and lo nibble track parameters.
@@ -958,7 +958,7 @@ void func_8001DDD4(u8 *a0, s32 a1) {
     func_8001D424((s32 *)a0, a1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DE18);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DE18);
 
 /** @brief Sets bit 0x100000 in word at a0+0x30. */
 void func_8001DECC(u8 *a0) {
@@ -1019,7 +1019,7 @@ void func_8001DF70(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001DFF4);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DFF4);
 
 /**
  * @brief Sets up SPU transfer at address 0x2100, registers callback
@@ -1032,11 +1032,11 @@ void func_8001E084(void) {
     func_8003E3A4(addr, 0x800);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E0CC);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E0CC);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E308);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E308);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E4C4);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E4C4);
 
 /**
  * @brief Sets up SPU voice parameters for both channels, then registers
@@ -1060,7 +1060,7 @@ void func_8001E5F8(void) {
     func_8001E4C4(0x2000, 0x2100, func_8001E808);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E65C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E65C);
 
 void func_8001E7D8(void);
 
@@ -1122,9 +1122,9 @@ void func_8001E8D0(s32 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E940);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E940);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001E9C0);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E9C0);
 
 /** @brief Sets SPU IRQ address to 0x1038 and registers func_8001DF70 as the IRQ callback. */
 void func_8001EB0C(void) {
@@ -1132,11 +1132,11 @@ void func_8001EB0C(void) {
     SpuSetIRQCallback(func_8001DF70);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EB38);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001EB38);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EC0C);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001EC0C);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001EDD4);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001EDD4);
 
 /**
  * @brief Unpacks struct fields into 4 args, calls func_8001EC0C, then clears
@@ -1178,9 +1178,9 @@ s32 func_8001F0C4(s32 *counter) {
     return *counter;
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F118);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001F118);
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F2A8);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001F2A8);
 
 /**
  * @brief Sets up SPU voice parameters for dual-channel streaming, then calls
@@ -1193,7 +1193,7 @@ void func_8001F370(void) {
     func_8001F2A8(0x2000, 0x2100, func_8001F51C);
 }
 
-INCLUDE_ASM("asm/nonmatchings/C9A8", func_8001F3D4);
+INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001F3D4);
 
 void func_8001F54C(void);
 

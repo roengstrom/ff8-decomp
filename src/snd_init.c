@@ -109,7 +109,7 @@ extern s32 D_80077298[];
 extern s32 D_800772CC;
 
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012E40);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80012E40);
 
 /** @brief Sends SPU command 0x10 with parameter @p a0 via the command buffer. */
 void func_80012EAC(s32 a0) {
@@ -186,7 +186,7 @@ void func_80012FBC(s32 a0, s32 a1) {
  *       computation, compiler generates bnez to jump to it) and register
  *       allocation (pointer in $5 original vs $4 ours).
  */
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80012FEC);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80012FEC);
 
 /**
  * @brief Sends SPU command 0x20 (play sound effect) with voice and playback parameters.
@@ -262,9 +262,9 @@ void func_80013188(void) {
     func_8001A1E8(0x45);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800131A8);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_800131A8);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013210);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80013210);
 
 /** @brief Sends SPU command 0x81 if a0 == 1, else 0x80.
  *  @param a0 Selects command (1 = 0x81, else 0x80).
@@ -332,7 +332,7 @@ void func_8001336C(u32 a0) {
  * @param a0 Input value to shift.
  * @return a0 * 256 (full 32-bit result, not truncated).
  */
-INCLUDE_ASM("asm/nonmatchings/34C8", func_800133D8);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_800133D8);
 
 /** @brief If a0 is non-zero, sets bit 0x10 in D_80077288[1]; otherwise clears it. Returns 0. */
 s32 func_8001340C(s32 a0) {
@@ -659,7 +659,7 @@ void func_80013A5C(s32 a0, s32 a1) {
     } while (func_80014860(a0, a1) == 1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013AA8);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80013AA8);
 
 /** @brief Returns the value of global D_80074ED4. */
 s32 func_80013CA4(void) {
@@ -675,7 +675,7 @@ s32 func_80013CB4(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013CD4);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80013CD4);
 
 /**
  * @brief Process audio parameters via func_80013AA8 and dispatch to func_800148B0.
@@ -695,7 +695,7 @@ s32 func_80013EE4(s32 a0, s32 a1) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80013F38);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80013F38);
 
 /**
  * @brief Configure audio playback address based on sound structure state.
@@ -716,9 +716,9 @@ void func_80014034(s32 a0, s32 a1) {
     func_800148B0(a0, a1, 0xB0, addr);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014094);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80014094);
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014190);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80014190);
 
 /**
  * @brief Set CD audio volume mixing levels and apply via CdMix.
@@ -808,7 +808,7 @@ void func_800143D0(s32 a0) {
     func_8001A1E8(0xE6);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_80014400);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_80014400);
 
 /**
  * @brief Write masked volume to SPU command buffer and dispatch.
@@ -822,7 +822,7 @@ void func_800144E4(s32 a0, s32 a1) {
     func_8001A1E8(0xED);
 }
 
-INCLUDE_ASM("asm/nonmatchings/34C8", func_8001451C);
+INCLUDE_ASM("asm/nonmatchings/snd_init", func_8001451C);
 
 /**
  * @brief Initialize SPU IRQ and sound engine state for playback.

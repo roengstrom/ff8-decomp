@@ -108,10 +108,10 @@ void func_80038720(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038760);
+INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038760);
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_800387F8);
+INCLUDE_ASM("asm/nonmatchings/cdrom", func_800387F8);
 
 
 /**
@@ -132,7 +132,7 @@ s32 func_8003882C(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038868);
+INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038868);
 
 
 /**
@@ -229,7 +229,7 @@ void func_80038A18(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/28DB0", func_80038A60);
+INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038A60);
 
 
 extern s8 D_8008A3DA;
