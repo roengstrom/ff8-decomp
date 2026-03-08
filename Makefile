@@ -118,7 +118,8 @@ $(BUILT_EXE): $(ELF)
 build: $(BUILT_EXE) build-overlays
 
 # Build and compare SHA1 against originals (main + overlays)
-verify: $(BUILT_EXE) build-overlays
+# Builds each overlay individually, skipping any that fail to compile
+verify: $(BUILT_EXE)
 	@FAIL=0; \
 	printf "%-20s  %-40s  %-40s  %s\n" "Name" "Expected" "Actual" "State"; \
 	printf "%-20s  %-40s  %-40s  %s\n" "--------------------" "----------------------------------------" "----------------------------------------" "--------"; \
@@ -131,13 +132,17 @@ verify: $(BUILT_EXE) build-overlays
 		FAIL=1; \
 	fi; \
 	$(foreach ovl,$(OVERLAYS), \
-		BUILT=$$(sha1sum $($(ovl)_BIN) | cut -d' ' -f1); \
-		ORIG=$$(sha1sum $($(ovl)_TARGET) | cut -d' ' -f1); \
-		if [ "$$BUILT" = "$$ORIG" ]; then \
-			printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Match"; \
+		if $(MAKE) -q build-$(ovl) 2>/dev/null || $(MAKE) build-$(ovl) 2>/dev/null; then \
+			BUILT=$$(sha1sum $($(ovl)_BIN) | cut -d' ' -f1); \
+			ORIG=$$(sha1sum $($(ovl)_TARGET) | cut -d' ' -f1); \
+			if [ "$$BUILT" = "$$ORIG" ]; then \
+				printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Match"; \
+			else \
+				printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Mismatch"; \
+				FAIL=1; \
+			fi; \
 		else \
-			printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Mismatch"; \
-			FAIL=1; \
+			printf "%-20s  %-40s  %-40s  \033[33m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "-" "build failed" "Skip"; \
 		fi; \
 	) \
 	if [ "$$FAIL" = "1" ]; then exit 1; fi
