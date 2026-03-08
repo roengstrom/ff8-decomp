@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""Analyze .s files in asm/nonmatchings/1C38/ to classify epilogue delay slots.
+"""Analyze .s files to classify epilogue delay slots for PsyQ toolchain detection.
 
-For each function, checks every jr $ra to determine if its branch delay slot
-is filled (PsyQ 4.3 / gcc 2.8.0) or unfilled with nop (PsyQ 4.1 / gcc 2.7.2).
+The key diagnostic is the lw $ra LOAD delay slot, not the jr $ra branch delay:
+  - PsyQ 4.3 (gcc 2.8.0): lw $ra / nop / jr $ra / addiu $sp
+    (doesn't fill load delay, fills branch delay natively)
+  - PsyQ 4.1 (gcc 2.7.2): lw $ra / addiu $sp / jr $ra / nop
+    (maspsx moves addiu into load delay, branch delay left as nop)
+  - PsyQ 4.1 with -O2:    lw $ra / <useful insn> / jr $ra / addiu $sp
+    (scheduler fills load delay with computation, addiu goes to branch delay)
 
-Merged blocks (multiple functions merged under one label by splat) are handled
-by classifying each jr $ra individually. Only non-leaf returns (where sw $ra
-appears earlier) are used to determine the toolchain — leaf function delay
-slots are ambiguous since both toolchains can fill them.
+Only non-leaf returns (where sw $ra appears earlier) are diagnostic — leaf
+functions produce identical code with both toolchains.
 
 Usage:
-  python3 tools/analyze_delay_slots.py          # text list (default)
-  python3 tools/analyze_delay_slots.py --map     # terminal color visualization
+  python3 tools/analyze_delay_slots.py [asm_dir]   # text list (default)
+  python3 tools/analyze_delay_slots.py --map        # terminal color visualization
 """
 
 import argparse
@@ -21,9 +24,9 @@ import re
 import sys
 from pathlib import Path
 
-ASM_DIR = Path("asm/nonmatchings/1C38")
+DEFAULT_ASM_DIR = Path("asm/nonmatchings/1C38")
 
-# Address range of the binary
+# Address range of the binary (used for --map mode only)
 ADDR_START = 0x80011438
 ADDR_END = 0x80051800  # approximate end
 
@@ -81,6 +84,15 @@ def is_library(name):
     return True
 
 
+def _is_sreg_load(mnem, ops):
+    """Check if instruction is lw $sN, offset($sp) — a callee-saved reg restore."""
+    if mnem != "lw":
+        return False
+    # Match $s0-$s7 ($16-$23) or $fp ($30)
+    m = re.match(r"\$(?:s[0-7]|fp|(?:1[6-9]|2[0-3]|30))\b", ops.strip())
+    return m is not None
+
+
 def classify_returns(insns):
     """Classify each jr $ra in the instruction list.
 
@@ -89,6 +101,12 @@ def classify_returns(insns):
     only from instructions within its own range. This prevents a non-leaf
     function's sw $ra from leaking into the next merged function and making
     a leaf return look non-leaf.
+
+    The key diagnostic is the instruction after lw $ra (the load delay slot):
+      - nop       → PsyQ 4.3 (gcc 2.8.0 doesn't fill load delay)
+      - addiu $sp → PsyQ 4.1 (maspsx moved addiu into load delay)
+      - lw $sN    → indeterminate (both toolchains produce identical epilogues)
+      - other     → PsyQ 4.1 (-O2 scheduler filled load delay with computation)
 
     Returns a list of (addr, slot_type, is_nonleaf) tuples where:
       slot_type: "FILLED", "UNFILLED", or "OTHER"
@@ -118,9 +136,31 @@ def classify_returns(insns):
         )
 
         if delay_mnem == "nop":
+            # Branch delay is nop — classic PsyQ 4.1 (UNFILLED)
             slot_type = "UNFILLED"
         elif delay_mnem == "addiu" and "$sp" in delay_ops:
-            slot_type = "FILLED"
+            # Branch delay is addiu $sp. Check the load delay slot after
+            # lw $ra to distinguish toolchains:
+            #   4.3 definite:  lw $ra / nop    / jr $ra / addiu $sp
+            #   4.1 definite:  lw $ra / addiu $sp / jr $ra / nop (handled above)
+            #   4.1 with -O2:  lw $ra / <computation> / jr $ra / addiu $sp
+            #   indeterminate: lw $ra / lw $sN / ... / jr $ra / addiu $sp
+            slot_type = "UNFILLED"  # default: assume 4.1
+            # Search backwards from jr $ra to find the corresponding lw $ra
+            for k in range(jr_idx - 1, max(subfunc_start - 1, -1), -1):
+                if insns[k][1] == "lw" and "$ra" in insns[k][2]:
+                    if k + 1 < len(insns):
+                        next_mnem = insns[k + 1][1]
+                        next_ops = insns[k + 1][2]
+                        if next_mnem == "nop":
+                            # nop in load delay → definitely PsyQ 4.3
+                            slot_type = "FILLED"
+                        elif _is_sreg_load(next_mnem, next_ops):
+                            # lw $sN fills load delay — both toolchains
+                            # produce identical epilogues, can't distinguish
+                            slot_type = "AMBIGUOUS"
+                        # else: computation in load delay → PsyQ 4.1 (UNFILLED)
+                    break
         else:
             slot_type = "OTHER"
 
@@ -138,11 +178,12 @@ def classify_function(filepath):
     Returns dict with keys:
       name, addr, size, classification, detail, is_lib
     Classification is one of:
-      FILLED   - all non-leaf returns are filled (PsyQ 4.3)
-      UNFILLED - all non-leaf returns are unfilled (PsyQ 4.1)
-      MIXED    - both filled and unfilled non-leaf returns
-      LEAF     - no non-leaf returns, toolchain indeterminate
-      NO_JR_RA - no jr $ra found
+      FILLED    - non-leaf with nop in lw $ra load delay (PsyQ 4.3)
+      UNFILLED  - non-leaf with filled lw $ra load delay (PsyQ 4.1)
+      AMBIGUOUS - non-leaf but lw $sN fills load delay (either toolchain)
+      MIXED     - both filled and unfilled non-leaf returns
+      LEAF      - no non-leaf returns, toolchain indeterminate
+      NO_JR_RA  - no jr $ra found
     """
     name = filepath.stem
     insns = parse_instructions(filepath)
@@ -164,22 +205,29 @@ def classify_function(filepath):
     nonleaf_returns = [(a, s) for a, s, nl in returns if nl]
     leaf_returns = [(a, s) for a, s, nl in returns if not nl]
 
-    filled = sum(1 for _, s in nonleaf_returns if s in ("FILLED", "OTHER"))
+    filled = sum(1 for _, s in nonleaf_returns if s == "FILLED")
     unfilled = sum(1 for _, s in nonleaf_returns if s == "UNFILLED")
+    ambiguous = sum(1 for _, s in nonleaf_returns if s == "AMBIGUOUS")
+    other = sum(1 for _, s in nonleaf_returns if s == "OTHER")
 
     parts = []
     if len(returns) > 1:
         parts.append(f"{len(returns)}x_jr_ra")
-    if filled > 0 and unfilled > 0:
+    if filled + unfilled + ambiguous > 1 and (filled > 0 or ambiguous > 0):
         parts.append(f"F={filled}")
         parts.append(f"U={unfilled}")
+        parts.append(f"A={ambiguous}")
         parts.append(f"L={len(leaf_returns)}")
     if trailing:
         parts.append("+trailing_nops")
     detail = " " + " ".join(parts) if parts else ""
 
-    if filled == 0 and unfilled == 0:
+    diagnostic = filled + unfilled  # only definite classifications
+    if diagnostic == 0 and ambiguous == 0:
         classification = "LEAF"
+    elif diagnostic == 0 and ambiguous > 0:
+        # All non-leaf returns have s-reg restores — can't distinguish
+        classification = "AMBIGUOUS"
     elif filled > 0 and unfilled > 0:
         classification = "MIXED"
     elif filled > 0:
@@ -193,10 +241,10 @@ def classify_function(filepath):
     )
 
 
-def load_all():
+def load_all(asm_dir):
     """Load and classify all .s files. Returns sorted list of function dicts."""
     results = []
-    for f in ASM_DIR.glob("*.s"):
+    for f in asm_dir.rglob("*.s"):
         result = classify_function(f)
         if result:
             results.append(result)
@@ -253,17 +301,23 @@ def cmd_map(results, width=160):
 
     GAP = "\033[48;5;232m"               # near-black bg
 
+    # Ambiguous — yellow/orange (can't determine toolchain)
+    GAME_AMBIGUOUS = "\033[48;5;136m"      # dark yellow bg
+    LIB_AMBIGUOUS = "\033[38;5;94;48;5;137m"  # dark on medium yellow
+
     COLOR_MAP = {
-        (False, "FILLED"):   GAME_FILLED,
-        (False, "UNFILLED"): GAME_UNFILLED,
-        (False, "MIXED"):    GAME_MIXED,
-        (False, "LEAF"):     GAME_LEAF,
-        (False, "NO_JR_RA"): GAME_NOJR,
-        (True,  "FILLED"):   LIB_FILLED,
-        (True,  "UNFILLED"): LIB_UNFILLED,
-        (True,  "MIXED"):    LIB_MIXED,
-        (True,  "LEAF"):     LIB_LEAF,
-        (True,  "NO_JR_RA"): LIB_NOJR,
+        (False, "FILLED"):    GAME_FILLED,
+        (False, "UNFILLED"):  GAME_UNFILLED,
+        (False, "MIXED"):     GAME_MIXED,
+        (False, "AMBIGUOUS"): GAME_AMBIGUOUS,
+        (False, "LEAF"):      GAME_LEAF,
+        (False, "NO_JR_RA"):  GAME_NOJR,
+        (True,  "FILLED"):    LIB_FILLED,
+        (True,  "UNFILLED"):  LIB_UNFILLED,
+        (True,  "MIXED"):     LIB_MIXED,
+        (True,  "AMBIGUOUS"): LIB_AMBIGUOUS,
+        (True,  "LEAF"):      LIB_LEAF,
+        (True,  "NO_JR_RA"):  LIB_NOJR,
     }
 
     # Block characters for dense display
@@ -291,7 +345,7 @@ def cmd_map(results, width=160):
                 cells[c] = new_entry
             else:
                 # Priority: MIXED > FILLED/UNFILLED > LEAF > NO_JR_RA > gap
-                priority = {"MIXED": 5, "FILLED": 4, "UNFILLED": 3, "LEAF": 2, "NO_JR_RA": 1}
+                priority = {"MIXED": 6, "FILLED": 5, "UNFILLED": 4, "AMBIGUOUS": 3, "LEAF": 2, "NO_JR_RA": 1}
                 if priority.get(new_entry[1], 0) > priority.get(existing[1], 0):
                     cells[c] = new_entry
 
@@ -309,11 +363,13 @@ def cmd_map(results, width=160):
     print(f"  Game:    {GAME_FILLED}{G}{G}{RESET} 4.3  "
           f"{GAME_UNFILLED}{G}{G}{RESET} 4.1  "
           f"{GAME_MIXED}{G}{G}{RESET} Mixed  "
+          f"{GAME_AMBIGUOUS}{G}{G}{RESET} Ambig  "
           f"{GAME_LEAF}{G}{G}{RESET} Leaf  "
           f"{GAME_NOJR}{G}{G}{RESET} Data/NoRet")
     print(f"  Library: {LIB_FILLED}{L}{L}{RESET} 4.3  "
           f"{LIB_UNFILLED}{L}{L}{RESET} 4.1  "
           f"{LIB_MIXED}{L}{L}{RESET} Mixed  "
+          f"{LIB_AMBIGUOUS}{L}{L}{RESET} Ambig  "
           f"{LIB_LEAF}{L}{L}{RESET} Leaf  "
           f"{LIB_NOJR}{L}{L}{RESET} Data/NoRet")
     print(f"  {GAP}  {RESET} = gap (no .s file)")
@@ -384,17 +440,20 @@ def cmd_map(results, width=160):
 
 def main():
     parser = argparse.ArgumentParser(description="Analyze delay slots in assembly files")
+    parser.add_argument("asm_dir", nargs="?", default=str(DEFAULT_ASM_DIR),
+                        help=f"Directory to scan for .s files (default: {DEFAULT_ASM_DIR})")
     parser.add_argument("--map", action="store_true",
                         help="Show colored terminal visualization")
     parser.add_argument("--width", type=int, default=160,
                         help="Terminal width for --map (default: 160)")
     args = parser.parse_args()
 
-    if not ASM_DIR.exists():
-        print(f"Error: {ASM_DIR} not found", file=sys.stderr)
+    asm_dir = Path(args.asm_dir)
+    if not asm_dir.exists():
+        print(f"Error: {asm_dir} not found", file=sys.stderr)
         sys.exit(1)
 
-    results = load_all()
+    results = load_all(asm_dir)
 
     if args.map:
         cmd_map(results, width=args.width)
