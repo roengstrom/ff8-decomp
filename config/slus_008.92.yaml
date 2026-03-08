@@ -4,7 +4,7 @@ options:
   basename: slus_008.92
   target_path: original/SLUS_008.92
   elf_path: build/slus_008.92.elf
-  base_path: .
+  base_path: ..
   platform: psx
   compiler: PSYQ
 
@@ -14,7 +14,7 @@ options:
   build_path: build
 
   # Linker
-  ld_script_path: slus_008.92.ld
+  ld_script_path: config/slus_008.92.ld
   ld_dependencies: True
   ld_align_section_vram_end: False
   ld_align_segment_vram_end: False
@@ -25,11 +25,11 @@ options:
 
   # Symbols
   symbol_addrs_path:
-    - symbol_addrs.txt
+    - config/symbol_addrs.txt
   reloc_addrs_path:
-    - reloc_addrs.txt
-  undefined_funcs_auto_path: undefined_funcs_auto.txt
-  undefined_syms_auto_path: undefined_syms_auto.txt
+    - config/reloc_addrs.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.txt
 
   # String detection
   string_encoding: ASCII

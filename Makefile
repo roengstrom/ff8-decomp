@@ -15,12 +15,12 @@ MASPSX     := python3 tools/maspsx/maspsx.py
 VENV       := .venv
 PYTHON     := $(VENV)/bin/python3
 SPLAT      := $(PYTHON) -m splat
-SPLAT_YAML := slus_008.92.yaml
+SPLAT_YAML := config/slus_008.92.yaml
 BUILD_DIR  := build
 ASM_DIR    := asm
 SRC_DIR    := src
 TARGET     := original/SLUS_008.92
-LD_SCRIPT  := slus_008.92.ld
+LD_SCRIPT  := config/slus_008.92.ld
 
 ### Compiler flags ###
 CCPSXFLAGS := -O2 -G0
@@ -62,9 +62,9 @@ ASFLAGS := -march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude
 # --no-check-sections : don't error on overlapping sections
 # -Map : generate a map file (shows where everything ended up)
 LDFLAGS := -T $(LD_SCRIPT) \
-           -T undefined_funcs.txt \
-           -T undefined_funcs_auto.txt \
-           -T undefined_syms_auto.txt \
+           -T config/undefined_funcs.txt \
+           -T config/undefined_funcs_auto.txt \
+           -T config/undefined_syms_auto.txt \
            --no-check-sections \
            -Map $(BUILD_DIR)/slus_008.92.map
 
