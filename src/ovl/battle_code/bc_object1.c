@@ -172,30 +172,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_80099FE8);
  * Calls animation setup, entity init, position calculation, and queues
  * sound/SFX commands. Sets entity state to 2 (active).
  */
-/**
- * @note Non-matching: maspsx fills the `lw ra` load delay slot with
- * `sw v0, 4(v1)` and the `jr ra` branch delay slot with `addiu sp`,
- * producing a FILLED epilogue (2 instructions shorter than original's
- * UNFILLED epilogue with explicit nops).
- *
- * Best attempt:
- * @code
- * void func_8009A160(void) {
- *     func_800A7B48();
- *     func_800A6D30();
- *     func_8009A638();
- *     func_8009A928();
- *     func_8009A74C();
- *     func_8009AF14((s32)func_800D0F74);
- *     func_800A69BC();
- *     func_8009B134(0x70, 0x80, 0);
- *     func_8009AF14((s32)func_8009ABE4);
- *     { s32 base = (s32)D_800ED148;
- *       *(s32 *)(base + 0x4) = 2; }
- * }
- * @endcode
- */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A160);
+void func_8009A160(void) {
+    volatile s32 *f;
+    func_800A7B48();
+    func_800A6D30();
+    func_8009A638();
+    func_8009A928();
+    func_8009A74C();
+    func_8009AF14((s32)&func_800D0F74);
+    func_800A69BC();
+    func_8009B134(0x70, 0x80, 0);
+    func_8009AF14((s32)&func_8009ABE4);
+    f = (volatile s32 *)D_800ED148;
+    f[1] = 2;
+}
 
 /**
  * @brief Transition to post-battle state.
