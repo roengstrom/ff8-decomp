@@ -683,37 +683,21 @@ void func_8009AB98(void) {
  *
  * Writes value 3 to D_800ED148 offset 0x4 (entity state field).
  */
-/**
- * @note Non-matching: maspsx fills jr delay slot with sw, original has nop.
- *
- * Best attempt:
- * @code
- * void func_8009ABE4(void) {
- *     s32 base = (s32)D_800ED148;
- *     REGALLOC_BARRIER(base);
- *     *(s32 *)(base + 0x4) = 3;
- * }
- * @endcode
- */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009ABE4);
+void func_8009ABE4(void) {
+    volatile s32 *f = (volatile s32 *)D_800ED148;
+    f[1] = 3;
+}
 
 /**
  * @brief Set entity state to 1 (active/ready).
  *
  * Writes value 1 to D_800ED148 offset 0x4 (entity state field).
  *
- * @note Non-matching: maspsx fills jr delay slot with sw, original has nop.
- *
- * Best attempt:
- * @code
- * void func_8009ABFC(void) {
- *     s32 base = (s32)D_800ED148;
- *     REGALLOC_BARRIER(base);
- *     *(s32 *)(base + 0x4) = 1;
- * }
- * @endcode
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009ABFC);
+void func_8009ABFC(void) {
+    volatile s32 *f = (volatile s32 *)D_800ED148;
+    f[1] = 1;
+}
 
 /**
  * @brief Wrapper for func_800A30E4.
