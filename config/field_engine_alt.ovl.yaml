@@ -1,0 +1,53 @@
+name: field_engine_alt.bin
+sha1: b421bf83a307dcd41536b14dc81a3aa03f7c9ed0
+options:
+  basename: field_engine_alt
+  target_path: original/field_engine_alt.bin
+  elf_path: build/ovl/field_engine_alt/field_engine_alt.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/field_engine_alt
+  src_path: src/ovl/field_engine_alt
+  build_path: build/ovl/field_engine_alt
+
+  # Linker
+  ld_script_path: config/field_engine_alt.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.field_engine_alt.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.field_engine_alt.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.field_engine_alt.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: field_engine_alt
+    type: code
+    start: 0x0
+    vram: 0x80098000
+    subsegments:
+      - [0x0, c, field_engine_alt]
+      - [0x2CCA8, data]
+      - [0x30634, bin]
+  - [0x30635]

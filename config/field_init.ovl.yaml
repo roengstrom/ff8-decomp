@@ -1,0 +1,53 @@
+name: field_init.bin
+sha1: 5329562ba441198c113c83946dac3da94d5506ee
+options:
+  basename: field_init
+  target_path: original/field_init.bin
+  elf_path: build/ovl/field_init/field_init.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/field_init
+  src_path: src/ovl/field_init
+  build_path: build/ovl/field_init
+
+  # Linker
+  ld_script_path: config/field_init.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.field_init.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.field_init.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.field_init.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: field_init
+    type: code
+    start: 0x0
+    vram: 0x80098000
+    subsegments:
+      - [0x0, c, field_init]
+      - [0x500, data]
+      - [0x990, bin]
+  - [0x992]

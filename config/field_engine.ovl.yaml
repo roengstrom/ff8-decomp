@@ -1,0 +1,52 @@
+name: field_engine.bin
+sha1: 1787bc2d0ee08f2e0a29b78bd0f07a0bbcfe2bc8
+options:
+  basename: field_engine
+  target_path: original/field_engine.bin
+  elf_path: build/ovl/field_engine/field_engine.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/field_engine
+  src_path: src/ovl/field_engine
+  build_path: build/ovl/field_engine
+
+  # Linker
+  ld_script_path: config/field_engine.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.field_engine.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.field_engine.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.field_engine.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: field_engine
+    type: code
+    start: 0x0
+    vram: 0x80098000
+    subsegments:
+      - [0x0, c, field_engine]
+      - [0x286A0, data]
+  - [0x2ED80]

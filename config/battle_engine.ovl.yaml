@@ -1,0 +1,52 @@
+name: battle_engine.bin
+sha1: accfe3831595f26c5d6de6f3891736521736f8ef
+options:
+  basename: battle_engine
+  target_path: original/battle_engine.bin
+  elf_path: build/ovl/battle_engine/battle_engine.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/battle_engine
+  src_path: src/ovl/battle_engine
+  build_path: build/ovl/battle_engine
+
+  # Linker
+  ld_script_path: config/battle_engine.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.battle_engine.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.battle_engine.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.battle_engine.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data"]
+  subalign: 2
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: battle_engine
+    type: code
+    start: 0x0
+    vram: 0x80098000
+    subsegments:
+      - [0x0, c, battle_engine]
+      - [0xC590, data]
+  - [0x10AC40]

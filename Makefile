@@ -134,9 +134,9 @@ verify: $(BUILT_EXE) build-overlays
 		BUILT=$$(sha1sum $($(ovl)_BIN) | cut -d' ' -f1); \
 		ORIG=$$(sha1sum $($(ovl)_TARGET) | cut -d' ' -f1); \
 		if [ "$$BUILT" = "$$ORIG" ]; then \
-			printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(ovl).ovl" "$$ORIG" "$$BUILT" "Match"; \
+			printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Match"; \
 		else \
-			printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(ovl).ovl" "$$ORIG" "$$BUILT" "Mismatch"; \
+			printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Mismatch"; \
 			FAIL=1; \
 		fi; \
 	) \
@@ -176,25 +176,34 @@ setup-toolchain:
 	tar xzf /tmp/psyq4.3.tar.gz --strip-components=1 -C tools/psyq4.3
 
 ### Overlays ###
-OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
-            menuitem menumgc menugf menujnc2 menusav menucrd menututo \
-            menutmag menutips menutest
+# Menu overlays (.ovl files in original/)
+MENU_OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
+                 menuitem menumgc menugf menujnc2 menusav menucrd menututo \
+                 menutmag menutips menutest
 
-# Template for overlay build rules — $(1) = overlay name
+# Code overlays (.bin files in original/)
+CODE_OVERLAYS := field_init display_init field_engine \
+                 battle_engine battle_render battle_code field_engine_alt
+
+OVERLAYS := $(MENU_OVERLAYS) $(CODE_OVERLAYS)
+
+# Template for overlay build rules — $(1) = overlay name, $(2) = file extension
 define OVERLAY_TEMPLATE
 $(1)_YAML     := config/$(1).ovl.yaml
 $(1)_DIR      := build/ovl/$(1)
 $(1)_ASM_DIR  := asm/ovl/$(1)
 $(1)_LD       := config/$(1).ovl.ld
-$(1)_TARGET   := original/$(1).ovl
+$(1)_TARGET   := original/$(1).$(2)
 $(1)_ELF      := $$($(1)_DIR)/$(1).elf
-$(1)_BIN      := $$($(1)_DIR)/$(1).ovl
+$(1)_BIN      := $$($(1)_DIR)/$(1).$(2)
 
 $(1)_ASM_SRCS := $$(wildcard $$($(1)_ASM_DIR)/*.s) $$(wildcard $$($(1)_ASM_DIR)/data/*.s)
 $(1)_ASM_OBJS := $$(patsubst $$($(1)_ASM_DIR)/%.s,$$($(1)_DIR)/$$($(1)_ASM_DIR)/%.o,$$($(1)_ASM_SRCS))
 $(1)_C_SRCS   := $$(wildcard src/ovl/$(1)/*.c)
 $(1)_C_OBJS   := $$(patsubst src/ovl/$(1)/%.c,$$($(1)_DIR)/src/ovl/$(1)/%.o,$$($(1)_C_SRCS))
-$(1)_ALL_OBJS := $$($(1)_ASM_OBJS) $$($(1)_C_OBJS)
+$(1)_BIN_SRCS := $$(wildcard assets/*.bin)
+$(1)_BIN_OBJS := $$(patsubst assets/%.bin,$$($(1)_DIR)/assets/%.o,$$($(1)_BIN_SRCS))
+$(1)_ALL_OBJS := $$($(1)_ASM_OBJS) $$($(1)_C_OBJS) $$($(1)_BIN_OBJS)
 
 $(1)_LDFLAGS  := -T $$($(1)_LD) \
                  -T config/undefined_funcs_auto.$(1).txt \
@@ -214,6 +223,10 @@ $$($(1)_DIR)/src/ovl/$(1)/%.o: src/ovl/$(1)/%.c
 	SN_PATH=$$(PSYQ41_SN_PATH) $$(CCPSX) -S -Iinclude $$(CCPSXFLAGS) $$< -o $$($(1)_DIR)/$$(*F).s && \
 	cat $$($(1)_DIR)/$$(*F).s | $$(MASPSX) $$(PSYQ41_MASPSXFLAGS) --run-assembler $$(ASFLAGS) -o $$@
 
+$$($(1)_DIR)/assets/%.o: assets/%.bin
+	@mkdir -p $$(dir $$@)
+	$$(OBJCOPY) -I binary -O elf32-tradlittlemips -B mips --rename-section .data=.data $$< $$@
+
 $$($(1)_ELF): $$($(1)_ALL_OBJS) $$($(1)_LD)
 	@mkdir -p $$(dir $$@)
 	$$(LD) $$($(1)_LDFLAGS) -o $$@ $$($(1)_ALL_OBJS)
@@ -224,7 +237,7 @@ $$($(1)_BIN): $$($(1)_ELF)
 build-$(1): $$($(1)_BIN)
 
 verify-$(1): $$($(1)_BIN)
-	@echo "Verifying $(1).ovl..."
+	@echo "Verifying $(notdir $$($(1)_TARGET))..."
 	@BUILT=$$$$(sha1sum $$($(1)_BIN) | cut -d' ' -f1) && \
 	ORIG=$$$$(sha1sum $$($(1)_TARGET) | cut -d' ' -f1) && \
 	echo "  Original: $$$$ORIG" && \
@@ -238,7 +251,8 @@ verify-$(1): $$($(1)_BIN)
 
 endef
 
-$(foreach ovl,$(OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl))))
+$(foreach ovl,$(MENU_OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl),ovl)))
+$(foreach ovl,$(CODE_OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl),bin)))
 
 # Internal: build all overlay binaries
 build-overlays: $(foreach ovl,$(OVERLAYS),build-$(ovl))
