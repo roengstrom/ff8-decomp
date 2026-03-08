@@ -43,4 +43,14 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A734);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A8B4);
 
+INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AA18);
+
+INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AC18);
+
+INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AE1C);
+
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AF64);
+
+INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009B170);
+
+INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009B394);

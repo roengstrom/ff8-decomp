@@ -35,7 +35,7 @@ options:
   data_string_guesser_level: 2
 
   # Misc
-  section_order: [".text", ".rodata", ".data"]
+  section_order: [".text", ".rodata", ".data", ".bss"]
   subalign: 2
   o_as_suffix: True
   use_legacy_include_asm: False
@@ -47,7 +47,20 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, c, field_engine_alt]
-      - [0x2CCA8, data]
+      - [0x0, c, fea_dispatch]
+      - [0x17E8, c, fea_object1]
+      - [0x4CE8, c, fea_object2]
+      - [0x81DC, c, fea_object3]
+      - [0xE4DC, c, fea_object4]
+      - [0x1336C, c, fea_object5]
+      - [0x14C68, c, fea_object6]
+      - [0x1B10C, c, fea_object7]
+      - [0x20CE0, c, fea_object8]
+      - [0x22870, c, fea_object9]
+      - [0x256EC, c, fea_object10]
+      - [0x275D4, c, fea_object11]
+      - [0x2B898, c, fea_object12]
+      - [0x2C0F8, c, fea_object13]
+      - [0x300F8, c, fea_object14]
       - [0x30634, bin]
   - [0x30635]

@@ -1,0 +1,71 @@
+#include "common.h"
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E248);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E270);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E464);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E640);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E904);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EB30);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EB90);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EB98);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBCC);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBF4);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EF68);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EFD4);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009F17C);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009F5F0);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009F844);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009F908);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FAF8);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FC40);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FC90);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FED0);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A00EC);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A01DC);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A030C);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0370);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A03DC);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0A88);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0AD4);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0B24);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0F0C);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A1080);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A1260);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A1374);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A15C8);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A18D0);
+
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A1BC4);

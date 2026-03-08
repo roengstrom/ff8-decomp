@@ -35,7 +35,7 @@ options:
   data_string_guesser_level: 2
 
   # Misc
-  section_order: [".text", ".rodata", ".data"]
+  section_order: [".text", ".rodata", ".data", ".bss"]
   subalign: 2
   o_as_suffix: True
   use_legacy_include_asm: False
@@ -47,6 +47,17 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, c, battle_engine]
-      - [0xC590, data]
+      - [0x0, c, be_dispatch]
+      - [0x22C, c, be_object1]
+      - [0x28CC, c, be_object2]
+      - [0x6248, c, be_object3]
+      - [0x9BE0, c, be_object4]
+      - [0x2DD78, c, be_object5]
+      - [0x47C54, c, be_object6]
+      - [0x988D4, c, be_object7]
+      - [0x9AD00, c, be_object8]
+      - [0x9DA04, c, be_object9]
+      - [0xA0370, c, be_object10]
+      - [0xA2208, c, be_object11]
+      - [0xA2E44, c, be_object12]
   - [0x10AC40]

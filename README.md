@@ -44,83 +44,39 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 
 ## Progress
 
-| Source File | Toolchain | C Functions | INCLUDE\_ASM | Total | % Decomped |
-|-------------|-----------|-------------|-------------|-------|------------|
-| `src/main.c` | PsyQ 4.1 | 12 | 5 | 17 | 70.6% |
-| `src/snd_init.c` | PsyQ 4.3 | 67 | 12 | 79 | 84.8% |
-| `src/snd_dma.c` | PsyQ 4.3 | 26 | 3 | 29 | 89.7% |
-| `src/snd_voice.c` | PsyQ 4.3 | 5 | 12 | 17 | 29.4% |
-| `src/snd_bank.c` | PsyQ 4.3 | 11 | 36 | 47 | 23.4% |
-| `src/snd_param.c` | PsyQ 4.3 | 11 | 11 | 22 | 50.0% |
-| `src/snd_note.c` | PsyQ 4.3 | 2 | 11 | 13 | 15.4% |
-| `src/snd_track.c` | PsyQ 4.3 | 87 | 52 | 139 | 62.6% |
-| `src/game.c` | PsyQ 4.1 | 28 | 5 | 33 | 84.8% |
-| `src/gf_curve.c` | PsyQ 4.1 | 18 | 8 | 26 | 69.2% |
-| `src/ability.c` | PsyQ 4.1 | 3 | 0 | 3 | 100.0% |
-| `src/gf_anim.c` | PsyQ 4.1 | 10 | 6 | 16 | 62.5% |
-| `src/item.c` | PsyQ 4.1 | 4 | 9 | 13 | 30.8% |
-| `src/16120.c` | PsyQ 4.1 | 0 | 7 | 7 | 0.0% |
-| `src/thread.c` | PsyQ 4.1 | 12 | 24 | 36 | 33.3% |
-| `src/btl_anim.c` | PsyQ 4.1 | 70 | 49 | 119 | 58.8% |
-| `src/btl_display.c` | PsyQ 4.1 | 11 | 2 | 13 | 84.6% |
-| `src/btl_entity.c` | PsyQ 4.1 | 14 | 9 | 23 | 60.9% |
-| `src/btl_sfx.c` | PsyQ 4.1 | 32 | 28 | 60 | 53.3% |
-| `src/numstr.c` | PsyQ 4.1 | 10 | 8 | 18 | 55.6% |
-| `src/btl_color.c` | PsyQ 4.1 | 23 | 34 | 57 | 40.4% |
-| `src/entity.c` | PsyQ 4.1 | 2 | 5 | 7 | 28.6% |
-| `src/color.c` | PsyQ 4.1 | 6 | 21 | 27 | 22.2% |
-| `src/render.c` | PsyQ 4.1 | 14 | 3 | 17 | 82.4% |
-| `src/overlay.c` | PsyQ 4.1 | 17 | 6 | 23 | 73.9% |
-| `src/card.c` | PsyQ 4.1 | 5 | 9 | 14 | 35.7% |
-| `src/gamestate.c` | PsyQ 4.1 | 19 | 25 | 44 | 43.2% |
-| `src/cdrom.c` | PsyQ 4.1 | 17 | 5 | 22 | 77.3% |
-| `src/cdread.c` | PsyQ 4.1 | 16 | 52 | 68 | 23.5% |
-| `src/snd_cmd.c` | PsyQ 4.1 | 6 | 15 | 21 | 28.6% |
-| `src/ovl/menumain/menumain.c` | PsyQ 4.1 | 132 | 84 | 216 | 61.1% |
-| `src/ovl/menucfg/menucfg.c` | PsyQ 4.1 | 0 | 18 | 18 | 0.0% |
-| `src/ovl/menupty/menupty.c` | PsyQ 4.1 | 0 | 49 | 49 | 0.0% |
-| `src/ovl/menusts/menusts.c` | PsyQ 4.1 | 0 | 44 | 44 | 0.0% |
-| `src/ovl/menuabl/menuabl.c` | PsyQ 4.1 | 0 | 17 | 17 | 0.0% |
-| `src/ovl/menushop/menushop.c` | PsyQ 4.1 | 1 | 53 | 54 | 1.9% |
-| `src/ovl/menuext/menuext.c` | PsyQ 4.1 | 0 | 47 | 47 | 0.0% |
-| `src/ovl/menuitem/menuitem.c` | PsyQ 4.1 | 0 | 99 | 99 | 0.0% |
-| `src/ovl/menumgc/menumgc.c` | PsyQ 4.1 | 0 | 51 | 51 | 0.0% |
-| `src/ovl/menugf/menugf.c` | PsyQ 4.1 | 0 | 22 | 22 | 0.0% |
-| `src/ovl/menujnc2/menujnc2.c` | PsyQ 4.1 | 0 | 86 | 86 | 0.0% |
-| `src/ovl/menusav/menusav.c` | PsyQ 4.1 | 0 | 124 | 124 | 0.0% |
-| `src/ovl/menucrd/menucrd.c` | PsyQ 4.1 | 14 | 12 | 26 | 53.8% |
-| `src/ovl/menututo/menututo.c` | PsyQ 4.1 | 0 | 28 | 28 | 0.0% |
-| `src/ovl/menutmag/menutmag.c` | PsyQ 4.1 | 0 | 15 | 15 | 0.0% |
-| `src/ovl/menutips/menutips.c` | PsyQ 4.1 | 0 | 16 | 16 | 0.0% |
-| `src/ovl/menutest/menutest.c` | PsyQ 4.1 | 10 | 2 | 12 | 83.3% |
-| `src/ovl/field_init/field_init.c` | PsyQ 4.1 | 0 | 9 | 9 | 0.0% |
-| `src/ovl/display_init/display_init.c` | PsyQ 4.1 | 0 | 11 | 11 | 0.0% |
-| `src/ovl/field_engine/field_engine.c` | PsyQ 4.1 | 0 | 601 | 601 | 0.0% |
-| `src/ovl/battle_engine/battle_engine.c` | PsyQ 4.1 | 0 | 172 | 172 | 0.0% |
-| `src/ovl/battle_render/battle_render.c` | PsyQ 4.1 | 0 | 21 | 21 | 0.0% |
-| `src/ovl/battle_code/battle_code.c` | PsyQ 4.1 | 0 | 1 | 1 | 0.0% |
-| `src/ovl/field_engine_alt/field_engine_alt.c` | PsyQ 4.1 | 0 | 350 | 350 | 0.0% |
-| **Total (game code)** | | **655** | **2454** | **3109** | **21.1%** |
+| Binary | C | ASM | Total | % Decomped |
+|--------|---|-----|-------|------------|
+| `SLUS_008.92` | 626 | 419 | 1045 | 59.9% |
+| `menumain.ovl` | 115 | 84 | 199 | 57.8% |
+| `menucfg.ovl` | 0 | 18 | 18 | 0.0% |
+| `menupty.ovl` | 0 | 49 | 49 | 0.0% |
+| `menusts.ovl` | 0 | 44 | 44 | 0.0% |
+| `menuabl.ovl` | 0 | 11 | 11 | 0.0% |
+| `menushop.ovl` | 1 | 53 | 54 | 1.9% |
+| `menuext.ovl` | 0 | 47 | 47 | 0.0% |
+| `menuitem.ovl` | 0 | 99 | 99 | 0.0% |
+| `menumgc.ovl` | 0 | 51 | 51 | 0.0% |
+| `menugf.ovl` | 0 | 22 | 22 | 0.0% |
+| `menujnc2.ovl` | 0 | 86 | 86 | 0.0% |
+| `menusav.ovl` | 0 | 124 | 124 | 0.0% |
+| `menucrd.ovl` | 9 | 12 | 21 | 42.9% |
+| `menututo.ovl` | 0 | 28 | 28 | 0.0% |
+| `menutmag.ovl` | 0 | 15 | 15 | 0.0% |
+| `menutips.ovl` | 0 | 16 | 16 | 0.0% |
+| `menutest.ovl` | 10 | 2 | 12 | 83.3% |
+| `field_init.bin` | 0 | 7 | 7 | 0.0% |
+| `display_init.bin` | 0 | 10 | 10 | 0.0% |
+| `field_engine.bin` | 1 | 395 | 396 | 0.3% |
+| `battle_engine.bin` | 1 | 385 | 386 | 0.3% |
+| `battle_render.bin` | 1 | 15 | 16 | 6.3% |
+| `battle_code.bin` | 0 | 1016 | 1016 | 0.0% |
+| `field_engine_alt.bin` | 4 | 283 | 287 | 1.4% |
+| **Total** | **768** | **3291** | **4059** | **18.9%** |
 
-PsyQ SDK libraries (`src/psxsdk/`, 751 functions) are not tracked — they are third-party code.
-
-### Dynamic Code Overlays
+PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
 
 All dynamic overlays load to `0x80098000`, overwriting each other. They are
-extracted from the disc with LZSS decompression where needed:
-
-| Overlay | Disc Entry | Size | Functions | Compression |
-|---------|-----------|------|-----------|-------------|
-| field\_init | 0 | 2.4 KB | 9 | raw |
-| display\_init | 1 | 4.7 KB | 11 | LZSS |
-| field\_engine | 2 | 187 KB | 601 | LZSS |
-| battle\_engine | 23 | 1.0 MB | 172 | LZSS |
-| battle\_render | 24 | 78 KB | 21 | raw |
-| battle\_code | 25 | 339 KB | 1* | raw |
-| field\_engine\_alt | 26 | 193 KB | 350 | LZSS |
-
-\*battle\_code needs function addresses in `config/symbol_addrs.battle_code.txt`
-for splat to split the binary into individual functions.
+extracted from the disc with LZSS decompression where needed.
 
 ## Project Structure
 

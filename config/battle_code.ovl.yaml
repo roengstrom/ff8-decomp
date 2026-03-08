@@ -35,7 +35,7 @@ options:
   data_string_guesser_level: 2
 
   # Misc
-  section_order: [".text", ".rodata", ".data"]
+  section_order: [".text", ".rodata", ".data", ".bss"]
   subalign: 2
   o_as_suffix: True
   use_legacy_include_asm: False
@@ -47,5 +47,28 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, c, battle_code]
+      - [0x0, c, bc_dispatch]
+      - [0x1FE8, c, bc_object1]
+      - [0x3AC4, c, bc_object2]
+      - [0x98E0, c, bc_object3]
+      - [0xE184, c, bc_object4]
+      - [0x10B7C, c, bc_object5]
+      - [0x134A8, c, bc_object6]
+      - [0x17358, c, bc_object7]
+      - [0x19624, c, bc_object8]
+      - [0x1C9D8, c, bc_object9]
+      - [0x2072C, c, bc_object10]
+      - [0x22EE8, c, bc_object11]
+      - [0x270E8, c, bc_object12]
+      - [0x2AB88, c, bc_object13]
+      - [0x2CA64, c, bc_object14]
+      - [0x2F294, c, bc_object15]
+      - [0x31F68, c, bc_object16]
+      - [0x37F2C, c, bc_object17]
+      - [0x3B25C, c, bc_object18]
+      - [0x3EAF4, c, bc_object19]
+      - [0x40FA4, c, bc_object20]
+      - [0x451B0, c, bc_object21]
+      - [0x4860C, c, bc_object22]
+      - [0x4D724, c, bc_object23]
   - [0x54C48]

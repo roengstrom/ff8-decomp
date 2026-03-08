@@ -1,0 +1,10 @@
+func_8009818C = 0x8009818C; // type:func
+func_80098338 = 0x80098338; // type:func
+func_80098378 = 0x80098378; // type:func
+func_80098440 = 0x80098440; // type:func
+func_800985B4 = 0x800985B4; // type:func
+func_800985EC = 0x800985EC; // type:func
+func_8009869C = 0x8009869C; // type:func
+func_8009879C = 0x8009879C; // type:func
+func_80098974 = 0x80098974; // type:func
+func_80098FD4 = 0x80098FD4; // type:func
