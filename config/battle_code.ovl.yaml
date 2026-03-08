@@ -47,7 +47,7 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, c, bc_dispatch]
+      - [0x0, asm, bc_dispatch]
       - [0x1FE8, c, bc_object1]
       - [0x3AC4, c, bc_object2]
       - [0x98E0, c, bc_object3]
