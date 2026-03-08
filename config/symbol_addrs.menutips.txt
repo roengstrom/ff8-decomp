@@ -1,1 +1,12 @@
-g_gameState = 0x80077378;
+func_801E597C = 0x801E597C; // type:func
+func_801E5A10 = 0x801E5A10; // type:func
+func_801E6018 = 0x801E6018; // type:func
+func_801E6474 = 0x801E6474; // type:func
+func_801E64B0 = 0x801E64B0; // type:func
+func_801E6514 = 0x801E6514; // type:func
+func_801E6668 = 0x801E6668; // type:func
+func_801E6768 = 0x801E6768; // type:func
+func_801E67F4 = 0x801E67F4; // type:func
+func_801E688C = 0x801E688C; // type:func
+func_801E696C = 0x801E696C; // type:func
+func_9F9E5B80 = 0x9F9E5B80; // type:func

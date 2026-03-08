@@ -47,23 +47,23 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | Binary | C | ASM | Total | % Decomped |
 |--------|---|-----|-------|------------|
 | `SLUS_008.92` | 626 | 419 | 1045 | 59.9% |
-| `menumain.ovl` | 115 | 84 | 199 | 57.8% |
-| `menucfg.ovl` | 0 | 18 | 18 | 0.0% |
-| `menupty.ovl` | 0 | 49 | 49 | 0.0% |
-| `menusts.ovl` | 0 | 44 | 44 | 0.0% |
+| `menumain.ovl` | 115 | 8 | 123 | 93.5% |
+| `menucfg.ovl` | 0 | 17 | 17 | 0.0% |
+| `menupty.ovl` | 0 | 42 | 42 | 0.0% |
+| `menusts.ovl` | 0 | 36 | 36 | 0.0% |
 | `menuabl.ovl` | 0 | 11 | 11 | 0.0% |
-| `menushop.ovl` | 1 | 53 | 54 | 1.9% |
-| `menuext.ovl` | 0 | 47 | 47 | 0.0% |
-| `menuitem.ovl` | 0 | 99 | 99 | 0.0% |
-| `menumgc.ovl` | 0 | 51 | 51 | 0.0% |
-| `menugf.ovl` | 0 | 22 | 22 | 0.0% |
-| `menujnc2.ovl` | 0 | 86 | 86 | 0.0% |
-| `menusav.ovl` | 0 | 124 | 124 | 0.0% |
-| `menucrd.ovl` | 9 | 12 | 21 | 42.9% |
-| `menututo.ovl` | 0 | 28 | 28 | 0.0% |
-| `menutmag.ovl` | 0 | 15 | 15 | 0.0% |
-| `menutips.ovl` | 0 | 16 | 16 | 0.0% |
-| `menutest.ovl` | 10 | 2 | 12 | 83.3% |
+| `menushop.ovl` | 1 | 43 | 44 | 2.3% |
+| `menuext.ovl` | 0 | 37 | 37 | 0.0% |
+| `menuitem.ovl` | 0 | 80 | 80 | 0.0% |
+| `menumgc.ovl` | 0 | 41 | 41 | 0.0% |
+| `menugf.ovl` | 0 | 20 | 20 | 0.0% |
+| `menujnc2.ovl` | 0 | 67 | 67 | 0.0% |
+| `menusav.ovl` | 0 | 104 | 104 | 0.0% |
+| `menucrd.ovl` | 9 | 9 | 18 | 50.0% |
+| `menututo.ovl` | 0 | 22 | 22 | 0.0% |
+| `menutmag.ovl` | 0 | 10 | 10 | 0.0% |
+| `menutips.ovl` | 0 | 12 | 12 | 0.0% |
+| `menutest.ovl` | 10 | 1 | 11 | 90.9% |
 | `field_init.bin` | 0 | 7 | 7 | 0.0% |
 | `display_init.bin` | 0 | 10 | 10 | 0.0% |
 | `field_engine.bin` | 1 | 395 | 396 | 0.3% |
@@ -71,7 +71,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `battle_render.bin` | 1 | 15 | 16 | 6.3% |
 | `battle_code.bin` | 0 | 1016 | 1016 | 0.0% |
 | `field_engine_alt.bin` | 4 | 283 | 287 | 1.4% |
-| **Total** | **768** | **3291** | **4059** | **18.9%** |
+| **Total** | **768** | **3090** | **3858** | **19.9%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
 
