@@ -1,0 +1,2 @@
+func_80098000 = 0x80098000; // type:func
+func_800C4CA4 = 0x800C4CA4; // type:func

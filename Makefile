@@ -154,9 +154,14 @@ setup:
 	$(MAKE) split
 
 # Re-run splat for main binary + all overlays
+# After split, fix jump tables that splat generates with .L labels (which can't
+# resolve cross-.o). Replace with absolute addresses until these functions are
+# decomped to C.
 split:
 	rm -rf asm
 	$(SPLAT) split $(SPLAT_YAML)
+	sed -i 's/\.word \.L800116F4/.word 0x800116F4/;s/\.word \.L800116BC/.word 0x800116BC/;s/\.word \.L800116CC/.word 0x800116CC/;s/\.word \.L800116DC/.word 0x800116DC/;s/\.word \.L800116EC/.word 0x800116EC/' asm/data/800.rodata.s
+	sed -i 's/\.word \.L8001204C/.word 0x8001204C/;s/\.word \.L80012064/.word 0x80012064/;s/\.word \.L80012284/.word 0x80012284/;s/\.word \.L8001278C/.word 0x8001278C/;s/\.word \.L80012444/.word 0x80012444/;s/\.word \.L80012264/.word 0x80012264/;s/\.word \.L80012714/.word 0x80012714/' asm/data/800.rodata.s
 	$(foreach ovl,$(OVERLAYS),$(SPLAT) split $($(ovl)_YAML);)
 
 clean:
