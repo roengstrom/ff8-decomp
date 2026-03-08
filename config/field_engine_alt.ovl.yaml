@@ -36,7 +36,7 @@ options:
 
   # Misc
   section_order: [".text", ".rodata", ".data", ".bss"]
-  subalign: 2
+  subalign: 1
   o_as_suffix: True
   use_legacy_include_asm: False
   generate_asm_macros_files: False
