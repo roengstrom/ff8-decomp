@@ -24,15 +24,16 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
    ```
    This extracts `SLUS_008.92` to `original/` and verifies the SHA1.
 
-5. **Optionally extract all disc files** (for reference):
+5. **Extract overlay binaries** from the disc:
    ```bash
-   python3 tools/extract_disc.py /path/to/ff8-disc1.bin
+   python3 tools/extract_overlays.py /path/to/ff8-disc1.bin
    ```
-   This extracts the full disc filesystem to `disc/`.
+   This extracts all menu overlays, code overlays (with LZSS decompression),
+   and data files to `original/`.
 
-6. **Run splat** to split the executable into assembly:
+6. **Run splat** to split the executable and overlays into assembly:
    ```bash
-   .venv/bin/python3 -m splat split slus_008.92.yaml
+   make split
    ```
 
 7. **Build and verify**:
@@ -92,9 +93,34 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `src/ovl/menutmag/menutmag.c` | PsyQ 4.1 | 0 | 15 | 15 | 0.0% |
 | `src/ovl/menutips/menutips.c` | PsyQ 4.1 | 0 | 16 | 16 | 0.0% |
 | `src/ovl/menutest/menutest.c` | PsyQ 4.1 | 10 | 2 | 12 | 83.3% |
-| **Total (game code)** | | **655** | **1289** | **1944** | **33.7%** |
+| `src/ovl/field_init/field_init.c` | PsyQ 4.1 | 0 | 9 | 9 | 0.0% |
+| `src/ovl/display_init/display_init.c` | PsyQ 4.1 | 0 | 11 | 11 | 0.0% |
+| `src/ovl/field_engine/field_engine.c` | PsyQ 4.1 | 0 | 601 | 601 | 0.0% |
+| `src/ovl/battle_engine/battle_engine.c` | PsyQ 4.1 | 0 | 172 | 172 | 0.0% |
+| `src/ovl/battle_render/battle_render.c` | PsyQ 4.1 | 0 | 21 | 21 | 0.0% |
+| `src/ovl/battle_code/battle_code.c` | PsyQ 4.1 | 0 | 1 | 1 | 0.0% |
+| `src/ovl/field_engine_alt/field_engine_alt.c` | PsyQ 4.1 | 0 | 350 | 350 | 0.0% |
+| **Total (game code)** | | **655** | **2454** | **3109** | **21.1%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, 751 functions) are not tracked — they are third-party code.
+
+### Dynamic Code Overlays
+
+All dynamic overlays load to `0x80098000`, overwriting each other. They are
+extracted from the disc with LZSS decompression where needed:
+
+| Overlay | Disc Entry | Size | Functions | Compression |
+|---------|-----------|------|-----------|-------------|
+| field\_init | 0 | 2.4 KB | 9 | raw |
+| display\_init | 1 | 4.7 KB | 11 | LZSS |
+| field\_engine | 2 | 187 KB | 601 | LZSS |
+| battle\_engine | 23 | 1.0 MB | 172 | LZSS |
+| battle\_render | 24 | 78 KB | 21 | raw |
+| battle\_code | 25 | 339 KB | 1* | raw |
+| field\_engine\_alt | 26 | 193 KB | 350 | LZSS |
+
+\*battle\_code needs function addresses in `config/symbol_addrs.battle_code.txt`
+for splat to split the binary into individual functions.
 
 ## Project Structure
 
@@ -110,8 +136,10 @@ PsyQ SDK libraries (`src/psxsdk/`, 751 functions) are not tracked — they are t
 | `asm/` | Disassembled assembly from splat |
 | `src/` | Decompiled C source — game code |
 | `src/psxsdk/` | PsyQ SDK library source (13 files split from game code) |
-| `original/` | Extracted PS-EXE (gitignored) |
+| `config/` | Splat configs and symbol files for overlays |
+| `original/` | Extracted PS-EXE and overlay binaries (gitignored) |
 | `build/` | Build output (gitignored) |
+| `tools/extract_overlays.py` | Extracts all overlays from disc (with LZSS decompression) |
 | `tools/analyze_delay_slots.py` | Toolchain analysis — classifies functions by PsyQ version |
 
 ## Tools
