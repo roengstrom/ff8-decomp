@@ -95,30 +95,37 @@ extracted from the disc with LZSS decompression where needed.
 
 ### analyze_delay_slots.py
 
-Analyzes assembly files in `asm/nonmatchings/` to classify each function's
-PsyQ toolchain version (4.1 vs 4.3) based on epilogue delay slot patterns.
+Analyzes assembly files to classify each function's PsyQ toolchain version
+(4.1 vs 4.3) based on epilogue delay slot patterns. Accepts any asm directory
+as argument, so it works on both the main executable and overlays.
 
-PsyQ 4.1 (gcc 2.7.2) leaves the `jr $ra` branch delay slot unfilled (`nop`),
-while PsyQ 4.3 (gcc 2.8.0) fills it with `addiu $sp`. Only non-leaf function
-returns are diagnostic — leaf functions produce identical code with both toolchains.
+The key diagnostic is the `lw $ra` **load** delay slot (not the `jr $ra` branch
+delay). PsyQ 4.3 (gcc 2.8.0) leaves a `nop` after `lw $ra`, while PsyQ 4.1
+(gcc 2.7.2) fills it with `addiu $sp` or another useful instruction. When
+multiple `lw $sN` restores fill the load delay, both toolchains produce
+identical epilogues and the function is classified as AMBIGUOUS.
 
-Merged blocks (multiple functions under one splat label) are handled by
-classifying each `jr $ra` individually.
+Only non-leaf function returns are diagnostic — leaf functions produce identical
+code with both toolchains.
 
 ```bash
-# Text list — one line per function with classification
-python3 tools/analyze_delay_slots.py
+# Text list — main exe (default dir)
+python3 tools/analyze_delay_slots.py asm/nonmatchings/
+
+# Analyze a specific overlay
+python3 tools/analyze_delay_slots.py asm/ovl/menumain/nonmatchings/menumain/
 
 # Colored terminal map of the address space
-python3 tools/analyze_delay_slots.py --map
+python3 tools/analyze_delay_slots.py --map asm/nonmatchings/
 
 # Adjust terminal width (default 160)
-python3 tools/analyze_delay_slots.py --map --width 120
+python3 tools/analyze_delay_slots.py --map --width 120 asm/nonmatchings/
 ```
 
 Classifications:
-- **FILLED** — PsyQ 4.3 (gcc 2.8.0), delay slot filled with `addiu $sp`
-- **UNFILLED** — PsyQ 4.1 (gcc 2.7.2), delay slot is `nop`
+- **FILLED** — PsyQ 4.3 (gcc 2.8.0), `nop` in `lw $ra` load delay
+- **UNFILLED** — PsyQ 4.1 (gcc 2.7.2), useful instruction in `lw $ra` load delay
+- **AMBIGUOUS** — non-leaf but `lw $sN` fills load delay (either toolchain)
 - **MIXED** — merged block containing both filled and unfilled non-leaf returns
 - **LEAF** — no non-leaf returns, toolchain indeterminate
 - **NO_JR_RA** — no `jr $ra` found (data, library fragments, noreturn functions)
