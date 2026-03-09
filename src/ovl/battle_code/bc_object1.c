@@ -548,32 +548,11 @@ void func_8009A928(void) {
  * clears the D7/D8 fields. Special handling for type 2 with bit 0
  * of status (0x90).
  * @param a0 Effect type to process.
- *
+ */
+/**
  * @note Non-matching: compiler folds base+0xD7 into s0 (offset folding),
- * hoists constant 2 into $a2, and allocates D7 value to $a1 instead of $v1.
- *
- * Best attempt:
- * @code
- * void func_8009A990(s32 a0) {
- *     s32 type = a0;
- *     s32 i = 0;
- *     s32 base = (s32)D_800ED148;
- *     for (; i < 7; i++, base += 0xD0) {
- *         s32 d7;
- *         if (*(u8 *)(base + 0xD8) != type) continue;
- *         d7 = *(u8 *)(base + 0xD7);
- *         if (d7 == 0) continue;
- *         if (d7 != 2) goto docall;
- *         if (*(u16 *)(base + 0x90) & 1) goto clear;
- *     docall:
- *         func_800A59AC(i, *(u8 *)(base + 0xD7), 0);
- *     clear:
- *         *(u8 *)(base + 0xD8) = 0;
- *         *(u8 *)(base + 0xD7) = 0;
- *         break;
- *     }
- * }
- * @endcode
+ * hoists constant 2 into a register before the loop, and uses v1 for
+ * effectType instead of a1.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A990);
 
@@ -777,27 +756,11 @@ void func_8009ACEC(void) {
  *
  * Reads D_800EE449 (speed setting 0-3), maps to frame counts:
  * 0 or 3 -> 0x3C (60), 1 -> 0x1E (30), 2 -> 0x28 (40).
- * Schedules timer via func_8009AB54 and stores to entity offset 0xC.
+ * Schedules timer via func_8009AB54 and stores to entity timer field.
  *
  * @note Non-matching: switch binary search generates inverted branch
  * direction (bnez vs beqz for the <2 check) and merges cases 0/3/default,
  * eliminating the explicit case-3 comparison.
- *
- * Best attempt:
- * @code
- * void func_8009AD7C(void) {
- *     s32 timer;
- *     switch (*(u8 *)D_800EE449) {
- *     case 0: timer = 0x3C; break;
- *     case 1: timer = 0x1E; break;
- *     case 2: timer = 0x28; break;
- *     case 3: timer = 0x3C; break;
- *     default: timer = 0x3C; break;
- *     }
- *     func_8009AB54(timer - 0xF);
- *     *(u8 *)((s32)D_800ED148 + 0xC) = timer;
- * }
- * @endcode
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AD7C);
 
@@ -840,26 +803,11 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AE08);
  * Checks 0x12E8 for phase 2 and compares 0x12ED with 0x12EE.
  * If different, plays sound 0x6D (or 0x6C if 0x12ED == 1) at
  * volume 0xF0. Copies 0x12ED to 0x12EE.
- *
+ */
+/**
  * @note Non-matching: maspsx schedules sb into lw-ra load delay slot
  * and fills jr-ra branch delay slot with addiu-sp (FILLED epilogue),
- * but original has UNFILLED epilogue with explicit nops.
- *
- * Best attempt:
- * @code
- * void func_8009AE9C(void) {
- *     s32 base = (s32)D_800ED148;
- *     if (*(u8 *)(base + 0x12E8) != 2) {
- *         if (*(u8 *)(base + 0x12ED) != *(u8 *)(base + 0x12EE)) {
- *             s32 snd = 0x6D;
- *             if (*(u8 *)(base + 0x12ED) == 1) snd = 0x6C;
- *             func_8009B134(snd, 0xF0, 0);
- *         }
- *     }
- *     base = (s32)D_800ED148;
- *     *(u8 *)(base + 0x12EE) = *(u8 *)(base + 0x12ED);
- * }
- * @endcode
+ * but original has UNFILLED epilogue (4 instructions shorter).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AE9C);
 
@@ -1119,35 +1067,23 @@ s32 func_8009B270(u8 *a0, s32 a1) {
  * @param a0 Pointer to task entry array.
  * @param a1 Pointer to head index.
  * @param a2 Number of slots.
- * @return Allocated slot index (as s16).
- *
- * @note Non-matching: s-reg assignment reversed (s0=a0, s1=a1 instead of
- * original s1=a0, s0=a1) and scheduler puts sll into beq delay slot instead
- * of addu (move).
- *
- * Best attempt:
- * @code
- * s32 func_8009B2A4(u8 *a0, u8 *a1, s32 a2) {
- *     s32 slot;
- *     u8 *entry;
- *     s32 head;
- *
- *     slot = (u8)func_8009B390(a0, a2);
- *     entry = a0 + slot * 4;
- *
- *     entry[1] = 0xFF;
- *     entry[2] = 0;
- *     entry[0] = *a1;
- *     head = *a1;
- *     if (head != 0xFF) {
- *         a0[head * 4 + 1] = slot;
- *     }
- *     *a1 = slot;
- *     return slot;
- * }
- * @endcode
+ * @return Allocated slot index (as u8).
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B2A4);
+s32 func_8009B2A4(u8 *table, u8 *head, s32 count) {
+    s32 slot = (u8)func_8009B390(table, count);
+    u8 *entry = (u8 *)(slot * 4 + (s32)table);
+
+    entry[0] = *head;
+    entry[1] = 0xFF;
+    entry[2] = 0;
+
+    if (*head != 0xFF) {
+        table[*head * 4 + 1] = slot;
+    }
+
+    *head = slot;
+    return slot;
+}
 
 /**
  * @brief Remove a task entry and relink neighbors.
@@ -1214,24 +1150,6 @@ s32 func_8009B390(u8 *a0, s32 a1) {
  * callback pointer, and returns the slot index as s16.
  * @param a0 Callback function pointer.
  * @return Allocated slot index (sign-extended to s32).
- *
- * @note Non-matching: addu operand order in `base += slot << 4` generates
- * `addu s0, v1, s0` (v1 first) instead of original `addu s0, s0, v1`
- * (s0 first). GCC 2.7.2 always puts the RHS operand first in += expansion.
- * 2-byte difference only.
- *
- * Best attempt:
- * @code
- * s32 func_8009B3D0(s32 a0) {
- *     s32 callback = a0;
- *     s32 base = (s32)D_800EE24B;
- *     s32 slot;
- *     slot = func_8009B2A4((u8 *)base, (u8 *)(base + 0x1F3), 0x10);
- *     base += slot << 4;
- *     *(s32 *)(base + 0x41) = callback;
- *     return (s16)slot;
- * }
- * @endcode
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B3D0);
 
