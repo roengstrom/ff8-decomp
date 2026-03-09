@@ -136,7 +136,25 @@ s32 func_800D134C(void) {
     return *(s32 *)D_80102E10 != 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D135C);
+/**
+ * @brief Test if bit a0 is set in D_80102E10.
+ *
+ * Returns 0 if a0 is negative. Otherwise, checks if the bit
+ * at position a0 in the D_80102E10 word is set.
+ *
+ * @param a0 Bit position to test (0-31). Returns 0 if negative.
+ * @return 1 if bit is set, 0 otherwise.
+ */
+s32 func_800D135C(s32 a0) {
+    s32 mask;
+    s32 val;
+    if (a0 < 0) {
+        return 0;
+    }
+    mask = 1 << a0;
+    val = *(s32 *)D_80102E10 & mask;
+    return val != 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1388);
 

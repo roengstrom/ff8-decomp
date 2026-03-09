@@ -109,7 +109,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DAD78);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DADB4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB110);
+/**
+ * @brief Extract bits from entity byte and call func_800D32E8.
+ *
+ * Reads byte at a0+0x24, passes bit 7 inverted as first arg
+ * and bit 6 as second arg to func_800D32E8.
+ *
+ * @param a0 Pointer to entity data.
+ */
+void func_800DB110(s32 a0) {
+    s32 val = *(u8 *)(a0 + 0x24);
+    s32 bit = val & 0x80;
+    func_800D32E8(bit == 0, val & 0x40);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB140);
 

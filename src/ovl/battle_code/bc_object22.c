@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern u8 D_8010334C[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E060C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E0650);
@@ -76,7 +78,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E173C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E17F4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1850);
+/**
+ * @brief Disable display, set flag, re-enable display.
+ *
+ * Calls func_800472E4 to disable display, sets D_8010334C to 1,
+ * then calls func_800472F4 to re-enable display.
+ */
+void func_800E1850(void) {
+    func_800472E4();
+    *(u8 *)D_8010334C = 1;
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1880);
 

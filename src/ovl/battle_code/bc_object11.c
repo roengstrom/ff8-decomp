@@ -186,6 +186,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD5FC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD658);
 
+/**
+ * @brief Clear status bits 0x410 from entity flags and update.
+ *
+ * Loads the word at a0+8, clears bits 4 and 10 (mask 0x410),
+ * stores the result back, then calls func_800B5C10.
+ *
+ * @param a0 Pointer to entity data.
+ *
+ * @note Non-matching: compiler allocates val→v0, mask→v1 instead of
+ * val→a1, mask→v0. Register preference cannot be controlled from pure C.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD77C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD7A8);

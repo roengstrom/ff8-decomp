@@ -103,7 +103,15 @@ void func_800CEC58(s32 a0) {
     *(s32 *)D_800FB428 = a0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEC64);
+/**
+ * @brief Set bit 31 of D_800F1B80 and call func_80030DB0.
+ *
+ * @param a0 Argument passed through to func_80030DB0.
+ */
+void func_800CEC64(s32 a0) {
+    *(s32 *)D_800F1B80 |= 0x80000000;
+    func_80030DB0(a0);
+}
 
 /**
  * @brief Call func_800B34B0, then clear bit 31 of D_800F1B80.

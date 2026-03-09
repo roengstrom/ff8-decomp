@@ -5,6 +5,7 @@ extern u8 D_80102E70[];
 extern u8 D_80102E78[];
 extern u8 D_80103240[];
 extern u8 D_80103308[];
+extern u8 D_80077E5C[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D325C);
 
@@ -37,7 +38,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D33F8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D365C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3708);
+/**
+ * @brief Clamp a0 and call func_80020F84 with offset.
+ *
+ * If a0 >= 0x20, subtracts 0x10 to wrap it back. Then calls
+ * func_80020F84 with the adjusted value plus 0x39.
+ *
+ * @param a0 Input index, clamped if >= 0x20.
+ */
+void func_800D3708(s32 a0) {
+    if (a0 >= 0x20) {
+        a0 -= 0x10;
+    }
+    func_80020F84(a0 + 0x39);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3734);
 
@@ -157,7 +171,16 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4134);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D422C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4264);
+/**
+ * @brief Conditionally call func_800D422C based on D_80077E5C flag.
+ *
+ * If bit 2 of the halfword at D_80077E5C is clear, calls func_800D422C.
+ */
+void func_800D4264(void) {
+    if ((*(u16 *)D_80077E5C & 4) == 0) {
+        func_800D422C();
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4294);
 

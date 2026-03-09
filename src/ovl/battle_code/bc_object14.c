@@ -27,9 +27,33 @@ void func_800C52C4(s32 a0) {
     *(s32 *)D_800F1B90 = a0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C52D0);
+/**
+ * @brief Set D_800F1B90 to -1 and register callback with mode 0.
+ *
+ * Stores -1 to D_800F1B90, then calls func_8009B5C4 with a2=0
+ * and func_800C52C4 as the callback.
+ *
+ * @param a0 First argument passed through.
+ * @param a1 Second argument passed through.
+ */
+void func_800C52D0(s32 a0, s32 a1) {
+    *(s32 *)D_800F1B90 = -1;
+    func_8009B5C4(a0, a1, 0, func_800C52C4);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5304);
+/**
+ * @brief Set D_800F1B90 to -1 and register callback with mode 1.
+ *
+ * Stores -1 to D_800F1B90, then calls func_8009B5C4 with a2=1
+ * and func_800C52C4 as the callback.
+ *
+ * @param a0 First argument passed through.
+ * @param a1 Second argument passed through.
+ */
+void func_800C5304(s32 a0, s32 a1) {
+    *(s32 *)D_800F1B90 = -1;
+    func_8009B5C4(a0, a1, 1, func_800C52C4);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5338);
 
