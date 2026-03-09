@@ -17,6 +17,7 @@
  * (0xCB), and various control bytes at large offsets (0x5C2, 0x12E8-0x1319).
  */
 #include "common.h"
+#include "gf.h"
 
 extern u8 D_800ED148[];
 extern u8 D_800ED157[];
@@ -37,7 +38,8 @@ extern u16 D_80082C08[];
 extern u8 D_80082C0A[];
 extern u8 D_80082C0F[];
 extern s16 D_8005F11C;
-extern u8 D_80078E00[];
+extern u8 g_gfData[];
+
 extern u8 D_80098030[];
 extern u8 D_800E19B4[];
 extern u8 D_800ED1D8[];
@@ -1624,30 +1626,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B924);
 /**
  * @brief Get combined status flags for an entity from ability data.
  *
- * Computes offset from D_80078E00 + a0 * 32, reads two ability flag
- * values via func_800B0F9C and func_800B0F7C, OR's them together.
- * If bit 15 is set in the result, returns it masked to u16;
- * otherwise returns a1 masked to u16.
- * @param a0 Entity slot index.
- * @param a1 Default status value if no ability flags apply.
+ * Reads ability flags for the given entity slot from g_gfData,
+ * queries two flag lookup functions, OR's results together.
+ * If bit 15 is set in the combined result, returns it masked to u16;
+ * otherwise returns defaultStatus masked to u16.
+ * @param slot Entity slot index.
+ * @param defaultStatus Default status value if no ability flags apply.
  * @return Combined or default status flags (u16).
- *
- * @note Non-matching: compiler eliminates redundant `addu v0, s0, $0` copy
- * before the 0x8000 bit test. Original copies result to v0 then tests s0,
- * compiled tests directly from v0 and saves 1 instruction.
- *
- * Best attempt:
- * @code
- * s32 func_8009BA5C(s32 a0, s32 a1) {
- *     s32 sym = (s32)D_80078E00;
- *     s32 base = (a0 << 5) + sym;
- *     s32 dflt = a1;
- *     s32 result;
- *     result = func_800B0F9C(*(u8 *)(base + 0x48C2));
- *     result |= func_800B0F7C(*(u8 *)(base + 0x48C2));
- *     if (result & 0x8000) return (u16)result;
- *     return (u16)dflt;
- * }
- * @endcode
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009BA5C);
+s32 func_8009BA5C(s32 slot, s32 defaultStatus) {
+    GfDataSubS *gf = (GfDataSubS *)g_gfData;
+    unsigned short result;
+
+    result = func_800B0F9C(gf->subTableS[slot].abilityFlags);
+    result |= func_800B0F7C(gf->subTableS[slot].abilityFlags);
+
+    if (result & 0x8000)
+        return (u16)result;
+    return (u16)defaultStatus;
+}

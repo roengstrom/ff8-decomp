@@ -106,6 +106,29 @@ typedef struct {
 } GfAbilityTableEntry; /* 132 bytes */
 
 /**
+ * @brief GF sub-table S entry (stride 32, offset 0x48B8 in g_gfData).
+ *
+ * Per-entity ability/status data. The abilityFlags byte at +0x0A within
+ * each entry corresponds to offset 0x48C2 from g_gfData base when slot=0.
+ */
+typedef struct {
+    u8 pad00[0x0A];    /**< 0x00..0x09: Unknown fields. */
+    u8 abilityFlags;   /**< 0x0A: Ability flags byte. */
+    u8 pad0B[0x15];    /**< 0x0B..0x1F: Remaining fields (unknown). */
+} GfSubTableSEntry;    /* 0x20 = 32 bytes */
+
+/**
+ * @brief Partial view of g_gfData for struct-based access to sub-table S.
+ *
+ * Used when struct field access is needed for codegen matching (e.g.
+ * func_8009BA5C). Uses exact offsets verified against the binary.
+ */
+typedef struct {
+    u8 pad0[0x48B8];                   /**< 0x0000..0x48B7: Earlier sub-tables. */
+    GfSubTableSEntry subTableS[13];    /**< 0x48B8: Per-entity entries (stride 32). */
+} GfDataSubS;
+
+/**
  * @brief Full GF data region layout (3960 bytes, BSS).
  *
  * The header region (0x00–0xE3) contains s32 pointers into the sub-table
@@ -165,7 +188,7 @@ typedef struct {
     u8 subTableP[0x78];       /**< +0x4480: Sub-table P (stride 24). */
     u8 subTableQ[0x300];      /**< +0x44F8: Sub-table Q (stride 16). */
     u8 subTableR[0xC0];       /**< +0x47F8: Sub-table R (stride 24). */
-    u8 subTableS[0x1A4];      /**< +0x48B8: Sub-table S (stride 32). */
+    GfSubTableSEntry subTableS[13]; /**< +0x48B8: Sub-table S (stride 32, 13 entries). */
     u8 subTableT[0x10];       /**< +0x4A5C: Sub-table T (stride 8). */
     u8 subTableU[0x29C];      /**< +0x4A6C: Sub-table U (stride 20). */
     u8 subTableV[0x70];       /**< +0x4D08: Sub-table V (stride 2). */
