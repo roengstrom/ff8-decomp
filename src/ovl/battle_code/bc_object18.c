@@ -1,5 +1,9 @@
 #include "common.h"
 
+extern u8 D_80102E40[];
+extern u8 D_80102E70[];
+extern u8 D_80102E78[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D325C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D32E8);
@@ -26,7 +30,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3BB8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C14);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C50);
+/**
+ * @brief Return the address of D_80102E40.
+ *
+ * @return Address of D_80102E40 as an integer.
+ */
+s32 func_800D3C50(void) {
+    return (s32)D_80102E40;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C5C);
 
@@ -34,17 +45,51 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C98);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3CD4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3D10);
+/**
+ * @brief Clear D_80102E70 to zero.
+ */
+void func_800D3D10(void) {
+    *(s32 *)D_80102E70 = 0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3D1C);
+/**
+ * @brief Decrement D_80102E70 if it is positive.
+ */
+void func_800D3D1C(void) {
+    s32 val = *(s32 *)D_80102E70;
+    if (val > 0) {
+        *(s32 *)D_80102E70 = val - 1;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3D3C);
+/**
+ * @brief Return the word value at D_80102E70.
+ *
+ * @return Current value of D_80102E70.
+ */
+s32 func_800D3D3C(void) {
+    return *(s32 *)D_80102E70;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3D4C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3E18);
+/**
+ * @brief Call func_800D3D4C with a1 = 1.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800D3E18(s32 a0) {
+    func_800D3D4C(a0, 1);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3E38);
+/**
+ * @brief Call func_800D3D4C with a1 = 0.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800D3E38(s32 a0) {
+    func_800D3D4C(a0, 0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3E58);
 
@@ -101,9 +146,24 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5ADC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5B3C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C00);
+/**
+ * @brief Return the address of D_80102E78.
+ *
+ * @return Address of D_80102E78 as an integer.
+ */
+s32 func_800D5C00(void) {
+    return (s32)D_80102E78;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C0C);
+/**
+ * @brief Compute a pointer into the D_80102E78 array with stride 20.
+ *
+ * @param a0 Array index.
+ * @return Pointer to the entry at a0 * 20 + D_80102E78.
+ */
+s32 func_800D5C0C(s32 a0) {
+    return a0 * 20 + (s32)D_80102E78;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C28);
 
@@ -125,7 +185,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5E48);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5F98);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6090);
+/**
+ * @brief Read bit 0 from scratchpad control register at 0x1F8003AE.
+ *
+ * @return 1 if bit 0 is set, 0 otherwise.
+ */
+s32 func_800D6090(void) {
+    return *(u16 *)0x1F8003AE & 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D60A0);
 
@@ -137,7 +204,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6310);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D636C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D672C);
+/**
+ * @brief Wrapper for func_800DBCBC.
+ */
+void func_800D672C(void) {
+    func_800DBCBC();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D674C);
 
@@ -149,4 +221,11 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D69BC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6AC8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6AEC);
+/**
+ * @brief Return constant 0xA2 (162).
+ *
+ * @return Always 0xA2.
+ */
+s32 func_800D6AEC(void) {
+    return 0xA2;
+}

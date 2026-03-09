@@ -8,9 +8,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E0694);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E06D8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E071C);
+/**
+ * @brief Call func_80020F84 with a0 + 2.
+ *
+ * @param a0 Base value; 2 is added before passing.
+ */
+void func_800E071C(s32 a0) {
+    func_80020F84(a0 + 2);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E073C);
+/**
+ * @brief Wrapper for func_80020F84.
+ */
+void func_800E073C(void) {
+    func_80020F84();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E075C);
 

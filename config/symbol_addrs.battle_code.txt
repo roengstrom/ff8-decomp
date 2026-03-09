@@ -1014,3 +1014,4 @@ func_800E5524 = 0x800E5524; // type:func
 func_800E5584 = 0x800E5584; // type:func
 func_800E5724 = 0x800E5724; // type:func
 func_9F898390 = 0x9F898390; // type:func
+func_800E19B4 = 0x800E19B4; // type:func

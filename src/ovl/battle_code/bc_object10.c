@@ -1,5 +1,10 @@
 #include "common.h"
 
+extern u8 D_800F082C[];
+extern u8 D_800F085C[];
+extern u8 D_800F0830[];
+extern u8 D_800F1668[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B872C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8740);
@@ -8,17 +13,78 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8754);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8798);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B87E4);
+/**
+ * @brief Unpack a pointer pair and call func_800B8B28 with mode 1.
+ *
+ * @param a0 Pointer to a structure with a word at +0 and data at +4.
+ */
+void func_800B87E4(s32 *a0) {
+    func_800B8B28(*a0, (s32)a0 + 4, 1);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8810);
+/**
+ * @brief Unpack a pointer pair and call func_800B8B98.
+ *
+ * @param a0 Pointer to a structure with a word at +0 and data at +4.
+ */
+void func_800B8810(s32 *a0) {
+    func_800B8B98(*a0, (s32)a0 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8838);
+/**
+ * @brief Unpack a pointer pair, call func_800B8A98, and clear result byte.
+ *
+ * @param a0 Pointer to a structure with a word at +0 and data at +4.
+ */
+void func_800B8838(s32 *a0) {
+    u8 *result = (u8 *)func_800B8A98(*a0, (s32)a0 + 4, 1);
+    if (result != 0) {
+        result[1] = 0;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8870);
+/**
+ * @brief Initialize a linked list array structure.
+ *
+ * Clears the head, stores count, then zeroes the data field of each entry (stride 8).
+ *
+ * @param a0 Pointer to the list structure.
+ * @param count Number of entries to initialize.
+ */
+void func_800B8870(u8 *a0, s32 count) {
+    s32 i = 1;
+    *(s32 *)a0 = 0;
+    *(s32 *)(a0 + 4) = count;
+    if (count > 0) {
+        a0 += 8;
+        do {
+            *(s32 *)(a0 + 4) = 0;
+            i++;
+            a0 += 8;
+        } while (i <= count);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B88A0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B88E0);
+/**
+ * @brief Walk a linked list, following count links.
+ *
+ * @param node Starting node pointer.
+ * @param count Number of links to follow.
+ * @return The node reached after traversal, or NULL if a null link is hit.
+ */
+s32 func_800B88E0(s32 node, s32 count) {
+    s32 i = 0;
+    if (count <= 0) goto end;
+loop:
+    if (node == 0) goto end;
+    node = *(s32 *)node;
+    i++;
+    if (i < count) goto loop;
+end:
+    return node;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B890C);
 
@@ -74,9 +140,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9114);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9174);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B91B4);
+/**
+ * @brief Align a size up to 4 bytes and store to D_800F082C.
+ *
+ * @param size Byte count to align.
+ */
+void func_800B91B4(s32 size) {
+    *(s32 *)D_800F082C = (size + 3) & ~3;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B91CC);
+/**
+ * @brief Compute the difference between D_800F085C and D_800F082C.
+ *
+ * @return D_800F085C - D_800F082C.
+ */
+s32 func_800B91CC(void) {
+    return *(s32 *)D_800F085C - *(s32 *)D_800F082C;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B91E4);
 
@@ -106,7 +186,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BA874);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BA9FC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAAA4);
+/**
+ * @brief Call func_800B2B68 with D_800F0830.
+ */
+void func_800BAAA4(void) {
+    func_800B2B68(D_800F0830);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAAC8);
 
@@ -120,4 +205,9 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAE28);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAE6C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAEDC);
+/**
+ * @brief Clear the global D_800F1668 to zero.
+ */
+void func_800BAEDC(void) {
+    *(s32 *)D_800F1668 = 0;
+}

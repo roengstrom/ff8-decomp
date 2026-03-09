@@ -1,5 +1,11 @@
 #include "common.h"
 
+extern u8 D_800FA4FC[];
+extern u8 D_800FA5F0[];
+extern u8 D_800E662C[];
+extern u8 D_800F1B90[];
+extern u8 D_800FA4F8[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4ABC);
@@ -12,7 +18,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4E68);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5188);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C52C4);
+/**
+ * @brief Store a word value to D_800F1B90.
+ *
+ * @param a0 Value to store.
+ */
+void func_800C52C4(s32 a0) {
+    *(s32 *)D_800F1B90 = a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C52D0);
 
@@ -84,7 +97,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C65A8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C66E4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C674C);
+/**
+ * @brief Store constant 2 to D_800FA4F8.
+ */
+void func_800C674C(void) {
+    *(u8 *)D_800FA4F8 = 2;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C675C);
 
@@ -96,11 +114,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C67A4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C68DC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6A8C);
+/**
+ * @brief Compute the difference between D_800FA4FC and D_800FA5F0.
+ *
+ * @return D_800FA4FC - D_800FA5F0.
+ */
+s32 func_800C6A8C(void) {
+    return *(s32 *)D_800FA4FC - *(s32 *)D_800FA5F0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6AA4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6B1C);
+/**
+ * @brief Look up a word from the D_800E662C array.
+ *
+ * @param a0 Array index.
+ * @return The word at D_800E662C[a0].
+ */
+s32 func_800C6B1C(s32 a0) {
+    return *(s32 *)(D_800E662C + a0 * 4);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6B38);
 

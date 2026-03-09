@@ -1,5 +1,14 @@
 #include "common.h"
 
+extern u8 D_800FB42C[];
+extern u8 D_800FB428[];
+extern u8 D_800FB434[];
+extern u8 D_800FB438[];
+extern u8 D_800FB43C[];
+extern u8 D_800FB444[];
+extern u8 D_800FB448[];
+extern u8 D_800F1B80[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F68);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CA078);
@@ -67,25 +76,64 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEA7C);
 void func_800CEBE4(void) {
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEBEC);
+/**
+ * @brief Store a byte value to D_800FB42C.
+ *
+ * @param a0 Value to store (low byte).
+ */
+void func_800CEBEC(s32 a0) {
+    *(u8 *)D_800FB42C = (u8)a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEBF8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEC38);
+/**
+ * @brief Wrapper for func_800CEBF8.
+ */
+void func_800CEC38(void) {
+    func_800CEBF8();
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEC58);
+/**
+ * @brief Store a word value to D_800FB428.
+ *
+ * @param a0 Value to store.
+ */
+void func_800CEC58(s32 a0) {
+    *(s32 *)D_800FB428 = a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEC64);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEC94);
+/**
+ * @brief Call func_800B34B0, then clear bit 31 of D_800F1B80.
+ */
+void func_800CEC94(void) {
+    func_800B34B0();
+    *(s32 *)D_800F1B80 &= 0x7FFFFFFF;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CECC8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED0C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED3C);
+/**
+ * @brief Return the word value at D_800FB448.
+ *
+ * @return Current value of D_800FB448.
+ */
+s32 func_800CED3C(void) {
+    return *(s32 *)D_800FB448;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED4C);
+/**
+ * @brief Return the byte value at D_800FB444.
+ *
+ * @return Current value of D_800FB444 (unsigned byte).
+ */
+s32 func_800CED4C(void) {
+    return *(u8 *)D_800FB444;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED5C);
 
@@ -93,9 +141,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED84);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED9C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEDA4);
+/**
+ * @brief Read bit 1 from scratchpad control register at 0x1F8003AE.
+ *
+ * @return 1 if bit 1 is set, 0 otherwise.
+ */
+s32 func_800CEDA4(void) {
+    return (*(u16 *)0x1F8003AE >> 1) & 1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEDBC);
+/**
+ * @brief Read bit 2 from scratchpad control register at 0x1F8003AE.
+ *
+ * @return 1 if bit 2 is set, 0 otherwise.
+ */
+s32 func_800CEDBC(void) {
+    return (*(u16 *)0x1F8003AE >> 2) & 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEDD4);
 
@@ -123,13 +185,41 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF33C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF38C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF3E0);
+/**
+ * @brief Return the word value at D_800FB434.
+ *
+ * @return Current value of D_800FB434.
+ */
+s32 func_800CF3E0(void) {
+    return *(s32 *)D_800FB434;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF3F0);
+/**
+ * @brief Store a word value to D_800FB438.
+ *
+ * @param a0 Value to store.
+ */
+void func_800CF3F0(s32 a0) {
+    *(s32 *)D_800FB438 = a0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF3FC);
+/**
+ * @brief Return the word value at D_800FB438.
+ *
+ * @return Current value of D_800FB438.
+ */
+s32 func_800CF3FC(void) {
+    return *(s32 *)D_800FB438;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF40C);
+/**
+ * @brief Store a word value to D_800FB43C.
+ *
+ * @param a0 Value to store.
+ */
+void func_800CF40C(s32 a0) {
+    *(s32 *)D_800FB43C = a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF418);
 

@@ -1,12 +1,23 @@
 #include "common.h"
 
+extern u8 D_80102E10[];
+extern u8 D_80102E14[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFF2C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFF54);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFF7C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFFA4);
+/**
+ * @brief Call func_80027DB4 with a2 = 0.
+ *
+ * @param a0 First argument passed through.
+ * @param a1 Second argument passed through.
+ */
+void func_800CFFA4(s32 a0, s32 a1) {
+    func_80027DB4(a0, a1, 0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFFC4);
 
@@ -30,9 +41,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0844);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0868);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D08C4);
+/**
+ * @brief Wrapper for func_8002CE68.
+ */
+void func_800D08C4(void) {
+    func_8002CE68();
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D08E4);
+/**
+ * @brief Wrapper for func_8002A868.
+ */
+void func_800D08E4(void) {
+    func_8002A868();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0904);
 
@@ -66,11 +87,32 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D128C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D12E0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1334);
+/**
+ * @brief Return the byte value at D_80102E14.
+ *
+ * @return Current value of D_80102E14 (unsigned byte).
+ */
+s32 func_800D1334(void) {
+    return *(u8 *)D_80102E14;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1344);
+/**
+ * @brief Return constant 1.
+ *
+ * @return Always 1.
+ */
+s32 func_800D1344(void) {
+    return 1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D134C);
+/**
+ * @brief Check if D_80102E10 is non-zero.
+ *
+ * @return 1 if D_80102E10 is non-zero, 0 otherwise.
+ */
+s32 func_800D134C(void) {
+    return *(s32 *)D_80102E10 != 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D135C);
 
@@ -82,7 +124,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D13CC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D15B4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1648);
+/**
+ * @brief Clear D_80102E10 to zero.
+ */
+void func_800D1648(void) {
+    *(s32 *)D_80102E10 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1654);
 
@@ -126,9 +173,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2A48);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2DD4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2ED4);
+/**
+ * @brief Call func_800D2DD4 with a1 = 0.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800D2ED4(s32 a0) {
+    func_800D2DD4(a0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2EF4);
+/**
+ * @brief Call func_800D2DD4 with a1 = 1.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800D2EF4(s32 a0) {
+    func_800D2DD4(a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2F14);
 

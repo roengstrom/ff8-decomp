@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u8 D_80103058[];
+extern u8 D_8010305C[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D8FA4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D8FE4);
@@ -30,9 +33,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA5AC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA5DC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA60C);
+/**
+ * @brief Return the word value at D_80103058.
+ *
+ * @return Current value of D_80103058.
+ */
+s32 func_800DA60C(void) {
+    return *(s32 *)D_80103058;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA61C);
+/**
+ * @brief Return the word value at D_8010305C.
+ *
+ * @return Current value of D_8010305C.
+ */
+s32 func_800DA61C(void) {
+    return *(s32 *)D_8010305C;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA62C);
 
@@ -74,7 +91,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBCBC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBF50);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBF84);
+/**
+ * @brief Select a mask from a1 based on bit 6 of a0.
+ *
+ * @param a0 Selector value (bit 6 tested).
+ * @param a1 Value to mask.
+ * @return a1 & 0x78 if bit 6 is set, otherwise a1 & 0x7.
+ */
+s32 func_800DBF84(s32 a0, s32 a1) {
+    s32 result = a1 & 0x78;
+    if (!(a0 & 0x40)) {
+        result = a1 & 0x7;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBF9C);
 
@@ -102,7 +132,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC820);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC8B8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC928);
+/**
+ * @brief Wrapper for func_800B6A9C.
+ */
+void func_800DC928(void) {
+    func_800B6A9C();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC948);
 

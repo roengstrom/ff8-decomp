@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern u8 D_800EE9E8[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6AF4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6BAC);
@@ -12,7 +14,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6D80);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6E34);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6E8C);
+/**
+ * @brief Return the address of D_800EE9E8.
+ *
+ * @return Address of D_800EE9E8 as an integer.
+ */
+s32 func_800D6E8C(void) {
+    return (s32)D_800EE9E8;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6E98);
 

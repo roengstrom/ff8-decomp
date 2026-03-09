@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u8 D_800F02C8[];
+extern u8 D_800F05C8[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B49D8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B4A74);
@@ -62,9 +65,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6858);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6954);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6A9C);
+/**
+ * @brief Call func_800B3650 with D_800F02C8 as the argument.
+ */
+void func_800B6A9C(void) {
+    func_800B3650(D_800F02C8);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6AC0);
+/**
+ * @brief Process data through D_800F02C8 via stack buffer.
+ *
+ * @param a0 Input parameter for func_8003FC24.
+ */
+void func_800B6AC0(s32 a0) {
+    u8 buf[0x20];
+    func_8003FC24(D_800F02C8, a0, buf);
+    func_800B3650(buf);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6AF4);
 
@@ -100,7 +117,15 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B8314);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B84C8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B853C);
+/**
+ * @brief Allocate from D_800F05C8 and clear byte at offset 0xD.
+ *
+ * @param a0 Allocation parameter.
+ */
+void func_800B853C(s32 a0) {
+    u8 *result = func_800B2A84(D_800F05C8, a0);
+    result[0xD] = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B8564);
 

@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern u8 D_80078720[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB570);
@@ -14,7 +16,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB844);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB914);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB998);
+/**
+ * @brief Read a little-endian 16-bit signed value from two bytes.
+ *
+ * Combines ptr[0] (low byte) and ptr[1] (high byte) into a signed 16-bit value.
+ *
+ * @param ptr Pointer to two bytes in little-endian order.
+ * @return The sign-extended 16-bit value.
+ */
+s16 func_800AB998(u8 *ptr) {
+    return (s16)(ptr[0] + (ptr[1] << 8));
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB9B4);
 
@@ -90,7 +102,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE5D8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE64C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE6C0);
+/**
+ * @brief Store two display values from func_800AE5D8 and func_800AE64C.
+ *
+ * Calls func_800AE5D8, stores result to D_80078720[0x570] as u16,
+ * then calls func_800AE64C, stores result to D_80078720[0x572].
+ */
+void func_800AE6C0(void) {
+    s32 val = func_800AE5D8();
+    u8 *base = D_80078720;
+    *(u16 *)(base + 0x570) = val;
+    *(u16 *)(base + 0x572) = func_800AE64C();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE6F8);
 

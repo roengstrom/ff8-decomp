@@ -1,5 +1,10 @@
 #include "common.h"
 
+extern u8 D_800ED148[];
+extern u8 D_800EE424[];
+extern u8 D_800EE43C[];
+extern u8 D_800EE462[];
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A18E0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1940);
@@ -38,11 +43,32 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A240C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2480);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2520);
+/**
+ * @brief Call func_8009B924 with constants 0x7A and 0x030E77FF.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800A2520(s32 a0) {
+    func_8009B924(a0, 0x7A, 0x030E77FF);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2548);
+/**
+ * @brief Call func_8009B924 with constants 0x7E and 0x0180560D.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800A2548(s32 a0) {
+    func_8009B924(a0, 0x7E, 0x0180560D);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2570);
+/**
+ * @brief Call func_8009B924 with constants 0x37E and 0x038E7FFF.
+ *
+ * @param a0 First argument passed through.
+ */
+void func_800A2570(s32 a0) {
+    func_8009B924(a0, 0x37E, 0x038E7FFF);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2598);
 
@@ -68,23 +94,78 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2F54);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2FC8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A302C);
+/**
+ * @brief Call func_800DEA58 with D_800EE462 byte value.
+ */
+void func_800A302C(void) {
+    func_800DEA58(*(u8 *)D_800EE462);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A3054);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A3094);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A30E4);
+/**
+ * @brief Clear two battle state bytes at D_800ED148 offsets 0x5C0 and 0x5C1.
+ */
+void func_800A30E4(void) {
+    u8 *base = D_800ED148;
+    base[0x5C1] = 0;
+    base[0x5C0] = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A30F8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A42B4);
+/**
+ * @brief Initialize battle state: set flag, clear params, and store constants.
+ *
+ * @param a Byte pointer to clear.
+ * @param b Byte pointer to set to 0xA.
+ * @param c Halfword pointer to clear.
+ * @param d Halfword pointer to set to 9.
+ */
+void func_800A42B4(u8 *a, u8 *b, u16 *c, u16 *d) {
+    *(u8 *)D_800EE43C = 1;
+    *a = 0;
+    *d = 9;
+    *b = 0xA;
+    *c = 0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A42DC);
+/**
+ * @brief Initialize battle state and call func_800A432C.
+ *
+ * Rearranges parameters: a1-a3+stack become a0-a3 for func_800A42B4,
+ * then original a0 is passed to func_800A432C.
+ *
+ * @param a0 Argument for func_800A432C.
+ * @param a1 Byte pointer (becomes a0 for func_800A42B4).
+ * @param a2 Byte pointer (becomes a1 for func_800A42B4).
+ * @param a3 Halfword pointer (becomes a2 for func_800A42B4).
+ * @param stack0 Halfword pointer (becomes a3 for func_800A42B4).
+ */
+void func_800A42DC(s32 a0, u8 *a1, u8 *a2, u16 *a3, u16 *stack0) {
+    func_800A42B4(a1, a2, a3, stack0);
+    func_800A432C(a0);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4320);
+/**
+ * @brief Store a value to the global D_800EE424.
+ *
+ * @param value Value to store.
+ */
+void func_800A4320(s32 value) {
+    *(s32 *)D_800EE424 = value;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A432C);
+/**
+ * @brief Call func_80020F84 and store the result to D_800EE424.
+ *
+ * @param a0 Argument passed to func_80020F84.
+ */
+void func_800A432C(s32 a0) {
+    *(s32 *)D_800EE424 = func_80020F84(a0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4350);
 
@@ -116,7 +197,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4B88);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4C84);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4DD4);
+/**
+ * @brief Append a value to the battle command queue and set the current command.
+ *
+ * Increments the queue index at D_800ED148[0x5C0], stores the value at the
+ * computed queue slot (stride 20), and also stores it at D_800ED148[0x1305].
+ *
+ * @param a0 Command value to store.
+ */
+void func_800A4DD4(s32 a0) {
+    u8 *base = D_800ED148;
+    u8 idx = base[0x5C0];
+    base[0x5C0] = idx + 1;
+    *(u8 *)(base + idx * 20 + 0x5D4) = a0;
+    base[0x1305] = a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4E08);
 
@@ -142,7 +237,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A554C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A559C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A565C);
+/**
+ * @brief Clear the word at offset 0x24 of a battle entity.
+ *
+ * @param idx Entity index (stride 0xD0).
+ */
+void func_800A565C(s32 idx) {
+    u8 *base = D_800ED148;
+    u8 *entity;
+    asm("");
+    entity = base + idx * 0xD0;
+    *(volatile s32 *)(entity + 0x24) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5688);
 
