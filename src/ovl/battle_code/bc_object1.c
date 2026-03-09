@@ -17,6 +17,7 @@
  * (0xCB), and various control bytes at large offsets (0x5C2, 0x12E8-0x1319).
  */
 #include "common.h"
+#include "battle.h"
 #include "gf.h"
 
 extern u8 D_800ED148[];
@@ -1588,40 +1589,31 @@ void func_8009B878(s32 a0, u16 *a1, s32 *a2, s32 a3) {
  * @param a1 Bitmask of status effects to clear from entity.
  * @param a2 Bitmask of status effects to apply.
  */
-/**
- * @note Non-matching: instruction scheduling difference in loop setup — compiler
- * schedules `lui v0/addiu v1,v0` for D_800ED148 base, but original has `lui v1/addiu v1,v1`.
- * Also, compiler interleaves `sw ra` differently with base address computation, and
- * the entity offset computation in the tail uses different register allocation
- * (a0 for entity ptr instead of v0). 67 byte diffs across the function.
- *
- * Best attempt:
- * @code
- * void func_8009B924(s32 a0, s32 a1, s32 a2) {
- *     s32 bit = 1;
- *     s32 i = 0;
- *     s32 base = (s32)D_800ED148;
- *     s32 offset = ((a0 * 2 + a0) * 4 + a0) * 16;
- *     *(u16 *)(offset + base + 0x90) &= ~a1;
- *     do {
- *         if (a2 & bit) { if (func_800B0668(a0, bit)) a2 &= ~bit; }
- *         i++; bit <<= 1;
- *     } while (i < 14);
- *     bit = 1; i = 0;
- *     base = (s32)D_800ED148;
- *     offset = ((a0 * 2 + a0) * 4 + a0) * 16;
- *     *(s32 *)(offset + base + 0x18) &= ~a2;
- *     do {
- *         if (a2 & bit) func_800B0600(a0, bit);
- *         i++; bit <<= 1;
- *     } while (i < 14);
- *     offset = ((a0 * 2 + a0) * 4 + a0) * 16;
- *     func_8009B878(a0, (u16 *)(offset + (s32)D_800ED1D8),
- *                   (s32 *)(offset + (s32)D_800ED1D8 - 0x78), 1);
- * }
- * @endcode
- */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B924);
+void func_8009B924(s32 slot, s32 clearMask, s32 applyMask) {
+    BattleEntity *entities;
+    s32 bit;
+    s32 i;
+
+    ((BattleEntity *)D_800ED148)[slot].status &= ~clearMask;
+
+    for (bit = 1, i = 0; i < 14; i++, bit <<= 1) {
+        if (applyMask & bit) {
+            if (func_800B0668(slot, bit))
+                applyMask &= ~bit;
+        }
+    }
+
+    ((BattleEntity *)D_800ED148)[slot].flags &= ~applyMask;
+
+    for (bit = 1, i = 0; i < 14; i++, bit <<= 1) {
+        if (applyMask & bit)
+            func_800B0600(slot, bit);
+    }
+
+    func_8009B878(slot,
+        &((BattleEntity *)D_800ED148)[slot].status,
+        (s32 *)&((BattleEntity *)D_800ED148)[slot].flags, 1);
+}
 
 /**
  * @brief Get combined status flags for an entity from ability data.

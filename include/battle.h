@@ -119,4 +119,39 @@ typedef struct {
     s32 field38;     /**< 0x38: Unknown s32. */
 } SfxEntry;          /* 0x3C = 60 bytes */
 
+/**
+ * @brief Battle entity (D_800ED148 array, stride 0xD0 = 208 bytes).
+ *
+ * Up to 7 entities in the battle scene. Each entity tracks state,
+ * flags, status effects, animation params, and linked references.
+ */
+typedef struct {
+    u8 pad00[0x04];    /**< 0x00..0x03: Unknown. */
+    s32 state;         /**< 0x04: Entity state. */
+    u8 pad08[0x04];    /**< 0x08..0x0B: Unknown. */
+    u8 timer;          /**< 0x0C: Timer. */
+    u8 control;        /**< 0x0D: Control byte. */
+    u8 pad0E;          /**< 0x0E: Unknown. */
+    u8 entityRef;      /**< 0x0F: Entity index reference. */
+    s32 linkedPtr;     /**< 0x10: Linked entity pointer. */
+    u8 pad14[0x04];    /**< 0x14..0x17: Unknown. */
+    s32 flags;         /**< 0x18: Feature flags (bitmask). */
+    s32 flagsBackup;   /**< 0x1C: Flags backup. */
+    u8 pad20[0x08];    /**< 0x20..0x27: Unknown. */
+    s32 field28;       /**< 0x28: Unknown (checked for zero). */
+    u8 pad2C[0x58];    /**< 0x2C..0x83: Unknown. */
+    u16 animParam1;    /**< 0x84: Animation parameter 1. */
+    u16 animParam2;    /**< 0x86: Animation parameter 2. */
+    u16 animParam3;    /**< 0x88: Animation parameter 3. */
+    u8 pad8A[0x02];    /**< 0x8A..0x8B: Unknown. */
+    s32 controlFlags;  /**< 0x8C: Control flags (bits 0x01,0x02,0x10,0x80). */
+    u16 status;        /**< 0x90: Status effects (bitmask). */
+    u16 statusBackup;  /**< 0x92: Status effects backup. */
+    u8 pad94[0x27];    /**< 0x94..0xBA: Unknown. */
+    u8 linkedIdx2;     /**< 0xBB: Linked entity index. */
+    u8 padBC[0x0F];    /**< 0xBC..0xCA: Unknown. */
+    u8 linkedIdx;      /**< 0xCB: Linked index (0xFF = none). */
+    u8 padCC[0x04];    /**< 0xCC..0xCF: Unknown. */
+} BattleEntity;        /* 0xD0 = 208 bytes */
+
 #endif /* BATTLE_H */
