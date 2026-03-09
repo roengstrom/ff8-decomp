@@ -98,7 +98,6 @@ void func_8009B5C4(s32, s32, s32, s32);
 void func_8009B654(void);
 void func_8009B690(void);
 void func_8009B6B0(void);
-void func_8009B6D0(s32, s32);
 s32 func_8009B74C(s32, s32);
 void func_8009B79C(s32, s32);
 s32 func_8009B7BC(s32);
@@ -1349,28 +1348,23 @@ void func_8009B6B0(void) {
  * Computes VRAM page from a0 (shifted left 7), reads base pointer
  * from D_800E19B4, calls func_80038920 to load the segment, then
  * calls func_80020644 to start playback.
+ *
  * @param a0 Sound bank index (u16).
  * @param a1 Playback parameters pointer.
- *
- * @note Non-matching: scrambled prologue interleaving. Original interleaves
- * sw s1 / move s1,a1 / andi / sll / move v1,a0 / sw s0 / move s0,a0
- * between saves and computation. Compiler does computation first then
- * all saves together, and puts sll directly into s0 instead of a0.
- *
- * Best attempt:
- * @code
- * void func_8009B6D0(s32 a0, s32 a1) {
- *     s32 params = a1;
- *     s32 shifted;
- *     a0 = (u16)a0 << 7;
- *     shifted = a0;
- *     { s32 ptr = *(s32 *)D_800E19B4;
- *       func_80038920(ptr + (a0 / 2048), 0x800, 0x801C0000, 0); }
- *     func_80020644((shifted & 0x7FF) | 0x801C0000, params, 0x80);
- * }
- * @endcode
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B6D0);
+void func_8009B6D0(s32 a0, s32 a1) {
+    s32 temp;
+    s32 temp2;
+    s32 new_var;
+    a0 = (a0 & 0xFFFF) << 7;
+    new_var = a0;
+    temp = new_var;
+    if (new_var < 0) {
+        temp = new_var + 0x7FF;
+    }
+    func_80038920(*(s32 *)D_800E19B4 + (temp >> 11), 0x800, 0x801C0000, 0);
+    func_80020644((new_var & 0x7FF) | 0x801C0000, a1, 0x80);
+}
 
 /**
  * @brief Probability check using random shuffle buffer.

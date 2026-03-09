@@ -2,6 +2,7 @@
 
 extern u8 D_800F16A4[];
 extern u8 D_800F16A8[];
+extern u8 D_800F16AC[];
 extern u8 D_800EF724[];
 extern u8 D_800F02F4[];
 
@@ -75,7 +76,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD230);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD260);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD2AC);
+/**
+ * @brief Call func_800BFE1C with the pointer stored in D_800F16A8.
+ */
+void func_800BD2AC(void) {
+    func_800BFE1C(*(s32 *)D_800F16A8);
+}
 
 /**
  * @brief Read byte at offset 0x11 from pointer stored in D_800F16A4.
@@ -115,7 +121,12 @@ s32 func_800BD31C(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD334);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD374);
+/**
+ * @brief Call func_800C5A34 with D_800F16AC pointer, a1=0x1A, a2=0x40.
+ */
+void func_800BD374(void) {
+    func_800C5A34(*(s32 *)D_800F16AC, 0x1A, 0x40);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD3A0);
 

@@ -3,11 +3,32 @@
 extern u8 D_80102E10[];
 extern u8 D_80102E14[];
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFF2C);
+/**
+ * @brief Call func_8002795C with a1=0, pass result to func_80030F10.
+ *
+ * @param a0 First argument passed through to func_8002795C.
+ */
+void func_800CFF2C(s32 a0) {
+    func_80030F10(func_8002795C(a0, 0));
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFF54);
+/**
+ * @brief Call func_800279CC with a1=0, pass result to func_80030F10.
+ *
+ * @param a0 First argument passed through to func_800279CC.
+ */
+void func_800CFF54(s32 a0) {
+    func_80030F10(func_800279CC(a0, 0));
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFF7C);
+/**
+ * @brief Call func_80027A58 with a1=0, pass result to func_80030F10.
+ *
+ * @param a0 First argument passed through to func_80027A58.
+ */
+void func_800CFF7C(s32 a0) {
+    func_80030F10(func_80027A58(a0, 0));
+}
 
 /**
  * @brief Call func_80027DB4 with a2 = 0.
