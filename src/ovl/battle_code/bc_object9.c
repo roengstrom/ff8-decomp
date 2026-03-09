@@ -1,5 +1,6 @@
 #include "common.h"
 
+extern u8 D_800EF72C[];
 extern u8 D_800F02C8[];
 extern u8 D_800F05C8[];
 
@@ -49,7 +50,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6270);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6334);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B64E0);
+/**
+ * @brief Call func_800B2B68 if D_800EF72C pointer is non-null.
+ *
+ * Reads the pointer stored in D_800EF72C and calls func_800B2B68
+ * with it if non-zero.
+ */
+void func_800B64E0(void) {
+    s32 ptr = *(s32 *)D_800EF72C;
+    if (ptr != 0) {
+        func_800B2B68(ptr);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B650C);
 

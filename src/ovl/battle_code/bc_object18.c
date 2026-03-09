@@ -3,10 +3,29 @@
 extern u8 D_80102E40[];
 extern u8 D_80102E70[];
 extern u8 D_80102E78[];
+extern u8 D_80103240[];
+extern u8 D_80103308[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D325C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D32E8);
+/**
+ * @brief Store battle command parameters to D_80103240.
+ *
+ * Always stores a0 at offset 7. If a0 is zero, clears the
+ * D_80103240 halfword. If a0 is non-zero, stores a1 at offset 6.
+ *
+ * @param a0 Command type (stored at offset 7).
+ * @param a1 Command parameter (stored at offset 6 if a0 != 0).
+ */
+void func_800D32E8(s32 a0, s32 a1) {
+    s32 base = (s32)D_80103240;
+    *(u8 *)(base + 7) = a0;
+    if (a0 == 0) {
+        *(s16 *)D_80103240 = 0;
+    } else {
+        *(u8 *)(base + 6) = a1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D330C);
 
@@ -102,9 +121,37 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3F78);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4038);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D40EC);
+/**
+ * @brief Read battle state value or return -1.
+ *
+ * If the halfword at D_80103308+0x10 equals 0x1000, returns the
+ * signed byte at D_80103308+0x14. Otherwise returns -1.
+ *
+ * @return Battle state byte or -1.
+ */
+s32 func_800D40EC(void) {
+    s32 base = (s32)D_80103308;
+    if (*(s16 *)(base + 0x10) == 0x1000) {
+        return *(s8 *)(base + 0x14);
+    }
+    return -1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4110);
+/**
+ * @brief Read battle state value or return -1 (zero check).
+ *
+ * If the halfword at D_80103308+0x10 is non-zero, returns the
+ * signed byte at D_80103308+0x14. Otherwise returns -1.
+ *
+ * @return Battle state byte or -1.
+ */
+s32 func_800D4110(void) {
+    s32 base = (s32)D_80103308;
+    if (*(s16 *)(base + 0x10) != 0) {
+        return *(s8 *)(base + 0x14);
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4134);
 
@@ -138,7 +185,15 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5580);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D568C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D581C);
+/**
+ * @brief Call func_800D568C with a2 = D_80103308.
+ *
+ * @param a0 First argument passed through.
+ * @param a1 Second argument passed through.
+ */
+void func_800D581C(s32 a0, s32 a1) {
+    func_800D568C(a0, a1, D_80103308);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5840);
 
@@ -169,15 +224,68 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C28);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C60);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5CE4);
+/**
+ * @brief Read a signed byte from an array element at stride 20.
+ *
+ * Reads the signed byte at offset 0x10 within the a0-th entry
+ * (stride 20) of the D_80102E78 array.
+ *
+ * @param a0 Array index.
+ * @return Signed byte value.
+ */
+s32 func_800D5CE4(s32 a0) {
+    u8 *base = D_80102E78;
+    base = base + a0 * 20;
+    return *(s8 *)(base + 0x10);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5D08);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5D64);
+/**
+ * @brief Store a byte into an array element at stride 20.
+ *
+ * Writes a1 as a byte to offset 0x10 within the a0-th entry
+ * (stride 20) of the D_80102E78 array.
+ *
+ * @param a0 Array index.
+ * @param a1 Byte value to store.
+ */
+void func_800D5D64(s32 a0, s32 a1) {
+    u8 *base = D_80102E78;
+    base = base + a0 * 20;
+    base[0x10] = a1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5D84);
+/**
+ * @brief Set entry fields to -1 and 1 at stride-20 offsets.
+ *
+ * Stores -1 at offset 0x11 and 1 at offset 0x12 in the a0-th entry
+ * (stride 20) of D_80102E78.
+ *
+ * @param a0 Array index.
+ */
+void func_800D5D84(s32 a0) {
+    u8 *base = D_80102E78;
+    base = base + a0 * 20;
+    *(s8 *)(base + 0x11) = -1;
+    base[0x12] = 1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5DB0);
+/**
+ * @brief Store a value and set flag at stride-20 offsets.
+ *
+ * Stores a1 at offset 0x11 and 1 at offset 0x12 in the a0-th entry
+ * (stride 20) of D_80102E78.
+ *
+ * @param a0 Array index.
+ * @param a1 Value to store at offset 0x11.
+ */
+void func_800D5DB0(s32 a0, s32 a1) {
+    s32 base = (s32)D_80102E78;
+    base = base + a0 * 20;
+    *(u8 *)(base + 0x11) = a1;
+    *(u8 *)(base + 0x12) = 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5DD8);
 

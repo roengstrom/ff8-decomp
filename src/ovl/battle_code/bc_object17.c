@@ -2,6 +2,7 @@
 
 extern u8 D_80102E10[];
 extern u8 D_80102E14[];
+extern u8 D_801032F8[];
 
 /**
  * @brief Call func_8002795C with a1=0, pass result to func_80030F10.
@@ -154,13 +155,31 @@ void func_800D1648(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1654);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D16DC);
+/**
+ * @brief Clamp D_801032F8 to a minimum value of 2.
+ *
+ * If the current value is less than 2, sets it to 2.
+ */
+void func_800D16DC(void) {
+    if (*(s32 *)D_801032F8 < 2) {
+        *(s32 *)D_801032F8 = 2;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1700);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D17D8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D18B0);
+/**
+ * @brief Clear D_801032F8 word and the halfword at offset 4.
+ *
+ * Zeros the 32-bit value at D_801032F8 and the 16-bit value at D_801032F8+4.
+ */
+void func_800D18B0(void) {
+    s32 base = (s32)D_801032F8;
+    *(s32 *)base = 0;
+    *(s16 *)(base + 4) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D18C4);
 

@@ -354,7 +354,23 @@ s32 func_8009FDD4(s32 val) {
     return val >= 20;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009FDE0);
+/**
+ * @brief Compute an entity table offset from a byte field.
+ *
+ * Looks up byte at offset 0xDA in entity a0's table entry (stride 208),
+ * then returns (a1 * 4 - 1) + that byte value.
+ *
+ * @param a0 Entity index.
+ * @param a1 Multiplier input.
+ * @return Computed offset value.
+ */
+s32 func_8009FDE0(s32 a0, s32 a1) {
+    s32 base;
+    a1 = a1 * 4;
+    base = (s32)D_800ED148;
+    a1 -= 1;
+    return a1 + *(u8 *)(base + a0 * 208 + 0xDA);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009FE14);
 

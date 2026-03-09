@@ -2,10 +2,21 @@
 
 extern u8 D_80103180[];
 extern u8 D_80103182[];
+extern u8 D_80103188[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DD1B0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DD208);
+/**
+ * @brief Disable display, clear D_80103188, then enable display.
+ *
+ * Calls func_800472E4 (display off), zeros D_80103188,
+ * then calls func_800472F4 (display on).
+ */
+void func_800DD208(void) {
+    func_800472E4();
+    *(volatile u8 *)D_80103188 = 0;
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DD238);
 

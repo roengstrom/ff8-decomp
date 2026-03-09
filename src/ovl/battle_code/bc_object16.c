@@ -135,9 +135,23 @@ s32 func_800CED4C(void) {
     return *(u8 *)D_800FB444;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED5C);
+/**
+ * @brief Increment D_800FB448 counter and set D_800FB444 flag to 1.
+ */
+void func_800CED5C(void) {
+    s32 val = *(s32 *)D_800FB448;
+    val += 1;
+    *(volatile s32 *)D_800FB448 = val;
+    *(volatile u8 *)D_800FB444 = 1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED84);
+/**
+ * @brief Clear D_800FB448 word and D_800FB444 byte.
+ */
+void func_800CED84(void) {
+    *(s32 *)D_800FB448 = 0;
+    *(volatile u8 *)D_800FB444 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED9C);
 

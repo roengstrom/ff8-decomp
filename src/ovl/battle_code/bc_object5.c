@@ -61,7 +61,22 @@ s32 func_800A97A4(s32 a0) {
     return func_8009B15C(a0) % a0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A97D4);
+/**
+ * @brief Clear 8 entity word fields in the battle entity table.
+ *
+ * Zeros 8 consecutive words at offset 0x12B4 down to 0x1298
+ * relative to D_800ED148.
+ */
+void func_800A97D4(void) {
+    s32 i = 7;
+    s32 base = (s32)D_800ED148;
+    base += 0x1C;
+top:
+    *(s32 *)(base + 0x1298) = 0;
+    i--;
+    base -= 4;
+    if (i >= 0) goto top;
+}
 
 /**
  * @brief Compute a single-bit mask at the given position.

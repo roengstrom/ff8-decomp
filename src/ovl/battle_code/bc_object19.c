@@ -91,9 +91,27 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D88E4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8918);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8A78);
+/**
+ * @brief Set bit 14 (0x4000) of the scratchpad control halfword at 0x1F8003AE.
+ *
+ * Uses base pointer 0x1F800390 with offset 0x1E to access the control register.
+ */
+void func_800D8A78(void) {
+    s32 base = 0x1F800390;
+    REGALLOC_BARRIER(base);
+    *(u16 *)(base + 0x1E) |= 0x4000;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8A94);
+/**
+ * @brief Set bit 13 (0x2000) of the scratchpad control halfword at 0x1F8003AE.
+ *
+ * Uses base pointer 0x1F800390 with offset 0x1E to access the control register.
+ */
+void func_800D8A94(void) {
+    s32 base = 0x1F800390;
+    REGALLOC_BARRIER(base);
+    *(u16 *)(base + 0x1E) |= 0x2000;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8AB0);
 

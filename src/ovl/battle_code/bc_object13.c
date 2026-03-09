@@ -1,6 +1,9 @@
 #include "common.h"
 
 extern u8 D_800F1A90[];
+extern u8 D_800F1A94[];
+extern u8 D_800F1B70[];
+extern u8 D_800F1B74[];
 extern u8 D_800F1B80[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C2B88);
@@ -73,13 +76,28 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C39F8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3B6C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3BBC);
+/**
+ * @brief Compute two pointers from halfword offsets and store to globals.
+ *
+ * Reads halfwords at a0+2 and a0+4, adds each to a0, and stores
+ * the results to D_800F1A90 and D_800F1A94 respectively.
+ *
+ * @param a0 Base pointer.
+ */
+void func_800C3BBC(s32 a0) {
+    *(s32 *)D_800F1A90 = a0 + *(u16 *)(a0 + 2);
+    *(s32 *)D_800F1A94 = a0 + *(u16 *)(a0 + 4);
+}
 
 /**
  * @brief Wrapper for func_800C3BBC.
+ *
+ * Passes through a0 to func_800C3BBC.
+ *
+ * @param a0 Base pointer passed through.
  */
-void func_800C3BE0(void) {
-    func_800C3BBC();
+void func_800C3BE0(s32 a0) {
+    func_800C3BBC(a0);
 }
 
 /**
@@ -107,7 +125,16 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4114);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4228);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C42DC);
+/**
+ * @brief Initialize three battle state globals.
+ *
+ * Sets D_800F1B70 to 0, D_800F1B74 to 0x10000, and D_800F1B80 to 0.
+ */
+void func_800C42DC(void) {
+    *(s32 *)D_800F1B70 = 0;
+    *(s32 *)D_800F1B74 = 0x10000;
+    *(s32 *)D_800F1B80 = 0;
+}
 
 /**
  * @brief Return the word value at D_800F1B80.

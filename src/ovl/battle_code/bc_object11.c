@@ -64,7 +64,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BCA3C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BCF6C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD040);
+/**
+ * @brief Look up a byte from a nested pointer table.
+ *
+ * Dereferences a0->0x64->0x8 to get a base pointer, then indexes
+ * by a1 to read an offset, and returns the byte at base + offset.
+ *
+ * @param a0 Entity pointer with table reference at offset 0x64.
+ * @param a1 Table index.
+ * @return Byte value from the resolved address.
+ */
+s32 func_800BD040(s32 a0, s32 a1) {
+    s32 base = *(s32 *)(*(s32 *)(a0 + 0x64) + 8);
+    s32 offset = *(s32 *)(base + a1 * 4 + 4);
+    return *(u8 *)(base + offset);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD06C);
 
@@ -72,7 +86,16 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD0B4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD1B4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD230);
+/**
+ * @brief Call func_800C00D8 with fields from the D_800F16A4 pointer.
+ *
+ * Loads the pointer stored in D_800F16A4, reads a word at +8 and
+ * a byte at +0x10, then passes them to func_800C00D8.
+ */
+void func_800BD230(void) {
+    s32 ptr = *(s32 *)D_800F16A4;
+    func_800C00D8(*(s32 *)(ptr + 8), *(u8 *)(ptr + 0x10));
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD260);
 
@@ -124,13 +147,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD334);
 /**
  * @brief Call func_800C5A34 with D_800F16AC pointer, a1=0x1A, a2=0x40.
  */
-void func_800BD374(void) {
-    func_800C5A34(*(s32 *)D_800F16AC, 0x1A, 0x40);
+s32 func_800BD374(void) {
+    return func_800C5A34(*(s32 *)D_800F16AC, 0x1A, 0x40);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD3A0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD434);
+/**
+ * @brief Call func_800BD374 and conditionally call func_800BD3A0.
+ *
+ * If func_800BD374 returns non-zero, returns 1 immediately.
+ * Otherwise calls func_800BD3A0 and returns its result.
+ *
+ * @return 1 if func_800BD374 succeeded, or func_800BD3A0's result.
+ */
+s32 func_800BD434(void) {
+    if (func_800BD374() != 0) {
+        return 1;
+    }
+    func_800BD3A0();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD464);
 
