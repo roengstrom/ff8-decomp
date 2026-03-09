@@ -2,12 +2,12 @@
 # Setup and optionally run decomp-permuter for a given function.
 #
 # Usage:
-#   ./permute.sh <function_name>              # setup only
+#   ./permute.sh <function_name>              # auto-finds .s, infers source
 #   ./permute.sh --run [-j N] <function_name> # setup + run permuter
 #
 # Example:
-#   ./permute.sh func_80011438
-#   ./permute.sh --run -j4 func_80011438
+#   ./permute.sh func_8009B6D0
+#   ./permute.sh --run -j4 func_80021358
 
 set -euo pipefail
 
@@ -27,17 +27,17 @@ CCPSXFLAGS="-O2 -G0"
 ASFLAGS="-march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude"
 
 # Sources compiled without -G0 (must match Makefile NO_G0_SRCS)
-NO_G0_SRCS="src/1D2C.c"
+NO_G0_SRCS="src/main.c"
 
 # Sources compiled with -G4 (must match Makefile G4_SRCS)
-G4_SRCS="src/10DD0.c"
+G4_SRCS="src/game.c"
 
-# Default source file and asm directory
-SRC_FILE="src/1C38.c"
-ASM_SUBDIR="asm/nonmatchings/1C38"
+# Sources compiled with PsyQ 4.3 (must match Makefile PSYQ43_SRCS)
+PSYQ43_SRCS="src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c"
 
-# PsyQ version (4.1 or 4.3)
-PSYQ_VER="4.1"
+SRC_FILE=""
+ASM_SUBDIR=""
+PSYQ_VER=""
 
 # Parse arguments
 RUN=0
@@ -78,14 +78,40 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ -z "${FUNC_NAME}" ]]; then
-    echo "Usage: $0 [--run] [-j N] [--src SRC_FILE] [--asm-dir ASM_DIR] [--psyq 4.1|4.3] <function_name>"
+    echo "Usage: $0 [--run] [-j N] [--psyq 4.1|4.3] <function_name>"
     exit 1
 fi
 
-# Verify the assembly file exists
+# Auto-find the .s file if --asm-dir not given
+if [[ -z "${ASM_SUBDIR}" ]]; then
+    S_FILE="$(find asm -name "${FUNC_NAME}.s" 2>/dev/null | head -1)"
+    if [[ -z "${S_FILE}" ]]; then
+        echo "Error: ${FUNC_NAME}.s not found under asm/"
+        exit 1
+    fi
+    ASM_SUBDIR="$(dirname "${S_FILE}")"
+fi
+
 TARGET_ASM="${ASM_SUBDIR}/${FUNC_NAME}.s"
 if [[ ! -f "${TARGET_ASM}" ]]; then
     echo "Error: assembly file not found: ${TARGET_ASM}"
+    exit 1
+fi
+
+# Auto-detect source file from asm path if --src not given
+if [[ -z "${SRC_FILE}" ]]; then
+    C_BASENAME="$(basename "${ASM_SUBDIR}")"
+    if [[ "${ASM_SUBDIR}" == asm/ovl/* ]]; then
+        OVERLAY="$(echo "${ASM_SUBDIR}" | cut -d/ -f3)"
+        SRC_FILE="src/ovl/${OVERLAY}/${C_BASENAME}.c"
+    else
+        SRC_FILE="src/${C_BASENAME}.c"
+    fi
+fi
+
+if [[ ! -f "${SRC_FILE}" ]]; then
+    echo "Error: inferred source file not found: ${SRC_FILE}"
+    echo "Use --src to specify explicitly."
     exit 1
 fi
 
@@ -93,6 +119,17 @@ fi
 if [[ ! -f "${PERMUTER_DIR}/permuter.py" ]]; then
     echo "Error: decomp-permuter not found. Run: git submodule update --init tools/decomp-permuter"
     exit 1
+fi
+
+# Auto-detect PsyQ version from source file if not specified
+if [[ -z "${PSYQ_VER}" ]]; then
+    PSYQ_VER="4.1"
+    for p43 in ${PSYQ43_SRCS}; do
+        if [[ "${SRC_FILE}" == "${p43}" ]]; then
+            PSYQ_VER="4.3"
+            break
+        fi
+    done
 fi
 
 # Select toolchain based on PsyQ version
@@ -127,6 +164,8 @@ for g4 in ${G4_SRCS}; do
 done
 
 echo "Setting up permuter for ${FUNC_NAME} (PsyQ ${PSYQ_VER}, flags: ${COMPILE_FLAGS})..."
+echo "  Source:  ${SRC_FILE}"
+echo "  Asm dir: ${ASM_SUBDIR}"
 
 # Create working directory
 FUNC_DIR="${WORK_DIR}/${FUNC_NAME}"
@@ -205,26 +244,38 @@ cd "${SCRIPT_DIR}"
 ${AS} ${ASFLAGS} -o "${FUNC_DIR}/target.o" "${FUNC_DIR}/target.s"
 
 # --- base.c ---
-# Preprocess with -DPERMUTER so INCLUDE_ASM macros become no-ops,
-# then strip to just the target function
-mipsel-linux-gnu-cpp -Iinclude -DPERMUTER -undef -Wall -fno-builtin -lang-c "${SRC_FILE}" > "${FUNC_DIR}/base.c.tmp"
-
-# Use the permuter's strip_other_fns.py to isolate the function
-# Note: strip_other_fns.py modifies the file in-place
-cp "${FUNC_DIR}/base.c.tmp" "${FUNC_DIR}/base.c"
-rm "${FUNC_DIR}/base.c.tmp"
-if [[ -f "${PERMUTER_DIR}/strip_other_fns.py" ]]; then
-    python3 "${PERMUTER_DIR}/strip_other_fns.py" "${FUNC_DIR}/base.c" "${FUNC_NAME}"
-else
-    echo "Warning: strip_other_fns.py not found, using full preprocessed source"
+# Try to extract the function from the source file. If the function isn't
+# decomped yet (INCLUDE_ASM or absent), generate an empty stub instead.
+HAVE_DECOMP=0
+if grep -q "${FUNC_NAME}" "${SRC_FILE}" 2>/dev/null && \
+   ! grep -q "INCLUDE_ASM.*${FUNC_NAME}" "${SRC_FILE}" 2>/dev/null; then
+    HAVE_DECOMP=1
 fi
 
+if [[ "${HAVE_DECOMP}" -eq 1 ]]; then
+    mipsel-linux-gnu-cpp -Iinclude -DPERMUTER -undef -Wall -fno-builtin -lang-c "${SRC_FILE}" > "${FUNC_DIR}/base.c.tmp"
+    cp "${FUNC_DIR}/base.c.tmp" "${FUNC_DIR}/base.c"
+    rm "${FUNC_DIR}/base.c.tmp"
+    if [[ -f "${PERMUTER_DIR}/strip_other_fns.py" ]]; then
+        python3 "${PERMUTER_DIR}/strip_other_fns.py" "${FUNC_DIR}/base.c" "${FUNC_NAME}"
+    fi
+    BASE_C_DESC="extracted from source"
+else
+    cat > "${FUNC_DIR}/base.c" <<BASEC_EOF
+void ${FUNC_NAME}(void) {
+    // TODO: decompile this function
+}
+BASEC_EOF
+    BASE_C_DESC="empty stub"
+fi
+
+echo ""
 echo "Permuter directory ready: ${FUNC_DIR}"
 echo "  settings.toml  - permuter settings"
 echo "  compile.sh     - compilation pipeline"
 echo "  target.s       - target assembly"
 echo "  target.o       - assembled target"
-echo "  base.c         - preprocessed C source"
+echo "  base.c         - ${BASE_C_DESC}"
 
 # --- Optionally run the permuter ---
 if [[ "${RUN}" -eq 1 ]]; then
