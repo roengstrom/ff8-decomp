@@ -1283,27 +1283,10 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B59C);
  * @param a2 Direction flag (0 = func_8003882C, else func_80038868).
  * @param a3 Callback user data.
  *
- * @note Non-matching: same CSE issue as func_8009B59C (D_800E19BC double-addu),
- * plus a1 saved to $v1 instead of $t0 (register allocation), and prologue
- * save ordering differs (heavily interleaved with D_800E19BC address computation).
- *
- * Best attempt:
- * @code
- * void func_8009B5C4(s32 a0, s32 a1, s32 a2, s32 a3) {
- *     s32 bank = a1;
- *     s32 base = (s32)D_800E19BC;
- *     s32 src, val2;
- *     s32 cbdata = a3;
- *     a0 <<= 3;
- *     src = *(s32 *)(a0 + base);
- *     val2 = *(s32 *)(base + a0 + 4);
- *     if (a2 == 0) func_8003882C(src, val2, bank, (s32)func_8009B654);
- *     else func_80038868(src, val2, bank, (s32)func_8009B654);
- *     { s32 dst = (s32)D_800ED148;
- *       *(s32 *)(dst + 0x128C) = cbdata;
- *       *(s32 *)(dst + 0x12D8) = val2; }
- * }
- * @endcode
+ * @note Non-matching: CSE merges two D_800E19BC address computations into one
+ * addu (original has addu v1,a0,v0 + addu v0,v0,a0). With asm barrier + register
+ * constraint, matches except for sw s1 prologue position. Without hacks, CSE
+ * causes a1 to go to $v1 instead of $t0 (v0/v1 not occupied by double addu).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B5C4);
 
