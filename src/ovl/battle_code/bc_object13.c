@@ -2,12 +2,22 @@
 
 extern u8 D_800F1A90[];
 extern u8 D_800F1A94[];
-extern u8 D_800F1AB0[];
-extern u8 D_800F1B70[];
+
+typedef struct {
+    s8 unk0;
+    s8 unk1;
+    u8 pad2[1];
+    s8 unk3;
+    s32 unk4;
+    u8 pad8[4];
+} D_800F1AB0_Type;
+
+extern D_800F1AB0_Type D_800F1AB0[];
+extern s32 D_800F1B70;
 extern u8 D_800F1B74[];
 extern u8 D_800F1B7C[];
-extern u8 D_800F1B78[];
-extern u8 D_800F1B80[];
+extern s32 D_800F1B78;
+extern s32 D_800F1B80;
 extern u8 D_800F02F4[];
 extern u8 D_800F02E8[];
 extern u8 D_800EF724[];
@@ -348,9 +358,9 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4228);
  * Sets D_800F1B70 to 0, D_800F1B74 to 0x10000, and D_800F1B80 to 0.
  */
 void func_800C42DC(void) {
-    *(s32 *)D_800F1B70 = 0;
+    D_800F1B70 = 0;
     *(s32 *)D_800F1B74 = 0x10000;
-    *(s32 *)D_800F1B80 = 0;
+    D_800F1B80 = 0;
 }
 
 /**
@@ -359,7 +369,7 @@ void func_800C42DC(void) {
  * @return Current value of D_800F1B80.
  */
 s32 func_800C42FC(void) {
-    return *(s32 *)D_800F1B80;
+    return D_800F1B80;
 }
 
 /**
@@ -414,11 +424,11 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C443C);
  * @param a3 Byte parameter stored at entry offset 3.
  */
 void func_800C44E4(s32 a0, s32 a1, s32 a2, s32 a3) {
-    s32 count = *(s32 *)D_800F1B70;
+    s32 count = D_800F1B70;
     if (count < 15) {
         u8 *entry;
-        *(s32 *)D_800F1B70 = count + 1;
-        entry = D_800F1AB0 + count * 12;
+        D_800F1B70 = count + 1;
+        entry = (u8 *)&D_800F1AB0[count];
         entry[0] = 1;
         entry[1] = a1;
         entry[2] = a2;
@@ -439,11 +449,11 @@ void func_800C44E4(s32 a0, s32 a1, s32 a2, s32 a3) {
  * @param a2 Byte parameter stored at entry offset 3.
  */
 void func_800C4538(s32 a0, s32 a1, s32 a2) {
-    s32 count = *(s32 *)D_800F1B70;
+    s32 count = D_800F1B70;
     if (count < 15) {
         u8 *entry;
-        *(s32 *)D_800F1B70 = count + 1;
-        entry = D_800F1AB0 + count * 12;
+        D_800F1B70 = count + 1;
+        entry = (u8 *)&D_800F1AB0[count];
         entry[0] = 2;
         entry[1] = a0;
         entry[2] = a1;
@@ -451,7 +461,33 @@ void func_800C4538(s32 a0, s32 a1, s32 a2) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4588);
+/**
+ * @brief Enqueue a type-3 command to the command table and update bitmasks.
+ *
+ * If the command count (D_800F1B70) is under 15, increments it and
+ * writes a 12-byte entry with type=3. Also ORs the arg1 bitmask into
+ * both D_800F1B80 and D_800F1B78.
+ *
+ * @param arg0 Byte parameter stored at entry offset 3.
+ * @param arg1 Bitmask stored at entry offset 4 and OR'd into globals.
+ * @param arg2 Byte parameter stored at entry offset 1.
+ */
+void func_800C4588(s32 arg0, s32 arg1, s32 arg2) {
+    s32 temp_a1;
+    D_800F1AB0_Type *temp_v1;
+
+    temp_a1 = D_800F1B70;
+    if (temp_a1 < 0xF) {
+        D_800F1B70 = temp_a1 + 1;
+        temp_v1 = &D_800F1AB0[temp_a1];
+        temp_v1->unk3 = arg0;
+        temp_v1->unk0 = 3;
+        temp_v1->unk1 = arg2;
+        temp_v1->unk4 = arg1;
+        D_800F1B80 |= arg1;
+        D_800F1B78 |= arg1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C45FC);
 
@@ -535,8 +571,8 @@ void func_800C48A8(s32 a0, s32 a1, s32 a2, s32 a3) {
 /**
  * @brief Wrapper for func_800C4588.
  */
-void func_800C4900(void) {
-    func_800C4588();
+void func_800C4900(s32 a0, s32 a1, s32 a2) {
+    func_800C4588(a0, a1, a2);
 }
 
 /**
