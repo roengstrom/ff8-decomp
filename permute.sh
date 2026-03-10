@@ -229,9 +229,11 @@ COMPILE_EOF
 chmod +x "${FUNC_DIR}/compile.sh"
 
 # --- target.s ---
-# Prepend macro.inc include so that glabel/endlabel/etc. are defined
+# Prepend macro.inc include + .set noreorder (matches INCLUDE_ASM wrapper)
 {
     echo '.include "include/macro.inc"'
+    echo '.set noreorder'
+    echo '.set noat'
     echo ""
     cat "${TARGET_ASM}"
 } > "${FUNC_DIR}/target.s"
