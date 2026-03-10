@@ -1,6 +1,13 @@
 #include "common.h"
 
-extern u8 D_800ED148[];
+typedef struct {
+    u8 pad[0x12E0];
+    s16 unk12E0;
+    u8 pad2[0x2D];
+    s8 unk130F;
+} D_800ED148_Type;
+
+extern D_800ED148_Type D_800ED148;
 extern u8 D_80078E00[];
 extern u8 D_800EE424[];
 extern u8 D_800EE43C[];
@@ -111,7 +118,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2D24);
  */
 s32 func_800A2E04(s32 a0) {
     u8 *table = D_80078E00;
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     s32 val = *(u8 *)(base + a0 * 208 + 0xDA);
     val = (val - 1) * 2;
     return *(u8 *)(table + val + 0x4CFD);
@@ -147,7 +154,7 @@ void func_800A302C(void) {
  * @param arg5 Halfword field (offset 6).
  */
 void func_800A3054(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     s32 idx;
     u8 *entry;
     idx = base[0x1302];
@@ -167,7 +174,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A3094);
  * @brief Clear two battle state bytes at D_800ED148 offsets 0x5C0 and 0x5C1.
  */
 void func_800A30E4(void) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     base[0x5C1] = 0;
     base[0x5C0] = 0;
 }
@@ -266,7 +273,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4798);
  */
 void func_800A47E4(s32 a0) {
     s32 i = 0;
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     do {
         base[0xD9] = func_800A4798(i, a0);
         i++;
@@ -282,7 +289,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A493C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4A74);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4B68);
+/**
+ * @brief Unpack a 16-bit value into entity fields.
+ *
+ * Stores the lower 13 bits as a halfword at D_800ED148.unk12E0,
+ * and the upper 3 bits (shifted right 13) as a byte at D_800ED148.unk130F.
+ *
+ * @param arg0 Packed 16-bit value.
+ */
+void func_800A4B68(s32 arg0) {
+    s16 tmp = arg0;
+    s32 tmp2 = arg0 & 0xE000;
+    D_800ED148.unk12E0 = (tmp &= 0x1FFF);
+    tmp = ((u32)tmp2) >> 0xD;
+    D_800ED148.unk130F = (s8)tmp;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4B88);
 
@@ -297,7 +318,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4C84);
  * @param a0 Command value to store.
  */
 void func_800A4DD4(s32 a0) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     u8 idx = base[0x5C0];
     base[0x5C0] = idx + 1;
     *(u8 *)(base + idx * 20 + 0x5D4) = a0;
@@ -357,7 +378,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A559C);
  * @param idx Entity index (stride 0xD0).
  */
 void func_800A565C(s32 idx) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     u8 *entity;
     asm("");
     entity = base + idx * 0xD0;
@@ -378,7 +399,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5778);
  * @param a0 Battle action parameter.
  */
 void func_800A57E0(s32 a0) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     u8 *entityBase = base + 0xD64;
     s32 idx = base[0x12F2];
     base += 0x1100;
