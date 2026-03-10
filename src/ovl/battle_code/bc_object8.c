@@ -10,12 +10,51 @@ extern u8 D_800E3D0C[];
 extern u8 D_800EF4A4[];
 extern u8 D_800EEEC8[];
 extern u8 D_800EEECC[];
+extern u8 D_800EEEB8[];
+extern u8 D_800EEEBC[];
+extern u8 D_800EEEC0[];
+extern u8 D_80077378[];
+extern u8 D_800EE9E8[];
+void func_800B3164(void);
+void func_800B2F3C(void);
+extern u8 D_8007809A[];
+extern u8 D_800EE45C[];
+extern u8 D_800EEDD8[];
+extern u8 D_800EEDE8[];
+extern u8 D_800EE465[];
+extern u8 D_80082C11[];
+extern u8 D_8005F388[];
+extern u8 D_80063388[];
+extern u8 D_800EEED0[];
+extern u8 D_800EEED4[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1624);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B16C0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B17B8);
+/**
+ * @brief Conditionally trigger entity action based on D_800ED148 flags.
+ *
+ * If D_800ED148[0x130C] is non-zero or D_800ED148[0x1326] is zero,
+ * returns immediately. Otherwise calls func_800A97FC to get a value,
+ * passes it to func_800B0754, and clears D_800ED148[0x1326].
+ *
+ * @param a0 Entity parameter for func_800A97FC and func_800B0754.
+ */
+void func_800B17B8(s32 a0) {
+    u8 *base = D_800ED148;
+    if (base[0x130C] != 0) {
+        return;
+    }
+    if (base[0x1326] == 0) {
+        return;
+    }
+    {
+        s32 val = func_800A97FC(a0);
+        func_800B0754(a0, 0, 0xA, (u16)val);
+        base[0x1326] = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1828);
 
@@ -33,9 +72,48 @@ void func_800B1A48(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1A78);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1ACC);
+/**
+ * @brief Check battle conditions and trigger entity action sequence.
+ *
+ * Checks bit 1 of D_8007809A. If set, calls func_800B1A78 to validate.
+ * If valid, calls func_8009B79C(0x20, 0xFF) to test entity availability.
+ * If available, clears D_800EE45C and calls func_800B1A48 to start action.
+ */
+void func_800B1ACC(void) {
+    if (!(*(u8 *)D_8007809A & 2)) {
+        return;
+    }
+    if (func_800B1A78() == 0) {
+        return;
+    }
+    if (func_8009B79C(0x20, 0xFF) == 0) {
+        return;
+    }
+    *(u8 *)D_800EE45C = 0;
+    func_800B1A48();
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1B1C);
+/**
+ * @brief Determine quadrant index from a rotation value.
+ *
+ * Calls func_8009B15C to get a rotation value, then maps it to a quadrant:
+ * 0-63 → 0, 64-127 → 1, 128-191 → 2, 192+ → 3.
+ *
+ * @return Quadrant index (0-3).
+ */
+s32 func_800B1B1C(void) {
+    s32 val = func_8009B15C();
+    if (val < 0x40) {
+        return 0;
+    }
+    if (val < 0x80) {
+        return 1;
+    }
+    if (val < 0xC0) {
+        return 2;
+    }
+    return 3;
+}
 
 /**
  * @brief Process battle entity: compute type, store to D_800ED148[0x1314],
@@ -111,7 +189,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B20D8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2128);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B21B4);
+/**
+ * @brief Copy 3 bytes from D_80077378 to D_800EE9E8 at stride 0x47.
+ *
+ * Copies bytes from D_80077378[i+0xAF4] to D_800EE9E8[i*0x47+0xA3]
+ * for i = 0, 1, 2.
+ */
+void func_800B21B4(void) {
+    s32 i = 0;
+    u8 *src = D_80077378;
+    u8 *dst = D_800EE9E8;
+    do {
+        dst[0xA3] = src[i + 0xAF4];
+        i++;
+        dst += 0x47;
+    } while (i < 3);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B21EC);
 
@@ -119,7 +212,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2224);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B228C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2338);
+/**
+ * @brief Process current battle entity: update effects and activate ability.
+ *
+ * Reads the entity index from D_800ED148[0x1301], calls func_800AE6C0
+ * and func_800D3090 with it, then calls func_800D0530 and func_800AB3C4.
+ */
+void func_800B2338(void) {
+    u8 *base = D_800ED148;
+    func_800AE6C0(base[0x1301]);
+    func_800D3090(base[0x1301], 1);
+    func_800D0530();
+    func_800AB3C4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2388);
 
@@ -133,17 +238,94 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B26B8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B27AC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2848);
+/**
+ * @brief Advance a two-phase process based on state byte at offset 0xD.
+ *
+ * State 0: Calls func_800B3128 with data at offset 0xE, increments state.
+ * State 1: If byte at 0xE is non-zero, writes 0xFF to target+1 and returns 2.
+ * Otherwise returns 0.
+ *
+ * @param a0 Pointer to process state structure.
+ * @return 0 if still in progress, 2 if complete.
+ */
+s32 func_800B2848(u8 *a0) {
+    u8 state = a0[0xD];
+    s32 target = *(s32 *)(a0 + 0x10);
+
+    if (state == 0) goto case0;
+    if (state == 1) goto case1;
+    goto ret0;
+
+case0:
+    func_800B3128(a0 + 0xE);
+    a0[0xD] = a0[0xD] + 1;
+    goto ret0;
+
+case1:
+    if (a0[0xE] == 0) goto ret0;
+    *(u8 *)(target + 1) = 0xFF;
+    return 2;
+
+ret0:
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B28C8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2A00);
+/**
+ * @brief Initialize a table header and zero its entries.
+ *
+ * Sets up a table header at a0 with pointer to data, entry stride,
+ * and entry count. Then zeros the first halfword of each entry.
+ *
+ * @param a0 Pointer to table header.
+ * @param data Pointer to table data.
+ * @param stride Byte stride between entries.
+ * @param count Number of entries to zero.
+ */
+void func_800B2A00(u8 *a0, u8 *data, s32 stride, s32 count) {
+    s32 i = 0;
+    *(s32 *)a0 = 0;
+    *(s32 *)(a0 + 4) = 0;
+    *(s32 *)(a0 + 8) = (s32)data;
+    *(u16 *)(a0 + 0xC) = stride;
+    *(u16 *)(a0 + 0xE) = count;
+    if (count > 0) {
+        do {
+            *(u16 *)data = 0;
+            i++;
+            data += stride;
+        } while (i < count);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2A38);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2A84);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2B00);
+/**
+ * @brief Allocate a node, initialize it, and prepend to linked list.
+ *
+ * Allocates a node via func_800B2A38, sets bit 0 of its flags,
+ * clears halfword at offset 2, stores callback at offset 8,
+ * and prepends the node to the linked list at a0.
+ *
+ * @param list Pointer to linked list head pointer.
+ * @param callback Value to store at node offset 8.
+ * @return Pointer to the new node, or NULL if allocation failed.
+ */
+s32 func_800B2B00(u8 *list, s32 callback) {
+    u8 *node = (u8 *)func_800B2A38(list);
+    if (node != 0) {
+        u16 flags = *(u16 *)node;
+        *(u16 *)(node + 2) = 0;
+        *(s32 *)(node + 8) = callback;
+        *(u16 *)node = flags | 1;
+        *(s32 *)(node + 4) = *(s32 *)list;
+        *(s32 *)list = (s32)node;
+    }
+    return (s32)node;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2B68);
 
@@ -179,11 +361,41 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2D0C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2E04);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2EDC);
+/**
+ * @brief Initialize sound system resources and configuration.
+ *
+ * Sets up sound data via func_800B2A00 with D_800EEDD8 and D_800EEDE8,
+ * then initializes sound channels via sequential calls.
+ */
+void func_800B2EDC(void) {
+    func_800B2A00(D_800EEDD8, D_800EEDE8, 0x18, 8);
+    func_800DF904();
+    func_800DF8E4(3, 0x57);
+    func_800DF8C4(3, 0);
+    func_800DF8A4(3, 0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2F3C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2FF8);
+/**
+ * @brief Allocate handler for func_800B2F3C and store entity pointers.
+ *
+ * Registers func_800B2F3C as callback via func_800B2C58. If allocation
+ * succeeds, clears byte at +0xC, stores a0 at +0x10 and a1 at +0x14,
+ * then clears the first byte of a1.
+ *
+ * @param a0 Entity pointer stored at result offset 0x10.
+ * @param a1 Pointer to completion flag byte, stored at result offset 0x14.
+ */
+void func_800B2FF8(s32 a0, u8 *a1) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800B2F3C);
+    if (result != 0) {
+        result[0xC] = 0;
+        *(s32 *)(result + 0x10) = a0;
+        *(s32 *)(result + 0x14) = (s32)a1;
+        *a1 = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B304C);
 
@@ -201,7 +413,26 @@ void func_800B3128(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3164);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3270);
+/**
+ * @brief Set up audio stream from descriptor and register playback callback.
+ *
+ * Computes buffer start and end from the descriptor's offset fields,
+ * stores them to D_800EEEB8/D_800EEEBC/D_800EEEC0, then registers
+ * func_800B3164 as a callback and links the control byte.
+ *
+ * @param a0 Audio descriptor with offsets at +4, +8, +0xC.
+ * @param a1 Pointer to control byte (cleared after setup).
+ */
+void func_800B3270(s32 *a0, u8 *a1) {
+    u8 *result;
+    *(s32 *)D_800EEEB8 = (s32)a0 + a0[1];
+    *(s32 *)D_800EEEBC = (s32)a0 + a0[2];
+    *(s32 *)D_800EEEC0 = a0[3] - a0[2];
+    result = (u8 *)func_800B2C58((s32)func_800B3164);
+    result[0xC] = 0;
+    *(s32 *)(result + 0x10) = (s32)a1;
+    *a1 = 0;
+}
 
 /**
  * @brief Set D_800EEEC4 to 1, D_800E3D0C to 3, and store a0/a1 to D_800EEEC8/CC.
@@ -229,7 +460,22 @@ void func_800B330C(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3330);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3470);
+/**
+ * @brief Initialize sound data pointer based on D_80082C11 flag.
+ *
+ * Clears D_800EEEC4 and D_800EEED4, then sets D_800EEED0 to either
+ * D_8005F388 (if D_80082C11 is zero) or D_80063388 (if non-zero).
+ */
+void func_800B3470(void) {
+    u8 flag = *(u8 *)D_80082C11;
+    *(u8 *)D_800EEEC4 = 0;
+    if (flag == 0) {
+        *(s32 *)D_800EEED0 = (s32)D_8005F388;
+    } else {
+        *(s32 *)D_800EEED0 = (s32)D_80063388;
+    }
+    *(u8 *)D_800EEED4 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B34B0);
 
@@ -239,9 +485,36 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3574);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3650);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3698);
+/**
+ * @brief Allocate aligned memory from the scratchpad buffer.
+ *
+ * Aligns the requested size up to 4 bytes, advances the D_800EEED8
+ * pointer, and returns the old (pre-advance) pointer.
+ *
+ * @param size Number of bytes to allocate.
+ * @return Pointer to the allocated region.
+ */
+s32 func_800B3698(s32 size) {
+    s32 ptr = *(s32 *)D_800EEED8;
+    *(s32 *)D_800EEED8 = ptr + ((size + 3) & ~3);
+    return ptr;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B36B8);
+/**
+ * @brief Free aligned memory back to the scratchpad buffer.
+ *
+ * Aligns the requested size up to 4 bytes, decrements the D_800EEED8
+ * pointer, and returns the new (post-decrement) pointer.
+ *
+ * @param size Number of bytes to free.
+ * @return New pointer value after deallocation.
+ */
+s32 func_800B36B8(s32 size) {
+    s32 ptr = *(s32 *)D_800EEED8;
+    ptr -= (size + 3) & ~3;
+    *(s32 *)D_800EEED8 = ptr;
+    return ptr;
+}
 
 /**
  * @brief Set D_800EEED8 to the scratchpad base address 0x1F800000.

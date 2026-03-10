@@ -2,9 +2,11 @@
 
 extern u8 D_800F1A90[];
 extern u8 D_800F1A94[];
+extern u8 D_800F1AB0[];
 extern u8 D_800F1B70[];
 extern u8 D_800F1B74[];
 extern u8 D_800F1B7C[];
+extern u8 D_800F1B78[];
 extern u8 D_800F1B80[];
 extern u8 D_800F02F4[];
 extern u8 D_800F02E8[];
@@ -12,6 +14,9 @@ extern u8 D_800EF724[];
 void func_800C372C(void);
 void func_800C3998(void);
 void func_800C39F8(void);
+void func_800C3C0C(void);
+void func_800C3EFC(void);
+void func_800C3FE8(void);
 s32 func_800C2CBC(s32, void *, void *, void *);
 s32 func_800C3418(s32);
 
@@ -149,7 +154,24 @@ void func_800C3518(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3568);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3694);
+/**
+ * @brief Increment progress counter and compute pitch ratio.
+ *
+ * Increments the byte at a0[0xC], divides (a0[0xC] << 10) by
+ * a0[0xD] to get a ratio, passes it through func_8003ED64,
+ * and stores the result in D_800F02E8. Returns 2 if the counter
+ * has reached or exceeded the limit, 0 otherwise.
+ *
+ * @param a0 Pointer to state struct with counter at 0xC and limit at 0xD.
+ * @return 2 if a0[0xC] >= a0[0xD], else 0.
+ */
+s32 func_800C3694(u8 *a0) {
+    s32 result;
+    a0[0xC]++;
+    result = func_8003ED64((a0[0xC] << 10) / a0[0xD]);
+    *(u16 *)D_800F02E8 = result;
+    return (a0[0xC] >= a0[0xD]) << 1;
+}
 
 /**
  * @brief Reset sound state: clear volume, set default pitch, and disable flag.
@@ -218,17 +240,103 @@ void func_800C3C00(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3C0C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3DD4);
+/**
+ * @brief Allocate handler for func_800C3C0C and store five parameters.
+ *
+ * Registers func_800C3C0C as callback via func_800B2C58. If allocation
+ * succeeds, stores a0-a4 to the handler struct and sets bit 5 in the
+ * halfword at a1+2.
+ *
+ * @param a0 Word stored at handler offset 0xC.
+ * @param a1 Word stored at handler offset 0x10; bit 5 set in halfword at a1+2.
+ * @param a2 Byte stored at handler offset 0x14.
+ * @param a3 Halfword stored at handler offset 0x16.
+ * @param a4 Word stored at handler offset 0x18.
+ */
+void func_800C3DD4(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800C3C0C);
+    if (result != 0) {
+        *(s32 *)(result + 0xC) = a0;
+        *(s32 *)(result + 0x10) = a1;
+        *(u8 *)(result + 0x14) = a2;
+        *(u8 *)(result + 0x15) = 0xFF;
+        *(u16 *)(result + 0x16) = a3;
+        *(s32 *)(result + 0x18) = a4;
+        *(u16 *)(a1 + 2) |= 0x20;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3E64);
+/**
+ * @brief Allocate handler for func_800C3C0C and store six parameters.
+ *
+ * Similar to func_800C3DD4 but stores a3 at +0x15 instead of 0xFF,
+ * and has a 6th argument stored at +0x18 via a4, with a 5th halfword via a4.
+ *
+ * @param a0 Word stored at handler offset 0xC.
+ * @param a1 Word stored at handler offset 0x10; bit 5 set in halfword at a1+2.
+ * @param a2 Byte stored at handler offset 0x14.
+ * @param a3 Byte stored at handler offset 0x15.
+ * @param a4 Halfword stored at handler offset 0x16.
+ * @param a5 Word stored at handler offset 0x18.
+ */
+void func_800C3E64(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800C3C0C);
+    if (result != 0) {
+        *(s32 *)(result + 0xC) = a0;
+        *(s32 *)(result + 0x10) = a1;
+        *(u8 *)(result + 0x14) = a2;
+        *(u8 *)(result + 0x15) = a3;
+        *(u16 *)(result + 0x16) = a4;
+        *(s32 *)(result + 0x18) = a5;
+        *(u16 *)(a1 + 2) |= 0x20;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3EFC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3F88);
+/**
+ * @brief Allocate a handler for func_800C3EFC and store three halfword params.
+ *
+ * Calls func_800B2C58 with func_800C3EFC as callback. If allocation
+ * succeeds, stores a0/a1/a2 as halfwords at offsets 0xC/0xE/0x10
+ * and zeros offset 0x12.
+ *
+ * @param a0 First halfword value.
+ * @param a1 Second halfword value.
+ * @param a2 Third halfword value.
+ */
+void func_800C3F88(s32 a0, s32 a1, s32 a2) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800C3EFC);
+    if (result != 0) {
+        *(u16 *)(result + 0xC) = a0;
+        *(u16 *)(result + 0xE) = a1;
+        *(u16 *)(result + 0x10) = a2;
+        *(u16 *)(result + 0x12) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3FE8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C40B4);
+/**
+ * @brief Allocate a handler for func_800C3FE8 and store two words + halfword.
+ *
+ * Calls func_800B2C58 with func_800C3FE8 as callback. If allocation
+ * succeeds, stores a0/a1 as words at offsets 0xC/0x10, a2 as halfword
+ * at 0x14, and zeros offset 0x16.
+ *
+ * @param a0 First word value.
+ * @param a1 Second word value.
+ * @param a2 Halfword value.
+ */
+void func_800C40B4(s32 a0, s32 a1, s32 a2) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800C3FE8);
+    if (result != 0) {
+        *(s32 *)(result + 0xC) = a0;
+        *(s32 *)(result + 0x10) = a1;
+        *(u16 *)(result + 0x14) = a2;
+        *(u16 *)(result + 0x16) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4114);
 
@@ -293,9 +401,55 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C438C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C443C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C44E4);
+/**
+ * @brief Enqueue a type-1 command to the command table.
+ *
+ * If the command count (D_800F1B70) is under 15, increments it and
+ * writes a 12-byte entry at D_800F1AB0 + count * 12 with type=1,
+ * the three byte parameters, and the word parameter.
+ *
+ * @param a0 Word parameter stored at entry offset 8.
+ * @param a1 Byte parameter stored at entry offset 1.
+ * @param a2 Byte parameter stored at entry offset 2.
+ * @param a3 Byte parameter stored at entry offset 3.
+ */
+void func_800C44E4(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 count = *(s32 *)D_800F1B70;
+    if (count < 15) {
+        u8 *entry;
+        *(s32 *)D_800F1B70 = count + 1;
+        entry = D_800F1AB0 + count * 12;
+        entry[0] = 1;
+        entry[1] = a1;
+        entry[2] = a2;
+        entry[3] = a3;
+        *(s32 *)(entry + 8) = a0;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4538);
+/**
+ * @brief Enqueue a type-2 command to the command table.
+ *
+ * If the command count (D_800F1B70) is under 15, increments it and
+ * writes a 12-byte entry at D_800F1AB0 + count * 12 with type=2
+ * and the three byte parameters.
+ *
+ * @param a0 Byte parameter stored at entry offset 1.
+ * @param a1 Byte parameter stored at entry offset 2.
+ * @param a2 Byte parameter stored at entry offset 3.
+ */
+void func_800C4538(s32 a0, s32 a1, s32 a2) {
+    s32 count = *(s32 *)D_800F1B70;
+    if (count < 15) {
+        u8 *entry;
+        *(s32 *)D_800F1B70 = count + 1;
+        entry = D_800F1AB0 + count * 12;
+        entry[0] = 2;
+        entry[1] = a0;
+        entry[2] = a1;
+        entry[3] = a2;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4588);
 
@@ -315,11 +469,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C47BC);
 /**
  * @brief Wrapper for func_800C44E4.
  */
-void func_800C47CC(void) {
-    func_800C44E4();
+void func_800C47CC(s32 a0, s32 a1, s32 a2, s32 a3) {
+    func_800C44E4(a0, a1, a2, a3);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C47EC);
+/**
+ * @brief Process animation: call func_800C438C then func_800C44E4.
+ *
+ * @param a0 Entity pointer (passed as 1st arg to func_800C44E4).
+ * @param a1 Animation ID (passed to func_800C438C).
+ * @param a2 Parameter (passed as 3rd arg to func_800C44E4).
+ * @param a3 Parameter (passed as 4th arg to func_800C44E4).
+ */
+void func_800C47EC(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 result = func_800C438C(a1);
+    func_800C44E4(a0, result, a2, a3);
+}
 
 /**
  * @brief Look up a table entry and compute a pointer offset.
@@ -354,7 +519,18 @@ void func_800C4864(s32 a0, s32 a1, s32 a2, s32 a3) {
     func_800C443C(entry, a2, a3);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C48A8);
+/**
+ * @brief Process animation: call func_800C438C then func_800C4864.
+ *
+ * @param a0 Entity pointer (passed as 1st arg to func_800C4864).
+ * @param a1 Table index (passed as 2nd arg to func_800C4864).
+ * @param a2 Parameter (passed as 3rd arg to func_800C4864).
+ * @param a3 Animation ID (passed to func_800C438C, result becomes 4th arg).
+ */
+void func_800C48A8(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 result = func_800C438C(a3);
+    func_800C4864(a0, a1, a2, result);
+}
 
 /**
  * @brief Wrapper for func_800C4588.
@@ -363,9 +539,17 @@ void func_800C4900(void) {
     func_800C4588();
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4920);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4954);
+/**
+ * @brief Process animation: call func_800C438C then func_800C4588.
+ *
+ * @param a0 Entity pointer (passed as 1st arg to func_800C4588).
+ * @param a1 Parameter (passed as 2nd arg to func_800C4588).
+ * @param a2 Animation ID (passed to func_800C438C, result becomes 3rd arg).
+ */
+void func_800C4920(s32 a0, s32 a1, s32 a2) {
+    s32 result = func_800C438C(a2);
+    func_800C4588(a0, a1, result);
+}
 
 /**
  * @brief Check callback completion and set done flag (duplicate).
@@ -384,15 +568,41 @@ s32 func_800C4968(s32 a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C49A8);
+/**
+ * @brief Start sound effect and register completion callback.
+ *
+ * Calls func_80014348 to set up the request, func_80014400 to start
+ * the sound with D_800F1B7C as volume, then allocates a handler via
+ * func_800B2C58 with func_800C4968 as callback, storing the completion
+ * flag pointer.
+ *
+ * @param a0 Sound request parameter.
+ * @param a1 Pointer to completion flag byte.
+ */
+void func_800C49A8(s32 a0, u8 *a1) {
+    s32 result;
+    func_80014348(a0);
+    func_80014400(a0, *(u8 *)D_800F1B7C);
+    result = func_800B2C58(func_800C4968);
+    *(s32 *)(result + 0x14) = (s32)a1;
+    *a1 = 0;
+}
 
 /**
  * @brief Wrapper for func_800C4538.
  */
-void func_800C4A00(void) {
-    func_800C4538();
+void func_800C4A00(s32 a0, s32 a1, s32 a2) {
+    func_800C4538(a0, a1, a2);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4A20);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4A58);
+/**
+ * @brief Process animation: call func_800C438C then func_800C4538.
+ *
+ * @param a0 Animation ID (passed to func_800C438C, result becomes 1st arg).
+ * @param a1 Entity pointer (passed as 2nd arg to func_800C4538).
+ * @param a2 Parameter (passed as 3rd arg to func_800C4538).
+ */
+void func_800C4A20(s32 a0, s32 a1, s32 a2) {
+    s32 result = func_800C438C(a0);
+    func_800C4538(result, a1, a2);
+}
