@@ -171,7 +171,22 @@ s32 func_800BD31C(void) {
     return *(u8 *)(*(s32 *)D_800F16A8 + 1);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD334);
+/**
+ * @brief Check entity rendering bit and trigger animation reset if set.
+ *
+ * Loads the entity pointer from D_800F16A8, checks if bit 3 of byte 3
+ * is set. If so, calls func_800BF888 and returns 0. Otherwise returns 1.
+ *
+ * @return 0 if animation was reset, 1 otherwise.
+ */
+s32 func_800BD334(void) {
+    u8 *entity = *(u8 **)D_800F16A8;
+    if (entity[3] & 0x8) {
+        func_800BF888(entity);
+        return 0;
+    }
+    return 1;
+}
 
 /**
  * @brief Call func_800C5A34 with D_800F16AC pointer, a1=0x1A, a2=0x40.

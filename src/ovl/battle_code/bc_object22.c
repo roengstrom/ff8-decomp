@@ -1,6 +1,8 @@
 #include "common.h"
 
 extern u8 D_8010334C[];
+extern u8 D_80103340[];
+extern u8 D_800EEBD0[];
 
 /**
  * @brief Call func_800E0478 with mode 0 and forwarded args.
@@ -96,7 +98,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1640);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E173C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E17F4);
+/**
+ * @brief Process entity through display pipeline.
+ *
+ * Calls func_800DBCBC for preprocessing, then func_800E173C with
+ * display table parameters from D_80103340, then func_800E1640
+ * with the accumulated results and D_800EEBD0 config byte.
+ *
+ * @param a0 Entity parameter.
+ */
+void func_800E17F4(s32 a0) {
+    s32 val1 = func_800DBCBC(a0);
+    s16 *tbl = (s16 *)D_80103340;
+    s32 val2 = func_800E173C(a0, val1, tbl[1], tbl[0]);
+    func_800E1640(a0, a0, val2, *(u8 *)D_800EEBD0);
+}
 
 /**
  * @brief Disable display, set flag, re-enable display.

@@ -32,7 +32,27 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6FA8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D7004);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D7038);
+/**
+ * @brief Find last non-zero entry index in a 2-element array (stride 4).
+ *
+ * Iterates 2 entries at stride 4. Tracks the index of the last non-zero
+ * byte found, and returns that index + 1.
+ *
+ * @param a0 Pointer to array of entries (stride 4, first byte checked).
+ * @return Index of last non-zero entry + 1.
+ */
+s32 func_800D7038(u8 *a0) {
+    s32 result = 0;
+    s32 i = 0;
+    do {
+        if (*a0 != 0) {
+            result = i;
+        }
+        i++;
+        a0 += 4;
+    } while (i < 2);
+    return result + 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D706C);
 

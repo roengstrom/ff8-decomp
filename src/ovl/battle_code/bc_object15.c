@@ -3,6 +3,7 @@
 extern u8 D_800EBF24[];
 extern u8 D_800FB408[];
 extern u8 D_800FA5F8[];
+extern u8 D_800E6658[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7294);
 
@@ -10,7 +11,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C72EC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7354);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C744C);
+/**
+ * @brief Register a particle effect with a callback from D_800E6658 table.
+ *
+ * Looks up a callback function pointer from D_800E6658[idx], allocates
+ * an entry from D_800FB408, clears initial fields, and stores the
+ * source entity pointer.
+ *
+ * @param a0 Source entity pointer (stored at result offset 0x20).
+ * @param idx Index into D_800E6658 callback table.
+ */
+void func_800C744C(s32 a0, s32 idx) {
+    u8 *entry = (u8 *)func_800B2A84(D_800FB408, *(s32 *)(D_800E6658 + idx * 4));
+    *(u16 *)(entry + 0xC) = 0;
+    *(u16 *)(entry + 0xE) = 0;
+    *(s32 *)(entry + 0x20) = a0;
+}
 
 /**
  * @brief Initialize D_800FB408 buffer via func_800B2A00 and return it.

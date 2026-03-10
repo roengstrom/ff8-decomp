@@ -1,9 +1,13 @@
 #include "common.h"
 
 extern u8 D_800ED148[];
+extern u8 D_80078E00[];
 extern u8 D_800EE424[];
 extern u8 D_800EE43C[];
 extern u8 D_800EE462[];
+s32 func_800A4798(s32, s32);
+void func_8009B320(s32, u8 *, u8 *);
+void func_800A5948(s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A18E0);
 
@@ -96,7 +100,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2CE4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2D24);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2E04);
+/**
+ * @brief Look up a byte from a two-level table.
+ *
+ * Indexes into D_800ED148 by a0*208, reads a byte at offset 0xDA,
+ * then uses (byte-1)*2 to index into D_80078E00 at offset 0x4CFD.
+ *
+ * @param a0 Entity index (stride 208).
+ * @return Byte value from the second-level table.
+ */
+s32 func_800A2E04(s32 a0) {
+    u8 *table = D_80078E00;
+    u8 *base = D_800ED148;
+    s32 val = *(u8 *)(base + a0 * 208 + 0xDA);
+    val = (val - 1) * 2;
+    return *(u8 *)(table + val + 0x4CFD);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2E48);
 
@@ -115,7 +134,32 @@ void func_800A302C(void) {
     func_800DEA58(*(u8 *)D_800EE462);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A3054);
+/**
+ * @brief Add an entry to the command table at D_800ED148+0xEFC.
+ *
+ * Reads the current table index from D_800ED148[0x1302], computes the
+ * entry pointer (stride 24), and stores the provided fields.
+ *
+ * @param a0 First byte field (offset 0).
+ * @param a1 Second byte field (offset 1).
+ * @param a2 Halfword field (offset 4).
+ * @param a3 Third byte field (offset 2).
+ * @param arg5 Halfword field (offset 6).
+ */
+void func_800A3054(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    u8 *base = D_800ED148;
+    s32 idx;
+    u8 *entry;
+    idx = base[0x1302];
+    base += 0xEFC;
+    entry = base + idx * 24;
+    entry[0] = a0;
+    entry[1] = a1;
+    *(u16 *)(entry + 4) = a2;
+    entry[2] = a3;
+    entry[3] = 0;
+    *(u16 *)(entry + 6) = arg5;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A3094);
 
@@ -191,11 +235,44 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A44FC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4618);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A475C);
+/**
+ * @brief Call one of two processing functions based on entity count.
+ *
+ * If the input (masked to 16 bits) is less than 8, calls func_800A980C;
+ * otherwise calls func_800A9888. Returns the lower 16 bits of the result.
+ *
+ * @param count Entity count (u16).
+ * @return Result masked to 16 bits.
+ */
+u16 func_800A475C(u16 count) {
+    s32 result;
+    if (count < 8) {
+        result = func_800A980C();
+    } else {
+        result = func_800A9888();
+    }
+    return (u16)result;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4798);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A47E4);
+/**
+ * @brief Call func_800A4798 for each of 7 entities, storing result at offset 0xD9.
+ *
+ * Iterates over 7 entities (stride 0xD0) in D_800ED148, calling func_800A4798
+ * with the entity index and a0, storing the result byte at offset 0xD9.
+ *
+ * @param a0 Parameter passed through to func_800A4798.
+ */
+void func_800A47E4(s32 a0) {
+    s32 i = 0;
+    u8 *base = D_800ED148;
+    do {
+        base[0xD9] = func_800A4798(i, a0);
+        i++;
+        base += 0xD0;
+    } while (i < 7);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4844);
 
@@ -233,7 +310,30 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4EA0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4F28);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4FC4);
+/**
+ * @brief Extract set bit positions from a 16-bit mask into a buffer.
+ *
+ * Iterates over bits 0-15. For each set bit, stores the bit position
+ * to *dst and increments dst. Returns the count of set bits (masked to 8 bits).
+ *
+ * @param mask 16-bit bitmask to scan.
+ * @param dst Destination buffer for bit positions.
+ * @return Number of set bits found (0-16), masked to u8.
+ */
+s32 func_800A4FC4(s32 mask, u8 *dst) {
+    s32 count = 0;
+    s32 bit = 1;
+    s32 pos = 0;
+    do {
+        if ((mask & bit) & 0xFFFF) {
+            *dst++ = pos;
+            count++;
+        }
+        pos++;
+        bit <<= 1;
+    } while (pos < 16);
+    return count & 0xFF;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5004);
 
@@ -268,7 +368,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5688);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5778);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A57E0);
+/**
+ * @brief Set up entity battle data and process action.
+ *
+ * Reads the entity index from D_800ED148[0x12F2], computes the entity
+ * data pointer (stride 44 at offset 0xD64) and status pointer (offset 0x1100),
+ * calls func_8009B320 to initialize them, then func_800A5948 to process.
+ *
+ * @param a0 Battle action parameter.
+ */
+void func_800A57E0(s32 a0) {
+    u8 *base = D_800ED148;
+    u8 *entityBase = base + 0xD64;
+    s32 idx = base[0x12F2];
+    base += 0x1100;
+    func_8009B320(a0, entityBase + idx * 44, base + idx);
+    func_800A5948(a0, idx);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A584C);
 

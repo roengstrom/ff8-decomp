@@ -180,7 +180,29 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6B38);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6C44);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6D3C);
+extern u8 D_800FB408[];
+s32 func_800B2A84(u8 *, void *);
+void func_800C6C44(void);
+
+/**
+ * @brief Allocate a particle entry and store packed type + parameter.
+ *
+ * Allocates an entry from D_800FB408 with callback func_800C6C44,
+ * packs a0, a1, a2 into a 16-bit value (a0 | a1<<4 | a2<<8),
+ * stores it at offset 0xE, clears offset 0xC, and stores a3 at 0x1C.
+ *
+ * @param a0 Low nibble of packed type.
+ * @param a1 Mid nibble of packed type (shifted left 4).
+ * @param a2 High byte of packed type (shifted left 8).
+ * @param a3 Parameter stored at offset 0x1C.
+ */
+void func_800C6D3C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    u8 *entry = (u8 *)func_800B2A84(D_800FB408, func_800C6C44);
+    s32 packed = a0 | (a1 << 4) | (a2 << 8);
+    *(u16 *)(entry + 0xC) = 0;
+    *(u16 *)(entry + 0xE) = packed;
+    *(u16 *)(entry + 0x1C) = a3;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6DB4);
 

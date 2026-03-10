@@ -261,7 +261,20 @@ s32 func_8009F3F8(s32 entityIdx) {
     return val >> 2;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F428);
+/**
+ * @brief Read entity field at offset 0x2C and divide by 5.
+ *
+ * Indexes into D_800ED148 by a0*208, reads the word at offset 0x2C,
+ * and returns the result divided by 10.
+ *
+ * @param a0 Entity index (stride 208).
+ * @return Entity field value divided by 5.
+ */
+s32 func_8009F428(s32 a0) {
+    u8 *base = D_800ED148;
+    s32 val = *(s32 *)(base + a0 * 208 + 0x2C);
+    return val / 10;
+}
 
 /**
  * @brief Mark entity for processing and set a control flag.

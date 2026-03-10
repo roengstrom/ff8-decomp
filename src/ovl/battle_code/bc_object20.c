@@ -8,6 +8,11 @@ extern u8 D_8010305C[];
 extern u8 D_80103238[];
 extern u8 D_80103248[];
 extern u8 D_801032A0[];
+extern u8 D_800EF2D0[];
+extern u8 D_80103070[];
+extern u8 D_80103160[];
+extern u8 D_80103162[];
+void func_800B3960(s32, s32, s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D8FA4);
 
@@ -15,7 +20,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D8FE4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D9018);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D9060);
+/**
+ * @brief Adjust and dispatch entity action based on field 0x27.
+ *
+ * If the byte at a0+0x27 is >= 2, subtracts the byte at a0+0x26
+ * and calls func_800D0814 twice with channels 0 and 2.
+ *
+ * @param a0 Entity pointer with action fields at 0x26 and 0x27.
+ */
+void func_800D9060(u8 *a0) {
+    s32 val = a0[0x27];
+    if (val >= 2) {
+        val -= a0[0x26];
+        func_800D0814(0, val);
+        func_800D0814(2, val);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D90B4);
 
@@ -163,7 +183,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB140);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB1BC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB248);
+/**
+ * @brief Read halfword at offset 0xE from current entity table entry.
+ *
+ * Reads D_80103238 to get the current index, computes D_80103248 + index * 44,
+ * and returns the halfword at offset 0xE.
+ *
+ * @return Halfword value at the computed address.
+ */
+s32 func_800DB248(void) {
+    u8 idx = *(u8 *)D_80103238;
+    u8 *entry = D_80103248 + idx * 44;
+    return *(u16 *)(entry + 0xE);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB280);
 
@@ -227,11 +259,44 @@ void func_800DC3D0(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC41C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC62C);
+/**
+ * @brief Clear display slots and reset counter fields.
+ *
+ * Zeroes D_80103160 and D_80103162, then clears 4 bytes at stride 0x20
+ * starting from D_80103070 + 0x60 downward.
+ */
+void func_800DC62C(void) {
+    s32 i = 3;
+    s32 base = (s32)D_80103070;
+    u8 *ptr = (u8 *)(base + 0x60);
+    *(u16 *)D_80103160 = 0;
+    *(u16 *)D_80103162 = 0;
+    do {
+        *ptr = 0;
+        i--;
+        ptr -= 0x20;
+    } while (i >= 0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC664);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC75C);
+/**
+ * @brief Wrapper for func_800DC41C and func_800DB280.
+ *
+ * Passes all 6 arguments to func_800DC41C (with a1 and a2 truncated
+ * to 8 bits), then calls func_800DB280.
+ *
+ * @param a0 First parameter.
+ * @param a1 Second parameter (truncated to u8).
+ * @param a2 Third parameter (truncated to u8).
+ * @param a3 Fourth parameter.
+ * @param a4 Fifth parameter (passed on stack).
+ * @param a5 Sixth parameter (passed on stack).
+ */
+void func_800DC75C(s32 a0, u8 a1, u8 a2, s32 a3, s32 a4, s32 a5) {
+    func_800DC41C(a0, a1, a2, a3, a4, a5);
+    func_800DB280();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC798);
 
@@ -248,7 +313,21 @@ void func_800DC928(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC948);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC9A0);
+/**
+ * @brief Compute entity entry from index and call func_800B3960.
+ *
+ * Multiplies index by 156 to get the entity entry in D_800EF2D0,
+ * then calls func_800B3960 with the entry pointer, 0xF0, the
+ * passthrough parameter, and the original second argument.
+ *
+ * @param index Entity index (stride 156).
+ * @param a1 Parameter passed as 4th arg to func_800B3960.
+ * @param a2 Passthrough parameter for func_800B3960's 3rd arg.
+ */
+void func_800DC9A0(s32 index, s32 a1, s32 a2) {
+    s32 base = (s32)D_800EF2D0;
+    func_800B3960(base + index * 156, 0xF0, a2, a1);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC9E4);
 

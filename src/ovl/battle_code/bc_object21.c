@@ -2,9 +2,11 @@
 
 extern u8 D_80103180[];
 extern u8 D_80103182[];
+extern u8 D_80103184[];
 extern u8 D_80103188[];
 extern u8 D_80078752[];
 extern u8 D_80103230[];
+extern u8 D_80103340[];
 void func_800D5C28(s32, void *, s32, s32);
 void func_800DF718(void);
 
@@ -109,7 +111,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DE6FC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DE8EC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DEA58);
+/**
+ * @brief Lock rendering, process entity data, then unlock.
+ *
+ * Calls func_800472E4 to lock, then func_800DE8EC with D_80103340
+ * and the entity parameter, then func_800472F4 to unlock.
+ *
+ * @param a0 Entity parameter passed to func_800DE8EC.
+ */
+void func_800DEA58(s32 a0) {
+    u8 *base = D_80103340;
+    func_800472E4();
+    func_800DE8EC(base, a0);
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DEAA4);
 

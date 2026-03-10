@@ -8,6 +8,9 @@ extern u8 D_800FB43C[];
 extern u8 D_800FB444[];
 extern u8 D_800FB448[];
 extern u8 D_800F1B80[];
+extern u8 D_800FB408[];
+
+void func_800CE158(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F50);
 
@@ -65,9 +68,40 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CDF3C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CE158);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CE77C);
+/**
+ * @brief Register a particle effect with callback func_800CE158.
+ *
+ * Allocates an entry from D_800FB408, sets initial fields, copies
+ * the source entity's word at offset 0x20, and returns 2.
+ *
+ * @param a0 Source entity pointer.
+ * @return Always 2.
+ */
+s32 func_800CE77C(u8 *a0) {
+    u8 *entry = (u8 *)func_800B2A84(D_800FB408, (s32)func_800CE158);
+    *(u16 *)(entry + 0xC) = 0;
+    *(u16 *)(entry + 0xE) = 0;
+    *(u16 *)(entry + 0x1C) = 0x3B27;
+    *(s32 *)(entry + 0x20) = *(s32 *)(a0 + 0x20);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CE7D4);
+/**
+ * @brief Register a particle effect with callback func_800CE158 (variant).
+ *
+ * Same as func_800CE77C but with constant 0x3C67 at offset 0x1C.
+ *
+ * @param a0 Source entity pointer.
+ * @return Always 2.
+ */
+s32 func_800CE7D4(u8 *a0) {
+    u8 *entry = (u8 *)func_800B2A84(D_800FB408, (s32)func_800CE158);
+    *(u16 *)(entry + 0xC) = 0;
+    *(u16 *)(entry + 0xE) = 0;
+    *(u16 *)(entry + 0x1C) = 0x3C67;
+    *(s32 *)(entry + 0x20) = *(s32 *)(a0 + 0x20);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CE82C);
 
@@ -191,7 +225,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEE34);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEFA0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF060);
+/**
+ * @brief Temporarily shrink entry dimensions by 2 and call func_800CEFA0.
+ *
+ * Saves the word at entry+4, subtracts 2 from halfwords at offsets 4 and 6,
+ * calls func_800CEFA0 with the original a0/a1, then restores the word.
+ *
+ * @param a0 First parameter passed through to func_800CEFA0.
+ * @param a1 Second parameter passed through to func_800CEFA0.
+ * @param entry Pointer to entry data.
+ */
+void func_800CF060(s32 a0, s32 a1, u8 *entry) {
+    s32 saved = *(s32 *)(entry + 4);
+    *(u16 *)(entry + 4) = *(u16 *)(entry + 4) - 2;
+    *(u16 *)(entry + 6) = *(u16 *)(entry + 6) - 2;
+    func_800CEFA0(a0, a1);
+    *(s32 *)(entry + 4) = saved;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF0B0);
 

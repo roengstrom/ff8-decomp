@@ -51,7 +51,24 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800BFF38);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0098);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C00D8);
+/**
+ * @brief Call func_800BFE1C for each of count entries at stride 0x18.
+ *
+ * Iterates count times, calling func_800BFE1C with a pointer that
+ * advances by 0x18 bytes each iteration.
+ *
+ * @param ptr Base pointer to first entry.
+ * @param count Number of entries to process.
+ */
+void func_800C00D8(u8 *ptr, s32 count) {
+    s32 i = 0;
+    while (i < count) {
+        u8 *cur = ptr;
+        ptr += 0x18;
+        func_800BFE1C(cur);
+        i++;
+    }
+}
 
 extern u8 D_800F1940[];
 extern u8 D_800F16C0[];
@@ -81,9 +98,56 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0780);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C07B4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0AE4);
+/**
+ * @brief Look up a sound entry and start playback if found.
+ *
+ * Sign-extends a0 to 16 bits and calls func_800C07B4 to look up
+ * the entry. If not found (returns 0), returns 0. Otherwise fills
+ * a local buffer with the result and calls func_80040564.
+ *
+ * @param a0 Sound ID (sign-extended to s16).
+ * @param a1 Playback parameter.
+ * @return a1 if playback started, 0 if entry not found.
+ */
+s32 func_800C0AE4(s32 a0, s32 a1) {
+    s32 buf[3];
+    s32 result = func_800C07B4((s16)a0);
+    if (result != 0) {
+        buf[2] = result;
+        buf[1] = result;
+        buf[0] = result;
+        func_80040564(a1, buf);
+        return a1;
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0B3C);
+/**
+ * @brief Look up sound, compute inverse ratio, and start playback.
+ *
+ * Sign-extends a0, looks up sound via func_800C07B4. If found,
+ * calls func_80040FA4 with a1, computes 0x1000000 / result,
+ * fills a buffer with the quotient, and calls func_80040564.
+ *
+ * @param a0 Sound ID (sign-extended to s16).
+ * @param a1 Playback parameter.
+ * @return a1 if playback started, 0 if entry not found.
+ */
+s32 func_800C0B3C(s32 a0, s32 a1) {
+    s32 buf[3];
+    s32 result = func_800C07B4((s16)a0);
+    if (result != 0) {
+        s32 quotient;
+        func_80040FA4(a1, a1);
+        quotient = 0x1000000 / result;
+        buf[2] = quotient;
+        buf[1] = quotient;
+        buf[0] = quotient;
+        func_80040564(a1, buf);
+        return a1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0BB8);
 

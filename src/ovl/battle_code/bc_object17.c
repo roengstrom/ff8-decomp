@@ -44,7 +44,18 @@ void func_800CFFA4(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800CFFC4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0530);
+/**
+ * @brief Disable display, set bit 10 of scratchpad control register, enable display.
+ *
+ * Sets bit 0x400 in the halfword at scratchpad address 0x1F8003AE.
+ */
+void func_800D0530(void) {
+    s32 base;
+    func_800472E4();
+    base = 0x1F800390;
+    *(u16 *)(base + 0x1E) |= 0x400;
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D056C);
 
@@ -116,7 +127,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0D54);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0EF8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0F74);
+/**
+ * @brief Disable display, set bit 3 of scratchpad control register, enable display.
+ *
+ * Sets bit 0x8 in the halfword at scratchpad address 0x1F8003AE.
+ */
+void func_800D0F74(void) {
+    s32 base;
+    func_800472E4();
+    base = 0x1F800390;
+    *(u16 *)(base + 0x1E) |= 0x8;
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0FB0);
 
@@ -324,7 +346,19 @@ void func_800D3044(u8 *a0, s32 a1) {
     func_800D422C(a0);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D3090);
+/**
+ * @brief Store a byte value at index into the D_80103420 table.
+ *
+ * Computes D_80103420 + index * 108 + 0x51, stores val there.
+ *
+ * @param index Table index (stride 108).
+ * @param val Byte value to store.
+ */
+void func_800D3090(s32 index, s32 val) {
+    s32 base = (s32)D_80103420;
+    base += index * 108;
+    *(u8 *)(base + 0x51) = val;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D30B8);
 

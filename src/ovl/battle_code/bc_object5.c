@@ -4,8 +4,13 @@ extern u8 D_800ED148[];
 extern u8 D_800E3CEC[];
 extern u8 D_800EE9E8[];
 extern u8 D_800EE28C[];
+void func_800AB054(void);
 void func_800AB1A8(void);
 s32 func_8009B3D0(void *);
+s32 func_800B0398(s32);
+extern u8 D_80078E00[];
+s32 func_800B0F9C(s32);
+s32 func_800B0F7C(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8B7C);
 
@@ -48,7 +53,24 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A94E0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9568);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A95A0);
+/**
+ * @brief Set up entity action with sound and visual effects.
+ *
+ * Calls func_800A97FC to get a value, then triggers entity action
+ * via func_800B0754, sets animation via func_800AF4BC, and
+ * conditionally calls func_800AE3D4 based on func_800AE390 result.
+ *
+ * @param a0 Entity index passed to func_800A97FC and func_800B0754.
+ * @param a1 Mode parameter for func_800B0754 and subsequent calls.
+ */
+void func_800A95A0(s32 a0, s32 a1) {
+    s32 val = func_800A97FC(a0);
+    func_800B0754(a0, 4, a1, (u16)val);
+    func_800AF4BC(a1, 1);
+    if (func_800AE390(a1) == 0) {
+        func_800AE3D4(a1);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A960C);
 
@@ -354,7 +376,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB054);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB07C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB0C0);
+/**
+ * @brief Allocate entry via func_8009B3D0 and store battle data.
+ *
+ * Allocates an entry using func_800AB054 as callback, computes the
+ * entry address from D_800EE28C + index * 16, stores the result of
+ * func_800B0398(a0) at offset 4, and a1 as halfword at offset 8.
+ *
+ * @param a0 Parameter passed to func_800B0398.
+ * @param a1 Halfword value stored at entry offset 8.
+ */
+void func_800AB0C0(s32 a0, s32 a1) {
+    s32 idx = func_8009B3D0(func_800AB054);
+    u8 *entry = (u8 *)((s32)D_800EE28C + idx * 16);
+    *(s32 *)(entry + 4) = func_800B0398(a0);
+    *(u16 *)(entry + 8) = a1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB11C);
 

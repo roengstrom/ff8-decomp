@@ -5,7 +5,10 @@ extern u8 D_800F085C[];
 extern u8 D_800F0830[];
 extern u8 D_800F1668[];
 extern u8 D_800E3DA8[];
+extern u8 D_800EF738[];
 s32 *func_800B88A0(void);
+void func_800B8BEC(void);
+void func_800B9078(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B872C);
 
@@ -13,7 +16,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8740);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8754);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8798);
+/**
+ * @brief Check availability and register entity with tag byte.
+ *
+ * Calls func_800B8754 to check availability. If non-zero, calls
+ * func_800B8944 with the word at a0, a0+4, and the return value,
+ * then stores a1 as a byte at offset 1 of the result.
+ *
+ * @param a0 Pointer to entity data.
+ * @param a1 Tag byte to store at result offset 1.
+ */
+void func_800B8798(s32 *a0, s32 a1) {
+    s32 val = func_800B8754();
+    if (val != 0) {
+        u8 *result = (u8 *)func_800B8944(*a0, (s32)a0 + 4, val);
+        result[1] = a1;
+    }
+}
 
 /**
  * @brief Unpack a pointer pair and call func_800B8B28 with mode 1.
@@ -131,7 +150,32 @@ s32 func_800B8B28(s32 a0, s32 *a1, s32 a2) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8B60);
+/**
+ * @brief Count nodes in a linked list after skipping the first two.
+ *
+ * Dereferences the pointer at *a1 twice to skip two header nodes,
+ * then walks the list counting nodes until NULL.
+ *
+ * @param a0 Unused first parameter.
+ * @param a1 Pointer to the start of the linked list (double indirection).
+ * @return Number of nodes after the first two, or 0 if list is too short.
+ */
+s32 func_800B8B60(s32 a0, s32 *a1) {
+    s32 count = 0;
+    a1 = *(s32 **)a1;
+    if (a1 == 0) {
+        return count;
+    }
+    a1 = *(s32 **)a1;
+    if (a1 == 0) {
+        return count;
+    }
+    do {
+        a1 = *(s32 **)a1;
+        count++;
+    } while (a1 != 0);
+    return count;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8B98);
 
@@ -153,13 +197,41 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8EF4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8F2C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8F4C);
+/**
+ * @brief Allocate handler for func_800B8BEC and store initial params.
+ *
+ * Registers func_800B8BEC as callback via func_800B2C58. If allocation
+ * succeeds, clears halfword at +0xC, stores a0 at +0xE, clears +0x10,
+ * and sets +0x11 to 0x80.
+ *
+ * @param a0 Value stored as halfword at handler offset 0xE.
+ */
+void func_800B8F4C(s32 a0) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800B8BEC);
+    if (result != 0) {
+        *(u16 *)(result + 0xC) = 0;
+        *(u16 *)(result + 0xE) = a0;
+        *(u8 *)(result + 0x10) = 0;
+        *(u8 *)(result + 0x11) = 0x80;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8F84);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8F98);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8FBC);
+/**
+ * @brief Allocate handler for func_800B8BEC with inverted byte layout.
+ *
+ * Same as func_800B8F4C but with +0x10 set to 0x80 and +0x11 cleared.
+ *
+ * @param a0 Value stored as halfword at handler offset 0xE.
+ */
+void func_800B8F98(s32 a0) {
+    u8 *result = (u8 *)func_800B2C58((s32)func_800B8BEC);
+    if (result != 0) {
+        *(u16 *)(result + 0xC) = 0;
+        *(u16 *)(result + 0xE) = a0;
+        *(u8 *)(result + 0x10) = 0x80;
+        *(u8 *)(result + 0x11) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8FE4);
 
@@ -167,7 +239,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8FEC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9034);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9048);
+/**
+ * @brief Initialize sound entry fields if D_800E3DA8 pointer is non-null.
+ *
+ * Loads the pointer from D_800E3DA8. If non-null, sets byte at +0x10
+ * to 0xFF, clears halfword at +0xC, stores a0 as halfword at +0xE,
+ * and clears byte at +0x11 (re-reading the pointer for the last store).
+ *
+ * @param a0 Value to store at entry offset 0xE.
+ */
+void func_800B9048(s32 a0) {
+    s32 ptr = *(s32 *)D_800E3DA8;
+    if (ptr != 0) {
+        s32 ptr2;
+        *(u8 *)(ptr + 0x10) = 0xFF;
+        ptr2 = *(s32 *)D_800E3DA8;
+        *(u16 *)(ptr + 0xC) = 0;
+        *(u16 *)(ptr + 0xE) = a0;
+        *(u8 *)(ptr2 + 0x11) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9078);
 

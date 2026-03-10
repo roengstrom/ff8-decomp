@@ -5,10 +5,14 @@ extern u8 D_800ED148[];
 extern u8 D_80082C0F[];
 extern u8 D_800EE449[];
 extern u8 D_800ED70C[];
+extern u8 D_800EE441[];
+extern u8 D_800EE9E8[];
+extern u8 D_80077EBC[];
 s32 func_800A980C(void);
 s32 func_800A9888(void);
 void func_8009AD7C(void);
 void func_8009AF14(void *);
+void func_800AD4A4(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
@@ -111,9 +115,38 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADEA0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADF08);
 
+/**
+ * @brief Search D_800EE9E8 table for an entry matching the given value.
+ *
+ * Iterates 32 entries at stride 5 in D_800EE9E8. If byte[0] matches a0,
+ * returns the signed byte at offset 1. Returns 0 if no match found.
+ *
+ * @param a0 Value to search for.
+ * @return Signed byte at offset 1 of matching entry, or 0 if not found.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE390);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE3D4);
+/**
+ * @brief Clear the entry in D_80077EBC that matches the given value.
+ *
+ * Searches up to 198 entries at stride 2 in D_80077EBC. If byte[0]
+ * matches a0, clears both bytes of that entry and returns.
+ *
+ * @param a0 Value to search for and clear.
+ */
+void func_800AE3D4(s32 a0) {
+    u8 *base = D_80077EBC;
+    s32 i = 0;
+    do {
+        if (base[0] == a0) {
+            base[0] = 0;
+            base[1] = 0;
+            return;
+        }
+        i++;
+        base += 2;
+    } while (i < 0xC6);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE414);
 
@@ -162,7 +195,29 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE7D0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE83C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE8A0);
+/**
+ * @brief Search first 3 entities for one matching a condition.
+ *
+ * Iterates entities 0-2 at stride 0xD0 from D_800ED148. For each
+ * entity with bit 0 of the word at offset 0x8C set, calls
+ * func_800ACED4. Returns 1 on the first match, 0 if none found.
+ *
+ * @return 1 if a matching entity was found, 0 otherwise.
+ */
+s32 func_800AE8A0(void) {
+    s32 i = 0;
+    u8 *base = D_800ED148;
+    do {
+        if (*(s32 *)(base + 0x8C) & 1) {
+            if (func_800ACED4(i) != 0) {
+                return 1;
+            }
+        }
+        i++;
+        base += 0xD0;
+    } while (i < 3);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE90C);
 
@@ -186,12 +241,63 @@ void func_800AEC98(void) {
     func_8009AF14(func_8009AD7C);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AECD4);
+/**
+ * @brief Check entity state and trigger retreat if conditions met.
+ *
+ * Returns early if D_80082C0F is non-zero, or if entity at D_800ED148
+ * offset 0x12F9 equals 1, or if byte at 0x132D is zero. Otherwise
+ * calls func_800AEACC(-1) and func_800AEC98.
+ */
+void func_800AECD4(void) {
+    s32 base;
+    if (*(u8 *)D_80082C0F != 0) {
+        return;
+    }
+    base = (s32)D_800ED148;
+    if (*(u8 *)(base + 0x12F9) == 1) {
+        return;
+    }
+    if (*(u8 *)(base + 0x132D) == 0) {
+        return;
+    }
+    func_800AEACC(-1);
+    func_800AEC98();
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AED30);
+/**
+ * @brief Check entity state and trigger action if conditions met.
+ *
+ * Returns early if D_80082C0F is non-zero, or if D_800EE441 equals 1.
+ * Calls func_800AE730 and checks if result is 0xFF. If not, returns.
+ * Calls func_800B2128 and if result is non-zero, returns. Otherwise
+ * calls func_800AEACC(0) and func_800AEC98.
+ */
+void func_800AED30(void) {
+    if (*(u8 *)D_80082C0F != 0) {
+        return;
+    }
+    if (*(u8 *)D_800EE441 == 1) {
+        return;
+    }
+    if (func_800AE730() != 0xFF) {
+        return;
+    }
+    if (func_800B2128() != 0) {
+        return;
+    }
+    func_800AEACC(0);
+    func_800AEC98();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AED9C);
 
+/**
+ * @brief Trigger battle end sequence.
+ *
+ * Calls func_80048BB8(0) to stop processing, sets D_80082C0F to 5,
+ * clears byte at D_800ED148 + 0xC, then calls func_80012D5C and
+ * func_800389CC for cleanup.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEE64);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEEAC);

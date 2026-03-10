@@ -3,10 +3,45 @@
 extern u8 D_800ED148[];
 extern u8 D_800EE464[];
 extern u8 D_80078720[];
+extern u8 D_80078E00[];
+extern u8 D_800EE38C[];
+extern u8 D_800EE9B3[];
+s32 func_8009B15C(void);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6184);
+/**
+ * @brief Compute table entry and forward call to func_800A5A7C.
+ *
+ * Computes D_800EE38C + a0 * 24 as a pointer, then calls
+ * func_800A5A7C with original args plus the computed pointer.
+ *
+ * @param a0 Table index and first argument.
+ * @param a1 Second argument (passed through).
+ * @param a2 Third argument (passed through).
+ * @param a3 Fourth argument (masked to u16, passed as 5th stack arg).
+ */
+void func_800A6184(s32 a0, s32 a1, s32 a2, u16 a3) {
+    s32 ptr = (s32)D_800EE38C + a0 * 24;
+    func_800A5A7C(a0, a1, a2, 0, (s32)a3, 0, ptr);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A61CC);
+/**
+ * @brief Compute table entry and forward call to func_800A5A7C with 6 args.
+ *
+ * Similar to func_800A6184 but accepts two additional stack arguments.
+ * Computes D_800EE38C + a0 * 24 as a pointer, then calls func_800A5A7C
+ * with rearranged arguments.
+ *
+ * @param a0 Table index and first argument.
+ * @param a1 Second argument (passed through).
+ * @param a2 Third argument (passed through).
+ * @param a3 Fourth argument (passed as 6th callee arg).
+ * @param arg5 Fifth argument (passed as 4th callee arg).
+ * @param arg6 Sixth argument (masked to u16, passed as 5th callee arg).
+ */
+void func_800A61CC(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, u16 arg6) {
+    s32 ptr = (s32)D_800EE38C + a0 * 24;
+    func_800A5A7C(a0, a1, a2, arg5, (s32)arg6, a3, ptr);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6218);
 
@@ -95,7 +130,22 @@ void func_800A6588(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A65B0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A66D0);
+s32 func_8009A514(s32, s32);
+
+/**
+ * @brief Check entity availability and mark as active.
+ *
+ * Calls func_8009A514 with D_800ED148[0xCE3] and (7 - a0).
+ * If the result is non-zero, sets D_800ED148[a0 + 0xD5C] to 1.
+ *
+ * @param a0 Entity slot index.
+ */
+void func_800A66D0(s32 a0) {
+    u8 *base = D_800ED148;
+    if (func_8009A514(base[0xCE3], 7 - a0) != 0) {
+        base[a0 + 0xD5C] = 1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6724);
 
@@ -159,7 +209,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6EBC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6F64);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6FB8);
+/**
+ * @brief Generate random value in range [1, 100].
+ *
+ * Calls func_8009B15C to get a random number, computes modulo 100,
+ * and adds 1.
+ *
+ * @return Random value in [1, 100].
+ */
+s32 func_800A6FB8(void) {
+    return func_8009B15C() % 100 + 1;
+}
 
 /**
  * @brief Add func_800A6E2C() result minus 200 to input.
@@ -173,7 +233,23 @@ s32 func_800A700C(s32 a0) {
     return result + a0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A703C);
+/**
+ * @brief Compute adjusted value and return the lesser of it and func result.
+ *
+ * Calls func_800A6E2C, subtracts 100 from a0, and returns the minimum
+ * of the two values.
+ *
+ * @param a0 Input value (100 subtracted before comparison).
+ * @return Minimum of (a0 - 100) and func_800A6E2C result.
+ */
+s32 func_800A703C(s32 a0) {
+    s32 limit = func_800A6E2C();
+    a0 -= 100;
+    if (a0 < limit) {
+        return a0;
+    }
+    return limit;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7080);
 
@@ -182,7 +258,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7080);
  *
  * @return min(func_800A7080(), 100).
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7154);
+/**
+ * @brief Compute a value and clamp to maximum of 100.
+ *
+ * @return The result of func_800A7080, capped at 100.
+ */
+s32 func_800A7154(void) {
+    s32 val = func_800A7080();
+    if (val >= 101) {
+        return 100;
+    }
+    return val;
+}
 
 /**
  * @brief Clear five bytes of a battle entity structure.
@@ -234,7 +321,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7934);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A79A0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7A44);
+/**
+ * @brief Two-level table lookup from entity to ability data.
+ *
+ * Indexes into D_80078720 by a0*464, reads byte at offset 0x1BA,
+ * then uses byte*12 to index into D_80078E00 at offset 0x35C1.
+ *
+ * @param a0 Entity index (stride 464).
+ * @return Byte value from the second-level table.
+ */
+s32 func_800A7A44(s32 a0) {
+    u8 *table = D_80078E00;
+    u8 *base = D_80078720;
+    s32 val = *(u8 *)(base + a0 * 464 + 0x1BA);
+    return *(u8 *)(table + val * 12 + 0x35C1);
+}
 
 /**
  * @brief Look up a byte attribute from D_80078720 entity table (stride 0x1D0).
@@ -250,9 +351,45 @@ s32 func_800A7A8C(s32 idx) {
     return entry[0x1B9];
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7AB8);
+/**
+ * @brief Get a byte field from an entity's nested pointer chain.
+ *
+ * Looks up D_800ED148[a0] (stride 208), follows the pointer at +0x10,
+ * dereferences it, then returns the byte at offset +0xF6.
+ *
+ * @param a0 Entity index.
+ * @return Byte value at the end of the pointer chain.
+ */
+s32 func_800A7AB8(s32 a0) {
+    s32 base = (s32)D_800ED148;
+    s32 entry = base + a0 * 208;
+    s32 ptr = *(s32 *)(entry + 0x10);
+    ptr = *(s32 *)ptr;
+    return *(u8 *)(ptr + 0xF6);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7AF4);
+/**
+ * @brief Traverse a multi-level pointer chain from entity data.
+ *
+ * Indexes into D_800ED148 by a0*208, follows pointers at offsets
+ * 0x14, 0x0, 0x4 (added back), 0xC (added back), and returns
+ * the first byte at the final address.
+ *
+ * @param a0 Entity index (stride 208).
+ * @return Byte value at the end of the pointer chain.
+ */
+s32 func_800A7AF4(s32 a0) {
+    s32 base = (s32)D_800ED148;
+    s32 ptr;
+    s32 p2;
+    ptr = *(s32 *)(base + a0 * 208 + 0x14);
+    p2 = *(s32 *)ptr;
+    ptr = *(s32 *)(p2 + 4);
+    ptr += p2;
+    p2 = *(s32 *)(ptr + 0xC);
+    ptr += p2;
+    return *(u8 *)ptr;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7B48);
 
@@ -304,7 +441,25 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A86F0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8794);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A890C);
+/**
+ * @brief Clear 4 status bytes in an entity's sub-table.
+ *
+ * Computes D_800EE9B3 + a0 * 71 as base, then clears bytes
+ * at offsets 0xD, 0x9, 0x5, and 0x1 (stride -4, 4 iterations).
+ *
+ * @param a0 Entity index (stride 71).
+ */
+void func_800A890C(s32 a0) {
+    s32 i = 3;
+    s32 offset = a0 * 71;
+    s32 base = (s32)D_800EE9B3;
+    u8 *ptr = (u8 *)(offset + base + 0xC);
+    do {
+        *(u8 *)(ptr + 1) = 0;
+        i--;
+        ptr -= 4;
+    } while (i >= 0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8948);
 

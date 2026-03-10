@@ -295,13 +295,15 @@ u32 func_8009A2F4(void) {
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A308);
 
 /**
- * @brief Queue a battle music command (PsyQ 4.3 epilogue - must stay as asm).
+ * @brief Queue a battle music command.
  *
  * Plays sound ID 0x3EA at volume 0x80, then stores D_800EDE24 value
  * into the returned command buffer.
- * @note PsyQ 4.3 filled epilogue; cannot be compiled with PsyQ 4.1.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A38C);
+void func_8009A38C(void) {
+    s16 *result = (s16 *)func_8009B134(0x3EA, 0x80, 0);
+    *result = *(u8 *)D_800EDE24;
+}
 
 /**
  * @brief Play two startup sound effects.

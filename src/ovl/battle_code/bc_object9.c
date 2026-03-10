@@ -4,6 +4,14 @@ extern u8 D_800EF72C[];
 extern u8 D_800F02C8[];
 extern u8 D_800F05C8[];
 extern u8 D_800F0290[];
+void func_800B5B48(void);
+extern u8 D_800F02F8[];
+extern u8 D_800F0308[];
+extern u8 D_800F0408[];
+extern u8 D_800F0578[];
+extern u8 D_800EEC5C[];
+void func_800B8314(void);
+void func_800B8870(u8 *, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B49D8);
 
@@ -46,7 +54,25 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B59CC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5B48);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5C10);
+/**
+ * @brief Register entity callback or call initialization routine.
+ *
+ * If the entity's word at offset 0x8C is zero, calls func_800B59CC.
+ * Otherwise registers func_800B5B48 as a callback via func_800B2C58,
+ * storing the entity pointer and a1 into the result structure.
+ *
+ * @param a0 Entity pointer.
+ * @param a1 Value to store at result offset 0x10.
+ */
+void func_800B5C10(u8 *a0, s32 a1) {
+    if (*(s32 *)(a0 + 0x8C) == 0) {
+        func_800B59CC();
+    } else {
+        u8 *result = (u8 *)func_800B2C58((s32)func_800B5B48);
+        *(s32 *)(result + 0xC) = (s32)a0;
+        *(s32 *)(result + 0x10) = a1;
+    }
+}
 
 /**
  * @brief Compute sprite attributes and apply to entity.
@@ -142,7 +168,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B79B8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B7C48);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B7D20);
+/**
+ * @brief Set or clear bit 8 (0x100) of D_800EEC5C.
+ *
+ * If a0 is non-zero, sets bit 8. If a0 is zero, clears bit 8.
+ *
+ * @param a0 Non-zero to set, zero to clear.
+ */
+void func_800B7D20(s32 a0) {
+    if (a0 != 0) {
+        *(s32 *)D_800EEC5C |= 0x100;
+    } else {
+        *(s32 *)D_800EEC5C &= ~0x100;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B7D58);
 
@@ -154,7 +193,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B8248);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B8314);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B84C8);
+/**
+ * @brief Initialize sound system buffers and register playback handler.
+ *
+ * Calls func_800B86C0 to set up the primary audio buffer, func_800B2A00
+ * to initialize D_800F05C8 with D_800F0578 entries, and func_800B2A84 to
+ * register func_800B8314 as the playback callback.
+ *
+ * @return Pointer to D_800F05C8 buffer.
+ */
+u8 *func_800B84C8(void) {
+    u8 *buf;
+    func_800B86C0(D_800F02F8, D_800F0308, D_800F0408, 0x1E);
+    buf = D_800F05C8;
+    func_800B2A00(buf, D_800F0578, 0x14, 4);
+    func_800B2A84(buf, (s32)func_800B8314);
+    return buf;
+}
 
 /**
  * @brief Allocate from D_800F05C8 and clear byte at offset 0xD.
@@ -170,4 +225,31 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B8564);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B8644);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B86C0);
+/**
+ * @brief Initialize a linked list structure and clear data entries.
+ *
+ * Sets up the header fields (head pointer, zero field, data pointer,
+ * count), calls func_800B8870 to initialize the list, then clears
+ * byte at offset 1 for each entry (stride 0xC).
+ *
+ * @param a0 Pointer to the list header structure.
+ * @param a1 Head pointer to store and pass to func_800B8870.
+ * @param a2 Data array pointer.
+ * @param a3 Number of entries.
+ */
+void func_800B86C0(u8 *a0, u8 *a1, u8 *a2, s32 a3) {
+    *(s32 *)a0 = (s32)a1;
+    *(s32 *)(a0 + 4) = 0;
+    *(s32 *)(a0 + 8) = (s32)a2;
+    *(u16 *)(a0 + 0xC) = a3;
+    func_800B8870(a1, a3);
+    if (a3 > 0) {
+        s32 i = 0;
+        u8 *ptr = a2;
+        do {
+            ptr[1] = 0;
+            i++;
+            ptr += 0xC;
+        } while (i < a3);
+    }
+}

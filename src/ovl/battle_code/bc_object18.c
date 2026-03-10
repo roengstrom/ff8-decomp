@@ -30,11 +30,52 @@ void func_800D32E8(s32 a0, s32 a1) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D330C);
+/**
+ * @brief Test if a specific bit is set in a 64-bit value.
+ *
+ * The low 32 bits are at a0+0xC, high 32 bits at a0+0x10.
+ *
+ * @param a0 Pointer to data containing 64-bit bitfield.
+ * @param bit Bit position to test (0-63, masked to 6 bits).
+ * @return 1 if bit is set, 0 otherwise.
+ */
+s32 func_800D330C(u8 *a0, s32 bit) {
+    s32 word;
+    s32 mask;
+    s32 result;
+    bit &= 0x3F;
+    if (bit >= 32) {
+        word = *(s32 *)(a0 + 0x10);
+        bit &= 0x1F;
+    } else {
+        word = *(s32 *)(a0 + 0xC);
+        bit &= 0x1F;
+    }
+    mask = 1 << bit;
+    result = word & mask;
+    return result != 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3344);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D33C0);
+/**
+ * @brief Count the number of set bits in a 32-bit value.
+ *
+ * @param val Bitmask to count.
+ * @return Number of set bits (popcount).
+ */
+s32 func_800D33C0(s32 val) {
+    s32 count = 0;
+    s32 i = 0;
+    s32 mask = 1;
+    do {
+        if (val & (mask << i)) {
+            count++;
+        }
+        i++;
+    } while (i < 32);
+    return count;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D33F8);
 
@@ -257,7 +298,32 @@ void func_800D581C(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5840);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5ADC);
+/**
+ * @brief Initialize default state fields in D_80103308.
+ *
+ * Sets display dimensions, clears status flags, and resets counters
+ * in the battle state structure.
+ */
+void func_800D5ADC(void) {
+    s32 base = (s32)D_80103308;
+    *(u8 *)(base + 0x21) = 0x40;
+    *(u8 *)(base + 0x22) = 0x38;
+    *(u16 *)(base + 0x26) = 0x40;
+    *(u16 *)(base + 0x10) = 0;
+    *(u8 *)(base + 0x12) = 0;
+    *(u8 *)(base + 0x13) = 0;
+    *(u8 *)(base + 0x16) = 0;
+    *(u8 *)(base + 0x17) = 0;
+    *(u8 *)(base + 0x1A) = 0;
+    *(u16 *)(base + 0x24) = 0;
+    *(u16 *)(base + 0x28) = 0;
+    *(u16 *)(base + 0x18) = 0;
+    *(u8 *)(base + 0x1B) = 0;
+    *(s8 *)(base + 0x14) = -1;
+    *(s8 *)(base + 0x15) = -1;
+    *(u16 *)(base + 0x10) = 0;
+    *(u8 *)(base + 0x2B) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5B3C);
 
@@ -280,7 +346,28 @@ s32 func_800D5C0C(s32 a0) {
     return a0 * 20 + (s32)D_80102E78;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C28);
+/**
+ * @brief Initialize an entry in the D_80102E78 table.
+ *
+ * Computes the entry at D_80102E78 + a0 * 20, sets bytes at offsets
+ * 0x10 and 0x11 to 0xFF, byte at 0x12 to 0, and stores a1, a2, a3
+ * as words at offsets 0, 8, and 0xC.
+ *
+ * @param a0 Entry index (stride 20).
+ * @param a1 Value for offset 0.
+ * @param a2 Value for offset 8.
+ * @param a3 Value for offset 0xC.
+ */
+void func_800D5C28(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 entry = (s32)D_80102E78;
+    entry += a0 * 20;
+    *(s8 *)(entry + 0x10) = -1;
+    *(s8 *)(entry + 0x11) = -1;
+    *(u8 *)(entry + 0x12) = 0;
+    *(s32 *)entry = a1;
+    *(s32 *)(entry + 8) = a2;
+    *(s32 *)(entry + 0xC) = a3;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D5C60);
 
