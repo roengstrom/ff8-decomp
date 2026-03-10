@@ -367,7 +367,30 @@ void func_800B0F3C(s32 a0) {
     func_800B0E30(val);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0F7C);
+/**
+ * @brief Convert ability flag bits to GF compatibility bitmask.
+ *
+ * Bit 0 of the input maps to bit 14 (0x4000) of the result,
+ * and bit 1 maps to bit 13 (0x2000).
+ *
+ * @param arg0 Ability flags.
+ * @return Bitmask with bits 14 and/or 13 set.
+ */
+s32 func_800B0F7C(s32 arg0) {
+    s32 temp_v1;
+    int new_var;
+    s32 var_v0;
+
+    temp_v1 = (arg0 & 1) << 0xE;
+    new_var = arg0 & 2;
+    var_v0 = temp_v1;
+    if (new_var) {
+        var_v0 = temp_v1 | 0x2000;
+        var_v0 = temp_v1;
+        var_v0 = var_v0 | 0x2000;
+    }
+    return var_v0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0F9C);
 
