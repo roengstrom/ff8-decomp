@@ -2,13 +2,33 @@
 
 extern u8 D_8010334C[];
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E060C);
+/**
+ * @brief Call func_800E0478 with mode 0 and forwarded args.
+ */
+void func_800E060C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    func_800E0478(0, a0, a1, a2, a3, a4);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E0650);
+/**
+ * @brief Call func_800E0478 with mode 1 and forwarded args.
+ */
+void func_800E0650(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    func_800E0478(1, a0, a1, a2, a3, a4);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E0694);
+/**
+ * @brief Call func_800E0478 with mode 2 and forwarded args.
+ */
+void func_800E0694(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    func_800E0478(2, a0, a1, a2, a3, a4);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E06D8);
+/**
+ * @brief Call func_800E0478 with mode 3 and forwarded args.
+ */
+void func_800E06D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    func_800E0478(3, a0, a1, a2, a3, a4);
+}
 
 /**
  * @brief Call func_80020F84 with a0 + 2.

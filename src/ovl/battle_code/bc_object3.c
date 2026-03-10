@@ -17,7 +17,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1C98);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1CFC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1D78);
+/**
+ * @brief Subtract delta from a halfword value, clamping to zero.
+ *
+ * @param unused0 Unused parameter.
+ * @param unused1 Unused parameter.
+ * @param delta Amount to subtract.
+ * @param ptr Pointer to structure; halfword at offset 0x18 is modified.
+ */
+void func_800A1D78(s32 unused0, s32 unused1, s32 delta, u8 *ptr) {
+    s16 val = *(u16 *)(ptr + 0x18) - delta;
+    *(u16 *)(ptr + 0x18) = val;
+    if (val <= 0) {
+        *(u16 *)(ptr + 0x18) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1DA0);
 

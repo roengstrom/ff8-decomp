@@ -3,6 +3,7 @@
 extern u8 D_80102E10[];
 extern u8 D_80102E14[];
 extern u8 D_801032F8[];
+extern u8 D_80103420[];
 
 /**
  * @brief Call func_8002795C with a1=0, pass result to func_80030F10.
@@ -51,7 +52,25 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D05D0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0608);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0714);
+extern u8 D_800FB440[];
+
+/**
+ * @brief Store pointer, run two init functions, then poll until complete.
+ *
+ * Stores a0 to D_800FB440, calls func_800CF3F0 with a1, func_800CF40C
+ * with a2, then polls func_800CF3FC in a loop until it returns 0.
+ *
+ * @param a0 Pointer to store in D_800FB440.
+ * @param a1 First init parameter.
+ * @param a2 Second init parameter.
+ */
+void func_800D0714(s32 a0, s32 a1, s32 a2) {
+    *(s32 *)D_800FB440 = a0;
+    func_800CF3F0(a1);
+    func_800CF40C(a2);
+    do {
+    } while (func_800CF3FC() != 0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0760);
 
@@ -101,7 +120,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0F74);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0FB0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D11D4);
+/**
+ * @brief Disable display, check condition, optionally call handler, re-enable display.
+ *
+ * Calls func_800472E4 to disable display, then checks func_800CEDA4.
+ * If it returns 0, calls func_80030D48 with a0. Finally re-enables display
+ * via func_800472F4.
+ *
+ * @param a0 Parameter passed to func_80030D48 if condition met.
+ */
+void func_800D11D4(s32 a0) {
+    func_800472E4();
+    if (func_800CEDA4() == 0) {
+        func_80030D48(a0);
+    }
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D121C);
 
@@ -217,7 +251,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2134);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D22C8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2424);
+/**
+ * @brief Read fields from a0 and call func_800D1E74 with rearranged args.
+ *
+ * Reads halfwords at offsets 8 and 0xA from a0, adds constants, and calls
+ * func_800D1E74 with shuffled parameters.
+ *
+ * @param a0 Pointer to source data with halfwords at +8 and +0xA.
+ * @param a1 Passed as first arg to func_800D1E74.
+ * @param a2 Passed as second arg to func_800D1E74.
+ */
+void func_800D2424(u8 *a0, s32 a1, s32 a2) {
+    u16 field8 = *(u16 *)(a0 + 8);
+    u16 fieldA = *(u16 *)(a0 + 0xA);
+    func_800D1E74(a1, a2, (s32)a0, field8 + 0x61, fieldA + 2);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2464);
 
@@ -251,7 +299,30 @@ void func_800D2EF4(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2F14);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D3044);
+/**
+ * @brief Initialize entity fields and call func_800D422C.
+ *
+ * Sets various bytes and halfwords in the entity structure pointed to by a0.
+ * Stores a1 to offset 0x48, clears multiple status fields, sets byte at 0x51
+ * to 1, then calls func_800D422C.
+ *
+ * @param a0 Pointer to entity data.
+ * @param a1 Value for the command byte at offset 0x48.
+ */
+void func_800D3044(u8 *a0, s32 a1) {
+    a0[0x48] = a1;
+    a0[0x3F] = 0;
+    a0[0x50] = 0;
+    a0[0x51] = 1;
+    *(u16 *)(a0 + 0x40) = 0;
+    *(u16 *)(a0 + 0x42) = 0;
+    a0[0x3C] = 0;
+    a0[0x3D] = 0;
+    a0[0x3E] = 0;
+    *(u16 *)(a0 + 0x42) = 0;
+    a0[0x49] = 0;
+    func_800D422C(a0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D3090);
 

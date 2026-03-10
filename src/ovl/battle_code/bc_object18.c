@@ -6,6 +6,8 @@ extern u8 D_80102E78[];
 extern u8 D_80103240[];
 extern u8 D_80103308[];
 extern u8 D_80077E5C[];
+extern u8 D_80078842[];
+extern u8 D_8007873E[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D325C);
 
@@ -61,6 +63,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3A00);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3BB8);
 
+/**
+ * @brief Compute pointer into entity table from D_80103308 fields.
+ *
+ * Reads entity index from D_80103308+0x14 and sub-index from D_80103308+0x13,
+ * then returns D_8007873E + entity_index * 464 + sub_index * 4.
+ *
+ * @return Computed entity field pointer.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C14);
 
 /**
@@ -72,11 +82,38 @@ s32 func_800D3C50(void) {
     return (s32)D_80102E40;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C5C);
+/**
+ * @brief Read word at offset 4 from entry in D_80102E40 table.
+ *
+ * @param index Entry index (stride 12).
+ * @return Word at offset 4 of the entry.
+ */
+s32 func_800D3C5C(s32 index) {
+    u8 *base = (u8 *)func_800D3C50();
+    return *(s32 *)(base + index * 12 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C98);
+/**
+ * @brief Read halfword at offset 2 from entry in D_80102E40 table.
+ *
+ * @param index Entry index (stride 12).
+ * @return Halfword at offset 2 of the entry.
+ */
+u16 func_800D3C98(s32 index) {
+    u8 *base = (u8 *)func_800D3C50();
+    return *(u16 *)(base + index * 12 + 2);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3CD4);
+/**
+ * @brief Read halfword at offset 8 from entry in D_80102E40 table.
+ *
+ * @param index Entry index (stride 12).
+ * @return Halfword at offset 8 of the entry.
+ */
+u16 func_800D3CD4(s32 index) {
+    u8 *base = (u8 *)func_800D3C50();
+    return *(u16 *)(base + index * 12 + 8);
+}
 
 /**
  * @brief Clear D_80102E70 to zero.
@@ -350,7 +387,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6938);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D69BC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6AC8);
+/**
+ * @brief Get pointer to entity data at given index.
+ *
+ * Computes D_80078842 + index * 464 (0x1D0 stride per entity).
+ *
+ * @param index Entity index.
+ * @return Pointer to entity data.
+ */
+u8 *func_800D6AC8(s32 index) {
+    return D_80078842 + index * 464;
+}
 
 /**
  * @brief Return constant 0xA2 (162).

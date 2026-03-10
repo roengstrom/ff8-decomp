@@ -161,12 +161,27 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6F64);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6FB8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A700C);
+/**
+ * @brief Add func_800A6E2C() result minus 200 to input.
+ *
+ * @param a0 Input value to add to.
+ * @return a0 + func_800A6E2C() - 0xC8.
+ */
+s32 func_800A700C(s32 a0) {
+    s32 result = func_800A6E2C();
+    result -= 0xC8;
+    return result + a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A703C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7080);
 
+/**
+ * @brief Clamp func_800A7080 result to maximum 100.
+ *
+ * @return min(func_800A7080(), 100).
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7154);
 
 /**
@@ -185,7 +200,23 @@ void func_800A7188(u8 *entity) {
     entity[0xC8] = 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A71A0);
+/**
+ * @brief Clear 8 consecutive words starting at offset 0x24.
+ *
+ * Zeroes words at offsets 0x24, 0x28, 0x2C, 0x30, 0x34, 0x38, 0x3C, 0x40
+ * from the given base pointer.
+ *
+ * @param base Pointer to entity or data structure.
+ */
+void func_800A71A0(u8 *base) {
+    s32 i = 7;
+    base += 0x1C;
+    top:
+        *(s32 *)(base + 0x24) = 0;
+        i--;
+        base -= 4;
+    if (i >= 0) goto top;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A71C0);
 

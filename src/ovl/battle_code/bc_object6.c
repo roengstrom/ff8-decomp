@@ -1,6 +1,14 @@
 #include "common.h"
 
 extern u8 D_80078720[];
+extern u8 D_800ED148[];
+extern u8 D_80082C0F[];
+extern u8 D_800EE449[];
+extern u8 D_800ED70C[];
+s32 func_800A980C(void);
+s32 func_800A9888(void);
+void func_8009AD7C(void);
+void func_8009AF14(void *);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
@@ -76,7 +84,24 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD9C0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADAC0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADC10);
+/**
+ * @brief Call one of two processing functions based on entity count.
+ *
+ * If the input is less than 3, calls func_800A9888; otherwise calls
+ * func_800A980C. Returns the lower 16 bits of the result.
+ *
+ * @param count Entity count.
+ * @return Result masked to 16 bits.
+ */
+u16 func_800ADC10(s32 count) {
+    s32 result;
+    if (count >= 3) {
+        result = func_800A980C();
+    } else {
+        result = func_800A9888();
+    }
+    return (u16)result;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADC48);
 
@@ -94,7 +119,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE414);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE4A0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE524);
+/**
+ * @brief Compute entity pointer from index and call init functions.
+ *
+ * Computes D_800ED70C + a0 * 20 to get entity pointer, then calls
+ * func_8009B134 with constants 0x68 and 0x80, followed by func_800AD960.
+ *
+ * @param a0 Entity index (stride 20).
+ */
+void func_800AE524(s32 a0) {
+    u8 *entry = (u8 *)((s32)D_800ED70C + a0 * 20);
+    func_8009B134(0x68, 0x80, entry);
+    func_800AD960();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE568);
 
@@ -137,7 +174,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEB50);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEC04);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEC98);
+/**
+ * @brief Set callback mode 3 and register func_8009AD7C.
+ *
+ * Stores 1 to D_80082C0F, stores 3 to D_800EE449, then calls
+ * func_8009AF14 with func_8009AD7C as the callback.
+ */
+void func_800AEC98(void) {
+    *(u8 *)D_80082C0F = 1;
+    *(u8 *)D_800EE449 = 3;
+    func_8009AF14(func_8009AD7C);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AECD4);
 

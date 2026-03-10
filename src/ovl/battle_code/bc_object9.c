@@ -3,6 +3,7 @@
 extern u8 D_800EF72C[];
 extern u8 D_800F02C8[];
 extern u8 D_800F05C8[];
+extern u8 D_800F0290[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B49D8);
 
@@ -47,7 +48,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5B48);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5C10);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5C70);
+/**
+ * @brief Compute sprite attributes and apply to entity.
+ *
+ * Calls func_800B555C with a 16-bit truncated a1 and a2, then
+ * combines the result with bits 24-25 from the entity's word at +8,
+ * and passes it to func_800B5C10.
+ *
+ * @param a0 Entity pointer.
+ * @param a1 Sprite parameter (truncated to 16-bit).
+ * @param a2 Second sprite parameter.
+ */
+void func_800B5C70(s32 a0, s32 a1, s32 a2) {
+    s32 result = func_800B555C((u16)a1, a2);
+    s32 val = *(s32 *)(a0 + 8) & 0x01800000;
+    func_800B5C10(a0, val | result);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5CB8);
 

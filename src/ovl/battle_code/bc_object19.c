@@ -1,6 +1,7 @@
 #include "common.h"
 
 extern u8 D_800EE9E8[];
+extern u8 D_801032A0[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6AF4);
 

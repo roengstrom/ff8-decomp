@@ -4,6 +4,8 @@ extern u8 D_800F082C[];
 extern u8 D_800F085C[];
 extern u8 D_800F0830[];
 extern u8 D_800F1668[];
+extern u8 D_800E3DA8[];
+s32 *func_800B88A0(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B872C);
 
@@ -86,7 +88,22 @@ end:
     return node;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B890C);
+/**
+ * @brief Allocate a linked list node and initialize it.
+ *
+ * Calls func_800B88A0 to allocate. If successful, clears the first word
+ * (next pointer) and sets the second word to 1 (active flag).
+ *
+ * @return Pointer to the allocated node, or NULL if allocation failed.
+ */
+s32 *func_800B890C(void) {
+    s32 *node = func_800B88A0();
+    if (node != 0) {
+        node[0] = 0;
+        node[1] = 1;
+    }
+    return node;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8944);
 
@@ -94,7 +111,25 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B89F4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8A98);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8B28);
+/**
+ * @brief Look up entity via func_800B88E0 and return field at +4.
+ *
+ * Dereferences a1 as a pointer to get the search key, calls func_800B88E0
+ * with that key and a2 as arguments. If a match is found, returns the
+ * word at offset 4 of the result; otherwise returns 0.
+ *
+ * @param a0 Unused (passed from caller context).
+ * @param a1 Pointer to search key word.
+ * @param a2 Mode parameter for func_800B88E0.
+ * @return Word at result+4 if found, or 0.
+ */
+s32 func_800B8B28(s32 a0, s32 *a1, s32 a2) {
+    s32 result = (s32)func_800B88E0(*a1, a2);
+    if (result != 0) {
+        return *(s32 *)(result + 4);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8B60);
 

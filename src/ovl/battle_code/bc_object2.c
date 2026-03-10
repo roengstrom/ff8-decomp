@@ -376,7 +376,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009FE14);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A085C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A08C0);
+/**
+ * @brief Get the active entity count, defaulting to 1 if unset.
+ *
+ * @return The value of D_800786D9, or 1 if it is zero.
+ */
+s32 func_800A08C0(void) {
+    u8 val = *(u8 *)D_800786D9;
+    if (val == 0) {
+        return 1;
+    }
+    return val;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A08E0);
 

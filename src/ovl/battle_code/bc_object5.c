@@ -1,6 +1,11 @@
 #include "common.h"
 
 extern u8 D_800ED148[];
+extern u8 D_800E3CEC[];
+extern u8 D_800EE9E8[];
+extern u8 D_800EE28C[];
+void func_800AB1A8(void);
+s32 func_8009B3D0(void *);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8B7C);
 
@@ -49,7 +54,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A960C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A972C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9784);
+/**
+ * @brief Resolve a 16-bit offset to an address.
+ *
+ * If the offset is 0xFFFF (sentinel), returns D_800E3CEC.
+ * Otherwise returns offset + base.
+ *
+ * @param offset 16-bit offset value (0xFFFF = invalid).
+ * @param base Base address to add offset to.
+ * @return Resolved address.
+ */
+s32 func_800A9784(u16 offset, s32 base) {
+    if ((offset & 0xFFFF) == 0xFFFF) {
+        return (s32)D_800E3CEC;
+    }
+    return offset + base;
+}
 
 /**
  * @brief Compute func_8009B15C(a0) modulo a0.
@@ -183,19 +203,89 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA57C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA68C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA71C);
+/**
+ * @brief Conditionally search entity table and check for 0xFF result.
+ *
+ * If a0 is 0, returns whether func_800AA4F8(a1) is not 0xFF.
+ * If a0 is 3, returns whether func_800AA4F8(a1) is 0xFF.
+ *
+ * @param a0 Mode selector (0 = found check, 3 = not-found check).
+ * @param a1 Search value passed to func_800AA4F8.
+ * @return Boolean result based on mode.
+ */
+s32 func_800AA71C(s32 a0, s32 a1) {
+    if (a0 == 0) {
+        return func_800AA4F8(a1) != 0xFF;
+    }
+    if (a0 == 3) {
+        return func_800AA4F8(a1) == 0xFF;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA768);
+/**
+ * @brief Conditionally search via func_800AA530 and check for 0xFF result.
+ *
+ * If a0 is 0, returns whether func_800AA530(a1) is not 0xFF.
+ * If a0 is 3, returns whether func_800AA530(a1) is 0xFF.
+ *
+ * @param a0 Mode selector (0 = found check, 3 = not-found check).
+ * @param a1 Search value passed to func_800AA530.
+ * @return Boolean result based on mode.
+ */
+s32 func_800AA768(s32 a0, s32 a1) {
+    if (a0 == 0) {
+        return func_800AA530(a1) != 0xFF;
+    }
+    if (a0 == 3) {
+        return func_800AA530(a1) == 0xFF;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA7B4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA840);
+/**
+ * @brief Conditionally search via func_800AA7B4 and check for 0xFF result.
+ *
+ * If a0 is 0, returns whether func_800AA7B4(a1) is not 0xFF.
+ * If a0 is 3, returns whether func_800AA7B4(a1) is 0xFF.
+ *
+ * @param a0 Mode selector (0 = found check, 3 = not-found check).
+ * @param a1 Search value passed to func_800AA7B4.
+ * @return Boolean result based on mode.
+ */
+s32 func_800AA840(s32 a0, s32 a1) {
+    if (a0 == 0) {
+        return func_800AA7B4(a1) != 0xFF;
+    }
+    if (a0 == 3) {
+        return func_800AA7B4(a1) == 0xFF;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA88C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA930);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA980);
+/**
+ * @brief Conditionally call func_800AA930 and optionally invert the result.
+ *
+ * If a0 is 0, calls func_800AA930 with a1 and returns its result.
+ * If a0 is 3, calls func_800AA930 with a1 and returns the inverted
+ * lowest bit of the result.
+ *
+ * @param a0 Mode selector (0 = normal, 3 = inverted).
+ * @param a1 Parameter passed to func_800AA930.
+ * @return Result of func_800AA930, possibly with bit 0 inverted.
+ */
+s32 func_800AA980(s32 a0, s32 a1) {
+    if (a0 == 0) {
+        return func_800AA930(a1);
+    }
+    if (a0 == 3) {
+        s32 result = func_800AA930(a1);
+        return (~result) & 1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA9C8);
 
@@ -227,9 +317,34 @@ void func_800AAF48(s32 a0) {
     *(s32 *)(result + 0x18) = *(s32 *)(result + 0x1C);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAF70);
+/**
+ * @brief Allocate entry and add signed offset to its field at 0x18.
+ *
+ * Calls func_800AA57C with 0xC8 and a0, then sign-extends a1 to 16 bits
+ * and adds it to the word at offset 0x18 of the returned entry.
+ *
+ * @param a0 Second parameter to func_800AA57C.
+ * @param a1 Signed 16-bit offset to add.
+ */
+void func_800AAF70(s32 a0, s32 a1) {
+    u8 *result = func_800AA57C(0xC8, a0);
+    *(s32 *)(result + 0x18) += (s16)a1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAFB8);
+/**
+ * @brief Look up entity entry by index, call animation init, set active flag.
+ *
+ * Computes D_800EE28C + a0 * 16 to get the entry, calls func_8009AF3C
+ * with entry[4], duration 0x1E, mode 3, size 0x80, and zero flag.
+ * Then sets entry[0xF] to 1.
+ *
+ * @param a0 Entity index (stride 16).
+ */
+void func_800AAFB8(s32 a0) {
+    u8 *entry = (u8 *)((s32)D_800EE28C + a0 * 16);
+    func_8009AF3C(*(s32 *)(entry + 4), 0x1E, 3, 0x80, 0);
+    entry[0xF] = 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB008);
 
@@ -245,7 +360,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB11C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB1A8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB208);
+/**
+ * @brief Allocate entry via func_8009B3D0 and store value at offset 8.
+ *
+ * Calls func_8009B3D0 with func_800AB1A8+4 as data pointer, shifts result
+ * left by 4 (multiply by 16), adds D_800EE28C as base, then stores a0
+ * as halfword at offset 8 of the computed entry.
+ *
+ * @param a0 Value to store as halfword.
+ */
+void func_800AB208(s32 a0) {
+    s32 idx = func_8009B3D0(func_800AB1A8 + 4);
+    u8 *entry = (u8 *)((s32)D_800EE28C + idx * 16);
+    *(s16 *)(entry + 8) = a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB24C);
 

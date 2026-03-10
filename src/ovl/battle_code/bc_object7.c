@@ -34,11 +34,50 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFB5C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFD0C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFF30);
+/**
+ * @brief Look up entity field and call func_80020FBC.
+ *
+ * Computes D_80078E00 + a0 * 20 to find the entity entry, reads
+ * the halfword at offset 0x3EE0 and the word at D_80078E00 + 0xA4,
+ * then calls func_80020FBC with them.
+ *
+ * @param a0 Entity index (stride 20).
+ */
+void func_800AFF30(s32 a0) {
+    s32 base = (s32)D_80078E00;
+    u8 *entry = (u8 *)(base + a0 * 20);
+    func_80020FBC(*(u16 *)(entry + 0x3EE0), *(s32 *)(base + 0xA4));
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFF70);
+/**
+ * @brief Look up entity field and call func_80020FBC (stride 132).
+ *
+ * Subtracts 0x40 from a0, computes D_80078E00 + adjusted * 132,
+ * reads halfword at offset 0xF78 and word at D_80078E00 + 0x88.
+ *
+ * @param a0 Entity index (offset by 0x40, stride 132).
+ */
+void func_800AFF70(s32 a0) {
+    s32 base = (s32)D_80078E00;
+    u8 *entry;
+    a0 -= 0x40;
+    entry = (u8 *)(base + a0 * 132);
+    func_80020FBC(*(u16 *)(entry + 0xF78), *(s32 *)(base + 0x88));
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFFB4);
+/**
+ * @brief Look up entity field and call func_80020FBC (alternate offsets).
+ *
+ * Same pattern as func_800AFF30 but reads halfword at offset 0x17B8
+ * and word at D_80078E00 + 0x8C.
+ *
+ * @param a0 Entity index (stride 20).
+ */
+void func_800AFFB4(s32 a0) {
+    s32 base = (s32)D_80078E00;
+    u8 *entry = (u8 *)(base + a0 * 20);
+    func_80020FBC(*(u16 *)(entry + 0x17B8), *(s32 *)(base + 0x8C));
+}
 
 /**
  * @brief Call func_80020F84 with argument 0xA.

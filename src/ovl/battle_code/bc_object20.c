@@ -5,6 +5,9 @@ extern u8 D_80103050[];
 extern u8 D_80103054[];
 extern u8 D_80103058[];
 extern u8 D_8010305C[];
+extern u8 D_80103238[];
+extern u8 D_80103248[];
+extern u8 D_801032A0[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D8FA4);
 
@@ -30,7 +33,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA3C0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA3F0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA574);
+/**
+ * @brief Read byte at offset 0x27 from current entity table entry.
+ *
+ * Reads D_80103238 to get the current index, computes D_80103248 + index * 44,
+ * and returns the byte at offset 0x27.
+ *
+ * @return Byte value at the computed address.
+ */
+s32 func_800DA574(void) {
+    u8 idx = *(u8 *)D_80103238;
+    u8 *entry = D_80103248 + idx * 44;
+    return entry[0x27];
+}
 
 /**
  * @brief Advance render buffer index and update pointer (buffer A).
@@ -93,7 +108,28 @@ s32 func_800DA718(void) {
     return val == 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA744);
+/**
+ * @brief Find the position of the lowest set bit in a value.
+ *
+ * @param val Bitmask to search.
+ * @return Bit position of the lowest set bit, or 0 if val is 0.
+ */
+s32 func_800DA744(s32 val) {
+    s32 mask = 1;
+    s32 i;
+
+    if (val == 0) {
+        return 0;
+    }
+    i = 0;
+    top:
+    if (val & mask) {
+        return i;
+    }
+    mask <<= 1;
+    i++;
+    goto top;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA778);
 
@@ -131,7 +167,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB248);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DB280);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBC88);
+/**
+ * @brief Store byte at offset 0x25 in current entity table entry.
+ *
+ * Reads D_80103238 to get the current index, computes D_80103248 + index * 44,
+ * and stores a0 as a byte at offset 0x25.
+ *
+ * @param a0 Byte value to store.
+ */
+void func_800DBC88(s32 a0) {
+    u8 idx = *(u8 *)D_80103238;
+    u8 *entry = D_80103248 + idx * 44;
+    entry[0x25] = a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBCBC);
 
@@ -162,7 +210,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC0CC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC334);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC3D0);
+/**
+ * @brief Clear position halfwords in current entity entry and reset state.
+ *
+ * Reads current entity index from D_80103238, computes entry in D_80103248
+ * table (stride 44), clears halfwords at offsets 0x20 and 0x22, then calls
+ * func_800DC334.
+ */
+void func_800DC3D0(void) {
+    u8 idx = *(u8 *)D_80103238;
+    u8 *entry = D_80103248 + idx * 44;
+    *(u16 *)(entry + 0x22) = 0;
+    *(u16 *)(entry + 0x20) = 0;
+    func_800DC334();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC41C);
 

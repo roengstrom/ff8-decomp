@@ -3,6 +3,10 @@
 extern u8 D_80103180[];
 extern u8 D_80103182[];
 extern u8 D_80103188[];
+extern u8 D_80078752[];
+extern u8 D_80103230[];
+void func_800D5C28(s32, void *, s32, s32);
+void func_800DF718(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DD1B0);
 
@@ -18,7 +22,18 @@ void func_800DD208(void) {
     func_800472F4();
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DD238);
+/**
+ * @brief Check if D_80103182 is nonzero, but only if D_80103180 is nonzero.
+ *
+ * @return 1 if both D_80103180 and D_80103182 are nonzero, 0 otherwise.
+ */
+s32 func_800DD238(void) {
+    s32 result = 0;
+    if (*(u8 *)D_80103180 != 0) {
+        result = *(u8 *)D_80103182 != 0;
+    }
+    return result;
+}
 
 /**
  * @brief Return the byte value at D_80103182.
@@ -61,7 +76,15 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DDD70);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DDEE0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DDF6C);
+/**
+ * @brief Reset status: clear D_80103182 and D_80103180.
+ *
+ * Calls func_800DD280(0) to clear D_80103182, then directly clears D_80103180.
+ */
+void func_800DDF6C(void) {
+    func_800DD280(0);
+    *(u8 *)D_80103180 = 0;
+}
 
 /**
  * @brief Return constant 0x20 (32).
@@ -112,9 +135,30 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF6AC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF718);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF794);
+/**
+ * @brief Register callback func_800DF718 and clear D_80103230.
+ *
+ * Calls func_800D5C28 with mode=1, callback=func_800DF718, and two zero args.
+ * Then clears the halfword at D_80103230.
+ */
+void func_800DF794(void) {
+    func_800D5C28(1, func_800DF718, 0, 0);
+    *(u16 *)D_80103230 = 0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF7C8);
+/**
+ * @brief Call three animation functions in sequence.
+ *
+ * Calls func_8002A8B8 with a1, func_8002AA18 with a0, then func_8002A888.
+ *
+ * @param a0 Second animation parameter.
+ * @param a1 First animation parameter.
+ */
+void func_800DF7C8(s32 a0, s32 a1) {
+    func_8002A8B8(a1);
+    func_8002AA18(a0);
+    func_8002A888();
+}
 
 /** @brief Wrapper for func_8002C7BC. */
 void func_800DF804(void) {
@@ -179,7 +223,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800E01C8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800E0214);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800E034C);
+/**
+ * @brief Get pointer to entity data at given index.
+ *
+ * Computes D_80078752 + index * 464 (0x1D0 stride per entity).
+ *
+ * @param index Entity index.
+ * @return Pointer to entity data.
+ */
+u8 *func_800E034C(s32 index) {
+    return D_80078752 + index * 464;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800E0370);
 

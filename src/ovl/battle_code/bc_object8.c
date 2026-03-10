@@ -7,6 +7,7 @@ extern u8 D_8007DADB[];
 extern u8 D_800EE42C[];
 extern u8 D_800EEEC4[];
 extern u8 D_800E3D0C[];
+extern u8 D_800EF4A4[];
 extern u8 D_800EEEC8[];
 extern u8 D_800EEECC[];
 
@@ -87,7 +88,22 @@ void func_800B2024(void) {
     *(u16 *)D_800EE42C = *(u8 *)D_8007DADB;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2038);
+/**
+ * @brief Decrement entity timer at D_800ED148+0x12E4 or trigger completion.
+ *
+ * If the halfword timer at D_800ED148+0x12E4 is zero, calls func_800B1DFC
+ * and func_800B2024 to handle completion. Otherwise decrements the timer.
+ */
+void func_800B2038(void) {
+    s32 base = (s32)D_800ED148;
+    u16 val = *(u16 *)(base + 0x12E4);
+    if (val == 0) {
+        func_800B1DFC();
+        func_800B2024();
+    } else {
+        *(u16 *)(base + 0x12E4) = val - 1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2084);
 
@@ -131,9 +147,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2B00);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2B68);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2C14);
-
+extern u8 D_800EEC68[];
 extern u8 D_800EEDC8[];
+
+/**
+ * @brief Initialize D_800EEDC8 buffer via func_800B2A00 and return it.
+ *
+ * Calls func_800B2A00 with D_800EEDC8, D_800EEC68, size 0x2C, and count 8.
+ *
+ * @return Pointer to D_800EEDC8.
+ */
+u8 *func_800B2C14(void) {
+    u8 *buf = D_800EEDC8;
+    func_800B2A00(buf, D_800EEC68, 0x2C, 8);
+    return buf;
+}
 
 /**
  * @brief Call func_800B2A84 with D_800EEDC8 and the given parameter.
@@ -226,7 +254,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B36E8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3738);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B37B4);
+/**
+ * @brief Initialize SFX entry fields, setting pitch based on address range.
+ *
+ * If the entry pointer is below D_800EF4A4, pitch is cleared to 0.
+ * Otherwise pitch is set to 0x800. Both paths clear volume and rate fields.
+ *
+ * @param entry Pointer to SFX entry structure.
+ */
+void func_800B37B4(u8 *entry) {
+    if ((u32)entry < (u32)D_800EF4A4) {
+        *(u16 *)(entry + 0xE) = 0;
+    } else {
+        *(u16 *)(entry + 0xE) = 0x800;
+    }
+    *(u16 *)(entry + 0xC) = 0;
+    *(u16 *)(entry + 0x10) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B37E0);
 

@@ -9,6 +9,8 @@ extern u8 D_800FB444[];
 extern u8 D_800FB448[];
 extern u8 D_800F1B80[];
 
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F50);
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F68);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CA078);

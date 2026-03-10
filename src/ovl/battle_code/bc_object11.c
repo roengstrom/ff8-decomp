@@ -5,6 +5,7 @@ extern u8 D_800F16A8[];
 extern u8 D_800F16AC[];
 extern u8 D_800EF724[];
 extern u8 D_800F02F4[];
+extern u8 D_800F16BC[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BAEE8);
 
@@ -50,7 +51,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC3B8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC420);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC7D4);
+/**
+ * @brief Process entity data and optional extra pointer.
+ *
+ * Calls func_800BC420 with entity base + 0x60. If the word at
+ * entity + 0x78 is non-null, also calls func_800BC420 with that pointer.
+ *
+ * @param entity Pointer to entity data.
+ */
+void func_800BC7D4(u8 *entity) {
+    func_800BC420(entity + 0x60);
+    if (*(s32 *)(entity + 0x78) != 0) {
+        func_800BC420(*(s32 *)(entity + 0x78));
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC818);
 
@@ -80,7 +94,22 @@ s32 func_800BD040(s32 a0, s32 a1) {
     return *(u8 *)(base + offset);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD06C);
+/**
+ * @brief Call func_800BCA3C for entity fields, optionally for extra pointer.
+ *
+ * If the word at entity + 0x78 is non-null, calls func_800BCA3C with that
+ * pointer and its data at +0xC. Then always calls func_800BCA3C with
+ * entity + 0x60 and entity + 0x6C.
+ *
+ * @param entity Pointer to entity data.
+ */
+void func_800BD06C(u8 *entity) {
+    s32 ptr = *(s32 *)(entity + 0x78);
+    if (ptr != 0) {
+        func_800BCA3C(ptr, ptr + 0xC);
+    }
+    func_800BCA3C((s32)entity + 0x60, (s32)entity + 0x6C);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD0B4);
 
@@ -180,7 +209,20 @@ void func_800BD594(void) {
     *(u16 *)D_800F02F4 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD5B0);
+/**
+ * @brief Initialize entity sound and finalize setup.
+ *
+ * Calls func_800B3534 with a1, func_800C5304 with a0+0x2FE and a1,
+ * then func_8001F5C8.
+ *
+ * @param a0 Entity base pointer.
+ * @param a1 Sound/mode parameter.
+ */
+void func_800BD5B0(s32 a0, s32 a1) {
+    func_800B3534(a1);
+    func_800C5304(a0 + 0x2FE, a1);
+    func_8001F5C8();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD5FC);
 

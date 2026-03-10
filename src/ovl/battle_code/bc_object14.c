@@ -5,6 +5,9 @@ extern u8 D_800FA5F0[];
 extern u8 D_800E662C[];
 extern u8 D_800F1B90[];
 extern u8 D_800FA4F8[];
+extern u8 D_800EF738[];
+void func_800C5B1C(void);
+s32 func_800B853C(void *);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 
@@ -81,7 +84,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5A94);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5B1C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5B88);
+/**
+ * @brief Allocate a handler with func_800C5B1C callback and initialize fields.
+ *
+ * Calls func_800B853C to allocate a handler with func_800C5B1C as callback.
+ * Clears byte at offset 0xD, stores a0 at offset 0x10, returns 8.
+ *
+ * @param a0 Entity pointer to store in handler.
+ * @return Always 8.
+ */
+s32 func_800C5B88(s32 a0) {
+    u8 *handler = (u8 *)func_800B853C(func_800C5B1C);
+    handler[0xD] = 0;
+    *(s32 *)(handler + 0x10) = a0;
+    return 8;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5BC8);
 
