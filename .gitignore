@@ -10,6 +10,7 @@ __pycache__/
 *.d
 permuter/
 tools/wibo
+tools/psyq-obj-parser
 tools/psyq4.1/
 tools/psyq4.3/
 

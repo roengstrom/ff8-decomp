@@ -39,6 +39,8 @@ Automatically tries C source permutations to find a byte-matching decomp. Use th
 
 The permuter modifies variable ordering, casts, expression structure, etc. in `base.c` and compiles each variant, looking for one that matches `target.o`. When it finds a match (score 0), copy the winning C back into the source file.
 
+The compile pipeline uses **ASPSX + psyq-obj-parser** (not maspsx+GAS), so permuter scores match decomp.me. Requires `tools/psyq-obj-parser` (ECOFF→ELF converter, built from [pcsx-redux](https://github.com/grumpycoders/pcsx-redux/blob/main/tools/psyq-obj-parser/psyq-obj-parser.cc)).
+
 ### decomp-index (cross-project search)
 
 Searches 9+ PS1 decompilation projects (~10K functions) for assembly patterns similar to a given function. Use this when stuck on a decomp pattern — other projects may have solved the same idiom.

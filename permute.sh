@@ -208,9 +208,8 @@ DIR="${SCRIPT_DIR}"
 WIBO="${WIBO}"
 PSYQ_DIR="${PSYQ_DIR}"
 CCPSX="${CCPSX_DRIVER}"
-MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
-AS="${AS}"
-ASPSX_VER="${ASPSX_VER}"
+ASPSX="${WIBO} ${PSYQ_DIR}/ASPSX.EXE"
+PSYQ_OBJ_PARSER="${SCRIPT_DIR}/tools/psyq-obj-parser"
 COMPILE_FLAGS="${COMPILE_FLAGS}"
 EOF
 
@@ -220,12 +219,11 @@ cd "${DIR}"
 TMPDIR=$(mktemp -d)
 trap "rm -rf ${TMPDIR}" EXIT
 
-# Compile with CCPSX -S → maspsx → GAS → .o
+# Compile with CCPSX -S → ASPSX → psyq-obj-parser → .o
 SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -Iinclude -DPERMUTER \
     ${COMPILE_FLAGS} "${INPUT}" -o "${TMPDIR}/out.s"
-cat "${TMPDIR}/out.s" | ${MASPSX} --aspsx-version=${ASPSX_VER} --expand-div \
-    --run-assembler -march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude \
-    -o "${OUTPUT}"
+${ASPSX} -q "${TMPDIR}/out.s" -o "${TMPDIR}/out.obj"
+${PSYQ_OBJ_PARSER} "${TMPDIR}/out.obj" -o "${OUTPUT}" > /dev/null 2>&1
 COMPILE_EOF
 
 chmod +x "${FUNC_DIR}/compile.sh"
