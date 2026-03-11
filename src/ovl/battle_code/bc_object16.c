@@ -11,6 +11,10 @@ extern u8 D_800F1B80[];
 extern u8 D_800FB408[];
 
 void func_800CE158(void);
+void func_800A5454(void);
+u32 func_8009A2E0(void);
+void func_800D13CC(void);
+void func_800D5E48(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F50);
 
@@ -121,7 +125,17 @@ void func_800CEBEC(s32 a0) {
     *(u8 *)D_800FB42C = (u8)a0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CEBF8);
+/**
+ * @brief Update D_800FB428 using modular arithmetic.
+ *
+ * Computes val * 125 + 14, then stores the result modulo 32768
+ * back to D_800FB428. Used as a linear congruential random number step.
+ */
+void func_800CEBF8(void) {
+    s32 val = *(s32 *)D_800FB428;
+    val = val * 125 + 14;
+    *(s32 *)D_800FB428 = val % 32768;
+}
 
 /**
  * @brief Wrapper for func_800CEBF8.
@@ -157,8 +171,37 @@ void func_800CEC94(void) {
     *(s32 *)D_800F1B80 &= 0x7FFFFFFF;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CECC8);
+/**
+ * @brief Check scratchpad status bytes and return incremented value.
+ *
+ * If byte at 0x1F8003BD (offset 0x2D from 0x1F800390) is not 2, returns 0.
+ * If it is 2, checks byte at 0x1F8003BB (offset 0x2B): if its signed value
+ * is non-negative, returns that value + 1; otherwise returns 0.
+ *
+ * @return Incremented scratchpad byte value, or 0.
+ */
+s32 func_800CECC8(void) {
+    u8 *spad = (u8 *)0x1F800390;
+    if ((s8)spad[0x2D] != 2) {
+        return 0;
+    }
+    if ((s8)spad[0x2B] >= 0) {
+        return (s8)spad[0x2B] + 1;
+    }
+    return 0;
+}
 
+/**
+ * @brief Set or clear bit 4 of scratchpad control halfword at 0x1F8003AE.
+ *
+ * If a0 is nonzero, sets bit 4 (OR 0x10). If zero, clears bit 4 (AND ~0x10).
+ *
+ * @param a0 Nonzero to set, zero to clear.
+ *
+ * @note Non-matching: CC1PSX folds base 0x1F800390 + offset 0x1E into
+ * 0x1F8003AE (ori 0x03AE + lhu 0) instead of original's separate
+ * ori 0x0390 + lhu 0x1E. Constant address folding cannot be prevented.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED0C);
 
 /**
@@ -257,6 +300,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF308);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF33C);
 
+/**
+ * @brief Process frame update with optional visual effect.
+ *
+ * Returns early if func_8009A2E0 indicates processing is blocked.
+ * Otherwise calls func_800D13CC, clears scratchpad halfword at
+ * gp+0x1C, and conditionally calls func_800D5E48 if bit 6 of the
+ * scratchpad status halfword at gp+0x1E is set. Always calls
+ * func_800A5454.
+ *
+ * @note Non-matching: original uses $gp-relative scratchpad access
+ * (lhu/sh via $gp+offset) which can't be produced with -G0 compilation.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF38C);
 
 /**

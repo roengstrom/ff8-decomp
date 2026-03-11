@@ -94,7 +94,30 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C02D4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C03DC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0780);
+/**
+ * @brief Clear 9 halfwords in a 3x3 structure.
+ *
+ * Outer loop iterates 3 rows (stride 6). Inner loop clears 3 halfwords
+ * per row starting at offset 4 and going backwards.
+ *
+ * @param a0 Base pointer to structure.
+ */
+void func_800C0780(s32 a0) {
+    s32 j = 0;
+outer:
+    {
+        s32 i = 2;
+        s32 ptr = a0 + 4;
+        do {
+            *(s16 *)ptr = 0;
+            i--;
+            ptr -= 2;
+        } while (i >= 0);
+    }
+    j++;
+    a0 += 6;
+    if (j < 3) goto outer;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C07B4);
 

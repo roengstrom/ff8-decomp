@@ -152,7 +152,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6AF4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6C98);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6D88);
+/**
+ * @brief Decode a compressed index value.
+ *
+ * If bit 12 of a0 is set, uses the lower 12 bits as an index into the
+ * D_800F0290 halfword table. Otherwise sign-extends a0 to 16 bits.
+ *
+ * @param a0 Compressed value with bit 12 as format flag.
+ * @return Decoded signed 16-bit value.
+ */
+s16 func_800B6D88(s32 a0) {
+    if (a0 & 0x1000) {
+        return *(s16 *)(D_800F0290 + (a0 & 0xFFF) * 2);
+    }
+    return (s16)a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6DBC);
 

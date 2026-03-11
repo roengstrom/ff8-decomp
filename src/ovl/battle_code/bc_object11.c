@@ -6,6 +6,8 @@ extern u8 D_800F16AC[];
 extern u8 D_800EF724[];
 extern u8 D_800F02F4[];
 extern u8 D_800F16BC[];
+extern u8 D_800F1468[];
+extern u8 D_800F1668[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BAEE8);
 
@@ -126,6 +128,16 @@ void func_800BD230(void) {
     func_800C00D8(*(s32 *)(ptr + 8), *(u8 *)(ptr + 0x10));
 }
 
+/**
+ * @brief Advance the D_800F16A8 data pointer and process the old entry.
+ *
+ * Reads the current pointer from D_800F16A8, advances it by 0x18,
+ * calls func_800BFE1C with the old pointer, then copies the first
+ * byte at the new pointer to D_800F16BC.
+ *
+ * @note Non-matching: CC1PSX computes val+0x18 into v1 then copies val→a0;
+ * target modifies v0 in-place (a0=v0 first, then v0+=0x18).
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD260);
 
 /**
@@ -256,7 +268,36 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD658);
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD77C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD7A8);
+/**
+ * @brief Propagate a flag mask through a linked list of entities.
+ *
+ * Traverses a linked list starting from the pointer at a0+0xC. For each
+ * node with bit 1 set in its status halfword (offset 0x0), ORs the mask
+ * from a0+0x10 into the sub-object's halfword at offset 0x2C. The list
+ * terminates when the next pointer (offset 0x8C) is null or loops back
+ * to the head.
+ *
+ * @param a0 Pointer to entity structure (list head at +0xC, mask at +0x10).
+ * @return Always returns 2.
+ */
+s32 func_800BD7A8(u8 *a0) {
+    u8 *head;
+    u8 *node;
+
+    head = *(u8 **)(a0 + 0xC);
+    node = head;
+    do {
+        if (*(u16 *)node & 2) {
+            u8 *sub = *(u8 **)(node + 0x74);
+            *(u16 *)(sub + 0x2C) |= *(u16 *)(a0 + 0x10);
+        }
+        node = *(u8 **)(node + 0x8C);
+        if (node == head) {
+            break;
+        }
+    } while (node != 0);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD804);
 

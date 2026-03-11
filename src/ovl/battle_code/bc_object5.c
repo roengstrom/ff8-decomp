@@ -9,6 +9,7 @@ void func_800AB1A8(void);
 s32 func_8009B3D0(void *);
 s32 func_800B0398(s32);
 extern u8 D_80078E00[];
+extern u8 D_80077378[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
 
@@ -22,7 +23,30 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8E90);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8EFC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8F98);
+/**
+ * @brief Initialize entity ability fields from the ability table.
+ *
+ * Writes a1 as the ability ID at offset 0x32 of the entity entry
+ * (computed as a0 + a2*5). Looks up ability data in D_80078E00
+ * (offset 0x4A60, stride 8) and copies two bytes to offsets 0x34-0x35.
+ * Clears offset 0x36 and sets offset 0x33 to 1.
+ *
+ * @param a0 Base entity pointer (as integer).
+ * @param a1 Ability ID.
+ * @param a2 Slot index (multiplied by 5 for stride).
+ */
+void func_800A8F98(s32 a0, s32 a1, s32 a2) {
+    s32 entry = a0 + a2 * 5;
+    s32 tbl = (s32)D_80078E00;
+    s32 lookup = a1 * 8;
+    s32 b;
+    *(u8 *)(entry + 0x32) = a1;
+    *(u8 *)(entry + 0x34) = *(u8 *)(tbl + lookup + 0x4A60);
+    b = *(u8 *)(tbl + lookup + 0x4A61);
+    *(u8 *)(entry + 0x36) = 0;
+    *(u8 *)(entry + 0x33) = 1;
+    *(u8 *)(entry + 0x35) = b;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8FDC);
 
@@ -41,6 +65,19 @@ s32 func_800A9064(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9084);
 
+/**
+ * @brief Search D_80077378+0xB44 table for entry matching a given byte.
+ *
+ * Iterates up to 198 entries (stride 2) in D_80077378 at offset 0xB44.
+ * If byte[0] matches a0, returns byte[1]. Returns 0 if not found.
+ *
+ * @param a0 Value to search for.
+ * @return Unsigned byte at offset 1 of matching entry, or 0 if not found.
+ *
+ * @note Non-matching: CC1PSX inverts bne to beq and fills delay slot,
+ * producing 15 instructions instead of 17. Branch direction inversion
+ * in search loop.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9240);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9284);
@@ -51,6 +88,33 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9490);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A94E0);
 
+/**
+ * @brief Search D_800EE9E8 table for a matching byte value.
+ *
+ * Iterates up to 32 entries (stride 5) in D_800EE9E8, comparing
+ * the first byte of each entry to a0.
+ *
+ * @param a0 Value to search for.
+ * @return 1 if found, 0 if not found.
+ *
+ * @note Non-matching: beq delay slot filling. Original puts
+ * `li v0, 1` (return value) in the beq delay slot; compiler puts
+ * `addiu a1, 1` (loop increment) instead, adding an extra `j`
+ * for the not-found path.
+ *
+ * @code
+ * s32 func_800A9568(s32 a0) {
+ *     s32 i = 0;
+ *     u8 *ptr = D_800EE9E8;
+ *     do {
+ *         if (*ptr == a0) return 1;
+ *         i++;
+ *         ptr += 5;
+ *     } while (i < 32);
+ *     return 0;
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9568);
 
 /**
@@ -74,7 +138,23 @@ void func_800A95A0(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A960C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A972C);
+/**
+ * @brief Compute paired lookup results from entity table and return combined.
+ *
+ * Computes D_80078E00 + a0 * 20 as the base address, loads the byte at
+ * offset 0x3EE7, calls func_800B0F9C and func_800B0F7C with it, and
+ * returns the bitwise OR of both results masked to 16 bits.
+ *
+ * @param a0 Entity index (stride 20 in D_80078E00).
+ * @return Combined result from both lookups, masked to u16.
+ */
+s32 func_800A972C(s32 a0) {
+    s32 addr = (s32)D_80078E00;
+    s32 base = addr + a0 * 20;
+    s32 result = func_800B0F9C(*(u8 *)(base + 0x3EE7));
+    result |= func_800B0F7C(*(u8 *)(base + 0x3EE7));
+    return (u16)result;
+}
 
 /**
  * @brief Resolve a 16-bit offset to an address.
@@ -163,7 +243,35 @@ void func_800A9938(void) {
     } while (i < 7);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9970);
+/**
+ * @brief Populate entity alive flags array from status bits.
+ *
+ * Iterates over 7 entities at stride 0xD0 from D_800ED148. For each,
+ * checks bit 8 (0x100) of the flags word at offset 0x8C. Writes 1 to
+ * D_800EEBE0[i] if the bit is set, 0 otherwise. If a0 equals 0xC8,
+ * calls func_800A9938 to toggle the result bits.
+ *
+ * @param a0 Trigger value — if 0xC8, post-processes the flags.
+ */
+void func_800A9970(s32 a0) {
+    s32 i = 0;
+    s32 one = 1;
+    u8 *output = D_800EEBE0;
+    u8 *entity = D_800ED148;
+    do {
+        if (*(s32 *)(entity + 0x8C) & 0x100) {
+            *output = one;
+        } else {
+            *output = 0;
+        }
+        output++;
+        i++;
+        entity += 0xD0;
+    } while (i < 7);
+    if (a0 == 0xC8) {
+        func_800A9938();
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A99E8);
 
@@ -175,7 +283,24 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9C68);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9E08);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9F98);
+/**
+ * @brief Clear D_800EEBE0 entries for inactive entities.
+ *
+ * Loops over 7 entities at D_800ED148 (stride 0xD0). If bit 0 of the
+ * word at offset 0x8C is not set, clears D_800EEBE0[i] to zero.
+ */
+void func_800A9F98(void) {
+    s32 i = 0;
+    s32 arr = (s32)D_800EEBE0;
+    s32 ptr = (s32)D_800ED148;
+    do {
+        if (!(*(s32 *)(ptr + 0x8C) & 1)) {
+            *(u8 *)(i + arr) = 0;
+        }
+        i++;
+        ptr += 0xD0;
+    } while (i < 7);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9FDC);
 
@@ -311,6 +436,22 @@ s32 func_800AA980(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA9C8);
 
+/**
+ * @brief Check battle state flag at D_80077378+0xCD4.
+ *
+ * If a0 == 0, returns 1 when the flag is zero (sltiu pattern).
+ * If a0 == 3, returns 1 when the flag is nonzero (sltu pattern).
+ * Otherwise returns 0.
+ *
+ * @param a0 Query mode (0 or 3).
+ * @return Boolean result based on the flag value.
+ *
+ * @note Non-matching: CC1PSX folds D_80077378+0xCD4 into a single
+ * symbol+constant address (lui/lw, 2 instructions per access) instead
+ * of the original's unfolded lui/addiu/lw (3 instructions). No runtime
+ * component to prevent folding. Also changes delay slot fill and branch
+ * structure.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAA10);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAA50);
@@ -412,7 +553,28 @@ void func_800AB208(s32 a0) {
     *(s16 *)(entry + 8) = a0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB24C);
+/**
+ * @brief Find the first active entity (bit 0 set at offset 0x8C).
+ *
+ * Scans entities 3-6 in the D_800ED148 array (offset 0x270, stride 0xD0).
+ * Returns the index of the first entity whose word at offset 0x8C has bit 0 set.
+ * Returns 0xFF if no active entity is found.
+ *
+ * @return Entity index (3-6), or 0xFF if none active.
+ */
+s32 func_800AB24C(void) {
+    s32 i = 3;
+    s32 base = (s32)D_800ED148;
+    s32 entry = base + 0x270;
+    do {
+        if (!(*(s32 *)(entry + 0x8C) & 1)) {
+            return i;
+        }
+        i++;
+        entry += 0xD0;
+    } while (i < 7);
+    return 0xFF;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB28C);
 

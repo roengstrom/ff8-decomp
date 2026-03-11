@@ -40,10 +40,48 @@ s32 func_800A1760(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BAC4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BB3C);
+/**
+ * @brief Look up entity ability flags with adjusted index.
+ *
+ * Subtracts 0x40 from the index, computes entity pointer from
+ * D_80078E00 + (a0 - 0x40) * 132, reads byte at offset 0xF81,
+ * and combines results of func_800B0F9C and func_800B0F7C.
+ *
+ * @param a0 Entity index (offset by 0x40, stride 132).
+ * @return Combined ability flags (u16).
+ */
+s32 func_8009BB3C(s32 a0) {
+    s32 addr = (s32)D_80078E00;
+    s32 base = addr + (a0 - 0x40) * 132;
+    s32 result = func_800B0F9C(*(u8 *)(base + 0xF81));
+    result |= func_800B0F7C(*(u8 *)(base + 0xF81));
+    return (u16)result;
+}
 
+/**
+ * @brief Search entity table for entry with status byte 0xFA.
+ *
+ * Scans up to 32 entries in D_800ED148 (stride 0x14) checking the byte
+ * at offset 0x5C5 for value 0xFA. Returns the index of the first match.
+ *
+ * @return Index of matching entry (0-31), or 0 if none found.
+ *
+ * @note Non-matching: compiler swaps i/ptr register allocation (a0/v1 vs v1/a0)
+ * and places return value in jr's delay slot instead of beq's delay slot.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BB98);
 
+/**
+ * @brief Look up entity status and store it to D_800EE4C0 buffer.
+ *
+ * Calls func_8009BB98 to get entity index, looks up entry in
+ * D_800ED70C (stride 20), copies entry[0] and D_800ED70C[0xD6A]
+ * into D_800EE4C0 buffer with command byte 0xF9.
+ *
+ * @note Non-matching: compiler omits redundant entry pointer copy
+ * (addu v0,v1,$0) and uses different addressing for D_800EE4C0
+ * (addiu+negative offset vs lui hi + lo), making function 4 bytes shorter.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BBD0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BC28);
@@ -83,6 +121,37 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BF70);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BFE0);
 
+/**
+ * @brief Apply a status flag to an entity if not blocked by guards.
+ *
+ * Performs cascading guard checks against the proposed flag (a3):
+ * - If bit 0x800 in a3 is set and a0 >= 3, rejects (returns 0)
+ * - If bit 0x40 in a1 is set and bit 0x400 in a3 is set, rejects
+ * - If bit 0x2000000 in *a2 is set and bit 0x4000 in a3 is set, rejects
+ * If all checks pass, ORs a3 into *a2 and calls func_800B0574.
+ *
+ * @param a0 Entity index.
+ * @param a1 Entity status byte.
+ * @param a2 Pointer to entity flags word.
+ * @param a3 Proposed status flag to apply.
+ * @return 1 if flag was applied, 0 if rejected.
+ *
+ * @note Non-matching: compiler pre-copies a3→a1 at function entry
+ * (for later func_800B0574(a0, a3) call), adding 2 move instructions
+ * and changing register usage throughout. Original keeps a3 in $a3
+ * until the final call.
+ *
+ * @code
+ * s32 func_8009C090(s32 a0, s32 a1, s32 *a2, s32 a3) {
+ *     if ((a3 & 0x800) && a0 >= 3) return 0;
+ *     if ((a1 & 0x40) && (a3 & 0x400)) return 0;
+ *     if ((*a2 & 0x2000000) && (a3 & 0x4000)) return 0;
+ *     *a2 |= a3;
+ *     func_800B0574(a0, a3);
+ *     return 1;
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009C090);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009C104);
@@ -299,6 +368,21 @@ s32 func_8009F46C(s32 entityIdx) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F4BC);
 
+/**
+ * @brief Test a bit in the battle flag array at D_80077378+0xD0C.
+ *
+ * Computes the word index and bit position from the given bit index,
+ * then tests whether the corresponding bit is set.
+ *
+ * @param bitIndex The bit index to test.
+ * @return 1 if the bit is set, 0 otherwise.
+ *
+ * @note Non-matching: register allocation differs from sister function
+ * func_8009F570. Original copies bitIndex to $v0 and keeps quotient
+ * in $a0; compiler copies to $v1 and puts quotient in $v1. Extra
+ * variables (mask, val) for the read+test pattern change allocation
+ * priority compared to the write pattern.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F52C);
 
 /**
@@ -443,4 +527,26 @@ void func_800A184C(s32 idx, s32 attr, s32 flags) {
     *(s32 *)(entry + 0x188) = flags & 0x30E7FFF;
 }
 
+/**
+ * @brief Check entity attribute bit and call func_800A1760.
+ *
+ * Computes D_80078720 + a0 * 0x1D0, checks bit 0x10 in the
+ * halfword at offset 0x1B2. Calls func_800A1760 with 1 if the
+ * bit is set, or 0 if clear.
+ *
+ * @param a0 Entity index (stride 0x1D0).
+ *
+ * @note Non-matching: compiler converts if/else to sltu boolean
+ * (1 instruction vs 3-instruction branch pattern). Also entry
+ * pointer goes to v0 instead of a1.
+ *
+ * @code
+ * void func_800A1888(s32 a0) {
+ *     u8 *entry = (u8 *)((s32)D_80078720 + a0 * 0x1D0);
+ *     s32 flag = 0;
+ *     if (*(u16 *)(entry + 0x1B2) & 0x10) flag = 1;
+ *     func_800A1760(flag);
+ * }
+ * @endcode
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A1888);

@@ -295,7 +295,33 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D261C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D26C4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D29E8);
+/**
+ * @brief Set default position values for entries matching command type 1.
+ *
+ * Iterates 3 entries at stride 0x6C in D_80103420. For each entry
+ * where byte at offset 0x49 equals 1, stores 0xDA at offset 0x44
+ * and 0x7A at offset 0x46. After the loop, stores 0xD9 and 0x7A
+ * to D_801032F8 offsets 6 and 8.
+ */
+void func_800D29E8(void) {
+    s32 base = (s32)D_801032F8;
+    s32 i = 0;
+    register s32 one asm("$7") = 1;
+    s32 val1 = 0xDA;
+    s32 val2 = 0x7A;
+    s32 tableBase = (s32)D_80103420;
+    s32 p = tableBase + 0x46;
+top:
+    if (*(u8 *)(p + 3) == one) {
+        *(s16 *)(p - 2) = val1;
+        *(s16 *)p = val2;
+    }
+    i++;
+    p += 0x6C;
+    if (i < 3) goto top;
+    *(s16 *)(base + 6) = 0xD9;
+    *(s16 *)(base + 8) = 0x7A;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D2A48);
 

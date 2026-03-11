@@ -30,7 +30,27 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6F10);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6FA8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D7004);
+/**
+ * @brief Count the last nonzero entry position in a 4-element array.
+ *
+ * Iterates 4 entries at stride 4, checking byte[0] of each.
+ * Returns the 1-based index of the last nonzero entry, or 0 if all zero.
+ *
+ * @param a0 Pointer to array of entries (stride 4, first byte checked).
+ * @return 1-based position of last nonzero entry, or 0.
+ */
+s32 func_800D7004(u8 *a0) {
+    s32 count = 0;
+    s32 i = count;
+    do {
+        if (*a0 != 0) {
+            count = i + 1;
+        }
+        i++;
+        a0 += 4;
+    } while (i < 4);
+    return count;
+}
 
 /**
  * @brief Find last non-zero entry index in a 2-element array (stride 4).
@@ -154,6 +174,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8EA4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8EAC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8F54);
+/**
+ * @brief Clear bytes at offsets 0x34+ in D_801032A0 based on count at offset 0x24.
+ *
+ * Reads the count from D_801032A0[0x24]. For i = 0 to count-1, sets
+ * D_801032A0[0x34 + i] to zero.
+ */
+void func_800D8F54(void) {
+    u8 *base = D_801032A0;
+    s32 i = 0;
+    if (base[0x24] != 0) {
+        do {
+            *(u8 *)(base + i + 0x34) = 0;
+            i++;
+        } while (i < base[0x24]);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8F90);

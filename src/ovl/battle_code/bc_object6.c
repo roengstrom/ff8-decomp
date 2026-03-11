@@ -13,6 +13,7 @@ s32 func_800A9888(void);
 void func_8009AD7C(void);
 void func_8009AF14(void *);
 void func_800AD4A4(s32);
+void func_800AE6C0(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
@@ -68,8 +69,37 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACF2C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACF84);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD4A4);
+/**
+ * @brief Set bit 6 of entity flags at 0x8C, call func_800AE6C0, then set
+ * bit 0 of entity halfword at 0x90.
+ *
+ * Computes entity address at D_800ED148 + a0 * 0xD0, sets bit 6 (0x40)
+ * of the word at entity offset 0x8C, calls func_800AE6C0, then sets
+ * bit 0 (0x1) of the halfword at entity offset 0x90.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ */
+void func_800AD4A4(s32 a0) {
+    u8 *entityBase;
+    s32 entity;
+    entityBase = D_800ED148;
+    entity = (s32)entityBase + a0 * 0xD0;
+    *(volatile s32 *)(entity + 0x8C) |= 0x40;
+    func_800AE6C0();
+    *(u16 *)(entity + 0x90) |= 0x1;
+}
 
+/**
+ * @brief Call func_800AD4A4 then clear bit 0 of entity word at offset 0x8C.
+ *
+ * Calls func_800AD4A4 with the entity index, then clears the least
+ * significant bit of the 32-bit word at D_800ED148 + a0 * 208 + 0x8C.
+ *
+ * @param a0 Entity index (stride 208).
+ *
+ * @note Non-matching: after jal, compiler allocates multiply→v1 and
+ * D_800ED148 address→v0, but original has address→v1 and multiply→v0.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD50C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD564);
@@ -123,6 +153,11 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADF08);
  *
  * @param a0 Value to search for.
  * @return Signed byte at offset 1 of matching entry, or 0 if not found.
+ */
+/**
+ * @note Non-matching: CC1PSX inverts bne to beq and fills delay slot,
+ * producing 15 instructions instead of 17. Branch direction inversion
+ * in search loop.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE390);
 
@@ -297,6 +332,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AED9C);
  * Calls func_80048BB8(0) to stop processing, sets D_80082C0F to 5,
  * clears byte at D_800ED148 + 0xC, then calls func_80012D5C and
  * func_800389CC for cleanup.
+ */
+/**
+ * @brief Trigger battle end sequence.
+ *
+ * Calls func_80048BB8(0) to stop processing, sets D_80082C0F to 5,
+ * clears byte at D_800ED148 + 0xC, then calls func_80012D5C and
+ * func_800389CC for cleanup.
+ *
+ * @note Non-matching: CC1PSX swaps v0/v1 for D_80082C0F store
+ * (address→v0, value→v1 vs original value→v0, address→v1),
+ * folds D_800ED148+12 into a single relocation, and fills the
+ * second jal delay slot with the sb store.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEE64);
 

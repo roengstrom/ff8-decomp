@@ -9,22 +9,93 @@ typedef struct {
 
 extern D_800ED148_Type D_800ED148;
 extern u8 D_80078E00[];
+extern u8 D_800786D8[];
 extern u8 D_800EE424[];
 extern u8 D_800EE43C[];
 extern u8 D_800EE462[];
+extern u8 D_800ED158[];
+extern u8 D_80077E58[];
+extern u8 D_80078720[];
 s32 func_800A4798(s32, s32);
 void func_8009B320(s32, u8 *, u8 *);
 void func_800A5948(s32, s32);
+void func_800A18E0(s32);
+void func_800A589C(s32);
+void func_800A6288(s32);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A18E0);
+/**
+ * @brief Clear entity status bits 3 and 2 at offset 0x8C, then call cleanup.
+ *
+ * Computes the entity address at D_800ED148 + a0 * 0xD0. Clears bits 3 and 2
+ * of the word at entity offset 0x8C, then calls func_800A6288.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ */
+void func_800A18E0(s32 a0) {
+    D_800ED148_Type *entityBase;
+    s32 entity;
+    s32 mask;
+    entityBase = &D_800ED148;
+    entity = (s32)entityBase + a0 * 0xD0;
+    mask = ~0x8;
+    *(volatile s32 *)(entity + 0x8C) &= mask;
+    mask = ~0x4;
+    *(volatile s32 *)(entity + 0x8C) &= mask;
+    func_800A6288(a0);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1940);
+/**
+ * @brief Initialize entity and display state for the given index.
+ *
+ * Calls func_800A18E0 and func_800A589C with the entity index,
+ * then clears the word at entity offset 0x24 and copies it to
+ * the display structure at offset 0x184.
+ *
+ * @param a0 Entity index (stride 0xD0 for entity, 0x1D0 for display).
+ */
+void func_800A1940(s32 a0) {
+    u8 *displayBase;
+    D_800ED148_Type *entityBase;
+    s32 display;
+    s32 entity;
+    s32 offset = 0x24;
+    func_800A18E0(a0);
+    func_800A589C(a0);
+    displayBase = D_80078720;
+    entityBase = &D_800ED148;
+    entity = (s32)entityBase + a0 * 0xD0;
+    display = (s32)displayBase + a0 * 0x1D0;
+    *(volatile s32 *)(entity + offset) = 0;
+    *(s32 *)(display + 0x184) = *(volatile s32 *)(entity + 0x24);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A19BC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1AB8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1C98);
+/**
+ * @brief Clear entity field 0x24 and status bits 3 and 2 at offset 0x8C,
+ * then call func_800A589C.
+ *
+ * Computes entity address at D_800ED148 + a0 * 0xD0. Clears the word at
+ * entity offset 0x24, then clears bits 3 and 2 of entity offset 0x8C,
+ * and calls func_800A589C with the entity index.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ */
+void func_800A1C98(s32 a0) {
+    D_800ED148_Type *entityBase;
+    s32 entity;
+    s32 mask;
+    entityBase = &D_800ED148;
+    entity = (s32)entityBase + a0 * 0xD0;
+    *(volatile s32 *)(entity + 0x24) = 0;
+    mask = ~0x8;
+    *(volatile s32 *)(entity + 0x8C) &= mask;
+    mask = ~0x4;
+    *(volatile s32 *)(entity + 0x8C) &= mask;
+    func_800A589C(a0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1CFC);
 
@@ -103,7 +174,27 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A26A0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2724);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2CE4);
+/**
+ * @brief Check battle status flags and optionally store adjusted value.
+ *
+ * Reads D_800786D8[0] and tests bit flags. If bit 0 is clear, returns 0.
+ * If bit 1 is set, returns 1. Otherwise, stores D_800786D8[0x2D] + 2
+ * into *a0 as a halfword and returns 2.
+ *
+ * @param a0 Pointer to halfword destination (written only if returning 2).
+ * @return 0, 1, or 2 depending on flag state.
+ */
+s32 func_800A2CE4(s16 *a0) {
+    u8 byte = D_800786D8[0];
+    if (byte & 1) {
+        if (byte & 2) {
+            return 1;
+        }
+        *a0 = D_800786D8[0x2D] + 2;
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2D24);
 
@@ -368,6 +459,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A53C4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5454);
 
+/**
+ * @brief Store a timer value into an entity entry at D_800ED158.
+ *
+ * Computes (D_80077E58[0] + 1) * 4000, stores it at entry offset 0x10,
+ * and clears offset 0x14. The entry is at D_800ED158 + a0 * 208.
+ *
+ * @param a0 Entity index (stride 208).
+ *
+ * @note Non-matching: CC1PSX fills jr ra delay slot with sw v0,0x10(v1)
+ * and moves sw $zero,0x14(v1) before the multiply chain, producing 19
+ * instructions instead of target's 20. Branch delay slot filling cannot
+ * be prevented from C.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A554C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A559C);

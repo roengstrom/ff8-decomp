@@ -8,6 +8,11 @@ extern u8 D_80103308[];
 extern u8 D_80077E5C[];
 extern u8 D_80078842[];
 extern u8 D_8007873E[];
+void func_800D5C28(s32, s32, s32, s32);
+void func_800D33F8(void);
+void func_800D3A00(void);
+void func_800A5F24(s32, s32);
+void func_800A2360(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D325C);
 
@@ -102,7 +107,24 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D37D8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3A00);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3BB8);
+/**
+ * @brief Initialize D_80103240 struct and register task handler.
+ *
+ * Zeros all fields of the D_80103240 state struct, then registers
+ * func_800D33F8 and func_800D3A00 as task handlers via func_800D5C28,
+ * and calls func_800D33F8 to start processing.
+ */
+void func_800D3BB8(void) {
+    s32 base = (s32)D_80103240;
+    *(u8 *)(base + 7) = 0;
+    *(u8 *)(base + 6) = 0;
+    *(u16 *)(base) = 0;
+    *(u16 *)(base + 2) = 0;
+    *(u8 *)(base + 6) = 0;
+    *(u16 *)(base + 4) = 0;
+    func_800D5C28(5, (s32)func_800D33F8, (s32)func_800D3A00, 0);
+    func_800D33F8();
+}
 
 /**
  * @brief Compute pointer into entity table from D_80103308 fields.
@@ -111,6 +133,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3BB8);
  * then returns D_8007873E + entity_index * 464 + sub_index * 4.
  *
  * @return Computed entity field pointer.
+ */
+/**
+ * @brief Get entity field pointer from D_80103308 config.
+ *
+ * Reads the signed entity index from D_80103308+0x14 and the unsigned
+ * sub-field index from D_80103308+0x13. Returns pointer into
+ * D_8007873E at index * 464 + sub * 4.
+ *
+ * @return Pointer to entity field (as integer).
+ *
+ * @note Non-matching: CC1PSX scheduler moves `sll a0, a0, 2` (sub*4)
+ * before `lui v1, %hi(D_8007873E)`, reordering the addition as
+ * (sub*4 + base) + idx*464 vs original (base + idx*464) + sub*4.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C14);
 
@@ -247,16 +282,43 @@ s32 func_800D4110(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D4134);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D422C);
+/**
+ * @brief Clear 21 bytes in a structure (offsets 0x54-0x68).
+ *
+ * Zeroes 16 bytes at a0+0x54, 4 bytes at a0+0x64, and 1 byte at a0+0x68
+ * using two countdown loops and a final store.
+ *
+ * @param a0 Base pointer to structure.
+ */
+void func_800D422C(s32 a0) {
+    register s32 i asm("$2") = 0xF;
+    register s32 ptr asm("$3") = a0 + 0xF;
+    do {
+        *(u8 *)(ptr + 0x54) = 0;
+        i--;
+        ptr--;
+    } while (i >= 0);
+    i = 3;
+    ptr = a0 + 3;
+    do {
+        *(u8 *)(ptr + 0x64) = 0;
+        i--;
+        ptr--;
+    } while (i >= 0);
+    *(u8 *)(a0 + 0x68) = 0;
+}
 
 /**
  * @brief Conditionally call func_800D422C based on D_80077E5C flag.
  *
- * If bit 2 of the halfword at D_80077E5C is clear, calls func_800D422C.
+ * If bit 2 of the halfword at D_80077E5C is clear, calls func_800D422C
+ * with the passed pointer.
+ *
+ * @param a0 Base pointer passed through to func_800D422C.
  */
-void func_800D4264(void) {
+void func_800D4264(s32 a0) {
     if ((*(u16 *)D_80077E5C & 4) == 0) {
-        func_800D422C();
+        func_800D422C(a0);
     }
 }
 
@@ -455,7 +517,23 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D60F4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6294);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D6310);
+/**
+ * @brief Clear all 9 display slots and reset scratchpad bit 5.
+ *
+ * Calls func_800D5C28 with (i, 0, 0, 0) for i from 8 down to 0,
+ * then clears bit 5 of the scratchpad status halfword at 0x1F8003AE.
+ */
+void func_800D6310(void) {
+    s32 i = 8;
+top:
+    func_800D5C28(i, 0, 0, 0);
+    i--;
+    if (i >= 0) goto top;
+    {
+        s32 scratch = 0x1F800390;
+        *(u16 *)(scratch + 0x1E) &= 0xFFDF;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D636C);
 

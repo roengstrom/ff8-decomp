@@ -6,6 +6,9 @@ extern u8 D_800F0830[];
 extern u8 D_800F1668[];
 extern u8 D_800E3DA8[];
 extern u8 D_800EF738[];
+extern u8 D_800F05F0[];
+extern u8 D_800F0854[];
+extern u8 D_80170000[];
 s32 *func_800B88A0(void);
 void func_800B8BEC(void);
 void func_800B9078(void);
@@ -264,7 +267,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9078);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9114);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9174);
+/**
+ * @brief Update max frame count and recompute buffer address.
+ *
+ * Reads the word at a0-4. If it exceeds D_800F0854, updates D_800F0854
+ * and recomputes D_800F085C as D_80170000 minus the new value times 8.
+ *
+ * @param a0 Pointer (the word at a0-4 is the frame count).
+ */
+void func_800B9174(u8 *a0) {
+    s32 val = *(s32 *)(a0 - 4);
+    if (*(u16 *)D_800F0854 < val) {
+        *(u16 *)D_800F0854 = val;
+        *(s32 *)D_800F085C = (s32)D_80170000 - *(u16 *)D_800F0854 * 8;
+    }
+}
 
 /**
  * @brief Align a size up to 4 bytes and store to D_800F082C.
@@ -284,6 +301,18 @@ s32 func_800B91CC(void) {
     return *(s32 *)D_800F085C - *(s32 *)D_800F082C;
 }
 
+/**
+ * @brief Find the first free slot in D_800F05F0 array.
+ *
+ * Scans 11 entries at stride 0x34 in D_800F05F0. Returns a pointer to the
+ * first entry where byte at offset 1 is zero, or NULL if all occupied.
+ *
+ * @return Pointer to free slot, or 0 if none found.
+ *
+ * @note Non-matching: CC1PSX puts loop increment in beqz delay slot
+ * instead of pointer copy, generating a separate return block
+ * (16 instructions vs 14 in original).
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B91E4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B921C);
@@ -327,7 +356,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAD28);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAE08);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAE28);
+/**
+ * @brief Clear the active byte of entries matching a given ID.
+ *
+ * Iterates 11 entries at stride 0x34 from D_800F05F0. If an entry's
+ * first byte matches a0 or a0 + 0x1000, clears byte[1] of that entry.
+ *
+ * @param a0 ID to match against (also checks a0 + 0x1000).
+ */
+void func_800BAE28(s32 a0) {
+    u8 *base = (u8 *)(s32)D_800F05F0;
+    s32 i = 0;
+    s32 match2 = a0 + 0x1000;
+    do {
+        if (base[0] == a0 || base[0] == match2) {
+            base[1] = 0;
+        }
+        i++;
+        base += 0x34;
+    } while (i < 11);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800BAE6C);
 

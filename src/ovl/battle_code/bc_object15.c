@@ -99,6 +99,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9374);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9424);
 
+/**
+ * @brief Look up a pointer from D_800EBF24 array with fallback.
+ *
+ * Loads the pointer at D_800EBF24[a0]. If the signed byte at offset 3
+ * of that pointer is non-zero, returns D_800EBF24[0] as fallback.
+ * Otherwise returns the indexed pointer.
+ *
+ * @param a0 Array index.
+ * @return Pointer from D_800EBF24[a0] or D_800EBF24[0] on fallback.
+ *
+ * @note Non-matching: CC1PSX puts nop in beqz delay slot instead of
+ * moving return value there; uses lw a0 + move v0,a0 instead of
+ * direct lw v0. 14 instructions vs target's 13.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C94B8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C94EC);

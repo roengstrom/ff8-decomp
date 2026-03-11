@@ -6,6 +6,7 @@ extern u8 D_80078720[];
 extern u8 D_80078E00[];
 extern u8 D_800EE38C[];
 extern u8 D_800EE9B3[];
+extern u8 D_80077378[];
 s32 func_8009B15C(void);
 
 /**
@@ -309,9 +310,41 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A71C0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7518);
 
+/**
+ * @brief Test a bit in the D_80077378 bitfield at offset 0xD04.
+ *
+ * If a0 is nonzero, computes bit position (a0 - 1), divides by 32 to
+ * find the word index and remainder, then tests that bit in the bitfield
+ * at D_80077378 + word_index * 4 + 0xD04.
+ *
+ * @param a0 1-based bit position to test. If 0, returns undefined.
+ * @return 1 if the bit is set, 0 if clear.
+ */
+/**
+ * @note Non-matching: CC1PSX fills beqz delay slot with addiu v0,a0,-1
+ * (target has nop), and allocates quotient to v1 (in-place sra) instead
+ * of target's a0.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A774C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A779C);
+/**
+ * @brief Set a bit in the D_80077378 bitfield at offset 0xD04.
+ *
+ * If a0 is nonzero, computes bit position (a0 - 1), divides by 32 to
+ * find the word index and remainder, then sets that bit in the bitfield
+ * at D_80077378 + word_index * 4 + 0xD04.
+ *
+ * @param a0 1-based bit position to set. If 0, does nothing.
+ */
+void func_800A779C(s32 a0) {
+    if (a0 != 0) {
+        s32 val = a0 - 1;
+        s32 q = val / 32;
+        s32 r = val - q * 32;
+        s32 base = (s32)D_80077378;
+        *(s32 *)(base + q * 4 + 0xD04) |= (1 << r);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A77E8);
 

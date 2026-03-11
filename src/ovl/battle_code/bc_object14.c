@@ -126,7 +126,29 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6198);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C61E8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C624C);
+/**
+ * @brief Update animation frame counter with optional palette reset.
+ *
+ * If the frame counter (byte at +6) is less than 2, resets the palette
+ * via func_800408A4(0xFF, 0xFF, 0xFF), then sets up a palette entry via
+ * func_80040918 with the counter shifted left by 11, and clears byte +0x2B.
+ * Then, if the counter is non-zero, decrements it. If the counter is zero,
+ * generates a new random value in the range [1, 15] using func_80023D04.
+ *
+ * @param a0 Pointer to entity/animation state structure.
+ */
+void func_800C624C(u8 *a0) {
+    if (a0[6] < 2) {
+        func_800408A4(0xFF, 0xFF, 0xFF);
+        func_80040918((s32)a0 + 0x28, (a0[6] + 1) << 11, (s32)a0 + 0x28);
+        a0[0x2B] = 0;
+    }
+    if (a0[6] != 0) {
+        a0[6] = a0[6] - 1;
+    } else {
+        a0[6] = (u32)func_80023D04() % 15 + 1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C62EC);
 
@@ -204,7 +226,28 @@ void func_800C6D3C(s32 a0, s32 a1, s32 a2, s32 a3) {
     *(u16 *)(entry + 0x1C) = a3;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6DB4);
+/**
+ * @brief Write a halfword and a word to 4 entries of D_800EF738 table.
+ *
+ * Stores a0 as a halfword at offset 2 and a1 as a word at offset 0x28
+ * for 4 consecutive entries at stride 0x2C.
+ *
+ * @param a0 Halfword value to store at each entry's offset 2.
+ * @param a1 Word value to store at each entry's offset 0x28.
+ */
+void func_800C6DB4(s32 a0, s32 a1) {
+    s32 i = 0;
+    s32 base = (s32)D_800EF738;
+    s32 base2 = base + 0x28;
+    s32 ptr = base;
+    do {
+        *(s16 *)(ptr + 2) = a0;
+        *(s32 *)base2 = a1;
+        base2 += 0x2C;
+        i++;
+        ptr += 0x2C;
+    } while (i < 4);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6DEC);
 

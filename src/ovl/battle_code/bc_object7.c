@@ -60,6 +60,15 @@ s32 func_800AF988(s32 a0) {
     return *(u8 *)(ptr + 0x14F);
 }
 
+/**
+ * @brief Clamp a 16-bit unsigned value to a maximum of 60000.
+ *
+ * @param a0 Input value (low 16 bits used).
+ * @return min(a0 & 0xFFFF, 60000).
+ *
+ * @note Non-matching: CC1PSX schedules move v1,v0 before andi a0,0xFFFF
+ * (fills slot after li v0 with dependent copy), original has andi first.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF9C4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF9E8);
@@ -187,7 +196,38 @@ void func_800B01E8(u8 *dst, u8 *src) {
     } while (ch != 0);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0204);
+/**
+ * @brief Copy string with optional terminator replacement.
+ *
+ * Copies bytes from src to dst until a null byte is found, counting
+ * the number of non-null bytes copied (added to initial len). After
+ * copying, if the terminator byte (masked to 8 bits) equals 7, returns
+ * the length. Otherwise, overwrites the null with the terminator byte
+ * and returns length + 1.
+ *
+ * @param a0 Destination buffer.
+ * @param a1 Source buffer (as integer).
+ * @param a2 Initial length counter.
+ * @param a3 Terminator byte (only low 8 bits used).
+ * @return Final length of written data.
+ */
+s32 func_800B0204(u8 *a0, s32 a1, s32 a2, s32 a3) {
+    u8 ch;
+    goto mid;
+copy:
+    a2++;
+mid:
+    ch = *(u8 *)a1;
+    a1++;
+    *a0 = ch;
+    a0++;
+    if (ch) goto copy;
+    if ((u8)a3 == 7) {
+        return a2;
+    }
+    *(a0 - 1) = (u8)a3;
+    return a2 + 1;
+}
 
 /**
  * @brief Build a string in D_800EEBE8 from two parts using func_800B0204.
@@ -396,7 +436,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0F9C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B1050);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B1104);
+/**
+ * @brief Compute combined ability flags for entity at given index.
+ *
+ * Computes entity address at D_80078E00 + a0 * 60, reads the ability
+ * byte at entity offset 0x226, passes it to func_800B1050 and
+ * func_800B0F7C, and returns the OR of both results masked to 16 bits.
+ *
+ * @param a0 Entity index (stride 60).
+ * @return Combined 16-bit ability flags.
+ */
+u16 func_800B1104(s32 a0) {
+    u8 *base;
+    u8 *entity;
+    s32 result;
+    base = D_80078E00;
+    entity = base + a0 * 60;
+    result = func_800B1050(entity[0x226]);
+    result |= func_800B0F7C(entity[0x226]);
+    return (u16)result;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B115C);
 

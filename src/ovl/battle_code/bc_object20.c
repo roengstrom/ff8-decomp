@@ -10,8 +10,10 @@ extern u8 D_80103248[];
 extern u8 D_801032A0[];
 extern u8 D_800EF2D0[];
 extern u8 D_80103070[];
+extern u8 D_801030F0[];
 extern u8 D_80103160[];
 extern u8 D_80103162[];
+extern u8 D_800EF724[];
 void func_800B3960(s32, s32, s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800D8FA4);
@@ -215,7 +217,29 @@ void func_800DBC88(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBCBC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBF50);
+/**
+ * @brief Decode mode bits from a1 and store type and raw value.
+ *
+ * Stores a1 as byte at a0[4], then computes a type value based on
+ * bits 2-3 and bit 6 of a1, storing the result at a0[0xB].
+ * Type = 3 if bits 2-3 == 1, type = 1 if bit 6 set, type = 2 otherwise.
+ *
+ * @param a0 Destination entry pointer.
+ * @param a1 Source value with encoded mode bits.
+ */
+void func_800DBF50(u8 *a0, s32 a1) {
+    s32 bits = (u32)(a1 & 0xC) >> 2;
+    s32 type;
+    a0[4] = a1;
+    if (bits == 1) {
+        type = 3;
+    } else if (a1 & 0x40) {
+        type = 1;
+    } else {
+        type = 2;
+    }
+    a0[0xB] = type;
+}
 
 /**
  * @brief Select a mask from a1 based on bit 6 of a0.
@@ -234,9 +258,45 @@ s32 func_800DBF84(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBF9C);
 
+/**
+ * @brief Apply mode mask and find matching bit position.
+ *
+ * Calls func_800DBF84 to select a mask based on a0's mode bit,
+ * then calls func_800DAD34 to find a matching bit in a1 using
+ * that mask. Returns the result truncated to 16 bits.
+ *
+ * @param a0 Mode selector (bit 6 tested, low byte used).
+ * @param a1 Value to search (16-bit).
+ * @param a2 Mask source value (16-bit).
+ * @return Matched bit position, masked to 16 bits.
+ *
+ * @note Non-matching: CC1PSX eliminates s1 (saves only a1→s0, uses
+ * v0 directly for return), producing 16 instructions (0x40) vs
+ * target's 20 (0x50) with two s-regs.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC030);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC080);
+/**
+ * @brief Initialize 7 entries of D_801030F0 table (stride 0x10).
+ *
+ * For each entry: clears word at +0, clears bytes at +0xD and +0xE,
+ * stores -128 as halfwords at +0x4, +0x6, +0x8, and +0xA.
+ */
+void func_800DC080(void) {
+    s32 base = (s32)D_801030F0;
+    s32 i = 0;
+    do {
+        i++;
+        *(s32 *)base = 0;
+        *(u8 *)(base + 0xD) = 0;
+        *(u8 *)(base + 0xE) = 0;
+        *(s16 *)(base + 0x8) = -0x80;
+        *(s16 *)(base + 0xA) = -0x80;
+        *(s16 *)(base + 0x4) = -0x80;
+        *(s16 *)(base + 0x6) = -0x80;
+        base += 0x10;
+    } while (i < 7);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC0CC);
 
@@ -311,7 +371,28 @@ void func_800DC928(void) {
     func_800B6A9C();
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC948);
+/**
+ * @brief Check if entity at index has an active flag bit and status bit set.
+ *
+ * Tests bit a0 of D_800EF724 flag halfword. If set, checks bit 1 of the
+ * entity's first halfword in D_800EF2D0 table (stride 156).
+ *
+ * @param a0 Entity index (also used as bit position in flags).
+ * @return 1 if both bits are set, 0 otherwise.
+ */
+s32 func_800DC948(s32 a0) {
+    s32 base = D_800EF2D0;
+    s32 offset = a0 * 156;
+    s32 flags;
+    base += offset;
+    flags = *(u16 *)D_800EF724;
+    if ((flags >> a0) & 1) {
+        if (*(u16 *)base & 2) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 /**
  * @brief Compute entity entry from index and call func_800B3960.
