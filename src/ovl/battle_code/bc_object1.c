@@ -1149,24 +1149,18 @@ s32 func_8009B390(u8 *a0, s32 a1) {
  * Allocates a slot in D_800EE24B (16 entries, head at +0x1F3),
  * multiplies slot index by 16 for the data offset, stores the
  * callback pointer, and returns the slot index as s16.
- * @param a0 Callback function pointer.
- * @return Allocated slot index (sign-extended to s32).
  *
- * @note Non-matching: addu operand order. GCC produces
- * `addu s0,v1,s0` but original has `addu s0,s0,v1`.
- * Single instruction difference (4 bytes).
- *
- * @code
- * s32 func_8009B3D0(s32 a0) {
- *     s32 base = (s32)D_800EE24B;
- *     s32 slot = func_8009B2A4((u8 *)base, (u8 *)(base + 0x1F3), 0x10);
- *     base += slot << 4;
- *     *(s32 *)(base + 0x41) = a0;
- *     return (s16)slot;
- * }
- * @endcode
+ * @param arg0 Callback function pointer.
+ * @return Allocated slot index (sign-extended to s16).
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B3D0);
+s32 func_8009B3D0(s32 arg0) {
+    s32 base;
+    unsigned long slot;
+    base = (s32)D_800EE24B;
+    slot = func_8009B2A4((u8 *)base, (u8 *)(base + 0x1F3), 0x10);
+    *((s32 *)((((s32)D_800EE24B) + ((2 * slot) * 8)) + 0x41)) = arg0;
+    return (s16)slot;
+}
 
 /**
  * @brief Reset the task queue and associated data.
