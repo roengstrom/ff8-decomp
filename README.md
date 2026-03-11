@@ -69,9 +69,9 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `field_engine.bin` | 1 | 395 | 396 | 0.3% |
 | `battle_engine.bin` | 1 | 385 | 386 | 0.3% |
 | `battle_render.bin` | 1 | 15 | 16 | 6.2% |
-| `battle_code.bin` | 409 | 608 | 1017 | 40.2% |
+| `battle_code.bin` | 447 | 570 | 1017 | 44.0% |
 | `field_engine_alt.bin` | 4 | 283 | 287 | 1.4% |
-| **Total** | **1160** | **2683** | **3843** | **30.2%** |
+| **Total** | **1198** | **2645** | **3843** | **31.2%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
 
