@@ -107,7 +107,8 @@ void func_8009B924(s32, s32, s32);
 s32 func_8009BA5C(s32, s32);
 
 void func_800393C8(void);
-void func_80042634(s32);
+s32 func_80042634(s32);
+void func_8009B6D0(s32, s32);
 void func_800A30E4(void);
 void func_800A6288(s32);
 void func_800A62B0(void);
@@ -161,10 +162,16 @@ void func_800D0F74(void);
  *
  * Sets up entity state array, initializes task queue, shuffle buffer,
  * sound channels, animation entities, and queues initial battle commands.
+ * Initializes D_800ED148 fields and D_80082C08 shuffle buffer, chains
+ * func_80042634 -> func_8009B198 -> func_800B25E4, loads D_800EDE24 entity
+ * pointer, calls func_8009B6D0 with D_80082C08 halfword, adjusts entity
+ * by -0xCDC, conditionally merges status bits from entity+0xCDD into
+ * D_80082C08+2, then calls 14 setup functions ending with func_8009AF14.
  *
- * @note Non-matching: prologue saves s1 before s0 (s0 in jal delay slot),
- * plus complex mid-function scheduling with D_800EDE24/D_800ED148 address
- * reuse across multiple code paths. Also maspsx fills epilogue delay slots.
+ * @note Non-matching: 11/94 instruction diffs. Init block lui/li ordering
+ * (3 diffs), maspsx vs ASPSX delay slot filling (3 diffs), else branch
+ * load scheduling — CC1PSX orders by base register number s0<s1 but
+ * target has s1-based lhu first (5 diffs).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_80099FE8);
 
@@ -194,30 +201,23 @@ void func_8009A160(void) {
  *
  * Sets animation flag 0x12EA, calls victory/result handlers,
  * initializes idle animations, and sets entity state to 4.
+ * Volatile base pointer prevents maspsx from moving sb stores
+ * into jal delay slots.
  */
-/**
- * @note Non-matching: maspsx fills `lw ra` load delay slot with
- * `sw v0, 4(s0)` and `jr ra` branch delay slot with `addiu sp`,
- * producing a FILLED epilogue. Original has UNFILLED with nops.
- *
- * Best attempt:
- * @code
- * void func_8009A1E0(void) {
- *     s32 base = (s32)D_800ED148;
- *     s32 one = 1;
- *     *(u8 *)(base + 0x12EA) = one;
- *     func_800AE6C0();
- *     func_800A97D4();
- *     func_8009A254();
- *     *(u8 *)(base + 0x5C2) = one;
- *     func_800B1ACC();
- *     func_800B2084();
- *     func_800B2024();
- *     *(s32 *)(base + 0x4) = 4;
- * }
- * @endcode
- */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A1E0);
+void func_8009A1E0(void) {
+    s32 base = (s32)D_800ED148;
+    s32 one = 1;
+
+    *(volatile u8 *)(base + 0x12EA) = one;
+    func_800AE6C0();
+    func_800A97D4();
+    func_8009A254();
+    *(volatile u8 *)(base + 0x5C2) = one;
+    func_800B1ACC();
+    func_800B2084();
+    func_800B2024();
+    *(volatile s32 *)(base + 0x4) = 4;
+}
 
 /**
  * @brief Initialize idle animations for all active entities.
@@ -1151,6 +1151,20 @@ s32 func_8009B390(u8 *a0, s32 a1) {
  * callback pointer, and returns the slot index as s16.
  * @param a0 Callback function pointer.
  * @return Allocated slot index (sign-extended to s32).
+ *
+ * @note Non-matching: addu operand order. GCC produces
+ * `addu s0,v1,s0` but original has `addu s0,s0,v1`.
+ * Single instruction difference (4 bytes).
+ *
+ * @code
+ * s32 func_8009B3D0(s32 a0) {
+ *     s32 base = (s32)D_800EE24B;
+ *     s32 slot = func_8009B2A4((u8 *)base, (u8 *)(base + 0x1F3), 0x10);
+ *     base += slot << 4;
+ *     *(s32 *)(base + 0x41) = a0;
+ *     return (s16)slot;
+ * }
+ * @endcode
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B3D0);
 

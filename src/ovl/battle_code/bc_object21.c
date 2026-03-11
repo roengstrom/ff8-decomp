@@ -10,7 +10,20 @@ extern u8 D_80103340[];
 void func_800D5C28(s32, void *, s32, s32);
 void func_800DF718(void);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DD1B0);
+/**
+ * @brief Disable display, store a0 into indexed array, increment index, enable display.
+ *
+ * Stores the parameter as a byte into D_80103184 at the index given by
+ * D_80103188, increments the index, then re-enables display.
+ *
+ * @param a0 Byte value to store in the array.
+ */
+void func_800DD1B0(s32 a0) {
+    func_800472E4();
+    *(u8 *)(D_80103184 + *(volatile u8 *)D_80103188) = (u8)a0;
+    *(volatile u8 *)D_80103188 = *(volatile u8 *)D_80103188 + 1;
+    func_800472F4();
+}
 
 /**
  * @brief Disable display, clear D_80103188, then enable display.

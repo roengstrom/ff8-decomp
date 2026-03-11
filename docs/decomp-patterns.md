@@ -616,5 +616,10 @@ f(val != 0);
 - `volatile u16` for globals forces `lhu + sll + sra` sign extension and prevents CSE
 - `volatile u8` forces reload on every access
 - Scope `s32` variables to if-blocks to control register allocation in else-path
+- `volatile` on a struct prevents maspsx from moving stores into jal delay slots.
+  When the original has `sb` before a `jal` with a `nop` delay slot, but the compiled
+  output moves the `sb` into the delay slot, declaring the struct as `extern volatile`
+  forces the store to stay in place — volatile stores cannot be reordered past calls.
 
 *Example: func_8001167C — D_8005F14C, g_bufferIndex, g_fadeMode*
+*Example: func_8009A1E0 — `extern volatile Foo D_800ED148` prevents sb from filling jal delay slots*
