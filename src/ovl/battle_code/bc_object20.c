@@ -362,7 +362,28 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC798);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC820);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC8B8);
+/**
+ * @brief Initialize action entry and dispatch effect.
+ *
+ * Reads the current entity index from D_80103238, computes the entry
+ * in D_80103248 at that index (stride 44). Calls func_800DC41C with
+ * the provided arguments (masking a1 and a2 to bytes), sets the active
+ * flag at entry + 0x28 to 1, then calls func_800DB280.
+ *
+ * @param a0 First parameter (passed through).
+ * @param a1 Second parameter (masked to u8).
+ * @param a2 Third parameter (masked to u8).
+ * @param a3 Fourth parameter (passed through).
+ * @param arg5 Fifth parameter (stack, passed through).
+ * @param arg6 Sixth parameter (stack, passed through).
+ */
+void func_800DC8B8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    u8 idx = *(u8 *)D_80103238;
+    u8 *entry = D_80103248 + idx * 44;
+    func_800DC41C(a0, a1 & 0xFF, a2 & 0xFF, a3, arg5, arg6);
+    entry[0x28] = 1;
+    func_800DB280();
+}
 
 /**
  * @brief Wrapper for func_800B6A9C.

@@ -299,6 +299,21 @@ s32 func_800B054C(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0574);
 
+/**
+ * @brief Store animation reset value at entity's bit position offset.
+ *
+ * Calls func_800B054C to find the lowest set bit in a1. If the result
+ * is less than 14, computes the entity at D_800ED148 + a0 * 208 and
+ * stores -0x457 (0xFBA9) as a signed halfword at entity + bitPos * 2 + 0x64.
+ *
+ * @param a0 Entity index (stride 208).
+ * @param a1 Bitmask to find lowest set bit.
+ *
+ * @note Non-matching: CC1PSX fills beqz delay slot with first sll of the
+ * multiply chain (sll v0,s0,1) instead of lui v1,%hi(D_800ED148). Original
+ * interleaves the D_800ED148 address load in the delay slot, then follows
+ * with the multiply. Same instruction count, different scheduling.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0600);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0668);

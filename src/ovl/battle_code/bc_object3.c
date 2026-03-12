@@ -17,11 +17,14 @@ extern u8 D_800ED158[];
 extern u8 D_80077E58[];
 extern u8 D_80078720[];
 s32 func_800A4798(s32, s32);
+s32 func_8009B79C(s32, s32);
 void func_8009B320(s32, u8 *, u8 *);
 void func_800A5948(s32, s32);
 void func_800A18E0(s32);
 void func_800A589C(s32);
 void func_800A6288(s32);
+void func_800DEAA4(s32, s32);
+void func_800E1880(s32, s32);
 
 /**
  * @brief Clear entity status bits 3 and 2 at offset 0x8C, then call cleanup.
@@ -131,7 +134,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2150);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A21B0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2310);
+/**
+ * @brief Check if entity ability slot is available.
+ *
+ * Loads the ability index from entity[0xDA] at D_800ED148 + a0 * 0xD0,
+ * computes ability_index * 60, and calls func_8009B79C to check
+ * availability with mask 0xFF.
+ *
+ * @param a0 Entity slot index.
+ * @return 1 if ability slot is available, 0 otherwise.
+ */
+s32 func_800A2310(s32 a0) {
+    u8 *base = (u8 *)&D_800ED148;
+    u8 *entity = base + a0 * 0xD0;
+    u8 val = entity[0xDA];
+    return func_8009B79C((s32)val * 60, 0xFF) != 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2360);
 
@@ -221,8 +239,41 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2EB8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2EF8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2F54);
+/**
+ * @brief Look up ability flag and value, then call func_800E1880.
+ *
+ * Reads battle state index from D_800ED148[0x1324], entity index from
+ * D_800ED148[0xF]. Looks up flag byte from D_80078E00 table (stride 24,
+ * offset 0x4802), checks bit 0x10. Also reads entity ability byte at
+ * offset 0xDA (stride 0xD0), uses it to index D_80078E00 at offset 0x4D03.
+ * Calls func_800E1880 with inverted flag and the lookup result.
+ */
+void func_800A2F54(void) {
+    u8 *table = D_80078E00;
+    u8 *base = (u8 *)&D_800ED148;
+    u8 idx1 = base[0x1324];
+    u8 idx2 = base[0xF];
+    u8 *entry = table + (s32)idx1 * 24;
+    u8 *entity = base + (s32)idx2 * 0xD0;
+    s32 flag = entry[0x4802] & 0x10;
+    u8 val = entity[0xDA];
+    func_800E1880(flag == 0, (s32)table[val + 0x4D03]);
+}
 
+/**
+ * @brief Look up ability data and dispatch via func_800DEAA4.
+ *
+ * Reads entity index from D_800ED148[0xF], computes entity pointer
+ * (stride 0xD0), reads ability byte at entity+0xDA, then indexes
+ * into D_80078E00 table at offset 0x4CFC. Calls func_800DEAA4 with
+ * base[0x131A] and the table lookup result.
+ *
+ * @note Non-matching: Compiler loads D_80078E00 into $v1 late (after
+ * multiply chain) instead of into $a1 early (before sw ra). This
+ * creates a nop for the load delay slot that the original fills with
+ * the D_80078E00 addiu. Register allocation difference ($v1 vs $a1)
+ * cascades through the table index computation.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2FC8);
 
 /**

@@ -44,7 +44,24 @@ void func_800A61CC(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, u16 arg6) {
     func_800A5A7C(a0, a1, a2, arg5, (s32)arg6, a3, ptr);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6218);
+/**
+ * @brief Check entity flag 0x10 at offset 0x8C and either set bit 0x200 or call display handler.
+ *
+ * If the entity at D_800ED148[a0] (stride 0xD0) has bit 0x10 set in its
+ * word at offset 0x8C, sets bit 0x200 in that word. Otherwise, calls
+ * func_800A62DC with display parameters (0x11, 0x80, 0).
+ *
+ * @param a0 Entity index.
+ */
+void func_800A6218(s32 a0) {
+    u8 *base = (u8 *)&D_800ED148;
+    u8 *entity = base + a0 * 0xD0;
+    if (*(volatile s32 *)(entity + 0x8C) & 0x10) {
+        *(volatile s32 *)(entity + 0x8C) |= 0x200;
+    } else {
+        func_800A62DC(a0, 0x11, 0x80, 0);
+    }
+}
 
 /**
  * @brief Call func_800D15B4 with display parameters and grid settings.
@@ -148,7 +165,29 @@ void func_800A66D0(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6724);
+/**
+ * @brief Clear entity active flags and reinitialize all 8 slots.
+ *
+ * Clears 8 bytes at D_800ED148+0xD5C (entity active flags),
+ * then calls func_800A66D0 for each slot 0-7 to re-check
+ * and set active status.
+ */
+void func_800A6724(void) {
+    s32 i = 7;
+    s32 base = (s32)D_800ED148;
+    base += 7;
+top:
+    *(u8 *)(base + 0xD5C) = 0;
+    i--;
+    base--;
+    if (i >= 0) goto top;
+
+    i = 0;
+    do {
+        func_800A66D0(i);
+        i++;
+    } while (i < 8);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6780);
 
@@ -208,6 +247,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6E2C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6EBC);
 
+/**
+ * @brief Compute random percentage clamped to [1, 100].
+ *
+ * Gets a random number from func_8009B15C, divides by func_800A6E2C
+ * result, takes the remainder. Clamps: 0 becomes 1, values above
+ * 100 become 100.
+ *
+ * @return Clamped remainder in range [1, 100].
+ *
+ * @note Non-matching: Original stores mfhi result in $a0 and uses
+ * $v1 for the slti comparison. CC1PSX stores mfhi in $v0, overwriting
+ * it with slti, and inverts the second branch direction (bnez vs beqz).
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6F64);
 
 /**

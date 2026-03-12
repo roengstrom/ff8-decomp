@@ -183,7 +183,22 @@ void func_800B2038(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2084);
+/**
+ * @brief Check battle mode flag and conditionally trigger entity processing.
+ *
+ * Checks bit 3 of D_8007809A. If set, calls func_8009B79C(8, 0xFF) to test
+ * entity availability. If available, calls func_800B1B68 and returns.
+ * Otherwise (bit not set or entity unavailable), clears D_800EE465.
+ */
+void func_800B2084(void) {
+    if (*(u8 *)D_8007809A & 8) {
+        if (func_8009B79C(8, 0xFF) != 0) {
+            func_800B1B68();
+            return;
+        }
+    }
+    *(u8 *)D_800EE465 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B20D8);
 

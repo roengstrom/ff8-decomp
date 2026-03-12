@@ -6,8 +6,14 @@ extern u8 D_800E662C[];
 extern u8 D_800F1B90[];
 extern u8 D_800FA4F8[];
 extern u8 D_800EF738[];
+extern u8 D_800FA504[];
+extern u8 D_800FA500[];
+extern u8 D_800EEC5C[];
 void func_800C5B1C(void);
 s32 func_800B853C(void *);
+void func_8003F41C(void);
+void func_800408C4(s32, s32);
+void func_800408E4(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 
@@ -78,6 +84,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C58D8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C599C);
 
+/**
+ * @brief Check if an entity passes multiple flag checks.
+ *
+ * Checks halfword[0] bit 3, word[8] against mask a1, byte[5],
+ * and indirect halfword at ptr[0x74]->0x2C against mask a2.
+ *
+ * @param a0 Pointer to entity data.
+ * @param a1 Bitmask for word at offset 0x8.
+ * @param a2 Bitmask for indirect halfword check.
+ * @return 0 if blocked, 1 if entity passes all checks.
+ *
+ * @note Non-matching: CC1PSX generates separate basic blocks for each
+ * return 0 path instead of sharing a single return label with v0=0
+ * in branch delay slots. Also inserts nop for third branch delay
+ * instead of using `li v0,1` (the return value).
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5A34);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5A94);
@@ -158,6 +180,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6480);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C65A8);
 
+/**
+ * @brief Initialize palette and display state for battle effect.
+ *
+ * Calls func_8003F41C to reset state, clears D_800FA504 (2 halfwords),
+ * calls func_800408C4 with dimensions 0xA0 x 0x6C, stores 0x200 to
+ * D_800FA500, calls func_800408E4 with 0x200, sets D_800FA4F8 to 0x11,
+ * and sets bit 2 of D_800EEC5C.
+ *
+ * @note Non-matching: CC1PSX fills func_8003F41C jal delay slot with
+ * li a0,0xA0 (for the next call), eliminating a nop and making the
+ * function 4 bytes shorter than the original.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C66E4);
 
 /**

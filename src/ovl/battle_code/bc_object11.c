@@ -5,8 +5,10 @@ extern u8 D_800F16A8[];
 extern u8 D_800F16AC[];
 extern u8 D_800EF724[];
 extern u8 D_800F02F4[];
+extern u8 D_800F16B4[];
 extern u8 D_800F16BC[];
 extern u8 D_800F1468[];
+extern u8 D_80077E59[];
 extern u8 D_800F1668[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BAEE8);
@@ -74,6 +76,21 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC88C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC908);
 
+/**
+ * @brief Read next bit from a bit stream and optionally process.
+ *
+ * Reads a bit at position a0[4] from byte at *a0[0]. Advances the bit
+ * index; when it reaches 7, advances the byte pointer and resets index.
+ * If the bit was set, calls func_800BC818 and returns (result + 0x400)
+ * sign-extended to s16. Otherwise returns 0x400.
+ *
+ * @param a0 Pointer to bit stream state (word 0 = byte ptr, word 4 = bit index).
+ * @return Processed value or 0x400.
+ *
+ * @note Non-matching: CC1PSX fills beqz delay slot with li v0,0x400
+ * (the false-path return value), eliminating the separate default block
+ * and the j instruction after sign extension. Function is 8 bytes shorter.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC9C8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BCA3C);
@@ -251,7 +268,26 @@ void func_800BD5B0(s32 a0, s32 a1) {
     func_8001F5C8();
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD5FC);
+/**
+ * @brief Conditionally dispatch visual effect command based on D_800F16B4 flag.
+ *
+ * If D_800F16B4 is zero, returns immediately. Otherwise, loads the byte
+ * at D_80077E59, computes slot = byte * 8 + 8, reads the pointer at
+ * D_800F16A4 + 0xC, and calls func_800B2E04 with that pointer, the
+ * computed slot, mode 1, and parameter 0. Clears D_800F16B4 on return.
+ */
+void func_800BD5FC(void) {
+    if (*(s32 *)D_800F16B4 == 0) {
+        return;
+    }
+    {
+        s32 a1 = *(u8 *)D_80077E59;
+        s32 a0 = *(s32 *)(*(s32 *)D_800F16A4 + 0xC);
+        a1 = a1 * 8 + 8;
+        func_800B2E04(a0, a1, 1, 0);
+    }
+    *(s32 *)D_800F16B4 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD658);
 

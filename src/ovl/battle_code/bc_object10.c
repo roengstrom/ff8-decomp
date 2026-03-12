@@ -12,6 +12,7 @@ extern u8 D_80170000[];
 s32 *func_800B88A0(void);
 void func_800B8BEC(void);
 void func_800B9078(void);
+s32 func_800B2C58(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B872C);
 
@@ -265,7 +266,32 @@ void func_800B9048(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9078);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9114);
+/**
+ * @brief Initialize D_800EF738 color entries and register animation callback.
+ *
+ * Clears 3 bytes at offset 0x28 for each of 4 entries at stride 0x2C
+ * in D_800EF738. Then registers func_800B9078 via func_800B2C58,
+ * clears the halfword at offset 0xC of the result, and stores a0
+ * at offset 0xE.
+ *
+ * @param a0 Value to store at result offset 0xE.
+ */
+void func_800B9114(s32 a0) {
+    u8 *ptr;
+    s32 i = 0;
+    ptr = D_800EF738;
+    for (; i < 4; i++) {
+        *(volatile u8 *)(ptr + 0x28) = 0;
+        *(volatile u8 *)(ptr + 0x29) = 0;
+        *(volatile u8 *)(ptr + 0x2A) = 0;
+        ptr += 0x2C;
+    }
+    {
+        u8 *result = (u8 *)func_800B2C58((s32)func_800B9078);
+        *(u16 *)(result + 0xC) = 0;
+        *(u16 *)(result + 0xE) = a0;
+    }
+}
 
 /**
  * @brief Update max frame count and recompute buffer address.

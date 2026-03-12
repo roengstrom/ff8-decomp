@@ -12,8 +12,10 @@ s32 func_800A980C(void);
 s32 func_800A9888(void);
 void func_8009AD7C(void);
 void func_8009AF14(void *);
+extern u8 D_80077E59[];
 void func_800AD4A4(s32);
 void func_800AE6C0(void);
+s32 func_8009AF3C(s32, s32, s32, s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
@@ -63,8 +65,36 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AC400);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AC4E4);
 
+/**
+ * @brief Check if an entity is available (no blocking status flags).
+ *
+ * Checks halfword at +0x90 for bits 0 and 2 (mask 0x5),
+ * word at +0x18 for bits 0, 3, 14 (mask 0x4009),
+ * and word at +0x8C for bit 14 (0x4000).
+ *
+ * @param a0 Entity index (stride 0xD0).
+ * @return 1 if entity is available, 0 otherwise.
+ *
+ * @note Non-matching: CC1PSX uses srl+xori for the 0x4000 bit test
+ * instead of andi+sltiu. Both bnez branches share the same return
+ * label with v0=0 in delay slots; CC1PSX generates separate basic blocks.
+ * Also, multiply chain is emitted before lui/addiu for D_800ED148.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACED4);
 
+/**
+ * @brief Check if an entity is available (stricter status check).
+ *
+ * Checks halfword at +0x90 for bits 0, 2, 5 (mask 0x25),
+ * word at +0x18 for bits 0, 3 (mask 0x9),
+ * and word at +0x8C for bit 14 (0x4000).
+ *
+ * @param a0 Entity index (stride 0xD0).
+ * @return 1 if entity is available, 0 otherwise.
+ *
+ * @note Non-matching: Same issues as func_800ACED4 (srl+xori bit test,
+ * separate return basic blocks, multiply-before-lui ordering).
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACF2C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACF84);
@@ -112,7 +142,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD7A4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD8E4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD960);
+/**
+ * @brief Dispatch queued entity action and clear the queue.
+ *
+ * If the entity action pointer at D_800ED148+0x12DC is non-zero,
+ * loads the byte from D_80077E59, computes palette offset (byte*8+8),
+ * calls func_8009AF3C with the entity pointer and palette params,
+ * then clears the action pointer.
+ */
+void func_800AD960(void) {
+    s32 base = (s32)D_800ED148;
+    if (*(volatile s32 *)(base + 0x12DC) != 0) {
+        u8 byte = *(u8 *)D_80077E59;
+        func_8009AF3C(*(volatile s32 *)(base + 0x12DC), (s32)byte * 8 + 8, 3, 0x80, 0x56);
+        *(s32 *)(base + 0x12DC) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD9C0);
 
@@ -220,10 +265,36 @@ void func_800AE6C0(void) {
     *(u16 *)(base + 0x572) = func_800AE64C();
 }
 
+/**
+ * @brief Find the first active entity among slots 0-2.
+ *
+ * Scans up to 3 entities (stride 0xD0) in D_800ED148. Returns
+ * the index of the first entity with bit 0 of the word at offset
+ * 0x8C set.
+ *
+ * @return Entity index (0-2) if found.
+ *
+ * @note Non-matching: CC1PSX fills beqz delay slot with loop increment
+ * instead of return value copy, generating a separate addu for the
+ * return path.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE6F8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE730);
 
+/**
+ * @brief Find first available entity in slots 3-6.
+ *
+ * Scans entities 3-6 (stride 0xD0) at D_800ED148+0x270. Returns
+ * the index of the first entity where bits 0 and 2 of the halfword
+ * at offset 0x90 are both clear.
+ *
+ * @return Entity index (3-6), or 0xFF if none available.
+ *
+ * @note Non-matching: CC1PSX combines `!(flags & 1) && !(flags & 4)`
+ * into a single `andi v0,v0,5` test. Original tests bits separately,
+ * scheduling the second andi in the first branch's delay slot.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE788);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE7D0);

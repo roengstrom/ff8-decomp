@@ -7,7 +7,12 @@ extern u8 D_80103188[];
 extern u8 D_80078752[];
 extern u8 D_80103230[];
 extern u8 D_80103340[];
-void func_800D5C28(s32, void *, s32, s32);
+extern u8 D_801031A0[];
+extern u8 D_80103198[];
+extern u8 D_80103191[];
+void func_800D5C28(s32, s32, s32, s32);
+void func_800D5D08(s32, s32);
+void func_800DF4E4(void);
 void func_800DF718(void);
 
 /**
@@ -159,6 +164,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF310);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF4E4);
 
+/**
+ * @brief Initialize display list handler and set screen parameters.
+ *
+ * Registers func_800DF4E4 as a handler via func_800D5C28 with size 8,
+ * configures display dimensions via func_800D5D08, and sets screen
+ * parameters: D_801031A0=0xC5, D_80103198=0x5F, D_8010319C=0x80,
+ * D_8010319E=0x10, D_80103191=0.
+ *
+ * @note Non-matching: CC1PSX schedules addiu v1 (base address computation)
+ * before li v0,0x80 (store value), but original has the reverse order.
+ * Both are independent instructions; scheduling cannot be controlled from C.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF6AC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF718);
