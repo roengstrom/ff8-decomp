@@ -346,27 +346,30 @@ def main():
 
         if best_score == 0:
             print(f"\nPerfect match found!")
-            with open(best_source) as f:
-                print(f"\n--- Matching C code ---")
-                print(f.read())
             break
 
         # Use best result as new base for next round
         base_c = os.path.join(func_dir, "base.c")
         shutil.copy2(best_source, base_c)
         print(f"Updated base.c with best result (score {best_score})")
+
+    # Always print the best result at the end
+    best_score, best_source = get_best_score(func_dir)
+    if best_score is not None and best_source:
+        print(f"\n--- Best result: score {best_score} ---")
+        with open(best_source) as f:
+            print(f.read())
     else:
-        # Exhausted all rounds
-        best_score, best_source = get_best_score(func_dir)
-        if best_source:
-            print(f"\n--- Best result after {args.rounds} rounds: score {best_score} ---")
-            with open(best_source) as f:
+        # No output dirs — check base.c as fallback
+        base_c = os.path.join(func_dir, "base.c")
+        if os.path.exists(base_c):
+            print(f"\n--- No improved candidates found. Current base.c ---")
+            with open(base_c) as f:
                 print(f.read())
         else:
-            print(f"\nNo matching candidates found after {args.rounds} rounds")
+            print(f"\nNo results found")
 
-    # Final summary
-    print(f"\nPermuter directory: permuter/{func_name}/")
+    print(f"Permuter directory: permuter/{func_name}/")
 
 
 if __name__ == "__main__":
