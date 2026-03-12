@@ -319,18 +319,20 @@ def main():
     # --- Iterative permuter rounds ---
     print(f"\n--- Running permuter ({args.rounds} rounds, {args.time}s each, {args.jobs} jobs) ---")
 
+    # Track the overall best across all rounds
+    overall_best_score = None
+    overall_best_path = os.path.join(func_dir, "best.c")
+
     for round_num in range(1, args.rounds + 1):
         print(f"\n{'='*60}")
         print(f"Round {round_num}/{args.rounds}")
         print(f"{'='*60}")
 
-        # Get initial score
-        initial_score, _ = get_best_score(func_dir)
-        if initial_score is not None and initial_score == 0:
+        if overall_best_score == 0:
             print("Already at score 0!")
             break
 
-        # Clean previous outputs before each round
+        # Clean previous round's outputs (but best.c is preserved)
         clean_outputs(func_dir)
 
         # Run permuter
@@ -344,6 +346,11 @@ def main():
 
         print(f"\nBest score this round: {best_score}")
 
+        # Update overall best
+        if overall_best_score is None or best_score < overall_best_score:
+            overall_best_score = best_score
+            shutil.copy2(best_source, overall_best_path)
+
         if best_score == 0:
             print(f"\nPerfect match found!")
             break
@@ -354,13 +361,12 @@ def main():
         print(f"Updated base.c with best result (score {best_score})")
 
     # Always print the best result at the end
-    best_score, best_source = get_best_score(func_dir)
-    if best_score is not None and best_source:
-        print(f"\n--- Best result: score {best_score} ---")
-        with open(best_source) as f:
+    if overall_best_score is not None and os.path.exists(overall_best_path):
+        print(f"\n--- Best result: score {overall_best_score} ---")
+        print(f"Saved to: permuter/{func_name}/best.c")
+        with open(overall_best_path) as f:
             print(f.read())
     else:
-        # No output dirs — check base.c as fallback
         base_c = os.path.join(func_dir, "base.c")
         if os.path.exists(base_c):
             print(f"\n--- No improved candidates found. Current base.c ---")
