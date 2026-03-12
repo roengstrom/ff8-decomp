@@ -129,6 +129,7 @@ func_800A42D0 = 0x800A42D0; // type:func
 func_800A443C = 0x800A443C; // type:func
 func_800A44CC = 0x800A44CC; // type:func
 func_800A4504 = 0x800A4504; // type:func
+func_800A458C = 0x800A458C; // type:func
 func_800AAEAC = 0x800AAEAC; // type:func
 func_800AAED4 = 0x800AAED4; // type:func
 func_800AB02C = 0x800AB02C; // type:func
