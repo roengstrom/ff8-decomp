@@ -96,11 +96,58 @@ typedef s32 M2C_UNK32;
 
 """
 
-    # Clean up /* extern */ comments and strip blank lines at top
-    cleaned = m2c_output.strip()
-    cleaned = cleaned.replace("/* extern */", "")
+    # Separate extern/forward declarations from the function body.
+    # Move externs INSIDE the function so the permuter can mutate them
+    # (e.g. adding volatile, changing types).
+    lines = m2c_output.strip().split("\n")
+    externs = []
+    func_body = []
+    in_func = False
+    brace_depth = 0
 
-    return preamble + cleaned + "\n"
+    for line in lines:
+        stripped = line.strip()
+        # Remove /* extern */ comments
+        stripped = stripped.replace("/* extern */", "").rstrip()
+
+        if not in_func:
+            # Detect function definition start (not a declaration ending with ;)
+            if (re.match(r"^(void|s8|s16|s32|u8|u16|u32|M2C_UNK)\s+\w+\s*\(", stripped)
+                    and not stripped.endswith(";")):
+                in_func = True
+                func_body.append(stripped)
+            elif stripped:
+                externs.append(stripped)
+        else:
+            func_body.append(line)
+
+        # Track braces to find end of function
+        if in_func:
+            brace_depth += line.count("{") - line.count("}")
+
+    # Build the function with externs inside the opening brace
+    result_lines = [preamble.rstrip()]
+
+    if func_body:
+        # Find the opening { and insert externs right after it
+        output = []
+        inserted = False
+        for line in func_body:
+            output.append(line)
+            if not inserted and "{" in line:
+                # Insert externs as local declarations inside the function
+                for ext in externs:
+                    output.append(f"    {ext}")
+                if externs:
+                    output.append("")
+                inserted = True
+
+        result_lines.append("\n".join(output))
+    else:
+        # Fallback: no function body found, just concatenate everything
+        result_lines.extend(externs)
+
+    return "\n".join(result_lines) + "\n"
 
 
 def setup_permuter(func_name, src_file, asm_dir, psyq_version=None):
