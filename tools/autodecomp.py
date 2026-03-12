@@ -255,66 +255,88 @@ def main():
                         help="PsyQ version (auto-detected if omitted)")
     parser.add_argument("--skip-m2c", action="store_true",
                         help="Skip m2c and use existing base.c")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resume from existing permuter directory (uses best.c or base.c)")
     args = parser.parse_args()
 
     os.chdir(ROOT)
     func_name = args.func_name
-
-    # --- Find files ---
-    asm_file = find_asm_file(func_name)
-    if not asm_file:
-        print(f"Error: Cannot find .s file for {func_name}", file=sys.stderr)
-        sys.exit(1)
-    print(f"Assembly: {os.path.relpath(asm_file, ROOT)}")
-
-    src_file = args.src or find_source_file(func_name)
-    if src_file:
-        print(f"Source: {os.path.relpath(src_file, ROOT)}")
-
-    # Infer asm-dir from asm file path
-    asm_dir = args.asm_dir
-    if not asm_dir:
-        asm_dir = os.path.dirname(asm_file)
-
-    # --- Generate initial C with m2c ---
     func_dir = os.path.join(ROOT, "permuter", func_name)
 
-    if not args.skip_m2c:
-        print(f"\n--- Generating initial C with m2c ---")
-        m2c_output = run_m2c(asm_file)
-        if not m2c_output:
-            print("m2c produced no output, using empty stub", file=sys.stderr)
-            m2c_output = f"void {func_name}(void) {{\n    // TODO\n}}\n"
-        else:
-            print(m2c_output)
+    # --- Resume mode: skip m2c and setup, use existing best.c/base.c ---
+    if args.resume:
+        if not os.path.isdir(func_dir):
+            print(f"Error: No existing permuter directory at permuter/{func_name}/",
+                  file=sys.stderr)
+            sys.exit(1)
 
-        compilable = make_compilable(m2c_output, func_name)
-    else:
-        compilable = None
-
-    # --- Set up permuter ---
-    print(f"\n--- Setting up permuter ---")
-    psyq = args.psyq
-    if not psyq and src_file:
-        psyq = detect_psyq_version(src_file)
-
-    result = setup_permuter(func_name, src_file, asm_dir, psyq)
-    if not result:
-        sys.exit(1)
-
-    # Copy m2c_macros.h to include/ if not present
-    macros_dst = os.path.join(ROOT, "include", "m2c_macros.h")
-    macros_src = os.path.join(ROOT, "tools", "m2c", "m2c_macros.h")
-    if not os.path.exists(macros_dst) and os.path.exists(macros_src):
-        shutil.copy2(macros_src, macros_dst)
-        print(f"Copied m2c_macros.h to include/")
-
-    # Replace base.c with m2c output
-    if compilable:
         base_c = os.path.join(func_dir, "base.c")
-        with open(base_c, "w") as f:
-            f.write(compilable)
-        print(f"Wrote m2c output to base.c")
+        best_c = os.path.join(func_dir, "best.c")
+
+        # Start from best.c if it exists, otherwise base.c
+        if os.path.exists(best_c):
+            shutil.copy2(best_c, base_c)
+            print(f"Resuming from best.c")
+        elif os.path.exists(base_c):
+            print(f"Resuming from base.c")
+        else:
+            print(f"Error: No base.c or best.c in permuter/{func_name}/",
+                  file=sys.stderr)
+            sys.exit(1)
+    else:
+        # --- Find files ---
+        asm_file = find_asm_file(func_name)
+        if not asm_file:
+            print(f"Error: Cannot find .s file for {func_name}", file=sys.stderr)
+            sys.exit(1)
+        print(f"Assembly: {os.path.relpath(asm_file, ROOT)}")
+
+        src_file = args.src or find_source_file(func_name)
+        if src_file:
+            print(f"Source: {os.path.relpath(src_file, ROOT)}")
+
+        # Infer asm-dir from asm file path
+        asm_dir = args.asm_dir
+        if not asm_dir:
+            asm_dir = os.path.dirname(asm_file)
+
+        # --- Generate initial C with m2c ---
+        if not args.skip_m2c:
+            print(f"\n--- Generating initial C with m2c ---")
+            m2c_output = run_m2c(asm_file)
+            if not m2c_output:
+                print("m2c produced no output, using empty stub", file=sys.stderr)
+                m2c_output = f"void {func_name}(void) {{\n    // TODO\n}}\n"
+            else:
+                print(m2c_output)
+
+            compilable = make_compilable(m2c_output, func_name)
+        else:
+            compilable = None
+
+        # --- Set up permuter ---
+        print(f"\n--- Setting up permuter ---")
+        psyq = args.psyq
+        if not psyq and src_file:
+            psyq = detect_psyq_version(src_file)
+
+        result = setup_permuter(func_name, src_file, asm_dir, psyq)
+        if not result:
+            sys.exit(1)
+
+        # Copy m2c_macros.h to include/ if not present
+        macros_dst = os.path.join(ROOT, "include", "m2c_macros.h")
+        macros_src = os.path.join(ROOT, "tools", "m2c", "m2c_macros.h")
+        if not os.path.exists(macros_dst) and os.path.exists(macros_src):
+            shutil.copy2(macros_src, macros_dst)
+            print(f"Copied m2c_macros.h to include/")
+
+        # Replace base.c with m2c output
+        if compilable:
+            base_c = os.path.join(func_dir, "base.c")
+            with open(base_c, "w") as f:
+                f.write(compilable)
+            print(f"Wrote m2c output to base.c")
 
     # --- Iterative permuter rounds ---
     print(f"\n--- Running permuter ({args.rounds} rounds, {args.time}s each, {args.jobs} jobs) ---")
