@@ -296,7 +296,29 @@ void func_801E5A8C(s32 a0, s32 a1, s32 a2) {
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5AE8);
+/**
+ * @brief Conditionally render a save menu entry based on status.
+ *
+ * Checks the signed halfword at a0[0x3C]. If positive, selects
+ * string ID 0x29 (if a0[0x53] == 2) or 0x1C (otherwise), and
+ * renders via func_801E2C90 + func_801F4274.
+ *
+ * @param a0 Save context pointer.
+ * @param a1 X position for rendering.
+ * @param a2 Y position for rendering.
+ * @return Render result, or a2 if skipped.
+ */
+s32 func_801E5AE8(u8 *a0, s32 a1, s32 a2) {
+    s32 s0 = a2;
+    if (*(s16 *)(a0 + 0x3C) > 0) {
+        s32 id = 0x1C;
+        if (a0[0x53] == 2) {
+            id = 0x29;
+        }
+        s0 = func_801F4274(a1, s0, func_801E2C90(id), 0xC0, 0x6B, 0x1000);
+    }
+    return s0;
+}
 
 /**
  * @brief Render save menu entry with string ID 0x17.
@@ -649,6 +671,34 @@ void func_801E7B18(u8 *a0) {
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B40);
 
+/**
+ * @brief Advance save data loading state machine.
+ *
+ * Polls func_80035E00 for DMA completion. When complete, advances
+ * the state byte at a0[0x44]:
+ * - State 0: transition to 1
+ * - State 1: initiate read via func_800360D0, transition to 2
+ * - State 2: transition to 3
+ * - State 3+: no-op
+ *
+ * @param a0 Save context pointer.
+ */
+/**
+ * @brief Advance save data loading state machine.
+ *
+ * Polls func_80035E00 for DMA completion. When complete, advances
+ * the state byte at a0[0x44]:
+ * - State 0: transition to 1
+ * - State 1: initiate read via func_800360D0, transition to 2
+ * - State 2: transition to 3
+ * - State 3+: no-op
+ *
+ * @param a0 Save context pointer.
+ *
+ * @note Non-matching: compiler generates bne-chain for switch instead of
+ * original's beq+slti split pattern with nop-filled delay slots.
+ * Produces 6 fewer instructions.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B5C);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7BE8);
@@ -685,7 +735,28 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9BC4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9D84);
+/**
+ * @brief Copy rectangle parameters with offset and dispatch rendering.
+ *
+ * Copies 4 halfwords from the 5th arg pointer into D_801FAB00,
+ * adding a2 to the X coordinate and a3 to the Y coordinate.
+ * Then calls func_801E9CD4 with the modified display config.
+ *
+ * @param a0 First render parameter (passed through).
+ * @param a1 Second render parameter (passed through).
+ * @param a2 X offset added to source X coordinate.
+ * @param a3 Y offset added to source Y coordinate.
+ * @param src Pointer to source rectangle (4 halfwords: x, y, w, h).
+ */
+void func_801E9D84(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
+    extern s32 D_80083848;
+    extern u16 D_801FAB00[];
+    D_801FAB00[0] = src[0] + a2;
+    D_801FAB00[1] = src[1] + a3;
+    D_801FAB00[2] = src[2];
+    D_801FAB00[3] = src[3];
+    func_801E9CD4(a0, a1, (s32)D_801FAB00, D_80083848, (s32)src);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9DE8);
 
@@ -897,6 +968,28 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
 
+/**
+ * @brief Convert BCD-encoded byte to decimal, or return 100 if zero.
+ *
+ * If a0 is zero, returns 100 (0x64). Otherwise extracts high nibble,
+ * multiplies by 10, adds low nibble for BCD-to-binary conversion.
+ *
+ * @param a0 BCD-encoded value.
+ * @return Decimal value, or 100 if input is zero.
+ */
+/**
+ * @brief Convert BCD-encoded byte to decimal, or return 100 if zero.
+ *
+ * If a0 is zero, returns 100 (0x64). Otherwise extracts high nibble,
+ * multiplies by 10, adds low nibble for BCD-to-binary conversion.
+ *
+ * @param a0 BCD-encoded value.
+ * @return Decimal value, or 100 if input is zero.
+ *
+ * @note Non-matching: original puts sra in bnez delay slot and li 100
+ * in j delay slot, but compiler hoists sra before branch and swaps
+ * v0/v1 register allocation.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8);
 
 /**
