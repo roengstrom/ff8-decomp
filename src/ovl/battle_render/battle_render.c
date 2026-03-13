@@ -39,15 +39,6 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098798);
  *
  * @param idx Entry index in the name table (stride 10).
  * @param src Pointer to the source string.
- */
-/**
- * @brief Copy a null-terminated string into the name table.
- *
- * Copies bytes from src to D_800ABA10[idx * 10] until a null byte
- * is encountered (the null byte is also copied).
- *
- * @param idx Entry index in the name table (stride 10).
- * @param src Pointer to the source string.
  *
  * @note Non-matching: Leaf register allocation swaps v0/v1 for the
  * multiply result vs table base address.
