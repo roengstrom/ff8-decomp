@@ -2,6 +2,11 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
+typedef struct {
+    /* 0x000 */ u8 unk0[0xCD4];
+    /* 0xCD4 */ s32 unkCD4;
+} GameState;
+
 /**
  * @brief Clear the RGB color bytes at offsets 0x20, 0x21, and 0x22 of a structure.
  * @param a0 Pointer to the base of the structure whose color fields are zeroed.
@@ -108,13 +113,20 @@ extern BattleCameraState D_800834D0;
 /**
  * @brief Set battle camera vibration state.
  *
- * Always stores a0 to f3. If a0 is non-zero, also clears f6
- * and copies the low byte of g_gameState+0xCD4 to f7.
+ * Always stores a0 to unk3. If a0 is non-zero, also clears unk6
+ * and copies the low byte of g_gameState+0xCD4 to unk7.
  *
- * @param a0 Vibration enable flag and intensity.
- * @note Non-matching: compiler narrows lw to lbu when storing to s8 field.
+ * @param arg0 Vibration enable flag and intensity.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030248);
+void func_80030248(unsigned int arg0) {
+    extern volatile GameState g_gameState;
+
+    D_800834D0.f3 = arg0;
+    if (arg0 != 0) {
+        D_800834D0.f6 = 0;
+        D_800834D0.f7 = (s8)g_gameState.unkCD4;
+    }
+}
 
 
 /** @brief Stores u16 and u8 to adjacent fields of D_800834D0.
