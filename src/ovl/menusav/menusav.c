@@ -278,7 +278,25 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6060);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E613C);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E61C0);
+/**
+ * @brief Build a parameter struct on the stack and call func_8002B898.
+ *
+ * Constructs a 3-field struct: {u16 a2+0x80, u16 a3+0x1F, u32 0x1600D0}
+ * and passes it along with the D_80083848 global to func_8002B898.
+ *
+ * @param a0 First parameter (passed through).
+ * @param a1 Second parameter (passed through).
+ * @param a2 Width value (0x80 added).
+ * @param a3 Height value (0x1F added).
+ */
+void func_801E61C0(s32 a0, s32 a1, s32 a2, s32 a3) {
+    extern s32 D_80083848;
+    s32 buf[2];
+    *(u16 *)((u8 *)buf + 0) = a2 + 0x80;
+    *(u16 *)((u8 *)buf + 2) = a3 + 0x1F;
+    *(s32 *)((u8 *)buf + 4) = 0x1600D0;
+    func_8002B898(a0, a1, (s32)buf, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6204);
 
@@ -373,9 +391,46 @@ s32 func_801E74F8(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7524);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7550);
+/**
+ * @brief Compute XOR checksum from game state fields.
+ *
+ * XORs three values from the D_80077378 region (at offsets 0xCD0, 0xB0C,
+ * and 0xCDC with the latter shifted left 16), then XORs with the result
+ * of func_801E74BC.
+ *
+ * @return XOR checksum value.
+ */
+s32 func_801E7550(void) {
+    extern u8 D_80077378[];
+    s32 base = D_80077378;
+    s32 s0 = *(s32 *)(base + 0xCD0);
+    s32 v1 = *(s32 *)(base + 0xB0C);
+    s32 v0 = *(s32 *)(base + 0xCDC);
+    s0 ^= v1;
+    s0 ^= v0 << 16;
+    v0 = func_801E74BC();
+    return s0 ^ v0;
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7598);
+/**
+ * @brief Compute and store save data checksum fields.
+ *
+ * Gets save data pointer, checks bit 15 of halfword at offset 0xC.
+ * If not set, calls several computation functions and stores results
+ * at offsets 0x28 (XOR checksum) and 0x2C (combined checksum byte).
+ */
+void func_801E7598(void) {
+    s32 s0;
+    u8 *s1 = (u8 *)func_800372D0();
+    if ((*(u16 *)(s1 + 0xC) & 0x8000) == 0) {
+        func_801EB928();
+        func_801EB890();
+        *(s32 *)(s1 + 0x28) = func_801E7550();
+        s0 = func_801EB0B8();
+        s0 += func_801E74BC();
+        s1[0x2C] = s0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E760C);
 
@@ -549,8 +604,57 @@ s32 func_801EB0B8(void) {
     return (u8)(func_801F6A5C() % 256);
 }
 
+/**
+ * @brief Convert a value to variable-radix digit string using D_801EBCF8 table.
+ *
+ * For each entry in the radix table, repeatedly subtracts the divisor from
+ * a0 to extract a digit, adds the character offset a2, and stores the
+ * result into output buffer a1. Null-terminates the output.
+ *
+ * @param a0 Value to convert.
+ * @param a1 Output character buffer.
+ * @param a2 Character offset added to each digit.
+ */
+/**
+ * @brief Convert a value to variable-radix digit string using D_801EBCF8 table.
+ *
+ * For each entry in the radix table, repeatedly subtracts the divisor from
+ * a0 to extract a digit, adds the character offset a2, and stores the
+ * result into output buffer a1. Null-terminates the output.
+ *
+ * @param a0 Value to convert.
+ * @param a1 Output character buffer.
+ * @param a2 Character offset added to each digit.
+ */
+/**
+ * @brief Convert a value to variable-radix digit string using D_801EBCF8 table.
+ *
+ * For each entry in the radix table, repeatedly subtracts the divisor from
+ * a0 to extract a digit, adds the character offset a2, and stores the
+ * result into output buffer a1. Null-terminates the output.
+ *
+ * @param a0 Value to convert.
+ * @param a1 Output character buffer.
+ * @param a2 Character offset added to each digit.
+ *
+ * @note Non-matching: compiler swaps register allocation for digit (a3 vs v1)
+ * and divisor (v1 vs a3) in leaf function. Also moves table++ out of
+ * branch delay slot.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
 
+/**
+ * @brief Convert a value to variable-radix digit string using D_801EBD14 table.
+ *
+ * Same algorithm as func_801EB0F4 but uses the D_801EBD14 radix table.
+ *
+ * @param a0 Value to convert.
+ * @param a1 Output character buffer.
+ * @param a2 Character offset added to each digit.
+ *
+ * @note Non-matching: compiler swaps register allocation for digit (a3 vs v1)
+ * and divisor (v1 vs a3) in leaf function. Same issue as func_801EB0F4.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB150);
 
 /**
