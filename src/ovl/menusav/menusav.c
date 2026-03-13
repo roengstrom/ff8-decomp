@@ -520,6 +520,22 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2E4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334);
 
+/**
+ * @brief Look up save icon display value from table.
+ *
+ * Converts a0 to BCD via func_801EB2B8 (masked to byte), shifts right by 2
+ * and adds 6, then adds the halfword from D_801EBD24[a1] to compute
+ * the final value passed to func_801EB1DC.
+ *
+ * @param a0 Input value (masked to byte)
+ * @param a1 Table index into D_801EBD24
+ * @return Result of func_801EB1DC
+ */
+/**
+ * @note Non-matching: instruction scheduling differs — compiler puts
+ * sll (a1*2) before lui/addiu (D_801EBD24 address) and sra (r>>2)
+ * after lhu instead of before. Logic is correct.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB408);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB458);

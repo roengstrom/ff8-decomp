@@ -102,7 +102,23 @@ void func_801E60E4(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6114);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6168);
+/**
+ * @brief Advance through extension entries up to a1 times.
+ *
+ * Calls func_80023A34 with a0 in a loop up to a1 iterations.
+ * Stops early if func_80023A34 returns a negative value.
+ *
+ * @param a0 Extension data pointer
+ * @param a1 Maximum number of entries to advance
+ */
+void func_801E6168(s32 a0, s32 a1) {
+    while (a1 > 0) {
+        if (func_80023A34(a0) < 0) {
+            break;
+        }
+        a1--;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E61B4);
 
