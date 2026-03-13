@@ -1,5 +1,10 @@
 #include "common.h"
 
+void func_801E4EA4(s32);
+void func_801E95C4(void);
+void func_801E9F94(s32);
+void func_801EAC54(s32, s32, s32);
+
 /** @brief Store item menu state pointer. */
 void func_801E2800(s32 a0) {
     extern s32 D_801ECE20;
@@ -552,7 +557,49 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E95C4);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9AAC);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9B98);
+/**
+ * @brief Initialize item menu system.
+ *
+ * Sets up the main item handler and three data tables, clears six global
+ * state words, calls display init, resets menu state. If the handler setup
+ * returned a context pointer, initializes it with item data and renders.
+ */
+void func_801E9B98(void) {
+    extern u8 D_801EB17C[];
+    extern u8 D_801EB188[];
+    extern u8 D_801EB194[];
+    extern u8 D_801EB330[];
+    extern u8 D_801EB4BC[];
+    extern u8 D_801EC710[];
+    extern s32 D_801ECE24;
+    extern s32 D_801ECE28;
+    extern s32 D_801ECE2C;
+    extern s32 D_801ECE30;
+    extern s32 D_801ECE34;
+    extern s32 D_801ECE38;
+    s32 ctx;
+
+    ctx = func_801F179C(func_801E4EA4, func_801E95C4);
+    func_801F1D2C(0, D_801EB17C, D_801EB330);
+    func_801F1D2C(0, D_801EB188, D_801EB4BC);
+    func_801F1D2C(0, D_801EB194, D_801EC710);
+    D_801ECE24 = 0;
+    D_801ECE28 = 0;
+    D_801ECE2C = 0;
+    D_801ECE30 = 0;
+    D_801ECE34 = 0;
+    D_801ECE38 = 0;
+    func_801F0948(0);
+    func_801E3E94();
+    if (ctx != 0) {
+        func_801E9AAC(ctx);
+        func_800361F8(0xC, 0x801D5000);
+        *(s16 *)(ctx + 0x40) = 0;
+        func_801E4EA4(ctx);
+        *(s16 *)(ctx + 0x3C) = 0;
+    }
+    func_801F7B60();
+}
 
 /**
  * @brief Count leading non-null bytes in a string, capped at limit-1.
@@ -661,10 +708,59 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EA8F0);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAA04);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAB00);
+/**
+ * @brief Render a menu panel with text and display configuration.
+ *
+ * Calls func_801EAA04 with adjusted position args (a3+8 for width,
+ * arg5+0xA pushed to stack). Configures D_801FAB00 with panel position,
+ * size, and display properties, then calls func_801EF9AC with the result
+ * and D_80083848 as the OT pointer.
+ *
+ * @param a0 First parameter passed through.
+ * @param a1 Text data parameter.
+ * @param a2 Second parameter passed through.
+ * @param a3 X position for panel.
+ * @param arg5 Y position for panel.
+ */
+void func_801EAB00(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern u8 D_801FAB00[];
+    extern s32 D_80083848;
+    s32 result;
+    s32 cfg;
+
+    result = func_801EAA04(a0, a1, a2, a3 + 8, arg5 + 0xA);
+    cfg = D_801FAB00;
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)(cfg) = a3;
+    *(s16 *)(cfg + 4) = 0x102;
+    *(s16 *)(cfg + 2) = arg5;
+    *(s16 *)(cfg + 6) = 0x7D;
+    func_801EF9AC(a1, result, 0x1000, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAB8C);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAC54);
 
+/**
+ * @brief Initialize item sub-menu.
+ *
+ * Sets up the sub-menu handler via func_801F179C, initializes display state,
+ * reads button input to determine item type. If the context pointer is valid,
+ * sets up the data table pointer, string, and various byte fields, then
+ * calls func_801E9F94 to render.
+ */
+/**
+ * @brief Initialize item sub-menu.
+ *
+ * Sets up the sub-menu handler via func_801F179C, initializes display state,
+ * reads button input to determine item type. If the context pointer is valid,
+ * sets up the data table pointer, string, and various byte fields, then
+ * calls func_801E9F94 to render.
+ *
+ * @note Non-matching: compiler assigns input variable to $a1 instead of $a0
+ * for the first func_801F000C result mask. Also optimizes away the store-then-
+ * reload pattern at offset 0x2C.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAD64);
