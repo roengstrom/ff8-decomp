@@ -28,7 +28,24 @@ void func_801E2BA4(s32 a0, s32 a1, s32 a2) {
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2BC8);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2C0C);
+/**
+ * @brief Store 3 configuration values and call func_801E2848.
+ * @param a0 First parameter passed through to func_801E2848
+ * @param a1 Second parameter passed through to func_801E2848
+ * @param a2 Value stored to D_801ECE28
+ * @param a3 Value stored to D_801ECE34
+ * @param arg5 Value stored to D_801ECE38
+ */
+void func_801E2C0C(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern s32 D_801ECE28;
+    extern s32 D_801ECE34;
+    extern s32 D_801ECE38;
+
+    D_801ECE28 = a2;
+    D_801ECE34 = a3;
+    D_801ECE38 = arg5;
+    func_801E2848(a0, a1);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2C44);
 
@@ -100,7 +117,14 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E47E0);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4848);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4908);
+/**
+ * @brief Render item at computed Y position based on row index.
+ * @param a0 X position parameter
+ * @param a1 Row index (multiplied by 13 and offset by 0x42 for Y position)
+ */
+void func_801E4908(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xC8, a1 * 13 + 0x42);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4940);
 
@@ -110,7 +134,18 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4A58);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4B38);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4B80);
+/**
+ * @brief Dispatch to different handler based on mode flag.
+ * @param a0 Mode flag: non-zero calls func_801E4A58, zero calls func_801E4940
+ * @param a1 Parameter passed to the selected handler
+ */
+void func_801E4B80(s32 a0, s32 a1) {
+    if (a0 != 0) {
+        func_801E4A58(a1);
+    } else {
+        func_801E4940(a1);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4BB4);
 
@@ -197,7 +232,19 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9EA8);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9F94);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EA500);
+/**
+ * @brief Call func_800375A0 with rearranged args and D_80083848 as 6th arg.
+ * @param a0 First parameter passed through
+ * @param a1 Second parameter passed through
+ * @param a2 Becomes 4th argument to callee
+ * @param a3 Becomes 5th argument (on stack) to callee
+ * @param arg5 Becomes 3rd argument to callee
+ */
+void func_801EA500(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern s32 D_80083848;
+
+    func_800375A0(a0, a1, arg5, a2, a3, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EA538);
 

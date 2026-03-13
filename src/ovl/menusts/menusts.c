@@ -117,15 +117,70 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8598);
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E86F0);
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8850);
+/**
+ * @brief Status menu render wrapper with stat type 6.
+ * @param a0 Unused parameter
+ * @param a1 First render parameter
+ * @param a2 Second render parameter
+ * @param a3 Third render parameter
+ * @param arg5 Fourth render parameter
+ * @param arg6 Fifth render parameter
+ */
+void func_801E8850(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    func_801E750C(a1, a2, a3, arg5, arg6, 6);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8890);
+/**
+ * @brief Status menu render wrapper with stat type 7.
+ * @param a0 Unused parameter
+ * @param a1 First render parameter
+ * @param a2 Second render parameter
+ * @param a3 Third render parameter
+ * @param arg5 Fourth render parameter
+ * @param arg6 Fifth render parameter
+ */
+void func_801E8890(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    func_801E750C(a1, a2, a3, arg5, arg6, 7);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E88D0);
+/**
+ * @brief Status menu render wrapper with stat type 8.
+ * @param a0 Unused parameter
+ * @param a1 First render parameter
+ * @param a2 Second render parameter
+ * @param a3 Third render parameter
+ * @param arg5 Fourth render parameter
+ * @param arg6 Fifth render parameter
+ */
+void func_801E88D0(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    func_801E750C(a1, a2, a3, arg5, arg6, 8);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8910);
+/**
+ * @brief Status menu render wrapper with stat type 9.
+ * @param a0 Unused parameter
+ * @param a1 First render parameter
+ * @param a2 Second render parameter
+ * @param a3 Third render parameter
+ * @param arg5 Fourth render parameter
+ * @param arg6 Fifth render parameter
+ */
+void func_801E8910(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    func_801E750C(a1, a2, a3, arg5, arg6, 9);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8950);
+/**
+ * @brief Status menu render wrapper with stat type 0xA.
+ * @param a0 Unused parameter
+ * @param a1 First render parameter
+ * @param a2 Second render parameter
+ * @param a3 Third render parameter
+ * @param arg5 Fourth render parameter
+ * @param arg6 Fifth render parameter
+ */
+void func_801E8950(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    func_801E750C(a1, a2, a3, arg5, arg6, 0xA);
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8990);
 

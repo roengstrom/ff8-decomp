@@ -116,9 +116,23 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7F4C);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8058);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8134);
+/**
+ * @brief Render shop item entry at computed Y position with width 0x24.
+ * @param a0 X position parameter
+ * @param a1 Row index (multiplied by 13 and offset by 0x50 for Y position)
+ */
+void func_801E8134(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0x24, a1 * 13 + 0x50);
+}
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E816C);
+/**
+ * @brief Render shop item quantity at computed Y position with width 0xA9.
+ * @param a0 X position parameter
+ * @param a1 Row index (multiplied by 13 and offset by 0x4F for Y position)
+ */
+void func_801E816C(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xA9, a1 * 13 + 0x4F);
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E81A4);
 
@@ -136,7 +150,17 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8FF8);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E9020);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90BC);
+/**
+ * @brief Initialize all 30 shop item entries.
+ *
+ * Calls func_801E9020 for indices 0 through 29.
+ */
+void func_801E90BC(void) {
+    s32 i;
+    for (i = 0; i < 30; i++) {
+        func_801E9020(i);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90F8);
 

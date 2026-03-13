@@ -37,9 +37,23 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5C08);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5CF8);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5D60);
+/**
+ * @brief Render GF/summon entry at computed Y position with width 0x26.
+ * @param a0 X position parameter
+ * @param a1 Row index (multiplied by 13 and offset by 0x42 for Y position)
+ */
+void func_801E5D60(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0x26, a1 * 13 + 0x42);
+}
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5D98);
+/**
+ * @brief Render GF/summon entry at computed Y position with width 0xC8.
+ * @param a0 X position parameter
+ * @param a1 Row index (multiplied by 13 and offset by 0x42 for Y position)
+ */
+void func_801E5D98(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xC8, a1 * 13 + 0x42);
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5DD0);
 

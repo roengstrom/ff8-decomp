@@ -32,7 +32,20 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E64FC);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6648);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E668C);
+/**
+ * @brief Test if magic bit a0 is available.
+ *
+ * Computes (1 << a0), calls func_801E5918 to get available mask,
+ * and returns whether the bit is set.
+ *
+ * @param a0 Bit index to test.
+ * @return 1 if bit is set, 0 otherwise.
+ */
+s32 func_801E668C(s32 a0) {
+    s32 mask = 1 << a0;
+    mask &= func_801E5918();
+    return mask != 0;
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E66C0);
 
@@ -54,7 +67,14 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6940);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E69EC);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6A64);
+/**
+ * @brief Render magic entry at computed Y position with width 0x26.
+ * @param a0 X position parameter
+ * @param a1 Row index (multiplied by 13 and offset by 0x42 for Y position)
+ */
+void func_801E6A64(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0x26, a1 * 13 + 0x42);
+}
 
 /** @brief Call func_801F0A34 with a0, zero, 0x28, 0x39. */
 void func_801E6A9C(s32 a0) {

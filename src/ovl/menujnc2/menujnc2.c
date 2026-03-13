@@ -43,13 +43,33 @@ s32 func_801E68EC(s32 a0) {
     return func_801F08D4(1, 0xB, a0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6918);
+/**
+ * @brief Draw inner panel with section id 0xB and set flag.
+ * @param a0 Panel position parameter
+ * @return Result of func_801F08D4
+ */
+s32 func_801E6918(s32 a0) {
+    return func_801F08D4(1, 0xB, a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6944);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6B88);
+/**
+ * @brief Full junction menu refresh sequence.
+ *
+ * Calls func_801E61F8, func_801E6350, func_801E6944, and
+ * func_801E69E0 in sequence with the party context.
+ *
+ * @param a0 Party context pointer.
+ */
+void func_801E6B88(u8 *a0) {
+    func_801E61F8();
+    func_801E6350(a0);
+    func_801E6944(a0);
+    func_801E69E0(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6BC8);
 
@@ -78,7 +98,19 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6E0C);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6E88);
+/**
+ * @brief Initialize junction entry and refresh display.
+ *
+ * Calls func_801E6D28, then func_801E6E0C with the context and
+ * flag 0, then func_801E5F78 to refresh.
+ *
+ * @param a0 Junction context pointer.
+ */
+void func_801E6E88(u8 *a0) {
+    func_801E6D28();
+    func_801E6E0C(a0, 0);
+    func_801E5F78(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6EC4);
 
@@ -200,4 +232,17 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE718);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE82C);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE888);
+/**
+ * @brief Reset junction menu state and reinitialize.
+ *
+ * Calls func_801F1DBC(1), clears D_801EED04, then calls
+ * func_801EE718 with the context.
+ *
+ * @param a0 Junction context pointer.
+ */
+void func_801EE888(u8 *a0) {
+    extern u8 D_801EED04;
+    func_801F1DBC(1);
+    D_801EED04 = 0;
+    func_801EE718(a0);
+}

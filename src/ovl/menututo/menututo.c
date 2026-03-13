@@ -96,6 +96,17 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E48C0);
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0);
 
+/**
+ * @brief Conditionally call func_801E4BD0 if field 0x20 is non-zero.
+ * @param a0 Pointer to structure with s16 field at offset 0x20
+ * @param a1 First argument passed to func_801E4BD0
+ * @param a2 Second argument passed to func_801E4BD0
+ *
+ * @note Non-matching: register allocation — compiler loads field 0x20 into
+ * v0 instead of a2. Original saves a2 to v0, loads into a2, tests a2,
+ * then restores from v0. Compiled version keeps a2 intact and uses v0
+ * for the loaded value.
+ */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0);
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CE4);
