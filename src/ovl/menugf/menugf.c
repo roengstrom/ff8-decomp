@@ -42,7 +42,38 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6C84);
  * @param arg7  Icon type (u16)
  * @param arg8  Extra parameter for func_801F0FEC
  */
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6D20);
+void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned int arg5, s32 arg6, u16 arg7, s32 arg8) {
+    int new_var5;
+    s32 new_var;
+    s32 new_var4;
+    extern u8 D_80077378[];
+    extern s32 D_80083848;
+    unsigned char new_var3;
+    s32 base;
+    s32 new_var2;
+    s32 ret;
+    s32 result;
+
+    new_var = arg5;
+    ret = func_80020E4C(new_var);
+    new_var3 = 2;
+    new_var5 = 0x4E8;
+    base = (s32)D_80077378;
+    new_var2 = arg4;
+
+    if (((*((u16 *)((base + ((2 * new_var2) * 76)) + new_var5))) >> arg6) & 1) {
+        new_var4 = D_80083848;
+        result = (new_var2 = new_var4);
+        a1 = func_8002FF34(a0, a1, 0xC0, a2 - 10, a3, result);
+    }
+
+    arg4 = a2;
+    do { new_var2 = arg4; } while (0);
+    arg6 = a3;
+    new_var4 = arg6;
+    result = func_801F0FEC(a0, a1, arg4, arg6, ret, arg8);
+    func_801F4EA8(a0, ret = result, new_var2 + 0x6C, new_var4 + new_var3, arg7);
+}
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6E3C);
 
