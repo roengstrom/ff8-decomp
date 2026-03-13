@@ -444,10 +444,45 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB150);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB1AC);
 
+/**
+ * @brief Accumulate 3 nibbles into a 12-bit value from func_801EB150 output.
+ *
+ * Calls func_801EB150 to fill a 3-byte buffer, then combines the bytes as:
+ * result = (byte0 << 8) | (byte1 << 4) | byte2.
+ *
+ * @param a0 Parameter passed to func_801EB150
+ * @return 12-bit accumulated value
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB1DC);
 
+/**
+ * @brief Convert BCD value, add offset, clamp to 99, and encode.
+ *
+ * Converts a0 from BCD (upper nibble * 10 + lower nibble), adds a1,
+ * clamps to maximum 99 (0x63), then encodes via func_801EB1DC.
+ *
+ * @param a0 BCD-encoded input value
+ * @param a1 Offset to add
+ * @return Encoded result masked to byte
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
 
+/**
+ * @brief Convert BCD value, subtract offset, clamp to 0, and encode.
+ *
+ * Converts a0 from BCD (upper nibble * 10 + lower nibble), subtracts a1,
+ * clamps to minimum 0, then encodes via func_801EB1DC.
+ *
+ * @param a0 BCD-encoded input value
+ * @param a1 Offset to subtract
+ * @return Encoded result masked to byte
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8);

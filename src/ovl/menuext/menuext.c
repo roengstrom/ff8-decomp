@@ -11,7 +11,21 @@ s32 func_801E5854(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5880);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E595C);
+/**
+ * @brief Return GF/summon data address if enabled, else return 0.
+ * @param a0 Enable flag (non-zero to load D_801E8D80)
+ * @return Address of D_801E8D80 after calling func_8002A2A8, or 0
+ */
+s32 func_801E595C(s32 a0) {
+    extern u8 D_801E8D80[];
+
+    if (a0 == 0) {
+        return 0;
+    }
+    s32 s0 = (s32)D_801E8D80;
+    func_8002A2A8(s0);
+    return s0;
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E59A0);
 

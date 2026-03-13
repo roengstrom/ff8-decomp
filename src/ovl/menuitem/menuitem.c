@@ -26,7 +26,27 @@ void func_801E2BA4(s32 a0, s32 a1, s32 a2) {
     func_801E2848();
 }
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2BC8);
+/**
+ * @brief Store 4 configuration values to globals and call func_801E2848.
+ * @param a0 First parameter passed through to func_801E2848
+ * @param a1 Second parameter passed through to func_801E2848
+ * @param a2 Value stored to D_801ECE30
+ * @param a3 Value stored to D_801ECE2C
+ * @param arg5 Value stored to D_801ECE38
+ * @param arg6 Value stored to D_801ECE28
+ */
+void func_801E2BC8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
+    extern s32 D_801ECE30;
+    extern s32 D_801ECE2C;
+    extern s32 D_801ECE28;
+    extern s32 D_801ECE38;
+
+    D_801ECE30 = a2;
+    D_801ECE2C = a3;
+    D_801ECE28 = arg6;
+    D_801ECE38 = arg5;
+    func_801E2848(a0, a1);
+}
 
 /**
  * @brief Store 3 configuration values and call func_801E2848.
@@ -132,7 +152,23 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E49FC);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4A58);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4B38);
+/**
+ * @brief Dispatch based on upper/lower 16 bits of flags.
+ *
+ * If upper 16 bits are zero, calls func_801E4908 (normal render).
+ * If upper bits non-zero but lower 16 bits are zero, calls func_801E49FC.
+ *
+ * @param a0 X position parameter
+ * @param a1 Row index parameter
+ * @param a2 Combined flags (upper 16 = type, lower 16 = subtype)
+ */
+void func_801E4B38(s32 a0, s32 a1, s32 a2) {
+    if ((a2 & ~0xFFFF) == 0) {
+        func_801E4908(a0, a1);
+    } else if ((a2 & 0xFFFF) == 0) {
+        func_801E49FC(a0, a1);
+    }
+}
 
 /**
  * @brief Dispatch to different handler based on mode flag.
