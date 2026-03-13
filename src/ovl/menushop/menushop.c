@@ -1,5 +1,22 @@
 #include "common.h"
 
+/**
+ * @brief Look up a shop item byte from a table or item data.
+ *
+ * If a2 >= 0xC6, returns 0. If a1 is non-zero, reads a base pointer
+ * from a0+0x2C and returns the byte at offset a2*2. Otherwise reads
+ * from D_801EAA28 at offset a2*2.
+ *
+ * @param a0 Shop context pointer.
+ * @param a1 Source selector (0 = static table, non-zero = dynamic).
+ * @param a2 Item index.
+ * @return Item byte value, or 0 if out of range.
+ *
+ * @note Non-matching: Compiler merges the two branch paths' sll/addu/lbu
+ * into shared code (both paths compute base + a2*2 then lbu), producing
+ * 13 instructions vs the original's 15. Original keeps separate sll
+ * in each path with different register targets (a2 vs v0).
+ */
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5800);
 
 /**

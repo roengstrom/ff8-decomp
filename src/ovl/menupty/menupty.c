@@ -225,7 +225,24 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E78BC);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7990);
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E79F8);
+/**
+ * @brief Look up a party member attribute byte.
+ *
+ * If a1 is non-zero, returns the byte at a0[a2 + 0x38].
+ * Otherwise returns the byte at a0[a3 + 0x3B].
+ *
+ * @param a0 Party data pointer.
+ * @param a1 Attribute selector (0 = secondary, non-zero = primary).
+ * @param a2 Primary attribute index.
+ * @param a3 Secondary attribute index.
+ * @return Attribute byte value.
+ */
+s32 func_801E79F8(u8 *a0, s32 a1, s32 a2, s32 a3) {
+    if (a1 == 0) {
+        return *(u8 *)((s32)a0 + a3 + 0x3B);
+    }
+    return *(u8 *)((s32)a0 + a2 + 0x38);
+}
 
 /**
  * @brief Call func_801E79F8 with party member attributes.

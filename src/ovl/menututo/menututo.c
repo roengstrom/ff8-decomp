@@ -30,8 +30,10 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2820);
  *
  * @param a0 Tutorial page table index.
  *
- * @note Non-matching: CC1PSX schedules sll before lui for base address
- * and uses different register (v1 vs a0) for loaded byte.
+ * @note Non-matching: CC1PSX hoists sll before lui for base address
+ * (scheduling difference) and uses v1 instead of a0 for the first
+ * loaded byte. Same instruction count (11) but different register
+ * allocation and ordering.
  */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E28A8);
 
@@ -60,6 +62,19 @@ void func_801E293C(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, 0x22, a1 * 15 + 0x3E);
 }
 
+/**
+ * @brief Draw tutorial text with computed CLUT and Y position.
+ *
+ * Computes a CLUT index from 0x1000 minus field 0x2C via lookup table
+ * D_801FA3C8, then calls func_801F0A34 with the computed x/y coordinates.
+ *
+ * @param a0 OT pointer
+ * @param a1 Pointer to tutorial state structure
+ *
+ * @note Non-matching: register allocation — compiler loads field 0x2C into v1
+ * and computes subtraction in v0, while original uses a2 for both the load
+ * and subtraction result. Only 2 bytes differ (lh a2 vs lh v1, subu a2 vs subu v0).
+ */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E296C);
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E29F8);
@@ -70,7 +85,33 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2D3C);
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2EF0);
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E30C4);
+/**
+ * @brief Scan tutorial entry table and build list of available entries.
+ *
+ * Iterates over 9 entries in D_801E4E3C (12-byte stride), calls
+ * func_8003720C to check if each entry's item (byte at offset 8) is
+ * available. Available entries' indices are stored sequentially at
+ * a0+0x39, and the total count is stored at a0+0x36.
+ *
+ * @param a0 Pointer to tutorial state structure
+ */
+void func_801E30C4(u8 *a0) {
+    extern u8 D_801E4E3C[];
+    s32 i = 0;
+    s32 count = 0;
+    u8 *table = D_801E4E3C;
+
+    do {
+        if (func_8003720C(table[8]) != 0) {
+            *(u8 *)(a0 + count + 0x39) = i;
+            count++;
+        }
+        i++;
+        table += 0xC;
+    } while (i < 9);
+
+    *(u8 *)(a0 + 0x36) = count;
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3140);
 
@@ -102,10 +143,11 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0);
  * @param a1 First argument passed to func_801E4BD0
  * @param a2 Second argument passed to func_801E4BD0
  *
- * @note Non-matching: register allocation — compiler loads field 0x20 into
- * v0 instead of a2. Original saves a2 to v0, loads into a2, tests a2,
- * then restores from v0. Compiled version keeps a2 intact and uses v0
- * for the loaded value.
+ * @note Non-matching: register allocation — compiler is one instruction shorter.
+ * Original saves a2 to v0 before loading field 0x20 into a2 (addu v0,a2,zero;
+ * lh a2,0x20(a0); beqz a2; addu a1,v0,zero). Compiled version loads into v0
+ * instead (lh v0,0x20(a0); beqz v0; move a1,a2), eliminating the save
+ * instruction. 13 vs 12 instructions — size mismatch.
  */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0);
 

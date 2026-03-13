@@ -32,7 +32,20 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E58C0);
  */
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E590C);
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E5958);
+/**
+ * @brief Look up a tips data pointer from the entry table.
+ *
+ * Indexes into D_801EC420 by a0 (4-byte stride), reads the halfword
+ * at offset +4, and returns it added to 0x801D1000.
+ *
+ * @param a0 Tips entry index.
+ * @return Pointer to tips data (as s32).
+ */
+s32 func_801E5958(s32 a0) {
+    extern u8 D_801EC420[];
+    s32 base = (s32)D_801EC420;
+    return *(u16 *)(base + a0 * 4 + 4) + 0x801D1000;
+}
 
 /**
  * @brief Initialize tips page data and render entry text.
