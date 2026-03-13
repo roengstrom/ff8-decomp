@@ -2,10 +2,45 @@
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5800);
 
+/**
+ * @brief Look up status display type byte.
+ *
+ * Indexes into D_801E9964 (8-byte stride) and returns the byte
+ * at offset 4.
+ *
+ * @param a0 Status entry index.
+ * @return Type byte.
+ *
+ * @note Non-matching: Leaf register allocation puts base address in v0
+ * (original) vs a0 (compiled).
+ */
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E582C);
 
+/**
+ * @brief Compute status display x-position.
+ *
+ * Indexes into D_801E9964 (8-byte stride), loads halfword at offset 0,
+ * and adds D_801E99AC base.
+ *
+ * @param a0 Status entry index.
+ * @return Computed address.
+ *
+ * @note Non-matching: Leaf register allocation uses v1 for table base
+ * (original) vs v0/a0 (compiled).
+ */
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5848);
 
+/**
+ * @brief Compute status display y-position.
+ *
+ * Indexes into D_801E9964 (8-byte stride), loads halfword at offset 2,
+ * and adds D_801E99AC base.
+ *
+ * @param a0 Status entry index.
+ * @return Computed address.
+ *
+ * @note Non-matching: Same leaf register allocation issue as func_801E5848.
+ */
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E586C);
 
 /**

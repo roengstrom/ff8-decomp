@@ -1,14 +1,49 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2800);
+/**
+ * @brief Read tutorial column index 1.
+ *
+ * @return Byte value of D_801E4EC1.
+ */
+s32 func_801E2800(void) {
+    extern u8 D_801E4EC1;
+    return D_801E4EC1;
+}
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2810);
+/**
+ * @brief Read tutorial column index 2.
+ *
+ * @return Byte value of D_801E4EC2.
+ */
+s32 func_801E2810(void) {
+    extern u8 D_801E4EC2;
+    return D_801E4EC2;
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2820);
 
+/**
+ * @brief Load tutorial page indices from table.
+ *
+ * Reads two bytes from D_801E4EB4[a0] (4-byte stride) and stores
+ * them into D_801E4EC1 and D_801E4EC2 respectively.
+ *
+ * @param a0 Tutorial page table index.
+ *
+ * @note Non-matching: CC1PSX schedules sll before lui for base address
+ * and uses different register (v1 vs a0) for loaded byte.
+ */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E28A8);
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E28D4);
+/**
+ * @brief Read tutorial page index.
+ *
+ * @return Byte value of D_801E4EC0.
+ */
+s32 func_801E28D4(void) {
+    extern u8 D_801E4EC0;
+    return D_801E4EC0;
+}
 
 /** @brief Draw inner panel with section id 0xD and clear flag. */
 s32 func_801E28E4(s32 a0) {

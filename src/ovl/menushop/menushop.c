@@ -6,7 +6,21 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E583C);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E58A0);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5904);
+/**
+ * @brief Look up a shop item property via double indirection.
+ *
+ * Loads a byte from D_801EA70C[a0*4], uses it to index into D_801F7F98,
+ * and returns that byte.
+ *
+ * @param a0 Shop item index.
+ * @return Property byte value.
+ */
+s32 func_801E5904(s32 a0) {
+    extern u8 D_801EA70C[];
+    extern u8 D_801F7F98[];
+    u8 idx = *(u8 *)(D_801EA70C + a0 * 4);
+    return D_801F7F98[idx];
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5930);
 
@@ -65,9 +79,31 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7CFC);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7D30);
 
+/**
+ * @brief Compute shop item price from table.
+ *
+ * Looks up byte at D_801E9BA0[a0*12 + 3], then returns (byte * 5) * 2.
+ *
+ * @param a0 Shop item index.
+ * @return Computed price value.
+ *
+ * @note Non-matching: Leaf register allocation puts table address in
+ * v0 (compiled) instead of v1 (original).
+ */
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E1C);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E4C);
+/**
+ * @brief Test if bit a0 is set in D_80077E70.
+ *
+ * @param a0 Bit index.
+ * @return 1 if bit is set, 0 otherwise.
+ */
+s32 func_801E7E4C(s32 a0) {
+    extern s32 D_80077E70;
+    s32 mask = 1 << a0;
+    s32 val = D_80077E70 & mask;
+    return val != 0;
+}
 
 /** @brief Return whether a1 >= func_801E7E1C(a0) (unsigned). */
 s32 func_801E7E68(s32 a0, u32 a1) {

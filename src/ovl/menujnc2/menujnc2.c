@@ -59,7 +59,20 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6CCC);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D28);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D6C);
+/**
+ * @brief Store a halfword into junction table entry.
+ *
+ * Indexes into D_801EEDF0 at stride 28 (a0 * 28), and stores
+ * a1 as a halfword at offset +4.
+ *
+ * @param a0 Junction entry index.
+ * @param a1 Value to store.
+ */
+void func_801E6D6C(s32 a0, s32 a1) {
+    extern u8 D_801EEDF0[];
+    s32 base = (s32)D_801EEDF0;
+    *(u16 *)(base + a0 * 28 + 4) = a1;
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
 
@@ -125,6 +138,20 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBBF4);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBD90);
 
+/**
+ * @brief Check junction ability mask compatibility.
+ *
+ * If a0 has any bits in common with a2, returns 7 (incompatible).
+ * Otherwise returns whether a1 shares any bits with a2.
+ *
+ * @param a0 Current junction mask.
+ * @param a1 Available abilities mask.
+ * @param a2 Ability bit to check.
+ * @return 7 if already junctioned, 1 if available, 0 if not.
+ *
+ * @note Non-matching: Compiler inverts branch direction (bnez falls
+ * through to and+sltu+j instead of jumping to li v0,7 directly).
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBEBC);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBED8);

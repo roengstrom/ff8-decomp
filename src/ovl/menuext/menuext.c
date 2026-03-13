@@ -17,7 +17,15 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E59A0);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A1C);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A88);
+/**
+ * @brief Return pointer to extended menu data area.
+ *
+ * @return Address of D_801E9600.
+ */
+s32 func_801E5A88(void) {
+    extern u8 D_801E9600[];
+    return (s32)D_801E9600;
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A94);
 
