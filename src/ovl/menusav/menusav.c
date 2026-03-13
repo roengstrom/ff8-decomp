@@ -654,7 +654,35 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7938);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E79CC);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7A84);
+/**
+ * @brief Poll for card data availability, up to 8 attempts.
+ *
+ * Tries func_8004F200 up to 8 times. If it succeeds, extracts
+ * data via func_8004E720 and stores status 2. Returns the
+ * result from the stack local.
+ *
+ * @param a0 Save context pointer (byte at 0x3C used as port).
+ * @param a1 Second parameter for func_8004F200.
+ * @return Card data result, or 2 if successful.
+ */
+s32 func_801E7A84(u8 *a0, s32 a1) {
+    s32 s0 = 0;
+    s32 result;
+
+    do {
+        if (func_8004F200(a0[0x3C] << 4, a1, 0x280, 0x80) != 0) {
+            func_8004E720(0, 0, &result);
+            break;
+        }
+        s0++;
+    } while (s0 < 8);
+
+    if (s0 == 8) {
+        result = 2;
+    }
+
+    return result;
+}
 
 /** @brief Call func_800360D0 with a0 + 0xB4 and 0x801D3000. */
 void func_801E7B18(u8 *a0) {
@@ -709,7 +737,27 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E98C8);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9988);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9A30);
+/**
+ * @brief Render a centered text string in the save menu.
+ *
+ * If the string pointer a2 is non-null, computes the pixel width
+ * via func_8002E680 and func_801F7394, centers it within 0xD8 pixels,
+ * and renders via func_801F4274.
+ *
+ * @param a0 First render parameter (passed through).
+ * @param a1 Second render parameter / default return value.
+ * @param a2 String pointer (null to skip rendering).
+ * @return Render result from func_801F4274, or a1 if a2 is null.
+ */
+s32 func_801E9A30(s32 a0, s32 a1, s32 a2) {
+    s32 s0 = a1;
+    if (a2 != 0) {
+        s32 v0 = func_8002E680(a2);
+        v0 = func_801F7394((u32)v0 >> 16);
+        s0 = func_801F4274(a0, s0, a2, 0xC0, (u32)(0xD8 - v0) >> 1, 0x1000);
+    }
+    return s0;
+}
 
 /**
  * @brief Look up sprite data address from table at 0x801CE800.
