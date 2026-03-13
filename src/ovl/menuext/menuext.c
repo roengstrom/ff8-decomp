@@ -15,17 +15,12 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5880);
  * @brief Return GF/summon data address if enabled, else return 0.
  * @param a0 Enable flag (non-zero to load D_801E8D80)
  * @return Address of D_801E8D80 after calling func_8002A2A8, or 0
+ *
+ * @note Non-matching: compiler omits the a0-to-a1 copy that the original
+ * uses before the branch (original: addu a1,a0,zero + bnez a1;
+ * compiled: beq a0,$0 directly). One instruction shorter.
  */
-s32 func_801E595C(s32 a0) {
-    extern u8 D_801E8D80[];
-
-    if (a0 == 0) {
-        return 0;
-    }
-    s32 s0 = (s32)D_801E8D80;
-    func_8002A2A8(s0);
-    return s0;
-}
+INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E595C);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E59A0);
 
@@ -69,7 +64,14 @@ void func_801E5D98(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, 0xC8, a1 * 13 + 0x42);
 }
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5DD0);
+/**
+ * @brief Render extension entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x43 for Y)
+ */
+void func_801E5DD0(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xD4, (a1 % 4) * 13 + 0x43);
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5E20);
 

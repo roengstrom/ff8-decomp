@@ -77,9 +77,23 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6810);
  */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6858);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E68A0);
+/**
+ * @brief Render magic entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x43 for Y)
+ */
+void func_801E68A0(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xD4, (a1 % 4) * 13 + 0x43);
+}
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E68F0);
+/**
+ * @brief Render magic entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x8D for Y)
+ */
+void func_801E68F0(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xD4, (a1 % 4) * 13 + 0x8D);
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6940);
 
@@ -104,9 +118,23 @@ void func_801E6AC4(s32 a0) {
     func_801F0A34(a0, 0, 0x28, 0x94);
 }
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6AEC);
+/**
+ * @brief Render magic entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x9A for Y)
+ */
+void func_801E6AEC(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xD4, (a1 % 4) * 13 + 0x9A);
+}
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6B3C);
+/**
+ * @brief Render magic entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x43 for Y)
+ */
+void func_801E6B3C(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xD4, (a1 % 4) * 13 + 0x43);
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6B8C);
 

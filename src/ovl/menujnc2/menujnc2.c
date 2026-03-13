@@ -22,7 +22,14 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6350);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6534);
+/**
+ * @brief Render junction entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x3F for Y)
+ */
+void func_801E6534(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0x5A, (a1 % 4) * 13 + 0x3F);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6584);
 

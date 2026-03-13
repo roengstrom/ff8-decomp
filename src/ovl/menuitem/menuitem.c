@@ -127,7 +127,14 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E45B4);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4608);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E46B8);
+/**
+ * @brief Render item entry at Y position computed from row modulo 4.
+ * @param a0 X position parameter
+ * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x8D for Y)
+ */
+void func_801E46B8(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0xC1, (a1 % 4) * 13 + 0x8D);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4708);
 
