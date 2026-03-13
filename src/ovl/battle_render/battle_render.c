@@ -31,9 +31,47 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098788);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098798);
 
+/**
+ * @brief Copy a null-terminated string into the name table.
+ *
+ * Copies bytes from src to D_800ABA10[idx * 10] until a null byte
+ * is encountered (the null byte is also copied).
+ *
+ * @param idx Entry index in the name table (stride 10).
+ * @param src Pointer to the source string.
+ */
+/**
+ * @brief Copy a null-terminated string into the name table.
+ *
+ * Copies bytes from src to D_800ABA10[idx * 10] until a null byte
+ * is encountered (the null byte is also copied).
+ *
+ * @param idx Entry index in the name table (stride 10).
+ * @param src Pointer to the source string.
+ *
+ * @note Non-matching: Leaf register allocation swaps v0/v1 for the
+ * multiply result vs table base address.
+ */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_800988EC);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098920);
+/**
+ * @brief Set a name table entry from one of two default strings.
+ *
+ * If flag is zero, copies the string at D_8009801C into the name
+ * table at index idx; otherwise copies D_80098020.
+ *
+ * @param idx Entry index in the name table.
+ * @param flag Selects which default string to use.
+ */
+void func_80098920(s32 idx, s32 flag) {
+    extern u8 D_8009801C[];
+    extern u8 D_80098020[];
+    if (flag == 0) {
+        func_800988EC(idx, D_8009801C);
+    } else {
+        func_800988EC(idx, D_80098020);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098958);
 
@@ -67,11 +105,42 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A368);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A40C);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A60C);
+/** @brief Call func_8003646C with display mode 0x16 and layer 7. */
+void func_8009A60C(void) {
+    func_8003646C(0x16, 7);
+}
 
+/**
+ * @brief Compute checksum of D_80078E00 buffer.
+ *
+ * Sums 0x9E08 bytes from D_80078E00 and returns the total.
+ *
+ * @return Byte sum of the buffer.
+ *
+ * @note Non-matching: Trailing dead code (jr $ra / nop) after the
+ * function's return produces 2 extra instructions that C cannot emit.
+ */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A630);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A66C);
+/**
+ * @brief Process render object and dispatch collision checks.
+ *
+ * Calls func_8004B8F4 to initialize, then func_8004B904 to populate
+ * a local buffer. Dispatches func_80048EFC with the third/fourth
+ * words, and if bit 3 of the first word is set, also dispatches
+ * with the second/third words.
+ *
+ * @param a0 Render object pointer.
+ */
+void func_8009A66C(u8 *a0) {
+    s32 buf[6];
+    func_8004B8F4(a0);
+    func_8004B904(&buf);
+    func_80048EFC(buf[3], buf[4]);
+    if (((u32)buf[0] >> 3) & 1) {
+        func_80048EFC(buf[1], buf[2]);
+    }
+}
 
 /** @brief Call func_8009A66C with D_800A37D4 then D_8009B5B4. */
 void func_8009A6CC(void) {
@@ -81,7 +150,18 @@ void func_8009A6CC(void) {
     func_8009A66C(D_8009B5B4);
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A6FC);
+/**
+ * @brief Initialize render object with two display functions.
+ *
+ * Calls func_8004D604 with mode 0, then func_8004D634 with mode 1,
+ * both using the same object pointer.
+ *
+ * @param a0 Render object pointer.
+ */
+void func_8009A6FC(s32 a0) {
+    func_8004D604(a0, 0);
+    func_8004D634(a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A734);
 
