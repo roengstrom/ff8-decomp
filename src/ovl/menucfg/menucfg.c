@@ -7,7 +7,28 @@ void func_801E5800(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5820);
 
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E587C);
+/**
+ * @brief Initialize config menu availability flags.
+ *
+ * Sets both config availability flags at @p a0[0x2D] and @p a0[0x2E]
+ * to 1, then validates them. Calls func_80027DB4(0,0,0) to check
+ * memory card status; if negative, clears a0[0x2E]. Then calls
+ * func_80028098(); if it returns 0, clears a0[0x2D]. If nonzero,
+ * calls func_800275A8(0) and clears a0[0x2D] if that returns 0.
+ *
+ * @param a0 Pointer to config menu context.
+ */
+void func_801E587C(u8 *a0) {
+    s32 val = 1;
+    a0[0x2E] = val;
+    a0[0x2D] = val;
+    if (func_80027DB4(0, 0, 0) < 0) {
+        a0[0x2E] = 0;
+    }
+    if (func_80028098() == 0 || func_800275A8(0) == 0) {
+        a0[0x2D] = 0;
+    }
+}
 
 /**
  * @brief Render a config option label at a grid position.

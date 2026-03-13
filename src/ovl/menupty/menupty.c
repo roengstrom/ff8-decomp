@@ -121,9 +121,62 @@ void func_801E72BC(s32 a0, s32 a1, s32 a2) {
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7318);
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E74DC);
+/**
+ * @brief Build bitmask of characters with specific status flag.
+ *
+ * For each of 8 character slots, checks if the input bitmask has the
+ * character's bit set AND the character's status halfword at D_80077808+0x94
+ * (stride 152) has bit 2 set. Returns a combined bitmask.
+ *
+ * @param a0 Input character bitmask.
+ * @return Filtered bitmask of characters matching the criteria.
+ */
+s32 func_801E74DC(s32 a0) {
+    extern u8 D_80077808[];
+    u8 *ptr = D_80077808;
+    s32 result = 0;
+    s32 i = 0;
+    s32 one = 1;
+    do {
+        s32 mask = one << i;
+        if ((a0 & mask) != 0) {
+            if (*(u16 *)(ptr + 0x94) & 4) {
+                result |= mask;
+            }
+        }
+        i++;
+        ptr += 0x98;
+    } while (i < 8);
+    return result;
+}
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7530);
+/**
+ * @brief Build bitmask of characters with alternate status flag.
+ *
+ * Same as func_801E74DC but checks bit 1 of the status halfword
+ * instead of bit 2.
+ *
+ * @param a0 Input character bitmask.
+ * @return Filtered bitmask of characters matching the criteria.
+ */
+s32 func_801E7530(s32 a0) {
+    extern u8 D_80077808[];
+    u8 *ptr = D_80077808;
+    s32 result = 0;
+    s32 i = 0;
+    s32 one = 1;
+    do {
+        s32 mask = one << i;
+        if ((a0 & mask) != 0) {
+            if (*(u16 *)(ptr + 0x94) & 2) {
+                result |= mask;
+            }
+        }
+        i++;
+        ptr += 0x98;
+    } while (i < 8);
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7584);
 

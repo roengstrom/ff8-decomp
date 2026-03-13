@@ -104,6 +104,27 @@ void func_801E2D38(s32 a0, s32 a1, s32 a2) {
     func_801F0954(1, a0, a1, a2 * 24 + 0xA3);
 }
 
+/**
+ * @brief Render a save slot indicator icon at a grid position.
+ *
+ * Divides @p a0 by 3 to get the remainder, computes a y-coordinate
+ * as remainder * 53 + 0x3C, and renders via func_801F0994 at
+ * position (0, 0x22, y).
+ *
+ * @param a0 Linear save slot index.
+ */
+/**
+ * @brief Render a save slot indicator icon at a grid position.
+ *
+ * Divides @p a0 by 3 to get the remainder, computes a y-coordinate
+ * as remainder * 53 + 0x3C, and renders via func_801F0994 at
+ * position (0, 0x22, y).
+ *
+ * @param a0 Linear save slot index.
+ *
+ * @note Non-matching: Compiler assigns sign bit to v0 instead of v1
+ * in the division-by-3 sequence, cascading through the remainder.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2D78);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
