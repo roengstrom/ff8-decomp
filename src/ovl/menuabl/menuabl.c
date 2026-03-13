@@ -4,9 +4,24 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2800);
 
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E28B4);
 
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2920);
+/**
+ * @brief Compute pointer to ability data entry by index.
+ * @param a0 Ability entry index (stride 8).
+ * @return Address of D_8007CEE0 + a0 * 8.
+ */
+s32 func_801E2920(s32 a0) {
+    extern u8 D_8007CEE0[];
+    return D_8007CEE0 + a0 * 8;
+}
 
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2934);
+/**
+ * @brief Read ability menu display count.
+ * @return Value of D_801E3DB8.
+ */
+s32 func_801E2934(void) {
+    extern u8 D_801E3DB8;
+    return D_801E3DB8;
+}
 
 /**
  * @brief Look up an ability name string by index.

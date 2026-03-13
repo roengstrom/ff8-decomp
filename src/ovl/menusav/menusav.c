@@ -39,7 +39,18 @@ s32 func_801E282C(void) {
     return D_8005620C;
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E283C);
+/**
+ * @brief Clear 0x2000 bytes of sprite buffer at 0x801D1000.
+ */
+void func_801E283C(void) {
+    u8 *ptr = (u8 *)0x801D1000;
+    s32 count = 0x2000;
+    do {
+        *ptr = 0;
+        count--;
+        ptr++;
+    } while (count > 0);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2860);
 
@@ -141,6 +152,18 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
  * @note Non-matching: CC1PSX schedules the two lbu loads together
  * and puts sltiu in the beqz delay slot, eliminating the nop between
  * loads that the original has.
+ */
+/**
+ * @brief Check if either save slot flag indicates availability.
+ *
+ * If byte at a0+0x2F >= 2, result is 1. Otherwise result is
+ * whether byte at a0+0x2E < 2. Stores and returns the result.
+ *
+ * @param a0 Save context pointer.
+ * @return 1 if available, 0 otherwise.
+ *
+ * @note Non-matching: compiler fills first lbu delay with second lbu,
+ * reorders sltiu comparisons, and puts sltiu v1 in branch delay slot.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C);
 
@@ -329,7 +352,14 @@ void func_801E7408(void) {
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7428);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E74BC);
+/**
+ * @brief Read save menu checksum value.
+ * @return Value of D_801EC2E4.
+ */
+s32 func_801E74BC(void) {
+    extern s32 D_801EC2E4;
+    return D_801EC2E4;
+}
 
 /** @brief Draw inner panel with section id 0xE and clear flag. */
 s32 func_801E74CC(s32 a0) {
@@ -378,6 +408,14 @@ void func_801E7B18(u8 *a0) {
     func_800360D0(a0 + 0xB4, 0x801D3000);
 }
 
+/**
+ * @brief Compute pointer to save slot data entry by index.
+ * @param a0 Save slot index (stride 68).
+ * @return Address of D_801EBD5C + a0 * 68.
+ *
+ * @note Non-matching: compiler schedules sll/addu/sll multiply chain
+ * before lui/addiu base address load. Original has lui/addiu first.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B40);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B5C);
@@ -392,9 +430,23 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9988);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9A30);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9AB4);
+/**
+ * @brief Look up sprite data address from table at 0x801CE800.
+ *
+ * Reads halfword offset at index a0 from the table, adds to base.
+ *
+ * @param a0 Sprite index.
+ * @return Base address + halfword offset from table entry.
+ */
+s32 func_801E9AB4(s32 a0) {
+    s32 base = 0x801CE800;
+    return *(u16 *)(base + a0 * 2 + 2) + base;
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9AD0);
+/** @brief Return base address of save sprite data (0x801CD000). */
+s32 func_801E9AD0(void) {
+    return 0x801CD000;
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9ADC);
 
@@ -476,7 +528,18 @@ s32 func_801EB054(s32 a0, s32 a1) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB094);
+/**
+ * @brief Convert a BCD-encoded byte to binary.
+ *
+ * Extracts high nibble, multiplies by 10, adds low nibble.
+ *
+ * @param a0 BCD-encoded byte value.
+ * @return Binary value (0-99).
+ */
+s32 func_801EB094(s32 a0) {
+    s32 hi = (u32)(a0 & 0xFF) >> 4;
+    return (hi * 10 + (a0 & 0xF)) & 0xFF;
+}
 
 /**
  * @brief Get low byte of save data value via signed modulo.
@@ -490,7 +553,28 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB150);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB1AC);
+/**
+ * @brief Convert a 32-bit value to 8 hex digit characters.
+ *
+ * Extracts nibbles from a0 (LSB first) and writes them as characters
+ * (with offset a2) into buffer a1, right-to-left. Null-terminates.
+ *
+ * @param a0 Value to convert.
+ * @param a1 Output buffer pointer (writes 9 bytes: 8 chars + null).
+ * @param a2 Character offset added to each nibble value.
+ */
+void func_801EB1AC(s32 a0, u8 *a1, s32 a2) {
+    s32 i;
+    a1 += 8;
+    *a1 = 0;
+    i = 7;
+    do {
+        a1--;
+        *a1 = (a0 & 0xF) + a2;
+        i--;
+        a0 = (u32)a0 >> 4;
+    } while (i >= 0);
+}
 
 /**
  * @brief Accumulate 3 nibbles into a 12-bit value from func_801EB150 output.

@@ -1,6 +1,10 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2800);
+/** @brief Store item menu state pointer. */
+void func_801E2800(s32 a0) {
+    extern s32 D_801ECE20;
+    D_801ECE20 = a0;
+}
 
 /**
  * @brief Read item menu state pointer.
@@ -116,13 +120,49 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2D54);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2E04);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2E38);
+/**
+ * @brief Read byte 0 of item entry at index a0 from D_801F889C.
+ * @param a0 Item entry index.
+ * @return First byte of the 4-byte entry.
+ */
+s32 func_801E2E38(s32 a0) {
+    extern u8 D_801F889C[];
+    return D_801F889C[a0 * 4];
+}
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2E54);
+typedef struct {
+    u8 b0, b1, b2, b3;
+} ItemEntry4;
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2E70);
+/**
+ * @brief Read byte 1 of item entry at index a0 from D_801F889C.
+ * @param a0 Item entry index.
+ * @return Second byte of the 4-byte entry.
+ */
+s32 func_801E2E54(s32 a0) {
+    extern ItemEntry4 D_801F889C[];
+    return D_801F889C[a0].b1;
+}
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2E8C);
+/**
+ * @brief Read byte 2 of item entry at index a0 from D_801F889C.
+ * @param a0 Item entry index.
+ * @return Third byte of the 4-byte entry.
+ */
+s32 func_801E2E70(s32 a0) {
+    extern ItemEntry4 D_801F889C[];
+    return D_801F889C[a0].b2;
+}
+
+/**
+ * @brief Read byte 3 of item entry at index a0 from D_801F889C.
+ * @param a0 Item entry index.
+ * @return Fourth byte of the 4-byte entry.
+ */
+s32 func_801E2E8C(s32 a0) {
+    extern ItemEntry4 D_801F889C[];
+    return D_801F889C[a0].b3;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2EA8);
 
@@ -152,6 +192,14 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3968);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3C1C);
 
+/**
+ * @brief Reset four item menu state words to -1.
+ *
+ * Sets D_801ECEDC, D_801ECEE4, D_801ECEE8, and D_801ECEE0 all to -1.
+ *
+ * @note Non-matching: compiler schedules li v1,-1 before the first lui
+ * for D_801ECEDC. Original has lui first with li filling the delay slot.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3E94);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3EBC);
@@ -310,7 +358,18 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8780);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E88AC);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E89A4);
+/**
+ * @brief Look up sprite data address from table at 0x801D1000.
+ *
+ * Reads halfword offset at index a0 from the table, adds to base.
+ *
+ * @param a0 Sprite index.
+ * @return Base address + halfword offset from table entry.
+ */
+s32 func_801E89A4(s32 a0) {
+    s32 base = 0x801D1000;
+    return *(u16 *)(base + a0 * 2 + 2) + base;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E89C0);
 
@@ -318,7 +377,10 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8AF0);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8C88);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8DA4);
+/** @brief Return base address of item sprite data (0x801CD000). */
+s32 func_801E8DA4(void) {
+    return 0x801CD000;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8DB0);
 

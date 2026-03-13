@@ -44,6 +44,15 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5B88);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5C08);
 
+/**
+ * @brief Render extension entry at Y position computed from row modulo 11.
+ * @param a0 Render context pointer.
+ * @param a1 Row index (modulo 11, multiplied by 13, offset by 0x41 for Y).
+ *
+ * @note Non-matching: compiler pre-allocates a3 for the *13 multiply
+ * (sll/addu/sll/addu directly in a3) instead of using v0 as temp with
+ * a final addu v1,v1,v0. Register preallocation to argument register.
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5CF8);
 
 /**
