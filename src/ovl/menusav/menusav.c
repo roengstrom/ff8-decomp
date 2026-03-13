@@ -1066,6 +1066,59 @@ void func_801EB850(void) {
     s0[3] = func_801EB408(s0[1], s0[6]);
 }
 
+/**
+ * @brief Compute and store save data timing values.
+ *
+ * Gets save data pointer, computes values from func_801EB408 and
+ * func_801EB0B8, transforms with multiply-shift (val * 9 >> 7),
+ * and stores at offsets 0x03, 0x10, 0x12, 0x32 in the save data.
+ * Finally calls func_801EB850 to update checksum.
+ *
+ * @note Non-matching: v0/v1 register swap in multiply-shift chain.
+ * Original uses v1 for (v0<<3)+v0 result, compiler uses v0.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB890);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB928);
+/**
+ * @brief Initialize save data structure with default values.
+ *
+ * Gets save data pointer, computes initial color and timing values
+ * via func_801EB2E4, func_801EB334, func_801EB408, func_801EB458.
+ * Sets various flag bytes and clears timing fields.
+ */
+void func_801EB928(void) {
+    s32 s0 = 1;
+    u8 *s1 = (u8 *)func_800372D0();
+    s32 v0;
+    s32 a0;
+
+    v0 = func_801EB2E4();
+    v0 |= 0x8000;
+    *(u16 *)(s1 + 0xC) = v0;
+    a0 = *(u16 *)(s1 + 0xC);
+    s1[1] = s0;
+    v0 = func_801EB334(a0);
+    s1[6] = v0;
+    v0 = func_801EB408(s1[1], s1[6]);
+    s1[3] = v0;
+    s1[2] = v0;
+    v0 = func_801EB458(s1[3]);
+    *(u16 *)(s1 + 4) = v0;
+    s1[7] = 4;
+    s1[0xF] = 2;
+    s1[0] = s0;
+    s1[0x2F] = 7;
+    s1[0x2C] = 0;
+    {
+        s32 i = 3;
+        u8 *p = s1 + 3;
+        do {
+            *(p + 0x14) = 0;
+            i--;
+            p--;
+        } while (i >= 0);
+    }
+    s1[0x2E] = 0;
+    *(s32 *)(s1 + 8) = 0;
+    s1[0x2D] = 0;
+}
