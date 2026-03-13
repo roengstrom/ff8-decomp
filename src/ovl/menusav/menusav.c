@@ -52,9 +52,56 @@ void func_801E283C(void) {
     } while (count > 0);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2860);
+/**
+ * @brief Load sprite data for save menu slot 0x12.
+ *
+ * Clears the sprite buffer, initiates a DMA read of sprite data
+ * to 0x801D1000, waits for completion, then copies the data to
+ * the game state region using table entry 0x12 from D_80097424.
+ */
+void func_801E2860(void) {
+    extern u8 D_80097424[];
+    extern u8 D_800773C8[];
+    s32 v0;
+    s32 idx = 0x12;
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E28C8);
+    func_801E283C();
+    func_800361C0(idx, 0x801D1000);
+    do {
+        v0 = func_80035E00();
+    } while (v0 != 0);
+    {
+        s32 base = D_80097424;
+        s32 entry = *(s32 *)(base + idx * 8);
+        func_8002A318(0x801D1000, D_800773C8, entry);
+    }
+}
+
+/**
+ * @brief Encode a two-digit number as character codes into a buffer.
+ *
+ * Divides a1 by 10 to get tens and ones digits, adds 0x824F offset
+ * to each, then stores as 4 bytes (high/low of tens, high/low of ones)
+ * into buffer at a0.
+ *
+ * @param a0 Output buffer (4 bytes written, pointer advanced to 5th byte).
+ * @param a1 Value to encode (0-99).
+ * @return Pointer past the last written byte.
+ */
+s32 func_801E28C8(u8 *a0, s32 a1) {
+    s32 v1 = a1 / 10;
+    a1 = a1 - v1 * 10;
+    v1 += 0x824F;
+    a1 += 0x824F;
+    *a0 = v1 >> 8;
+    a0++;
+    *a0 = v1;
+    a0++;
+    *a0 = a1 >> 8;
+    a0++;
+    *a0 = a1;
+    return (s32)(a0 + 1);
+}
 
 /**
  * @brief Check if save slot halfword equals 0x8FF.
@@ -262,12 +309,59 @@ void func_801E5B70(s32 a0, s32 a1, s32 a2) {
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
+/**
+ * @brief Look up save slot data and render with func_801F3824.
+ *
+ * Calls func_801E2800 with the 5th argument to get a save slot pointer,
+ * loads the word at offset 0xC, then passes it as the 5th stack arg
+ * to func_801F3824 along with adjusted copies of the original arguments.
+ *
+ * @param a0 First render parameter (passed through).
+ * @param a1 Second render parameter (passed through).
+ * @param a2 Third render parameter (0x100 added).
+ * @param a3 Fourth render parameter (0x14 added).
+ * @param stack_arg Save slot index for func_801E2800.
+ */
+/**
+ * @brief Look up save slot data and render with func_801F3824.
+ *
+ * Calls func_801E2800 with the 5th argument to get a save slot pointer,
+ * loads the word at offset 0xC, then passes it as the 5th stack arg
+ * to func_801F3824 along with adjusted copies of the original arguments.
+ *
+ * @param a0 First render parameter (passed through).
+ * @param a1 Second render parameter (passed through).
+ * @param a2 Third render parameter (0x100 added).
+ * @param a3 Fourth render parameter (0x14 added).
+ * @param stack_arg Save slot index for func_801E2800.
+ *
+ * @note Non-matching: scrambled prologue s-reg allocation. Original assigns
+ * a0->s3, a1->s2, a2+0x100->s0, a3+0x14->s1 but compiler produces
+ * different assignment order.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5BCC);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5C38);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04);
 
+/**
+ * @brief Look up save slot data and render with func_801F3270.
+ *
+ * Calls func_801E2800 with the 5th argument to get a save slot pointer,
+ * loads the word at offset 0x10, then passes it as the 5th stack arg
+ * to func_801F3270 along with adjusted copies of the original arguments.
+ *
+ * @param a0 First render parameter (passed through).
+ * @param a1 Second render parameter (passed through).
+ * @param a2 Third render parameter (0x100 added).
+ * @param a3 Fourth render parameter (0x8 added).
+ * @param stack_arg Save slot index for func_801E2800.
+ *
+ * @note Non-matching: scrambled prologue s-reg allocation. Same pattern
+ * as func_801E5BCC: original assigns a0->s3, a1->s2, a2+0x100->s0,
+ * a3+0x8->s1.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5DC4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5E30);
