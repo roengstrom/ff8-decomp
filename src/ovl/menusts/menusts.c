@@ -83,7 +83,31 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E62A8);
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E68A4);
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E6994);
+/**
+ * @brief Configure and draw a status menu panel border.
+ *
+ * Sets up D_801FAB00 with no icon, position from a2/a3,
+ * fixed size (0xF4 x 0x12), then draws via func_801EF9AC.
+ *
+ * @param a0 Display list pointer
+ * @param a1 OT pointer
+ * @param a2 X position
+ * @param a3 Y position
+ */
+void func_801E6994(s32 a0, s32 a1, s16 a2, s16 a3) {
+    extern u8 D_801FAB00[];
+    extern s32 D_80083848;
+
+    s32 cfg = (s32)D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)cfg = a2;
+    *(s16 *)(cfg + 0x4) = 0xF4;
+    *(s16 *)(cfg + 0x6) = 0x12;
+    *(s16 *)(cfg + 0x2) = a3;
+    func_801EF9AC(a0, a1, 0x1000, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E69E4);
 
@@ -192,7 +216,27 @@ void func_801E8950(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
     func_801E750C(a1, a2, a3, arg5, arg6, 0xA);
 }
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8990);
+/**
+ * @brief Dispatch a status rendering operation through a function table.
+ *
+ * Looks up a function pointer from D_801E961C[a1], calls it with
+ * (a0, a2, a3, stackArg1, stackArg2), then passes the result and
+ * other parameters to func_801EF9AC for GPU display.
+ *
+ * @param a0 Status entry data pointer
+ * @param a1 Function table index
+ * @param a2 Parameter passed as a1 to table function, then as a0 to func_801EF9AC
+ * @param a3 Parameter passed as a2 to table function
+ * @param stackArg1 Passed as a3 to table function, then as stack arg to func_801EF9AC
+ * @param stackArg2 Passed as stack arg to table function, then as a2 to func_801EF9AC
+ */
+void func_801E8990(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6, s32 arg7) {
+    extern s32 D_801E961C[];
+    extern s32 D_80083848;
+    s32 (*fn)(s32, s32, s32, s32, s32, s32) = (void *)D_801E961C[a1];
+    s32 result = fn(a0, a2, a3, arg5, arg6, arg7);
+    func_801EF9AC(a2, result, arg7, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8A08);
 
@@ -200,7 +244,24 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8BAC);
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8CE4);
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E9118);
+/**
+ * @brief Conditionally transform a value before passing to the status renderer.
+ *
+ * If the signed byte at a0+0x3B is non-negative, calls func_801F6FE4
+ * with (a1, a2, 1, 0x1000) and uses the result as a2. Then calls
+ * func_801E8CE4 with the original a0, a1, and the (possibly modified) a2.
+ *
+ * @param a0 Pointer to status entry structure.
+ * @param a1 First render parameter.
+ * @param a2 Second render parameter (may be replaced by func_801F6FE4 result).
+ */
+void func_801E9118(u8 *a0, s32 a1, s32 a2) {
+    s8 val = *(s8 *)(a0 + 0x3B);
+    if (val >= 0) {
+        a2 = func_801F6FE4(a1, a2, 1, 0x1000);
+    }
+    func_801E8CE4(a0, a1, a2);
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E9178);
 
