@@ -112,21 +112,84 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5688);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E579C);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E58C0);
+/**
+ * @brief Render save menu entry with string ID 0x26 (save slot label).
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E58C0(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x26);
+    func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E591C);
+/**
+ * @brief Render save menu entry with string ID 0x0F.
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E591C(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x0F);
+    func_801F4274(a1, a2, v0, 0xC0, 0x87, 0x1000);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5978);
+/**
+ * @brief Render save menu entry with string ID 0x12.
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E5978(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x12);
+    func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E59D4);
+/**
+ * @brief Render save menu entry with string ID 0x18.
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E59D4(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x18);
+    func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5A30);
+/**
+ * @brief Render save menu entry with string ID 0x27.
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E5A30(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x27);
+    func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5A8C);
+/**
+ * @brief Render save menu entry with string ID 0x13.
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E5A8C(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x13);
+    func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5AE8);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5B70);
+/**
+ * @brief Render save menu entry with string ID 0x17.
+ * @param a0 Unused parameter
+ * @param a1 X position for rendering
+ * @param a2 Y position for rendering
+ */
+void func_801E5B70(s32 a0, s32 a1, s32 a2) {
+    s32 v0 = func_801E2C90(0x17);
+    func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5BCC);
 
@@ -152,9 +215,25 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E653C);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6754);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6804);
+/**
+ * @brief Render save menu entry with string ID 0x0D.
+ * @param a0 X position for rendering
+ * @param a1 Y position for rendering
+ */
+void func_801E6804(s32 a0, s32 a1) {
+    s32 v0 = func_801E2C90(0x0D);
+    func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6860);
+/**
+ * @brief Render save menu entry with string ID 0x0E.
+ * @param a0 X position for rendering
+ * @param a1 Y position for rendering
+ */
+void func_801E6860(s32 a0, s32 a1) {
+    s32 v0 = func_801E2C90(0x0E);
+    func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E68BC);
 
