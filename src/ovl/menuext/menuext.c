@@ -1,8 +1,39 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5800);
+/**
+ * @brief Clear 8 bytes of extension state at D_801E8C10.
+ *
+ * Iterates backwards from index 7 to 0, setting each byte to zero.
+ */
+void func_801E5800(void) {
+    extern u8 D_801E8C10[];
+    s32 i = 7;
+    s32 base = (s32)D_801E8C10;
+    u8 *ptr = (u8 *)(base + 7);
+top:
+    *ptr = 0;
+    i--;
+    ptr--;
+    if (i >= 0) goto top;
+}
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5828);
+/**
+ * @brief Clear D_801E8C20 array (0x6E entries of 2 bytes each) to zero.
+ */
+void func_801E5828(s32 a0) {
+    extern u8 D_801E8C20[];
+    s32 i;
+    u8 *ptr;
+
+    i = 0;
+    ptr = D_801E8C20;
+
+    for (; i < 0x6E; i++) {
+        ptr[0] = 0;
+        ptr[1] = 0;
+        ptr += 2;
+    }
+}
 
 /** @brief Draw inner panel with section id 0x2 and clear flag. */
 s32 func_801E5854(s32 a0) {
@@ -36,6 +67,17 @@ s32 func_801E5A88(void) {
     return (s32)D_801E9600;
 }
 
+/**
+ * @brief Copy extension string data from table to output buffer.
+ *
+ * Gets the base address from func_801E5A88, adds the offset from *a1,
+ * then copies bytes until a sentinel value of 2 is found.
+ * Terminates the output by calling func_8002A2A8.
+ *
+ * @param a0 Unused
+ * @param a1 Pointer to u16 offset into the string table
+ * @param a2 Output buffer pointer
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A94);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5AF8);
@@ -106,9 +148,71 @@ void func_801E5EF0(u8 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5F48);
+/**
+ * @brief Search a 152-byte entry for a matching id, return its value.
+ *
+ * Computes the entry address as D_80077818 + a0 * 152, then searches
+ * up to 32 byte-pairs for a match with a1. Returns the value byte
+ * following the matched id, or 0 if not found.
+ *
+ * @param a0 Entry index (multiplied by 152 for offset)
+ * @param a1 Target id to find
+ * @return Value byte after matched id, or 0 if not found
+ */
+s32 func_801E5F48(s32 a0, s32 a1) {
+    extern u8 D_80077818[];
+    u8 *ptr = D_80077818 + a0 * 152;
+    s32 i = 0;
+top:
+    {
+        s32 id = ptr[0];
+        ptr++;
+        if (a1 != id) goto skip;
+        {
+            s32 val = ptr[0];
+            if (val != 0) {
+                return val;
+            }
+        }
+    }
+skip:
+    i++;
+    ptr++;
+    if (i < 0x20) goto top;
+    return 0;
+}
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5FA8);
+/**
+ * @brief Search byte-pair table for matching id, return its value.
+ *
+ * Iterates through up to 0xC6 byte-pairs. Each pair is (id, value).
+ * If a pair's id matches a0, returns the value byte. Returns 0 if
+ * no match is found.
+ *
+ * @param a0 Target id to find
+ * @param a1 Pointer to byte-pair table
+ * @return Value byte after matched id, or 0 if not found
+ */
+s32 func_801E5FA8(s32 a0, u8 *a1) {
+    s32 i = 0;
+top:
+    {
+        s32 id = a1[0];
+        a1++;
+        if (a0 != id) goto skip;
+        {
+            s32 val = a1[0];
+            if (val != 0) {
+                return val;
+            }
+        }
+    }
+skip:
+    i++;
+    a1++;
+    if (i < 0xC6) goto top;
+    return 0;
+}
 
 /**
  * @brief Build a filtered list of valid extension entries.
@@ -175,6 +279,17 @@ void func_801E60E4(s32 a0) {
     func_800370AC(a0);
 }
 
+/**
+ * @brief Decrease compatibility value for a matching entry in table.
+ *
+ * Searches a byte-pair table (id, value) for an entry matching a1.
+ * Subtracts a2 from the value, clamping to 0. If value reaches 0,
+ * clears the id byte as well. Stops after the first match.
+ *
+ * @param a0 Pointer to byte-pair table (id byte followed by value byte)
+ * @param a1 Target id to match
+ * @param a2 Amount to subtract from value
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6114);
 
 /**
@@ -267,6 +382,25 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7B00);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7C9C);
 
+/**
+ * @brief Render text entry from data table at computed position.
+ *
+ * Looks up a pointer from the D_801FAB00 table at index a2, decodes it
+ * with func_8002F688, then renders at position computed from D_801FAB00
+ * base coordinates plus offsets.
+ *
+ * @param a0 Render context
+ * @param a1 Return value if no entry found
+ * @param a2 Table index for entry lookup
+ * @param a3 Unused
+ * @param arg5 X offset added to base position
+ * @return Result of func_801F0FEC if entry exists, otherwise a1
+ *
+ * @note Non-matching: compiler assigns D_801FAB00 lui result to $v1 and
+ * full address to $a3, but original has lui in $a3 and full address in $v1.
+ * This swaps all subsequent register uses for D_801FAB00 access and changes
+ * prologue save interleaving. 13 of 44 instructions differ.
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
 
 /**
