@@ -91,6 +91,35 @@ extracted from the disc with LZSS decompression where needed.
 | `tools/extract_overlays.py` | Extracts all overlays from disc (with LZSS decompression) |
 | `tools/analyze_delay_slots.py` | Toolchain analysis — classifies functions by PsyQ version |
 
+## Decomping a Function
+
+Once you've written the C implementation for a function, follow these steps to
+integrate it into the build:
+
+1. **Replace the `INCLUDE_ASM` macro** in the C source file with your C
+   implementation.
+
+2. **Update the splat yaml** (`config/splat/SLUS_008.92.yaml` for the main
+   binary, or the overlay's yaml in `config/`). If your function is already
+   within an existing `c` segment's address range, no yaml changes are needed.
+   If you're creating a new C file, add a new `c` segment entry covering the
+   function's address range.
+
+3. **Update `config/symbol_addrs.txt`** — Ensure the function is listed with
+   `type:func` so splat recognizes it as a function symbol.
+
+4. **Add any new external symbols** — If your function references globals or
+   functions not yet declared, add them to the relevant
+   `undefined_*_auto.txt` file in `config/` so the linker can resolve them.
+
+5. **Re-split and verify**:
+   ```bash
+   rm -rf asm && make split && make verify
+   ```
+   This regenerates assembly (splat will stop emitting `.s` files for
+   addresses covered by C), rebuilds everything, and checks that the output
+   matches the original binary SHA1. Every target must show `Match`.
+
 ## Tools
 
 ### analyze_delay_slots.py
