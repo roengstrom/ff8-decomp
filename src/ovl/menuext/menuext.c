@@ -254,7 +254,38 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7C9C);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7E38);
+/**
+ * @brief Configure display parameters and invoke callback for extension rendering.
+ *
+ * Sets up D_801FAB00 display configuration with the given position and size,
+ * stores the pointer at a0+0x28 as the data source, reads scroll offset from
+ * a0+0x3A, then calls func_801EFBB4 with func_801E7D88 as the render callback.
+ *
+ * @param a0 Pointer to source data structure
+ * @param a1 First callback parameter (passed as a0 to func_801EFBB4)
+ * @param a2 Second callback parameter (passed as a1 to func_801EFBB4)
+ * @param a3 X position for the display configuration
+ * @param arg5 Y position for the display configuration
+ */
+void func_801E7E38(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern u8 D_801FAB00[];
+    s32 cfg = (s32)D_801FAB00;
+    *(u8 *)(cfg + 0x10) = 0x55;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)(cfg + 0x04) = 0x144;
+    *(s16 *)(cfg + 0x06) = 0x1A;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x02) = arg5;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x3A);
+    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x28);
+    {
+        extern s32 func_801E7D88;
+        func_801EFBB4(a1, a2, (s32)&func_801E7D88);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7EB4);
 
