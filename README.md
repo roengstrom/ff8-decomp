@@ -46,32 +46,32 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 
 | Binary | C | ASM | Total | % Decomped |
 |--------|---|-----|-------|------------|
-| `SLUS_008.92` | 610 | 419 | 1029 | 59.3% |
-| `menumain.ovl` | 115 | 8 | 123 | 93.5% |
-| `menucfg.ovl` | 0 | 17 | 17 | 0.0% |
-| `menupty.ovl` | 0 | 42 | 42 | 0.0% |
-| `menusts.ovl` | 0 | 36 | 36 | 0.0% |
-| `menuabl.ovl` | 0 | 11 | 11 | 0.0% |
-| `menushop.ovl` | 1 | 43 | 44 | 2.3% |
-| `menuext.ovl` | 0 | 37 | 37 | 0.0% |
-| `menuitem.ovl` | 0 | 80 | 80 | 0.0% |
-| `menumgc.ovl` | 0 | 41 | 41 | 0.0% |
-| `menugf.ovl` | 0 | 20 | 20 | 0.0% |
-| `menujnc2.ovl` | 0 | 67 | 67 | 0.0% |
-| `menusav.ovl` | 0 | 104 | 104 | 0.0% |
-| `menucrd.ovl` | 9 | 9 | 18 | 50.0% |
-| `menututo.ovl` | 0 | 22 | 22 | 0.0% |
-| `menutmag.ovl` | 0 | 10 | 10 | 0.0% |
-| `menutips.ovl` | 0 | 12 | 12 | 0.0% |
+| `SLUS_008.92` | 611 | 418 | 1029 | 59.4% |
+| `menumain.ovl` | 115 | 84 | 199 | 57.8% |
+| `menucfg.ovl` | 6 | 12 | 18 | 33.3% |
+| `menupty.ovl` | 15 | 34 | 49 | 30.6% |
+| `menusts.ovl` | 13 | 31 | 44 | 29.5% |
+| `menuabl.ovl` | 6 | 11 | 17 | 35.3% |
+| `menushop.ovl` | 12 | 42 | 54 | 22.2% |
+| `menuext.ovl` | 17 | 30 | 47 | 36.2% |
+| `menuitem.ovl` | 29 | 70 | 99 | 29.3% |
+| `menumgc.ovl` | 9 | 42 | 51 | 17.6% |
+| `menugf.ovl` | 6 | 16 | 22 | 27.3% |
+| `menujnc2.ovl` | 18 | 68 | 86 | 20.9% |
+| `menusav.ovl` | 54 | 70 | 124 | 43.5% |
+| `menucrd.ovl` | 11 | 10 | 21 | 52.4% |
+| `menututo.ovl` | 9 | 19 | 28 | 32.1% |
+| `menutmag.ovl` | 8 | 7 | 15 | 53.3% |
+| `menutips.ovl` | 4 | 12 | 16 | 25.0% |
 | `menutest.ovl` | 9 | 2 | 11 | 81.8% |
-| `field_init.bin` | 0 | 7 | 7 | 0.0% |
-| `display_init.bin` | 0 | 10 | 10 | 0.0% |
-| `field_engine.bin` | 1 | 395 | 396 | 0.3% |
-| `battle_engine.bin` | 1 | 385 | 386 | 0.3% |
-| `battle_render.bin` | 1 | 15 | 16 | 6.2% |
-| `battle_code.bin` | 447 | 570 | 1017 | 44.0% |
-| `field_engine_alt.bin` | 4 | 283 | 287 | 1.4% |
-| **Total** | **1198** | **2645** | **3843** | **31.2%** |
+| `field_init.bin` | 4 | 5 | 9 | 44.4% |
+| `display_init.bin` | 0 | 11 | 11 | 0.0% |
+| `field_engine.bin` | 1 | 683 | 684 | 0.1% |
+| `battle_engine.bin` | 8 | 1656 | 1664 | 0.5% |
+| `battle_render.bin` | 9 | 18 | 27 | 33.3% |
+| `battle_code.bin` | 456 | 958 | 1414 | 32.2% |
+| `field_engine_alt.bin` | 4 | 347 | 351 | 1.1% |
+| **Total** | **1434** | **4656** | **6090** | **23.5%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
 
