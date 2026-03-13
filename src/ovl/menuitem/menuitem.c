@@ -190,7 +190,45 @@ s32 func_801E2E8C(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2EA8);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2F88);
+/**
+ * @brief Check if a specific item type should trigger an ability menu update.
+ *
+ * Loads item type from D_801F889C[a0*4] and checks against specific type IDs.
+ * First calls func_801F79F8(0x40) as a precondition. For types 1, 2, 4, 5
+ * returns 0. For type 6, checks func_801EFFD4 bit 0. Otherwise calls
+ * func_801E2EA8 and returns bit 0 of its result.
+ *
+ * @param a0 Item index.
+ * @return 0 for certain types, or bit 0 of func_801E2EA8 result.
+ */
+s32 func_801E2F88(s32 a0) {
+    extern u8 D_801F889C[];
+    extern s32 func_801F79F8(s32);
+    extern s32 func_801EFFD4(void);
+    extern s32 func_801E2EA8(s32);
+    s32 type = D_801F889C[a0 * 4];
+
+    if (func_801F79F8(0x40) != 0) {
+        if (type == 1) {
+            return 0;
+        }
+        if (type == 2) {
+            return 0;
+        }
+        if (type == 4) {
+            return 0;
+        }
+        if (type == 5) {
+            return 0;
+        }
+    }
+    if (type == 6) {
+        if ((func_801EFFD4() & 1) == 0) {
+            return 0;
+        }
+    }
+    return func_801E2EA8(a0) & 1;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E302C);
 
