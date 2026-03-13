@@ -77,9 +77,28 @@ s32 func_801E5A88(void) {
  * @param a0 Unused
  * @param a1 Pointer to u16 offset into the string table
  * @param a2 Output buffer pointer
+ *
+ * @note Non-matching: compiler puts combined pointer (base+offset) in $v0
+ * instead of $a1, and fills load delay slots that original leaves as nop.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A94);
 
+/**
+ * @brief Filter string data from extension table, removing sentinel bytes.
+ *
+ * Calls func_801E5A88 to get the base address, adds the u16 offset from *a1,
+ * skips past leading sentinel bytes (value 2), then copies non-sentinel,
+ * non-zero bytes into D_801E8D00. Returns pointer to D_801E8D00.
+ *
+ * @param a0 Unused
+ * @param a1 Pointer to u16 offset into string table
+ * @return Pointer to filtered string in D_801E8D00
+ *
+ * @note Non-matching: addu operand order for combined pointer differs by
+ * one byte. Original: addu v1,v0,v1 (base+offset). Compiled: addu v1,v1,v0
+ * (offset+base). Same result, different encoding. All other 35 instructions
+ * match including scrambled prologue (s0,s2,s1 save order).
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5AF8);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5B88);
