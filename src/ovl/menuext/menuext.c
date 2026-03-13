@@ -216,6 +216,21 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6338);
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E63F4);
 
+/**
+ * @brief Look up entry by absolute index, store type byte, and dispatch.
+ *
+ * Takes an index (negated if negative), decrements by 1, looks up an 8-byte
+ * entry from the table at a0+0x24, stores the type byte (offset 7) to a0+0x4B,
+ * then calls func_801E6338 with that type and the a2 parameter.
+ *
+ * @param a0 Menu context pointer
+ * @param a1 Entry index (absolute value used, decremented by 1)
+ * @param a2 Parameter passed through to func_801E6338
+ * @return 3 if func_801E6338 returns 0, otherwise 0
+ *
+ * @note Non-matching: compiler fills bgez delay slot with sw ra instead of
+ * leaving nop, making the function 4 bytes shorter than the original.
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6458);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E64B4);
