@@ -8,10 +8,66 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5C5C);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5EE8);
+/**
+ * @brief Set junction slot count based on character GF compatibility.
+ *
+ * Reads the character index from @p a0[0x43], looks up the corresponding
+ * entry in D_801EEDF0 (stride 28), and checks byte 0xB (GF compatibility
+ * flag). If nonzero, sets @p a0[0x47] to 3 (full junction slots); otherwise
+ * sets it to 2 (limited slots).
+ *
+ * @param a0 Pointer to junction menu context.
+ */
+void func_801E5EE8(u8 *a0) {
+    extern u8 D_801EEDF0[];
+    s32 base = (s32)D_801EEDF0;
+    s32 val = *(u8 *)(base + a0[0x43] * 28 + 0xB);
+    if (val != 0) {
+        a0[0x47] = 3;
+    } else {
+        a0[0x47] = 2;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5F24);
+/**
+ * @brief Save character ability data to buffer.
+ *
+ * Copies 20 bytes from character @p a0's ability data (D_80077378 at
+ * offset 0x4EC, stride 152) into the junction buffer D_801EEFA0.
+ *
+ * @param a0 Character index (0-7).
+ */
+void func_801E5F24(s32 a0) {
+    extern u8 D_801EEFA0[];
+    extern u8 D_80077378[];
+    s32 i = 0;
+    s32 dst = (s32)D_801EEFA0;
+    s32 src = (s32)D_80077378;
+    a0 = src + a0 * 152;
+    do {
+        *(u8 *)(i + dst) = *(u8 *)(a0 + i + 0x4EC);
+    } while (++i < 0x14);
+}
 
+/**
+ * @brief Restore character ability data from buffer.
+ *
+ * Copies 20 bytes from the junction buffer D_801EEFA0 back into
+ * character @p a0's ability data (D_80077378 at offset 0x4EC, stride 152).
+ *
+ * @param a0 Character index (0-7).
+ */
+/**
+ * @brief Restore character ability data from buffer.
+ *
+ * Copies 20 bytes from the junction buffer D_801EEFA0 back into
+ * character @p a0's ability data (D_80077378 at offset 0x4EC, stride 152).
+ *
+ * @param a0 Character index (0-7).
+ *
+ * @note Non-matching: Compiler swaps register allocation for D_80077378
+ * and D_801EEFA0 base addresses (a2/v1 vs v1/a2).
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5F78);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
@@ -65,7 +121,22 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E676C);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E67EC);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E68AC);
+/**
+ * @brief Compute negative scroll offset from page index.
+ *
+ * Divides @p a0 by 5 to get the page number, clamps to a maximum of 2,
+ * then returns the negative offset as -(page * 160).
+ *
+ * @param a0 Linear item index.
+ * @return Negative pixel offset for scrolling (0, -160, or -320).
+ */
+s32 func_801E68AC(s32 a0) {
+    s32 page = a0 / 5;
+    if (page >= 3) {
+        page = 2;
+    }
+    return -(page * 160);
+}
 
 /** @brief Draw inner panel with section id 0xB and clear flag. */
 s32 func_801E68EC(s32 a0) {

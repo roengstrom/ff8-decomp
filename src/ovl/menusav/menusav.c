@@ -550,6 +550,24 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB458);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB578);
 
+/**
+ * @brief Search byte pair array for a matching entry.
+ *
+ * Searches through @p a2 consecutive byte pairs in array @p a3.
+ * Each pair consists of two bytes read sequentially. Returns 0 if
+ * a pair is found where the first byte equals @p a0 and the second
+ * byte equals @p a1. Returns 1 if no match is found or if @p a2 <= 0.
+ *
+ * @param a0 First byte to match.
+ * @param a1 Second byte to match.
+ * @param a2 Number of pairs to search.
+ * @param a3 Pointer to byte pair array.
+ * @return 0 if match found, 1 otherwise.
+ *
+ * @note Non-matching: Compiler allocates loop counter to t0 instead of v1,
+ * and schedules return value setup (li v0,1) into blez delay slot
+ * instead of counter init.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB5F0);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB630);

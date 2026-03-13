@@ -227,6 +227,18 @@ void func_801E9074(s32 a0, s32 a1, s32 a2) {
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E90D0);
 
+/**
+ * @brief Build a bitmask of party-eligible characters.
+ *
+ * Iterates through all 8 character slots in D_80077378 (stride 152).
+ * For each character, checks bit 3 of the halfword at offset 0x524.
+ * If set, the corresponding bit in the result mask is set.
+ *
+ * @return Bitmask where bit N is set if character N is party-eligible.
+ *
+ * @note Non-matching: Compiler uses copy propagation for i=0 init
+ * (move v1,a1 instead of addu v1,zero,zero) since result is already 0.
+ */
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E92B8);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E92FC);

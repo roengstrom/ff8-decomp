@@ -130,7 +130,41 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E77B4);
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7988);
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7C20);
+/**
+ * @brief Initialize GF menu overlay and register callbacks.
+ *
+ * Registers func_801E5A60 as the update callback and func_801E7988 as
+ * the render callback via func_801F179C. Calls func_801F0948(0) to
+ * initialize shared state. If registration succeeds, clears all menu
+ * context fields (positions, flags, scroll state), loads the current
+ * GF's data via func_80036F60/func_80035A6C, and enters the update
+ * callback.
+ */
+void func_801E7C20(s32 unused) {
+    extern void func_801E5A60();
+    extern void func_801E7988();
+    s32 ctx;
+
+    ctx = func_801F179C((s32)func_801E5A60, (s32)func_801E7988);
+    func_801F0948(0);
+    if (ctx != 0) {
+        *(u8 *)(ctx + 0x30) = 0;
+        *(u8 *)(ctx + 0x31) = 0;
+        *(u8 *)(ctx + 0x36) = 0;
+        *(u8 *)(ctx + 0x37) = 0;
+        *(s16 *)(ctx + 0x28) = 0;
+        *(u8 *)(ctx + 0x35) = 0;
+        *(s32 *)(ctx + 0x20) = 0;
+        *(s32 *)(ctx + 0x24) = 0;
+        *(s16 *)(ctx + 0x2A) = 0;
+        *(u8 *)(ctx + 0x34) = 0;
+        *(s16 *)(ctx + 0x2E) = 0;
+        *(u8 *)(ctx + 0x33) = func_80035A6C(func_80036F60());
+        *(u8 *)(ctx + 0x56) = 0;
+        *(u8 *)(ctx + 0x57) = 0xFF;
+        func_801E5A60(ctx);
+    }
+}
 
 /**
  * @brief Reset GF menu state and redraw.

@@ -67,7 +67,29 @@ void func_801E2C0C(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     func_801E2848(a0, a1);
 }
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2C44);
+/**
+ * @brief Search byte pair array for a matching entry.
+ *
+ * Iterates through up to 198 pairs of consecutive bytes starting at @p a0.
+ * For each pair, checks if the first byte equals @p a1 and the second byte
+ * is greater than or equal to @p a2. Returns 1 on the first match found.
+ *
+ * @param a0 Pointer to byte pair array.
+ * @param a1 Value to match against the first byte of each pair.
+ * @param a2 Minimum threshold for the second byte of the matching pair.
+ * @return 1 if a matching pair is found, 0 otherwise.
+ */
+s32 func_801E2C44(u8 *a0, s32 a1, s32 a2) {
+    s32 i = 0;
+    do {
+        s32 b0 = *a0++;
+        s32 b1 = *a0++;
+        if (b0 == a1 && b1 >= a2) {
+            return 1;
+        }
+    } while (++i < 0xC6);
+    return 0;
+}
 
 /**
  * @brief Look up an item name string by index.

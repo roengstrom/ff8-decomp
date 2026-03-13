@@ -42,6 +42,32 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E626C);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E64FC);
 
+/**
+ * @brief Look up a magic spell ID for a character's slot.
+ *
+ * Indexes into D_80077378 at character @p a0 (stride 152) and slot @p a1
+ * (stride 2). Checks if the count byte at offset 0x4A1 is nonzero;
+ * if so, returns the spell ID at offset 0x4A0. Otherwise returns 0.
+ *
+ * @param a0 Character index (0-7).
+ * @param a1 Magic slot index.
+ * @return Spell ID byte, or 0 if slot is empty.
+ */
+/**
+ * @brief Look up a magic spell ID for a character's slot.
+ *
+ * Indexes into D_80077378 at character @p a0 (stride 152) and slot @p a1
+ * (stride 2). Checks if the count byte at offset 0x4A1 is nonzero;
+ * if so, returns the spell ID at offset 0x4A0. Otherwise returns 0.
+ *
+ * @param a0 Character index (0-7).
+ * @param a1 Magic slot index.
+ * @return Spell ID byte, or 0 if slot is empty.
+ *
+ * @note Non-matching: Compiler schedules sll a1,a1,1 before lui/addiu
+ * for D_80077378 base address, and uses different accumulation order
+ * (v0+v1 then a1+v0 instead of a1+v0 then a1+v1).
+ */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6648);
 
 /**
