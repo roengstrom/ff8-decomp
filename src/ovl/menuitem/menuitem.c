@@ -423,6 +423,19 @@ void func_801E4708(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E476C);
 
+/**
+ * @brief Render a visual indicator at a column position derived from an index.
+ *
+ * Computes column = index % 11, then draws at y=0x41 offset by column * 13.
+ * Uses func_801F0A34 for the actual rendering with a height of 0x27.
+ *
+ * @param a0 First argument passed through to func_801F0A34.
+ * @param a1 Index value, divided by 11 to determine column.
+ *
+ * @note Non-matching: compiler computes multiply-by-13 directly into a3
+ * (target argument register), but original uses v0 as intermediate and
+ * accumulates into v1, then copies v1 to a3 via addiu.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E47E0);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4848);
@@ -696,21 +709,10 @@ void func_801E9DE4(u8 *a0) {
  *
  * @param a0 Pointer to a null-terminated byte string.
  * @return 1 if a mismatch is found, 0 otherwise.
- */
-/**
- * @brief Check if all bytes in string match the first byte of entry 0xB.
- *
- * Calls func_8002A2F4 first as a precondition. If it returns 0, returns 0.
- * Otherwise iterates through each byte at a0 until a zero terminator,
- * comparing against the first byte of the entry returned by func_80020F84(0xB).
- * Returns 1 as soon as a mismatch is found, 0 if all match or string is empty.
- *
- * @param a0 Pointer to a null-terminated byte string.
- * @return 1 if a mismatch is found, 0 otherwise.
  *
  * @note Non-matching: compiler assigns s1 to pointer and s0 to char variable,
- * but original uses s0 for pointer and s1 for char. S-reg swap cannot be
- * controlled from C with the current approach.
+ * but original uses s0 for pointer and s1 for char. Declaration order and
+ * use-count tie-breaking do not change the assignment.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9E10);
 
