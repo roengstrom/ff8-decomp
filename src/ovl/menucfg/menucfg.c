@@ -58,6 +58,24 @@ void func_801E58EC(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, 0x30, a1 * 16 + 0x24);
 }
 
+/**
+ * @brief Render a config option value at a computed grid position.
+ *
+ * Computes a horizontal offset by looking up a volume/level table entry
+ * from D_801FA3C8 (indexed by a2 / 64), scaling it by 150/4096, and
+ * adding 0x5A. Reads the y-offset from the D_801E7094 config entry table
+ * at index a1 (byte at offset 3) and adds 0x2F. Then renders via
+ * func_801F0A34.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Config entry index.
+ * @param a2 Raw value (divided by 64 to index the table).
+ *
+ * @note Non-matching: Compiler schedules `sw ra` into bgez delay slot
+ * instead of `addu v1, a2, zero`. Original copies a2 to v1 for the
+ * division rounding in the delay slot; compiled version defers this.
+ * Result is 1 instruction shorter than original (33 vs 34 instructions).
+ */
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5918);
 
 /** @brief Draw inner panel with section id 0x2 and clear flag. */

@@ -93,6 +93,21 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6B6C);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6C68);
 
+/**
+ * @brief Render a text label with color and position using func_800332C4.
+ *
+ * Calls func_801F6AFC(0x12) for font, func_801F0FEC to render text,
+ * then func_800332C4 to combine color/position.
+ *
+ * @param a0 Color/attribute value.
+ * @param a1 Render context pointer.
+ * @param a2 X position base.
+ * @param a3 Y position base.
+ * @param stackArg0 Width parameter.
+ * @param stackArg1 Height parameter.
+ *
+ * @note Non-matching: s-reg allocation differs from original.
+ */
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6D34);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6DDC);
@@ -219,11 +234,36 @@ void func_801E77F8(s32 a0) {
     func_801E7584(a0);
 }
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7854);
+/**
+ * @brief Render party stat with computed y-position from character lookup.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Character slot index.
+ */
+void func_801E7854(s32 a0, s32 a1) {
+    s32 ctx = a0;
+    s32 slot = a1;
+    s32 v0 = func_801F0028();
+    v0 = func_80035AE4(v0, slot);
+    func_801F0A34(ctx, 0, 0x36, v0 * 50 + 0x4C);
+}
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E78BC);
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7990);
+/**
+ * @brief Render party member stat label at computed position.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Party context pointer.
+ */
+void func_801E7990(s32 a0, u8 *a1) {
+    extern u8 D_801E9530[];
+    s32 ctx = a0;
+    u8 *party = a1;
+    s16 buf[36];
+    func_801F5984(D_801E9530, buf, 4);
+    func_801F0A34(ctx, 0, buf[party[0x2E]] + 0x32, 0xD);
+}
 
 /**
  * @brief Look up a party member attribute byte.

@@ -11,7 +11,7 @@ void func_801E582C(s32 a0);
 void func_801E5ABC(s32 a0);
 void func_801E5F7C(void);
 void func_801E67E4(void);
-void func_801E69AC(s32 a0, s32 a1, s32 a2);
+s32 func_801E69AC(s32 a0, s32 a1, s32 a2);
 
 /**
  * Allocates a menu resource of type 0xD for the card menu.
@@ -89,7 +89,74 @@ s32 func_801E591C(s32 a0) {
     return func_801E5800(0xC);
 }
 
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E5980);
+/**
+ * @brief Tally card counts by rarity tier and store totals.
+ *
+ * Iterates through all card indices calling func_80023B14 to get
+ * each card's count. Accumulates counts into per-tier totals stored
+ * at offsets 0x32-0x38, and a grand total at offset 0x3A.
+ * Tier ranges: 0-0x36 (common), 0x37-0x4C (uncommon),
+ * 0x4D-0x62 (rare), 0x63-0x6D (legendary).
+ *
+ * @param a0 Card data structure pointer
+ */
+void func_801E5980(s32 a0) {
+    s32 sum = 0;
+    s32 i = sum;
+    s32 cardIdx = i;
+    s32 count;
+
+    *(s16 *)(a0 + 0x32) = 0;
+    *(s16 *)(a0 + 0x34) = 0;
+    *(s16 *)(a0 + 0x36) = 0;
+    *(s16 *)(a0 + 0x38) = 0;
+    *(s16 *)(a0 + 0x3A) = 0;
+
+    do {
+        count = func_80023B14(cardIdx);
+        if (count > 0) {
+            sum += count;
+            *(u16 *)(a0 + 0x32) = *(u16 *)(a0 + 0x32) + count;
+        }
+        i++;
+        cardIdx++;
+    } while (i < 0x37);
+
+    i = 0;
+    do {
+        count = func_80023B14(cardIdx);
+        if (count > 0) {
+            sum += count;
+            *(u16 *)(a0 + 0x34) = *(u16 *)(a0 + 0x34) + count;
+        }
+        i++;
+        cardIdx++;
+    } while (i < 0x16);
+
+    i = 0;
+    do {
+        count = func_80023B14(cardIdx);
+        if (count > 0) {
+            sum += count;
+            *(u16 *)(a0 + 0x36) = *(u16 *)(a0 + 0x36) + count;
+        }
+        i++;
+        cardIdx++;
+    } while (i < 0x16);
+
+    i = 0;
+    do {
+        count = func_80023B14(cardIdx);
+        if (count > 0) {
+            sum += count;
+            *(u16 *)(a0 + 0x38) = *(u16 *)(a0 + 0x38) + count;
+        }
+        i++;
+        cardIdx++;
+    } while (i < 0x0B);
+
+    *(s16 *)(a0 + 0x3A) = sum;
+}
 
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E5ABC);
 
@@ -148,6 +215,58 @@ s32 func_801E6228(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     return func_800376A8(a1, a2, (s32)&D_801E7870, 0xB, a3, stackArg, D_80083848);
 }
 
+/**
+ * @brief Render a card entry text with highlight detection.
+ *
+ * Computes divmod-by-11 on the card index at offset 0x2E to get
+ * page (quotient) and column (remainder). If the page+0x30 matches
+ * D_801E7D64 and the card is inactive (byte 0x42 == 0), renders
+ * the text using the card remainder as the palette selector.
+ * Otherwise renders with palette index 0xB.
+ *
+ * @param a0 Card entry pointer
+ * @param a1 X position
+ * @param a2 Y position
+ * @param a3 Text index
+ * @param stackArg Color/attribute
+ * @return Result from func_800376A8
+ */
+/**
+ * @brief Render a card entry text with highlight detection.
+ *
+ * Computes divmod-by-11 on the card index at offset 0x2E to get
+ * page (quotient) and column (remainder). If the page+0x30 matches
+ * D_801E7D64 and the card is inactive (byte 0x42 == 0), renders
+ * the text using the card remainder as the palette selector.
+ * Otherwise renders with palette index 0xB.
+ *
+ * @param a0 Card entry pointer
+ * @param a1 X position
+ * @param a2 Y position
+ * @param a3 Text index
+ * @param stackArg Color/attribute
+ * @return Result from func_800376A8
+ */
+/**
+ * @brief Render a card entry text with highlight detection.
+ *
+ * Computes divmod-by-11 on the card index at offset 0x2E to get
+ * page (quotient) and column (remainder). If the page+0x30 matches
+ * D_801E7D64 and the card is inactive (byte 0x42 == 0), renders
+ * the text using the card remainder as the palette selector.
+ * Otherwise renders with palette index 0xB.
+ *
+ * @param a0 Card entry pointer
+ * @param a1 X position
+ * @param a2 Y position
+ * @param a3 Text index
+ * @param stackArg Color/attribute
+ * @return Result from func_800376A8
+ *
+ * @note Non-matching: Temp register assignment for saved arguments
+ * differs — compiler assigns a0→t2/a3→t1 instead of a0→t0/a1→t1/a3→t2.
+ * The cross-jumping of the two func_800376A8 calls matches structurally.
+ */
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6270);
 
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E634C);
@@ -184,7 +303,40 @@ s32 func_801E6920(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     func_801EFBB4(a1, a2, (s32)func_801E67E4);
 }
 
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E69AC);
+/**
+ * @brief Render the full card detail screen layout.
+ *
+ * Sets up the rendering context, loads card data, then draws each
+ * panel in sequence: the card image area, stat bars, card info
+ * dialog, card name dialog, and the summary row. Returns the
+ * accumulated render result.
+ *
+ * @param a0 Card entry pointer
+ * @param a1 X base position
+ * @param a2 Y base position
+ * @return Final render chain result
+ */
+s32 func_801E69AC(s32 a0, s32 a1, s32 a2) {
+    s32 result;
+    s32 saved;
+    s32 v1;
+
+    saved = func_8002A888();
+    func_801F1AFC();
+    func_8002E7C4(*(s16 *)(a0 + 0x30));
+    v1 = 0x1E;
+    result = func_801E645C(a0, a1, a2, 0xC0, v1);
+    v1 = 0x6A;
+    result = func_801E66AC(a0, a1, result, 0xC0, v1);
+    v1 = 0xC0;
+    result = func_801E6920(a0, a1, result, 0x18, v1);
+    v1 = 0x6;
+    result = func_801E6058(a0, a1, result, 0x18, v1);
+    result = func_801E634C(a0, a1, result, 0x1E, 0x1E);
+    func_801F1B10();
+    func_8002A8B8(saved);
+    return result;
+}
 
 /**
  * Initializes the card menu: registers update/render callbacks,

@@ -29,13 +29,18 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2820);
  * them into D_801E4EC1 and D_801E4EC2 respectively.
  *
  * @param a0 Tutorial page table index.
- *
- * @note Non-matching: CC1PSX hoists sll before lui for base address
- * (scheduling difference) and uses v1 instead of a0 for the first
- * loaded byte. Same instruction count (11) but different register
- * allocation and ordering.
  */
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E28A8);
+void func_801E28A8(s32 a0) {
+    extern u8 D_801E4EB4[];
+    extern u8 D_801E4EC1;
+    extern u8 D_801E4EC2;
+    u8 *entry;
+
+    entry = D_801E4EB4;
+    entry = entry + a0 * 4;
+    D_801E4EC1 = entry[0];
+    D_801E4EC2 = entry[1];
+}
 
 /**
  * @brief Read tutorial page index.
