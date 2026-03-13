@@ -161,9 +161,13 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
  *
  * Checks the halfword at D_80073DF0+0x5E (active sequence ID). If non-zero
  * and matches a0[8], calls func_80017DB0(a0[0], 0) to stop. Otherwise calls
- * func_8001708C(a0[0], -1) and stores a0[8] into D_80074F08+0x5E.
+ * func_8001708C(a0[0], -1) and stores a0[8] into the structure pointed to
+ * by D_80074F08 at offset 0x5E.
  *
  * @param a0 Pointer to a sound config structure (word 0 = track ID, halfword 8 = sequence ID).
+ *
+ * @note Non-matching: GCC 2.8.0 folds symbol+constant even with (s32) cast
+ * local variable trick. Multiple scheduling and register allocation differences.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018158);
 

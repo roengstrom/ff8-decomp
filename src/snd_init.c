@@ -329,8 +329,16 @@ void func_8001336C(u32 a0) {
 /**
  * @brief Multiply input by 256, call func_8003ED24 with sign-extended 16-bit value, return full shifted result.
  *
+ * Shifts the input left by 8, sign-extends the lower 16 bits, passes
+ * the sign-extended value to func_8003ED24 as both arguments, then
+ * returns the original (non-truncated) shifted value.
+ *
  * @param a0 Input value to shift.
  * @return a0 * 256 (full 32-bit result, not truncated).
+ *
+ * @note Non-matching: GCC 2.8.0 combines (a0<<8)<<16 into a0<<24,
+ * reading a0 directly instead of the saved s0 value. Original has
+ * sll a0, s0, 16 (reads shifted from s0); compiler emits sll a0, a0, 24.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_800133D8);
 

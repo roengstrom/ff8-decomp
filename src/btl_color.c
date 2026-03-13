@@ -177,6 +177,18 @@ u8 *func_80030748(void) {
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030754);
 
 
+/**
+ * @brief Check if any of 4 sequential entries have a non-zero byte at offset +0x22.
+ *
+ * Calls func_80030748 to get the base pointer, then iterates over 4 entries
+ * (stride 0x24). Returns 1 immediately if any entry's byte at +0x22 is non-zero,
+ * or 0 if all are zero.
+ *
+ * @return 1 if any entry is active, 0 otherwise.
+ *
+ * @note Non-matching: Compiler inverts branch direction (bnez to end vs
+ * original beqz+j pattern for early return inside loop).
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800307F8);
 
 

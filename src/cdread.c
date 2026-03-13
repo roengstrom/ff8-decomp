@@ -275,9 +275,37 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039678);
 INCLUDE_ASM("asm/nonmatchings/cdread", func_800396E0);
 
 
+/**
+ * @brief Look up a table entry with 8-byte stride, return pointer and value.
+ *
+ * Given a base pointer and index, computes an entry at (base + idx*8 + 4),
+ * reads two 32-bit fields: stores the second field to *out, and returns
+ * base + first field as an absolute pointer.
+ *
+ * @param base Base pointer of the table
+ * @param idx Index into the table (8-byte stride)
+ * @param out Output pointer to receive the second field value
+ * @return Absolute pointer computed as base + entry[0]
+ *
+ * @note Non-matching: CC1PSX folds addiu+4 into lw immediates (offset folding),
+ * and ASPSX inserts a load delay nop that maspsx correctly omits.
+ */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039728);
 
 
+/**
+ * @brief Look up an absolute pointer from a relative offset table.
+ *
+ * Given a base address and an index, reads a 32-bit relative offset
+ * from base[idx] and returns base + that offset as an absolute pointer.
+ *
+ * @param base Pointer to the start of the relative offset table
+ * @param idx Index into the table
+ * @return Absolute pointer computed as base + base[idx]
+ *
+ * @note Non-matching: ASPSX inserts a load delay nop between lw and jr
+ * that maspsx correctly omits (5 vs 6 instructions).
+ */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_8003974C);
 
 
@@ -336,8 +364,12 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AB4);
 /**
  * @brief Disable the CD-ROM interrupt handler.
  *
- * Enters a critical section, removes the CD interrupt callback from
- * RCnt(3) via ChangeClearRCnt and SysDeqIntRP, then exits the critical section.
+ * Enters a critical section via func_800472E4, removes the CD interrupt
+ * callback from RCnt(3) via ChangeClearRCnt and SysDeqIntRP, then exits
+ * the critical section via func_800472F4.
+ *
+ * @note Non-matching: CC1PSX schedules SysDeqIntRP arg setup differently —
+ * puts a1 address completion in jal delay slot instead of a0 constant.
  */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039B80);
 

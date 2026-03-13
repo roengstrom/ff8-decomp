@@ -2,11 +2,54 @@
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E5800);
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E58C8);
+/**
+ * @brief Display a GF stat value from a lookup table.
+ *
+ * Copies 8 halfwords from D_801E7DD0 into a local buffer, indexes
+ * by @p a1 to get a base value, adds 0x32, and renders via
+ * func_801F0A34 at position (a0, 0) with width 0xD.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Index into the stat table (0-7).
+ */
+void func_801E58C8(u8 *a0, s32 a1) {
+    extern u8 D_801E7DD0[];
+    s16 buf[32];
+    func_801F5984(D_801E7DD0, buf, 8);
+    func_801F0A34(a0, 0, buf[a1] + 0x32, 0xD);
+}
 
+/**
+ * @brief Render a GF ability icon at a grid position.
+ *
+ * Computes screen coordinates from a linear index @p a0 using an
+ * 8-column grid layout: column = a0 % 8 (x = col * 40 + 0x24),
+ * row = a0 / 8 (y = row * 72 + 0x46). Calls func_801F0994 to draw.
+ *
+ * @param a0 Linear index into the ability grid.
+ *
+ * @note Non-matching: Register allocation differs — compiler puts row in
+ * v1 directly instead of a1 with copy to v1 as in original.
+ */
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E592C);
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E5988);
+/**
+ * @brief Configure GF ability display by looking up base and alternate addresses.
+ *
+ * Calls func_80020F84(0x79) for a base lookup, passes the result with @p a1
+ * to func_8002A2A8. Then calls func_80020C08 on @p a0+0x40 for an alternate
+ * lookup, passing that result with @p a1 to func_8002A2C4.
+ *
+ * @param a0 Pointer to GF ability data (offset +0x40 used for alternate lookup).
+ * @param a1 Destination or context pointer for ability storage.
+ */
+void func_801E5988(u8 *a0, u8 *a1) {
+    s32 val;
+    val = func_80020F84(0x79);
+    func_8002A2A8(a1, val);
+    val = func_80020C08(a0 + 0x40);
+    func_8002A2C4(a1, val);
+}
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E59E0);
 
@@ -89,6 +132,35 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7988);
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7C20);
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7CB8);
+/**
+ * @brief Reset GF menu state and redraw.
+ *
+ * Calls func_801F1DBC to set menu mode to 4 (GF submenu reset),
+ * clears the D_801E7E88 flag, and calls func_801E7C20 to redraw.
+ *
+ * @param a0 Pointer to GF menu context.
+ */
+void func_801E7CB8(u8 *a0) {
+    extern u8 D_801E7E88;
+    func_801F1DBC(4);
+    D_801E7E88 = 0;
+    func_801E7C20(a0);
+}
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7CF4);
+/**
+ * @brief Initialize GF menu state and load resources.
+ *
+ * Sets menu mode to 4 via func_801F1DBC, enables the D_801E7E88 flag,
+ * calls func_801E2ABC for setup, loads resources between 0x801D1000
+ * and 0x801CD000 via func_801F1210, and redraws via func_801E7C20.
+ *
+ * @param a0 Pointer to GF menu context.
+ */
+void func_801E7CF4(u8 *a0) {
+    extern u8 D_801E7E88;
+    func_801F1DBC(4);
+    D_801E7E88 = 1;
+    func_801E2ABC(a0);
+    func_801F1210(0x801D1000, 0x801CD000);
+    func_801E7C20(a0);
+}

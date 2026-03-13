@@ -154,6 +154,19 @@ s32 func_80023C08(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/item", func_80023C48);
 
 
+/**
+ * @brief Advance the item PRNG and return a pseudo-random value.
+ *
+ * Uses a Linear Congruential Generator with multiplier 69069 and
+ * increment 1. The state is stored at offset +0x7C of the structure
+ * returned by func_80023900. Returns the upper 15 bits of the
+ * updated state.
+ *
+ * @return Pseudo-random value in [0, 32767].
+ *
+ * @note Non-matching: Compiler allocates v1 for pointer (original uses a0).
+ * All multiply-by-69069 decomposition and epilogue scheduling match correctly.
+ */
 INCLUDE_ASM("asm/nonmatchings/item", func_80023D04);
 
 
