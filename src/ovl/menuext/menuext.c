@@ -110,7 +110,36 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5F48);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5FA8);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5FE8);
+/**
+ * @brief Build a filtered list of valid extension entries.
+ *
+ * Iterates through entries 0 to 0x6D, calling func_80023B14 for each.
+ * If the result is positive, stores the 1-based entry index and the
+ * result value as consecutive bytes into D_801E8C20. Returns the count
+ * of valid entries found.
+ *
+ * @return Number of valid entries found.
+ */
+s32 func_801E5FE8(void) {
+    extern u8 D_801E8C20[];
+    u8 *ptr = D_801E8C20;
+    s32 count = 0;
+    s32 i = count;
+
+    do {
+        s32 result = func_80023B14(i);
+        if (result > 0) {
+            *ptr = i + 1;
+            ptr++;
+            *ptr = result;
+            ptr++;
+            count++;
+        }
+        i++;
+    } while (i < 0x6E);
+
+    return count;
+}
 
 /**
  * @brief Compute page count for extension list and store to context.
