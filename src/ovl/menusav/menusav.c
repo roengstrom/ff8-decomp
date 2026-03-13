@@ -75,7 +75,15 @@ s32 func_801E2CBC(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2CE8);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2D38);
+/**
+ * @brief Render save slot label at computed Y position.
+ * @param a0 First parameter passed through to func_801F0954
+ * @param a1 Second parameter passed through to func_801F0954
+ * @param a2 Row index (multiplied by 24 and offset by 0xA3 for Y position)
+ */
+void func_801E2D38(s32 a0, s32 a1, s32 a2) {
+    func_801F0954(1, a0, a1, a2 * 24 + 0xA3);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2D78);
 
@@ -297,7 +305,19 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E76C4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7830);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E78FC);
+/**
+ * @brief Initialize save data structure with checksum and set active flag.
+ *
+ * Calls func_800372D0 to get the save data pointer, then func_801E74BC to
+ * compute a checksum/value which is stored at offset 0x14. Sets bit 0x2
+ * in the flags byte at offset 0x0.
+ */
+void func_801E78FC(void) {
+    u8 *s0 = (u8 *)func_800372D0();
+    s32 v0 = func_801E74BC();
+    *(s32 *)(s0 + 0x14) = v0;
+    s0[0] |= 2;
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7938);
 
@@ -374,13 +394,49 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE74);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE98);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB00C);
+/**
+ * @brief Conditionally read card data and extract value.
+ * @param a0 Enable flag (non-zero to proceed)
+ * @param a1 First parameter for func_800502C8
+ * @param a2 Second parameter for func_800502C8
+ * @param a3 Third parameter for func_800502C8
+ * @return Extracted card data value, or 0 if disabled or read fails
+ */
+s32 func_801EB00C(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 result = 0;
+    if (a0 != 0) {
+        if (func_800502C8(a1, a2, a3) != 0) {
+            func_8004E720(0, 0, &result);
+        }
+    }
+    return result;
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB054);
+/**
+ * @brief Conditionally check card status and extract value.
+ * @param a0 Enable flag (non-zero to proceed)
+ * @param a1 Parameter for func_800503F8
+ * @return Extracted card status value, or 0 if disabled or check fails
+ */
+s32 func_801EB054(s32 a0, s32 a1) {
+    s32 result = 0;
+    if (a0 != 0) {
+        if (func_800503F8(a1) != 0) {
+            func_8004E720(0, 0, &result);
+        }
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB094);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0B8);
+/**
+ * @brief Get low byte of save data value via signed modulo.
+ * @return Low byte (0-255) of the value returned by func_801F6A5C
+ */
+s32 func_801EB0B8(void) {
+    return (u8)(func_801F6A5C() % 256);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
 
@@ -414,7 +470,17 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB6B4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB768);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB850);
+/**
+ * @brief Update save data byte at offset 3 based on bytes at offsets 1 and 6.
+ *
+ * Gets save data pointer via func_800372D0, refreshes via func_801EB6B4,
+ * then computes a new value from bytes at offsets 1 and 6 using func_801EB408.
+ */
+void func_801EB850(void) {
+    u8 *s0 = (u8 *)func_800372D0();
+    func_801EB6B4();
+    s0[3] = func_801EB408(s0[1], s0[6]);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB890);
 
