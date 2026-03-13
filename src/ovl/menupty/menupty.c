@@ -133,7 +133,24 @@ void func_801E77AC(u8 *a0) {
     func_801E7584(a0);
 }
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E77F8);
+/**
+ * @brief Initialize party menu: set mode 0x35, configure display, enable flag.
+ *
+ * Sets up the party menu display by calling initialization functions,
+ * configuring display areas, setting the active flag D_801E9540 to 1,
+ * then entering the main party menu handler.
+ *
+ * @param a0 Menu context pointer
+ */
+void func_801E77F8(s32 a0) {
+    extern u8 D_801E9540;
+
+    func_801F1DBC(0x35);
+    func_801E2ABC(a0);
+    func_801F1210(0x801D1000, 0x801CD000);
+    D_801E9540 = 1;
+    func_801E7584(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7854);
 

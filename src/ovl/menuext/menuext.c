@@ -77,7 +77,25 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5E20);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5E88);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5EF0);
+/**
+ * @brief Dispatches render call based on type byte at offset 0x45
+ *
+ * Reads a type indicator from the data structure. If type is 0, calls
+ * func_801E5D98; if type is 2, calls func_801E5DD0. Both use the byte
+ * at offset 0x4A as the row parameter.
+ *
+ * @param a0 Pointer to data structure
+ */
+void func_801E5EF0(u8 *a0) {
+    switch (a0[0x45]) {
+    case 0:
+        func_801E5D98(0, a0[0x4A]);
+        break;
+    case 2:
+        func_801E5DD0(0, a0[0x4A]);
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5F48);
 

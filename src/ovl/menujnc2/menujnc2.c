@@ -139,7 +139,25 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7498);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E75C0);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E76DC);
+/**
+ * @brief Conditionally executes a sequence of calls if func_801E75C0 succeeds
+ *
+ * Calls func_801E75C0 and if the result is non-zero, calls func_801E6C24,
+ * func_801E6B88, then func_801E6C24 again, all with the same parameter.
+ *
+ * @param a0 Parameter passed to the three conditional calls
+ * @return Result from func_801E75C0
+ */
+s32 func_801E76DC(s32 a0) {
+    s32 result = func_801E75C0();
+
+    if (result != 0) {
+        func_801E6C24(a0);
+        func_801E6B88(a0);
+        func_801E6C24(a0);
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7734);
 
@@ -237,7 +255,24 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE494);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE718);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE82C);
+/**
+ * @brief Initialize junction menu: set mode 1, configure display, enable flag.
+ *
+ * Sets up the junction menu display by calling initialization functions,
+ * configuring display areas, setting the active flag D_801EED04 to 1,
+ * then entering the main junction menu handler.
+ *
+ * @param a0 Menu context pointer
+ */
+void func_801EE82C(s32 a0) {
+    extern u8 D_801EED04;
+
+    func_801F1DBC(1);
+    func_801E2ABC(a0);
+    func_801F1210(0x801D1000, 0x801CD000);
+    D_801EED04 = 1;
+    func_801EE718(a0);
+}
 
 /**
  * @brief Reset junction menu state and reinitialize.

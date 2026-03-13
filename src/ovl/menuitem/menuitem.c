@@ -155,7 +155,18 @@ void func_801E4908(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4940);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E49FC);
+/**
+ * @brief Render item entry at position derived from index parity and half-index
+ *
+ * Uses the low bit of a1 to select a column (multiplied by 82 + 0xC4 for width),
+ * and a1/2 to select a row (multiplied by 13 + 0x40 for Y position).
+ *
+ * @param a0 X position parameter
+ * @param a1 Linear index (bit 0 = column, upper bits / 2 = row)
+ */
+void func_801E49FC(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, (a1 & 1) * 82 + 0xC4, (a1 / 2) * 13 + 0x40);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4A58);
 
