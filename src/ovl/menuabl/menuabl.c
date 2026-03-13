@@ -43,6 +43,46 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E39E0);
 
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3AE0);
 
+/**
+ * @brief Scan ability bitmask and build list of available ability indices.
+ *
+ * Calls func_801F72B4 to get an ability bitmask, then iterates bits 0-23.
+ * For each set bit, stores (bit_index + 0x5C) into D_801E3D84 array and
+ * increments the count in D_801E3D9C.
+ */
+/**
+ * @brief Scan ability bitmask and build list of available ability indices.
+ *
+ * Calls func_801F72B4 to get an ability bitmask, then iterates bits 0-23.
+ * For each set bit, stores (bit_index + 0x5C) into D_801E3D84 array and
+ * increments the count in D_801E3D9C.
+ *
+ * @note Non-matching: instruction scheduling — compiler puts i=0 and one=1
+ * before the lui for D_801E3D9C, while the original interleaves them after
+ * the lui to fill its load delay slot.
+ */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3C28);
 
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3C9C);
+/**
+ * @brief Initialize ability menu: register callbacks and set up display state.
+ *
+ * Registers func_801E2A34 and func_801E3AE0 as callbacks via func_801F179C.
+ * If registration succeeds, clears state fields (0x20, 0x2C), stores the
+ * ability bitmask (0x28) and display size (0x2E = 0x1000), builds the ability
+ * list, initializes data, and enters via func_801E2A34.
+ */
+void func_801E3C9C(void) {
+    extern void func_801E2A34();
+    extern void func_801E3AE0();
+    s32 result = func_801F179C((s32)func_801E2A34, (s32)func_801E3AE0);
+
+    if (result != 0) {
+        *(s16 *)(result + 0x2C) = 0;
+        *(s32 *)(result + 0x20) = 0;
+        *(s32 *)(result + 0x28) = func_801F72B4();
+        *(s16 *)(result + 0x2E) = 0x1000;
+        func_801E3C28();
+        func_801E2990();
+        func_801E2A34(result);
+    }
+}
