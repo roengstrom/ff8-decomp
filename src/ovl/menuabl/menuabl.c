@@ -42,11 +42,66 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2990);
 
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
 
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3530);
+/**
+ * @brief Configure and draw an ability menu panel border.
+ *
+ * Sets up D_801FAB00 with no icon, position from a2/a3,
+ * fixed size (0xF4 x 0x12), then draws via func_801EF9AC.
+ *
+ * @param a0 Display list pointer
+ * @param a1 OT pointer
+ * @param a2 X position
+ * @param a3 Y position
+ */
+void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
+    extern u8 D_801FAB00[];
+    extern s32 D_80083848;
+
+    s32 cfg = (s32)D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)cfg = a2;
+    *(s16 *)(cfg + 0x4) = 0xF4;
+    *(s16 *)(cfg + 0x6) = 0x12;
+    *(s16 *)(cfg + 0x2) = a3;
+    func_801EF9AC(a0, a1, 0x1000, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3580);
 
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3630);
+/**
+ * @brief Configure and draw an ability list panel with scrolling.
+ *
+ * Sets up D_801FAB00 with icon type 0x55, position and scroll
+ * parameters from the source data, then registers func_801E3580
+ * as the rendering callback via func_801EFBB4.
+ *
+ * @param a0 Source data pointer (ability list state)
+ * @param a1 X position for callback
+ * @param a2 Y position for callback
+ * @param a3 Panel X position
+ * @param stackArg Panel Y position (5th arg on stack)
+ */
+void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
+    extern u8 D_801FAB00[];
+    extern void func_801E3580();
+
+    s32 cfg = (s32)D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0x55;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)cfg = a3;
+    *(s16 *)(cfg + 0x4) = 0x144;
+    *(s16 *)(cfg + 0x6) = 0x1A;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x2) = stackArg;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x32);
+    *(s32 *)(cfg + 0x20) = a0 + 0x20;
+    func_801EFBB4(a1, a2, (s32)func_801E3580);
+}
 
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
 
@@ -65,18 +120,27 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3AE0);
  * For each set bit, stores (bit_index + 0x5C) into D_801E3D84 array and
  * increments the count in D_801E3D9C.
  */
-/**
- * @brief Scan ability bitmask and build list of available ability indices.
- *
- * Calls func_801F72B4 to get an ability bitmask, then iterates bits 0-23.
- * For each set bit, stores (bit_index + 0x5C) into D_801E3D84 array and
- * increments the count in D_801E3D9C.
- *
- * @note Non-matching: instruction scheduling — compiler puts i=0 and one=1
- * before the lui for D_801E3D9C, while the original interleaves them after
- * the lui to fill its load delay slot.
- */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3C28);
+void func_801E3C28(void) {
+    extern u8 D_801E3D84[];
+    extern u8 D_801E3D9C;
+
+    s32 mask = func_801F72B4();
+    u8 *dst = D_801E3D84;
+    D_801E3D9C = 0;
+    {
+        s32 i = 0;
+        s32 one = 1;
+
+        do {
+            if (mask & (one << i)) {
+                *dst = i + 0x5C;
+                D_801E3D9C = D_801E3D9C + 1;
+                dst++;
+            }
+            i++;
+        } while (i < 0x18);
+    }
+}
 
 /**
  * @brief Initialize ability menu: register callbacks and set up display state.

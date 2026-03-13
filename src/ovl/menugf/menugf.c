@@ -28,8 +28,10 @@ void func_801E58C8(u8 *a0, s32 a1) {
  *
  * @param a0 Linear index into the ability grid.
  *
- * @note Non-matching: Register allocation differs — compiler puts row in
- * v1 directly instead of a1 with copy to v1 as in original.
+ * @note Non-matching: Register allocation differs. Original puts a0/8 result
+ * in $5 (a1) then copies to $3 (v1); compiler puts it in $2 (v0) then copies
+ * to $3 (v1). Same instruction count and structure, just v0/a1 swapped for
+ * the division result and col computation intermediates.
  */
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E592C);
 

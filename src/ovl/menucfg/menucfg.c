@@ -5,6 +5,21 @@ void func_801E5800(s32 a0) {
     func_801F798C(a0);
 }
 
+/**
+ * @brief Count available config menu entries.
+ *
+ * Iterates through the D_801E7094 config entry table (8-byte stride,
+ * 0xFF terminated). Counts entries that are either available (a0[0x2E] != 0)
+ * or not of type 1 (entry[1] != 1).
+ *
+ * @param a0 Pointer to config menu context (byte 0x2E is availability flag).
+ * @return Number of available config entries.
+ *
+ * @note Non-matching: Register allocation for loop constants differs.
+ * Original keeps 0xFF in a3 and 1 in t0; compiler uses a2 and a3.
+ * Original also copies 0xFF from v0 to a3 (extra instruction), while
+ * compiler loads directly to a2.
+ */
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5820);
 
 /**
@@ -65,7 +80,32 @@ INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E6438);
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E6538);
 
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E67A8);
+/**
+ * @brief Configure display panel and invoke rendering callback.
+ *
+ * Sets up D_801FAB00 with the given position, fixed size (0x11C x 0x25),
+ * clears icon fields, and calls func_801EF9AC with D_80083848 and a
+ * caller-supplied 0x1000 parameter.
+ *
+ * @param a0 Unused.
+ * @param a1 First parameter passed through to func_801EF9AC.
+ * @param a2 Second parameter passed through to func_801EF9AC.
+ * @param a3 X position for the display panel.
+ * @param arg4 Y position for the display panel.
+ */
+void func_801E67A8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    extern u8 D_801FAB00[];
+    extern u8 D_80083848[];
+    s32 cfg = (s32)D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)(cfg + 0) = a3;
+    *(s16 *)(cfg + 4) = 0x11C;
+    *(s16 *)(cfg + 6) = 0x25;
+    *(s16 *)(cfg + 2) = arg4;
+    func_801EF9AC(a1, a2, 0x1000, *(s32 *)D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E6804);
 

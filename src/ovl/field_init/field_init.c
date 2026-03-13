@@ -1,6 +1,10 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_80098000);
+/** @brief Field initialization entry: call setup then init step. */
+void func_80098000(void) {
+    func_8001F5C8();
+    func_800980B0();
+}
 
 INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_80098028);
 

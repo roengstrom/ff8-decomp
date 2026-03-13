@@ -34,6 +34,20 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E590C);
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E5958);
 
+/**
+ * @brief Initialize tips page data and render entry text.
+ *
+ * Calls func_801E5958 to get a tips data buffer. Copies the first three
+ * halfwords from the buffer header into D_801EC412-D_801EC416, clears
+ * D_801EC410, then calls func_8002A2A8 to set up the tips table, measures
+ * the text length with func_8002A2F4, and finalizes via func_801E6018.
+ * Stores the result in D_801EC410.
+ *
+ * @note Non-matching: register allocation differs for the store temp
+ * variable. The original reuses a2 for both global stores and the
+ * func_8002A2A8 third argument, but the compiler allocates a separate
+ * register (a3) for the stores and sets a2 with a move instruction.
+ */
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E597C);
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E5A10);
@@ -59,12 +73,52 @@ s32 func_801E6474(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E64B0);
+/**
+ * @brief Load tips page data if the current selection has changed.
+ *
+ * Indexes into D_801EC420 to find the entry for the given page index.
+ * If the entry's ID differs from D_801ED420, calls func_800360D0 to
+ * load the new page data from 0x801D1000, then updates D_801ED422 with
+ * the new ID.
+ *
+ * @param a0 Page index into the tips entry table.
+ */
+void func_801E64B0(s32 a0) {
+    extern u8 D_801EC420[];
+    extern s16 D_801ED420;
+    extern u16 D_801ED422;
+    s32 base = (s32)D_801EC420;
+    u16 *entry;
+    u16 id;
+    a0 = a0 * 4 + 4;
+    entry = (u16 *)(a0 + base);
+    id = entry[1];
+    if (D_801ED420 != id) {
+        func_800360D0(id + 0x80, 0x801D1000);
+        D_801ED422 = entry[1];
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6514);
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6668);
 
+/**
+ * @brief Initialize and render tips display panel.
+ *
+ * Calls func_8002EAD0 to set up a 0x24 x 0xC display region using
+ * the D_801E7B10 data table, then configures D_801FAB00 with fixed
+ * panel dimensions and calls func_801EF9AC to render.
+ *
+ * @param a0 First render context parameter.
+ * @param a1 Second render context parameter.
+ *
+ * @note Non-matching: s-reg allocation is swapped (a0->s0, a1->s1 instead
+ * of a0->s1, a1->s0). a0 has 2 uses (both jal calls) while a1 has 1 use
+ * (second jal only), so the compiler gives a0 the lower s-reg. The original
+ * has them reversed. s16 param type flips the allocation but adds unwanted
+ * sll/sra sign extension instructions.
+ */
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6768);
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E67F4);

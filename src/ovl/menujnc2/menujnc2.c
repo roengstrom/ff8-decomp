@@ -113,6 +113,22 @@ void func_801E6584(s32 a0, s32 a1, s32 a2) {
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E65F0);
 
+/**
+ * @brief Look up junction ability availability mask for a given slot.
+ *
+ * Indexes into D_801EEAC0 to get an ability type (0-18), then checks
+ * corresponding bit(s) in the junction flags word at D_801EEDF0[a0 * 28].
+ * Cases 0-8 test individual bits via (1 << type), case 9 tests 0x200,
+ * case 10 tests 0x400, cases 11-14 test 0x6800, cases 15-18 test 0x19000.
+ *
+ * @param a0 Character/slot index.
+ * @param a1 Ability slot offset into D_801EEAC0.
+ * @return Masked flags value, or 0 if type >= 19.
+ *
+ * @note Non-matching: compiler adds extra andi for u8 masking, uses
+ * different register allocation (a2 vs a0 for type), reorders switch
+ * case bodies, and generates jump table at different rodata offset.
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E66F0);
@@ -211,7 +227,22 @@ void func_801E6CCC(s32 a0) {
     func_801E6B88(a0);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D28);
+/**
+ * @brief Copy ability halfword from character data to junction table.
+ *
+ * Reads a 16-bit value from D_80077378[a0 * 152 + 0x4E8] and stores it
+ * to D_801EEDF0[a0 * 28 + 6].
+ *
+ * @param a0 Character/slot index.
+ */
+void func_801E6D28(s32 a0) {
+    extern u8 D_801EEDF0[];
+    extern u8 D_80077378[];
+    s32 base1 = (s32)D_801EEDF0;
+    s32 v1 = a0 * 28;
+    s32 base2 = (s32)D_80077378;
+    *(s16 *)(v1 + base1 + 6) = *(u16 *)(base2 + a0 * 152 + 0x4E8);
+}
 
 /**
  * @brief Store a halfword into junction table entry.
@@ -241,7 +272,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6E0C);
  * @param a0 Junction context pointer.
  */
 void func_801E6E88(u8 *a0) {
-    func_801E6D28();
+    func_801E6D28((s32)a0);
     func_801E6E0C(a0, 0);
     func_801E5F78(a0);
 }
@@ -374,7 +405,32 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC914);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECE2C);
+/**
+ * @brief Configure display panel and invoke rendering callback.
+ *
+ * Sets up D_801FAB00 with the given position, fixed size (0x150 x 0x48),
+ * clears icon fields, and calls func_801EF9AC with D_80083848 and a
+ * caller-supplied parameter.
+ *
+ * @param a0 First parameter passed through to func_801EF9AC.
+ * @param a1 Second parameter passed through to func_801EF9AC.
+ * @param a2 X position for the display panel.
+ * @param a3 Y position for the display panel.
+ * @param a4 Fifth parameter passed as a2 to func_801EF9AC (on stack).
+ */
+void func_801ECE2C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    extern u8 D_801FAB00[];
+    extern u8 D_80083848[];
+    s32 cfg = (s32)D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)(cfg + 0) = a2;
+    *(s16 *)(cfg + 4) = 0x150;
+    *(s16 *)(cfg + 6) = 0x48;
+    *(s16 *)(cfg + 2) = a3;
+    func_801EF9AC(a0, a1, a4, *(s32 *)D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECE80);
 

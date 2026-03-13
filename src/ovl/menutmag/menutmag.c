@@ -36,6 +36,22 @@ INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5E2C);
 
 INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5F5C);
 
+/**
+ * @brief Set up display config from a source struct and render triple magic entry.
+ *
+ * Copies four halfwords from the source struct to D_801FAB00, adding x and y
+ * offsets to the first two fields. Then calls func_801E5F5C to perform the
+ * actual rendering with the configured display parameters.
+ *
+ * @param a0 Render context parameter.
+ * @param a1 Entry index parameter.
+ * @param a2 X offset to add to position.
+ * @param a3 Y offset to add to position.
+ * @param src Pointer to source coordinate/size struct (4 halfwords).
+ *
+ * @note Non-matching: early diffs at address computation suggest scheduling
+ * or register allocation differences.
+ */
 INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6008);
 
 INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E606C);

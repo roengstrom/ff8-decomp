@@ -22,6 +22,28 @@ s32 func_801E5800(s32 a0) {
     return func_801F08D4(1, 0xD, a0, 0);
 }
 
+/**
+ * @brief Update card display position after a transition completes.
+ *
+ * Checks if the card transition animation is done via func_80035E00.
+ * If not done, gets the new position via func_80035E50. If the
+ * target position (D_801E7D66) is valid and differs from the new
+ * position, triggers a card load at 0x801CD000 and resets both
+ * position trackers to -1.
+ */
+/**
+ * @brief Update card display position after a transition completes.
+ *
+ * Checks if the card transition animation is done via func_80035E00.
+ * If not done, gets the new position via func_80035E50. If the
+ * target position (D_801E7D66) is valid and differs from the new
+ * position, triggers a card load at 0x801CD000 and resets both
+ * position trackers to -1.
+ *
+ * @note Non-matching: Compiler generates lhu+sll+sra for D_801E7D66 s16
+ * load instead of the original's lh instruction. Also s0/s1 register
+ * assignment is swapped (D_801E7D66 goes to s1 instead of s0).
+ */
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E582C);
 
 /**
@@ -187,4 +209,23 @@ void func_801E6AA8(void) {
     }
 }
 
+/**
+ * @brief Look up card data by index and field selector.
+ *
+ * Uses a0 to index into D_801E6D20 (8-byte stride) and a1 to select
+ * which field to return:
+ *   1: Page number (a0 / 11 + 1)
+ *   2-6: Byte fields 0-4 from the table entry
+ *   7: Card name string pointer, with sub-dispatch based on card type
+ *
+ * @param a0 Card index
+ * @param a1 Field selector (1-7)
+ * @return Requested field value, or 0 if a1 is out of range
+ *
+ * @note Non-matching: Contains a 7-case switch with a jump table in .rodata
+ * (jtbl_801E6CDC). Decomping to C generates a new jump table, but the
+ * original asm jump table in rodata references .L labels that no longer
+ * exist, causing linker errors. Requires rodata segment splitting in the
+ * yaml to separate the jump table from other rodata.
+ */
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6B40);
