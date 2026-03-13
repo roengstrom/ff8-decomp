@@ -462,7 +462,44 @@ void func_801E7408(void) {
     func_80023888();
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7428);
+/**
+ * @brief Initialize save menu handler state.
+ *
+ * Gets the save handler context, clears the first 0x6E bytes and bytes
+ * 0x6E-0x72, clears bit 24 of the flags word at offset 0x70, sets
+ * the word at 0x7C to 1, then registers 0x21 menu items via
+ * func_8002390C.
+ */
+void func_801E7428(void) {
+    s32 s0;
+    u8 *a1 = (u8 *)func_80023900();
+    s32 v0;
+
+    s0 = 0x6D;
+    v0 = (s32)a1 + 0x6D;
+    do {
+        *(u8 *)v0 = 0;
+        s0--;
+        v0--;
+    } while (s0 >= 0);
+
+    s0 = 4;
+    v0 = (s32)a1 + 4;
+    do {
+        *(u8 *)(v0 + 0x6E) = 0;
+        s0--;
+        v0--;
+    } while (s0 >= 0);
+
+    *(s32 *)(a1 + 0x70) = *(s32 *)(a1 + 0x70) & (s32)0xFEFFFFFF;
+    *(s32 *)(a1 + 0x7C) = 1;
+
+    s0 = 0;
+    do {
+        func_8002390C(s0 + 0x4D, s0 + 0xC8);
+        s0++;
+    } while (s0 < 0x21);
+}
 
 /**
  * @brief Read save menu checksum value.
@@ -483,7 +520,24 @@ s32 func_801E74F8(s32 a0) {
     return func_801F08D4(1, 0xE, a0, 1);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7524);
+/**
+ * @brief Compute save menu state from input flags.
+ *
+ * Returns -1 if input is -1, clears bit 4 and returns the result
+ * if bit 4 is set, otherwise returns 4.
+ *
+ * @param a0 Input flags value.
+ * @return Processed state value.
+ */
+s32 func_801E7524(s32 a0) {
+    if (a0 == -1) {
+        return -1;
+    }
+    if ((a0 & 0x10) == 0) {
+        return 4;
+    }
+    return a0 & ~0x10;
+}
 
 /**
  * @brief Compute XOR checksum from game state fields.
@@ -526,6 +580,34 @@ void func_801E7598(void) {
     }
 }
 
+/**
+ * @brief Process save menu input and update state flags.
+ *
+ * Reads a controller input byte from s0[0x3C], shifts left 4,
+ * passes through func_801EAE98 then func_801E7524. Based on result:
+ * - 0: checks flags at s1[0] and updates s0[0x45] with bit manipulation
+ * - -1: stores 8 to s0[0x45]
+ * - positive: stores result to s0[0x45]
+ *
+ * @param a0 Save menu context pointer.
+ * @return Processed input result.
+ */
+/**
+ * @brief Process save menu input and update state flags.
+ *
+ * Reads a controller input byte from a0[0x3C], shifts left 4,
+ * passes through func_801EAE98 then func_801E7524. Based on result:
+ * - 0: checks flags at save data and updates a0[0x45] with bit manipulation
+ * - -1: stores 8 to a0[0x45]
+ * - positive: stores result to a0[0x45]
+ *
+ * @param a0 Save menu context pointer.
+ * @return Processed input result.
+ *
+ * @note Non-matching: compiler allocates 3 s-regs (s0-s2) instead of
+ * original's 2 (s0-s1). Bit manipulation uses s0 instead of v0,
+ * requiring an extra callee-saved register for the context pointer.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E760C);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E76C4);
