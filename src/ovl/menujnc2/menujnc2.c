@@ -31,7 +31,29 @@ void func_801E6534(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, 0x5A, (a1 % 4) * 13 + 0x3F);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6584);
+/**
+ * @brief Render junction entry at computed grid position.
+ *
+ * If row index a1 < 3, renders in left column (width 0x2B, Y from row+1).
+ * Otherwise renders in right column (width 0x46, Y from row-3).
+ *
+ * @param a0 X position parameter
+ * @param a1 Row index (0-5)
+ * @param a2 Width offset to add
+ */
+void func_801E6584(s32 a0, s32 a1, s32 a2) {
+    s32 width;
+    s32 y;
+    if (a1 < 3) {
+        width = 0x2B;
+        y = (a1 + 1) * 13 + 0x51;
+    } else {
+        a1 -= 3;
+        width = 0x46;
+        y = a1 * 13 + 0x99;
+    }
+    func_801F0A34(a0, 0, width + a2, y);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E65F0);
 
@@ -153,7 +175,27 @@ void func_801E6E88(u8 *a0) {
     func_801E5F78(a0);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6EC4);
+/**
+ * @brief Reset junction slots and copy ability value from character data.
+ *
+ * Calls func_801E6D8C twice to clear both junction slots, then reads
+ * the ability value from D_80077378[a0*152 + 0x490] and stores it
+ * to the junction table via func_801E6D6C. Finally refreshes display
+ * via func_801E5F24.
+ *
+ * @param a0 Character/slot index
+ */
+void func_801E6EC4(s32 a0) {
+    extern u8 D_80077378[];
+    s32 base;
+    u16 val;
+    func_801E6D8C(a0, 0);
+    func_801E6D8C(a0, 1);
+    base = (s32)D_80077378;
+    val = *(u16 *)(base + a0 * 152 + 0x490);
+    func_801E6D6C(a0, val);
+    func_801E5F24(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6F30);
 
