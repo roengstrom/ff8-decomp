@@ -38,7 +38,10 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E67EC);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E68AC);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E68EC);
+/** @brief Draw inner panel with section id 0xB and clear flag. */
+s32 func_801E68EC(s32 a0) {
+    return func_801F08D4(1, 0xB, a0, 0);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6918);
 

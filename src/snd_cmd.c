@@ -86,6 +86,16 @@ void func_8003BBEC(u8 *a0, s32 a1) {
 }
 
 
+/**
+ * @brief Send a "stop" command (0x4B) to a sound voice.
+ *
+ * Sets the command byte to 0x4B, clears the data pointer and payload size.
+ *
+ * @param a0 Pointer to the voice control structure.
+ *
+ * @note Non-matching: trailing nop padding after function end is lost when
+ *       decomped to C, causing a 4-byte size difference.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BC0C);
 
 

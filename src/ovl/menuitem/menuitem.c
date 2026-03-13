@@ -4,11 +4,19 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2800);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E280C);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E281C);
+/** @brief Draw inner panel with section id 0xB and clear flag. */
+s32 func_801E281C(s32 a0) {
+    return func_801F08D4(1, 0xB, a0, 0);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2848);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2BA4);
+/** @brief Store a2 to D_801ECE24 and call func_801E2848. */
+void func_801E2BA4(s32 a0, s32 a1, s32 a2) {
+    extern s32 D_801ECE24;
+    D_801ECE24 = a2;
+    func_801E2848();
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2BC8);
 
@@ -172,7 +180,10 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9DE4);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9E10);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9E7C);
+/** @brief Draw inner panel with section id 0x5 and clear flag. */
+s32 func_801E9E7C(s32 a0) {
+    return func_801F08D4(1, 5, a0, 0);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9EA8);
 

@@ -317,6 +317,16 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_800398A8);
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039910);
 
 
+/**
+ * @brief Read and clear the CD status/result value.
+ *
+ * Returns the current value of D_800565BC and resets it to zero.
+ *
+ * @return The previous value of D_800565BC.
+ *
+ * @note Non-matching: CC1PSX generates two independent lui for the same
+ *       symbol (load + store), while our compiler CSEs them into one.
+ */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AA0);
 
 

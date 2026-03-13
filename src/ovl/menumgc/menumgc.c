@@ -56,9 +56,15 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E69EC);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6A64);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6A9C);
+/** @brief Call func_801F0A34 with a0, zero, 0x28, 0x39. */
+void func_801E6A9C(s32 a0) {
+    func_801F0A34(a0, 0, 0x28, 0x39);
+}
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6AC4);
+/** @brief Call func_801F0A34 with a0, zero, 0x28, 0x94. */
+void func_801E6AC4(s32 a0) {
+    func_801F0A34(a0, 0, 0x28, 0x94);
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6AEC);
 

@@ -14,15 +14,29 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2860);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E28C8);
 
+/**
+ * @brief Check if func_801E2800 result halfword equals 0x8FF.
+ *
+ * Calls func_801E2800, loads halfword at offset +2 from result,
+ * and returns whether it equals 0x8FF.
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E292C);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2958);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2AB0);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2C90);
+/** @brief Draw inner panel with section id 0x5 and clear flag. */
+s32 func_801E2C90(s32 a0) {
+    return func_801F08D4(1, 5, a0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2CBC);
+/** @brief Draw inner panel with section id 0x5 and set flag. */
+s32 func_801E2CBC(s32 a0) {
+    return func_801F08D4(1, 5, a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2CE8);
 
@@ -110,19 +124,39 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7190);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E73C0);
+/** @brief Call func_80020608 with D_80077378 and 0x13A. */
+void func_801E73C0(void) {
+    extern u8 D_80077378[];
+    func_80020608(D_80077378, 0x13A);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E73E8);
+/**
+ * @brief Wrapper that calls func_801E7428 (save menu handler).
+ */
+void func_801E73E8(void) {
+    func_801E7428();
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7408);
+/**
+ * @brief Wrapper that calls func_80023888 (save menu input handler).
+ */
+void func_801E7408(void) {
+    func_80023888();
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7428);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E74BC);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E74CC);
+/** @brief Draw inner panel with section id 0xE and clear flag. */
+s32 func_801E74CC(s32 a0) {
+    return func_801F08D4(1, 0xE, a0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E74F8);
+/** @brief Draw inner panel with section id 0xE and set flag. */
+s32 func_801E74F8(s32 a0) {
+    return func_801F08D4(1, 0xE, a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7524);
 
@@ -144,7 +178,10 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E79CC);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7A84);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B18);
+/** @brief Call func_800360D0 with a0 + 0xB4 and 0x801D3000. */
+void func_801E7B18(u8 *a0) {
+    func_800360D0(a0 + 0xB4, 0x801D3000);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B40);
 
@@ -196,8 +233,16 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA9AC);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAD28);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE4C);
+/** @brief Call func_80050BC4 with all arguments set to zero. */
+void func_801EAE4C(void) {
+    func_80050BC4(0, 0, 0);
+}
 
+/**
+ * @brief Call func_801EAE4C then clear D_801EC301.
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE74);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE98);

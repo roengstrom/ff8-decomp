@@ -4,9 +4,15 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5800);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E58EC);
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5954);
+/** @brief Draw inner panel with section id 0x4 and clear flag. */
+s32 func_801E5954(s32 a0) {
+    return func_801F08D4(1, 4, a0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5980);
+/** @brief Draw inner panel with section id 0x4 and set flag. */
+s32 func_801E5980(s32 a0) {
+    return func_801F08D4(1, 4, a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E59AC);
 
@@ -18,7 +24,11 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5B6C);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5CE8);
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5DE4);
+/** @brief Calls func_801E5B6C then func_801F5440 in sequence. */
+void func_801E5DE4(void) {
+    func_801E5B6C();
+    func_801F5440();
+}
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5E0C);
 

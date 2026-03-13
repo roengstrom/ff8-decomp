@@ -69,7 +69,10 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E1C);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E4C);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E68);
+/** @brief Return whether a1 >= func_801E7E1C(a0) (unsigned). */
+s32 func_801E7E68(s32 a0, u32 a1) {
+    return a1 >= (u32)func_801E7E1C(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E98);
 

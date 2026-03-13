@@ -75,6 +75,11 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A2F4);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A314);
 
+/**
+ * @brief Load pointer at a0+0xC, call func_80098D28, return (result == 0) << 1.
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A4E0);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A508);

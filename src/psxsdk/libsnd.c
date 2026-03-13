@@ -96,6 +96,12 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_800506B8);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050774);
 
+/**
+ * @brief Call func_80050874 with a0, D_8008E7E8, and D_8008E7EC.
+ *
+ * @note Non-matching: compiler interleaves lui instructions for a1/a2
+ *       instead of generating sequential lui/addiu pairs.
+ */
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050848);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050874);

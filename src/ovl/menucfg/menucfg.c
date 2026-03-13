@@ -10,9 +10,15 @@ INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E58EC);
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5918);
 
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E59A0);
+/** @brief Draw inner panel with section id 0x2 and clear flag. */
+s32 func_801E59A0(s32 a0) {
+    return func_801F08D4(1, 2, a0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E59CC);
+/** @brief Draw inner panel with section id 0x2 and set flag. */
+s32 func_801E59CC(s32 a0) {
+    return func_801F08D4(1, 2, a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E59F8);
 

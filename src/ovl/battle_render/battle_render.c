@@ -35,7 +35,13 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A630);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A66C);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A6CC);
+/** @brief Call func_8009A66C with D_800A37D4 then D_8009B5B4. */
+void func_8009A6CC(void) {
+    extern u8 D_800A37D4[];
+    extern u8 D_8009B5B4[];
+    func_8009A66C(D_800A37D4);
+    func_8009A66C(D_8009B5B4);
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A6FC);
 

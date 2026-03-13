@@ -24,8 +24,23 @@ INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6170);
 
 INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6290);
 
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6348);
+/**
+ * @brief Wrapper that calls func_801E6290 (triple magic menu init/update).
+ */
+void func_801E6348(void) {
+    func_801E6290();
+}
 
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6368);
+/**
+ * @brief Wrapper that calls func_801E6290 (triple magic menu init/update).
+ */
+void func_801E6368(void) {
+    func_801E6290();
+}
 
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6388);
+/**
+ * @brief Wrapper that calls func_801E6290 (triple magic menu init/update).
+ */
+void func_801E6388(void) {
+    func_801E6290();
+}

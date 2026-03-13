@@ -8,13 +8,33 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5848);
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E586C);
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5890);
+/**
+ * @brief Wrapper that calls func_80020C08 with a0 offset by 0x33.
+ *
+ * @param a0 Base pointer to a menu entry structure.
+ */
+void func_801E5890(u8 *a0) {
+    func_80020C08(a0 + 0x33);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E58B0);
+/**
+ * @brief Wrapper that calls func_80020C6C with a0 offset by 0x33.
+ *
+ * @param a0 Base pointer to a menu entry structure.
+ */
+void func_801E58B0(u8 *a0) {
+    func_80020C6C(a0 + 0x33);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E58D0);
+/** @brief Draw inner panel with section id 0x7 and clear flag. */
+s32 func_801E58D0(s32 a0) {
+    return func_801F08D4(1, 7, a0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E58FC);
+/** @brief Draw inner panel with section id 0x7 and set flag. */
+s32 func_801E58FC(s32 a0) {
+    return func_801F08D4(1, 7, a0, 1);
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5928);
 

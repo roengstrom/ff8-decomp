@@ -1,6 +1,10 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E248);
+/** @brief Call func_80098C44 with D_801D3C58 and a0. */
+void func_8009E248(s32 a0) {
+    extern u8 D_801D3C58[];
+    func_80098C44(D_801D3C58, a0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E270);
 
@@ -16,6 +20,11 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EB90);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EB98);
 
+/**
+ * @brief Call func_80098D28 with D_801D3C68 and store result in D_801D3D08.
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBCC);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBF4);

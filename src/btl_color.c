@@ -105,6 +105,15 @@ typedef struct {
 extern BattleCameraState D_800834D0;
 
 
+/**
+ * @brief Set battle camera vibration state.
+ *
+ * Always stores a0 to f3. If a0 is non-zero, also clears f6
+ * and copies the low byte of g_gameState+0xCD4 to f7.
+ *
+ * @param a0 Vibration enable flag and intensity.
+ * @note Non-matching: compiler narrows lw to lbu when storing to s8 field.
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030248);
 
 

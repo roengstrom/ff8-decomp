@@ -4,7 +4,10 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5800);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5828);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5854);
+/** @brief Draw inner panel with section id 0x2 and clear flag. */
+s32 func_801E5854(s32 a0) {
+    return func_801F08D4(1, 2, a0, 0);
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5880);
 
@@ -46,9 +49,18 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5FE8);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6060);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E60C4);
+/**
+ * @brief Wrapper that calls func_80023B14.
+ */
+void func_801E60C4(void) {
+    func_80023B14();
+}
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E60E4);
+/** @brief Call func_80021034 then func_800370AC with same argument. */
+void func_801E60E4(s32 a0) {
+    func_80021034(a0);
+    func_800370AC(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6114);
 

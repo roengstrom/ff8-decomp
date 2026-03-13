@@ -22,9 +22,15 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2214);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A22E8);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A233C);
+/** @brief Call func_800A22E8 with a0, 0x80, 0x7F, 0. */
+void func_800A233C(s32 a0) {
+    func_800A22E8(a0, 0x80, 0x7F, 0);
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2364);
+/** @brief Call func_800A22E8 with a0, 0x80, 0x7F, a1. */
+void func_800A2364(s32 a0, s32 a1) {
+    func_800A22E8(a0, 0x80, 0x7F, a1);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A238C);
 
