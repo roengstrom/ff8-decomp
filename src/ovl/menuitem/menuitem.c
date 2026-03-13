@@ -361,7 +361,36 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4394);
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E457C);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E45B4);
+/**
+ * @brief Find and consume an item from the byte-pair table.
+ *
+ * Scans 198 byte-pair entries at @p a0 for one whose first byte matches @p a1.
+ * If found, subtracts @p a2 from the second byte (quantity). If the quantity
+ * reaches zero, also clears the first byte (item ID).
+ *
+ * @param a0 Pointer to byte-pair table (198 entries, 2 bytes each).
+ * @param a1 Item ID to search for.
+ * @param a2 Quantity to subtract.
+ */
+void func_801E45B4(u8 *a0, s32 a1, s32 a2) {
+    s32 i = 0;
+    u8 *p = a0 + 1;
+    do {
+        s32 id = a0[0];
+        s32 qty = p[0];
+        if (id != 0 && qty != 0 && id == a1) {
+            qty -= a2;
+            p[0] = qty;
+            if (qty == 0) {
+                a0[0] = 0;
+            }
+            return;
+        }
+        i++;
+        p += 2;
+        a0 += 2;
+    } while (i < 0xC6);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4608);
 
