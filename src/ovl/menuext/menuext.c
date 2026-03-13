@@ -199,6 +199,21 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E61B4);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6338);
 
+/**
+ * @brief Evaluate an extension entry's compatibility level.
+ *
+ * If the entry index is 0, returns 2 immediately. Otherwise, takes the absolute
+ * value of the index, looks up a byte from the table at a1, calls func_801E5FA8,
+ * and returns: 1 if result >= 100, 2 if entry index was negative, 0 otherwise.
+ *
+ * @param a0 Entry index (0 = no entry, negative = reverse lookup)
+ * @param a1 Table base pointer
+ * @param a2 Parameter passed to func_801E5FA8
+ * @return 2 if no entry or negative index with low compat, 1 if high compat, 0 otherwise
+ *
+ * @note Non-matching: compiler copy-propagates s0 into negu (subu v0,zero,s0
+ * instead of subu v0,zero,v0). One byte difference in negu source register.
+ */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E63F4);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6458);
@@ -207,7 +222,25 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E64B4);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6748);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E76A8);
+/**
+ * @brief Return direction indicator based on sign of input.
+ *
+ * @param a0 Input value
+ * @return 0 if a0 == 0, 7 if a0 > 0, 1 if a0 < 0
+ */
+s32 func_801E76A8(s32 a0) {
+    s32 v0;
+    if (a0 != 0) goto L1;
+    v0 = 0;
+L1:
+    if (a0 <= 0) goto L2;
+    v0 = 7;
+L2:
+    if (a0 >= 0) goto L3;
+    v0 = 1;
+L3:
+    return v0;
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E76D4);
 
