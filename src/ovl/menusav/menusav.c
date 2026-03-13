@@ -73,7 +73,26 @@ s32 func_801E2CBC(s32 a0) {
     return func_801F08D4(1, 5, a0, 1);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2CE8);
+/**
+ * @brief Render save slot label at computed Y position.
+ * @param a0 Save data pointer (halfwords at offsets 0x32 and 0x36)
+ * @param a1 Width selector (non-zero = 0x98, zero = 0x64)
+ * @param a2 Offset selector (non-zero = use offset 0x36, zero = use 0x32)
+ */
+void func_801E2CE8(s32 a0, s32 a1, s32 a2) {
+    s32 width = 0x64;
+    s32 ypos;
+
+    if (a1 != 0) {
+        width = 0x98;
+    }
+    if (a2 != 0) {
+        ypos = *(u16 *)(a0 + 0x36) + 7;
+    } else {
+        ypos = *(u16 *)(a0 + 0x32) + 7;
+    }
+    func_801F0994(0, ypos, width);
+}
 
 /**
  * @brief Render save slot label at computed Y position.
@@ -487,6 +506,16 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8);
 
+/**
+ * @brief Convert save checksum to packed color value.
+ *
+ * Calls func_801E74BC to get checksum, masks to 24 bits, converts
+ * via func_801EB0F4 to RGB bytes, then packs as (R << 8) + (G << 4) + B.
+ *
+ * @return Packed 12-bit color value.
+ *
+ * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2E4);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334);

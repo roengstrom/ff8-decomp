@@ -16,7 +16,19 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5C50);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5CAC);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5D14);
+/**
+ * @brief Check if either of two magic availability tests pass.
+ * @param a0 First character context
+ * @param a1 Second character context
+ * @param a2 Second magic ID
+ * @param a3 First magic ID
+ * @return 1 if either func_801E5CAC call returns non-zero, 0 otherwise
+ */
+s32 func_801E5D14(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 r1 = func_801E5CAC(a0, a3);
+    s32 r2 = func_801E5CAC(a1, a2);
+    return (r1 | r2) != 0;
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5D64);
 

@@ -101,7 +101,17 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E72D8);
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E750C);
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E7644);
+/**
+ * @brief Compute centered X position after subtracting rendered width.
+ * @param a0 Base X position
+ * @param a1 Total available width
+ * @param a2 Text or item to measure via func_8002E7A4
+ * @return Base X + (available width - rendered width) / 2
+ */
+s32 func_801E7644(s32 a0, s32 a1, s32 a2) {
+    s32 rendered = func_8002E7A4(a2);
+    return a0 + (a1 - rendered) / 2;
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E7690);
 
