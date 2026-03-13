@@ -118,7 +118,26 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2CCC);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2D54);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2E04);
+/**
+ * @brief Initialize 32 entries using a lookup table of offsets.
+ *
+ * For each of 32 iterations, reads a byte offset from the table at D_801ECB20
+ * (stepping by 2 each iteration), adds a0, and stores the iteration index
+ * at (a0 + offset - 1).
+ *
+ * @param a0 Base address for storing iteration indices.
+ */
+void func_801E2E04(s32 a0) {
+    extern u8 D_801ECB20[];
+    s32 i = 0;
+    u8 *tbl = D_801ECB20;
+
+    do {
+        *(u8 *)(tbl[0] + a0 - 1) = i;
+        i++;
+        tbl += 2;
+    } while (i < 0x20);
+}
 
 /**
  * @brief Read byte 0 of item entry at index a0 from D_801F889C.
@@ -172,8 +191,58 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E302C);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3158);
 
+/**
+ * @brief Process input and update state with computed page index.
+ *
+ * Calls func_801F58EC and func_801F57A4. If the action is odd (bit 0 set),
+ * divides func_801F58EC's result by 8 (signed, rounding toward zero),
+ * calls func_801F5150 with the quotient and original result, then updates
+ * via func_801F576C and func_801F5868.
+ *
+ * @param a0 Context pointer.
+ * @return 1 if processed, 0 otherwise.
+ */
+/**
+ * @brief Process input and update state with computed page index.
+ *
+ * Calls func_801F58EC and func_801F57A4. If the action is odd (bit 0 set),
+ * divides func_801F58EC's result by 8 (signed, rounding toward zero),
+ * calls func_801F5150 with the quotient and original result, then updates
+ * via func_801F576C and func_801F5868.
+ *
+ * @param a0 Context pointer.
+ * @return 1 if processed, 0 otherwise.
+ *
+ * @note Non-matching: compiler optimizes away the copy of func_801F57A4 result
+ * to a temp register (a2), testing v0 directly instead of through a2.
+ * Original: addu a2,v0,zero / andi v0,a2,1; compiled: andi v0,v0,1.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3288);
 
+/**
+ * @brief Process input event and update state if odd-numbered action.
+ *
+ * Calls func_801F58EC then func_801F57A4 to get an action code.
+ * If the action is odd (bit 0 set), calls func_801F5150 with the action,
+ * passes the result to func_801F576C, and finally calls func_801F5868.
+ *
+ * @param a0 Context pointer.
+ * @return 1 if the action was processed (odd action), 0 otherwise.
+ */
+/**
+ * @brief Process input event and update state if odd-numbered action.
+ *
+ * Calls func_801F58EC then func_801F57A4 to get an action code.
+ * If the action is odd (bit 0 set), calls func_801F5150, passes the result
+ * to func_801F576C, and finally calls func_801F5868.
+ *
+ * @param a0 Context pointer.
+ * @return 1 if the action was processed (odd action), 0 otherwise.
+ *
+ * @note Non-matching: compiler optimizes away the copy of func_801F57A4 result
+ * to a temp register (a2), testing v0 directly instead of through a2.
+ * Original: addu a2,v0,zero / andi v0,a2,1; compiled: andi v0,v0,1.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3314);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E338C);
@@ -184,8 +253,47 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E35B8);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E37A4);
 
+/**
+ * @brief Set ability bit flag in character's ability table.
+ *
+ * Searches character a0's ability list (at D_80079D78 + a0*132) for
+ * ability a1. If found at index i, sets bit (1 << (i+8)) in the
+ * corresponding word at D_80077408 + a0*68.
+ *
+ * @param a0 Character index.
+ * @param a1 Ability ID to search for.
+ */
+/**
+ * @brief Set ability bit flag in character's ability table.
+ *
+ * Searches character a0's ability list (at D_80079D78 + a0*132) for
+ * ability a1. If found at index i, sets bit (1 << (i+8)) in the
+ * corresponding word at D_80077408 + a0*68.
+ *
+ * @param a0 Character index.
+ * @param a1 Ability ID to search for.
+ *
+ * @note Non-matching: compiler does not keep constant 1 in register t0
+ * across loop iterations. Original pre-loads t0=1 and uses sllv v0,t0,v0;
+ * compiler inlines li v0,1 and uses different register for shift amount.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3854);
 
+/**
+ * @brief Clear ability bit flag in character's ability table.
+ *
+ * Searches character a0's ability list (at D_80079D78 + a0*132) for
+ * ability a1. If found at index i, clears bit (1 << (i+8)) in the
+ * corresponding word at D_80077408 + a0*68.
+ *
+ * @param a0 Character index.
+ * @param a1 Ability ID to search for.
+ *
+ * @note Non-matching: compiler does not keep constant 1 in register t0
+ * across loop iterations. Original pre-loads t0=1 and uses sllv v0,t0,v0;
+ * compiler inlines li v0,1 and uses different register for shift amount.
+ * Same issue as func_801E3854.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E38DC);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3968);
@@ -208,6 +316,34 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E42F8);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4394);
 
+/**
+ * @brief Decrement item count at table entry and clear first byte if depleted.
+ *
+ * Given a base pointer a1 and index a2, accesses the 2-byte entry at
+ * a1[a2*2]. If byte 1 (count) is positive, decrements it. If the count
+ * reaches zero after decrement, also clears byte 0 (item ID).
+ *
+ * @param a0 Unused.
+ * @param a1 Base pointer to item table.
+ * @param a2 Entry index.
+ * @return 1 if count was decremented but not depleted, 0 otherwise.
+ */
+/**
+ * @brief Decrement item count at table entry and clear first byte if depleted.
+ *
+ * Given a base pointer a1 and index a2, accesses the 2-byte entry at
+ * a1[a2*2]. If byte 1 (count) is positive, decrements it. If the count
+ * reaches zero after decrement, also clears byte 0 (item ID).
+ *
+ * @param a0 Unused.
+ * @param a1 Base pointer to item table.
+ * @param a2 Entry index.
+ * @return 1 if count was decremented but not depleted, 0 otherwise.
+ *
+ * @note Non-matching: compiler allocates count to v0 instead of v1,
+ * preventing the v0=0 return value from being set in the blez delay slot.
+ * Original uses v1 for count and v0 for return value independently.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E457C);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E45B4);
@@ -223,7 +359,23 @@ void func_801E46B8(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, 0xC1, (a1 % 4) * 13 + 0x8D);
 }
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4708);
+/**
+ * @brief Render item at Y position from lookup table D_801EB1D8.
+ *
+ * Copies 9 entries from D_801EB1D8 to a local buffer, looks up
+ * the entry at index a1, adds 0x32 to get the Y coordinate, then
+ * calls func_801F0A34 to render.
+ *
+ * @param a0 X position parameter passed through.
+ * @param a1 Index into the Y-offset table (0-8).
+ */
+void func_801E4708(s32 a0, s32 a1) {
+    extern u8 D_801EB1D8[];
+    s16 buf[36];
+
+    func_801F5984(D_801EB1D8, buf, 9);
+    func_801F0A34(a0, 0, buf[a1] + 0x32, 0xD);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E476C);
 
@@ -402,12 +554,78 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9AAC);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9B98);
 
+/**
+ * @brief Count leading non-null bytes in a string, capped at limit-1.
+ *
+ * Scans up to a1 bytes from a0, counting non-null bytes. Returns the count
+ * of consecutive non-null bytes found, or (a1 - 1) if the limit is reached.
+ *
+ * @param a0 Pointer to byte string.
+ * @param a1 Maximum number of bytes to scan.
+ * @return Count of leading non-null bytes, capped at a1-1.
+ */
+/**
+ * @brief Count leading non-null bytes in a string, capped at limit-1.
+ *
+ * Scans up to a1 bytes from a0, counting non-null bytes. Returns the count
+ * of consecutive non-null bytes found, or (a1 - 1) if the limit is reached.
+ *
+ * @param a0 Pointer to byte string.
+ * @param a1 Maximum number of bytes to scan.
+ * @return Count of leading non-null bytes, capped at a1-1.
+ *
+ * @note Non-matching: compiler schedules the first three initialization
+ * instructions differently (blez before move vs after), and uses different
+ * return value setup (move v0,v1 in bnez delay vs jr delay).
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9C90);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9CD4);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9DE4);
+/**
+ * @brief Find the last non-zero byte in a string and set it to zero.
+ *
+ * Scans forward through the byte string at a0 until the first zero byte,
+ * then writes zero to the byte before the terminator (the last non-zero byte).
+ * If the first byte is already zero, does nothing.
+ *
+ * @param a0 Pointer to a null-terminated byte string.
+ */
+void func_801E9DE4(u8 *a0) {
+    if (*a0++ == 0) {
+        return;
+    }
+    while (*a0++ != 0) {
+    }
+    a0[-2] = 0;
+}
 
+/**
+ * @brief Check if all bytes in string match the first byte of entry 0xB.
+ *
+ * Calls func_8002A2F4 first as a precondition. If it returns 0, returns 0.
+ * Otherwise iterates through each byte at a0 until a zero terminator,
+ * comparing against the first byte of the entry returned by func_80020F84(0xB).
+ * Returns 1 as soon as a mismatch is found, 0 if all match or string is empty.
+ *
+ * @param a0 Pointer to a null-terminated byte string.
+ * @return 1 if a mismatch is found, 0 otherwise.
+ */
+/**
+ * @brief Check if all bytes in string match the first byte of entry 0xB.
+ *
+ * Calls func_8002A2F4 first as a precondition. If it returns 0, returns 0.
+ * Otherwise iterates through each byte at a0 until a zero terminator,
+ * comparing against the first byte of the entry returned by func_80020F84(0xB).
+ * Returns 1 as soon as a mismatch is found, 0 if all match or string is empty.
+ *
+ * @param a0 Pointer to a null-terminated byte string.
+ * @return 1 if a mismatch is found, 0 otherwise.
+ *
+ * @note Non-matching: compiler assigns s1 to pointer and s0 to char variable,
+ * but original uses s0 for pointer and s1 for char. S-reg swap cannot be
+ * controlled from C with the current approach.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9E10);
 
 /** @brief Draw inner panel with section id 0x5 and clear flag. */
