@@ -77,22 +77,6 @@ def count_functions_in_file(filepath):
     return c_count, asm_count
 
 
-def count_c_functions(src_pattern):
-    """Count C function definitions across all .c files matching a glob pattern."""
-    total_c = 0
-    for f in sorted(glob.glob(src_pattern)):
-        c, _ = count_functions_in_file(f)
-        total_c += c
-    return total_c
-
-
-def count_symbol_addrs(filepath):
-    """Count function entries in a symbol_addrs file."""
-    if not os.path.exists(filepath):
-        return 0
-    with open(filepath) as f:
-        return sum(1 for line in f if line.strip() and not line.strip().startswith("//"))
-
 
 def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -108,13 +92,15 @@ def main():
         asm += fa
     rows.append(("SLUS_008.92", c, asm, c + asm))
 
-    # Overlays: symbol_addrs is authoritative total (from Ghidra)
+    # Overlays: count from source files (C functions + INCLUDE_ASM)
     for name in MENU_OVERLAYS + CODE_OVERLAYS:
-        total = count_symbol_addrs(f"config/symbol_addrs.{name}.txt")
-        c = count_c_functions(f"src/ovl/{name}/*.c")
-        asm = max(0, total - c)
+        c, asm = 0, 0
+        for f in sorted(glob.glob(f"src/ovl/{name}/*.c")):
+            fc, fa = count_functions_in_file(f)
+            c += fc
+            asm += fa
         ext = OVERLAY_EXT[name]
-        rows.append((f"{name}.{ext}", c, asm, total))
+        rows.append((f"{name}.{ext}", c, asm, c + asm))
 
     # Print markdown table
     print("| Binary | C | ASM | Total | % Decomped |")
