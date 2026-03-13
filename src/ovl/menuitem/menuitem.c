@@ -313,7 +313,17 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3C1C);
  * @note Non-matching: compiler schedules li v1,-1 before the first lui
  * for D_801ECEDC. Original has lui first with li filling the delay slot.
  */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3E94);
+void func_801E3E94(void) {
+    extern s32 D_801ECEDC;
+    extern s32 D_801ECEE4;
+    extern s32 D_801ECEE8;
+    extern s32 D_801ECEE0;
+
+    D_801ECEDC = -1;
+    D_801ECEE4 = -1;
+    D_801ECEE8 = -1;
+    D_801ECEE0 = -1;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3EBC);
 
