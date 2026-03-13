@@ -1,12 +1,26 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5800);
+/** @brief Config menu entry point — delegates to func_801F798C. */
+void func_801E5800(s32 a0) {
+    func_801F798C(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5820);
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E587C);
 
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E58EC);
+/**
+ * @brief Render a config option label at a grid position.
+ *
+ * Computes y-coordinate from @p a1 (row * 16 + 0x24) and renders
+ * a string of width 0x30 at that position via func_801F0A34.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Row index (0-based).
+ */
+void func_801E58EC(s32 a0, s32 a1) {
+    func_801F0A34(a0, 0, 0x30, a1 * 16 + 0x24);
+}
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5918);
 

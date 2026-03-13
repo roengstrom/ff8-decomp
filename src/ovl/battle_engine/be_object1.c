@@ -121,7 +121,19 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099798);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099C78);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A2F4);
+/**
+ * @brief Execute cleanup via func_8009AD00 and return success.
+ *
+ * Calls func_8009AD00 to perform cleanup/finalization, then always
+ * returns 0 to indicate success.
+ *
+ * @param a0 Entity or context pointer passed to func_8009AD00.
+ * @return Always 0.
+ */
+s32 func_8009A2F4(s32 a0) {
+    func_8009AD00(a0);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A314);
 
