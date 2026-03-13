@@ -171,20 +171,27 @@ void func_801E2D38(s32 a0, s32 a1, s32 a2) {
  *
  * @param a0 Linear save slot index.
  */
-/**
- * @brief Render a save slot indicator icon at a grid position.
- *
- * Divides @p a0 by 3 to get the remainder, computes a y-coordinate
- * as remainder * 53 + 0x3C, and renders via func_801F0994 at
- * position (0, 0x22, y).
- *
- * @param a0 Linear save slot index.
- *
- * @note Non-matching: Compiler assigns sign bit to v0 instead of v1
- * in the division-by-3 sequence, cascading through the remainder.
- */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2D78);
+void func_801E2D78(s32 a0) {
+    func_801F0994(0, 0x22, (a0 % 3) * 53 + 0x3C);
+}
 
+/**
+ * @brief Process memory card read result and update save slot status.
+ *
+ * Reads card data via func_801EAE98 using a0[0x57] as the read mode.
+ * If read succeeds, extracts status bits and stores them:
+ * - Mode 0 (first read): stores to a0[0x2E], a0[0x2C], clears
+ *   D_80085148 if no data, sets a0[0x57] to 0x10
+ * - Mode != 0 (second read): stores to a0[0x2F], a0[0x2D], clears
+ *   D_80085149 if no data, sets a0[0x57] to 0
+ *
+ * @param a0 Save context pointer.
+ *
+ * @note Non-matching: original uses 2-instruction sequence (addiu v0,-0x11;
+ * and v0,v1,v0) for v1 & ~0x10, compiler uses single andi v0,v1,0xEF.
+ * This saves 2 instructions total (one per branch), making the compiled
+ * version 4 instructions shorter.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
 
 /**
@@ -840,7 +847,14 @@ void func_801EAE4C(void) {
  *
  * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE74);
+/**
+ * @brief Call func_801EAE4C then clear D_801EC301.
+ */
+void func_801EAE74(void) {
+    extern u8 D_801EC301;
+    func_801EAE4C();
+    D_801EC301 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE98);
 
@@ -984,9 +998,25 @@ void func_801EB1AC(s32 a0, u8 *a1, s32 a2) {
  * @param a0 Parameter passed to func_801EB150
  * @return 12-bit accumulated value
  *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB1DC);
+s32 func_801EB1DC(s32 a0) {
+    u8 buf[8];
+    s32 result;
+    s32 i;
+    u8 *ptr;
+
+    func_801EB150(a0, buf, 0);
+    ptr = buf;
+    result = 0;
+    i = 2;
+    do {
+        result = result << 4;
+        result = result + *ptr;
+        ptr++;
+        i--;
+    } while (i >= 0);
+    return result;
+}
 
 /**
  * @brief Convert BCD value, add offset, clamp to 99, and encode.
@@ -998,7 +1028,8 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB1DC);
  * @param a1 Offset to add
  * @return Encoded result masked to byte
  *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ * @note Non-matching: register allocation -- compiler puts a0 & 0xF result
+ * in v0 instead of keeping it in a0.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
 
@@ -1012,7 +1043,8 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
  * @param a1 Offset to subtract
  * @return Encoded result masked to byte
  *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ * @note Non-matching: register allocation -- compiler puts a0 & 0xF result
+ * in v0 instead of keeping it in a0. Same issue as func_801EB224.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
 
@@ -1048,9 +1080,15 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8);
  *
  * @return Packed 12-bit color value.
  *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2E4);
+s32 func_801EB2E4(void) {
+    u8 buf[16];
+    s32 v0;
+
+    v0 = func_801E74BC();
+    func_801EB0F4(v0 & 0xFFFFFF, buf, 0);
+    return (buf[7] << 8) + (buf[8] << 4) + buf[9];
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334);
 
@@ -1065,12 +1103,16 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334);
  * @param a1 Table index into D_801EBD24
  * @return Result of func_801EB1DC
  */
-/**
- * @note Non-matching: instruction scheduling differs — compiler puts
- * sll (a1*2) before lui/addiu (D_801EBD24 address) and sra (r>>2)
- * after lhu instead of before. Logic is correct.
- */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB408);
+s32 func_801EB408(s32 a0, s32 a1) {
+    extern u16 D_801EBD24[];
+    s32 v0;
+    s32 a0_new;
+
+    v0 = func_801EB2B8(a0 & 0xFF);
+    a0_new = D_801EBD24[a1];
+    v0 = (v0 >> 2) + 6;
+    return func_801EB1DC(a0_new + v0);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB458);
 
