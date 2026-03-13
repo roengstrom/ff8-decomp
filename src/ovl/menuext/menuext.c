@@ -103,7 +103,26 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5FA8);
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5FE8);
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6060);
+/**
+ * @brief Compute page count for extension list and store to context.
+ *
+ * Calls func_801E5828 to set up the extension data, then func_801E5FE8
+ * to get the total item count. Computes ceiling division by 11 for page
+ * count and stores to offset 0x52. Clamps minimum to 1.
+ *
+ * @param a0 Extension menu context pointer.
+ */
+void func_801E6060(u8 *a0) {
+    s32 val;
+    s32 pages;
+    func_801E5828(a0);
+    val = func_801E5FE8();
+    pages = (val + 10) / 11;
+    a0[0x52] = pages;
+    if ((u8)pages == 0) {
+        a0[0x52] = 1;
+    }
+}
 
 /**
  * @brief Wrapper that calls func_80023B14.

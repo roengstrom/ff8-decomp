@@ -69,7 +69,24 @@ void func_801E2C0C(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2C44);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2C80);
+/**
+ * @brief Look up an item name string by index.
+ *
+ * If @p a0 is within bounds (less than D_801ECC10), uses it to index
+ * into D_801ECB60 to get an item ID, then calls func_80020AD4
+ * to get the corresponding string. Returns NULL if out of bounds.
+ *
+ * @param a0 Item list index.
+ * @return Pointer to item name string, or NULL if index out of bounds.
+ */
+s32 func_801E2C80(s32 a0) {
+    extern s32 D_801ECC10;
+    extern u8 D_801ECB60[];
+    if (a0 < D_801ECC10) {
+        return func_80020AD4(D_801ECB60[a0 * 8]);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2CCC);
 

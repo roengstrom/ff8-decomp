@@ -262,7 +262,15 @@ void func_801E6860(s32 a0, s32 a1) {
     func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E68BC);
+/**
+ * @brief Render save menu entry with string ID 0x16.
+ * @param a0 X position for rendering
+ * @param a1 Y position for rendering
+ */
+void func_801E68BC(s32 a0, s32 a1) {
+    s32 v0 = func_801E2C90(0x16);
+    func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6918);
 
