@@ -1,12 +1,43 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2800);
+/**
+ * @brief Compute save slot data address.
+ *
+ * Returns a pointer into the D_801D3000 region at offset a0 * 128.
+ *
+ * @param a0 Save slot index.
+ * @return Pointer to save slot data.
+ */
+s32 func_801E2800(s32 a0) {
+    return (s32)0x801D3000 + (a0 << 7);
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2814);
+/**
+ * @brief Set D_801EC294 flag to 1.
+ */
+void func_801E2814(void) {
+    extern u8 D_801EC294;
+    D_801EC294 = 1;
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2824);
+/**
+ * @brief Return save data buffer size constant.
+ *
+ * @return Always 0x180.
+ */
+s32 func_801E2824(void) {
+    return 0x180;
+}
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E282C);
+/**
+ * @brief Read save system state pointer.
+ *
+ * @return Value of D_8005620C.
+ */
+s32 func_801E282C(void) {
+    extern s32 D_8005620C;
+    return D_8005620C;
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E283C);
 
@@ -15,14 +46,18 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2860);
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E28C8);
 
 /**
- * @brief Check if func_801E2800 result halfword equals 0x8FF.
+ * @brief Check if save slot halfword equals 0x8FF.
  *
- * Calls func_801E2800, loads halfword at offset +2 from result,
- * and returns whether it equals 0x8FF.
+ * Calls func_801E2800 to get save slot address, loads halfword
+ * at offset +2, and returns whether it equals 0x8FF.
  *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
+ * @param a0 Save slot index.
+ * @return 1 if halfword equals 0x8FF, 0 otherwise.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E292C);
+s32 func_801E292C(s32 a0) {
+    s32 result = func_801E2800(a0);
+    return *(u16 *)(result + 2) == 0x8FF;
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2958);
 
@@ -46,6 +81,19 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2D78);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
 
+/**
+ * @brief Check save slot validity flags and store result.
+ *
+ * Sets a0[0x4B] to 1 if either a0[0x2E] or a0[0x2F] is less than 2,
+ * otherwise stores (a0[0x2E] < 2).
+ *
+ * @param a0 Save context pointer.
+ * @return The stored flag value.
+ *
+ * @note Non-matching: CC1PSX schedules the two lbu loads together
+ * and puts sltiu in the beqz delay slot, eliminating the nop between
+ * loads that the original has.
+ */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2ECC);

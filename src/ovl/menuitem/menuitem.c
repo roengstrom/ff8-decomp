@@ -2,7 +2,15 @@
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2800);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E280C);
+/**
+ * @brief Read item menu state pointer.
+ *
+ * @return Value of D_801ECE20.
+ */
+s32 func_801E280C(void) {
+    extern s32 D_801ECE20;
+    return D_801ECE20;
+}
 
 /** @brief Draw inner panel with section id 0xB and clear flag. */
 s32 func_801E281C(s32 a0) {
