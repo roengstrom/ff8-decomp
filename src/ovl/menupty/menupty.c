@@ -103,7 +103,21 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E708C);
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E71A0);
 
-INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E72BC);
+/**
+ * @brief Render party member display with position and graphics lookup.
+ *
+ * Calls func_801E5954(7) to get a graphics source, then calls func_801F4274
+ * with position parameters, the graphics result, and fixed size constants.
+ *
+ * @param a0 Unused
+ * @param a1 X position
+ * @param a2 Y position
+ */
+void func_801E72BC(s32 a0, s32 a1, s32 a2) {
+    s32 result = func_801E5954(7);
+
+    func_801F4274(a1, a2, result, 0xC0, 0x6B, 0x1000);
+}
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7318);
 

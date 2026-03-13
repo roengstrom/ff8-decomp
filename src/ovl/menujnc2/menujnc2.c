@@ -78,11 +78,45 @@ void func_801E6B88(u8 *a0) {
     func_801E69E0(a0);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6BC8);
+/**
+ * @brief Copy ability value from junction table to character data and update.
+ *
+ * Reads a 16-bit value from D_801EEDF0[a0 * 28 + 4] and writes it to
+ * D_80077378[a0 * 152 + 0x490], then calls func_801F5190 to update.
+ *
+ * @param a0 Character/slot index
+ */
+void func_801E6BC8(s32 a0) {
+    extern u8 D_801EEDF0[];
+    extern u8 D_80077378[];
+    s32 v0 = (s32)D_801EEDF0;
+    s32 v1 = a0 * 28 + v0;
+    s32 a1 = (s32)D_80077378;
+
+    *(s16 *)(a1 + a0 * 152 + 0x490) = *(u16 *)(v1 + 4);
+    func_801F5190();
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6C24);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6CCC);
+/**
+ * @brief Copy ability value from junction table to character data and refresh.
+ *
+ * Reads a 16-bit value from D_801EEDF0[a0 * 28 + 6] and writes it to
+ * D_80077378[a0 * 152 + 0x4E8], then calls func_801E6B88 to refresh display.
+ *
+ * @param a0 Character/slot index
+ */
+void func_801E6CCC(s32 a0) {
+    extern u8 D_80077378[];
+    extern u8 D_801EEDF0[];
+    s32 base1 = (s32)D_80077378;
+    s32 off1 = a0 * 152;
+    s32 base2 = (s32)D_801EEDF0;
+
+    *(s16 *)(off1 + base1 + 0x4E8) = *(u16 *)(base2 + a0 * 28 + 6);
+    func_801E6B88(a0);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D28);
 

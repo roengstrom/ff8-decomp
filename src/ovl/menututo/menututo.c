@@ -109,4 +109,22 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0);
  */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0);
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CE4);
+/**
+ * @brief Initialize tutorial menu: register callbacks, clear state, and enter.
+ *
+ * Registers func_801E48C0 and func_801E4CB0 as callbacks via func_801F179C.
+ * If registration succeeds, clears the 16-bit fields at offsets 0x20 and 0x22,
+ * calls func_801F010C(0x140) for display setup, then enters via func_801E48C0.
+ */
+void func_801E4CE4(void) {
+    extern void func_801E48C0();
+    extern void func_801E4CB0();
+    s32 result = func_801F179C((s32)func_801E48C0, (s32)func_801E4CB0);
+
+    if (result != 0) {
+        *(s16 *)(result + 0x20) = 0;
+        *(s16 *)(result + 0x22) = 0;
+        func_801F010C(0x140);
+        func_801E48C0(result);
+    }
+}
