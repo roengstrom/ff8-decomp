@@ -2,6 +2,22 @@
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5800);
 
+/**
+ * @brief Look up a shop item's category byte.
+ *
+ * If a1 is zero, returns the byte at D_801EAA28[a2*2 + 1] directly.
+ * Otherwise, calls func_801E5800 to get an item data pointer, then
+ * returns the byte at that offset in D_801EB088, or 0 if the pointer
+ * is null.
+ *
+ * @param a0 Shop context parameter.
+ * @param a1 Item category selector (0 = direct lookup).
+ * @param a2 Item index.
+ * @return Category byte value, or 0 if not found.
+ *
+ * @note Non-matching: Leaf register allocation in the if-branch puts
+ * D_801EAA28 base in v0 (compiled) instead of v1 (original).
+ */
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E583C);
 
 /**
@@ -46,7 +62,22 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E59D8);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5A8C);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5BA4);
+/**
+ * @brief Render a shop item at a position from a decoded table.
+ *
+ * Decodes a position table from D_801E9B64 into a local buffer via
+ * func_801E59D8, then uses the halfword at index a1 (plus 0x24) as
+ * the Y position for func_801F0A34.
+ *
+ * @param a0 Render context / X position parameter.
+ * @param a1 Index into the decoded position table.
+ */
+void func_801E5BA4(s32 a0, s32 a1) {
+    extern u8 D_801E9B64[];
+    s16 buf[36];
+    func_801E59D8(D_801E9B64, buf, 3);
+    func_801F0A34(a0, 0, buf[a1] + 0x24, 0x22);
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5C08);
 
@@ -71,7 +102,39 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6E0C);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6EB0);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6F60);
+/**
+ * @brief Configure display parameters and invoke callback for shop list rendering.
+ *
+ * Sets up the D_801FAB00 display configuration structure with the given
+ * position and size values, stores the pointer at a0+0x20 as the data source,
+ * reads a halfword at a0+0x3A as the display ID, then calls func_801EFBB4
+ * with func_801E6EB0 as the render callback.
+ *
+ * @param a0 Pointer to source data structure.
+ * @param a1 First callback parameter (passed as a0 to func_801EFBB4).
+ * @param a2 Second callback parameter (passed as a1 to func_801EFBB4).
+ * @param a3 Y position for the display configuration.
+ * @param arg5 X position for the display configuration.
+ */
+void func_801E6F60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern u8 D_801FAB00[];
+    s32 cfg = (s32)D_801FAB00;
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)(cfg + 0x04) = 0x144;
+    *(s16 *)(cfg + 0x06) = 0x14;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x02) = arg5;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x3A);
+    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x20);
+    {
+        extern s32 func_801E6EB0;
+        func_801EFBB4(a1, a2, (s32)&func_801E6EB0);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6FD8);
 
@@ -91,7 +154,28 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E79D4);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7B9C);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7C8C);
+/**
+ * @brief Process shop state and dispatch to appropriate handler.
+ *
+ * Calls initialization functions, then reads a state byte from
+ * D_801E9B6C at the offset returned by func_801EFFF0. If the byte
+ * equals 0x15, dispatches to func_801E9900; otherwise dispatches
+ * to func_801E7B9C.
+ *
+ * @param a0 Shop context parameter passed to the handler.
+ */
+void func_801E7C8C(s32 a0) {
+    extern u8 D_801E9B6C[];
+    s32 off;
+    func_801F0948(0);
+    func_801F7B60();
+    off = func_801EFFF0();
+    if (*(u8 *)(off + (s32)D_801E9B6C) == 0x15) {
+        func_801E9900(a0);
+    } else {
+        func_801E7B9C(a0);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7CFC);
 
@@ -158,7 +242,39 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8978);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8AB0);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8B60);
+/**
+ * @brief Configure display parameters and invoke callback for shop sell rendering.
+ *
+ * Sets up the D_801FAB00 display configuration structure with the given
+ * position and size values, stores the pointer at a0+0x20 as the data source,
+ * reads a halfword at a0+0x36 as the display ID, then calls func_801EFBB4
+ * with func_801E8AB0 as the render callback.
+ *
+ * @param a0 Pointer to source data structure.
+ * @param a1 First callback parameter (passed as a0 to func_801EFBB4).
+ * @param a2 Second callback parameter (passed as a1 to func_801EFBB4).
+ * @param a3 Y position for the display configuration.
+ * @param arg5 X position for the display configuration.
+ */
+void func_801E8B60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern u8 D_801FAB00[];
+    s32 cfg = (s32)D_801FAB00;
+    *(u8 *)(cfg + 0x10) = 0;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)(cfg + 0x04) = 0x144;
+    *(s16 *)(cfg + 0x06) = 0x14;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x02) = arg5;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x36);
+    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x20);
+    {
+        extern s32 func_801E8AB0;
+        func_801EFBB4(a1, a2, (s32)&func_801E8AB0);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8BD8);
 
