@@ -81,15 +81,20 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800280C0);
 
 
 /**
- * @brief Set a battle animation value at two offsets for a given slot.
+ * @brief Set an s16 value in the unk10 array of both battle animation entities.
  *
- * Stores @p a2 at g_battleAnims + a1*2 + 0x10 and + 0xD4.
+ * Writes @p value to g_battleAnims[0].unk10[index] and g_battleAnims[1].unk10[index].
  *
- * @param a0 Unused.
- * @param a1 Slot index (halfword stride).
- * @param a2 Value to store.
+ * @param unused Unused parameter.
+ * @param index Index into the unk10 array (0-3).
+ * @param value Value to store.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281A4);
+void func_800281A4(s32 unused, s32 index, s16 value) {
+    int new_var;
+    new_var = 1;
+    g_battleAnims[0].unk10[index] = value;
+    g_battleAnims[new_var].unk10[index] = value;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281C4);

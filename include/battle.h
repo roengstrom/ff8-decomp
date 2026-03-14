@@ -45,7 +45,7 @@ typedef struct {
     u8 field0D;           /**< 0x0D: Default color value. */
     u8 field0E;           /**< 0x0E: Default color value. */
     u8 field0F;           /**< 0x0F: Default color value. */
-    u8 pad10[8];          /**< 0x10..0x17: Unknown fields (s16 array). */
+    s16 unk10[4];         /**< 0x10..0x17: s16 array (set via func_800281A4). */
     u8 frameCounter;      /**< 0x18: Frame counter (circular, & 7). */
     u8 field19;           /**< 0x19: Active flag (1 = active). */
     s8 field1A;           /**< 0x1A: State indicator (0, 2, 6 tested). */
