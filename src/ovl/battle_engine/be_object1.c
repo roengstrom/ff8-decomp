@@ -10,7 +10,13 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098690);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098828);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800988D4);
+/**
+ * @brief Clear D_801C2FD0 to zero.
+ */
+void func_800988D4(void) {
+    extern s32 D_801C2FD0;
+    D_801C2FD0 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800988E0);
 
@@ -25,13 +31,41 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B08);
 void func_80098B68(void) {
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B70);
+/**
+ * @brief Set D_801C2FD8 to 0x1F800000 (scratchpad RAM base address).
+ */
+void func_80098B70(void) {
+    extern s32 D_801C2FD8;
+    D_801C2FD8 = 0x1F800000;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B80);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098BA0);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098BC0);
+/**
+ * @brief Initialize a linked list header and clear all node slots.
+ *
+ * @param a0 Pointer to the list header (head, tail, pool ptr, size, count).
+ * @param a1 Pointer to the node pool.
+ * @param a2 Size of each node in bytes.
+ * @param a3 Number of nodes in the pool.
+ */
+void func_80098BC0(u8 *a0, u8 *a1, s32 a2, s32 a3) {
+    s32 i = 0;
+    *(s32 *)(a0 + 0) = 0;
+    *(s32 *)(a0 + 4) = 0;
+    *(s32 *)(a0 + 8) = (s32)a1;
+    *(s16 *)(a0 + 0xC) = a2;
+    *(s16 *)(a0 + 0xE) = a3;
+    if (a3 > 0) {
+        do {
+            *(s16 *)a1 = 0;
+            i++;
+            a1 += a2;
+        } while (i < a3);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098BF8);
 
@@ -93,7 +127,27 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098D28);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098DD4);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098E54);
+/**
+ * @brief Set battle viewport dimensions if non-negative.
+ *
+ * Stores a0 to D_80182B5A and D_80182B56 if a0 >= 0.
+ * Stores a1 to D_80182B58 if a1 >= 0.
+ *
+ * @param a0 Width value (stored if >= 0).
+ * @param a1 Height value (stored if >= 0).
+ */
+void func_80098E54(s32 a0, s32 a1) {
+    extern s16 D_80182B5A;
+    extern s16 D_80182B56;
+    extern s16 D_80182B58;
+    if (a0 >= 0) {
+        D_80182B5A = a0;
+        D_80182B56 = a0;
+    }
+    if (a1 >= 0) {
+        D_80182B58 = a1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098E7C);
 

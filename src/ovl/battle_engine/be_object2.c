@@ -6,7 +6,13 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009A970);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009AA68);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009AD00);
+/**
+ * @brief Call func_80098D28 with D_801D3110.
+ */
+void func_8009AD00(void) {
+    extern u8 D_801D3110[];
+    func_80098D28(D_801D3110);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009AD24);
 
@@ -18,7 +24,21 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B494);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B4CC);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B644);
+/**
+ * @brief Look up the active object and initialize its handler.
+ *
+ * Gets an index via func_8009A7A4. If non-negative, uses it to look up
+ * the object type from D_801D31C0 (stride 36) and passes it to func_800A2114.
+ */
+void func_8009B644(void) {
+    extern u8 D_801D31C0[];
+    s32 idx = func_8009A7A4();
+    if (idx >= 0) {
+        u8 *base = D_801D31C0;
+        u8 type = *(base + idx * 36);
+        func_800A2114(type);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B690);
 
@@ -72,6 +92,21 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009DBE8);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009DECC);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009E1F0);
+/**
+ * @brief Initialize the D_801D3C58 list with node pool D_801D3798.
+ *
+ * Sets up a linked list with node size 0x4C and capacity 0x10.
+ */
+void func_8009E1F0(void) {
+    extern u8 D_801D3C58[];
+    extern u8 D_801D3798[];
+    func_80098BC0(D_801D3C58, D_801D3798, 0x4C, 0x10);
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009E224);
+/**
+ * @brief Call func_80098D28 with D_801D3C58.
+ */
+void func_8009E224(void) {
+    extern u8 D_801D3C58[];
+    func_80098D28(D_801D3C58);
+}
