@@ -138,7 +138,35 @@ void func_800982D8(void) {
     func_800472F4(); /* ExitCriticalSection */
 }
 
-INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_80098330);
+/**
+ * @brief Decode table data from D_80098960 into D_8008369C.
+ *
+ * First byte is a start index, second is the limit. Copies pairs of
+ * bytes from the source data into the destination buffer until the
+ * index exceeds the limit.
+ */
+void func_80098330(void) {
+    extern u8 D_80098960[];
+    u8 *src = D_80098960;
+    extern u8 D_8008369C[];
+    u8 *dst = D_8008369C;
+    s32 count;
+    u8 byte;
+    s32 limit;
+
+    src++;
+    count = D_80098960[0];
+    limit = *src;
+    src++;
+
+    if (limit < count) return;
+
+    do {
+        *dst++ = *src++;
+        count++;
+        *dst++ = (byte = *src++);
+    } while (!(limit < count));
+}
 
 /** @brief Calls func_80098330 then func_800983B8 in sequence. */
 void func_80098390(void) {
