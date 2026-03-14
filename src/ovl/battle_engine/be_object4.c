@@ -294,7 +294,27 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A3D2C);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A3EE0);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A4098);
+/**
+ * @brief Wrapper for func_800A3EE0 that selects a lookup table entry based on the 5th argument.
+ *
+ * If stack0 >= 8, uses D_80083848[1] and subtracts 8 from stack0.
+ * Otherwise uses D_80083848[0] with stack0 unchanged.
+ * Passes the lookup value and adjusted stack0 as extra args to func_800A3EE0.
+ *
+ * @param a0-a3 Parameters passed through to func_800A3EE0.
+ * @param stack0 Index parameter; if >= 8, adjusted by -8 and table index 1 is used.
+ */
+void func_800A4098(s32 a0, s32 a1, s32 a2, s32 a3, s32 stack0) {
+    extern s32 D_80083848[];
+    s32 idx;
+    if (stack0 >= 8) {
+        stack0 -= 8;
+        idx = 1;
+    } else {
+        idx = 0;
+    }
+    func_800A3EE0(a0, a1, a2, a3, D_80083848[idx], stack0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A40F0);
 
@@ -315,7 +335,30 @@ s32 func_800A443C(s32 a0) {
     return func_8002A8B8(result);
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A4478);
+/**
+ * @brief Compute and store a packed color/brightness value for the battle camera.
+ *
+ * Stores a0 to D_801D49C8+0x1C as a halfword. Then computes a packed 32-bit
+ * value by dividing a0 by 32 (rounding toward zero) and replicating the
+ * result into bytes 0-2, with byte 3 set to 0x64. Stores the result at
+ * D_801D49C8+0x10.
+ *
+ * @param a0 Brightness value (scaled by 32).
+ */
+void func_800A4478(s32 a0) {
+    extern u8 D_801D49C8[];
+    u8 *base = D_801D49C8;
+    s32 val;
+    *(s16 *)(base + 0x1C) = a0;
+    if (a0 < 0) {
+        a0 += 0x1F;
+    }
+    val = a0 >> 5;
+    {
+        s32 hi = (val << 8) | (val << 16);
+        *(s32 *)(base + 0x10) = (val | hi) | 0x64000000;
+    }
+}
 
 /**
  * @brief Store a byte value to D_801D49EC.

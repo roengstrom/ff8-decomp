@@ -225,7 +225,38 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A4E0);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A508);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A650);
+/**
+ * @brief Initialize the D_801D3028 linked list with battle update callbacks.
+ *
+ * Calls func_8009C6D8 for initial setup, then initializes D_801D3028
+ * as a linked list (pool at D_801D3038, node size 0x18, capacity 8).
+ * Registers four callback functions as nodes. Clears fields on the
+ * first callback's node. Finally calls func_8009AD24 and returns
+ * the list pointer.
+ *
+ * @return Pointer to D_801D3028 list header.
+ */
+u8 *func_8009A650(void) {
+    extern u8 D_801D3028[];
+    extern u8 D_801D3038[];
+    extern s32 func_80099C78();
+    extern s32 func_8009A314();
+    extern s32 func_8009A508();
+    u8 *list;
+    u8 *node;
+    func_8009C6D8();
+    list = D_801D3028;
+    func_80098BC0(list, D_801D3038, 0x18, 8);
+    node = (u8 *)func_80098C44(list, (s32)func_80099C78);
+    node[0x10] = 0;
+    node[0x11] = 0;
+    node[0x14] = 0;
+    func_80098C44(list, (s32)func_8009A2F4);
+    func_80098C44(list, (s32)func_8009A314);
+    func_80098C44(list, (s32)func_8009A508);
+    func_8009AD24();
+    return list;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A6EC);
 
