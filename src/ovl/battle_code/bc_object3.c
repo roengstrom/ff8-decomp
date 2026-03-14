@@ -25,6 +25,13 @@ void func_800A589C(s32);
 void func_800A6288(s32);
 void func_800DEAA4(s32, s32);
 void func_800E1880(s32, s32);
+s32 func_8009B7BC(s32);
+void func_800AF8A4(s32);
+u8 *func_8009B134(s32, s32, s32);
+s32 func_800AE568(s32);
+s32 func_800AE64C(s32);
+s32 func_800A4F28(s32, s32, s32);
+extern u8 D_800ED156[];
 
 /**
  * @brief Clear entity status bits 3 and 2 at offset 0x8C, then call cleanup.
@@ -100,7 +107,24 @@ void func_800A1C98(s32 a0) {
     func_800A589C(a0);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A1CFC);
+/**
+ * @brief Check entity flags and trigger reset if flagged.
+ *
+ * Computes the entity at D_800ED148 + a0 * 0xD0. If bit 16 of the word
+ * at +0x18 is set, or bit 0 of the halfword at +0x90 is set, calls
+ * func_800A1C98 and func_800A84CC with the entity index.
+ *
+ * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ */
+void func_800A1CFC(s32 a0) {
+    volatile u8 *base = (u8 *)&D_800ED148;
+    u8 *entity = (u8 *)base + a0 * 0xD0;
+    if ((*(s32 *)(entity + 0x18) & 0x10000) ||
+        (*(u16 *)(entity + 0x90) & 1)) {
+        func_800A1C98(a0);
+        func_800A84CC(a0);
+    }
+}
 
 /**
  * @brief Subtract delta from a halfword value, clamping to zero.
@@ -233,7 +257,29 @@ s32 func_800A2E04(s32 a0) {
     return *(u8 *)(table + val + 0x4CFD);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2E48);
+/**
+ * @brief Look up a halfword value from a table using entity ability data.
+ *
+ * Calls func_8009B7BC(2) to get a base offset, then indexes into
+ * D_800ED148 entity table at stride 0xD0 to read ability byte at +0xDA.
+ * Combines that with the base offset and a0 to read a halfword from
+ * offset 0x150.
+ *
+ * @param a0 Table base pointer or offset.
+ * @param a1 Entity index (stride 0xD0).
+ * @return Halfword value from computed table location.
+ */
+s32 func_800A2E48(s32 a0, s32 a1) {
+    s32 table = a0;
+    s32 idx = a1;
+    s32 val = func_8009B7BC(2);
+    u8 *base = (u8 *)&D_800ED148;
+    s32 ability = *(u8 *)(base + idx * 0xD0 + 0xDA);
+    ability += val;
+    ability <<= 1;
+    ability += table;
+    return *(u16 *)(ability + 0x150);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2EB8);
 
@@ -376,7 +422,28 @@ void func_800A432C(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4350);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A43C0);
+/**
+ * @brief Check entity status bit and trigger effect if clear.
+ *
+ * Checks bit 0 of the halfword at entity[0x90] (stride 0xD0 from
+ * D_800ED148). If the bit is clear, calls func_800AF8A4 and
+ * func_8009B134(0x72, 0xF0, 0), then stores a0 as a halfword at
+ * the returned address.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ */
+void func_800A43C0(s32 a0) {
+    volatile u8 *base = (u8 *)&D_800ED148;
+    u8 *entity = (u8 *)base + a0 * 0xD0;
+    if (*(u16 *)(entity + 0x90) & 1) {
+        return;
+    }
+    func_800AF8A4(a0);
+    {
+        u8 *result = func_8009B134(0x72, 0xF0, 0);
+        *(s16 *)result = (s16)a0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4434);
 

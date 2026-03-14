@@ -8,6 +8,7 @@ extern u8 D_800EE38C[];
 extern u8 D_800EE9B3[];
 extern u8 D_80077378[];
 s32 func_8009B15C(void);
+s32 func_8009B74C(s32, s32);
 
 /**
  * @brief Compute table entry and forward call to func_800A5A7C.
@@ -231,11 +232,91 @@ void func_800A6AE0(void) {
     func_800A68AC(3);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6B08);
+/**
+ * @brief Check if any entity in slots 3-6 has bit 2 set in indirect flag byte.
+ *
+ * Iterates over entity slots 3 through 6 in the D_800ED148 table (stride 0xD0).
+ * For each entity whose status halfword at offset 0x90 does not have bit 0 set,
+ * follows the pointer chain at offset 0x10 twice, then checks if bit 2 (0x4)
+ * is set in the byte at offset 0xFE of the resulting pointer.
+ *
+ * @return 1 if any qualifying entity has the flag set, 0 otherwise.
+ */
+s32 func_800A6B08(void) {
+    s32 i = 3;
+    volatile u8 *base = (u8 *)D_800ED148;
+    u8 *entry = (u8 *)base + 3 * 0xD0;
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6B6C);
+top:
+    if (!(*(u16 *)(entry + 0x90) & 1)) {
+        u8 *ptr = *(u8 **)(entry + 0x10);
+        ptr = *(u8 **)ptr;
+        if (*(u8 *)(ptr + 0xFE) & 4) {
+            return 1;
+        }
+    }
+    i++;
+    entry += 0xD0;
+    if (i < 7) goto top;
+    return 0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6BD0);
+/**
+ * @brief Check if all entities in slots 3-6 have a specific flag bit set.
+ *
+ * Iterates over entity slots 3 through 6 in the D_800ED148 table (stride 0xD0).
+ * For each entity whose status halfword at offset 0x90 does not have bit 0 set,
+ * follows the pointer chain at offset 0x10 twice, then checks if the bitmask a0
+ * is set in the byte at offset 0xFE.
+ *
+ * @param a0 Bitmask to check against the flag byte.
+ * @param a1 Value to return if all entities pass the check.
+ * @return 0 if any qualifying entity lacks the flag, a1 if all pass.
+ */
+s32 func_800A6B6C(s32 a0, s32 a1) {
+    s32 i = 3;
+    volatile u8 *base = (u8 *)D_800ED148;
+    u8 *entry = (u8 *)base + 3 * 0xD0;
+
+top:
+    if (!(*(u16 *)(entry + 0x90) & 1)) {
+        u8 *ptr = *(u8 **)(entry + 0x10);
+        ptr = *(u8 **)ptr;
+        if (!(*(u8 *)(ptr + 0xFE) & a0)) {
+            return 0;
+        }
+    }
+    i++;
+    entry += 0xD0;
+    if (i < 7) goto top;
+    return a1;
+}
+
+/**
+ * @brief Determine battle result based on condition and ability check.
+ *
+ * If a0 is 1, returns 0. Otherwise checks func_8009B74C(0x80, 0xFF)
+ * to determine the return value. For a0==0, returns 3 or 4; for other
+ * values, returns 1 or 2.
+ *
+ * @param a0 Condition selector.
+ * @return Battle result code (0-4).
+ */
+s32 func_800A6BD0(s32 a0) {
+    if (a0 == 1) {
+        return 0;
+    }
+    if (a0 == 0) {
+        if (func_8009B74C(0x80, 0xFF) != 0) {
+            return 3;
+        }
+        return 4;
+    }
+    if (func_8009B74C(0x80, 0xFF) != 0) {
+        return 1;
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6C34);
 
@@ -546,10 +627,37 @@ void func_800A890C(s32 a0) {
     } while (i >= 0);
 }
 
+/**
+ * @brief Check bit 0 of flags for entities 3-6 and call handler.
+ *
+ * Iterates over entities at indices 3 through 6 in the D_800ED148 table
+ * (stride 0xD0). For each entity whose flags word at offset 0x8C has
+ * bit 0 set, calls func_800A890C with the entity index.
+ *
+ * @note Non-matching: Original puts addiu a0,s0,3 in beqz delay slot
+ *       (before jal), compiler puts it in jal delay slot instead. Same
+ *       instruction count but different byte positions.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8948);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A89B8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8A48);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8AFC);
+/**
+ * @brief Initialize 3 animation entries for an entity in D_80078720.
+ *
+ * Computes the entity base at D_80078720 + a0 * 0x1D0, then calls
+ * func_800A8A48 three times to set up entries 0 (id=0x23), 1 (id=0x24),
+ * and 2 (id=0).
+ *
+ * @param a0 Entity index (stride 0x1D0 in D_80078720).
+ * @return Always 2.
+ */
+s32 func_800A8AFC(s32 a0) {
+    u8 *entry = D_80078720 + a0 * 0x1D0;
+    func_800A8A48(entry, 0, 0x23, 0);
+    func_800A8A48(entry, 1, 0x24, 0);
+    func_800A8A48(entry, 2, 0, 0);
+    return 2;
+}

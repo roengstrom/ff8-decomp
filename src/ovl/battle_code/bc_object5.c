@@ -12,6 +12,9 @@ extern u8 D_80078E00[];
 extern u8 D_80077378[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
+s32 func_800AE730(void);
+s32 func_800AE788(void);
+s32 func_800A97A4(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8B7C);
 
@@ -210,9 +213,51 @@ u16 func_800A97FC(s32 bitPos) {
     return (1 << bitPos) & 0xFFFF;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A980C);
+/**
+ * @brief Find a random available entity (among first 3) and return its bitmask.
+ *
+ * Calls func_800AE730 to get entity count. If 0xFF, returns 0.
+ * Otherwise loops calling func_800A97A4(3) to pick random indices,
+ * checking entity[0x90] bit 0 (busy flag). Returns (1 << idx) & 0xFFFF
+ * when an available entity is found.
+ *
+ * @return Bitmask of selected entity, or 0 if none available.
+ */
+s32 func_800A980C(void) {
+    s32 idx;
+    u8 *table;
+    if (func_800AE730() == 0xFF) {
+        return 0;
+    }
+    table = D_800ED148;
+    do {
+        idx = func_800A97A4(3);
+    } while (*(u16 *)(table + idx * 0xD0 + 0x90) & 1);
+    return (1 << idx) & 0xFFFF;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9888);
+/**
+ * @brief Find a random available entity (among 4, offset by 3) and return its bitmask.
+ *
+ * Calls func_800AE788 to get entity count. If 0xFF, returns 8.
+ * Otherwise loops calling func_800A97A4(4), adds 3 to the index,
+ * checks entity[0x90] bit 0 (busy flag). Returns (1 << (idx+3)) & 0xFFFF
+ * when an available entity is found.
+ *
+ * @return Bitmask of selected entity, or 8 if none available.
+ */
+s32 func_800A9888(void) {
+    s32 idx;
+    u8 *table;
+    if (func_800AE788() == 0xFF) {
+        return 8;
+    }
+    table = D_800ED148;
+    do {
+        idx = func_800A97A4(4) + 3;
+    } while (*(u16 *)(table + idx * 0xD0 + 0x90) & 1);
+    return (1 << idx) & 0xFFFF;
+}
 
 /**
  * @brief Compute a bitmask from an entity's byte at offset 0x98.
@@ -602,7 +647,30 @@ void func_800AB3E0(void) {
     base[0x12FD] = 1;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB3FC);
+/**
+ * @brief Resolve animation data and display it with position and timing.
+ *
+ * Looks up animation data from the entity's sub-object table at offset 0x14,
+ * resolves it through func_800A9784 and func_800B0398, then calls
+ * func_8009AF3C to display with the given Y position, fixed params.
+ *
+ * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ * @param a1 Sub-animation index (multiplied by 2 for table lookup).
+ * @param a2 Y position for display.
+ */
+void func_800AB3FC(s32 a0, s32 a1, s32 a2) {
+    volatile u8 *base = D_800ED148;
+    u8 *entity = (u8 *)base + a0 * 0xD0;
+    s32 sub = *(s32 *)(entity + 0x14);
+    s32 tbl = *(s32 *)sub;
+    s32 offTab = *(s32 *)(tbl + 8) + tbl;
+    s32 dataOff = *(s32 *)(tbl + 0xC);
+    s32 result;
+    a1 = a1 * 2 + offTab;
+    result = func_800A9784(*(u16 *)a1, dataOff + tbl);
+    result = func_800B0398(result);
+    func_8009AF3C(result, a2, 3, 0xF0, 0);
+}
 
 /**
  * @brief Call func_800AB3FC with a fixed duration of 0x1E.

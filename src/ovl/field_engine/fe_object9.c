@@ -52,7 +52,20 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBEA4);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBEFC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBFFC);
+/**
+ * Reads two parameters from the stack using the current index at 0x184,
+ * calls func_8002CA58 with them, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800BBFFC(u8 *a0) {
+    s8 idx;
+
+    idx = *(s8 *)(a0 + 0x184);
+    func_8002CA58(*(s32 *)(a0 + idx * 4 - 4), *(s32 *)(a0 + idx * 4));
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BC034);
 
@@ -74,7 +87,20 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BC8CC);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BCB14);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BCC6C);
+/**
+ * Pops a parameter and calls func_8002CE68, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800BCC6C(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    func_8002CE68(*(s32 *)(a0 + (s8)idx * 4));
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BCCAC);
 

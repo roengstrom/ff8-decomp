@@ -16,6 +16,9 @@ extern u8 D_80077E59[];
 void func_800AD4A4(s32);
 void func_800AE6C0(void);
 s32 func_8009AF3C(s32, s32, s32, s32, s32);
+void func_80048BB8(s32);
+void func_80012D5C(void);
+void func_800389CC(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
@@ -125,14 +128,44 @@ void func_800AD4A4(s32 a0) {
  * Calls func_800AD4A4 with the entity index, then clears the least
  * significant bit of the 32-bit word at D_800ED148 + a0 * 208 + 0x8C.
  *
- * @param a0 Entity index (stride 208).
- *
- * @note Non-matching: after jal, compiler allocates multiply→v1 and
- * D_800ED148 address→v0, but original has address→v1 and multiply→v0.
+ * @param a0 Entity index (stride 0xD0).
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD50C);
+void func_800AD50C(s32 a0) {
+    func_800AD4A4(a0);
+    {
+        volatile u8 *base = D_800ED148;
+        u8 *entity = (u8 *)base + a0 * 0xD0;
+        *(s32 *)(entity + 0x8C) &= ~1;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD564);
+s32 func_800A9784(s32, s32);
+void func_800B0398(s32);
+
+/**
+ * @brief Look up animation data for entity and process it.
+ *
+ * Computes entity pointer from D_800ED148 + a0 * 0xD0. Loads a
+ * sub-object pointer at entity+0x14, dereferences it to get a base
+ * pointer, then uses relative offsets at base+8 and base+0xC to
+ * look up a u16 entry and a data pointer. Calls func_800A9784 with
+ * the u16 entry and data pointer, then func_800B0398 with the result.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ * @param a1 Sub-index for u16 table lookup.
+ */
+void func_800AD564(s32 a0, s32 a1) {
+    volatile u8 *base = D_800ED148;
+    u8 *entity = (u8 *)base + a0 * 0xD0;
+    s32 sub = *(s32 *)(entity + 0x14);
+    s32 tbl = *(s32 *)sub;
+    s32 offTab = *(s32 *)(tbl + 8) + tbl;
+    s32 dataOff;
+    a1 = a1 * 2 + offTab;
+    dataOff = *(s32 *)(tbl + 0xC);
+    a0 = func_800A9784(*(u16 *)a1, dataOff + tbl);
+    func_800B0398(a0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AD5D4);
 
@@ -329,7 +362,31 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE90C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEA0C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEACC);
+extern u8 D_800EE446[];
+s32 func_80020F84(s32);
+
+/**
+ * @brief Start battle sequence with optional character animation.
+ *
+ * Sets D_800EE446 to 1, calls func_8009B134(0x70, 0x80, 0) to
+ * allocate a message entry, then func_8009AE08(0xA) to set mode.
+ * If a0 is not -1, calls func_80020F84 to look up the character,
+ * then func_8009AF3C with animation parameters derived from
+ * D_80077E59 and a stack argument of 0x56.
+ *
+ * @param a0 Character index, or -1 to skip animation setup.
+ */
+void func_800AEACC(s32 a0) {
+    s32 saved = a0;
+    *(u8 *)D_800EE446 = 1;
+    func_8009B134(0x70, 0x80, 0);
+    func_8009AE08(0xA);
+    if (saved != -1) {
+        s32 result = func_80020F84(saved);
+        s32 idx = *(u8 *)D_80077E59;
+        func_8009AF3C(result, idx * 8 + 8, 3, 0x80, 0x56);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEB50);
 
@@ -410,14 +467,34 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AED9C);
  * Calls func_80048BB8(0) to stop processing, sets D_80082C0F to 5,
  * clears byte at D_800ED148 + 0xC, then calls func_80012D5C and
  * func_800389CC for cleanup.
- *
- * @note Non-matching: CC1PSX swaps v0/v1 for D_80082C0F store
- * (address→v0, value→v1 vs original value→v0, address→v1),
- * folds D_800ED148+12 into a single relocation, and fills the
- * second jal delay slot with the sb store.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEE64);
+void func_800AEE64(void) {
+    func_80048BB8(0);
+    *(u8 *)D_80082C0F = 5;
+    {
+        volatile u8 *base = D_800ED148;
+        base[0xC] = 0;
+    }
+    func_80012D5C();
+    func_800389CC();
+}
 
+extern u8 D_80078DF8[];
+s32 func_8009B15C(void);
+
+/**
+ * @brief Classify the current animation frame into a range bucket.
+ *
+ * Calls func_8009B15C to get the current frame value. Checks bit 2
+ * of D_80078DF8 to select between two sets of range thresholds.
+ * Returns 0-3 based on which range the frame falls into.
+ *
+ * @return Range classification: 0 (low), 1 (mid), 2 (high), 3 (very high).
+ *
+ * @note Non-matching: compiler allocates result to $v1 instead of $v0,
+ * adding an extra `move v0, v1` at end. Original reuses $v0 for both
+ * slti destination and result variable.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEEAC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEF34);

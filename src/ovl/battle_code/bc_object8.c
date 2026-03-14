@@ -25,6 +25,15 @@ extern u8 D_800EE465[];
 extern u8 D_80082C11[];
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
+extern u8 D_80082C08[];
+extern u8 D_800EF2D0[];
+extern u8 D_800EF020[];
+extern u8 D_800EEFB0[];
+extern u8 D_800EF724[];
+extern u8 D_800EE454[];
+extern u8 D_800EE4C0[];
+s32 func_800AE788(void);
+s32 func_800AA4E0(void);
 extern u8 D_800EEED0[];
 extern u8 D_800EEED4[];
 
@@ -56,7 +65,34 @@ void func_800B17B8(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1828);
+/**
+ * @brief Check GF compatibility bytes and trigger special attack if matched.
+ *
+ * If D_800EE454 is zero and D_800EE4C0 bytes at +1 and +3 match 0xF4 and
+ * 0x1F respectively, calls func_800AA4E0 to get a value, sets bit 0x4000,
+ * and dispatches via func_800B0754.
+ *
+ * @param a0 Entity index.
+ */
+void func_800B1828(s32 a0) {
+    if (*(u8 *)D_800EE454 != 0) {
+        return;
+    }
+    {
+        u8 *data = D_800EE4C0;
+        if (data[1] != 0xF4) {
+            return;
+        }
+        if (data[3] != 0x1F) {
+            return;
+        }
+    }
+    {
+        s32 val = func_800AA4E0();
+        val |= 0x4000;
+        func_800B0754(a0, 0, 8, (u16)val);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B18A0);
 
@@ -202,7 +238,35 @@ void func_800B2084(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B20D8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B2128);
+/**
+ * @brief Check if conditions are met to initiate an auto-battle action.
+ *
+ * Checks a chain of conditions: whether func_800AE788 returns the sentinel
+ * 0xFF, whether func_800B20D8 indicates busy, bit 2 of D_8007809A flags,
+ * whether D_80082C08 matches 0x13D, and whether entity slot 0x40 is
+ * available via func_8009B79C. If all pass, sets D_800EE45C to 1 and
+ * calls func_800B1A48 to start the action.
+ *
+ * @return 1 if action was initiated, 0 otherwise.
+ */
+s32 func_800B2128(void) {
+    if (func_800AE788() == 0xFF) {
+        return 0;
+    }
+    if (func_800B20D8() != 0) {
+        return 0;
+    }
+    if (*(u8 *)D_8007809A & 4) {
+        if (*(u16 *)D_80082C08 != 0x13D) {
+            if (func_8009B79C(0x40, 0xFF) != 0) {
+                *(u8 *)D_800EE45C = 1;
+                func_800B1A48();
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 /**
  * @brief Copy 3 bytes from D_80077378 to D_800EE9E8 at stride 0x47.
@@ -585,7 +649,30 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3C2C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B3E54);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B4248);
+/**
+ * @brief Initialize sound effect table and clear entries.
+ *
+ * Clears 7 halfwords at stride 0x9C starting from D_800EF2D0+0x3A8
+ * going backwards. Then initializes D_800EF020 via func_800B2A00
+ * with D_800EEFB0, stride 0x10, and count 7. Clears D_800EF724.
+ *
+ * @return Pointer to D_800EF020.
+ */
+u8 *func_800B4248(void) {
+    s32 i = 6;
+    s32 base = (s32)D_800EF2D0;
+    u8 *ptr = (u8 *)(base + 0x3A8);
+    u8 *buf;
+    top:
+    *(s16 *)ptr = 0;
+    i--;
+    ptr -= 0x9C;
+    if (i >= 0) goto top;
+    buf = D_800EF020;
+    func_800B2A00(buf, D_800EEFB0, 0x10, 0x7);
+    *(s16 *)D_800EF724 = 0;
+    return buf;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B42B4);
 

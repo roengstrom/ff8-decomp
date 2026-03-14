@@ -105,7 +105,17 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1318);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A15C0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A17A4);
+/**
+ * Clears fields at offsets 0, 1 (bytes) and 0xA, 0xC (halfwords) in the structure.
+ *
+ * @param a0 Pointer to the structure.
+ */
+void func_800A17A4(u8 *a0) {
+    *(u8 *)(a0 + 0x0) = 0;
+    *(u8 *)(a0 + 0x1) = 0;
+    *(u16 *)(a0 + 0xA) = 0;
+    *(u16 *)(a0 + 0xC) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A17B8);
 
@@ -133,7 +143,18 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2D2C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2EA4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2EE0);
+/**
+ * Initializes an object by calling a sequence of setup functions.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800A2EE0(u8 *a0) {
+    func_800A3534(a0);
+    func_800A3018(a0);
+    func_800A2F48(a0);
+    func_800A2F70(a0 + 0x3720);
+    func_800A2F70(a0 + 0x4B20);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2F28);
 
@@ -169,7 +190,15 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A44D8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A4500);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A4550);
+/**
+ * Stores a halfword value to the global D_8005F122.
+ *
+ * @param a0 The value to store.
+ */
+void func_800A4550(s16 a0) {
+    extern s16 D_8005F122;
+    D_8005F122 = a0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A455C);
 
@@ -199,9 +228,31 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5788);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5898);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A59D0);
+/**
+ * If D_8005F14A equals 1, calls func_800389CC. Then clears D_8005F100 and D_8005F14A.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ */
+void func_800A59D0(u8 *a0) {
+    extern s16 D_8005F14A;
+    extern s16 D_8005F100;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5A14);
+    if (D_8005F14A == 1) {
+        func_800389CC();
+    }
+    D_8005F100 = 0;
+    D_8005F14A = 0;
+}
+
+/**
+ * Stores a halfword value to the global D_8005F142.
+ *
+ * @param a0 The value to store.
+ */
+void func_800A5A14(s16 a0) {
+    extern s16 D_8005F142;
+    D_8005F142 = a0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5A20);
 

@@ -10,8 +10,14 @@ extern u8 D_800F0308[];
 extern u8 D_800F0408[];
 extern u8 D_800F0578[];
 extern u8 D_800EEC5C[];
+extern u8 D_800EF2D0[];
 void func_800B8314(void);
 void func_800B8870(u8 *, s32);
+void func_80040FA4(s32, s32);
+void func_8003FD84(s32, s32, s32);
+void func_80040264(s32, s32);
+s32 func_8013E000(s32);
+void func_800B8F4C(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B49D8);
 
@@ -19,7 +25,28 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B4A74);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B4BAC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B4DE8);
+/**
+ * @brief Set or clear a bit in an entity's flags word and update state.
+ *
+ * Computes the entity at D_800EF2D0 + a0 * 0x9C. Creates a bitmask
+ * from 1 << a1. Loads the word at entity+8, clears the bit. If a2 is
+ * nonzero, sets the bit instead. Calls func_800B5C10 to update the
+ * entity, then func_800B56B8 to finalize.
+ *
+ * @param a0 Entity index (stride 0x9C in D_800EF2D0).
+ * @param a1 Bit position to modify.
+ * @param a2 If nonzero, set the bit; if zero, clear it.
+ */
+void func_800B4DE8(s32 a0, s32 a1, s32 a2) {
+    u8 *entity = D_800EF2D0 + a0 * 0x9C;
+    s32 mask = 1 << a1;
+    s32 flags = *(s32 *)(entity + 8) & ~mask;
+    if (a2 != 0) {
+        flags |= mask;
+    }
+    func_800B5C10(entity, flags);
+    func_800B56B8(entity);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B4E54);
 
@@ -27,7 +54,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B51F8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B53F8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B54A0);
+/**
+ * @brief Compute 3D vector differences and initialize transformation data.
+ *
+ * Computes differences of 3 words at offsets 0x14, 0x18, 0x1C between
+ * a1 and a0, stores them in a2 at the same offsets. Then calls three
+ * transformation functions to finalize the setup.
+ *
+ * @param a0 Source position data.
+ * @param a1 Target position data.
+ * @param a2 Output delta structure.
+ */
+void func_800B54A0(s32 a0, s32 a1, s32 a2) {
+    s32 dst = a2;
+    *(s32 *)(dst + 0x14) = *(s32 *)(a1 + 0x14) - *(s32 *)(a0 + 0x14);
+    *(s32 *)(dst + 0x18) = *(s32 *)(a1 + 0x18) - *(s32 *)(a0 + 0x18);
+    *(s32 *)(dst + 0x1C) = *(s32 *)(a1 + 0x1C) - *(s32 *)(a0 + 0x1C);
+    func_80040FA4(a0, dst);
+    func_8003FD84(dst, dst + 0x14, dst + 0x14);
+    func_80040264(dst, a1);
+}
 
 /**
  * @brief Compute coordinate differences and call func_80041E84.
@@ -120,6 +166,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B650C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6584);
 
+/**
+ * @brief State machine for resource allocation and initialization.
+ *
+ * State 0: Allocates a resource via func_8013E000(2), stores result in
+ * D_800EF72C, increments state, falls through.
+ * State 1: Stores 0xFF at ptr[1], calls func_800B8F4C(0xF), returns 2.
+ * Default: Returns 0.
+ *
+ * @param a0 State control structure (state at +0xD, pointer at +0x10).
+ * @return 2 when initialization complete, 0 otherwise.
+ * @note Non-matching: maspsx fills beqz delay slot with li v0,1 (saves 1
+ *       instruction), original has nop in delay slot.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B66E0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6764);

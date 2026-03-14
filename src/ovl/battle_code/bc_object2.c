@@ -26,7 +26,7 @@ extern u8 D_80078720[];
 extern u8 D_80077378[];
 extern u8 D_800786D9[];
 
-void func_8009B79C(s32, s32);
+s32 func_8009B79C(s32, s32);
 s32 func_8009B7BC(s32);
 void func_8009B924(s32, s32, s32);
 s32 func_800A09D0(s32);
@@ -38,6 +38,21 @@ s32 func_800B0F7C(s32);
 s32 func_800B0F9C(s32);
 s32 func_800A1760(s32);
 
+/**
+ * @brief Look up entity ability flags with index-based table lookup.
+ *
+ * Stores a0 to D_800EE476, computes D_80078E00 + a0 * 0x18 as base,
+ * reads byte at base + 0x374E, combines results of func_800B0F9C and
+ * func_800B0F7C. Returns combined if bit 15 is set, otherwise returns a1.
+ *
+ * @param a0 Entity index (stride 0x18).
+ * @param a1 Default return value if bit 15 not set.
+ * @return Combined ability flags (u16) or a1 (u16).
+ *
+ * @note Non-matching: Original uses addu v0,s0 + andi s0,0x8000 (separate
+ *       copy before bit test), compiler optimizes to andi v0,s0,0x8000
+ *       (eliminates copy). Also store-to-D_800EE476 scheduling differs.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BAC4);
 
 /**
@@ -92,7 +107,28 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BD60);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BDD0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BE24);
+/**
+ * @brief Check entity stat against limit and set overflow flag.
+ *
+ * Reads byte at entity[0xD2] (index a0, stride 0xD0 in D_800ED148),
+ * adds D_800EEBBC, and checks if the sum exceeds 0xFF via func_8009B79C.
+ * If it does, sets D_800ED148[0x1307] = 1 and sets bit 2 in D_800EE4C0[6].
+ * Otherwise clears D_800ED148[0x1307] = 0.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ */
+void func_8009BE24(s32 a0) {
+    volatile u8 *base = D_800ED148;
+    u8 *entity = (u8 *)base + a0 * 0xD0;
+    s32 val = *(u8 *)(entity + 0xD2) + *(u8 *)D_800EEBBC;
+    if (func_8009B79C(val, 0xFF)) {
+        s32 buf = (s32)D_800EE4C0;
+        *(u8 *)((u8 *)base + 0x1307) = 1;
+        *(u8 *)(buf + 6) |= 2;
+    } else {
+        *(u8 *)((u8 *)base + 0x1307) = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BEA4);
 
@@ -136,21 +172,9 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BFE0);
  * @param a3 Proposed status flag to apply.
  * @return 1 if flag was applied, 0 if rejected.
  *
- * @note Non-matching: compiler pre-copies a3→a1 at function entry
- * (for later func_800B0574(a0, a3) call), adding 2 move instructions
- * and changing register usage throughout. Original keeps a3 in $a3
- * until the final call.
- *
- * @code
- * s32 func_8009C090(s32 a0, s32 a1, s32 *a2, s32 a3) {
- *     if ((a3 & 0x800) && a0 >= 3) return 0;
- *     if ((a1 & 0x40) && (a3 & 0x400)) return 0;
- *     if ((*a2 & 0x2000000) && (a3 & 0x4000)) return 0;
- *     *a2 |= a3;
- *     func_800B0574(a0, a3);
- *     return 1;
- * }
- * @endcode
+ * @note Non-matching: compiler pre-copies a3 to a1 at function entry
+ * for the later func_800B0574(a0, a3) call, adding move instructions
+ * and changing register usage throughout.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009C090);
 

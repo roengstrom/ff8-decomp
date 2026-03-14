@@ -5,16 +5,45 @@ extern u8 D_80102E70[];
 extern u8 D_80102E78[];
 extern u8 D_80103240[];
 extern u8 D_80103308[];
+extern u8 D_80103420[];
 extern u8 D_80077E5C[];
 extern u8 D_80078842[];
 extern u8 D_8007873E[];
+void func_800D18B0(void);
+void func_800D3044(s32, s32);
+void func_800D3164(void);
+void func_800D1A20(void);
+void func_800D2F14(void);
 void func_800D5C28(s32, s32, s32, s32);
+void func_800D5D08(s32, s32);
 void func_800D33F8(void);
 void func_800D3A00(void);
 void func_800A5F24(s32, s32);
 void func_800A2360(s32);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D325C);
+/**
+ * @brief Initialize 3 entries in D_80103420 table and register task handlers.
+ *
+ * Calls func_800D18B0 to prepare, then iterates 3 entries in D_80103420
+ * (stride 0x6C each) calling func_800D3044 for each. Registers func_800D1A20
+ * and func_800D2F14 as task handlers for slot 7, sets slot 7 mode to 2,
+ * then calls func_800D1A20.
+ */
+void func_800D325C(void) {
+    s32 ptr = (s32)D_80103420;
+    s32 i;
+    func_800D18B0();
+    i = 0;
+    do {
+        func_800D3044(ptr, i);
+        i++;
+        ptr += 0x6C;
+    } while (i < 3);
+    func_800D3164();
+    func_800D5C28(7, (s32)func_800D1A20, (s32)func_800D2F14, 0);
+    func_800D5D08(7, 2);
+    func_800D1A20();
+}
 
 /**
  * @brief Store battle command parameters to D_80103240.

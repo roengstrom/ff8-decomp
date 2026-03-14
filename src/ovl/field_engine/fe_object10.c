@@ -22,7 +22,15 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD804);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD9C4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BE264);
+/**
+ * Returns the value of the global byte D_800DE4FD.
+ *
+ * @return The value of D_800DE4FD.
+ */
+u8 func_800BE264(void) {
+    extern u8 D_800DE4FD;
+    return D_800DE4FD;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BE274);
 

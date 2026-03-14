@@ -4,6 +4,8 @@ extern u8 D_80102E10[];
 extern u8 D_80102E14[];
 extern u8 D_801032F8[];
 extern u8 D_80103420[];
+extern u8 D_80077E5C[];
+s32 func_800D134C(void);
 
 /**
  * @brief Call func_8002795C with a1=0, pass result to func_80030F10.
@@ -57,7 +59,33 @@ void func_800D0530(void) {
     func_800472F4();
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D056C);
+/**
+ * @brief Toggle render mode bits based on parameter.
+ *
+ * Calls func_800472E4 for setup. If a0 is non-zero, sets bit 8 and
+ * clears bit 9 in scratchpad halfword at 0x1F8003AE. Otherwise sets
+ * bit 9 and clears bit 8. Stores the result and calls func_800472F4.
+ *
+ * @param a0 Mode selector (0 = mode B, non-zero = mode A).
+ */
+void func_800D056C(s32 a0) {
+    u16 val;
+    s32 base;
+    func_800472E4();
+    if (a0 != 0) {
+        base = 0x1F800390;
+        val = *(u16 *)(base + 0x1E);
+        val |= 0x100;
+        val &= 0xFDFF;
+    } else {
+        base = 0x1F800390;
+        val = *(u16 *)(base + 0x1E);
+        val |= 0x200;
+        val &= 0xFEFF;
+    }
+    *(u16 *)(base + 0x1E) = val;
+    func_800472F4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D05D0);
 

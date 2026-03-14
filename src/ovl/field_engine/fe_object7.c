@@ -1,6 +1,19 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B542C);
+/**
+ * Pops a parameter, calls func_80023C08, stores result at offset 0x140.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B542C(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + 0x140) = func_80023C08(*(s32 *)(a0 + (s8)idx * 4));
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B5480);
 
@@ -26,7 +39,16 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6364);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B63A4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6400);
+/**
+ * Calls func_800C03F4 and returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B6400(u8 *a0) {
+    func_800C03F4(a0);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6420);
 
@@ -44,7 +66,17 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6588);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65B0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65B8);
+/**
+ * Sets the global byte D_800704A8 to 4, returns 1.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 1.
+ */
+s32 func_800B65B8(u8 *a0) {
+    extern u8 D_800704A8;
+    D_800704A8 = 4;
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65CC);
 
@@ -140,11 +172,40 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8E74);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F20);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F3C);
+/**
+ * Sets the global byte D_8007064C to 1, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B8F3C(u8 *a0) {
+    extern u8 D_8007064C;
+    D_8007064C = 1;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F50);
+/**
+ * Clears the global byte D_8007064C, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B8F50(u8 *a0) {
+    extern u8 D_8007064C;
+    D_8007064C = 0;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F60);
+/**
+ * Calls func_8009E660 and returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B8F60(u8 *a0) {
+    func_8009E660(a0);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F80);
 

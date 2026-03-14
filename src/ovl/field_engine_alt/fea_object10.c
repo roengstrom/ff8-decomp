@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern u8 D_800786D8;
+
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BD6EC);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BD754);
@@ -83,9 +85,37 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEED4)
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEF6C);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEFC4);
+/** Checks two flag bits and returns status. */
+s32 func_800BEFC4(void) {
+    u8 val = D_800786D8;
+    s32 result = 0;
+    if (val & 1) {
+        s32 bit = val & 2;
+        result = (u32)bit < 1;
+    }
+    return result;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEFEC);
+/** Initializes nested array with ramp values. */
+void func_800BEFEC(u8 *base) {
+    s32 outer = 7;
+    s32 inner;
+    s32 val;
+    s32 *ptr;
+    do {
+        inner = 4;
+        val = -0x1000;
+        ptr = (s32 *)(base + 0x10);
+        do {
+            *(s32 *)((u8 *)ptr + 0x38) = val;
+            val += 0x400;
+            inner--;
+            ptr = (s32 *)((u8 *)ptr - 4);
+        } while (inner >= 0);
+        outer--;
+        base += 0x4C;
+    } while (outer >= 0);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BF024);
 

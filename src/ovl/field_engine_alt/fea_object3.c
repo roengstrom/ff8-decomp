@@ -34,7 +34,24 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object3", func_800A3C9C);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object3", func_800A3EE4);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object3", func_800A40C0);
+typedef struct {
+    s32 val;    /* +0x00 */
+    s16 hval;   /* +0x04 */
+    s16 pad;    /* +0x06 */
+} FeaEntry40C0; /* size 0x08 */
+
+extern FeaEntry40C0 D_800D24A8[12];
+
+/** Clears an array of 12 entries. */
+void func_800A40C0(void) {
+    FeaEntry40C0 *ptr = D_800D24A8;
+    FeaEntry40C0 *end = ptr + 12;
+    while (ptr < end) {
+        ptr->val = 0;
+        ptr->hval = 0;
+        ptr++;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object3", func_800A40F8);
 

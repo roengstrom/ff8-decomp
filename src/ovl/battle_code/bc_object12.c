@@ -2,6 +2,9 @@
 
 extern u8 D_800F1A5C[];
 extern u8 D_800F1A54[];
+s32 func_800C0CB8(s32, s32);
+s32 func_800B5604(s32);
+void func_800C29C4(s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800BF0E8);
 
@@ -212,7 +215,30 @@ s32 func_800C0D00(s32 a0) {
     return base + *(u16 *)(base + a0 * 2);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0D3C);
+/**
+ * @brief Process animation command from D_800F1A5C.
+ *
+ * Reads the byte at offset 3 of the pointer stored in D_800F1A5C.
+ * If non-zero, calls func_800C0CB8 with D_800F1A54 and the byte.
+ * If that succeeds, reads and returns the byte, clearing it.
+ * Otherwise calls func_800B5604 with D_800F1A54 and returns the
+ * result masked to 8 bits.
+ *
+ * @return Processed command byte or fallback value.
+ */
+s32 func_800C0D3C(void) {
+    s32 base = (s32)D_800F1A5C;
+    u8 *ptr = *(u8 **)base;
+    if (ptr[3] != 0) {
+        if (func_800C0CB8(*(s32 *)D_800F1A54, ptr[3]) != 0) {
+            u8 *ptr2 = *(u8 **)base;
+            s32 val = ptr2[3];
+            ptr2[3] = 0;
+            return val;
+        }
+    }
+    return (u8)func_800B5604(*(s32 *)D_800F1A54);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0DB0);
 

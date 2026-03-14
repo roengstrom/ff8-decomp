@@ -20,9 +20,19 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BC44C);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BC46C);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BC51C);
+/** Copies and negates vector components (rotation variant A). */
+void func_800BC51C(s32 *src, s32 *dst) {
+    dst[0] = src[0];
+    dst[1] = -src[2];
+    dst[2] = src[1];
+}
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BC544);
+/** Copies and negates vector components (rotation variant B). */
+void func_800BC544(s32 *src, s32 *dst) {
+    dst[0] = src[0];
+    dst[1] = src[2];
+    dst[2] = -src[1];
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BC570);
 
@@ -58,7 +68,12 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BCF30);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BCF84);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BD040);
+extern u32 D_80077E84;
+
+/** Checks if a counter has reached threshold 0xBB8. */
+s32 func_800BD040(void) {
+    return D_80077E84 >= 0xBB8;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BD058);
 

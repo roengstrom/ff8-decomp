@@ -759,9 +759,8 @@ void func_8009ACEC(void) {
  * 0 or 3 -> 0x3C (60), 1 -> 0x1E (30), 2 -> 0x28 (40).
  * Schedules timer via func_8009AB54 and stores to entity timer field.
  *
- * @note Non-matching: switch binary search generates inverted branch
- * direction (bnez vs beqz for the <2 check) and merges cases 0/3/default,
- * eliminating the explicit case-3 comparison.
+ * @note Non-matching: CC1PSX folds D_800ED148+0xC into a single lui+sb,
+ * producing 34 instructions vs target's 35 with explicit addiu.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AD7C);
 

@@ -8,6 +8,14 @@ extern u8 D_80077EBC[];
 extern u8 D_800EE9E8[];
 extern u8 D_800EEBE8[];
 s32 func_800B0204(u8 *, s32, s32, s32);
+void func_800A4C84(s32);
+void func_800AE524(s32);
+void func_8009AE08(s32);
+extern u8 D_800ED158[];
+extern u8 D_80077378[];
+extern u8 D_800E3CF0[];
+extern u8 D_800EE4E8[];
+void func_800AE4A0(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF358);
 
@@ -33,13 +41,47 @@ void func_800AF654(void) {
     } while (i < 0x20);
 }
 
+/**
+ * @brief Copy entity animation data to lookup table and clear a flag.
+ *
+ * Computes entity pointer from D_800ED158 + a0*0xD0. Reads an index
+ * byte from D_80077378 + a0 + 0xAF4, multiplies by 0x98 to find a
+ * table entry at D_80077378 + 0x490. Copies entity halfword at 0x18
+ * to the table entry. Clears bit 5 of entity halfword at 0x80 and
+ * stores the result at table entry + 0x96.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ */
+/**
+ * @note Non-matching: register allocation difference. Original uses $v1
+ * for D_800ED158 base and $v0 for a0+D_80077378 sum; compiler allocates
+ * them the other way around regardless of declaration order.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF6BC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF740);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF7C4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF8A4);
+/**
+ * @brief Clear bits 3 and 2 of entity's 0x8C word and call func_800A5778.
+ *
+ * Calls func_800A565C with entity index, then clears bit 3 (0x8) and
+ * bit 2 (0x4) of the word at D_800ED148 + a0*0xD0 + 0x8C. Finally
+ * calls func_800A5778 with the entity index.
+ *
+ * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ */
+void func_800AF8A4(s32 a0) {
+    func_800A565C(a0);
+    {
+        volatile u8 *base = D_800ED148;
+        volatile s32 *flags = (volatile s32 *)((u8 *)base + a0 * 0xD0 + 0x8C);
+        *flags &= ~0x8;
+        *flags &= ~0x4;
+    }
+    func_800A5778(a0);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF918);
 
@@ -309,16 +351,66 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0574);
  * @param a0 Entity index (stride 208).
  * @param a1 Bitmask to find lowest set bit.
  *
- * @note Non-matching: CC1PSX fills beqz delay slot with first sll of the
- * multiply chain (sll v0,s0,1) instead of lui v1,%hi(D_800ED148). Original
- * interleaves the D_800ED148 address load in the delay slot, then follows
- * with the multiply. Same instruction count, different scheduling.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0600);
+void func_800B0600(s32 a0, s32 a1) {
+    s32 bitPos = func_800B054C(a1);
+    if (bitPos < 14) {
+        volatile u8 *base = D_800ED148;
+        u8 *entity = (u8 *)base + a0 * 0xD0;
+        *(s16 *)(entity + bitPos * 2 + 0x64) = -0x457;
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0668);
+/**
+ * @brief Check if an entity's bit slot contains the sentinel value -0x457.
+ *
+ * Calls func_800B054C to find the lowest set bit in a1. If the result
+ * is less than 14, loads the halfword at entity[result * 2 + 0x64] and
+ * returns 1 if it equals -0x457, 0 otherwise.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ * @param a1 Bitmask to find lowest set bit.
+ * @return 1 if the slot matches -0x457, 0 otherwise.
+ */
+s32 func_800B0668(s32 a0, s32 a1) {
+    s32 bitPos = func_800B054C(a1);
+    if (bitPos < 14) {
+        volatile u8 *base = D_800ED148;
+        u8 *entity = (u8 *)base + a0 * 0xD0;
+        if (*(s16 *)(entity + bitPos * 2 + 0x64) == -0x457) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B06DC);
+/**
+ * @brief Process entity ability and trigger state transitions.
+ *
+ * Masks a0 to 16 bits and calls func_800A4C84. If byte at
+ * D_800ED148[0xE] is zero, transitions to state 5, processes
+ * the entity ability, clears a table entry, then transitions
+ * to state 6.
+ *
+ * @param a0 Entity bitmask (16-bit).
+ */
+void func_800B06DC(s32 a0) {
+    volatile u8 *base;
+    a0 &= 0xFFFF;
+    func_800A4C84(a0);
+    base = D_800ED148;
+    if (base[0xE] != 0) {
+        return;
+    }
+    func_8009AE08(5);
+    func_800AE524(base[0x5C0] - 1);
+    {
+        s32 idx = base[0x5C0] - 1;
+        u8 *entry = (u8 *)base + idx * 20;
+        entry[0x5D5] = 0;
+    }
+    func_8009AE08(6);
+}
 
 /**
  * @brief Set up extended parameters and call two processing functions.
@@ -338,7 +430,31 @@ void func_800B0754(s32 a0, s32 a1, s32 a2, s32 a3) {
     func_800B06DC(val);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0794);
+/**
+ * @brief Handle special battle action flags for an entity.
+ *
+ * If a1 has bit 0x400 set, calls func_800A59AC with mode 5 and returns 1.
+ * If a1 has bit 0x1000 set, sets bit 2 of the entity's status halfword
+ * at offset 0x90 in D_800ED148 and calls func_800A2520, returns 0.
+ * Otherwise returns 0.
+ *
+ * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ * @param a1 Action flags bitmask.
+ * @return 1 if bit 0x400 action taken, 0 otherwise.
+ */
+s32 func_800B0794(s32 a0, s32 a1) {
+    if (a1 & 0x400) {
+        func_800A59AC(a0, 5, 0);
+        return 1;
+    }
+    if (a1 & 0x1000) {
+        volatile u8 *base = D_800ED148;
+        u8 *entity = (u8 *)base + a0 * 0xD0;
+        *(u16 *)(entity + 0x90) |= 4;
+        func_800A2520(a0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0808);
 

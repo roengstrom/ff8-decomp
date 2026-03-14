@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u8 D_800780D8[];
+extern u8 D_800D23D8[];
+
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009CCE8);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009CDC4);
@@ -36,7 +39,11 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D760);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D7D8);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D814);
+/** Clears bit 0x40 on two related flag bytes. */
+void func_8009D814(void) {
+    D_800780D8[0x108] &= ~0x40;
+    D_800D23D8[0x66] &= ~0x40;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D840);
 
@@ -78,7 +85,13 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009FF70);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_800A0000);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_800A009C);
+/** Returns a value based on input comparison. */
+s32 func_800A009C(s32 val) {
+    if (val == 0x32) {
+        return 0x1800;
+    }
+    return 0x1460;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_800A00B4);
 

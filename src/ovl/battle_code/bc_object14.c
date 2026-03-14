@@ -9,11 +9,15 @@ extern u8 D_800EF738[];
 extern u8 D_800FA504[];
 extern u8 D_800FA500[];
 extern u8 D_800EEC5C[];
-void func_800C5B1C(void);
+extern u8 D_800EEC54[];
+extern u8 D_800F02F4[];
+s32 func_800C5B1C(u8 *a0);
 s32 func_800B853C(void *);
+s32 func_800C5A94(s32, s32);
 void func_8003F41C(void);
 void func_800408C4(s32, s32);
 void func_800408E4(s32);
+void func_800C5338(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 
@@ -68,7 +72,32 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5338);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C53F0);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5490);
+/**
+ * @brief Check D_800F1B90 sign and D_800EEC5C bit 0x200, conditionally call func_800C5338.
+ *
+ * If D_800F1B90 is negative: if bit 0x200 of D_800EEC5C is set, returns -1;
+ * otherwise calls func_800C5338(1) and returns -1.
+ * If D_800F1B90 is non-negative: if bit 0x200 of D_800EEC5C is set, calls
+ * func_800C5338(0). Returns the (re-read) value of D_800F1B90.
+ *
+ * @return -1 if D_800F1B90 < 0, otherwise current value of D_800F1B90.
+ */
+s32 func_800C5490(void) {
+    volatile s32 *pVal = (volatile s32 *)D_800F1B90;
+    s32 val = *pVal;
+    if (val < 0) {
+        if (*(s32 *)D_800EEC5C & 0x200) {
+            return -1;
+        }
+        func_800C5338(1);
+        return -1;
+    } else {
+        if (*(s32 *)D_800EEC5C & 0x200) {
+            func_800C5338(0);
+        }
+        return *pVal;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C550C);
 
