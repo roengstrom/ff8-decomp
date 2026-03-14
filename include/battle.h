@@ -119,6 +119,16 @@ typedef struct {
     s32 field38;     /**< 0x38: Unknown s32. */
 } SfxEntry;          /* 0x3C = 60 bytes */
 
+/** @brief Bit flags for BattleEntity::controlFlags. */
+typedef enum {
+    CTRL_ACTIVE     = 0x01,  /**< Entity is active. */
+    CTRL_FLAG_02    = 0x02,  /**< Unknown. */
+    CTRL_FLAG_10    = 0x10,  /**< Unknown. */
+    CTRL_FLAG_40    = 0x40,  /**< Unknown. */
+    CTRL_FLAG_80    = 0x80,  /**< Unknown. */
+    CTRL_FLAG_100   = 0x100  /**< Unknown. */
+} ControlFlags;
+
 /**
  * @brief Battle entity (D_800ED148 array, stride 0xD0 = 208 bytes).
  *
@@ -144,7 +154,7 @@ typedef struct {
     u16 animParam2;    /**< 0x86: Animation parameter 2. */
     u16 animParam3;    /**< 0x88: Animation parameter 3. */
     u8 pad8A[0x02];    /**< 0x8A..0x8B: Unknown. */
-    s32 controlFlags;  /**< 0x8C: Control flags (bits 0x01,0x02,0x10,0x80). */
+    ControlFlags controlFlags;  /**< 0x8C: Control flags (see ControlFlags enum). */
     u16 status;        /**< 0x90: Status effects (bitmask). */
     u16 statusBackup;  /**< 0x92: Status effects backup. */
     u8 pad94[0x27];    /**< 0x94..0xBA: Unknown. */

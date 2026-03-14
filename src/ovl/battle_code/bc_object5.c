@@ -1,11 +1,12 @@
 #include "common.h"
+#include "battle.h"
 
 extern u8 D_800ED148[];
 extern u8 D_800E3CEC[];
 extern u8 D_800EE9E8[];
 extern u8 D_800EE28C[];
 void func_800AB054(void);
-void func_800AB1A8(void);
+void func_800AB1AC(void);
 s32 func_8009B3D0(void *);
 s32 func_800B0398(s32);
 extern u8 D_80078E00[];
@@ -13,6 +14,8 @@ extern u8 D_80077378[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
 s32 func_800AE730(void);
+void func_800AE6C0(void);
+void func_800A59AC(s32, s32, s32);
 s32 func_800AE788(void);
 s32 func_800A97A4(s32);
 
@@ -579,21 +582,38 @@ void func_800AB0C0(s32 a0, s32 a1) {
     *(u16 *)(entry + 8) = a1;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB11C);
+/**
+ * @brief Clear control flags and reset animation state for a battle entity.
+ *
+ * Clears CTRL_FLAG_40, CTRL_FLAG_80, and CTRL_FLAG_02 from the entity's
+ * controlFlags field, then calls func_800AE6C0 and func_800A59AC to
+ * reset animation state.
+ *
+ * @param idx Entity index (stride 0xD0 in D_800ED148).
+ */
+void func_800AB11C(s16 idx) {
+    BattleEntity *base = (BattleEntity *)D_800ED148;
+    volatile s32 *flags = &base[idx].controlFlags;
+    *flags &= ~CTRL_FLAG_40;
+    *flags &= ~CTRL_FLAG_80;
+    *flags &= ~CTRL_FLAG_02;
+    func_800AE6C0();
+    func_800A59AC(idx, 0, 0);
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB1A8);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AB1AC);
 
 /**
  * @brief Allocate entry via func_8009B3D0 and store value at offset 8.
  *
- * Calls func_8009B3D0 with func_800AB1A8+4 as data pointer, shifts result
+ * Calls func_8009B3D0 with func_800AB1AC as callback, shifts result
  * left by 4 (multiply by 16), adds D_800EE28C as base, then stores a0
  * as halfword at offset 8 of the computed entry.
  *
  * @param a0 Value to store as halfword.
  */
 void func_800AB208(s32 a0) {
-    s32 idx = func_8009B3D0(func_800AB1A8 + 4);
+    s32 idx = func_8009B3D0(func_800AB1AC);
     u8 *entry = (u8 *)((s32)D_800EE28C + idx * 16);
     *(s16 *)(entry + 8) = a0;
 }
