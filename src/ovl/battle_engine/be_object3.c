@@ -145,7 +145,29 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0370);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A03DC);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0A88);
+/**
+ * @brief Check if any active entity in D_801D4308 has a pending callback.
+ *
+ * Iterates through 10 entries (stride 32) checking if bit 0 of the
+ * word at offset 4 is set and the byte at offset 8 is non-zero.
+ *
+ * @return 1 if a pending callback was found, 0 otherwise.
+ */
+s32 func_800A0A88(void) {
+    extern u8 D_801D4308[];
+    s32 i = 0;
+    u8 *entry = D_801D4308;
+    do {
+        if (*(s32 *)(entry + 4) & 1) {
+            if (entry[8] != 0) {
+                return 1;
+            }
+        }
+        i++;
+        entry += 0x20;
+    } while (i < 10);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0AD4);
 

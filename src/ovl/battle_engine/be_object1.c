@@ -41,7 +41,17 @@ void func_80098B70(void) {
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B80);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098BA0);
+/**
+ * @brief Align a size up to 4 bytes and subtract from the allocation pointer.
+ *
+ * Rounds a0 up to the next multiple of 4 and decrements D_801C2FD8 by that amount.
+ *
+ * @param a0 Size to allocate (will be aligned up to 4).
+ */
+void func_80098BA0(s32 a0) {
+    extern s32 D_801C2FD8;
+    D_801C2FD8 -= (a0 + 3) & ~3;
+}
 
 /**
  * @brief Initialize a linked list header and clear all node slots.

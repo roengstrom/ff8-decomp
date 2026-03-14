@@ -60,11 +60,180 @@ void func_8009B644(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B690);
+/**
+ * @brief Handle directional input for battle entity navigation.
+ *
+ * Checks D_801D332E input flags for up (0x1000), down (0x4000), and
+ * confirm (0x2000) buttons. For up/down, searches for a valid entity
+ * at the adjusted index and updates the selection. For confirm, checks
+ * D_801D3328 flags to set D_801D3358 action mode.
+ *
+ * @param a0 Pointer to a 4-byte structure with entity index at offset 2.
+ */
+void func_8009B690(u8 *a0) {
+    extern u8 D_801D332E[];
+    extern u8 D_801D3328[];
+    extern u8 D_801D3358[];
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B7B4);
+    if (*(u16 *)D_801D332E & 0x1000) {
+        s32 idx = *(s16 *)(a0 + 2);
+        if (func_8009A7A4(0, 0, idx - 1) >= 0) {
+            func_800A233C(1);
+            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) - 1;
+            goto end;
+        }
+    }
+    if (*(u16 *)D_801D332E & 0x4000) {
+        s32 idx = *(s16 *)(a0 + 2);
+        if (func_8009A7A4(0, 0, idx + 1) >= 0) {
+            func_800A233C(1);
+            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) + 1;
+            goto end;
+        }
+    }
+    if (*(u16 *)D_801D332E & 0x2000) {
+        s32 flags = *(s32 *)D_801D3328;
+        if (flags & 8) {
+            D_801D3358[0] = 3;
+            return;
+        }
+        if (flags & 4) {
+            D_801D3358[0] = 2;
+            return;
+        }
+    }
+end:
+    func_8009A878(0, *(s16 *)(a0 + 2));
+    func_8009B644(0, 0, *(s16 *)(a0 + 2));
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B8D8);
+/**
+ * @brief Handle directional input for battle entity navigation (type 1).
+ *
+ * Checks D_801D332E input flags for up (0x1000), down (0x4000), and
+ * confirm (0x8000) buttons. For up/down, searches for a valid entity
+ * at the adjusted index via func_8009A7A4 with type 1 and updates the
+ * selection. For confirm, checks D_801D3328 flags to set D_801D3358
+ * action mode.
+ *
+ * @param a0 Pointer to a structure with entity index at offset 2.
+ */
+void func_8009B7B4(u8 *a0) {
+    extern u8 D_801D332E[];
+    extern u8 D_801D3328[];
+    extern u8 D_801D3358[];
+
+    if (*(u16 *)D_801D332E & 0x1000) {
+        s32 idx = *(s16 *)(a0 + 2);
+        if (func_8009A7A4(1, 0, idx - 1) >= 0) {
+            func_800A233C(1);
+            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) - 1;
+            goto end;
+        }
+    }
+    if (*(u16 *)D_801D332E & 0x4000) {
+        s32 idx = *(s16 *)(a0 + 2);
+        if (func_8009A7A4(1, 0, idx + 1) >= 0) {
+            func_800A233C(1);
+            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) + 1;
+            goto end;
+        }
+    }
+    if (*(u16 *)D_801D332E & 0x8000) {
+        s32 flags = *(s32 *)D_801D3328;
+        if (flags & 8) {
+            D_801D3358[0] = 3;
+            return;
+        }
+        if (flags & 2) {
+            D_801D3358[0] = 1;
+            return;
+        }
+    }
+end:
+    func_8009A878(1, *(s16 *)(a0 + 2));
+    func_8009B644(1, 0, *(s16 *)(a0 + 2));
+}
+
+/**
+ * @brief Handle directional input for battle entity grid navigation (type 2).
+ *
+ * Processes input flags from D_801D332E to navigate a 2D grid:
+ * - 0x8000 (right): decrement column (s0[0])
+ * - 0x2000 (left): increment column
+ * - 0x1000 (up): decrement row (s0[2])
+ * - 0x4000 (down): increment row
+ * Column bounds [0,2], row bounds [0,2]. Out-of-bounds column checks
+ * D_801D3328 flags to set D_801D3358 action mode.
+ *
+ * @param a0 Pointer to structure with column at offset 0, row at offset 2.
+ */
+void func_8009B8D8(u8 *a0) {
+    extern u8 D_801D332E[];
+    extern u8 D_801D3328[];
+    extern u8 D_801D3358[];
+    u16 input = *(u16 *)D_801D332E;
+    s32 val;
+
+    if (input & 0x8000) {
+        val = *(u16 *)(a0 + 0) - 1;
+        *(s16 *)(a0 + 0) = val;
+        if ((s16)val < 0) {
+            goto check_neg;
+        }
+        goto call_sfx;
+    }
+    if (input & 0x2000) {
+        val = *(u16 *)(a0 + 0) + 1;
+        *(s16 *)(a0 + 0) = val;
+        if ((s16)val >= 3) {
+            goto end_section;
+        }
+    call_sfx:
+        func_800A233C(1);
+        goto end_section;
+    }
+    if (input & 0x1000) {
+        if (*(s16 *)(a0 + 2) > 0) {
+            func_800A233C(1);
+            val = *(u16 *)(a0 + 2) - 1;
+            goto store_row;
+        }
+    }
+    if (*(u16 *)D_801D332E & 0x4000) {
+        if (*(s16 *)(a0 + 2) < 2) {
+            func_800A233C(1);
+            val = *(u16 *)(a0 + 2) + 1;
+        store_row:
+            *(s16 *)(a0 + 2) = val;
+        }
+    }
+end_section:
+    val = *(s16 *)(a0 + 0);
+    if (val >= 0) {
+        if (val < 3) {
+            goto done;
+        }
+        {
+            s32 flags = *(s32 *)D_801D3328;
+            *(s16 *)(a0 + 0) = 2;
+            if (flags & 4) {
+                D_801D3358[0] = 2;
+            }
+        }
+        goto done;
+    }
+check_neg:
+    {
+        s32 flags = *(s32 *)D_801D3328;
+        *(s16 *)(a0 + 0) = 0;
+        if (flags & 2) {
+            D_801D3358[0] = 1;
+        }
+    }
+done:
+    func_8009B644(2, *(s16 *)(a0 + 0), *(s16 *)(a0 + 2));
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BA4C);
 
