@@ -66,7 +66,18 @@ u8 CdLastCom(void) {
     return D_8005D685;
 }
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", CdLastPos);
+/**
+ * @brief Returns a pointer to the last read CD-ROM position.
+ *
+ * Provides access to the internal CdlLOC structure containing the last
+ * known position (minute/second/sector) reported by the CD-ROM drive.
+ *
+ * @return Pointer to the internal CdlLOC position structure.
+ */
+u8 *CdLastPos(void) {
+    extern u8 D_8005D680;
+    return &D_8005D680;
+}
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", CdReset);
 
