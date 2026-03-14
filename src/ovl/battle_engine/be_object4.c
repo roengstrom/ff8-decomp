@@ -40,7 +40,18 @@ void func_800A20F4(void) {
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2114);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A21C4);
+/**
+ * @brief Clear all 7 battle objects by calling func_8002C7BC with zero params.
+ *
+ * Iterates indices 0-6, calling func_8002C7BC(i, 0, 0) for each.
+ */
+void func_800A21C4(void) {
+    s32 i = 0;
+    do {
+        func_8002C7BC(i, 0, 0);
+        i++;
+    } while (i < 7);
+}
 
 /**
  * @brief Clear D_801D4560 to zero.
@@ -243,7 +254,29 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A31EC);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A3248);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A3320);
+/**
+ * @brief Temporarily adjust a rect's position/size, call func_800A3248, then restore.
+ *
+ * Saves the original 8 bytes of the rect at a2, increments x/y by 1,
+ * decrements w/h by 2, calls func_800A3248(a0, a1), then restores
+ * the original values.
+ *
+ * @param a0 First parameter passed to func_800A3248.
+ * @param a1 Second parameter passed to func_800A3248.
+ * @param a2 Pointer to rect structure (4 halfwords: x, y, w, h).
+ */
+void func_800A3320(s32 a0, s32 a1, u8 *a2) {
+    u8 *base = a2;
+    s32 saved0 = *(s32 *)(base + 0);
+    s32 saved1 = *(s32 *)(base + 4);
+    *(u16 *)(base + 0) = *(u16 *)(base + 0) + 1;
+    *(u16 *)(base + 2) = *(u16 *)(base + 2) + 1;
+    *(u16 *)(base + 4) = *(u16 *)(base + 4) - 2;
+    *(u16 *)(base + 6) = *(u16 *)(base + 6) - 2;
+    func_800A3248(a0, a1);
+    *(s32 *)(base + 0) = saved0;
+    *(s32 *)(base + 4) = saved1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A3398);
 

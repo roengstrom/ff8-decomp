@@ -76,9 +76,48 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BDC0);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C010);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C0A0);
+/**
+ * @brief Set the type for a battle entity in D_801D31C0 and optionally trigger an effect.
+ *
+ * Computes entry at D_801D31C0 + a0 * 36, sets entry[1] = a1 (type),
+ * clears entry[2..3]. If type is in range [2, 5], calls func_800A2364(0x5A, 1).
+ *
+ * @param a0 Entity index.
+ * @param a1 Entity type.
+ */
+void func_8009C0A0(s32 a0, s32 a1) {
+    extern u8 D_801D31C0[];
+    u8 *base = D_801D31C0;
+    u8 *entry = base + a0 * 36;
+    entry[1] = a1;
+    *(s16 *)(entry + 2) = 0;
+    if (a1 < 6) {
+        if (a1 >= 2) {
+            func_800A2364(0x5A, 1);
+        }
+    }
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C0F4);
+/**
+ * @brief Check if any battle entity in D_801D31C0 has a non-zero type.
+ *
+ * Iterates up to 10 entries (stride 36) and checks byte at offset 1.
+ *
+ * @return 1 if any entity has non-zero type, 0 otherwise.
+ */
+s32 func_8009C0F4(void) {
+    extern u8 D_801D31C0[];
+    s32 i = 0;
+    u8 *entry = D_801D31C0;
+    do {
+        if (entry[1] != 0) {
+            return 1;
+        }
+        i++;
+        entry += 0x24;
+    } while (i < 10);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C12C);
 
