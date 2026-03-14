@@ -79,7 +79,23 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009F908);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FAF8);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FC40);
+/**
+ * @brief Add a rendering command entry based on the alternate screen index.
+ *
+ * Reads D_801C2DCA, XORs with 1 to get the alternate index, computes
+ * an offset of index * 92 into D_801C2DD0, and calls func_80098A1C
+ * with the resulting pointer and D_8012E66C.
+ *
+ * @return Always 0.
+ */
+s32 func_8009FC40(void) {
+    extern u8 D_801C2DCA;
+    extern u8 D_801C2DD0[];
+    extern u8 D_8012E66C[];
+    s32 idx = D_801C2DCA ^ 1;
+    func_80098A1C(D_801C2DD0 + idx * 92, D_8012E66C);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FC90);
 

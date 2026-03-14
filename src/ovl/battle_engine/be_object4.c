@@ -84,7 +84,22 @@ void func_800A2364(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A238C);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A247C);
+/**
+ * @brief Initialize animation handler and attach to D_801D3C58 list.
+ *
+ * Loads animation data from D_80182EC8 via func_80013EE4, then
+ * allocates a node in D_801D3C58 with func_800A238C as callback.
+ * Clears the node's fields at offsets 0xC and 0xE.
+ */
+void func_800A247C(void) {
+    extern u8 D_80182EC8[];
+    extern s32 func_800A238C();
+    u8 *node;
+    func_80013EE4(D_80182EC8, 0);
+    node = (u8 *)func_8009E248((s32)func_800A238C);
+    *(s16 *)(node + 0xC) = 0;
+    *(s16 *)(node + 0xE) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A24B4);
 
@@ -103,9 +118,34 @@ void func_800A26C8(void) {
     D_801A2C74 |= 0x4;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A271C);
+/**
+ * @brief Tear down D_801D4568 and clear flag bit 2 in D_801A2C74.
+ *
+ * Calls func_800A2054 with mode 4, then clears bit 2 (0x4) in D_801A2C74.
+ */
+void func_800A271C(void) {
+    extern s32 D_801A2C74;
+    func_800A2054(4);
+    D_801A2C74 &= ~0x4;
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A274C);
+/**
+ * @brief Add a rendering command entry based on the alternate screen index.
+ *
+ * Reads D_801C2DCA, XORs with 1 to get the alternate index, computes
+ * an offset of index * 92 into D_801C2DD0, and calls func_80098A1C
+ * with the resulting pointer and D_8012E66C.
+ *
+ * @return Always 0.
+ */
+s32 func_800A274C(void) {
+    extern u8 D_801C2DCA;
+    extern u8 D_801C2DD0[];
+    extern u8 D_8012E66C[];
+    s32 idx = D_801C2DCA ^ 1;
+    func_80098A1C(D_801C2DD0 + idx * 92, D_8012E66C);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A279C);
 
@@ -249,6 +289,40 @@ void func_800A44CC(void) {
     func_800A2E44();
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A4504);
+/**
+ * @brief Initialize D_801D49C8 battle camera structure.
+ *
+ * Sets position, dimensions, mode fields, clears various flags,
+ * then calls func_800A4478 and func_800A2F78 for further init.
+ * Also initializes D_801D4B18 to 0 and D_801D4B1A to 0x180.
+ *
+ * @param a0 X position (stored at offset 0).
+ * @param a1 Y position (stored at offset 2).
+ */
+void func_800A4504(s32 a0, s32 a1) {
+    extern u8 D_801D49C8[];
+    extern s16 D_801D4B18;
+    extern s16 D_801D4B1A;
+    u8 *base;
+    *(s16 *)D_801D49C8 = a0;
+    base = D_801D49C8;
+    *(s16 *)(base + 0x4) = 0xA1;
+    *(s16 *)(base + 0x6) = 0x9F;
+    base[0x21] = 0xB;
+    *(s16 *)(base + 0x2) = a1;
+    *(s16 *)(base + 0x1A) = 0;
+    *(s16 *)(base + 0x18) = 0;
+    *(s16 *)(base + 0x1E) = 0;
+    *(s16 *)(base + 0x14) = 0;
+    base[0x20] = 0;
+    base[0x16] = 0;
+    base[0x17] = 0;
+    base[0x23] = 0;
+    base[0x24] = 1;
+    func_800A4478(0x1000);
+    func_800A2F78();
+    D_801D4B18 = 0;
+    D_801D4B1A = 0x180;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A458C);

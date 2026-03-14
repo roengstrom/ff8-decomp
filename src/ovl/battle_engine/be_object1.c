@@ -67,7 +67,32 @@ void func_80098BC0(u8 *a0, u8 *a1, s32 a2, s32 a3) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098BF8);
+/**
+ * @brief Find and return the first free node in the pool.
+ *
+ * Scans the node pool referenced by the list header for a node whose
+ * flags bit 0 is clear (inactive). Returns the first free node found,
+ * or NULL if all nodes are in use.
+ *
+ * @param a0 Pointer to list header (+0x8=pool, +0xC=stride, +0xE=count).
+ * @return Pointer to the first free node, or NULL if none available.
+ */
+void *func_80098BF8(u8 *a0) {
+    s32 count = *(s16 *)(a0 + 0xE);
+    u8 *pool = (u8 *)*(s32 *)(a0 + 0x8);
+    s32 i = 0;
+    if (count > 0) {
+        s32 n = count;
+        do {
+            if (!(*(u16 *)pool & 1)) {
+                return pool;
+            }
+            i++;
+            pool += *(s16 *)(a0 + 0xC);
+        } while (i < n);
+    }
+    return 0;
+}
 
 /**
  * @brief Allocate a node and append it to a doubly-tracked linked list.
