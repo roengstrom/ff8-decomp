@@ -318,7 +318,25 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030E60);
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030F10);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030FA0);
+/**
+ * @brief Remap a battle palette index through a lookup table if active.
+ *
+ * When bit 0x20 of the game state flags at offset 0xAE4 is set and the
+ * index is within range (< 12), returns the looked-up value minus one
+ * from the table at g_gameState + 0xAE8. Otherwise returns the index unchanged.
+ *
+ * @param a0 Palette index to remap.
+ * @return Remapped index or the original index if remapping is inactive.
+ */
+s32 func_80030FA0(s32 a0) {
+    extern u8 g_gameState[];
+    s32 base = (s32)g_gameState;
+    u16 flags = *(u16 *)(base + 0xAE4);
+    if ((flags & 0x20) && a0 < 12) {
+        return *(u8 *)(a0 + base + 0xAE8) - 1;
+    }
+    return a0;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030FDC);
