@@ -60,83 +60,9 @@ void func_8009B644(void) {
     }
 }
 
-/**
- * @brief Handle directional input for battle entity selection (type 0).
- *
- * Processes up/down/confirm button presses to navigate entities.
- * Up (0x1000) decrements selection, down (0x4000) increments,
- * confirm (0x2000) checks D_801D3328 flags to set D_801D3358 state.
- *
- * @param a0 Pointer to input state structure (+2 = current selection index).
- */
-void func_8009B690(u8 *a0) {
-    extern u8 D_801D332E[];
-    extern u8 D_801D3328[];
-    extern u8 D_801D3358[];
-    if (*(u16 *)D_801D332E & 0x1000) {
-        s32 idx = *(s16 *)(a0 + 2);
-        if (func_8009A7A4(0, 0, idx - 1) >= 0) {
-            func_800A233C(1);
-            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) - 1;
-            goto end;
-        }
-    }
-    if (*(u16 *)D_801D332E & 0x4000) {
-        s32 idx = *(s16 *)(a0 + 2);
-        if (func_8009A7A4(0, 0, idx + 1) >= 0) {
-            func_800A233C(1);
-            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) + 1;
-            goto end;
-        }
-    }
-    if (*(u16 *)D_801D332E & 0x2000) {
-        s32 flags = *(s32 *)D_801D3328;
-        if (flags & 8) { D_801D3358[0] = 3; return; }
-        if (flags & 4) { D_801D3358[0] = 2; return; }
-    }
-end:
-    func_8009A878(0, *(s16 *)(a0 + 2));
-    ((void (*)(s32, s32, s32))func_8009B644)(0, 0, *(s16 *)(a0 + 2));
-}
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B690);
 
-/**
- * @brief Handle directional input for battle entity selection (type 1).
- *
- * Similar to func_8009B690 but for type 1 entities. Processes up/down
- * navigation and confirm (0x8000) button with different D_801D3328 flag
- * checks (bit 3 and bit 1).
- *
- * @param a0 Pointer to input state structure (+2 = current selection index).
- */
-void func_8009B7B4(u8 *a0) {
-    extern u8 D_801D332E[];
-    extern u8 D_801D3328[];
-    extern u8 D_801D3358[];
-    if (*(u16 *)D_801D332E & 0x1000) {
-        s32 idx = *(s16 *)(a0 + 2);
-        if (func_8009A7A4(1, 0, idx - 1) >= 0) {
-            func_800A233C(1);
-            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) - 1;
-            goto end;
-        }
-    }
-    if (*(u16 *)D_801D332E & 0x4000) {
-        s32 idx = *(s16 *)(a0 + 2);
-        if (func_8009A7A4(1, 0, idx + 1) >= 0) {
-            func_800A233C(1);
-            *(s16 *)(a0 + 2) = *(u16 *)(a0 + 2) + 1;
-            goto end;
-        }
-    }
-    if (*(u16 *)D_801D332E & 0x8000) {
-        s32 flags = *(s32 *)D_801D3328;
-        if (flags & 8) { D_801D3358[0] = 3; return; }
-        if (flags & 2) { D_801D3358[0] = 1; return; }
-    }
-end:
-    func_8009A878(1, *(s16 *)(a0 + 2));
-    ((void (*)(s32, s32, s32))func_8009B644)(1, 0, *(s16 *)(a0 + 2));
-}
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B7B4);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B8D8);
 

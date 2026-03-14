@@ -8,7 +8,29 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800984DC);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098690);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098828);
+/**
+ * @brief Initialize controller input arrays for battle engine.
+ *
+ * Reads current controller state for three input types (digital, analog X, analog Y)
+ * and fills their respective 3-element history arrays with the initial values.
+ */
+void func_80098828(void) {
+    extern u16 D_801C2EB8[];
+    extern u16 D_801C2EC0[];
+    extern u16 D_801C2EC8[];
+    s32 i;
+
+    func_800A2BD8();
+    D_801C2EC8[0] = func_800A2B84(0);
+    D_801C2EC0[0] = func_800A2BA0(0);
+    D_801C2EB8[0] = func_800A2BBC(0);
+
+    for (i = 1; i < 3; i++) {
+        D_801C2EC8[i] = D_801C2EC8[0];
+        D_801C2EC0[i] = D_801C2EC0[0];
+        D_801C2EB8[i] = D_801C2EB8[0];
+    }
+}
 
 /**
  * @brief Clear D_801C2FD0 to zero.
