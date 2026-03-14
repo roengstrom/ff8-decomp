@@ -319,7 +319,57 @@ u8 *func_8009A650(void) {
     return list;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A6EC);
+/**
+ * Sets up animation rectangle parameters based on the entity type.
+ *
+ * Configures position and size values in a 4-halfword output structure
+ * based on the type byte at a0[0]. Type 0 and 1 use vertical strips,
+ * type 2 uses a tile grid layout.
+ *
+ * @param a0 Pointer to entity data (byte 0 = type, byte 1 = column, byte 2 = row).
+ * @param a1 Pointer to output rectangle (4 s16 values: x, y, w, h).
+ * @return Pointer to the output rectangle, or a1 unchanged if type is unknown.
+ */
+u8 *func_8009A6EC(u8 *a0, s16 *a1) {
+    u8 type = a0[0];
+
+    switch (type) {
+    case 0:
+        a1[0] = -0x8C;
+        {
+            u8 r = a0[2];
+            s32 w = 0x200;
+            a1[2] = w;
+            a1[1] = r * 32 - 0x40;
+        }
+        a1[3] = -(s32)a0[2] + 0xE;
+        break;
+    case 1:
+        a1[0] = 0x8C;
+        {
+            u8 r = a0[2];
+            s32 w = 0x200;
+            a1[2] = w;
+            a1[1] = r * 32 - 0x40;
+        }
+        a1[3] = -(s32)a0[2] + 0xE;
+        break;
+    case 2: {
+        s32 col = a0[1];
+        a1[0] = (col - 1) * 64;
+        {
+            u8 row = a0[2];
+            a1[2] = 0x200;
+            a1[3] = 0x12;
+            a1[1] = (row - 1) * 64;
+        }
+        break;
+    }
+    default:
+        return (u8 *)a1;
+    }
+    return (u8 *)a1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A7A4);
 

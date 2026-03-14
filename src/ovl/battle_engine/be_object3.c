@@ -65,7 +65,41 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBCC);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBF4);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EF68);
+/**
+ * Checks if any active slot has a pending action.
+ *
+ * Searches through a 2D table (2 rows of 5 entries, each 22 bytes apart,
+ * rows 110 bytes apart) for an entry where byte 0 is not 0xFF and byte 1
+ * is non-zero.
+ *
+ * @return 1 if a pending action was found, 0 otherwise.
+ */
+s32 func_8009EF68(void) {
+    extern u8 D_801D3EC0[];
+    s32 row = 0;
+    u8 *base = D_801D3EC0;
+    s32 marker = 0xFF;
+    s32 rowOff = row;
+    s32 col;
+    s32 colOff;
+    do {
+        col = 0;
+        colOff = rowOff;
+        do {
+            u8 *entry = (u8 *)(colOff + (s32)base);
+            if (entry[0] != marker) {
+                if (entry[1] != 0) {
+                    return 1;
+                }
+            }
+            col++;
+            colOff += 0x16;
+        } while (col < 5);
+        row++;
+        rowOff += 0x6E;
+    } while (row < 2);
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EFD4);
 
