@@ -10,7 +10,25 @@ void func_8001E7A8(void);
 void func_8001E808(void);
 void func_8001F51C(void);
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C1A8);
+/**
+ * @brief Copy instrument parameters from a table entry into a track structure.
+ *
+ * Stores the initial instrument value, copies pitch and envelope fields
+ * from the instrument entry, and sets the sustain/loop flags in the track.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Pointer to the instrument table entry (16 bytes).
+ * @param a2 Initial instrument configuration value.
+ */
+void func_8001C1A8(u8 *a0, u8 *a1, s32 a2) {
+    u16 v;
+    *(s32 *)(a0 + 0xFC) = a2;
+    *(s32 *)(a0 + 0x100) = *(s32 *)(a1 + 0x4);
+    *(u16 *)(a0 + 0x106) = *(u16 *)(a1 + 0xC);
+    v = *(u16 *)(a1 + 0xE);
+    *(s32 *)(a0 + 0xF8) |= 0x1FF80;
+    *(u16 *)(a0 + 0x108) = v;
+}
 
 extern u8 D_80073E68[];
 
