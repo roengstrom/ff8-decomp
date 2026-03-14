@@ -17,20 +17,21 @@ bytes user data). All game files are accessed through a central **CD File Table*
 ### CD File Table
 
 - **133 entries** of `CdFileDesc` (8 bytes each: `u32 sector; u32 size;`)
-- Loaded from CD sector 826 to RAM address **0x80097400** by `func_80011E18()`
+- Loaded from CD sector 826 to RAM address **0x80097400** (`g_cdFileTable`) by `func_80011E18()`
 - Bootstrap descriptor `g_fileTableDesc` at 0x80051694 in the main binary points to
   sector 826, size 1064 (= 133 × 8)
+- Entry indices defined in `enum CdFileId` (`include/cd.h`)
 
 ### File Table Descriptor Aliases
 
 The main binary references file table entries through aliased pointers at fixed offsets
 within the table. These are declared as separate `extern CdFileDesc` arrays in the
-source, but they all point into the single table at 0x80097400:
+source, but they all point into `g_cdFileTable` at 0x80097400:
 
 | Symbol | Address | Entry | Used By | Purpose |
 |--------|---------|-------|---------|---------|
-| `D_80097400[0]` | 0x80097400 | 0 | `func_80011C68` | Init overlay (raw) |
-| `D_80097400[1]` | 0x80097408 | 1 | `GameMain` | Display init overlay (LZSS) |
+| `g_cdFileTable[0]` | 0x80097400 | 0 | `func_80011C68` | Init overlay (raw) |
+| `g_cdFileTable[1]` | 0x80097408 | 1 | `GameMain` | Display init overlay (LZSS) |
 | `D_80097410[0]` | 0x80097410 | 2 | `func_80011A60` | Field engine (LZSS) |
 | `D_80097410[1]` | 0x80097418 | 3 | `func_80011B60` | Battle scene table |
 | `D_800974B8[0]` | 0x800974B8 | 23 | `func_80021358` | Battle engine (LZSS) |

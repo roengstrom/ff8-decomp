@@ -399,16 +399,17 @@ void func_80011BA8(void) {
     func_80013A5C(0x801B0000, 1);
 }
 
-extern CdFileDesc D_80097400[];
+extern CdFileDesc g_cdFileTable[];
 
 /** @brief Loads an overlay from CD into 0x80098000.
  *
- *  Uses D_80097400[0] as the CD file descriptor (.sector, .size). The
- *  specific overlay loaded depends on what D_80097400 was populated with
- *  (set by func_80011E18 which loads the master file table).
+ *  Uses g_cdFileTable[CD_FILE_INIT_OVERLAY] as the CD file descriptor
+ *  (.sector, .size). The specific overlay loaded depends on what
+ *  g_cdFileTable was populated with (set by func_80011E18 which loads
+ *  the master file table).
  */
 void func_80011C68(void) {
-    func_8003882C(D_80097400[0].sector, D_80097400[0].size, 0x80098000, 0);
+    func_8003882C(g_cdFileTable[CD_FILE_INIT_OVERLAY].sector, g_cdFileTable[CD_FILE_INIT_OVERLAY].size, 0x80098000, 0);
     while (func_800393C8() != 0)
         ;
 }
@@ -480,12 +481,11 @@ void func_80011D3C(void) {
 
 extern CdFileDesc g_fileTableDesc[];
 
-/** @brief Loads the master file descriptor table from CD into 0x80097400.
+/** @brief Loads the master CD file table (g_cdFileTable) from disc.
  *
  *  Uses the hard-coded bootstrap descriptor g_fileTableDesc[0] (.sector,
  *  .size). This must be called before any other CD loading functions, since
- *  all other load descriptors (D_80097410, D_800974D0, D_800974D8,
- *  D_80097808) reside within the table loaded here.
+ *  all other file descriptors reside within the table loaded here.
  */
 void func_80011E18(void) {
     func_8003882C(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, 0);
