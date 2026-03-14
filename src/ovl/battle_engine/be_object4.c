@@ -6,6 +6,14 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1C6C);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1D68);
 
+/**
+ * @brief Start or stop a battle object based on its type flag.
+ *
+ * Looks up the entry at D_80182E70[a0 * 12], checks bit 0 of byte 0.
+ * If set, calls func_8002DD58 (stop). Otherwise calls func_8002DD38 (start).
+ *
+ * @param a0 Object index.
+ */
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2054);
 
 /**
@@ -149,7 +157,28 @@ s32 func_800A274C(void) {
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A279C);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2968);
+/**
+ * @brief Initialize the D_801D4968 linked list with two render callbacks.
+ *
+ * Sets up D_801D4968 as a linked list (node size 0x10, capacity 4),
+ * then appends func_800A279C and func_800A274C as callbacks.
+ * Clears bytes 0xC and 0xD on the first node.
+ *
+ * @return Pointer to D_801D4968 list header.
+ */
+u8 *func_800A2968(void) {
+    extern u8 D_801D4968[];
+    extern u8 D_801D4978[];
+    extern s32 func_800A279C();
+    u8 *list = D_801D4968;
+    u8 *node;
+    func_80098BC0(list, D_801D4978, 0x10, 4);
+    node = (u8 *)func_80098C44(list, (s32)func_800A279C);
+    node[0xC] = 0;
+    node[0xD] = 0;
+    func_80098C44(list, (s32)func_800A274C);
+    return list;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A29D4);
 
