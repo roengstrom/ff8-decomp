@@ -14,7 +14,26 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E640);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E904);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EB30);
+/**
+ * @brief Allocate a node in D_801D3C68 list with a callback from D_80182E4C.
+ *
+ * Looks up a callback pointer from the D_80182E4C table at index @p a0,
+ * allocates a node via func_80098CC0, and initializes several fields.
+ *
+ * @param a0 Index into the D_80182E4C callback table.
+ */
+void func_8009EB30(s32 a0) {
+    extern u8 D_801D3C68[];
+    extern s32 D_80182E4C[];
+    u8 *node = (u8 *)func_80098CC0(D_801D3C68, D_80182E4C[a0]);
+    if (node != 0) {
+        node[0xE] = a0;
+        *(s16 *)(node + 0x20) = 0;
+        node[0x22] = 0;
+        node[0xC] = 0;
+        node[0xD] = 0;
+    }
+}
 
 /**
  * @brief Store a byte value at offset 0x22 of a structure.

@@ -20,7 +20,27 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009AE6C);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B3EC);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B494);
+/**
+ * @brief Reset battle state globals D_801D3328, D_801D3359, and D_801D3340 fields.
+ *
+ * Clears D_801D3328 (word), D_801D3359 (byte), and sets fields in D_801D3340:
+ * halfwords at +6, +0xA, +0x10, +0x14 to 0, and +0xC, +0xE to 1.
+ */
+void func_8009B494(void) {
+    extern s32 D_801D3328;
+    extern u8 D_801D3359;
+    extern u8 D_801D3340[];
+    u8 *base;
+    D_801D3328 = 0;
+    D_801D3359 = 0;
+    base = D_801D3340;
+    *(s16 *)(base + 0x6) = 0;
+    *(s16 *)(base + 0xA) = 0;
+    *(s16 *)(base + 0xC) = 1;
+    *(s16 *)(base + 0xE) = 1;
+    *(s16 *)(base + 0x10) = 0;
+    *(s16 *)(base + 0x14) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B4CC);
 

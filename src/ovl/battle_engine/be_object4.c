@@ -160,7 +160,15 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2FCC);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A30C8);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A31B8);
+/**
+ * @brief Wrapper for func_800A30C8 that appends flag=1 as the 7th argument.
+ *
+ * Passes through a0-a3 plus two stack arguments, appending 1 as
+ * the final argument to form a 7-arg call to func_800A30C8.
+ */
+void func_800A31B8(s32 a0, s32 a1, s32 a2, s32 a3, s32 stack0, s32 stack1) {
+    func_800A30C8(a0, a1, a2, a3, stack0, stack1, 1);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A31EC);
 
