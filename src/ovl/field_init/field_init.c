@@ -109,7 +109,34 @@ void func_800982B8(void) {
     func_8004DF84();
 }
 
-INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_800982D8);
+/**
+ * @brief Set memory card event status to "ready" (0x404) for 4 card slots.
+ *
+ * Reads the event table base from ECB+0x10, then writes 0x404 (EvStACTIVE |
+ * EvMdNOINTR) to the status field (+0x94) of each of 4 card event entries
+ * (stride 0xC0) within a critical section.
+ */
+void func_800982D8(void) {
+    s32 ecb_base = 0x100;
+
+    func_800472E4(); /* EnterCriticalSection */
+
+    {
+        s32 i = 0;
+        s32 val = 0x404;
+        s32 offset = i;
+        s32 base;
+
+        top:
+        base = *(s32 *)(ecb_base + 0x10);
+        i++;
+        *(s32 *)(base + offset + 0x94) = val;
+        offset += 0xC0;
+        if (i < 4) goto top;
+    }
+
+    func_800472F4(); /* ExitCriticalSection */
+}
 
 INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_80098330);
 
