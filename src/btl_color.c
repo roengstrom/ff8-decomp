@@ -339,7 +339,44 @@ s32 func_80030FA0(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030FDC);
+/**
+ * @brief Reverse-lookup a remapped palette index to find its original slot.
+ *
+ * When bit 0x20 of the game state flags at offset 0xAE4 is set and the
+ * index is within range (< 12), searches the table at g_gameState + 0xAE8
+ * for the value (a0 + 1) and returns the matching slot index.
+ * Returns -1 if not found, or the original index if remapping is inactive.
+ *
+ * @param a0 Remapped palette index to look up.
+ * @return Original slot index, -1 if not found, or a0 if remapping inactive.
+ */
+s32 func_80030FDC(s32 a0) {
+    extern u8 g_gameState[];
+    s32 base = (s32)g_gameState;
+    u16 flags = *(u16 *)(base + 0xAE4);
+    u8 *table;
+    s32 i;
+    if (flags & 0x20) {
+        if (a0 < 12) {
+            table = (u8 *)(base + 0xAE8);
+            goto search;
+        }
+    }
+    return a0;
+found:
+    return i;
+search:
+    a0++;
+    i = 0;
+    do {
+        u8 val = *table++;
+        if ((val & 0xFF) == a0) {
+            goto found;
+        }
+        i++;
+    } while (i < 12);
+    return -1;
+}
 
 
 /** @brief Empty stub -- no operation. */
