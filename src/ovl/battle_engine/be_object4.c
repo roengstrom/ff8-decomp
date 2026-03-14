@@ -2,49 +2,7 @@
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1BE0);
 
-/**
- * @brief Initialize battle objects and process object timers.
- *
- * Checks controller state flags to determine initial object positions,
- * then iterates through 7 battle objects decrementing their timers.
- * When a timer reaches zero, starts or stops the object based on its type flag.
- */
-void func_800A1C6C(void) {
-    extern s32 D_801A2C74;
-    extern u16 D_801C2EBC;
-    extern u16 D_801C2EC4;
-    extern s32 D_801D44FC;
-    extern s32 D_801C2EB0;
-    extern u8 D_80182E70[];
-    s32 i;
-    u8 *entry;
-
-    if (D_801A2C74 & 0x8) {
-        D_801D44FC = func_800A390C(D_801C2EBC, D_801C2EC4);
-    } else {
-        func_800A390C(0, 0);
-        D_801D44FC = -1;
-    }
-
-    func_8002A834(1);
-    func_8002A92C(D_801C2EB0);
-    func_800A443C(D_801C2EB0 + 4);
-
-    entry = D_80182E70;
-    for (i = 0; i < 7; i++) {
-        if (entry[3] != 0) {
-            entry[3]--;
-            if ((entry[3] & 0xFF) == 0) {
-                if (entry[0] & 1) {
-                    func_8002DD58(i);
-                } else {
-                    func_8002DD38(i);
-                }
-            }
-        }
-        entry += 0xC;
-    }
-}
+INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1C6C);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1D68);
 

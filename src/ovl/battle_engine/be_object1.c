@@ -1,6 +1,45 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009822C);
+/**
+ * @brief Initialize the battle engine subsystems and build the object lookup table.
+ *
+ * Calls initialization routines for various battle subsystems (rendering, objects,
+ * input, etc.), then populates D_801A2C78 with object type mappings by querying
+ * func_80023B14 for each of the 110 (0x6E) object indices.
+ */
+void func_8009822C(void) {
+    extern u8 D_800B7638[];
+    extern u8 D_800A45B8[];
+    extern s32 D_801A2C74;
+    extern s32 D_801A2C6C;
+    extern u8 D_801A2CE6;
+    extern u8 D_801A2C78[];
+    s32 i;
+
+    func_800A2D34();
+    i = 0;
+    func_800981BC();
+    func_80098B70();
+    func_8009E1F0();
+    func_80098B68();
+    func_800984DC();
+    func_8009B494();
+    func_800A1BE0();
+    func_800A2208();
+    func_80098DD4();
+    func_8009EB98();
+    func_80098A6C(D_800B7638);
+    func_80098A6C(D_800A45B8);
+
+    D_801A2C74 = 0;
+    D_801A2C6C = 0;
+    D_801A2CE6 = 1;
+
+    do {
+        D_801A2C78[i] = func_80023B14(i);
+        i++;
+    } while (i < 0x6E);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098304);
 
