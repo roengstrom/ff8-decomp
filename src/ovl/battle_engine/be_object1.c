@@ -178,9 +178,70 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098E7C);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098FD8);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800990A0);
+/**
+ * Converts an integer to a decimal string representation.
+ *
+ * @param a0 The integer value to convert.
+ * @param a1 Pointer to the output buffer.
+ * @return Pointer to the end of the written string.
+ */
+u8 *func_800990A0(s32 a0, u8 *a1) {
+    u8 buf[36];
+    u8 *dst = a1;
+    u8 *p;
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099134);
+    if (a0 < 0) {
+        *dst = 0x2D;
+        dst++;
+        a0 = -a0;
+    }
+
+    p = buf + 33;
+    buf[33] = 0;
+
+    do {
+        p--;
+        *p = (a0 % 10) + 0x30;
+        a0 = a0 / 10;
+    } while (a0 != 0);
+
+    func_80047CA4(dst, p);
+    return dst + func_80047CB4(dst);
+}
+
+/**
+ * Converts an integer to a hexadecimal string representation.
+ *
+ * @param a0 The integer value to convert.
+ * @param a1 Pointer to the output buffer.
+ * @return Pointer to the end of the written string.
+ */
+u8 *func_80099134(s32 a0, u8 *a1) {
+    extern u8 D_80182B84[];
+    u8 buf[20];
+    u8 *dst = a1;
+    u8 *p;
+    u8 *table;
+
+    if (a0 < 0) {
+        *dst = 0x2D;
+        dst++;
+        a0 = -a0;
+    }
+
+    p = buf + 17;
+    buf[17] = 0;
+    table = D_80182B84;
+
+    do {
+        p--;
+        *p = *(u8 *)((a0 & 0xF) + (s32)table);
+        a0 >>= 4;
+    } while (a0 != 0);
+
+    func_80047CA4(dst, p);
+    return dst + func_80047CB4(dst);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800991AC);
 

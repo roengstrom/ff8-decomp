@@ -129,7 +129,27 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C6D8);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C890);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C978);
+/**
+ * Starts an animation sequence on a battle entity.
+ *
+ * Looks up entity data from the global entity table, then calls the
+ * animation handler with the entity's type flag and callback info.
+ *
+ * @param a0 Animation command or mode.
+ * @param a1 Entity index.
+ * @param a2 Animation parameter.
+ * @param a3 Additional parameter (passed as 5th stack arg to handler).
+ */
+void func_8009C978(s32 a0, s32 a1, s32 a2, s32 a3) {
+    extern u8 D_801D31C0[];
+    u8 *base = D_801D31C0;
+    u8 *entry;
+    u8 *result;
+
+    entry = base + a1 * 36;
+    result = (u8 *)func_8009C890(a0, entry[0], *(s32 *)(entry + 8) & 1, a2, a3);
+    result[3] = a1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C9D4);
 

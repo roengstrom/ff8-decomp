@@ -14,7 +14,18 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1D68);
  *
  * @param a0 Object index.
  */
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2054);
+void func_800A2054(s32 a0) {
+    extern u8 D_80182E70[];
+    u8 *base = D_80182E70;
+    u8 *entry;
+
+    entry = base + a0 * 12;
+    if (entry[0] & 1) {
+        func_8002DD58();
+    } else {
+        func_8002DD38();
+    }
+}
 
 /**
  * @brief Reset all 7 battle objects and finalize.
