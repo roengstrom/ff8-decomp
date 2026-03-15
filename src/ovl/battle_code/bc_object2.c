@@ -266,7 +266,25 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009D174);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009D228);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009D420);
+/**
+ * @brief Check if entity at index a1 has ability flag bit 2 set.
+ *
+ * @param a0 Unused.
+ * @param a1 Entity index.
+ * @return 1 if entity has bit 2 set and global flag is clear, 0 otherwise.
+ */
+s32 func_8009D420(s32 a0, s32 a1) {
+    s32 base;
+    s32 flags;
+    if (!(*(s32 *)D_800EEBC4 & 0x4000000)) {
+        base = (s32)D_800ED148;
+        flags = *(u16 *)(base + a1 * 0xD0 + 0x90);
+        if (flags & 0x4) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009D474);
 
