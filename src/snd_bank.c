@@ -152,7 +152,37 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D14);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D5C);
+/**
+ * @brief Set voice control bits for tracks matching D_80075028[0] mask.
+ *
+ * Loads a track bitmask from D_80075028[0]. For each set bit (starting
+ * from bit 12), sets bits 0 and 1 in the track's voice control word at
+ * D_80072F70 + track*0x110 + 0xF8.
+ */
+void func_80017D5C(void) {
+    extern u8 D_80072F70[];
+    extern s32 D_80075028[];
+    s32 tmp = D_80075028[0];
+    s32 mask;
+    s32 bit;
+    s32 base;
+    u8 *ptr;
+    if (tmp == 0) {
+        return;
+    }
+    mask = tmp;
+    bit = 0x1000;
+    base = (s32)D_80072F70;
+    ptr = (u8 *)(base + 0xF8);
+    do {
+        if (mask & bit) {
+            *(s32 *)ptr |= 3;
+            mask ^= bit;
+        }
+        ptr += 0x110;
+        bit <<= 1;
+    } while (mask != 0);
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
 
