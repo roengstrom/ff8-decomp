@@ -4,17 +4,45 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0098);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C00C8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0384);
+/**
+ * Sets bit 0x20 in the byte at D_80077378+0xD22.
+ */
+void func_800C0384(void) {
+    extern u8 D_80077378[];
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03A0);
+    D_80077378[0xD22] = D_80077378[0xD22] | 0x20;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03BC);
+/**
+ * Clears bit 0x20 in the byte at D_80077378+0xD22.
+ */
+void func_800C03A0(void) {
+    extern u8 D_80077378[];
+
+    D_80077378[0xD22] = D_80077378[0xD22] & ~0x20;
+}
+
+/**
+ * Sets bit 0x10 in the byte at D_80077378+0xD22.
+ */
+void func_800C03BC(void) {
+    extern u8 D_80077378[];
+
+    D_80077378[0xD22] = D_80077378[0xD22] | 0x10;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03D8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03DC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03F4);
+/**
+ * Sets bit 0x02 in the byte at D_80077378+0xD22.
+ */
+void func_800C03F4(void) {
+    extern u8 D_80077378[];
+
+    D_80077378[0xD22] = D_80077378[0xD22] | 0x02;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0410);
 

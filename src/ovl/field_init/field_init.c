@@ -174,4 +174,37 @@ void func_80098390(void) {
     func_800983B8();
 }
 
+/**
+ * @brief Initialize two render context structs for the field display system.
+ *
+ * Sets global display parameters (default color intensity, blend mode) in the
+ * BattleAnimEntity header area at D_80082DD0:
+ *   - D_80082DD0[0x1E0] = 0x10 (default color intensity)
+ *   - D_80082DD0[0x1E1] = 5 (blend mode)
+ *   - D_80082DD0[0x1E3] = 0
+ *
+ * Calls func_80027558 with a full-screen RECT(0, 0, 320, 224) to set display
+ * bounds, then loops twice (i = 0..1) to initialize each of the two 0xC4-byte
+ * BattleAnimEntity structs:
+ *   1. Calls func_8002828C(i) to copy default color into entity RGBX fields
+ *   2. Sets field19 (active flag) to 1
+ *   3. Sets unk10[0..3] to {0xFFF, 0x5000, 0xA000, 0x900}
+ *   4. Clears frame data bytes (entry[1..7] offset +6) with a fill loop
+ *   5. Sets pad00[0] to 0x40 and clears pad00[6]
+ *   6. Runs a delay spin loop (5 iterations)
+ *   7. Fills padBC[0..5] with 0xFF (opacity region)
+ *   8. Clears opacity (0x1B) and field0B (0x0B)
+ *   9. Calls func_80027FBC(i, 0, 0) to reset display coordinates
+ *  10. Sets fieldC3 to 0x31 and linkedIdx to i
+ *  11. Clears field0C..field0F (color fields)
+ *
+ * @note Non-matching. Two toolchain differences prevent byte-matching:
+ *   (1) CC1PSX -G0 address expansion uses $v0 as intermediate
+ *       (lui $v0; addiu $s0,$v0), but the original has direct $s0
+ *       (lui $s0; addiu $s0,$s0) suggesting ASPSX pseudo expansion.
+ *   (2) CC1PSX -O2 optimizes away a redundant register copy
+ *       (addu $v0,$v1,$zero before sb) that the original retains,
+ *       causing the function to be 1 instruction shorter and all
+ *       subsequent instructions to shift. Permuter score: 715.
+ */
 INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_800983B8);

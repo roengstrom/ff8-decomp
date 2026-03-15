@@ -125,11 +125,27 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B15BC);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B16B0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1730);
+/**
+ * Returns 2, indicating continue processing.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B1730(u8 *a0) {
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1738);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B17A0);
+/**
+ * Returns 2, indicating continue processing.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B17A0(u8 *a0) {
+    return 2;
+}
 
 /**
  * Calls func_800393C8, returns 1 if result is nonzero, else 2.

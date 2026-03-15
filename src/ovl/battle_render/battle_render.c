@@ -64,7 +64,137 @@ void func_80098920(s32 idx, s32 flag) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098958);
+/**
+ * @brief Decode input flags into battle render configuration bytes.
+ *
+ * Reads bits from D_8007809A, D_80077E5F, and D_80077E92 and writes
+ * corresponding flag bytes to the D_800D3C30 region. Then iterates
+ * through 0x1D name table slots calling func_80098920 with values
+ * from D_800D3C30.
+ */
+void func_80098958(void) {
+    extern u8 D_8007809A;
+    extern u8 D_80077E5F;
+    extern u8 D_80077E92;
+    extern u8 D_800D3C35;
+    extern u8 D_800D3C36;
+    extern u8 D_800D3C38;
+    extern u8 D_800D3C39;
+    extern u8 D_800D3C3A;
+    extern u8 D_800D3C3B;
+    extern u8 D_800D3C3C;
+    extern u8 D_800D3C3D;
+    extern u8 D_800D3C3E;
+    extern u8 D_800D3C3F;
+    extern u8 D_800D3C44;
+    extern u8 D_800D3C45;
+    extern u8 D_800D3C46;
+    extern u8 D_800D3C47;
+    extern u8 D_800D3C48;
+    extern u8 D_800D3C49;
+    extern u8 D_800D3C30[];
+    s32 i;
+
+    if (D_8007809A & 0x10) {
+        D_800D3C35 = 1;
+    } else {
+        D_800D3C35 = 0;
+    }
+
+    if (D_8007809A & 0x2) {
+        D_800D3C36 = 1;
+    } else {
+        D_800D3C36 = 0;
+    }
+
+    if (D_8007809A & 0x20) {
+        D_800D3C38 = 1;
+    } else {
+        D_800D3C38 = 0;
+    }
+
+    if (D_80077E5F & 0x1) {
+        D_800D3C39 = 1;
+    } else {
+        D_800D3C39 = 0;
+    }
+
+    if (D_80077E5F & 0x2) {
+        D_800D3C3A = 1;
+    } else {
+        D_800D3C3A = 0;
+    }
+
+    if (D_80077E5F & 0x4) {
+        D_800D3C3B = 1;
+    } else {
+        D_800D3C3B = 0;
+    }
+
+    if (D_80077E5F & 0x8) {
+        D_800D3C3C = 1;
+    } else {
+        D_800D3C3C = 0;
+    }
+
+    if (D_80077E5F & 0x10) {
+        D_800D3C3D = 1;
+    } else {
+        D_800D3C3D = 0;
+    }
+
+    if (D_80077E5F & 0x20) {
+        D_800D3C3E = 1;
+    } else {
+        D_800D3C3E = 0;
+    }
+
+    if (D_80077E5F & 0x40) {
+        D_800D3C3F = 1;
+    } else {
+        D_800D3C3F = 0;
+    }
+
+    if (D_80077E92 & 0x2) {
+        D_800D3C44 = 1;
+    } else {
+        D_800D3C44 = 0;
+    }
+
+    if (D_80077E92 & 0x4) {
+        D_800D3C45 = 1;
+    } else {
+        D_800D3C45 = 0;
+    }
+
+    if (D_80077E92 & 0x8) {
+        D_800D3C46 = 1;
+    } else {
+        D_800D3C46 = 0;
+    }
+
+    if (D_80077E92 & 0x20) {
+        D_800D3C47 = 1;
+    } else {
+        D_800D3C47 = 0;
+    }
+
+    if (D_80077E92 & 0x40) {
+        D_800D3C48 = 1;
+    } else {
+        D_800D3C48 = 0;
+    }
+
+    if (D_80077E92 & 0x80) {
+        D_800D3C49 = 1;
+    } else {
+        D_800D3C49 = 0;
+    }
+
+    for (i = 0; i < 0x1D; i++) {
+        func_80098920(i, D_800D3C30[i]);
+    }
+}
 
 /**
  * @brief Set battle render mode to active.
@@ -92,6 +222,16 @@ void func_80098C84(void) {
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098C9C);
 
+/**
+ * @brief Initialize battle entity rendering tables.
+ *
+ * Sets GPU attribute flags on 8 entity slots, configures entity
+ * visibility flags at offsets 0x61/0xA5/0xE9, and fills the
+ * animation tile table at offset 0xB44 with incrementing indices.
+ *
+ * @note Non-matching: Leaf register allocation — compiler puts base
+ * pointer in $a0 instead of $v1 for loop 1.
+ */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A368);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A40C);

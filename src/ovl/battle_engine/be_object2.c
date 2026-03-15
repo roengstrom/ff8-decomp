@@ -66,7 +66,40 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B7B4);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B8D8);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BA4C);
+/**
+ * @brief Adjust a battle speed/volume parameter based on controller input.
+ *
+ * If D_801D332E has bit 0x8000 set and the current value at a0 is positive,
+ * decrements the value and triggers a sound effect. If D_801D332E has bit
+ * 0x2000 set and the value is less than 4, increments it and triggers a
+ * sound effect. Stores the final value to D_801D335C.
+ *
+ * @param a0 Pointer to a halfword value to adjust.
+ */
+void func_8009BA4C(u16 *a0) {
+    extern u16 D_801D332E;
+    extern s16 D_801D335C;
+    u16 val;
+
+    if (D_801D332E & 0x8000) {
+        if (*(s16 *)a0 > 0) {
+            func_800A233C(1);
+            val = *a0 - 1;
+            *a0 = val;
+            goto store;
+        }
+    }
+    if (D_801D332E & 0x2000) {
+        if (*(s16 *)a0 < 4) {
+            func_800A233C(1);
+            val = *a0 + 1;
+            *a0 = val;
+            goto store;
+        }
+    }
+store:
+    D_801D335C = *a0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BAF4);
 
@@ -74,7 +107,39 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BD24);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BDC0);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C010);
+/**
+ * @brief Initialize the D_801D3380 linked list with a battle callback.
+ *
+ * Sets up D_801D3380 as a linked list (pool at D_801D3360, node size 0x14,
+ * capacity 1), then appends func_8009BDC0 as a callback. Sets byte fields
+ * 0xC, 0xD, 0xE on the node from the parameters. Resets D_801D3340 fields
+ * at +0xC and +0xE to 1.
+ *
+ * @param a0 Value stored at node byte 0xD.
+ * @param a1 Value stored at node byte 0xE.
+ * @return Pointer to D_801D3380 list header.
+ */
+u8 *func_8009C010(s32 a0, s32 a1) {
+    extern u8 D_801D3380[];
+    extern u8 D_801D3360[];
+    extern u8 D_801D3340[];
+    extern s32 func_8009BDC0();
+    u8 *list = D_801D3380;
+    u8 *node;
+
+    func_80098BC0(list, D_801D3360, 0x14, 1);
+    node = (u8 *)func_80098C44(list, (s32)func_8009BDC0);
+    {
+        u8 *base;
+        node[0xC] = 0;
+        node[0xD] = a0;
+        node[0xE] = a1;
+        base = D_801D3340;
+        *(s16 *)(base + 0xC) = 1;
+        *(s16 *)(base + 0xE) = 1;
+    }
+    return list;
+}
 
 /**
  * @brief Set the type for a battle entity in D_801D31C0 and optionally trigger an effect.

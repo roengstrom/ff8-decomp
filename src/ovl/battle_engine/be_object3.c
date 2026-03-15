@@ -145,6 +145,15 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0370);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A03DC);
 
+/**
+ * @brief Check if any active battle object has a pending action.
+ *
+ * Iterates through 10 entries in D_801D4308 (stride 0x20). For each entry
+ * where bit 0 of the word at offset +4 is set and the byte at offset +8
+ * is non-zero, returns 1. Returns 0 if no such entry is found.
+ *
+ * @return 1 if any active object has a pending action, 0 otherwise.
+ */
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0A88);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0AD4);

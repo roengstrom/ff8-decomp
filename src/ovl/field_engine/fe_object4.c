@@ -4,39 +4,188 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADB68);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADC04);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADC9C);
+/**
+ * Returns 0, indicating no action taken.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 0.
+ */
+s32 func_800ADC9C(u8 *a0) {
+    return 0;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADCA4);
+/**
+ * Pops the stack index, adds the value at [idx] to [idx+1], stores at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADCA4(u8 *a0) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADCD8);
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) + *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADD0C);
+/**
+ * Pops the stack index, subtracts [idx+1] from [idx], stores at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADCD8(u8 *a0) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADD30);
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) - *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
+
+/**
+ * Negates the top-of-stack value in-place.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADD0C(u8 *a0) {
+    s8 idx;
+
+    idx = *(s8 *)(a0 + 0x184);
+    *(s32 *)(a0 + idx * 4) = -*(s32 *)(a0 + idx * 4);
+}
+
+/**
+ * Pops the stack index, multiplies [idx] by [idx+1], stores at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADD30(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) * *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADD68);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADDA0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADDD8);
+/**
+ * Pops the stack index, tests [idx] == [idx+1], stores boolean at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADDD8(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) == *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADE10);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADE44);
+/**
+ * Pops the stack index, compares [idx] >= [idx+1], stores boolean at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADE44(u8 *a0) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADE7C);
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) >= *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADEB0);
+/**
+ * Pops the stack index, compares [idx] < [idx+1], stores boolean at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADE7C(u8 *a0) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADEE8);
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) < *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADF20);
+/**
+ * Pops the stack index, compares [idx] <= [idx+1], stores boolean at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADEB0(u8 *a0) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADF54);
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) <= *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADF88);
+/**
+ * Pops the stack index, tests [idx] != [idx+1], stores boolean at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADEE8(u8 *a0) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADFBC);
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) != *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
+
+/**
+ * Pops the stack index, ANDs [idx] with [idx+1], stores at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADF20(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) & *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
+
+/**
+ * Pops the stack index, ORs [idx] with [idx+1], stores at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADF54(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) | *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
+
+/**
+ * Pops the stack index, XORs [idx] with [idx+1], stores at [idx].
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADF88(u8 *a0) {
+    u8 idx;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) ^ *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
+
+/**
+ * Bitwise NOTs the top-of-stack value in-place.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800ADFBC(u8 *a0) {
+    s8 idx;
+
+    idx = *(s8 *)(a0 + 0x184);
+    *(s32 *)(a0 + idx * 4) = ~*(s32 *)(a0 + idx * 4);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADFE0);
 
@@ -119,9 +268,25 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AEC78);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AED9C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AEEC4);
+/**
+ * Returns 3, indicating skip to next entity.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 3.
+ */
+s32 func_800AEEC4(u8 *a0) {
+    return 3;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AEECC);
+/**
+ * Returns 1, indicating wait/yield.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 1.
+ */
+s32 func_800AEECC(u8 *a0) {
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AEED4);
 

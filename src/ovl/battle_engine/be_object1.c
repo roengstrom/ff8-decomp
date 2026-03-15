@@ -100,7 +100,21 @@ void func_80098B70(void) {
     D_801C2FD8 = 0x1F800000;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B80);
+/**
+ * @brief Allocate aligned memory from the scratchpad heap and return the new pointer.
+ *
+ * Rounds @p a0 up to the next multiple of 4, then advances D_801C2FD8
+ * by that amount. This is the counterpart of func_80098BA0 (which subtracts).
+ *
+ * @param a0 Size to allocate (will be aligned up to 4).
+ * @return The previous value of D_801C2FD8 (start of allocated block).
+ */
+s32 func_80098B80(s32 a0) {
+    extern s32 D_801C2FD8;
+    s32 old = D_801C2FD8;
+    D_801C2FD8 = old + ((a0 + 3) & ~3);
+    return old;
+}
 
 /**
  * @brief Align a size up to 4 bytes and subtract from the allocation pointer.
@@ -219,7 +233,42 @@ void *func_80098CC0(u8 *a0, s32 a1) {
     return node;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098D28);
+/**
+ * @brief Iterate a linked list, calling each node's callback and removing finished nodes.
+ *
+ * Walks through the linked list at @p a0, calling the function pointer at
+ * offset +8 of each node with the node as the argument. If the callback
+ * returns a value with bit 1 set, the node is removed from the list
+ * (flags cleared, unlinked). Otherwise the node is kept and the count
+ * incremented. Updates the list tail pointer when done.
+ *
+ * @param a0 Pointer to the list header (head at +0, tail at +4).
+ * @return Number of nodes remaining in the list.
+ */
+s32 func_80098D28(u8 *a0) {
+    u8 *prev = 0;
+    s32 count = 0;
+    u8 *node = (u8 *)*(s32 *)(a0 + 0);
+    s32 result;
+
+    while (node != 0) {
+        result = ((s32 (*)(u8 *))*(s32 *)(node + 8))(node);
+        if (result & 2) {
+            *(s16 *)(node + 0) = 0;
+            if (prev != 0) {
+                *(s32 *)(prev + 4) = *(s32 *)(node + 4);
+            } else {
+                *(s32 *)(a0 + 0) = *(s32 *)(node + 4);
+            }
+        } else {
+            prev = node;
+            count++;
+        }
+        node = (u8 *)*(s32 *)(node + 4);
+    }
+    *(s32 *)(a0 + 4) = (s32)prev;
+    return count;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098DD4);
 
@@ -314,7 +363,33 @@ u8 *func_80099134(s32 a0, u8 *a1) {
     return dst + func_80047CB4(dst);
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800991AC);
+/**
+ * @brief Convert an integer to a binary string representation.
+ *
+ * Writes the binary digits of @p a0 into the buffer at @p a1,
+ * then returns a pointer to the end of the written string.
+ *
+ * @param a0 The integer value to convert.
+ * @param a1 Pointer to the output buffer.
+ * @return Pointer to the end of the written string.
+ */
+u8 *func_800991AC(s32 a0, u8 *a1) {
+    u8 buf[36];
+    u8 *dst = a1;
+    u8 *p;
+
+    p = buf + 33;
+    buf[33] = 0;
+
+    do {
+        p--;
+        *p = (a0 & 1) + 0x30;
+        a0 >>= 1;
+    } while (a0 != 0);
+
+    func_80047CA4(dst, p);
+    return dst + func_80047CB4(dst);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099204);
 

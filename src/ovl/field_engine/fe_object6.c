@@ -82,7 +82,16 @@ s32 func_800B2AC0(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2AD8);
+/**
+ * Clears bit 0x80 in the flags at offset 0x160, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B2AD8(u8 *a0) {
+    *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x80;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2AF0);
 
@@ -110,7 +119,18 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2E68);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2EDC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2F50);
+/**
+ * Returns 2 if bit 0x800 is set in the flags at offset 0x160, otherwise 1.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 if flag 0x800 is set, else 1.
+ */
+s32 func_800B2F50(u8 *a0) {
+    if (*(s32 *)(a0 + 0x160) & 0x800) {
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2F70);
 
@@ -124,13 +144,36 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3080);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B31B4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3334);
+/**
+ * Clears bits 0x600 in the flags at offset 0x160 and zeroes the
+ * halfword at offset 0x19C, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B3334(u8 *a0) {
+    *(s16 *)(a0 + 0x19C) = 0;
+    *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x600;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3350);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B33B8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3474);
+/**
+ * Clears the bytes at D_800704A8+0x122 and D_800704A8+0x130, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B3474(u8 *a0) {
+    extern u8 D_800704A8[];
+
+    D_800704A8[0x122] = 0;
+    D_800704A8[0x130] = 0;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B348C);
 
@@ -150,7 +193,20 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3788);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B37F8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3868);
+/**
+ * Returns 2 if D_800704CA equals 2, otherwise returns 1.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 if D_800704CA is 2, else 1.
+ */
+s32 func_800B3868(u8 *a0) {
+    extern u8 D_800704CA;
+
+    if (D_800704CA == 2) {
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B388C);
 
@@ -312,13 +368,41 @@ s32 func_800B49D8(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B49E8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4A18);
+/**
+ * Sets D_800704A8 to 5, sets the halfword at D_800704A8+2 to 1,
+ * sets the byte at D_800704A8+0x1AB to 2, returns 3.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 3.
+ */
+s32 func_800B4A18(u8 *a0) {
+    extern u8 D_800704A8[];
+
+    D_800704A8[0] = 5;
+    *(u16 *)(D_800704A8 + 2) = 1;
+    D_800704A8[0x1AB] = 2;
+    return 3;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4A40);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4A88);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4D0C);
+/**
+ * Sets D_800704A8 to 5, sets the halfword at D_800704A8+2 to 0x1A,
+ * sets the byte at D_800704A8+0x1AB to 1, returns 3.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 3.
+ */
+s32 func_800B4D0C(u8 *a0) {
+    extern u8 D_800704A8[];
+
+    D_800704A8[0] = 5;
+    *(u16 *)(D_800704A8 + 2) = 0x1A;
+    D_800704A8[0x1AB] = 1;
+    return 3;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4D34);
 
@@ -363,9 +447,44 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4DFC);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4E60);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4EB0);
+/**
+ * Sets D_800704A8 to 5, sets the halfword at D_800704A8+2 to 0x18,
+ * sets the byte at D_800704A8+0x1AB to 1, returns 3.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 3.
+ */
+s32 func_800B4EB0(u8 *a0) {
+    extern u8 D_800704A8[];
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4ED8);
+    D_800704A8[0] = 5;
+    *(u16 *)(D_800704A8 + 2) = 0x18;
+    D_800704A8[0x1AB] = 1;
+    return 3;
+}
+
+/**
+ * Pops a parameter from the stack. If nonzero, sets bit 0x01 in
+ * D_800562C4+0xD1. Otherwise clears it. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B4ED8(u8 *a0) {
+    extern u8 *D_800562C4;
+    u8 idx;
+    s32 val;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val = *(s32 *)(a0 + (s8)idx * 4);
+    if (val != 0) {
+        *(u8 *)(D_800562C4 + 0xD1) = *(u8 *)(D_800562C4 + 0xD1) | 0x01;
+    } else {
+        *(u8 *)(D_800562C4 + 0xD1) = *(u8 *)(D_800562C4 + 0xD1) & ~0x01;
+    }
+    return 2;
+}
 
 /**
  * Updates bit 2 of the entity byte at offset 0xD1 based on flag 0x200

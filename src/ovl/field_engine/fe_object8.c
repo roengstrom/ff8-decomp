@@ -22,7 +22,18 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B94C0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9570);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B95A0);
+/**
+ * Returns 2 if bit 0x800 is set in the flags at offset 0x160, otherwise 1.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 if flag 0x800 is set, else 1.
+ */
+s32 func_800B95A0(u8 *a0) {
+    if (*(s32 *)(a0 + 0x160) & 0x800) {
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B95C0);
 
@@ -96,9 +107,32 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA9E8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BAAFC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BABFC);
+/**
+ * Returns 2 if the byte at offset 0x244 equals 3, otherwise returns 1.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 if object byte 0x244 is 3, else 1.
+ */
+s32 func_800BABFC(u8 *a0) {
+    if (*(u8 *)(a0 + 0x244) == 3) {
+        return 2;
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BAC18);
+/**
+ * Returns 2 if the halfwords at offsets 0x234 and 0x236 are equal,
+ * otherwise returns 1.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 if values match, else 1.
+ */
+s32 func_800BAC18(u8 *a0) {
+    if (*(u16 *)(a0 + 0x234) == *(u16 *)(a0 + 0x236)) {
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BAC38);
 

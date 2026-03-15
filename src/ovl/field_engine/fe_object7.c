@@ -58,13 +58,64 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6478);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B64B0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6524);
+/**
+ * Loads global byte D_80082C0F into the object result field at offset 0x140,
+ * returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B6524(u8 *a0) {
+    extern u8 D_80082C0F;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B653C);
+    *(s32 *)(a0 + 0x140) = D_80082C0F;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6588);
+/**
+ * If D_800DE8D0 is nonzero, sets bit 0x400 in the flags at D_800562C4+0x68.
+ * Otherwise, clears byte 0xCF of the entity. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B653C(u8 *a0) {
+    extern u8 D_800DE8D0;
+    extern u8 *D_800562C4;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65B0);
+    if (D_800DE8D0 != 0) {
+        *(s32 *)(D_800562C4 + 0x68) = *(s32 *)(D_800562C4 + 0x68) | 0x400;
+    } else {
+        *(u8 *)(D_800562C4 + 0xCF) = 0;
+    }
+    return 2;
+}
+
+/**
+ * Sets byte 0xCF of the entity pointed to by D_800562C4 to 1,
+ * and clears bit 0x400 in the flags at offset 0x68, returns 2.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B6588(u8 *a0) {
+    extern u8 *D_800562C4;
+    u8 *ptr = D_800562C4;
+
+    *(u8 *)(ptr + 0xCF) = 1;
+    *(s32 *)(ptr + 0x68) = *(s32 *)(ptr + 0x68) & ~0x400;
+    return 2;
+}
+
+/**
+ * Returns 2, indicating continue processing.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 2 (continue processing).
+ */
+s32 func_800B65B0(u8 *a0) {
+    return 2;
+}
 
 /**
  * Sets the global byte D_800704A8 to 4, returns 1.
@@ -78,7 +129,15 @@ s32 func_800B65B8(u8 *a0) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65CC);
+/**
+ * Returns 1, indicating wait/yield.
+ *
+ * @param a0 Pointer to the script/object structure (unused).
+ * @return 1.
+ */
+s32 func_800B65CC(u8 *a0) {
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65D4);
 
@@ -118,7 +177,18 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7310);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B73D4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7490);
+/**
+ * Returns 2 if the halfword at offset 0x21E equals 2, otherwise returns 1.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 if value at 0x21E is 2, else 1.
+ */
+s32 func_800B7490(u8 *a0) {
+    if (*(s16 *)(a0 + 0x21E) == 2) {
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B74B0);
 
@@ -170,7 +240,18 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8DC8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8E74);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F20);
+/**
+ * Returns 2 if the byte at offset 0x245 equals 3, otherwise returns 1.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 if object byte 0x245 is 3, else 1.
+ */
+s32 func_800B8F20(u8 *a0) {
+    if (*(u8 *)(a0 + 0x245) == 3) {
+        return 2;
+    }
+    return 1;
+}
 
 /**
  * Sets the global byte D_8007064C to 1, returns 2.
