@@ -12,7 +12,29 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BD7E4)
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BD82C);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BD918);
+/**
+ * @brief Copy 10 flag bytes from D_800780D8 to destination struct.
+ *
+ * Copies bytes at D_800780D8 offsets 0x108-0x10F to dst offsets 0x66-0x6D,
+ * and 0x100-0x101 to dst offsets 0x6E-0x6F.
+ *
+ * @param dst Destination buffer pointer.
+ */
+void func_800BD918(u8 *dst) {
+    extern u8 D_800780D8[];
+    u8 *src = D_800780D8;
+
+    dst[0x66] = src[0x108];
+    dst[0x67] = src[0x109];
+    dst[0x68] = src[0x10A];
+    dst[0x69] = src[0x10B];
+    dst[0x6A] = src[0x10C];
+    dst[0x6B] = src[0x10D];
+    dst[0x6C] = src[0x10E];
+    dst[0x6D] = src[0x10F];
+    dst[0x6E] = src[0x100];
+    dst[0x6F] = src[0x101];
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BD998);
 
