@@ -106,7 +106,26 @@ void func_800B1A48(void) {
     func_800A59AC(val, 7, 0);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1A78);
+/**
+ * @brief Check if all enemy entities have HP below threshold 0xC8.
+ *
+ * @return 0 if a live enemy has value >= 0xC8, 1 otherwise.
+ */
+s32 func_800B1A78(void) {
+    s32 i = 3;
+    s32 base = (s32)D_800ED148;
+    s32 ptr = base + 0x270;
+top:
+    if (!(*(u16 *)(ptr + 0x90) & 1)) {
+        if (*(u8 *)(ptr + 0xB8) >= 0xC8) {
+            return 0;
+        }
+    }
+    i++;
+    ptr += 0xD0;
+    if (i < 7) goto top;
+    return 1;
+}
 
 /**
  * @brief Check battle conditions and trigger entity action sequence.
@@ -176,7 +195,29 @@ void func_800B1BA8(s32 a0, s32 a1) {
     func_800A59AC(func_800AE6F8(), 8, 0);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1BE4);
+/**
+ * @brief Check if any other party entity has specific status flags.
+ *
+ * @param a0 Entity index to skip.
+ * @param a1 Status mask to check.
+ * @return 1 if a matching entity is found, 0 otherwise.
+ */
+s32 func_800B1BE4(s32 a0, s32 a1) {
+    s32 i = 0;
+    s32 ptr = (s32)D_800ED148;
+top:
+    if (i != a0) {
+        if (*(s32 *)(ptr + 0x8C) & 1) {
+            if (*(u16 *)(ptr + 0x90) & a1) {
+                return 1;
+            }
+        }
+    }
+    i++;
+    ptr += 0xD0;
+    if (i < 3) goto top;
+    return 0;
+}
 
 /**
  * @brief Call func_800B0754 with rearranged parameters.
@@ -236,7 +277,25 @@ void func_800B2084(void) {
     *(u8 *)D_800EE465 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B20D8);
+/**
+ * @brief Check if all active party entities have status bit 2 set.
+ *
+ * @return 0 if an active entity without bit 2 is found, 1 otherwise.
+ */
+s32 func_800B20D8(void) {
+    s32 i = 0;
+    s32 ptr = (s32)D_800ED148;
+top:
+    if (*(s32 *)(ptr + 0x8C) & 1) {
+        if (!(*(u16 *)(ptr + 0x90) & 4)) {
+            return 0;
+        }
+    }
+    i++;
+    ptr += 0xD0;
+    if (i < 3) goto top;
+    return 1;
+}
 
 /**
  * @brief Check if conditions are met to initiate an auto-battle action.
