@@ -23,7 +23,7 @@ s32 func_800BD1F4(FieldEntity *entity) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD250);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD2AC);
+s32 func_800BD2AC(FieldEntity *entity) { u8 *a0 = (u8 *)entity; u8 idx = entity->stackIdx; s16 buf[4]; entity->stackIdx = idx - 1; func_800BD250(*(s32 *)(a0 + (s8)idx * 4), (u8 *)buf); func_800A9434(*(u8 *)(a0 + 0x256), 0x30, 1, (u8 *)buf, 0x1E); return 2; }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD318);
 
@@ -35,7 +35,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD64C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD6EC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD794);
+void func_800BD794(void) { s32 i = 0; do { s32 status = func_8003837C(i) - 1; if ((u32)status < 2) { if (func_80038464() & 1) { func_800383B8(i, status); } } i++; } while (i < 0x100); }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD804);
 
@@ -96,7 +96,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BEBD0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BF080);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BF230);
+void func_800BF230(FieldEntity *entity) { extern u8 D_800D9630[]; u8 *a0 = (u8 *)entity; u8 *obj; func_800AA46C(*(u8 *)(a0 + 0x256), 0xD, *(u8 *)(a0 + 0x24E), 0); obj = *(u8 **)(D_800D9630 + *(u8 *)(a0 + 0x256) * 4); *(u16 *)(obj + 0x52) = *(u16 *)(a0 + 0x206); }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BF28C);
 
