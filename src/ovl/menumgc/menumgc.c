@@ -3,8 +3,53 @@
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5800);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5918);
+/**
+ * @brief Get available GF mask filtered by character status flags.
+ *
+ * Calls func_801F22F4 and func_801F2298 to get base masks, ANDs them,
+ * then iterates through 8 characters. For each, if the character's
+ * status at D_80077378 + i*152 + 0x526 has bits 0x4 or 0x10 set,
+ * clears that character's bit from the result mask.
+ *
+ * @return Filtered GF availability bitmask.
+ */
+s32 func_801E5918(void) {
+    extern u8 D_80077378[];
+    s32 result;
+    s32 i;
+    s32 bit;
+    u8 *ptr;
 
+    result = func_801F22F4();
+    result &= func_801F2298();
+    i = 0;
+    bit = 1;
+    ptr = D_80077378;
+    do {
+        s32 flags = *(u16 *)(ptr + 0x526);
+        if (flags & 4) {
+            result &= ~(bit << i);
+        }
+        if (flags & 0x10) {
+            result &= ~(bit << i);
+        }
+        i++;
+        ptr += 0x98;
+    } while (i < 8);
+    return result;
+}
+
+/**
+ * @brief Check if a character is available for magic junction.
+ *
+ * Reads the low bit from D_801F87B8[charIdx] to determine availability.
+ * If button 0x40 is held (func_801F79F8), returns the availability bit.
+ * Otherwise checks the character's class at D_80078E00 + charIdx * 60 + 0x223:
+ * if class is 5, 6, or higher, returns 0 (unavailable), else returns the bit.
+ *
+ * @param charIdx Character index (0-7).
+ * @return 1 if available, 0 if not.
+ */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E599C);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5A28);
@@ -130,6 +175,16 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E67E0);
  * in v1 and lbu result in v0, but original uses v0 for constant and v1
  * for lbu. Instruction order is identical otherwise.
  */
+/**
+ * @brief Render magic entry with adjusted width based on character attribute.
+ *
+ * Computes width as 0xCA minus half of the byte at a0+0x5B, and Y position
+ * as a2 * 13 + 0x78. Calls func_801F0A34 to render.
+ *
+ * @param a0 Pointer to character data (byte at 0x5B used for width adjustment).
+ * @param a1 X position parameter.
+ * @param a2 Row index (multiplied by 13 and offset by 0x78 for Y position).
+ */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6810);
 
 /**
@@ -166,7 +221,27 @@ void func_801E68F0(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6940);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E69EC);
+/**
+ * @brief Display a stat value from a lookup table with extended rendering.
+ *
+ * Copies 8 halfwords from D_801EC814 into a local buffer, loads the value
+ * at a0+0x50, indexes the table by a2, adds 0x32, and renders via
+ * func_801F0A78 with the stat value as width parameter and 0xD as height.
+ *
+ * @param a0 Character context (offset 0x50 used for stat value).
+ * @param a1 Render context pointer.
+ * @param a2 Index into the stat table (0-7).
+ */
+void func_801E69EC(u8 *a0, s32 a1, s32 a2) {
+    extern u8 D_801EC814[];
+    s16 buf[32];
+    s32 stat;
+
+    stat = *(s16 *)(a0 + 0x50);
+    func_801F5984(D_801EC814, buf, 8);
+    a2 *= 2;
+    func_801F0A78(a1, 0, stat, buf[a2 / 2] + 0x32, 0xD);
+}
 
 /**
  * @brief Render magic entry at computed Y position with width 0x26.
@@ -207,9 +282,44 @@ void func_801E6B3C(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6B8C);
 
+/**
+ * @brief Toggle a magic junction slot for a character using slot/8 division.
+ *
+ * Calls func_801F58EC to get the current selection, func_801F57A4 to get
+ * flags. If the low bit of the flags is set, divides the selection by 8,
+ * recalculates slot via func_801F5150, stores via func_801F576C, updates
+ * position via func_801F5868, and returns 1. Otherwise returns 0.
+ *
+ * @param a0 Menu context pointer.
+ * @return 1 if the junction was toggled, 0 otherwise.
+ */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6CCC);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6D58);
+/**
+ * @brief Toggle a magic junction slot for a character if bit 0 is set.
+ *
+ * Calls func_801F58EC to get the current slot index, then func_801F57A4
+ * to get flags. If the low bit of the flags is set, recalculates the
+ * slot via func_801F5150, stores it via func_801F576C, sets the position
+ * via func_801F5868, and returns 1. Otherwise returns 0.
+ *
+ * @param a0 Menu context pointer.
+ * @return 1 if the junction was toggled, 0 otherwise.
+ */
+s32 func_801E6D58(s32 a0) {
+    s32 slot;
+    s32 flags;
+
+    slot = func_801F58EC(a0);
+    flags = func_801F57A4(a0);
+    if ((flags & 1) == 0) {
+        return 0;
+    }
+    flags = func_801F5150(slot, slot, flags);
+    func_801F576C(a0, flags);
+    func_801F5868(a0, slot);
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6DD0);
 
@@ -221,9 +331,52 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EAF50);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB0F4);
 
+/**
+ * @brief Render a list item with name lookup and positioned text.
+ *
+ * Loads the item pointer from D_801FAB00+0x20 at offset a2*4, decodes
+ * a name string via func_8002F688 and renders it via func_801F0FEC.
+ * Position is computed from D_801FAB00 fields + the 5th stack arg + 0xA.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Current display state value.
+ * @param a2 Item index in the list.
+ * @param arg4 Additional Y offset from caller (5th stack arg, at sp+0xC0).
+ * @return Updated display state from func_801F0FEC, or a1 if item is null.
+ */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB1A0);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB250);
+/**
+ * @brief Register a list-style menu display callback with header config.
+ *
+ * Configures the D_801FAB00 menu display config struct with icon type 0x55,
+ * dimensions (0x144 x 0x1A), scroll enabled, page mode, and registers
+ * func_801EB1A0 as the display callback via func_801EFBB4.
+ *
+ * @param a0 Context pointer (offset 0x24 used for item list, 0x34/0x44 for counts).
+ * @param a1 First parameter for func_801EFBB4.
+ * @param a2 Second parameter for func_801EFBB4.
+ * @param a3 Y position for menu display.
+ * @param arg4 Y2 position for menu display.
+ */
+void func_801EB250(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    extern u8 D_801FAB00[];
+    extern void func_801EB1A0();
+    u8 *cfg = D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0x55;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)(cfg + 0x00) = a3;
+    *(s16 *)(cfg + 0x04) = 0x144;
+    *(s16 *)(cfg + 0x06) = 0x1A;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x02) = arg4;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x34) + *(u16 *)(a0 + 0x44);
+    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x24);
+    func_801EFBB4(a1, a2, (s32)func_801EB1A0);
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB2D4);
 
