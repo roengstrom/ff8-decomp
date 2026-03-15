@@ -1,4 +1,5 @@
 #include "common.h"
+#include "field.h"
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB2A4);
 
@@ -10,7 +11,31 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB5E0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB650);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB6C8);
+/**
+ * @brief Copy 12 animation halfwords from D_800704A8 table to entity.
+ *
+ * Copies halfwords at D_800704A8 offsets 0x108-0x11E to the entity
+ * at offsets 0xD8-0xEE (matching pairs: src+0x108->dst+0xD8, etc).
+ */
+void func_800BB6C8(void) {
+    extern u8 D_800704A8[];
+    extern u8 D_800562C4[];
+    u8 *dst = (u8 *)*(s32 *)D_800562C4;
+    u8 *src = D_800704A8;
+
+    *(u16 *)(dst + 0xD8) = *(u16 *)(src + 0x108);
+    *(u16 *)(dst + 0xDC) = *(u16 *)(src + 0x10C);
+    *(u16 *)(dst + 0xDA) = *(u16 *)(src + 0x10A);
+    *(u16 *)(dst + 0xDE) = *(u16 *)(src + 0x10E);
+    *(u16 *)(dst + 0xE0) = *(u16 *)(src + 0x110);
+    *(u16 *)(dst + 0xE2) = *(u16 *)(src + 0x112);
+    *(u16 *)(dst + 0xE4) = *(u16 *)(src + 0x114);
+    *(u16 *)(dst + 0xE6) = *(u16 *)(src + 0x116);
+    *(u16 *)(dst + 0xE8) = *(u16 *)(src + 0x118);
+    *(u16 *)(dst + 0xEA) = *(u16 *)(src + 0x11A);
+    *(u16 *)(dst + 0xEC) = *(u16 *)(src + 0x11C);
+    *(u16 *)(dst + 0xEE) = *(u16 *)(src + 0x11E);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB768);
 
@@ -112,4 +137,24 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BCECC);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BD024);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BD1A4);
+/**
+ * @brief Pop value, clear D_80085398 table entry, call sound handler.
+ *
+ * Pops the stack to get an index, clears the halfword at D_80085398[idx * 16],
+ * then calls func_80031D68 with the popped value.
+ *
+ * @param entity Script entity context.
+ * @return 2.
+ */
+s32 func_800BD1A4(FieldEntity *entity) {
+    extern u8 D_80085398[];
+    u8 *a0 = (u8 *)entity;
+    u8 idx = entity->stackIdx;
+    s32 val;
+
+    entity->stackIdx = idx - 1;
+    val = *(s32 *)(a0 + (s8)idx * 4);
+    *(u16 *)(D_80085398 + val * 16) = 0;
+    func_80031D68(val);
+    return 2;
+}

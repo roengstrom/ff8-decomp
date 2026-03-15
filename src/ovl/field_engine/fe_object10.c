@@ -1,6 +1,25 @@
 #include "common.h"
+#include "field.h"
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD1F4);
+/**
+ * @brief Pop value from script stack and branch to one of two handlers.
+ *
+ * Calls func_800C03BC if popped value is nonzero, func_800C03D8 if zero.
+ * @param entity Script entity context.
+ * @return 2.
+ */
+s32 func_800BD1F4(FieldEntity *entity) {
+    u8 *a0 = (u8 *)entity;
+    u8 idx = entity->stackIdx;
+    entity->stackIdx = idx - 1;
+
+    if (*(s32 *)(a0 + (s8)idx * 4) != 0) {
+        func_800C03BC();
+    } else {
+        func_800C03D8();
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD250);
 
