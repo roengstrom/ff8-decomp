@@ -1,6 +1,10 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5800);
+/** @brief Look up value from D_801FA3C8 table by dividing input by 64. */
+u16 func_801E5800(s32 a0) {
+    extern u16 D_801FA3C8[];
+    return D_801FA3C8[a0 / 64];
+}
 
 /**
  * @brief Look up status display type byte.
@@ -119,7 +123,19 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E6EA0);
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E709C);
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E7278);
+/** @brief Build status bitfield from character data flags. */
+s32 func_801E7278(u8 *a0) {
+    s32 result = *(u16 *)(a0 + 0x1B4) & 0x7F;
+    s32 flags = *(s32 *)(a0 + 0x18C);
+
+    if (flags & 0x1) result |= 0x80;
+    if (flags & 0x4) result |= 0x100;
+    if (flags & 0x8) result |= 0x200;
+    if (flags & 0x200) result |= 0x400;
+    if (flags & 0x4000) result |= 0x800;
+    if (flags & 0x8000) result |= 0x1000;
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E72D8);
 

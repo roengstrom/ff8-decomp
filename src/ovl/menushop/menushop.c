@@ -297,7 +297,13 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8BD8);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8D84);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8FF8);
+/** @brief Return color code: 7 (equal), 3 (a0 > a1), 2 (a0 < a1). */
+s32 func_801E8FF8(s32 a0, s32 a1) {
+    s32 color = 7;
+    if (a0 > a1) color = 3;
+    if (a0 < a1) color = 2;
+    return color;
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E9020);
 
