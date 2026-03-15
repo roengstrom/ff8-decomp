@@ -1,4 +1,5 @@
 #include "common.h"
+#include "character.h"
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5800);
 
@@ -10,7 +11,29 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5A28);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5B00);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5C00);
+/**
+ * @brief Search for a magic spell by ID in a character's spell table.
+ *
+ * Iterates through 32 MagicSlot entries (g_characterMagic + charIdx * 152)
+ * looking for a matching magicId. Returns the slot index if found, 0 if not.
+ *
+ * @param charIdx Character index (0-7).
+ * @param spellId Magic spell ID to search for.
+ * @return Slot index (1-31) if found, 0 if not found.
+ */
+s32 func_801E5C00(s32 charIdx, s32 spellId) {
+    extern u8 D_80077818[];
+    u8 *ptr = D_80077818 + charIdx * 152;
+    s32 i = 0;
+
+    do {
+        if (spellId == *ptr) return i;
+        i++;
+        ptr += 2;
+    } while (i < 32);
+
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5C50);
 
