@@ -701,10 +701,12 @@ void func_801E7B18(u8 *a0) {
  * @param a0 Save slot index (stride 68).
  * @return Address of D_801EBD5C + a0 * 68.
  *
- * @note Non-matching: compiler schedules sll/addu/sll multiply chain
- * before lui/addiu base address load. Original has lui/addiu first.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B40);
+s32 func_801E7B40(s32 a0) {
+    extern u8 D_801EBD5C[];
+    s32 base = D_801EBD5C;
+    return base + a0 * 68;
+}
 
 /**
  * @brief Advance save data loading state machine.
