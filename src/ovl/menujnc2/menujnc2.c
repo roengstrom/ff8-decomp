@@ -418,10 +418,14 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBD90);
  * @param a2 Ability bit to check.
  * @return 7 if already junctioned, 1 if available, 0 if not.
  *
- * @note Non-matching: Compiler inverts branch direction (bnez falls
- * through to and+sltu+j instead of jumping to li v0,7 directly).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBEBC);
+s32 func_801EBEBC(s32 a0, s32 a1, s32 a2) {
+    s32 result = 7;
+    if (!(a0 & a2)) {
+        result = (a1 & a2) != 0;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBED8);
 
