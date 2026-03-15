@@ -50,7 +50,15 @@ s32 func_800B6400(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6420);
+/** @brief If animation bit set, clear halfword at 0x204. Returns 2. */
+s32 func_800B6420(u8 *a0) {
+    u8 bit = *(u8 *)(a0 + 0x175);
+    u8 shift = *(u8 *)(a0 + 0x174);
+    if ((bit >> shift) & 1) {
+        *(u16 *)(a0 + 0x204) = 0;
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6448);
 
@@ -194,9 +202,23 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B74B0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7578);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7640);
+/** @brief If animation bit set, clear bit 0x10000 in flags. Returns 1. */
+s32 func_800B7640(u8 *a0) {
+    u8 bit = *(u8 *)(a0 + 0x175);
+    u8 shift = *(u8 *)(a0 + 0x174);
+    if ((bit >> shift) & 1) {
+        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x10000;
+    }
+    return 1;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7674);
+/** @brief Pop byte from stack, store to offset 0x262. Returns 2. */
+s32 func_800B7674(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)(a0 + 0x262) = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B76A4);
 
@@ -288,7 +310,17 @@ s32 func_800B8F60(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F80);
+/** @brief Compare D_800704A8 entries. Returns 1 if different, 2 if same. */
+s32 func_800B8F80(u8 *a0) {
+    extern u8 D_800704A8[];
+    u8 *base = D_800704A8;
+    u16 val1 = *(u16 *)(base + 0x106);
+    u16 val2 = *(u16 *)(base + 0x104);
+    if (val1 == val2) {
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8FA8);
 
