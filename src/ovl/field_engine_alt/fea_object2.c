@@ -57,7 +57,17 @@ void func_8009D814(void) {
     D_800D23D8[0x66] &= ~0x40;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D840);
+/**
+ * @brief Clear two flag bytes at entity-relative offsets.
+ * @param a0 Entity slot index offset.
+ */
+void func_8009D840(s32 a0) {
+    u8 *base1 = D_800780D8;
+    u8 *base2 = D_800D23D8;
+
+    *(u8 *)(a0 + (s32)base1 + 0x10D) = 0;
+    *(u8 *)(a0 + (s32)base2 + 0x6B) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D864);
 
