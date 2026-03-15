@@ -49,9 +49,29 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009BEC8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009CEE8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009D234);
+/**
+ * Looks up a halfword from the D_800C32A0 table by index.
+ *
+ * @param a0 Table index (masked to 8 bits).
+ * @return The halfword value at D_800C32A0[a0].
+ */
+s16 func_8009D234(s32 a0) {
+    extern u8 D_800C32A0[];
+    a0 &= 0xFF;
+    return *(s16 *)(D_800C32A0 + a0 * 2);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009D254);
+/**
+ * Looks up a halfword from the D_800C3320 table by index.
+ *
+ * @param a0 Table index (masked to 8 bits).
+ * @return The halfword value at D_800C3320[a0].
+ */
+s16 func_8009D254(s32 a0) {
+    extern u8 D_800C3320[];
+    a0 &= 0xFF;
+    return *(s16 *)(D_800C3320 + a0 * 2);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009D274);
 
@@ -59,7 +79,18 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009D500);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009D598);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009DED8);
+/**
+ * Subtracts two 3-component short vectors, storing result as words.
+ *
+ * @param a0 Destination word array.
+ * @param a1 Source vector A (s16 array).
+ * @param a2 Source vector B (s16 array).
+ */
+void func_8009DED8(u8 *a0, u8 *a1, u8 *a2) {
+    *(s32 *)(a0 + 0) = *(s16 *)(a1 + 0) - *(s16 *)(a2 + 0);
+    *(s32 *)(a0 + 4) = *(s16 *)(a1 + 2) - *(s16 *)(a2 + 2);
+    *(s32 *)(a0 + 8) = *(s16 *)(a1 + 4) - *(s16 *)(a2 + 4);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009DF18);
 
