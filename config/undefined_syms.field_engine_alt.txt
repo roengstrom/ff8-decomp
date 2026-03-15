@@ -1,3 +1,6 @@
+/* Functions referenced in asm but missing from undefined_funcs_auto */
+func_800B3FD4 = 0x800B3FD4;
+
 /* Symbols for data tables incorrectly disassembled as code by splat.
    Cross-file labels and bogus function pointers from data segments. */
 .L800AB364 = 0x800AB364;
