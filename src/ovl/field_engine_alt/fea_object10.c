@@ -64,7 +64,46 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BE284)
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BE3D0);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BE4D8);
+/**
+ * @brief Linearly interpolate between two 3D vectors.
+ *
+ * Computes out[i] = b[i] + (a[i] - b[i]) * t / 4096 for each of 3
+ * components, using fixed-point arithmetic with rounding toward zero.
+ *
+ * @param a Source vector (3 x s32).
+ * @param b Base vector (3 x s32).
+ * @param t Interpolation factor (s16, fixed-point 12-bit).
+ * @param out Output vector (3 x s32). If NULL, no operation.
+ */
+void func_800BE4D8(s32 *a, s32 *b, s32 t, s32 *out) {
+    s32 diff;
+    s32 val;
+    s16 frac;
+
+    if (out == 0) {
+        return;
+    }
+
+    diff = a[0] - b[0];
+    frac = t;
+    val = diff * frac;
+    if (val < 0) {
+        val += 0xFFF;
+    }
+    out[0] = b[0] + (val >> 12);
+
+    val = (a[1] - b[1]) * frac;
+    if (val < 0) {
+        val += 0xFFF;
+    }
+    out[1] = b[1] + (val >> 12);
+
+    val = (a[2] - b[2]) * frac;
+    if (val < 0) {
+        val += 0xFFF;
+    }
+    out[2] = b[2] + (val >> 12);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BE578);
 
