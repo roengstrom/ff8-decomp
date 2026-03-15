@@ -1,4 +1,6 @@
 /* Functions referenced in asm but missing from undefined_funcs_auto */
+func_800A5E40 = 0x800A5E40;
+func_800A5F78 = 0x800A5F78;
 func_800B3FD4 = 0x800B3FD4;
 
 /* Symbols for data tables incorrectly disassembled as code by splat.

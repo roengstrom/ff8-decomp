@@ -37,7 +37,19 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D688);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D760);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009D7D8);
+/** @brief Compare input against two entity IDs, return 0x29, 0x18, or -1. */
+s32 func_8009D7D8(s32 a0) {
+    extern s32 D_800C9E68;
+    extern s32 D_800C9E70;
+    s32 result = -1;
+
+    if (D_800C9E68 == a0) {
+        result = 0x29;
+    } else if (D_800C9E70 == a0) {
+        result = 0x18;
+    }
+    return result;
+}
 
 /** Clears bit 0x40 on two related flag bytes. */
 void func_8009D814(void) {
@@ -77,7 +89,20 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009FE80);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009FEBC);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009FEDC);
+/** @brief Clear a 15-byte animation structure and set type byte at offset 0xA. */
+void func_8009FEDC(u8 *a0, u8 a1) {
+    a0[0xE] = 0;
+    a0[0xD] = 0;
+    a0[0xC] = 0;
+    a0[0xB] = 0;
+    a0[0xA] = 0;
+    a0[0x9] = 0;
+    a0[0x8] = 0;
+    *(u16 *)(a0 + 0x0) = 0;
+    *(u16 *)(a0 + 0x2) = 0;
+    *(u16 *)(a0 + 0x4) = 0;
+    a0[0xA] = a1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object2", func_8009FF0C);
 
