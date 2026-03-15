@@ -65,9 +65,21 @@ void func_800ADD30(u8 *a0) {
     *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) * *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADD68);
+/** @brief Stack division: [idx] = [idx] / [idx+1]. */
+void func_800ADD68(u8 *a0) {
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) / *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADDA0);
+/** @brief Stack modulo: [idx] = [idx] % [idx+1]. */
+void func_800ADDA0(u8 *a0) {
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) % *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
 /**
  * Pops the stack index, tests [idx] == [idx+1], stores boolean at [idx].
@@ -187,9 +199,21 @@ void func_800ADFBC(u8 *a0) {
     *(s32 *)(a0 + idx * 4) = ~*(s32 *)(a0 + idx * 4);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADFE0);
+/** @brief Stack arithmetic right shift: [idx] = [idx] >> [idx+1]. */
+void func_800ADFE0(u8 *a0) {
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) >> *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE014);
+/** @brief Stack left shift: [idx] = [idx] << [idx+1]. */
+void func_800AE014(u8 *a0) {
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) << *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
 /**
  * Dispatches to a function from the D_800C6760 table based on index a1, returns 2.
@@ -244,15 +268,41 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE6F4);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE754);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE7B4);
+/** @brief Pop top-of-stack and store to result slot a1*4+0x140. Returns 2. */
+s32 func_800AE7B4(u8 *a0, s32 a1) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + a1 * 4 + 0x140) = *(s32 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE7E4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE81C);
+/** @brief Pop halfword from stack and store to D_800780D8[a1]. Returns 2. */
+s32 func_800AE81C(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(D_800780D8 + a1) = *(u16 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE854);
+/** @brief Pop word from stack and store to D_800780D8[a1]. Returns 2. */
+s32 func_800AE854(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(D_800780D8 + a1) = *(s32 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE88C);
+/** @brief Push immediate value a1 onto stack. Returns 2. */
+s32 func_800AE88C(u8 *a0, s32 a1) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx + 1;
+    *(s32 *)(a0 + (s8)(idx + 1) * 4) = a1;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE8B4);
 
