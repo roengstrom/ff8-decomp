@@ -674,7 +674,28 @@ void func_800A57E0(s32 a0) {
     func_800A5948(a0, idx);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A584C);
+/**
+ * @brief Count how many entries in two tables match the given value.
+ *
+ * @param a0 Value to match.
+ * @return Total number of matching entries across both tables.
+ */
+s32 func_800A584C(s32 a0) {
+    s32 count = 0;
+    s32 i = 0;
+    s32 ptr = (s32)&D_800ED148;
+top:
+    if (*(u8 *)(ptr + 0xFF8) == a0) {
+        count++;
+    }
+    if (*(u8 *)(ptr + 0xEF0) == a0) {
+        count++;
+    }
+    i++;
+    ptr += 0x18;
+    if (i < 11) goto top;
+    return count;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A589C);
 
