@@ -19,10 +19,12 @@ extern u8 D_800F1B7C[];
 extern s32 D_800F1B78;
 extern s32 D_800F1B80;
 extern u8 D_800F02F4[];
+extern u8 D_800F0290[];
+extern u8 D_800F1AA0[];
 extern u8 D_800F02E8[];
 extern u8 D_800EF724[];
 void func_800C372C(void);
-void func_800C3998(void);
+void func_800C3998(s16, s16);
 void func_800C39F8(void);
 void func_800C3C0C(void);
 void func_800C3EFC(void);
@@ -200,7 +202,26 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3898);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C38BC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C3998);
+/**
+ * @brief Store a value to one of several sound parameter tables.
+ *
+ * If a0 < 8, stores a1 to D_800F0290[a0] (low channel table).
+ * If a0 >= 120, stores a1 to D_800F1AA0[127-a0] (high channel table).
+ * If a0 == 16, stores a1 to D_800F02F4.
+ * Otherwise does nothing.
+ *
+ * @param a0 Channel/register index (sign-extended to s16).
+ * @param a1 Value to store.
+ */
+void func_800C3998(s16 a0, s16 a1) {
+    if (a0 >= 0x78) {
+        *(s16 *)((0x7F - a0) * 2 + (s32)D_800F1AA0) = a1;
+    } else if (a0 < 8) {
+        *(s16 *)(a0 * 2 + (s32)D_800F0290) = a1;
+    } else if (a0 == 0x10) {
+        *(s16 *)D_800F02F4 = a1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C39F8);
 
