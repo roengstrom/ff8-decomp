@@ -11,7 +11,17 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009895C);
 void func_80099124(void) {
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009912C);
+/** @brief Call func_8002DD58 for sound channels 0-7, then func_8002A834(1). */
+void func_8009912C(void) {
+    s16 i = 0;
+
+    do {
+        func_8002DD58(i);
+        i++;
+    } while (i < 8);
+
+    func_8002A834(1);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80099180);
 
