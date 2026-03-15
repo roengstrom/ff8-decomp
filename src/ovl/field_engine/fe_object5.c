@@ -82,9 +82,21 @@ s32 func_800B0C58(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0C64);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0CCC);
+/** @brief Pop halfword from stack and store to offset 0x1F8. Returns 2. */
+s32 func_800B0CCC(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x1F8) = *(u16 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0CFC);
+/** @brief Pop halfword from stack and store to offset 0x1F6. Returns 2. */
+s32 func_800B0CFC(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x1F6) = *(u16 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0D2C);
 

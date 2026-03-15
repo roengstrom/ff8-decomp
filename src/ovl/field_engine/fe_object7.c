@@ -292,7 +292,13 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8F80);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8FA8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B9000);
+/** @brief Pop byte from stack and store to offset 0x240. Returns 2. */
+s32 func_800B9000(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)(a0 + 0x240) = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B9030);
 
