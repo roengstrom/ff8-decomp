@@ -331,7 +331,19 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5A20);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5C9C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5CF8);
+/**
+ * Increments the global byte D_8005F103 and returns the value at
+ * D_800C3520[D_8005F103].
+ *
+ * @return The byte from the D_800C3520 lookup table.
+ */
+u8 func_800A5CF8(void) {
+    extern u8 D_8005F103;
+    extern u8 D_800C3520[];
+
+    D_8005F103++;
+    return D_800C3520[D_8005F103];
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5D28);
 

@@ -16,11 +16,37 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9288);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9290);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9488);
+/**
+ * Copies several entity fields: 0x160->0x20E, 0x24E->0x24D,
+ * 0x206->0x210, 0x208->0x212, 0x20A->0x214, 0x20C->0x216.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B9488(u8 *a0) {
+    *(u16 *)(a0 + 0x20E) = *(u16 *)(a0 + 0x160);
+    *(u8 *)(a0 + 0x24D) = *(u8 *)(a0 + 0x24E);
+    *(u16 *)(a0 + 0x210) = *(u16 *)(a0 + 0x206);
+    *(u16 *)(a0 + 0x212) = *(u16 *)(a0 + 0x208);
+    *(u16 *)(a0 + 0x214) = *(u16 *)(a0 + 0x20A);
+    *(u16 *)(a0 + 0x216) = *(u16 *)(a0 + 0x20C);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B94C0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9570);
+/**
+ * Pops a halfword from the stack and stores it to offset 0x208.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B9570(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x208) = *(u16 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 /**
  * Returns 2 if bit 0x800 is set in the flags at offset 0x160, otherwise 1.
@@ -69,13 +95,48 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9D20);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9D7C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9F28);
+/**
+ * Pops a byte from the stack and stores it to offset 0x261.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B9F28(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)(a0 + 0x261) = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9F58);
+/**
+ * Pops a byte from the stack and stores it to offset 0x241.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B9F58(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)(a0 + 0x241) = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9F88);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA034);
+/**
+ * Pops a value from the stack, looks up a pointer in D_80085230[val],
+ * calls func_8009E604, and stores the byte result at offset 0x241.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800BA034(u8 *a0) {
+    extern u8 D_80085230[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)(a0 + 0x241) = func_8009E604(a0, *(s32 *)(D_80085230 + *(s32 *)(a0 + (s8)idx * 4) * 4));
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA09C);
 

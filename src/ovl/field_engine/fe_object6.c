@@ -74,7 +74,21 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B27C4);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2864);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2A40);
+/**
+ * Pops a byte from the stack, stores it at offset 0x188, and stores
+ * the second argument at offset 0x189. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @param a1 Value to store at offset 0x189.
+ * @return 2 (continue processing).
+ */
+s32 func_800B2A40(u8 *a0, s32 a1) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)(a0 + 0x188) = *(u8 *)(a0 + (s8)idx * 4);
+    *(u8 *)(a0 + 0x189) = a1;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2A70);
 

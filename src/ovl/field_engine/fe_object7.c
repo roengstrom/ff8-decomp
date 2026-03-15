@@ -60,7 +60,19 @@ s32 func_800B6420(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6448);
+/**
+ * Pops a halfword from the stack and stores it to D_8007737C.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B6448(u8 *a0) {
+    extern u8 D_8007737C[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)D_8007737C = *(u16 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6478);
 
@@ -159,7 +171,19 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B67F4);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6854);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B68B8);
+/**
+ * Pops a halfword from the stack and stores it to both offsets 0x1FE and 0x200.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B68B8(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x1FE) = *(u16 *)(a0 + (s8)idx * 4);
+    *(u16 *)(a0 + 0x200) = *(u16 *)(a0 + 0x1FE);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B68EC);
 
@@ -238,7 +262,19 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B83FC);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B84D8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B85C8);
+/**
+ * Pops a word from the stack and stores the low byte to D_80070656.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B85C8(u8 *a0) {
+    extern u8 D_80070656[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)D_80070656 = *(volatile s32 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B85F8);
 
