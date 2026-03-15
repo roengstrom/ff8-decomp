@@ -203,7 +203,21 @@ void func_800A2EE0(u8 *a0) {
     func_800A2F70(a0 + 0x4B20);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2F28);
+/**
+ * Clears 16 bytes at offset 0x190 (backwards loop).
+ *
+ * @param a0 Unused parameter.
+ * @param a1 Pointer to the object structure base.
+ */
+void func_800A2F28(s32 a0, u8 *a1) {
+    s32 i = 0xF;
+    a1 += 0xF;
+    do {
+        *(u8 *)(a1 + 0x190) = 0;
+        i--;
+        a1--;
+    } while (i >= 0);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2F48);
 
@@ -253,7 +267,19 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A4758);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A48CC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A4910);
+/**
+ * Linear interpolation: a0 + (a1 - a0) * a3 / a2.
+ *
+ * @param a0 Start value.
+ * @param a1 End value.
+ * @param a2 Divisor.
+ * @param a3 Numerator.
+ * @return Interpolated value.
+ */
+s32 func_800A4910(s32 a0, s32 a1, s32 a2, s32 a3) {
+    a1 -= a0;
+    return a0 + a1 * a3 / a2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A4934);
 
