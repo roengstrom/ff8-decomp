@@ -109,9 +109,27 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object1", func_8009CB70);
 void func_8009CC34(void) {
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object1", func_8009CC3C);
+/** @brief Advance D_800C4FD4 index, add 0xD to D_800C4FD3 on wraparound, return table diff. */
+s32 func_8009CC3C(void) {
+    extern u8 D_800C4FD4;
+    extern u8 D_800C4FD3;
+    extern u8 D_800C4DCC[];
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object1", func_8009CC98);
+    D_800C4FD4++;
+    if ((u8)D_800C4FD4 == 0) {
+        D_800C4FD3 += 0xD;
+    }
+    return (u8)(D_800C4DCC[D_800C4FD4] - D_800C4FD3);
+}
+
+/** @brief Increment D_800C4FD7 index, return D_800C4DCC table value at new index. */
+s32 func_8009CC98(void) {
+    extern u8 D_800C4FD7;
+    extern u8 D_800C4DCC[];
+
+    D_800C4FD7++;
+    return D_800C4DCC[D_800C4FD7];
+}
 
 /** Sets two related byte values. */
 void func_8009CCC8(s32 val) {
