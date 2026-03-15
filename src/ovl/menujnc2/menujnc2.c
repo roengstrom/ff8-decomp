@@ -111,7 +111,19 @@ void func_801E6584(s32 a0, s32 a1, s32 a2) {
     func_801F0A34(a0, 0, width + a2, y);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E65F0);
+/**
+ * @brief Render a junction list entry at a Y position based on grid slot.
+ *
+ * Computes Y = (slotIdx % 11) * 13 + 0x42, then calls func_801F0A34
+ * to render the entry with width 0xDC.
+ *
+ * @param a0 Entry data pointer.
+ * @param slotIdx Slot index (modulo 11 for row position).
+ */
+void func_801E65F0(s32 a0, s32 slotIdx) {
+    slotIdx %= 11;
+    func_801F0A34(a0, 0, 0xDC, slotIdx * 13 + 0x42);
+}
 
 /**
  * @brief Look up junction ability availability mask for a given slot.

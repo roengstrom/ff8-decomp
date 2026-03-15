@@ -154,7 +154,33 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2008);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A20AC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2150);
+/**
+ * @brief Count active party entities with display flag bit 0 set.
+ *
+ * Iterates through 3 party slots checking D_800ED148 (stride 0xD0) for
+ * active flag bit 0 at +0x8C, and D_80078720 (stride 0x1D0) for display
+ * flag bit 0 at +0x1B2. Returns count of entities with both flags set.
+ *
+ * @return Number of active displayed party members (0-3).
+ */
+s32 func_800A2150(void) {
+    extern u8 D_80078720[];
+    s32 count = 0;
+    s32 i = 0;
+    u8 *display = D_80078720;
+    u8 *entity = (u8 *)&D_800ED148;
+
+    do {
+        if ((*(s32 *)(entity + 0x8C) & 1) && (*(u16 *)(display + 0x1B2) & 1)) {
+            count++;
+        }
+        display += 0x1D0;
+        i++;
+        entity += 0xD0;
+    } while (i < 3);
+
+    return count;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A21B0);
 
@@ -609,7 +635,26 @@ void func_800A565C(s32 idx) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5688);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5778);
+/**
+ * @brief Copy entity timer data to display structure for party members.
+ *
+ * For party members (index < 3), copies two words at offsets +0x10 and +0x14
+ * from D_800ED158 (entity data, stride 0xD0) to D_80078720 (display data,
+ * stride 0x1D0) at offsets +0x180 and +0x184.
+ *
+ * @param idx Entity index.
+ */
+void func_800A5778(s32 idx) {
+    extern u8 D_800ED158[];
+    extern u8 D_80078720[];
+    u8 *src = D_800ED158 + idx * 0xD0;
+    u8 *dst = D_80078720 + idx * 0x1D0;
+
+    if (idx < 3) {
+        *(s32 *)(dst + 0x184) = *(s32 *)(src + 0x14);
+        *(s32 *)(dst + 0x180) = *(s32 *)(src + 0x10);
+    }
+}
 
 /**
  * @brief Set up entity battle data and process action.
