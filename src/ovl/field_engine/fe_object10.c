@@ -21,7 +21,30 @@ s32 func_800BD1F4(FieldEntity *entity) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD250);
+/**
+ * @brief Set camera direction parameters based on direction code.
+ *
+ * Sets halfword at a1+4 to 0xCF and a1+2 to 0. Based on a0:
+ * 0 -> a1+0 = 0, 1 -> a1+0 = 0x20, 2 -> a1+0 = -0x20.
+ *
+ * @param a0 Direction code (0, 1, or 2).
+ * @param a1 Output parameter buffer.
+ */
+void func_800BD250(s32 a0, u8 *a1) {
+    *(u16 *)(a1 + 4) = 0xCF;
+    *(u16 *)(a1 + 2) = 0;
+    switch (a0) {
+    case 0:
+        *(u16 *)(a1 + 0) = 0;
+        break;
+    case 1:
+        *(u16 *)(a1 + 0) = 0x20;
+        break;
+    case 2:
+        *(s16 *)(a1 + 0) = -0x20;
+        break;
+    }
+}
 
 s32 func_800BD2AC(FieldEntity *entity) { u8 *a0 = (u8 *)entity; u8 idx = entity->stackIdx; s16 buf[4]; entity->stackIdx = idx - 1; func_800BD250(*(s32 *)(a0 + (s8)idx * 4), (u8 *)buf); func_800A9434(*(u8 *)(a0 + 0x256), 0x30, 1, (u8 *)buf, 0x1E); return 2; }
 
