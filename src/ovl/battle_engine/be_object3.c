@@ -154,7 +154,21 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A03DC);
  *
  * @return 1 if any active object has a pending action, 0 otherwise.
  */
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0A88);
+s32 func_800A0A88(void) {
+    extern u8 D_801D4308[];
+    s32 i = 0;
+    u8 *entry = D_801D4308;
+
+    top:
+    if ((*(s32 *)(entry + 4) & 1) && *(u8 *)(entry + 8) != 0) {
+        return 1;
+    }
+    i++;
+    entry += 0x20;
+    if (i < 10) goto top;
+
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A0AD4);
 
