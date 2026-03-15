@@ -102,7 +102,13 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0D2C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0D94);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0E68);
+/** @brief Pop value from stack, call func_80037C30, store result at 0x140. Returns 2. */
+s32 func_800B0E68(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + 0x140) = func_80037C30(*(s32 *)(a0 + (s8)idx * 4));
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0EBC);
 
