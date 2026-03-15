@@ -535,7 +535,25 @@ void func_8001D424(s32 *a0, s32 a1) {
     D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D484);
+/**
+ * @brief Disables pitch modulation for the given voice bitmask and marks dirty.
+ *
+ * Clears the voice bits from the pitch modulation enable register (primary
+ * or secondary depending on channel at offset +0x60). Marks SPU dirty
+ * flags with 0x100 to schedule an update.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to disable pitch modulation for.
+ */
+void func_8001D484(s32 *a0, s32 a1) {
+    if (*(u16 *)((s32)a0 + 0x60) == 0) {
+        s32 *p = D_80074F08;
+        p[0x40 / 4] = p[0x40 / 4] & ~a1;
+    } else {
+        D_80075028[0x20 / 4] = D_80075028[0x20 / 4] & ~a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
+}
 
 /** @brief Sets the halfword at offset 0x9A of a0 to 1. */
 void func_8001D4E4(u8 *a0) {
@@ -657,7 +675,37 @@ void func_8001D6D0(u8 *a0) {
     *(s32 *)(a0 + 0xF8) = *(s32 *)(a0 + 0xF8) | 0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D714);
+/**
+ * @brief Read a byte from the stream and set upper 2 bits of field +0x108.
+ *
+ * Clears the top 2 bits (bits 14-15) of the halfword at +0x108, then
+ * depending on the byte value: 3 sets bit 14 (0x4000), 5 sets bit 15
+ * (0x8000), 7 sets both bits (0xC000). Other values leave bits cleared.
+ * Finally sets bit 9 (0x200) in the flags at +0xF8.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ */
+void func_8001D714(u8 *a0) {
+    u8 *a1 = a0;
+    u8 *ptr = *(u8 **)a1;
+    u16 f108 = *(u16 *)(a1 + 0x108);
+    u16 val = *ptr;
+    *(u8 **)a1 = ptr + 1;
+    f108 &= 0x3FFF;
+    *(u16 *)(a1 + 0x108) = f108;
+    switch (val) {
+        case 3:
+            *(u16 *)(a1 + 0x108) = f108 | 0x4000;
+            break;
+        case 5:
+            *(u16 *)(a1 + 0x108) = f108 | 0x8000;
+            break;
+        case 7:
+            *(u16 *)(a1 + 0x108) = f108 | 0xC000;
+            break;
+    }
+    *(s32 *)(a1 + 0xF8) = *(s32 *)(a1 + 0xF8) | 0x200;
+}
 
 /**
  * @brief Reads one byte from stream, advances cursor. Clears bit 5 of +0x108.

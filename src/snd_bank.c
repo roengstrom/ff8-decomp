@@ -330,11 +330,109 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018D74);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018DDC);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018E4C);
+/**
+ * @brief Apply a masked pitch value from a parameter struct to track entries.
+ *
+ * If a0[1] is nonzero, iterates 12 entries checking D_80075028[0] bit
+ * AND a0[1] against entry flags at +0x24. If both match, reads halfword
+ * from a0+8, masks to 7 bits, shifts left 8, stores to entry +0xDE,
+ * clears +0x8A, sets bits 0x3 in entry +0xF8.
+ *
+ * If a0[1] is zero, iterates 12 entries checking D_80075028[0] bit
+ * AND comparing entry +0x38 to a0[0]. If both match, same processing.
+ *
+ * @param a0 Pointer to a parameter structure (word 0 = match ID,
+ *           word 1 = flag mask, halfword 8 = pitch value).
+ */
+void func_80018E4C(u8 *a0) {
+    extern u8 D_80072F70[];
+    extern s32 D_80075028[];
+    s32 base = (s32)D_80072F70;
+    s32 mask = D_80075028[0];
+    s32 flagCheck = *(s32 *)(a0 + 4);
+
+    if (flagCheck != 0) {
+        s32 bit = 0x1000;
+        s32 i = 0;
+        s32 ptr = base + 0xF8;
+    top1:
+        if (mask & bit) {
+            s32 f24 = *(s32 *)(ptr - 0xD4);
+            s32 chk = *(s32 *)(a0 + 4);
+            if (f24 & chk) {
+                s32 val = *(u16 *)(a0 + 8);
+                s32 f = *(s32 *)ptr;
+                *(u16 *)(ptr - 0x6E) = 0;
+                val &= 0x7F;
+                *(u16 *)(ptr - 0x1A) = val << 8;
+                *(s32 *)ptr = f | 0x3;
+            }
+        }
+        i++;
+        ptr += 0x110;
+        bit <<= 1;
+        if ((u32)i < 0xC) goto top1;
+    } else {
+        s32 bit = 0x1000;
+        s32 i = 0;
+        s32 ptr = base + 0xF8;
+    top2:
+        if (mask & bit) {
+            if (*(s32 *)(ptr - 0xC0) == *(s32 *)a0) {
+                s32 val = *(u16 *)(a0 + 8);
+                s32 f = *(s32 *)ptr;
+                *(u16 *)(ptr - 0x6E) = 0;
+                val &= 0x7F;
+                *(u16 *)(ptr - 0x1A) = val << 8;
+                *(s32 *)ptr = f | 0x3;
+            }
+        }
+        i++;
+        ptr += 0x110;
+        bit <<= 1;
+        if ((u32)i < 0xC) goto top2;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018F34);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800190B4);
+/**
+ * @brief Apply a masked pitch value to track entries matching the active voice mask.
+ *
+ * Iterates over 12 entries at D_80072F70 (stride 0x110). For each entry
+ * whose corresponding bit is set in D_80075028[0] (starting from bit 12)
+ * and whose flags at offset +0x24 do not have bit 0x2000000 set, reads
+ * a halfword from @p a0, masks to 7 bits, shifts left by 8, and stores
+ * to entry offset +0xDE. Also clears the halfword at +0x8A and sets
+ * bits 0x3 in the flags at +0xF8.
+ *
+ * @param a0 Pointer to a halfword value to apply to eligible tracks.
+ */
+void func_800190B4(u16 *a0) {
+    extern u8 D_80072F70[];
+    extern s32 D_80075028[];
+    s32 bit = 0x1000;
+    s32 mask = D_80075028[0];
+    s32 i = 0;
+    s32 flag = 0x2000000;
+    s32 base = (s32)D_80072F70;
+    s32 ptr = base + 0xF8;
+top:
+    if (mask & bit) {
+        if (!(*(s32 *)(ptr - 0xD4) & flag)) {
+            s32 val = *a0;
+            s32 f = *(s32 *)ptr;
+            *(u16 *)(ptr - 0x6E) = 0;
+            val &= 0x7F;
+            *(u16 *)(ptr - 0x1A) = val << 8;
+            *(s32 *)ptr = f | 0x3;
+        }
+    }
+    i++;
+    ptr += 0x110;
+    bit <<= 1;
+    if ((u32)i < 0xC) goto top;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80019130);
 
@@ -342,15 +440,137 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800191F8);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800192D8);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80019450);
+/**
+ * @brief Apply a pitch byte to track entries matching the active voice mask.
+ *
+ * Iterates over 12 entries at D_80072F70 (stride 0x110). For each entry
+ * whose corresponding bit is set in D_80075028[0] (starting from bit 12,
+ * shifting left) and whose flags at offset +0x24 do not have bit 0x2000000
+ * set, reads a byte from @p a0, shifts it left by 8, and stores to entry
+ * offset +0x6A. Also clears the halfword at +0x6C and sets bits 0x3 in
+ * the flags at +0xF8.
+ *
+ * @param a0 Pointer to a byte value to apply to eligible tracks.
+ */
+void func_80019450(u8 *a0) {
+    extern u8 D_80072F70[];
+    extern s32 D_80075028[];
+    s32 bit = 0x1000;
+    s32 mask = D_80075028[0];
+    s32 i = 0;
+    s32 flag = 0x2000000;
+    s32 base = (s32)D_80072F70;
+    s32 ptr = base + 0xF8;
+top:
+    if (mask & bit) {
+        if (!(*(s32 *)(ptr - 0xD4) & flag)) {
+            s32 val = *(u8 *)a0;
+            s32 f = *(s32 *)ptr;
+            *(u16 *)(ptr - 0x8C) = 0;
+            *(u16 *)(ptr - 0x8E) = val << 8;
+            *(s32 *)ptr = f | 0x3;
+        }
+    }
+    i++;
+    ptr += 0x110;
+    bit <<= 1;
+    if ((u32)i < 0xC) goto top;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800194C8);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001958C);
+/**
+ * @brief Apply pitch from a parameter struct to track entries based on flags.
+ *
+ * If a0[1] is nonzero, iterates 12 entries checking D_80075028[0] bit
+ * AND a0[1] against entry flags at +0x24. If both match, reads byte
+ * from a0+8, shifts left 8, stores to entry +0x3C, clears +0x84, sets
+ * bit 0x10 in entry +0xF8.
+ *
+ * If a0[1] is zero, iterates 12 entries checking D_80075028[0] bit
+ * AND comparing entry +0x38 to a0[0]. If both match, same processing.
+ *
+ * @param a0 Pointer to a parameter structure (word 0 = match ID,
+ *           word 1 = flag mask, byte 8 = pitch value).
+ */
+void func_8001958C(u8 *a0) {
+    extern u8 D_80072F70[];
+    extern s32 D_80075028[];
+    s32 base = (s32)D_80072F70;
+    s32 mask = D_80075028[0];
+    s32 flagCheck = *(s32 *)(a0 + 4);
+
+    if (flagCheck != 0) {
+        s32 bit = 0x1000;
+        s32 i = 0;
+        s32 ptr = base + 0xF8;
+    top1:
+        if (mask & bit) {
+            s32 f24 = *(s32 *)(ptr - 0xD4);
+            s32 chk = *(s32 *)(a0 + 4);
+            if (f24 & chk) {
+                s32 val = *(u8 *)(a0 + 8);
+                s32 f = *(s32 *)ptr;
+                *(u16 *)(ptr - 0x74) = 0;
+                *(s32 *)(ptr - 0xBC) = val << 8;
+                *(s32 *)ptr = f | 0x10;
+            }
+        }
+        i++;
+        ptr += 0x110;
+        bit <<= 1;
+        if ((u32)i < 0xC) goto top1;
+    } else {
+        s32 bit = 0x1000;
+        s32 i = 0;
+        s32 ptr = base + 0xF8;
+    top2:
+        if (mask & bit) {
+            if (*(s32 *)(ptr - 0xC0) == *(s32 *)a0) {
+                s32 val = *(u8 *)(a0 + 8);
+                s32 f = *(s32 *)ptr;
+                *(u16 *)(ptr - 0x74) = 0;
+                *(s32 *)(ptr - 0xBC) = val << 8;
+                *(s32 *)ptr = f | 0x10;
+            }
+        }
+        i++;
+        ptr += 0x110;
+        bit <<= 1;
+        if ((u32)i < 0xC) goto top2;
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001966C);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800197F4);
+/**
+ * @brief Apply a pitch byte to all 12 track entries if not flagged.
+ *
+ * Iterates over 12 entries at D_80072F70 (stride 0x110). For each entry
+ * whose flags at offset +0x24 do not have bit 0x2000000 set, reads a
+ * byte from @p a0, shifts it left by 8, and stores to entry offset +0x3C.
+ * Also clears the halfword at +0x84 and sets bit 0x10 in the flags at +0xF8.
+ *
+ * @param a0 Pointer to a byte value to apply to all eligible tracks.
+ */
+void func_800197F4(u8 *a0) {
+    extern u8 D_80072F70[];
+    s32 i = 12;
+    s32 flag = 0x2000000;
+    s32 base = (s32)D_80072F70;
+    s32 ptr = base + 0xF8;
+top:
+    if (!(*(s32 *)(ptr - 0xD4) & flag)) {
+        s32 val = *a0;
+        s32 f = *(s32 *)ptr;
+        *(u16 *)(ptr - 0x74) = 0;
+        *(s32 *)(ptr - 0xBC) = val << 8;
+        *(s32 *)ptr = f | 0x10;
+    }
+    i--;
+    ptr += 0x110;
+    if (i != 0) goto top;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001984C);
 
