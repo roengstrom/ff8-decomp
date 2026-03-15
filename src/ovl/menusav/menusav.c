@@ -221,7 +221,47 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2ECC);
+/**
+ * @brief Select and decode a string ID based on save slot status.
+ *
+ * Reads the active slot index from a0[0x58], checks the status byte
+ * at offset 0x2E of that slot. Depending on a1 (mode selector):
+ * - a1 != 0: checks slot status and sub-status byte at 0x2C
+ *   to determine string ID (0x20 or 0x25)
+ * - a1 == 0: checks slot status and flag at a0[0x49]
+ *   to determine string ID (0x28, 0x1F, or 0x0A)
+ *
+ * @param a0 Save context pointer.
+ * @param a1 Mode selector (0 or non-zero).
+ * @return Decoded string pointer.
+ */
+s32 func_801E2ECC(u8 *a0, s32 a1) {
+    s32 v0;
+    u8 *v1;
+
+    v0 = a0[0x58];
+    v1 = a0 + v0;
+    v0 = v1[0x2E];
+
+    if (a1 != 0) {
+        if ((u32)v0 < 2) {
+            if (v1[0x2C] == 1) {
+                return func_801E2CBC(0x20);
+            }
+            return func_801E2C90(0x25);
+        }
+        return func_801E2C90(0x25);
+    } else {
+        if ((u32)v0 < 2) {
+            s32 id = 0x1F;
+            if (a0[0x49] == 1) {
+                id = 0x28;
+            }
+            return func_801E2CBC(id);
+        }
+        return func_801E2C90(0x0A);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2F6C);
 
