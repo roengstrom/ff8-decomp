@@ -3,7 +3,8 @@
 void func_801E4EA4(s32);
 void func_801E95C4(void);
 void func_801E9F94(s32);
-void func_801EAC54(s32, s32, s32);
+s32 func_801EA538(s32, s32, s32, s32, s32);
+s32 func_801EAC54(s32, s32, s32);
 
 /** @brief Store item menu state pointer. */
 void func_801E2800(s32 a0) {
@@ -294,6 +295,18 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E347C);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E35B8);
 
+/**
+ * @brief Process scroll input and update item list view state.
+ *
+ * Reads current and previous scroll positions, then checks button state.
+ * If the 0x40 flag is set in func_801F79F8 and the action is odd, returns 0.
+ * Otherwise extracts the 0x80 flag from the action, updates the display
+ * via func_801F576C and func_801F5868. Returns 1 if either the position
+ * or the 0x80 flag changed, 0 otherwise.
+ *
+ * @param a0 Context pointer.
+ * @return 1 if state changed, 0 otherwise.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E37A4);
 
 /**
@@ -365,6 +378,19 @@ void func_801E3E94(void) {
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3EBC);
 
+/**
+ * @brief Process ability bits and accumulate results.
+ *
+ * Iterates through 8 bits of @p a2. For each set bit at position i,
+ * calls func_801E3E94 to reset state, then func_801E3EBC(a0, a1, i)
+ * and OR's the result into an accumulator. After the loop, calls
+ * func_801E3E94 one final time and returns the accumulated result.
+ *
+ * @param a0 First parameter passed through to func_801E3EBC.
+ * @param a1 Second parameter passed through to func_801E3EBC.
+ * @param a2 Bitmask of abilities to process (low 8 bits).
+ * @return OR'd result of all func_801E3EBC calls.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E42F8);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4394);
@@ -544,16 +570,6 @@ void func_801E4B80(s32 a0, s32 a1) {
  * func_80020D4C to get the item description and stores it at @p a0[0x28].
  *
  * @param a0 Pointer to item menu context.
- */
-/**
- * @brief Load item entry data for the primary list index.
- *
- * Reads the current list index from @p a0[0x54], uses it to look up
- * a byte pair from the item table at @p a0[0x20]. Stores the first
- * byte (item ID) at @p a0[0x65]. If both bytes are nonzero, calls
- * func_80020D4C to get the item description and stores it at @p a0[0x28].
- *
- * @param a0 Pointer to item menu context.
  *
  * @note Non-matching: Compiler swaps v0/v1 register allocation for
  * the halfword index (lh) and base pointer (lw) loads.
@@ -585,6 +601,19 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E7F4C);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8024);
 
+/**
+ * @brief Render an item description text for a specific table entry.
+ *
+ * Reads a data pointer from D_801FAB00[0x20] indexed by @p a2. If the pointer
+ * is non-null, decodes the string via func_8002F688 into a local buffer, then
+ * renders it via func_801F0FEC at a position derived from D_801FAB00 fields.
+ *
+ * @param a0 Rendering context pointer.
+ * @param a1 Current rendering state (returned unchanged if entry is null).
+ * @param a2 Table entry index.
+ * @param arg5 Additional offset added to D_801FAB00 X position.
+ * @return Updated rendering state after text is rendered.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E80D0);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8180);
@@ -635,8 +664,64 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8E98);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8FA8);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E90D8);
+/**
+ * @brief Render complete item sprite with palette, tiles, text and effects.
+ *
+ * Chains several rendering functions: func_801E8E98 (palette/icon setup),
+ * func_801E89C0 (sprite tiles), func_801E8AF0 (additional graphics),
+ * then conditionally sets a flag at D_80077378+0xB1B if the data entry
+ * at offset 0x1B is not 0xFF. Finally calls func_801E8DB0 (text labels),
+ * func_801E8C88 (color overlay), func_8002B898 (border), and
+ * func_801E8FA8 (effects). Each chained function receives the return
+ * value of the previous one as its second argument.
+ *
+ * @param a0 Rendering context pointer.
+ * @param a1 Initial rendering state.
+ * @param a2 Display configuration pointer.
+ * @param a3 OT (ordering table) pointer.
+ * @param arg5 Item data pointer.
+ */
+void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+    extern u8 D_80077378[];
+    s32 ctx = a0;
+    s32 cfg = a2;
+    s32 ot = a3;
+    s32 data = arg5;
+    s32 result;
+    s32 bit;
 
+    result = func_801E8E98(a0, a1, a2, a3, data);
+    result = func_801E89C0(ctx, result, cfg, ot, data);
+    result = func_801E8AF0(ctx, result, cfg, ot, data);
+
+    if (*(u8 *)(data + 0x1B) != 0xFF) {
+        s32 base = (s32)D_80077378;
+        s32 shift = *(u8 *)(data + 0x1B);
+        s32 val = *(u8 *)(base + 0xB1B);
+        bit = 1 << shift;
+        *(u8 *)(base + 0xB1B) = val | bit;
+    }
+
+    result = func_801E8DB0(ctx, result, cfg, ot, data);
+    result = func_801E8C88(ctx, result, cfg, ot, data);
+    result = func_8002B898(ctx, result, cfg, ot);
+    func_801E8FA8(ctx, result, cfg, ot, data);
+}
+
+/**
+ * @brief Configure display rect from template and render item sprite data.
+ *
+ * Copies a 4-halfword rectangle template from @p arg5, adding @p a2 to the
+ * X position and @p a3 to the Y position. Stores the result in D_801FAB00,
+ * then calls func_801E90D8 to render with the display configuration and
+ * D_80083848 as the OT pointer.
+ *
+ * @param a0 First parameter passed through to func_801E90D8.
+ * @param a1 Second parameter passed through to func_801E90D8.
+ * @param a2 X offset to add to template X.
+ * @param a3 Y offset to add to template Y.
+ * @param arg5 Pointer to 4-halfword rectangle template.
+ */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E91E4);
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9248);
@@ -771,10 +856,10 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9F94);
  * @param a3 Becomes 5th argument (on stack) to callee
  * @param arg5 Becomes 3rd argument to callee
  */
-void func_801EA500(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+s32 func_801EA500(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     extern s32 D_80083848;
 
-    func_800375A0(a0, a1, arg5, a2, a3, D_80083848);
+    return func_800375A0(a0, a1, arg5, a2, a3, D_80083848);
 }
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EA538);
@@ -801,7 +886,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAA04);
  * @param a3 X position for panel.
  * @param arg5 Y position for panel.
  */
-void func_801EAB00(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+s32 func_801EAB00(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     extern u8 D_801FAB00[];
     extern s32 D_80083848;
     s32 result;
@@ -815,12 +900,51 @@ void func_801EAB00(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     *(s16 *)(cfg + 4) = 0x102;
     *(s16 *)(cfg + 2) = arg5;
     *(s16 *)(cfg + 6) = 0x7D;
-    func_801EF9AC(a1, result, 0x1000, D_80083848);
+    return func_801EF9AC(a1, result, 0x1000, D_80083848);
 }
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAB8C);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAC54);
+/**
+ * @brief Render item detail sub-menu with multiple panel sections.
+ *
+ * Saves and restores a global state via func_8002E7C4. If the display mode
+ * returned by func_801F0D84 is 0xF, renders several sub-panels: item name
+ * (func_801EA500), description (func_801EA538), icon (func_801EA714),
+ * stats (func_801EA7E0), info (func_801EAB00), and list (func_801EAB8C).
+ * Otherwise returns the current rendering state unchanged.
+ *
+ * @param a0 Item menu context pointer.
+ * @param a1 Rendering context pointer.
+ * @param a2 Current rendering state.
+ * @return Updated rendering state after all panels are drawn.
+ */
+s32 func_801EAC54(s32 a0, s32 a1, s32 a2) {
+    extern s32 D_80083850;
+    s32 ctx = a0;
+    s32 render = a1;
+    s32 state = a2;
+    s32 saved = D_80083850;
+    s32 result;
+    s32 qty;
+
+    func_8002E7C4(*(s32 *)(ctx + 0x28));
+    if (func_801F0D84() != 0xF) {
+        return state;
+    }
+    qty = *(u8 *)(*(s32 *)(ctx + 0x20) + 1);
+    result = func_801EA500(render, state, 0x30, 0x22, qty);
+    state = 0x37;
+    result = func_801EA538(ctx, render, result, 0x6A, state);
+    result = func_801EA714(render, result, 0x6A, 0x1D);
+    state = 0x58;
+    result = func_801EA7E0(ctx, render, result, 0x18, state);
+    result = func_801EAB00(ctx, render, result, 0x6A, state);
+    result = func_801EAB8C(render, result, 0x10E, 0x6);
+    state = result;
+    func_8002E7C4(saved);
+    return state;
+}
 
 /**
  * @brief Initialize item sub-menu.
