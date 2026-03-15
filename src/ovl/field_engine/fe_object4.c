@@ -94,7 +94,13 @@ void func_800ADDD8(u8 *a0) {
     *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) == *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADE10);
+/** @brief Stack greater-than: [idx] = [idx] > [idx+1]. */
+void func_800ADE10(u8 *a0) {
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) > *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+}
 
 /**
  * Pops the stack index, compares [idx] >= [idx+1], stores boolean at [idx].
@@ -240,7 +246,17 @@ s32 func_800AE080(u8 *a0, s32 a1) {
     return 4;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE098);
+/** @brief Conditional branch: if top-of-stack is zero, add a1 to PC. */
+s32 func_800AE098(u8 *a0, s32 a1) {
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    if (*(s32 *)(a0 + (s8)idx * 4) != 0) {
+        return 2;
+    }
+    *(u16 *)(a0 + 0x176) = *(u16 *)(a0 + 0x176) + a1;
+    return 4;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE0DC);
 
@@ -281,7 +297,15 @@ s32 func_800AE7B4(u8 *a0, s32 a1) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE7E4);
+s32 func_800AE7E4(u8 *a0, s32 a1) {
+    extern u8 D_80077378[];
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    a1 = a1 + (s32)D_80077378;
+    *(u8 *)(a1 + 0xD60) = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 /** @brief Pop halfword from stack and store to D_800780D8[a1]. Returns 2. */
 s32 func_800AE81C(u8 *a0, s32 a1) {
