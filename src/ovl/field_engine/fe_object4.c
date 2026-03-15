@@ -246,7 +246,12 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE0DC);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE124);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE184);
+/** @brief Pop halfword from stack and store to entity offset 0x176. */
+void func_800AE184(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x176) = *(u16 *)(a0 + (s8)idx * 4);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE1AC);
 
@@ -442,9 +447,19 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF404);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF444);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF47C);
+/** @brief Set bit 0x10 in entity flags word at D_800562C4+0x68. Returns 2. */
+s32 func_800AF47C(void) {
+    extern s32 D_800562C4;
+    *(s32 *)(D_800562C4 + 0x68) |= 0x10;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF4A0);
+/** @brief Clear bit 0x10 in entity flags word at D_800562C4+0x68. Returns 2. */
+s32 func_800AF4A0(void) {
+    extern s32 D_800562C4;
+    *(s32 *)(D_800562C4 + 0x68) &= ~0x10;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF4C4);
 
