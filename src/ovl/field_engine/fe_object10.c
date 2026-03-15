@@ -32,11 +32,30 @@ u8 func_800BE264(void) {
     return D_800DE4FD;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BE274);
+/** @brief Call func_801E8B84 if D_800DE4FD bit 1 is set. Returns result or 0. */
+s32 func_800BE274(void) {
+    extern u8 D_800DE4FD[];
+    if (*(u8 *)D_800DE4FD & 2) {
+        return func_801E8B84();
+    }
+    return 0;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BE2AC);
+/** @brief Call func_801E8804 if D_800DE4FD bit 1 is set. */
+void func_800BE2AC(void) {
+    extern u8 D_800DE4FD[];
+    if (*(u8 *)D_800DE4FD & 2) {
+        func_801E8804();
+    }
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BE2DC);
+/** @brief Call func_801E888C if D_800DE4FD bit 1 is set. */
+void func_800BE2DC(void) {
+    extern u8 D_800DE4FD[];
+    if (*(u8 *)D_800DE4FD & 2) {
+        func_801E888C();
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BE30C);
 

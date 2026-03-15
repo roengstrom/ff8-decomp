@@ -70,6 +70,16 @@ void func_800C5304(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5338);
 
+/**
+ * @brief Wait for a sound request to complete, disabling/re-enabling channels.
+ *
+ * If D_800F1B90 is negative (request pending), disables sound channels 2 and 3
+ * via func_80013300 (within a critical section), then polls func_8009B6B0 in a
+ * loop until D_800F1B90 becomes non-negative. Finally re-enables channels 2
+ * and 3 via func_8001336C (also within a critical section).
+ *
+ * @return Current value of D_800F1B90 after completion.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C53F0);
 
 /**
