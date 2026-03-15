@@ -125,7 +125,23 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1BB8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1C64);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1CC0);
+/** @brief Initialize 3 entries in D_800D5F50 and D_800D61A8 arrays to -1. */
+void func_800A1CC0(void) {
+    extern u8 D_800D5F50[];
+    extern u8 D_800D61A8[];
+    s32 i = 0;
+    s32 val = -1;
+    u8 *a = D_800D5F50;
+    u8 *b = D_800D61A8;
+
+    do {
+        *(s32 *)b = val;
+        *(s32 *)a = val;
+        a += 0x70;
+        i++;
+        b += 0x70;
+    } while (i < 3);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1CFC);
 
