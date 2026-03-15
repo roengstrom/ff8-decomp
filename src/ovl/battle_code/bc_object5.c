@@ -350,7 +350,24 @@ void func_800A9F98(void) {
     } while (i < 7);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9FDC);
+/**
+ * @brief Clear D_800EEBE0 entries for inactive or dead entities.
+ *
+ * Iterates 7 entities (stride 0xD0 in D_800ED148). Clears
+ * D_800EEBE0[i] to zero unless the entity is both active and alive.
+ */
+void func_800A9FDC(void) {
+    s32 i = 0;
+    s32 arr = (s32)D_800EEBE0;
+    s32 ptr = (s32)D_800ED148;
+top:
+    if (!(*(s32 *)(ptr + 0x8C) & 1) || (*(u16 *)(ptr + 0x90) & 1)) {
+        *(u8 *)(i + arr) = 0;
+    }
+    i++;
+    ptr += 0xD0;
+    if (i < 7) goto top;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA034);
 
@@ -392,7 +409,29 @@ s32 func_800AA4F8(s32 a0) {
     return 0xFF;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA530);
+/**
+ * @brief Search entity table for active entity linked to index a0.
+ *
+ * @param a0 Link index to search for.
+ * @return Entity index if found, 0xFF otherwise.
+ */
+s32 func_800AA530(s32 a0) {
+    s32 i = 0;
+    s32 base = (s32)D_800ED148;
+    s32 ptr = base;
+    s32 result;
+top:
+    if (!(*(u16 *)(ptr + 0x90) & 1)) {
+        result = i;
+        if (*(u8 *)(ptr + 0xCB) == a0) {
+            return result;
+        }
+    }
+    i++;
+    ptr += 0xD0;
+    if (i < 7) goto top;
+    return 0xFF;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA57C);
 
