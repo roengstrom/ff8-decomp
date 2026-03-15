@@ -9,7 +9,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB510);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB5E0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB650);
+s32 func_800BB650(FieldEntity *entity) { s16 buf[4]; func_800A8DAC(*((u8 *)entity + 0x256), 0x20, (u8 *)buf, 0); *((u16 *)((u8 *)entity + 0x228)) = 0; *((u16 *)((u8 *)entity + 0x22C)) = buf[1] / 16; *((u16 *)((u8 *)entity + 0x230)) = buf[2] / 16; return 2; }
 
 /**
  * @brief Copy 12 animation halfwords from D_800704A8 table to entity.
@@ -37,7 +37,7 @@ void func_800BB6C8(void) {
     *(u16 *)(dst + 0xEE) = *(u16 *)(src + 0x11E);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB768);
+s32 func_800BB768(void) { extern u8 D_800DE8D2; extern u8 D_800704A8[]; u8 *src = D_800704A8; D_800DE8D2 = 2; *(u16 *)(src + 0x108) = 2; *(u16 *)(src + 0x10A) = 0xFF; *(u16 *)(src + 0x10C) = 0x10; *(u16 *)(src + 0x10E) = 0xFF; *(u16 *)(src + 0x110) = 0xFF; *(u16 *)(src + 0x112) = 0xFF; func_800BB6C8(); return 2; }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB7BC);
 
@@ -65,13 +65,13 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBC08);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBC64);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBDA8);
+s32 func_800BBDA8(void) { extern u8 D_800704A8[]; extern u8 D_800562C4[]; u8 *src = D_800704A8; if (*(u16 *)(src + 0x10C) != *(u16 *)(src + 0x10A)) { return 1; } *(u16 *)((u8 *)*(s32 *)D_800562C4 + 0xD8) = *(u16 *)(src + 0x108); return 2; }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBDE0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBE50);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBE78);
+s32 func_800BBE78(void) { extern u8 D_800704A8[]; extern u8 D_800562C4[]; u8 *src = D_800704A8; *(volatile u16 *)(src + 0x108) = 4; *(u16 *)((u8 *)*(s32 *)D_800562C4 + 0xD8) = *(volatile u16 *)(src + 0x108); return 2; }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBEA4);
 
@@ -94,7 +94,7 @@ s32 func_800BBFFC(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BC034);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BC12C);
+void func_800BC12C(s32 a0, s32 a1, u8 *a2) { extern u8 D_80085300[]; u8 *base = D_80085300; u8 *entry; a0 <<= 4; entry = base + a0; *(s32 *)(entry + 0x8) = a1; *(u16 *)(entry + 0x0) = *(u16 *)(a2 + 0x0); *(u16 *)(entry + 0x2) = *(u16 *)(a2 + 0x2); *(u16 *)(entry + 0x4) = *(u16 *)(a2 + 0x4); *(u16 *)(entry + 0x6) = *(u16 *)(a2 + 0x6); }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BC170);
 
