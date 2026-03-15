@@ -1232,7 +1232,28 @@ void func_801F63DC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
     func_800375A0(a1, a2, a0, a3, a4, a5);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6418);
+/**
+ * @brief Conditionally render highlighted entry if character bit is set.
+ *
+ * Checks if the bit at position a0 in the party mask is set.
+ * If so, renders the entry via func_8002FF34 with a highlight color
+ * of 0xD6. Otherwise returns the input OT pointer unchanged.
+ *
+ * @param a0 Bit position to check in party mask.
+ * @param a1 OT base pointer.
+ * @param a2 Current draw pointer (returned if bit not set).
+ * @param a3 Y coordinate.
+ * @param a4 Additional render parameter (5th arg on stack).
+ * @return Updated draw pointer.
+ */
+s32 func_801F6418(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    s32 mask = func_801F2298();
+
+    if (((mask & 0xFFFF) >> a0) & 1) {
+        a2 = func_8002FF34(a1, a2, 0xD6, a3, a4, D_80083848);
+    }
+    return a2;
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F64A4);
 
