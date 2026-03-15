@@ -150,7 +150,34 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D14);
+/**
+ * @brief Set voice control bits for all active tracks in a track bitmask.
+ *
+ * Reads a track bitmask from a0[1]. For each set bit, sets bits 0 and 1
+ * in the corresponding track's voice control word at a1 + 0xF8 + track*0x110.
+ *
+ * @param a0 Pointer to the track mask structure (mask at offset +4).
+ * @param a1 Base pointer to the voice control array.
+ */
+void func_80017D14(s32 *a0, u8 *a1) {
+    s32 val = *(s32 *)((u8 *)a0 + 4);
+    s32 mask;
+    s32 bit;
+    if (val == 0) {
+        return;
+    }
+    mask = val;
+    bit = 1;
+    a1 += 0xF8;
+    do {
+        if (mask & bit) {
+            *(s32 *)a1 |= 3;
+            mask ^= bit;
+        }
+        a1 += 0x110;
+        bit <<= 1;
+    } while (mask != 0);
+}
 
 /**
  * @brief Set voice control bits for tracks matching D_80075028[0] mask.
