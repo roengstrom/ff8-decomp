@@ -61,7 +61,14 @@ s32 func_800B273C(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2790);
+/** @brief Pop value, bitwise-NOT, store to D_8007065C. Returns 2. */
+s32 func_800B2790(u8 *a0) {
+    extern u8 D_8007065C[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(s32 *)D_8007065C = ~*(s32 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B27C4);
 
@@ -136,9 +143,22 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2F70);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2FD8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B301C);
+/** @brief Pop halfword, store to both 0x192 and 0x190. Returns 2. */
+s32 func_800B301C(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x192) = *(u16 *)(a0 + (s8)idx * 4);
+    *(u16 *)(a0 + 0x190) = *(u16 *)(a0 + 0x192);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3050);
+/** @brief Pop halfword, store to offset 0x194. Returns 2. */
+s32 func_800B3050(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u16 *)(a0 + 0x194) = *(u16 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3080);
 
@@ -238,7 +258,14 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3F9C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4074);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B414C);
+/** @brief Pop byte, store to global D_80070652. Returns 2. */
+s32 func_800B414C(u8 *a0) {
+    extern u8 D_80070652[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)D_80070652 = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B417C);
 
@@ -267,7 +294,14 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4320);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B43FC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B448C);
+/** @brief Pop byte, store to global D_8007064F. Returns 2. */
+s32 func_800B448C(u8 *a0) {
+    extern u8 D_8007064F[];
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    *(u8 *)D_8007064F = *(u8 *)(a0 + (s8)idx * 4);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B44BC);
 
@@ -366,7 +400,15 @@ s32 func_800B49D8(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B49E8);
+/** @brief Set D_800704A8 command to 5, clear halfword, copy entity byte 0xD1. Returns 3. */
+s32 func_800B49E8(void) {
+    extern u8 D_800704A8[];
+    extern s32 D_800562C4;
+    *(u8 *)D_800704A8 = 5;
+    *(u16 *)(D_800704A8 + 2) = 0;
+    *(u8 *)(D_800704A8 + 0x1AB) = *(u8 *)(D_800562C4 + 0xD1);
+    return 3;
+}
 
 /**
  * Sets D_800704A8 to 5, sets the halfword at D_800704A8+2 to 1,
