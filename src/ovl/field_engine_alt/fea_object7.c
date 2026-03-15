@@ -38,7 +38,56 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object7", func_800B6968);
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object7", func_800B7080);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object7", func_800B7178);
+/** @brief Reset 23 global state variables for the field engine. */
+void func_800B7178(void) {
+    extern s32 D_800C5B50;
+    extern s32 D_800C5B54;
+    extern s32 D_800C5B58;
+    extern s32 D_800C5C18;
+    extern s32 D_800C5C1C;
+    extern s32 D_800C5C20;
+    extern s32 D_800C5C24;
+    extern s32 D_800C5C28;
+    extern s32 D_800C5C2C;
+    extern s32 D_800C5C30;
+    extern s32 D_800C5C38;
+    extern s32 D_800C5C3C;
+    extern s32 D_800C5C40;
+    extern s32 D_800C5D54;
+    extern s32 D_800C5924;
+    extern s32 D_800C5BFC;
+    extern s32 D_800C4D98;
+    extern s32 D_800C4D70;
+    extern s32 D_800C4D9C;
+    extern s32 D_800C97A4;
+    extern s32 D_800C4DC0;
+    extern s32 D_800C4DC4;
+    extern s32 D_800C4DC8;
+
+    D_800C5B50 = 0;
+    D_800C5B54 = 0;
+    D_800C5B58 = 4;
+    D_800C5C18 = -1;
+    D_800C5C1C = -1;
+    D_800C5C20 = -1;
+    D_800C5C24 = -1;
+    D_800C5C28 = -1;
+    D_800C5C2C = -1;
+    D_800C5C30 = -1;
+    D_800C5C38 = 0;
+    D_800C5C3C = 0;
+    D_800C5C40 = 0;
+    D_800C5D54 = 0;
+    D_800C5924 = 0;
+    D_800C5BFC = 0;
+    D_800C4D98 = 0;
+    D_800C4D70 = 0;
+    D_800C4D9C = 0;
+    D_800C97A4 = -1;
+    D_800C4DC0 = 0;
+    D_800C4DC4 = 1;
+    D_800C4DC8 = 0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object7", func_800B7240);
 
