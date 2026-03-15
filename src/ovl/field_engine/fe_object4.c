@@ -382,13 +382,61 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF224);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF274);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF2C4);
+/** @brief Pop mask, test against D_800705F8, store boolean at result. Returns 2. */
+s32 func_800AF2C4(u8 *a0) {
+    extern s32 D_800705F8;
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    if (D_800705F8 & *(s32 *)(a0 + (s8)idx * 4)) {
+        *(s32 *)(a0 + 0x140) = 1;
+    } else {
+        *(s32 *)(a0 + 0x140) = 0;
+    }
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF314);
+/** @brief Pop mask, test against D_80070600, store boolean at result. Returns 2. */
+s32 func_800AF314(u8 *a0) {
+    extern s32 D_80070600;
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    if (D_80070600 & *(s32 *)(a0 + (s8)idx * 4)) {
+        *(s32 *)(a0 + 0x140) = 1;
+    } else {
+        *(s32 *)(a0 + 0x140) = 0;
+    }
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF364);
+/** @brief Pop mask, test against D_800705E8, store boolean at result. Returns 2. */
+s32 func_800AF364(u8 *a0) {
+    extern s32 D_800705E8;
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    if (D_800705E8 & *(s32 *)(a0 + (s8)idx * 4)) {
+        *(s32 *)(a0 + 0x140) = 1;
+    } else {
+        *(s32 *)(a0 + 0x140) = 0;
+    }
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF3B4);
+/** @brief Pop mask, test against D_800705F0, store boolean at result. Returns 2. */
+s32 func_800AF3B4(u8 *a0) {
+    extern s32 D_800705F0;
+    u8 idx;
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    if (D_800705F0 & *(s32 *)(a0 + (s8)idx * 4)) {
+        *(s32 *)(a0 + 0x140) = 1;
+    } else {
+        *(s32 *)(a0 + 0x140) = 0;
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF404);
 
