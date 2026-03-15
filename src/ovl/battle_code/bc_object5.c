@@ -11,6 +11,7 @@ s32 func_8009B3D0(void *);
 s32 func_800B0398(s32);
 extern u8 D_80078E00[];
 extern u8 D_80077378[];
+extern u8 D_8007809A[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
 s32 func_800AE730(void);
@@ -521,7 +522,25 @@ s32 func_800AA980(s32 a0, s32 a1) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AA9C8);
+/**
+ * @brief Test a specific bit in D_8007809A, optionally inverting.
+ *
+ * If a0 is 0, returns bit a1 of D_8007809A.
+ * If a0 is 3, returns the inverse of bit a1 of D_8007809A.
+ * Otherwise returns 0 (falls through without setting return value).
+ *
+ * @param a0 Mode selector (0 = normal, 3 = inverted).
+ * @param a1 Bit position to test.
+ * @return Bit value (0 or 1).
+ */
+s32 func_800AA9C8(s32 a0, s32 a1) {
+    if (a0 == 0) {
+        return (*(u8 *)D_8007809A >> a1) & 1;
+    }
+    if (a0 == 3) {
+        return ((*(u8 *)D_8007809A >> a1) & 1) ^ 1;
+    }
+}
 
 /**
  * @brief Check battle state flag at D_80077378+0xCD4.

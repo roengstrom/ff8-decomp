@@ -2,6 +2,8 @@
 
 extern u8 D_80102E10[];
 extern u8 D_80102E14[];
+extern u8 D_80102E18[];
+extern u8 D_80102E20[];
 extern u8 D_801032F8[];
 extern u8 D_80103420[];
 extern u8 D_80077E5C[];
@@ -189,9 +191,68 @@ void func_800D11D4(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D121C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D128C);
+/**
+ * @brief Remove an entry from the D_80102E18 linked list by key.
+ *
+ * Walks the linked list starting at D_80102E18, searching for an
+ * entry whose halfword at offset 4 matches a0. If found, unlinks
+ * the entry from the list, clears its next pointer, and sets its
+ * halfword at offset 6 to zero (deactivate).
+ *
+ * @param a0 Key value to search for (compared as s16).
+ */
+void func_800D128C(s32 a0) {
+    s32 *prev = (s32 *)(s32)D_80102E18;
+    s32 *cur = (s32 *)*(s32 *)D_80102E18;
+    s32 *next;
+    if (cur == 0) {
+        return;
+    }
+top:
+    if (cur == 0) {
+        return;
+    }
+    if (*(s16 *)((u8 *)cur + 4) == a0) {
+        goto found;
+    }
+    prev = cur;
+    cur = (s32 *)*prev;
+    goto top;
+found:
+    next = (s32 *)*cur;
+    *(s16 *)((u8 *)cur + 6) = 0;
+    *cur = 0;
+    *prev = (s32)next;
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D12E0);
+/**
+ * @brief Append an entry to the D_80102E18 linked list.
+ *
+ * Computes the entry address as D_80102E20 + a0 * 8. If the entry
+ * is already active (halfword at offset 6 is non-zero), returns
+ * immediately. Otherwise, walks the linked list starting at
+ * D_80102E18 to find the tail, marks the entry active, clears its
+ * next pointer, and links it at the end of the list.
+ *
+ * @param a0 Entry index (stride 8 in D_80102E20).
+ */
+void func_800D12E0(s32 a0) {
+    s32 *entry = (s32 *)(a0 * 8 + (s32)D_80102E20);
+    s32 *prev = (s32 *)(s32)D_80102E18;
+    s32 *next;
+    if (*(s16 *)((u8 *)entry + 6) != 0) {
+        return;
+    }
+top:
+    next = (s32 *)*prev;
+    if (next == 0) goto found;
+    prev = next;
+    goto top;
+found:
+    *(s16 *)((u8 *)entry + 6) = 1;
+    *entry = 0;
+    *prev = (s32)entry;
+}
 
 /**
  * @brief Return the byte value at D_80102E14.
