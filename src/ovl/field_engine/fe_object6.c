@@ -272,6 +272,12 @@ s32 func_800B2F50(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2F70);
 
+/**
+ * Reset movement parameters: set walk speed to 1, clear directions, update flags.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2FD8);
 
 /** @brief Pop halfword, store to both 0x192 and 0x190. Returns 2. */
@@ -308,7 +314,40 @@ s32 func_800B3334(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3350);
+/**
+ * Clear movement state: zero many fields, clear bits 0x600 in flags,
+ * copy byte 0x1A5 to 0x1A4. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B3350(u8 *a0) {
+    s32 flags = *(s32 *)(a0 + 0x160);
+    *(volatile u8 *)(a0 + 0x1A5) = 0;
+    {
+        u8 val = *(volatile u8 *)(a0 + 0x1A5);
+        *(u16 *)(a0 + 0x19E) = 0;
+        *(u8 *)(a0 + 0x1A6) = 0;
+        *(u8 *)(a0 + 0x1AC) = 0;
+        *(u8 *)(a0 + 0x1B2) = 0;
+        *(u8 *)(a0 + 0x1AB) = 0;
+        *(u8 *)(a0 + 0x1B1) = 0;
+        *(u8 *)(a0 + 0x1AA) = 0;
+        *(u8 *)(a0 + 0x1B0) = 0;
+        *(u8 *)(a0 + 0x1A9) = 0;
+        *(u8 *)(a0 + 0x1AF) = 0;
+        *(u8 *)(a0 + 0x1A8) = 0;
+        *(u8 *)(a0 + 0x1AE) = 0;
+        *(u8 *)(a0 + 0x1A7) = 0;
+        *(u8 *)(a0 + 0x1AD) = 0;
+        *(u16 *)(a0 + 0x1A2) = 0;
+        *(u16 *)(a0 + 0x1A0) = 0;
+        *(u16 *)(a0 + 0x19C) = 0;
+        *(s32 *)(a0 + 0x160) = flags & ~0x600;
+        *(u8 *)(a0 + 0x1A4) = val;
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B33B8);
 
