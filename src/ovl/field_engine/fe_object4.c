@@ -699,4 +699,22 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800B06D0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800B0784);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800B0818);
+/**
+ * Clears bit 0x800 in entity flags at D_800562C4+0x68, clears
+ * D_80082C10 and D_80077E5F, then calls func_80023888.
+ *
+ * @param a0 Unused.
+ * @return 2 (continue processing).
+ */
+s32 func_800B0818(u8 *a0) {
+    extern s32 D_800562C4;
+    extern u8 D_80082C10;
+    extern u8 D_80077E5F;
+    u8 *entity = (u8 *)D_800562C4;
+
+    *(s32 *)(entity + 0x68) = *(s32 *)(entity + 0x68) & ~0x800;
+    D_80082C10 = 0;
+    D_80077E5F = 0;
+    func_80023888();
+    return 2;
+}
