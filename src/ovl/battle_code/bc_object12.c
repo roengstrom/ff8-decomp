@@ -5,8 +5,36 @@ extern u8 D_800F1A54[];
 s32 func_800C0CB8(s32, s32);
 s32 func_800B5604(s32);
 void func_800C29C4(s32, s32);
+s32 func_800BD3A0(void);
+void func_800BD230(void);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800BF0E8);
+/**
+ * @brief Process render state machine for an entity.
+ *
+ * Reads state byte at offset 0xD of the entity. In state 0, calls
+ * func_800BD3A0 to search for available render slots; if none found
+ * (returns 0), advances to state 1. In state 1, calls func_800BD230
+ * and writes 0xFF to byte 1 of the pointer at offset 0x10, returning 2.
+ *
+ * @param a0 Pointer to entity state structure.
+ * @return 0 if slot search found a match, 2 if render setup completed.
+ */
+s32 func_800BF0E8(u8 *a0) {
+    u8 state = a0[0xD];
+    u8 *ptr = *(u8 **)(a0 + 0x10);
+
+    switch (state) {
+    case 0:
+        if (func_800BD3A0() != 0) {
+            return 0;
+        }
+        a0[0xD] = a0[0xD] + 1;
+    case 1:
+        func_800BD230();
+        *(u8 *)(ptr + 1) = 0xFF;
+        return 2;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800BF168);
 
