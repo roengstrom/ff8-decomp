@@ -108,7 +108,24 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009E338);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009E468);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009E604);
+/**
+ * Extracts position data from two entity structures (offsets 0x190/0x194,
+ * right-shifted by 12) and calls func_8009A0E8 with them.
+ *
+ * @param a0 First entity pointer.
+ * @param a1 Second entity pointer.
+ */
+void func_8009E604(u8 *a0, u8 *a1) {
+    s32 pos1[4];
+    s32 pos2[4];
+    s32 result[2];
+
+    pos1[0] = *(s32 *)(a0 + 0x190) >> 12;
+    pos1[1] = *(s32 *)(a0 + 0x194) >> 12;
+    pos2[0] = *(s32 *)(a1 + 0x190) >> 12;
+    pos2[1] = *(s32 *)(a1 + 0x194) >> 12;
+    func_8009A0E8(pos1, pos2, result);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009E660);
 
