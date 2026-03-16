@@ -198,7 +198,18 @@ void func_800B67F4(u8 *a0) {
     *(u8 *)(a0 + 0x240) = 0;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6854);
+/**
+ * If flag 0x20000 is set and halfword at 0x21E == 2, calls func_800B67F4
+ * and clears flag 0x20000.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800B6854(u8 *a0) {
+    if ((*(s32 *)(a0 + 0x160) & 0x20000) && *(s16 *)(a0 + 0x21E) == 2) {
+        func_800B67F4(a0);
+        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x20000;
+    }
+}
 
 /**
  * Pops a halfword from the stack and stores it to both offsets 0x1FE and 0x200.
