@@ -61,6 +61,18 @@ s32 func_800B95A0(u8 *a0) {
     return 1;
 }
 
+/**
+ * Call func_800B912C with entity byte 0x24F, set bit 0x2000 in flags. Returns 3.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 3.
+ */
+/**
+ * Call func_800B912C with entity and byte 0x24F, set bit 0x2000 in flags. Returns 3.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 3.
+ */
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B95C0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9604);
@@ -148,7 +160,30 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA280);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA330);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA3E0);
+/**
+ * Adjust halfword at 0x1DE based on distance from 0x1DC.
+ * If abs(0x1DE - 0x1DC) >= 0x81, adjusts by +/- 0x100.
+ * Also clears byte at 0x243.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800BA3E0(u8 *a0) {
+    s16 de = *(s16 *)(a0 + 0x1DE);
+    s16 dc = *(s16 *)(a0 + 0x1DC);
+    u16 deu = *(u16 *)(a0 + 0x1DE);
+    s32 diff = de - dc;
+    if (diff < 0) {
+        diff = -diff;
+    }
+    *(u8 *)(a0 + 0x243) = 0;
+    if (diff >= 0x81) {
+        if (dc < de) {
+            *(u16 *)(a0 + 0x1DE) = deu - 0x100;
+        } else {
+            *(u16 *)(a0 + 0x1DE) = deu + 0x100;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800BA424);
 
