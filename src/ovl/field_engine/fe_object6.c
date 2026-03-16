@@ -17,7 +17,25 @@ s32 func_800B23F4(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2434);
+/**
+ * Pops two parameters from the stack, shifts the first left by 1,
+ * and calls func_80013478 with them.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B2434(u8 *a0) {
+    u8 idx;
+    s32 val1, val2;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val1 = *(s32 *)(a0 + (s8)idx * 4);
+    *(u8 *)(a0 + 0x184) = idx - 2;
+    val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
+    func_80013478(val2, val1 << 1);
+    return 2;
+}
 
 /**
  * Pops a parameter and calls func_80013538, returns 2.
