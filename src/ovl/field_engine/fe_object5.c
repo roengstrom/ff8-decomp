@@ -1,5 +1,11 @@
 #include "common.h"
 
+/**
+ * Pop mask, clear those bits from D_800562C4->0xF3, copy to globals, call func_80023888.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B085C);
 
 /**
@@ -24,7 +30,32 @@ s32 func_800B08CC(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0924);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0A08);
+/**
+ * Clear bit 0x8 in entity flags, conditionally clear sprite visibility,
+ * set 0x24C based on flag 0x10, clear 0x249 and 0x24B. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B0A08(u8 *a0) {
+    extern u8 D_800DE8CC[];
+    extern u8 D_800D9630[];
+
+    *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x8;
+    if (!(*(s32 *)D_800DE8CC & 0x2)) {
+        u8 *base = D_800D9630;
+        u8 slot = *(u8 *)(a0 + 0x256);
+        *(u8 *)(*(s32 *)(base + slot * 4) + 0x60) = 0;
+    }
+    if (*(s32 *)(a0 + 0x160) & 0x10) {
+        *(u8 *)(a0 + 0x24C) = 1;
+    } else {
+        *(u8 *)(a0 + 0x24C) = 0;
+    }
+    *(u8 *)(a0 + 0x249) = 0;
+    *(u8 *)(a0 + 0x24B) = 0;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0A7C);
 
