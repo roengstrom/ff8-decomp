@@ -46,19 +46,19 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 
 | Binary | C | ASM | Total | % Decomped |
 |--------|---|-----|-------|------------|
-| `SLUS_008.92` | 622 | 407 | 1029 | 60.4% |
-| `menumain.ovl` | 115 | 84 | 199 | 57.8% |
+| `SLUS_008.92` | 616 | 413 | 1029 | 59.9% |
+| `menumain.ovl` | 116 | 83 | 199 | 58.3% |
 | `menucfg.ovl` | 6 | 12 | 18 | 33.3% |
 | `menupty.ovl` | 15 | 34 | 49 | 30.6% |
 | `menusts.ovl` | 15 | 29 | 44 | 34.1% |
 | `menuabl.ovl` | 8 | 9 | 17 | 47.1% |
-| `menushop.ovl` | 13 | 41 | 54 | 24.1% |
+| `menushop.ovl` | 14 | 40 | 54 | 25.9% |
 | `menuext.ovl` | 17 | 30 | 47 | 36.2% |
-| `menuitem.ovl` | 29 | 70 | 99 | 29.3% |
-| `menumgc.ovl` | 10 | 41 | 51 | 19.6% |
-| `menugf.ovl` | 6 | 16 | 22 | 27.3% |
-| `menujnc2.ovl` | 21 | 65 | 86 | 24.4% |
-| `menusav.ovl` | 55 | 69 | 124 | 44.4% |
+| `menuitem.ovl` | 33 | 66 | 99 | 33.3% |
+| `menumgc.ovl` | 14 | 37 | 51 | 27.5% |
+| `menugf.ovl` | 8 | 14 | 22 | 36.4% |
+| `menujnc2.ovl` | 27 | 59 | 86 | 31.4% |
+| `menusav.ovl` | 56 | 68 | 124 | 45.2% |
 | `menucrd.ovl` | 11 | 10 | 21 | 52.4% |
 | `menututo.ovl` | 9 | 19 | 28 | 32.1% |
 | `menutmag.ovl` | 8 | 7 | 15 | 53.3% |
@@ -66,12 +66,12 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `menutest.ovl` | 9 | 2 | 11 | 81.8% |
 | `field_init.bin` | 8 | 1 | 9 | 88.9% |
 | `display_init.bin` | 4 | 7 | 11 | 36.4% |
-| `field_engine.bin` | 152 | 532 | 684 | 22.2% |
-| `battle_engine.bin` | 62 | 1602 | 1664 | 3.7% |
+| `field_engine.bin` | 193 | 491 | 684 | 28.2% |
+| `battle_engine.bin` | 63 | 1601 | 1664 | 3.8% |
 | `battle_render.bin` | 10 | 17 | 27 | 37.0% |
-| `battle_code.bin` | 495 | 919 | 1414 | 35.0% |
-| `field_engine_alt.bin` | 30 | 321 | 351 | 8.5% |
-| **Total** | **1734** | **4356** | **6090** | **28.5%** |
+| `battle_code.bin` | 502 | 912 | 1414 | 35.5% |
+| `field_engine_alt.bin` | 32 | 319 | 351 | 9.1% |
+| **Total** | **1798** | **4292** | **6090** | **29.5%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
 
