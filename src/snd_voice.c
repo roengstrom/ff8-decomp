@@ -140,34 +140,7 @@ void func_800164C8(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);
 
-/**
- * @brief Build a voice bitmask from active tracks.
- *
- * For each track bit set in @p trackMask, reads the voice assignment at
- * offset +0xF4. If the voice index is valid (< 24), sets the corresponding
- * bit in *voiceBits. Finally ANDs *voiceBits with @p validMask.
- *
- * @param tracks Base pointer to the track array (stride 0x110).
- * @param voiceBits Pointer to the accumulated voice bitmask.
- * @param trackMask Bitmask of tracks to process.
- * @param validMask Mask applied to final voice bits result.
- */
-void func_80016A1C(u8 *tracks, s32 *voiceBits, u32 trackMask, s32 validMask) {
-    s32 bit = 1;
-    s32 one = 1;
-    do {
-        if (trackMask & bit) {
-            s32 voice = *(s32 *)(tracks + 0xF4);
-            if ((u32)voice < 0x18) {
-                *voiceBits |= one << voice;
-            }
-        }
-        trackMask &= ~bit;
-        tracks += 0x110;
-        bit <<= 1;
-    } while (trackMask != 0);
-    *voiceBits &= validMask;
-}
+INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016A1C);
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016A7C);
 

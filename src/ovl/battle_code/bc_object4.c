@@ -15,6 +15,10 @@ void func_8009AF14(s32);
 s32 func_800AA4E8(void);
 void func_8009AE08(s32);
 void func_800E1850(void);
+void func_800A09D0(s32);
+void func_800A5210(s32);
+extern u8 D_800EEBC8[];
+extern u8 D_800EE4C0[];
 
 /**
  * @brief Compute table entry and forward call to func_800A5A7C.
@@ -113,7 +117,41 @@ s32 func_800A62FC(void) {
     return base[0x12EB];
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6310);
+/**
+ * @brief Initialize battle entity state and process active entries.
+ *
+ * Sets up entity flags, copies status bytes to D_800EE4C0, stores
+ * the parameter to D_800EEBC8, then iterates through active entity
+ * entries calling func_800A09D0 and func_800A5210 for each.
+ *
+ * @param a0 Value to store at D_800EEBC8.
+ */
+void func_800A6310(s32 a0) {
+    s32 i = 0;
+    u8 *base = D_800ED148;
+    u8 *status;
+    u8 *buf;
+    u8 *entry;
+
+    base[0x131E] = 1;
+    *(u8 *)D_800EEBC8 = a0;
+    status = base + 0x5C4;
+    base[0x1300] = 0;
+    base[0x5C1] = 0;
+    buf = D_800EE4C0;
+    buf[0] = status[0];
+    buf[1] = status[1];
+    *(u16 *)(buf + 0x1C) = *(u16 *)(status + 4);
+    if (status[0x10] != 0) {
+        entry = base + 0x844;
+        do {
+            func_800A09D0(entry[0]);
+            i++;
+            func_800A5210(entry[0]);
+            entry += 0x18;
+        } while (i < status[0x10]);
+    }
+}
 
 /**
  * @brief Store four halfword values to D_800ED148 at offsets 0x1290-0x1296.
