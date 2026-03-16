@@ -37,7 +37,23 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6328);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6364);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B63A4);
+/**
+ * Pops a value; if nonzero calls func_800C0384 (set bit 0x20),
+ * otherwise calls func_800C03A0 (clear bit 0x20).
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B63A4(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    if (*(s32 *)(a0 + (s8)idx * 4) != 0) {
+        func_800C0384();
+    } else {
+        func_800C03A0();
+    }
+    return 2;
+}
 
 /**
  * Calls func_800C03F4 and returns 2.

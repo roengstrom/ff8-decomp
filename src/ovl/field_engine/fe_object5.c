@@ -2,7 +2,25 @@
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B085C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B08CC);
+/**
+ * Pops a value, calls func_80037C30, and if result is not 0xFF
+ * calls func_80036B90 with the result.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B08CC(u8 *a0) {
+    u8 idx;
+    s32 result;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    result = func_80037C30(*(s32 *)(a0 + (s8)idx * 4));
+    if (result != 0xFF) {
+        func_80036B90(result);
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0924);
 
@@ -170,7 +188,27 @@ s32 func_800B1730(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1738);
+/**
+ * Pops two values, calls func_8003093C(D_800C5FB0, val2, val1 | 1),
+ * stores result in D_800DE878.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B1738(u8 *a0) {
+    extern u8 D_800DE878[];
+    extern u8 D_800C5FB0[];
+    u8 idx;
+    s32 val1, val2;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val1 = *(s32 *)(a0 + (s8)idx * 4);
+    *(u8 *)(a0 + 0x184) = idx - 2;
+    val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
+    *(s32 *)D_800DE878 = func_8003093C(D_800C5FB0, val2, val1 | 1);
+    return 2;
+}
 
 /**
  * Returns 2, indicating continue processing.
