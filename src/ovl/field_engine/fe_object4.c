@@ -535,7 +535,23 @@ s32 func_800AF3B4(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF404);
+/**
+ * Sets bits 0x18 in entity flags at D_800562C4+0x68, then calls
+ * func_800318E0 with the inverted bit 3 value.
+ *
+ * @param a0 Unused.
+ * @return 2 (continue processing).
+ */
+s32 func_800AF404(u8 *a0) {
+    extern s32 D_800562C4;
+    s32 flags;
+
+    flags = *(s32 *)(D_800562C4 + 0x68);
+    flags = flags | 0x18;
+    *(s32 *)(D_800562C4 + 0x68) = flags;
+    func_800318E0(((u32)flags >> 3 ^ 1) & 1);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF444);
 
