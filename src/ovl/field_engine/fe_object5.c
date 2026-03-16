@@ -190,7 +190,22 @@ s32 func_800B0CFC(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0D2C);
+/**
+ * Read entity position words, divide by 4096, store to result slots.
+ * Also copy animation/direction bytes. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B0D2C(u8 *a0) {
+    *(s32 *)(a0 + 0x140) = *(s32 *)(a0 + 0x190) / 4096;
+    *(s32 *)(a0 + 0x144) = *(s32 *)(a0 + 0x194) / 4096;
+    *(s32 *)(a0 + 0x148) = *(s32 *)(a0 + 0x198) / 4096;
+    *(s32 *)(a0 + 0x150) = *(u8 *)(a0 + 0x241);
+    *(s32 *)(a0 + 0x154) = *(u16 *)(a0 + 0x1FA);
+    *(s32 *)(a0 + 0x158) = *(s16 *)(a0 + 0x1FE);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0D94);
 
