@@ -2,6 +2,12 @@
 
 extern u8 D_800EE9E8[];
 extern u8 D_801032A0[];
+extern u8 D_80020D4C[];
+void func_800DA3F0(s32, s32, s32, s32, s32, s32);
+void func_800D5C28(s32, s32, s32, s32);
+void func_800D90B4(void);
+void func_800D6D80(void);
+void func_800DC0CC(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6AF4);
 
@@ -24,7 +30,25 @@ s32 func_800D6E8C(void) {
     return (s32)D_800EE9E8;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6E98);
+/**
+ * @brief Initialize battle object 19 with render and update callbacks.
+ *
+ * Rearranges parameters and calls func_800DA3F0 for initial setup,
+ * stores D_80020D4C into D_801032A0 render table, registers task
+ * callbacks via func_800D5C28, then calls func_800D90B4 for first frame.
+ *
+ * @param a0 First init parameter.
+ * @param a1 Second init parameter.
+ * @param a2 Configuration value (passed as fourth arg).
+ * @param a3 Third parameter (passed on stack).
+ */
+void func_800D6E98(s32 a0, s32 a1, s32 a2, s32 a3) {
+    s32 base = (s32)D_801032A0;
+    func_800DA3F0(a0, a1, 4, a2, 1, a3);
+    *(s32 *)(base + 8) = (s32)D_80020D4C;
+    func_800D5C28(2, (s32)func_800D90B4, (s32)func_800D6D80, (s32)func_800DC0CC);
+    func_800D90B4();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6F10);
 
