@@ -97,7 +97,36 @@ void func_801E6B3C(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6BB8);
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6C84);
+/**
+ * @brief Set up GF summary display with icon and border rendering.
+ *
+ * Calls func_80036F60 to get a status value, then passes it along with
+ * position constants to func_801E69B0 for rendering. Configures D_801FAB00
+ * with icon 0x50, position (0x18, 0x38), dimensions (0x150 x 0xA0), and
+ * calls func_801EF9AC for final display.
+ *
+ * @param a0 GF context pointer.
+ * @param a1 Render context.
+ */
+void func_801E6C84(s32 a0, s32 a1) {
+    extern u8 D_801FAB00[];
+    extern s32 D_80083848;
+    s32 ctx = a0;
+    s32 renderCtx = a1;
+    s32 result;
+    u8 *cfg;
+
+    result = func_80036F60() & 0xFFFF;
+    result = func_801E69B0(ctx, renderCtx, 0x18, 0x38, result);
+    cfg = D_801FAB00;
+    *(u8 *)(cfg + 0x10) = 0x50;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = 0x18;
+    *(s16 *)(cfg + 0x02) = 0x38;
+    *(s16 *)(cfg + 0x04) = 0x150;
+    *(s16 *)(cfg + 0x06) = 0xA0;
+    func_801EF9AC(ctx, result, 0x1000, D_80083848);
+}
 
 /**
  * @brief Render a GF ability entry with conditional highlight.
