@@ -1158,7 +1158,30 @@ s32 func_801EB408(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB458);
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB578);
+/**
+ * @brief Find a unique coordinate pair by repeated random sampling.
+ *
+ * Extracts target x from a0>>10 and target y from a1>>10. Repeatedly
+ * calls func_801EB0B8 to get random values, converting to coordinates
+ * via (val * 9) >> 7. Loops until the generated coordinates differ
+ * from the targets.
+ *
+ * @param a0 Target x coordinate (encoded in bits 10+).
+ * @param a1 Target y coordinate (encoded in bits 10+).
+ * @return Combined coordinate: x | (y << 8).
+ */
+s32 func_801EB578(s32 a0, s32 a1) {
+    s32 targetX = a0 >> 10;
+    s32 targetY = a1 >> 10;
+    s32 x, y;
+
+    do {
+        x = (u32)((func_801EB0B8() & 0xFF) * 9) >> 7;
+        y = (u32)((func_801EB0B8() & 0xFF) * 9) >> 7;
+    } while (x == targetX && y == targetY);
+
+    return x | (y << 8);
+}
 
 /**
  * @brief Search byte pair array for a matching entry.
