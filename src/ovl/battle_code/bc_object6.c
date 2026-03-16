@@ -18,6 +18,8 @@ void func_800AE6C0(void);
 s32 func_8009AF3C(s32, s32, s32, s32, s32);
 void func_80048BB8(s32);
 void func_80012D5C(void);
+extern u8 D_80082C08[];
+extern u8 D_80077378[];
 void func_800389CC(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
@@ -390,7 +392,39 @@ void func_800AEACC(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEB50);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEC04);
+/**
+ * @brief Check conditions and trigger callback mode 3 for entity system.
+ *
+ * Returns early if D_80082C08[7] is non-zero, or if bit 2 of the
+ * halfword at D_80082C08+2 is clear, or if D_80077378[0xCD4] is
+ * non-zero, or if the halfword at D_80082C08 equals 0x13D.
+ * Otherwise calls func_800AEACC(-1), sets mode to 3, stores 3 in
+ * D_800EE449, and registers func_8009AD7C as callback.
+ */
+void func_800AEC04(void) {
+    u8 *base = D_80082C08;
+
+    if (base[7] != 0) {
+        return;
+    }
+    if (!(*(u16 *)(base + 2) & 4)) {
+        return;
+    }
+    {
+        s32 gstate = (s32)D_80077378;
+        REGALLOC_BARRIER(gstate);
+        if (*(s32 *)(gstate + 0xCD4) != 0) {
+            return;
+        }
+    }
+    if (*(u16 *)base == 0x13D) {
+        return;
+    }
+    func_800AEACC(-1);
+    base[7] = 3;
+    *(u8 *)D_800EE449 = 3;
+    func_8009AF14(func_8009AD7C);
+}
 
 /**
  * @brief Set callback mode 3 and register func_8009AD7C.
