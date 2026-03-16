@@ -57,7 +57,33 @@ s32 func_800B0A08(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0A7C);
+/**
+ * Set bit 0x8 in entity flags, conditionally set sprite visibility,
+ * restore 0x10 flag from 0x24C, set 0x24C/0x249/0x24B to 1. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B0A7C(u8 *a0) {
+    extern u8 D_800DE8CC[];
+    extern u8 D_800D9630[];
+
+    *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) | 0x8;
+    if (!(*(s32 *)D_800DE8CC & 0x2)) {
+        u8 *base = D_800D9630;
+        u8 slot = *(u8 *)(a0 + 0x256);
+        *(u8 *)(*(s32 *)(base + slot * 4) + 0x60) = 1;
+    }
+    if (*(u8 *)(a0 + 0x24C) != 0) {
+        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) | 0x10;
+    } else {
+        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x10;
+    }
+    *(u8 *)(a0 + 0x24C) = 1;
+    *(u8 *)(a0 + 0x249) = 1;
+    *(u8 *)(a0 + 0x24B) = 1;
+    return 2;
+}
 
 /**
  * Clears the byte at offset 0x24B in the object.
