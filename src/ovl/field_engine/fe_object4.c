@@ -451,7 +451,23 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AEFE8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF02C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF070);
+/**
+ * Decrement top-of-stack timer. If reaches zero, pop and return 3 (done).
+ * Otherwise return 1 (wait).
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 1 if timer still active, 3 if timer expired.
+ */
+s32 func_800AF070(u8 *a0) {
+    s8 idx = *(s8 *)(a0 + 0x184);
+    s32 val = *(s32 *)(a0 + idx * 4) - 1;
+    *(s32 *)(a0 + idx * 4) = val;
+    if (val == 0) {
+        *(u8 *)(a0 + 0x184) = *(u8 *)(a0 + 0x184) - 1;
+        return 3;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF0B4);
 
