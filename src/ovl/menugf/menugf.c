@@ -63,7 +63,37 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E69B0);
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6A8C);
 
-INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6B3C);
+/**
+ * @brief Configure GF ability list display and register callback.
+ *
+ * Sets up D_801FAB00 display config with icon 0x55, dimensions 0x144 x 0x1A,
+ * scroll enabled, and page mode. Reads total item count from offset 0x28
+ * and data pointer from offset 0x20. Registers func_801E6A8C as callback.
+ *
+ * @param a0 Source data structure.
+ * @param a1 First callback parameter.
+ * @param a2 Second callback parameter.
+ * @param a3 X position for display config.
+ * @param arg4 Y position for display config.
+ */
+void func_801E6B3C(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    extern u8 D_801FAB00[];
+    extern void func_801E6A8C();
+    u8 *cfg = D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0x55;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)(cfg + 0x04) = 0x144;
+    *(s16 *)(cfg + 0x06) = 0x1A;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x02) = arg4;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x28);
+    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x20);
+    func_801EFBB4(a1, a2, (s32)func_801E6A8C);
+}
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6BB8);
 
