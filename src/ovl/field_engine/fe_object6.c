@@ -91,7 +91,27 @@ s32 func_800B2524(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B257C);
+/**
+ * Pops three parameters from the stack and calls
+ * func_800134F0(0, val3, val2 << 1, val1).
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B257C(u8 *a0) {
+    u8 idx;
+    s32 val1, val2, val3;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val1 = *(s32 *)(a0 + (s8)idx * 4);
+    *(u8 *)(a0 + 0x184) = idx - 2;
+    val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
+    *(u8 *)(a0 + 0x184) = idx - 3;
+    val3 = *(s32 *)(a0 + (s8)(idx - 2) * 4);
+    func_800134F0(0, val3, val2 << 1, val1);
+    return 2;
+}
 
 /**
  * Pops two parameters from the stack and calls func_80013598(0, val2, val1).
@@ -112,7 +132,27 @@ s32 func_800B25F0(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2648);
+/**
+ * Pops three parameters from the stack and calls
+ * func_800135DC(0, val3, val2 << 1, val1).
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B2648(u8 *a0) {
+    u8 idx;
+    s32 val1, val2, val3;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val1 = *(s32 *)(a0 + (s8)idx * 4);
+    *(u8 *)(a0 + 0x184) = idx - 2;
+    val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
+    *(u8 *)(a0 + 0x184) = idx - 3;
+    val3 = *(s32 *)(a0 + (s8)(idx - 2) * 4);
+    func_800135DC(0, val3, val2 << 1, val1);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B26BC);
 
@@ -206,6 +246,13 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2D40);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2DC0);
 
+/**
+ * Pops two parameters from the stack, calls func_800B2D40, then sets
+ * bit 0x8000 in flags at offset 0x160.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2E68);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2EDC);
