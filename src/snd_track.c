@@ -266,7 +266,35 @@ void func_8001CA5C(u8 *a0) {
     *(u16 *)(a0 + 0x92) = (*(u16 *)(a0 + 0x92) - 1) & 0xF;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CA74);
+/**
+ * @brief Read instrument index from stream with optional transposition.
+ *
+ * Reads one byte from the stream cursor. If the track's voice count
+ * (offset +0x60) is zero, resolves the instrument via func_8001B400.
+ * Otherwise transposes via func_8001C280 using the track's flags.
+ * Applies the resolved instrument via func_8001C1A8, stores the
+ * instrument index, clears field 0x10A, and masks field 0x30.
+ *
+ * @param a0 Pointer to the track structure.
+ */
+void func_8001CA74(u8 *a0) {
+    extern s32 *D_80074F08;
+    extern u8 D_80073E68[];
+    u8 *ptr = *(u8 **)a0;
+    s32 byte = *ptr;
+    s32 inst;
+    *(u8 **)a0 = ptr + 1;
+
+    if (*(u16 *)(a0 + 0x60) == 0) {
+        inst = func_8001B400(*D_80074F08, byte);
+    } else {
+        inst = func_8001C280(*(s32 *)(a0 + 0x34), byte);
+    }
+    func_8001C1A8(a0, D_80073E68 + inst * 16, *(s32 *)(D_80073E68 + inst * 16));
+    *(u16 *)(a0 + 0x66) = inst;
+    *(u16 *)(a0 + 0x10A) = 0;
+    *(s32 *)(a0 + 0x30) &= (s32)0xE6FFEFF7;
+}
 
 /**
  * @brief Read instrument index from stream and apply to track.
