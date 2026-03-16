@@ -266,7 +266,30 @@ void func_800D3E38(s32 a0) {
     func_800D3D4C(a0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3E58);
+/**
+ * @brief Enqueue a sound/effect command into the command buffer.
+ *
+ * Calls func_800D3C50 to get the buffer base, then stores a new entry
+ * at index D_80102E70 (stride 12), incrementing the count. Each entry
+ * holds type, channel, value, pointer, and duration fields.
+ *
+ * @param a0 Command type (byte).
+ * @param a1 Channel index (byte).
+ * @param a2 Value parameter (halfword).
+ * @param a3 Data pointer (word).
+ * @param a4 Duration (halfword, 5th arg on stack).
+ */
+void func_800D3E58(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
+    u8 *base = (u8 *)func_800D3C50();
+    s32 idx = *(s32 *)D_80102E70;
+    *(s32 *)D_80102E70 = idx + 1;
+    base += idx * 12;
+    *(u8 *)(base + 0) = a0;
+    *(u8 *)(base + 1) = a1;
+    *(u16 *)(base + 2) = a2;
+    *(s32 *)(base + 4) = a3;
+    *(u16 *)(base + 8) = a4;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3EE8);
 
