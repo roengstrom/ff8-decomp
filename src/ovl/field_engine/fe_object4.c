@@ -282,19 +282,80 @@ s32 func_800AE4C4(u8 *a0, s32 a1) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE518);
+/** @brief Load entity slot value a1*4+0x140, call func_800AE3A4 with mode 4, push result. Returns 2. */
+s32 func_800AE518(u8 *a0, s32 a1) {
+    s32 result = func_800AE3A4(*(s32 *)(a0 + a1 * 4 + 0x140), 4);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE574);
+/** @brief Load byte from D_80077378+a1+0xD60, call func_800AE3A4 with mode 5, push result. Returns 2. */
+s32 func_800AE574(u8 *a0, s32 a1) {
+    extern u8 D_80077378[];
+    u8 *base = D_80077378;
+    s32 result = func_800AE3A4(*(u8 *)(base + a1 + 0xD60), 5);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE5D4);
+/** @brief Load halfword from D_800780D8+a1, call func_800AE3A4 with mode 6, push result. Returns 2. */
+s32 func_800AE5D4(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 *base = D_800780D8;
+    s32 result = func_800AE3A4(*(u16 *)(base + a1), 6);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE634);
+/** @brief Load word from D_800780D8+a1, call func_800AE3A4 with mode 7, push result. Returns 2. */
+s32 func_800AE634(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 *base = D_800780D8;
+    s32 result = func_800AE3A4(*(s32 *)(base + a1), 7);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE694);
+/** @brief Load signed byte from D_800780D8+a1, call func_800AE3A4 with mode 2, push result. Returns 2. */
+s32 func_800AE694(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 *base = D_800780D8;
+    s32 result = func_800AE3A4(*(s8 *)(base + a1), 2);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE6F4);
+/** @brief Load signed halfword from D_800780D8+a1, call func_800AE3A4 with mode 3, push result. Returns 2. */
+s32 func_800AE6F4(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 *base = D_800780D8;
+    s32 result = func_800AE3A4(*(s16 *)(base + a1), 3);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE754);
+/** @brief Load word from D_800780D8+a1, call func_800AE3A4 with mode 4, push result. Returns 2. */
+s32 func_800AE754(u8 *a0, s32 a1) {
+    extern u8 D_800780D8[];
+    u8 *base = D_800780D8;
+    s32 result = func_800AE3A4(*(s32 *)(base + a1), 4);
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = result;
+    return 2;
+}
 
 /** @brief Pop top-of-stack and store to result slot a1*4+0x140. Returns 2. */
 s32 func_800AE7B4(u8 *a0, s32 a1) {
