@@ -616,7 +616,38 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8024);
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E80D0);
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8180);
+/**
+ * @brief Configure item list display and register render callback.
+ *
+ * Sets up D_801FAB00 display config with icon 0x55, dimensions 0x144 x 0x1A,
+ * scroll enabled, and page mode. Computes total item count from three fields
+ * at offsets 0x48, 0x4C, and 0x50 of the source struct. Registers
+ * func_801E80D0 as the display callback via func_801EFBB4.
+ *
+ * @param a0 Source data structure (offset 0x28 stored as data pointer).
+ * @param a1 First callback parameter.
+ * @param a2 Second callback parameter.
+ * @param a3 X position for display config.
+ * @param arg4 Y position for display config.
+ */
+void func_801E8180(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    extern u8 D_801FAB00[];
+    extern void func_801E80D0();
+    u8 *cfg = D_801FAB00;
+
+    *(u8 *)(cfg + 0x10) = 0x55;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)(cfg + 0x04) = 0x144;
+    *(s16 *)(cfg + 0x06) = 0x1A;
+    *(u8 *)(cfg + 0x13) = 1;
+    *(u8 *)(cfg + 0x16) = 0;
+    *(u8 *)(cfg + 0x17) = 1;
+    *(s16 *)(cfg + 0x02) = arg4;
+    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x48) + *(u16 *)(a0 + 0x4C) + *(u16 *)(a0 + 0x50);
+    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x28);
+    func_801EFBB4(a1, a2, (s32)func_801E80D0);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E820C);
 
