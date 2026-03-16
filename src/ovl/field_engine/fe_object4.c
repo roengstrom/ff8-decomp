@@ -258,7 +258,15 @@ s32 func_800AE098(u8 *a0, s32 a1) {
     return 4;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE0DC);
+/** @brief Push (halfword at 0x176)+1 onto stack, load new 0x176 from table. Returns 4. */
+s32 func_800AE0DC(u8 *a0, s32 a1) {
+    extern s32 D_800852F0;
+    u8 idx = *(u8 *)(a0 + 0x184) + 1;
+    *(u8 *)(a0 + 0x184) = idx;
+    *(s32 *)(a0 + (s8)idx * 4) = *(u16 *)(a0 + 0x176) + 1;
+    *(u16 *)(a0 + 0x176) = *(u16 *)(D_800852F0 + a1 * 2);
+    return 4;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE124);
 
