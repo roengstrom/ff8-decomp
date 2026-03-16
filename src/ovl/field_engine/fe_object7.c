@@ -177,7 +177,24 @@ s32 func_800B65CC(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65D4);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B663C);
+/**
+ * If flag 0x10000000 is set and byte at 0x23C is 1, copies position
+ * fields (0x1B4/0x1B8/0x1BC to 0x1C0/0x1C4/0x1C8), copies 0x21A to
+ * 0x21C and 0x1FE to 0x202, clears byte 0x23C, and sets flag 0x10000.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800B663C(u8 *a0) {
+    if ((*(s32 *)(a0 + 0x160) & 0x10000000) && *(u8 *)(a0 + 0x23C) == 1) {
+        *(s32 *)(a0 + 0x1C0) = *(s32 *)(a0 + 0x1B4);
+        *(u8 *)(a0 + 0x23C) = 0;
+        *(s32 *)(a0 + 0x1C4) = *(s32 *)(a0 + 0x1B8);
+        *(s32 *)(a0 + 0x1C8) = *(s32 *)(a0 + 0x1BC);
+        *(u16 *)(a0 + 0x21C) = *(u16 *)(a0 + 0x21A);
+        *(u16 *)(a0 + 0x202) = *(u16 *)(a0 + 0x1FE);
+        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) | 0x10000;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B66A8);
 
