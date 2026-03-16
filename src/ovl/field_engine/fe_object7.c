@@ -183,7 +183,20 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B66A8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6738);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B67F4);
+/**
+ * If flag 0x40000 is set in entity flags at 0x160, calls func_800B912C
+ * with entity byte 0x24F, then sets bit 0x2000 and clears bit 0x40000.
+ * Always clears byte at offset 0x240.
+ *
+ * @param a0 Pointer to the script/object structure.
+ */
+void func_800B67F4(u8 *a0) {
+    if (*(s32 *)(a0 + 0x160) & 0x40000) {
+        func_800B912C(a0, *(u8 *)(a0 + 0x24F));
+        *(s32 *)(a0 + 0x160) = (*(s32 *)(a0 + 0x160) | 0x2000) & ~0x40000;
+    }
+    *(u8 *)(a0 + 0x240) = 0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6854);
 
