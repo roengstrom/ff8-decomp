@@ -18,6 +18,11 @@ void func_8003F41C(void);
 void func_800408C4(s32, s32);
 void func_800408E4(s32);
 void func_800C5338(s32);
+void func_800472E4(void);
+void func_800472F4(void);
+void func_80013300(s32);
+void func_8001336C(s32);
+void func_8009B6B0(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 
@@ -80,7 +85,32 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5338);
  *
  * @return Current value of D_800F1B90 after completion.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C53F0);
+/**
+ * @brief Wait for CD load completion and manage audio channel state.
+ *
+ * If D_800F1B90 is negative, disables audio channels 2 and 3 in a
+ * critical section, then polls func_8009B6B0 until D_800F1B90 becomes
+ * non-negative. Once ready, re-enables channels 2 and 3. Returns the
+ * final value of D_800F1B90.
+ *
+ * @return Current value of D_800F1B90.
+ */
+s32 func_800C53F0(void) {
+    if (*(s32 *)D_800F1B90 < 0) {
+        func_800472E4();
+        func_80013300(2);
+        func_80013300(3);
+        func_800472F4();
+        while (*(s32 *)D_800F1B90 < 0) {
+            func_8009B6B0();
+        }
+        func_800472E4();
+        func_8001336C(2);
+        func_8001336C(3);
+        func_800472F4();
+    }
+    return *(s32 *)D_800F1B90;
+}
 
 /**
  * @brief Check D_800F1B90 sign and D_800EEC5C bit 0x200, conditionally call func_800C5338.
