@@ -8,6 +8,8 @@ extern u8 D_801032F8[];
 extern u8 D_80103420[];
 extern u8 D_80077E5C[];
 s32 func_800D134C(void);
+void func_8002F294(s32, u8 *, s32);
+void func_8002F2EC(u8 *, s32, s32, s32);
 
 /**
  * @brief Call func_8002795C with a1=0, pass result to func_80030F10.
@@ -344,7 +346,37 @@ void func_800D18B0(void) {
     *(s16 *)(base + 4) = 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D18C4);
+/**
+ * @brief Convert a fixed-point value to 4-byte BCD representation.
+ *
+ * Divides the input by 4096 (rounding toward zero for negatives),
+ * converts to radix-96 then to radix-107, and copies the resulting
+ * 4 bytes to the output buffer.
+ *
+ * @param a0 Fixed-point input value.
+ * @param a1 Output buffer (4 bytes).
+ */
+void func_800D18C4(s32 a0, u8 *a1) {
+    u8 buf[8];
+    u8 *p;
+    u8 b0, b1;
+
+    if (a0 < 0) {
+        a0 += 0xFFF;
+    }
+    a0 >>= 12;
+    func_8002F294(a0, buf, 0x60);
+    p = &buf[1];
+    func_8002F2EC(p, 3, 0x60, 0x6B);
+    b0 = buf[1];
+    b1 = p[1];
+    a1[0] = b0;
+    a1[1] = b1;
+    b0 = p[2];
+    b1 = p[3];
+    a1[2] = b0;
+    a1[3] = b1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D1940);
 
