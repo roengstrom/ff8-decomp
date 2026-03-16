@@ -722,7 +722,16 @@ void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
  * @param a3 Y offset to add to template Y.
  * @param arg5 Pointer to 4-halfword rectangle template.
  */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E91E4);
+void func_801E91E4(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
+    extern u16 D_801FAB00[];
+    extern s32 D_80083848;
+
+    D_801FAB00[0] = src[0] + a2;
+    D_801FAB00[1] = src[1] + a3;
+    D_801FAB00[2] = src[2];
+    D_801FAB00[3] = src[3];
+    func_801E90D8(a0, a1, D_801FAB00, D_80083848, src);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9248);
 
