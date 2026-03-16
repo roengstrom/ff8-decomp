@@ -18,6 +18,8 @@ void func_8003FD84(s32, s32, s32);
 void func_80040264(s32, s32);
 s32 func_8013E000(s32);
 void func_800B8F4C(s32);
+s32 func_800B5604(u8 *);
+void func_800C2B88(u8 *);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B49D8);
 
@@ -92,7 +94,40 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B555C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5604);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B56B8);
+/**
+ * @brief Update entity render state based on computed attribute.
+ *
+ * If entity byte at offset 4 is >= 16, returns immediately. Otherwise
+ * calls func_800B5604 to compute the current attribute. Loads the
+ * entity's render pointer at offset 0x74 and compares byte[3] and
+ * byte[0] against the computed attribute:
+ * - If byte[3] is non-zero and byte[0] matches, clears byte[3].
+ * - If byte[3] is non-zero and byte[0] differs, sets byte[3] to attribute.
+ * - If byte[3] is zero and byte[0] differs, calls func_800C2B88.
+ *
+ * @param a0 Pointer to entity structure.
+ */
+void func_800B56B8(u8 *a0) {
+    u8 *ptr;
+    s32 attr;
+
+    if (a0[4] >= 0x10) {
+        return;
+    }
+    attr = func_800B5604(a0);
+    ptr = *(u8 **)(a0 + 0x74);
+    if (ptr[3] != 0) {
+        if (ptr[0] == attr) {
+            ptr[3] = 0;
+        } else {
+            ptr[3] = attr;
+        }
+    } else {
+        if (ptr[0] != attr) {
+            func_800C2B88(a0);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B5748);
 
