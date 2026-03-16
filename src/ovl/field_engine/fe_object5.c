@@ -80,7 +80,24 @@ s32 func_800B0C58(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0C64);
+/**
+ * Pops a value, looks up in D_80085230 table, calls func_8009F74C
+ * with entity pointer and lookup result, stores return value at 0x140.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B0C64(u8 *a0) {
+    extern u8 D_80085230[];
+    u8 idx;
+    s32 val;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val = *(s32 *)(a0 + (s8)idx * 4);
+    *(s32 *)(a0 + 0x140) = func_8009F74C(a0, *(s32 *)(D_80085230 + val * 4));
+    return 2;
+}
 
 /** @brief Pop halfword from stack and store to offset 0x1F8. Returns 2. */
 s32 func_800B0CCC(u8 *a0) {
