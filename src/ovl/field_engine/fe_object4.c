@@ -473,7 +473,27 @@ s32 func_800AF114(u8 *a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF120);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF1AC);
+/**
+ * Pops a value, calls func_80037C30 to look up an index, then loads
+ * the byte at D_80077378 + index * 152 + 0x4EB into result slot 0x140.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800AF1AC(u8 *a0) {
+    extern u8 D_80077378[];
+    u8 idx;
+    s32 result;
+
+    idx = *(u8 *)(a0 + 0x184);
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    result = func_80037C30(*(s32 *)(a0 + (s8)idx * 4));
+    {
+        u8 *base = D_80077378;
+        *(s32 *)(a0 + 0x140) = *(u8 *)(base + result * 152 + 0x4EB);
+    }
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF224);
 
