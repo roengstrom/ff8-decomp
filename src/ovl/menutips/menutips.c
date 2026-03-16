@@ -8,8 +8,8 @@
  *
  * @param a0 Render context pointer.
  */
-void func_801E5800(s32 a0) {
-    func_801F08D4(1, 0xD, a0, 0);
+s32 func_801E5800(s32 a0) {
+    return func_801F08D4(1, 0xD, a0, 0);
 }
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E582C);
@@ -145,7 +145,54 @@ void func_801E64B0(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6514);
+/**
+ * @brief Render tips navigation panel with scroll indicators.
+ *
+ * @param a0 Display list pointer.
+ * @param a1 OT pointer.
+ * @return Updated OT pointer from func_801EF9AC.
+ */
+s32 func_801E6514(s32 a0, s32 a1) {
+    extern u8 D_801FAB00[];
+    extern s16 D_801EC410;
+    extern u16 D_801EC414;
+    extern u16 D_801EC416;
+    extern s32 D_80083848;
+    s32 ot = a1;
+    s32 resource;
+    s32 tw;
+    s32 width;
+    s32 xPos = 0x18;
+    s32 yPos;
+    u8 *cfg = D_801FAB00;
+    yPos = 0xC4;
+    if (D_801EC410 != 0) {
+        resource = func_801E5800(0xE);
+    } else {
+        resource = func_801E5800(0xF);
+        if ((D_801EC416 != 0xFFFF) || (D_801EC414 != D_801EC416)) {
+            resource = func_801E5800(0x20);
+        }
+    }
+    if (D_801EC416 != 0xFFFF) {
+        s32 arg = 0x1F;
+        if (D_801EC410 == 0) {
+            arg = 0x1D;
+        }
+        resource = func_801E5800(arg);
+    }
+    tw = func_8002E680(resource);
+    tw = (0x150 - (u16)tw) / 2;
+    func_8002EAD0(a0, xPos + tw, yPos + 4, resource);
+    width = 0x150;
+    cfg[0x10] = 0;
+    cfg[0x11] = 0;
+    *(s16 *)(cfg + 0x0) = xPos;
+    *(s16 *)(cfg + 0x2) = yPos;
+    *(s16 *)(cfg + 0x4) = width;
+    *(s16 *)(cfg + 0x6) = 0x14;
+    return func_801EF9AC(a0, ot, 0x1000, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6668);
 
