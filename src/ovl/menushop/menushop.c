@@ -321,7 +321,35 @@ void func_801E90BC(void) {
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90F8);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E9554);
+/**
+ * @brief Configure shop display and render with D_801FAB00 settings.
+ *
+ * Calls func_801E90F8 with all parameters, then sets up D_801FAB00
+ * display config (icon 0x57, 0x150 x 0x26, x=a3, y=arg5) and calls
+ * func_801EF9AC to render.
+ *
+ * @param a0 Context pointer for func_801E90F8.
+ * @param a1 Render context passed to func_801EF9AC.
+ * @param a2 Parameter for func_801E90F8.
+ * @param a3 X position for display config.
+ * @param arg4 Y position for display config.
+ */
+void func_801E9554(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+    extern u8 D_801FAB00[];
+    extern s32 D_80083848;
+    s32 result;
+    u8 *cfg;
+
+    result = func_801E90F8(a0, a1, a2, a3, arg4);
+    cfg = D_801FAB00;
+    *(u8 *)(cfg + 0x10) = 0x57;
+    *(u8 *)(cfg + 0x11) = 0;
+    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)(cfg + 0x04) = 0x150;
+    *(s16 *)(cfg + 0x02) = arg4;
+    *(s16 *)(cfg + 0x06) = 0x26;
+    func_801EF9AC(a1, result, 0x1000, D_80083848);
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E95DC);
 
