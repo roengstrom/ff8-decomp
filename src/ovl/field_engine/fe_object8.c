@@ -103,7 +103,27 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9C58);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9CBC);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9D20);
+/**
+ * Pop value, divide by 4 (signed, round toward zero), store to 8 entity bytes.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
+s32 func_800B9D20(u8 *a0) {
+    u8 idx = *(u8 *)(a0 + 0x184);
+    s32 val;
+    *(u8 *)(a0 + 0x184) = idx - 1;
+    val = *(s32 *)(a0 + (s8)idx * 4) / 4;
+    *(u8 *)(a0 + 0x25C) = val;
+    *(u8 *)(a0 + 0x25B) = val;
+    *(u8 *)(a0 + 0x25A) = val;
+    *(u8 *)(a0 + 0x259) = val;
+    *(u8 *)(a0 + 0x260) = val;
+    *(u8 *)(a0 + 0x25F) = val;
+    *(u8 *)(a0 + 0x25E) = val;
+    *(u8 *)(a0 + 0x25D) = val;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9D7C);
 
