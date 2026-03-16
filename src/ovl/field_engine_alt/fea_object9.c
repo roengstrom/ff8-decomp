@@ -75,7 +75,25 @@ s32 func_800BD040(void) {
     return D_80077E84 >= 0xBB8;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BD058);
+/**
+ * @brief Subtract a clamped value from the HP-like counter at D_80077378+0xB0C.
+ */
+s32 func_800BD058(s32 amount) {
+    extern u8 D_80077378[];
+    s32 base = (s32)D_80077378;
+    s32 max;
+
+    if (amount >= 0) {
+        max = *(s32 *)(base + 0xB0C);
+        if ((u32)max < (u32)amount) {
+            amount = max;
+        }
+    } else {
+        amount = 0;
+    }
+    *(s32 *)(base + 0xB0C) = *(s32 *)(base + 0xB0C) - amount;
+    return amount;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object9", func_800BD09C);
 

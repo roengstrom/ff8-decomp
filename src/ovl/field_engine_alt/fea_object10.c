@@ -135,7 +135,41 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEC1C)
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEC60);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BED90);
+/**
+ * @brief Search D_80077378 array for an active entry with type 0xA2.
+ */
+s32 func_800BED90(s32 *outIndex, s32 *outCount) {
+    extern u8 D_80077378[];
+    s32 found = 0;
+    s32 i = found;
+    s32 target = 0xA2;
+    u8 *ptr = D_80077378;
+    s32 type;
+    s32 count;
+
+    top:
+        type = *(u8 *)(ptr + 0xB44);
+        count = *(u8 *)(ptr + 0xB45);
+        if (type != target) goto skip;
+        if (count <= 0) goto skip;
+        found = 1;
+        if (outIndex != 0) {
+            *outIndex = i;
+        }
+        if (outCount != 0) {
+            *outCount = count;
+            goto end;
+        }
+        goto end;
+    skip:
+        i += 1;
+        if (i < 0xC6) {
+            ptr += 2;
+            goto top;
+        }
+    end:
+    return found;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEDF0);
 
