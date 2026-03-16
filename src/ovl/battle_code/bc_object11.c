@@ -11,6 +11,8 @@ extern u8 D_800F1468[];
 extern u8 D_80077E59[];
 extern u8 D_800F1668[];
 
+void func_800B5C10(u8 *, s32);
+
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BAEE8);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BB024);
@@ -295,14 +297,16 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD658);
  * @brief Clear status bits 0x410 from entity flags and update.
  *
  * Loads the word at a0+8, clears bits 4 and 10 (mask 0x410),
- * stores the result back, then calls func_800B5C10.
+ * stores the result back, then calls func_800B5C10 with the
+ * original (pre-mask) flags value.
  *
  * @param a0 Pointer to entity data.
- *
- * @note Non-matching: compiler allocates val→v0, mask→v1 instead of
- * val→a1, mask→v0. Register preference cannot be controlled from pure C.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD77C);
+void func_800BD77C(u8 *a0) {
+    s32 flags = *(s32 *)(a0 + 8);
+    *(s32 *)(a0 + 8) = flags & ~0x410;
+    func_800B5C10(a0, flags);
+}
 
 /**
  * @brief Propagate a flag mask through a linked list of entities.
