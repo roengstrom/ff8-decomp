@@ -134,7 +134,34 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6668);
  */
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6768);
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E67F4);
+/**
+ * @brief Render tips display pipeline.
+ *
+ * If the tips state has an active display (field 0x2A non-zero),
+ * sets up rendering context, draws the header, content, and navigation
+ * panels in sequence.
+ *
+ * @param a0 Tips state pointer.
+ * @param a1 Display list pointer.
+ * @param a2 OT pointer.
+ * @return Updated OT pointer, or a2 if no active display.
+ */
+s32 func_801E67F4(s32 a0, s32 a1, s32 a2) {
+    s32 state = a0;
+    s32 disp = a1;
+    s32 ot = a2;
+
+    if (*(s16 *)(state + 0x2A) != 0) {
+        func_801F1AFC();
+        func_8002E7C4(*(s16 *)(state + 0x24));
+        func_80030058(*(s16 *)(state + 0x24));
+        ot = func_801E6768(disp, ot);
+        ot = func_801E6668(disp, ot);
+        ot = func_801E6514(disp, ot);
+        func_801F1B10();
+    }
+    return ot;
+}
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E688C);
 
