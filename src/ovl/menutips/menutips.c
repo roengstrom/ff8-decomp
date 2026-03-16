@@ -14,7 +14,40 @@ void func_801E5800(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E582C);
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E58C0);
+/**
+ * @brief Pop the last value pair from the tips history ring buffer.
+ *
+ * Decrements the counter in D_801ED630 and returns the entry at the
+ * new position as a packed s32 (lo | hi << 16). Returns -1 if the
+ * buffer is empty (counter <= 0).
+ *
+ * @return Packed value pair, or -1 if empty.
+ */
+s32 func_801E58C0(void) {
+    extern u8 D_801ED630[];
+    extern u8 D_801ED430[];
+    s16 sv;
+    u16 uv;
+    s32 off;
+    s32 base;
+    s16 *entry;
+    s32 lo;
+    s32 hi;
+
+    sv = *(s16 *)D_801ED630;
+    uv = *(u16 *)D_801ED630;
+    if (sv <= 0) {
+        return -1;
+    }
+    uv--;
+    base = (s32)D_801ED430;
+    off = (s16)uv * 4;
+    entry = (s16 *)(base + off);
+    lo = *(s16 *)entry;
+    hi = *(s16 *)(entry + 1);
+    *(u16 *)D_801ED630 = uv;
+    return lo | (hi << 16);
+}
 
 /**
  * @brief Render a tips entry at a table-derived position.
@@ -117,22 +150,39 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6514);
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6668);
 
 /**
- * @brief Initialize and render tips display panel.
+ * @brief Render tips header panel.
  *
- * Calls func_8002EAD0 to set up a 0x24 x 0xC display region using
- * the D_801E7B10 data table, then configures D_801FAB00 with fixed
- * panel dimensions and calls func_801EF9AC to render.
+ * Calls func_8002EAD0 to set up the display region using the D_801E7B10
+ * data table, then configures D_801FAB00 with fixed panel dimensions
+ * and calls func_801EF9AC to render.
  *
- * @param a0 First render context parameter.
- * @param a1 Second render context parameter.
- *
- * @note Non-matching: s-reg allocation is swapped (a0->s0, a1->s1 instead
- * of a0->s1, a1->s0). a0 has 2 uses (both jal calls) while a1 has 1 use
- * (second jal only), so the compiler gives a0 the lower s-reg. The original
- * has them reversed. s16 param type flips the allocation but adds unwanted
- * sll/sra sign extension instructions.
+ * @param a0 Display list pointer.
+ * @param a1 OT pointer.
+ * @return Updated OT pointer from func_801EF9AC.
  */
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6768);
+s32 func_801E6768(s32 a0, s32 a1) {
+    extern u8 D_801E7B10[];
+    extern u8 D_801FAB00[];
+    extern s32 D_80083848;
+    u8 *new_var;
+    s32 ot;
+    s32 disp;
+    s32 cfg;
+    if (1) {
+        disp = a0;
+        ot = a1;
+        new_var = D_801E7B10;
+        func_8002EAD0(disp, 0x24, 0xC, (((s32)new_var) + ot) - ot);
+        cfg = (s32)D_801FAB00;
+        *(u8 *)(cfg + 0x10) = 0;
+        *(u8 *)(cfg + 0x11) = 0;
+        *(s16 *)&D_801FAB00[0] = 0x18;
+        *(s16 *)(cfg + 2) = 6;
+    }
+    *(s16 *)(cfg + 4) = 0xF4;
+    *(s16 *)(cfg + 6) = 0x16;
+    return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+}
 
 /**
  * @brief Render tips display pipeline.
