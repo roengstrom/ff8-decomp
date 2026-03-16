@@ -36,6 +36,7 @@ s32 func_800AE788(void);
 s32 func_800AA4E0(void);
 extern u8 D_800EEED0[];
 extern u8 D_800EEED4[];
+extern u8 D_800EE4C1[];
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1624);
 
@@ -94,7 +95,32 @@ void func_800B1828(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B18A0);
+/**
+ * @brief Conditionally trigger limit break action based on entity and GF state.
+ *
+ * Returns immediately if D_800ED148[0x130C] is non-zero, or if the entity's
+ * status halfword at offset 0x90 has bit 0 set, or if D_800EE4C1 is not 0x1F.
+ * Otherwise calls func_800A97FC to get a value and passes it to func_800B0754.
+ *
+ * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ */
+void func_800B18A0(s32 a0) {
+    u8 *base = D_800ED148;
+
+    if (base[0x130C] != 0) {
+        return;
+    }
+    if (*(u16 *)(base + a0 * 0xD0 + 0x90) & 1) {
+        return;
+    }
+    if (*(u8 *)D_800EE4C1 != 0x1F) {
+        return;
+    }
+    {
+        s32 val = func_800A97FC();
+        func_800B0754(a0, 0, 7, (u16)val);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B1930);
 
