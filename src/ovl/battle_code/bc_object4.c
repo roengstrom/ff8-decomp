@@ -9,6 +9,12 @@ extern u8 D_800EE9B3[];
 extern u8 D_80077378[];
 s32 func_8009B15C(void);
 s32 func_8009B74C(s32, s32);
+void func_800B0754(s32, s32, s32, s32);
+void func_80020FEC(s32);
+void func_8009AF14(s32);
+s32 func_800AA4E8(void);
+void func_8009AE08(s32);
+void func_800E1850(void);
 
 /**
  * @brief Compute table entry and forward call to func_800A5A7C.
@@ -127,7 +133,29 @@ void func_800A63C0(s16 a, s16 b, s16 c, s16 d) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A63DC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A64E4);
+/**
+ * @brief Initiate battle sequence based on mode flag.
+ *
+ * If a0 is 0, plays sound 0xED with entity data, runs scene setup,
+ * and registers handler func_800E1850. If a0 is non-zero, calls
+ * func_800AA4E8 first, plays sound 0xEE, and dispatches event 8.
+ *
+ * @param a0 Mode flag (0 = player-initiated, non-zero = triggered).
+ * @param a1 Sound parameter (masked to u16 in mode 0).
+ */
+void func_800A64E4(s32 a0, s32 a1) {
+    if (a0 == 0) {
+        u8 *base = D_800ED148;
+        func_800B0754(base[0xF], 0xED, base[0x1324], (u16)a1);
+        func_80020FEC(base[0x1324] + 0x65);
+        func_8009AF14((s32)func_800E1850);
+    } else {
+        s32 result = func_800AA4E8();
+        u8 *base = D_800ED148;
+        func_800B0754(base[0xF], 0xEE, base[0x1324], result);
+        func_8009AE08(8);
+    }
+}
 
 /**
  * @brief Store a byte to D_800ED148 offset 0x12EF.
