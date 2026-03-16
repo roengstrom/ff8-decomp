@@ -181,7 +181,24 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A19B8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1BB8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1C64);
+/**
+ * If D_8005F0F8 byte at offset 0xE is 1, sets up a display region
+ * (0x200 x 0xF0 at 0x100, 0x10) and calls func_80048EFC.
+ */
+void func_800A1C64(void) {
+    extern s32 D_8005F0F8;
+    extern s32 D_800C71E4;
+    u8 *data = (u8 *)D_8005F0F8;
+
+    if (*(u8 *)(data + 0xE) == 1) {
+        s16 rect[4];
+        rect[0] = 0x200;
+        rect[1] = 0xF0;
+        rect[2] = 0x100;
+        rect[3] = 0x10;
+        func_80048EFC(rect, D_800C71E4);
+    }
+}
 
 /** @brief Initialize 3 entries in D_800D5F50 and D_800D61A8 arrays to -1. */
 void func_800A1CC0(void) {
