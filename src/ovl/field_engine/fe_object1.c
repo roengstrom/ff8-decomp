@@ -4,7 +4,20 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80098314);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800983F0);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80098934);
+/**
+ * Zero 0x40 bytes at D_800704A8+0x1B8 (backwards loop).
+ */
+void func_80098934(void) {
+    extern u8 D_800704A8[];
+    s32 i = 0x3F;
+    volatile u8 *base = D_800704A8;
+    u8 *ptr = (u8 *)base + 0x3F;
+    do {
+        *(u8 *)(ptr + 0x1B8) = 0;
+        i--;
+        ptr--;
+    } while (i >= 0);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009895C);
 
