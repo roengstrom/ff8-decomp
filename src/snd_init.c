@@ -109,7 +109,37 @@ extern s32 D_80077298[];
 extern s32 D_800772CC;
 
 
-INCLUDE_ASM("asm/nonmatchings/snd_init", func_80012E40);
+/**
+ * @brief Compute the maximum volume from multiple sound sources.
+ *
+ * Combines volume values from up to three sources based on the bitmask
+ * in @p a0. Bit 0: use D_80074F08->0x58 as initial volume. Bit 1: clamp
+ * up to D_80073E62. Bit 2: clamp up to D_80073E60.
+ *
+ * @param a0 Bitmask selecting which volume sources to consider.
+ * @return The maximum volume across the selected sources.
+ */
+s32 func_80012E40(s32 a0) {
+    extern s16 D_80073E62;
+    extern s16 D_80073E60;
+    s32 vol = 0;
+    if (a0 & 1) {
+        vol = *(s16 *)((u8 *)D_80074F08 + 0x58);
+    }
+    if (a0 & 2) {
+        s32 v = D_80073E62;
+        if (vol < v) {
+            vol = v;
+        }
+    }
+    if (a0 & 4) {
+        s32 v = D_80073E60;
+        if (vol < v) {
+            vol = v;
+        }
+    }
+    return vol;
+}
 
 /** @brief Sends SPU command 0x10 with parameter @p a0 via the command buffer. */
 void func_80012EAC(s32 a0) {
