@@ -23,6 +23,9 @@ void func_800472F4(void);
 void func_80013300(s32);
 void func_8001336C(s32);
 void func_8009B6B0(void);
+void func_80049A14(s32);
+void func_8004D584(s32, s32);
+void func_80049A94(s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 

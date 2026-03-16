@@ -10,8 +10,11 @@ extern u8 D_800F16BC[];
 extern u8 D_800F1468[];
 extern u8 D_80077E59[];
 extern u8 D_800F1668[];
+extern u8 D_800EF2D0[];
+extern u8 D_800EEC58[];
 
 void func_800B5C10(u8 *, s32);
+s32 func_800C42FC(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BAEE8);
 

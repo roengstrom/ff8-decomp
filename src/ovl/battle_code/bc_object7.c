@@ -7,6 +7,7 @@ extern u8 D_80082C10[];
 extern u8 D_80077EBC[];
 extern u8 D_800EE9E8[];
 extern u8 D_800EEBE8[];
+extern u8 D_80077E58[];
 s32 func_800B0204(u8 *, s32, s32, s32);
 void func_800A4C84(s32);
 void func_800AE524(s32);
@@ -339,6 +340,17 @@ s32 func_800B054C(s32 a0) {
     return i;
 }
 
+/**
+ * @brief Store scaled animation value at entity's bit position offset.
+ *
+ * Calls func_800B054C to find the lowest set bit in a1. If the result
+ * is less than 14, computes a scale factor from D_80077E58 and a table
+ * value from D_80078E00, multiplies them, and stores the result at the
+ * entity's bit-indexed halfword slot.
+ *
+ * @param a0 Entity index (stride 0xD0).
+ * @param a1 Bitmask to find lowest set bit.
+ */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0574);
 
 /**

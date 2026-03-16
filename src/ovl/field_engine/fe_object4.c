@@ -268,6 +268,13 @@ s32 func_800AE0DC(u8 *a0, s32 a1) {
     return 4;
 }
 
+/**
+ * Push 8 result slots (0x140+i*4) onto stack, zeroing each slot.
+ * If flag 0x20 is set in 0x160, store 1 at result slot 0x140.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @return 2 (continue processing).
+ */
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AE124);
 
 /** @brief Pop halfword from stack and store to entity offset 0x176. */
@@ -519,6 +526,13 @@ s32 func_800AF1AC(u8 *a0) {
     return 2;
 }
 
+/**
+ * Store a1 to offset 0x24F, double-pop bytes to 0x250 and 0x251. Returns 2.
+ *
+ * @param a0 Pointer to the script/object structure.
+ * @param a1 Value to store at offset 0x24F.
+ * @return 2 (continue processing).
+ */
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF224);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF274);
