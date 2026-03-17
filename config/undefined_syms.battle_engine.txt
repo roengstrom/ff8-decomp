@@ -1,6 +1,7 @@
 /* Symbols for data tables incorrectly disassembled as code by splat.
    Bogus function pointers from data segments. */
 func_80600000 = 0x80600000;
+func_84303538 = 0x84303538;
 func_83C01234 = 0x83C01234;
 func_84000000 = 0x84000000;
 func_843445BC = 0x843445BC;
