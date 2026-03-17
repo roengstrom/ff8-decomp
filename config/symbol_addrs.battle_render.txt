@@ -1,4 +1,4 @@
-func_80098000 = 0x80098000; // type:func
+func_80098000 = 0x80098000; // type:u32
 func_80098688 = 0x80098688; // type:func
 func_80098798 = 0x80098798; // type:func
 func_80098920 = 0x80098920; // type:func
@@ -14,4 +14,4 @@ func_8009AC18 = 0x8009AC18; // type:func
 func_8009AE1C = 0x8009AE1C; // type:func
 func_8009AF64 = 0x8009AF64; // type:func
 func_8009B170 = 0x8009B170; // type:func
-func_8009B394 = 0x8009B394; // type:func
+func_8009B394 = 0x8009B394; // type:u32

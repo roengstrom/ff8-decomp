@@ -47,7 +47,7 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, c, fe_dispatch]
+      - [0x0, asm, fe_dispatch]
       - [0x314, c, fe_object1]
       - [0x13188, c, fe_object2]
       - [0x157AC, c, fe_object3]
@@ -60,6 +60,5 @@ segments:
       - [0x251F4, c, fe_object10]
       - [0x275D4, c, fe_object11]
       - [0x28098, c, fe_object12]
-      - [0x2B898, c, fe_object13]
-      - [0x2E680, c, fe_object14]
+      - [0x2B898, bin]
   - [0x2ED80]

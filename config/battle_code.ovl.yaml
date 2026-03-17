@@ -70,5 +70,5 @@ segments:
       - [0x40FA4, c, bc_object20]
       - [0x451B0, c, bc_object21]
       - [0x4860C, c, bc_object22]
-      - [0x4D724, c, bc_object23]
+      - [0x499B4, bin]
   - [0x54C48]

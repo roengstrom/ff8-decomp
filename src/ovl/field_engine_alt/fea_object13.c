@@ -90,5 +90,3 @@ void func_800C4A74(void) {
 }
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4AE4);
-
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4CA4);

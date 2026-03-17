@@ -127,27 +127,3 @@ void func_800E1850(void) {
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1880);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E19B4);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1A14);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1A94);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E1AFC);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E5174);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E5268);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E53E4);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E5440);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E5474);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E54BC);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E5524);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E5584);
