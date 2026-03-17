@@ -12,7 +12,51 @@ s32 func_801E5800(s32 a0) {
     return func_801F08D4(1, 0xD, a0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E582C);
+/**
+ * @brief Push a value pair into the tips history ring buffer.
+ *
+ * If the buffer is full (D_801ED630 >= 0x7F), shifts all entries left
+ * by one (dropping the oldest) and decrements the count. Then appends
+ * (arg0, arg1) at the current end of the buffer and increments the count.
+ *
+ * @param arg0 First value of the pair to push.
+ * @param arg1 Second value of the pair to push.
+ */
+void func_801E582C(s32 arg0, s32 arg1) {
+    extern u8 D_801ED430[];
+    extern s16 D_801ED630;
+    s32 i;
+    s32 new_var;
+    s32 next;
+    s32 base;
+    u16 *new_var2;
+    u8 *basePtr;
+    s16 *countPtr;
+    s16 sv;
+    u16 uv;
+
+    if (D_801ED630 >= 0x7F) {
+        D_801ED630 = D_801ED630 - 1;
+        i = 0;
+        base = (s32)D_801ED430;
+        do {
+            new_var = i * 4;
+            new_var = base + new_var;
+            next = i + 1;
+            *((u16 *)((base + (i * 4)) + 0)) = *((u16 *)((base + (next * 4)) + 0));
+            new_var2 = (u16 *)((base + (next * 4)) + 2);
+            *((u16 *)(new_var + 2)) = *new_var2;
+            i = next;
+        } while (i < 0x7F);
+    }
+    basePtr = D_801ED430;
+    countPtr = &D_801ED630;
+    sv = *countPtr;
+    uv = *((u16 *)countPtr);
+    *((u16 *)((((s32)basePtr) + (sv * 4)) + 0)) = (u16)arg0;
+    *((u16 *)((((s32)basePtr) + (sv * 4)) + 2)) = (u16)arg1;
+    *countPtr = uv + 1;
+}
 
 /**
  * @brief Pop the last value pair from the tips history ring buffer.
@@ -59,11 +103,40 @@ s32 func_801E58C0(void) {
  * @param a0 Render context pointer.
  * @param a1 Index into the coordinate table.
  *
- * @note Non-matching: Compiler schedules sll (a1*8) before lui/addiu
- * for D_801EC310 table base, changing register allocation (v1 vs v0
- * for result pointer).
+ * @note Non-matching: register allocation swapped — original puts
+ * a1*8 in v0 and base in v1 (addu v0,v0,v1), compiler puts base in
+ * v0 and a1*8 in v1 regardless of variable ordering or declaration order.
  */
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E590C);
+/**
+ * @brief Render a tips entry at a table-derived position.
+ *
+ * Checks D_801EC410; if positive, looks up coordinates from
+ * D_801EC310[a1] (8-byte stride), applies offsets (+0x22, +0x23),
+ * and calls func_801F0A34 to render.
+ *
+ * @param a0 Render context pointer.
+ * @param a1 Index into the coordinate table.
+ */
+void func_801E590C(s32 a0, s32 a1) {
+    extern s16 D_801EC410;
+    extern u8 D_801EC310[];
+    s32 base;
+    int new_var3;
+    s16 new_var2;
+    s32 entry;
+    s16 *new_var;
+
+    if (D_801EC410 > 0) {
+        base = (s32)D_801EC310;
+        new_var3 = base + (a1 * 8);
+        entry = new_var3;
+        base = 0;
+        new_var = (s16 *)(entry + 0);
+        new_var3 = entry + 2;
+        new_var2 = *new_var;
+        func_801F0A34(a0, base, new_var2 + 0x22, (*((s16 *)new_var3)) + 0x23);
+    }
+}
 
 /**
  * @brief Look up a tips data pointer from the entry table.
@@ -89,12 +162,36 @@ s32 func_801E5958(s32 a0) {
  * the text length with func_8002A2F4, and finalizes via func_801E6018.
  * Stores the result in D_801EC410.
  *
- * @note Non-matching: register allocation differs for the store temp
- * variable. The original reuses a2 for both global stores and the
- * func_8002A2A8 third argument, but the compiler allocates a separate
- * register (a3) for the stores and sets a2 with a move instruction.
+ * @param a0 Tips entry index.
  */
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E597C);
+typedef struct {
+    u16 unk0;
+    u16 unk2;
+    u16 unk4;
+    u16 unk6;
+} TipsBufHeader;
+
+void func_801E597C(s32 a0) {
+    extern s16 D_801EC410;
+    extern u16 D_801EC412;
+    extern u16 D_801EC414;
+    extern u16 D_801EC416;
+    extern u8 D_801E7B10[];
+    extern u8 D_801E8310[];
+    extern u8 D_801EC310[];
+    TipsBufHeader *ret;
+    s32 buf;
+
+    buf = (s32)(ret = (TipsBufHeader *)func_801E5958(a0));
+    D_801EC410 = 0;
+    D_801EC412 = ret->unk0;
+    D_801EC414 = ret->unk2;
+    D_801EC416 = ret->unk4;
+    buf += 8;
+    func_8002A2A8((s32)D_801E7B10, buf);
+    buf += func_8002A2F4(buf);
+    D_801EC410 = func_801E6018(buf + 1, (s32)D_801E8310, (s32)D_801EC310);
+}
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E5A10);
 
@@ -194,7 +291,59 @@ s32 func_801E6514(s32 a0, s32 a1) {
     return func_801EF9AC(a0, ot, 0x1000, D_80083848);
 }
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6668);
+typedef struct {
+    s16 unk0;
+    s16 unk2;
+    s16 unk4;
+    s16 unk6;
+    u8 pad8[8];
+    u8 unk10;
+    u8 unk11;
+} WorkData;
+
+/**
+ * @brief Render the tips content panel with scroll state.
+ *
+ * Saves the current palette context, renders the tips text region via
+ * func_8002EAD0, restores the palette, then configures the D_801FAB00
+ * display panel and calls func_801F5F60 (if either scroll indicator is
+ * active) followed by func_801EF9AC to draw the panel.
+ *
+ * @param arg0 Display list pointer.
+ * @param arg1 OT pointer.
+ * @return Updated OT pointer from func_801EF9AC.
+ */
+s32 func_801E6668(s32 arg0, s32 arg1) {
+    extern WorkData D_801FAB00;
+    extern s8 D_801E8310;
+    extern u16 D_801EC414;
+    extern u16 D_801EC416;
+    extern s32 D_80083848;
+    s32 temp_s0;
+    s32 var_a3;
+    s32 var_s1;
+
+    var_s1 = arg1;
+    temp_s0 = func_8002A888();
+    func_8002A8B8(var_s1);
+    func_8002EAD0(arg0, 0x22, 0x23, &D_801E8310);
+    var_s1 = func_8002A888();
+    func_8002A8B8(temp_s0);
+    D_801FAB00.unk10 = 0;
+    D_801FAB00.unk11 = 0;
+    D_801FAB00.unk0 = 0x18;
+    D_801FAB00.unk2 = 0x1D;
+    D_801FAB00.unk4 = 0x150;
+    D_801FAB00.unk6 = 0xA7;
+    var_a3 = D_801EC414 != 0xFFFF;
+    if (D_801EC416 != 0xFFFF) {
+        var_a3 |= 2;
+    }
+    if (var_a3 != 0) {
+        var_s1 = func_801F5F60(arg0, var_s1, D_80083848, var_a3);
+    }
+    return func_801EF9AC(arg0, var_s1, 0x1000, D_80083848);
+}
 
 /**
  * @brief Render tips header panel.
@@ -260,6 +409,126 @@ s32 func_801E67F4(s32 a0, s32 a1, s32 a2) {
     return ot;
 }
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E688C);
+typedef struct {
+    u8 id;
+    u8 valueA;
+    u8 valueB;
+    u8 pad;
+} TipsEntry;
 
-INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E696C);
+typedef struct {
+    u8 flags;
+    u8 unk[0x2C];
+    u8 value2D;
+} TipsState;
+
+extern TipsEntry D_801E6AC0[];
+
+/**
+ * @brief Scan tips entry table and invoke unlock/locked callbacks, then check state flags.
+ *
+ * Iterates D_801E6AC0 until an entry with id 0xFF is found. For each entry,
+ * checks bit (id - 0x5C) in the flags returned by func_801F72B4(). If set,
+ * calls func_800371D0(valueA) and uses valueB as the arg to func_80037198;
+ * otherwise calls func_800371D0(valueB) and uses valueA. After the loop,
+ * calls func_800372D0() to get a state pointer, and if its flags field has
+ * bit 0 set, returns value2D.
+ *
+ * @return value2D from the state struct if flags bit 0 is set; undefined otherwise.
+ */
+u8 func_801E688C(void) {
+    s32 temp_s4;
+    u8 temp_s1;
+    u8 temp_s2;
+    int temp_v0;
+    u8 var_a0;
+    TipsState *temp_v0_2;
+    TipsEntry *var_s3;
+
+    var_s3 = D_801E6AC0;
+    temp_s4 = func_801F72B4();
+    while (1) {
+        temp_v0 = (*var_s3).id;
+        temp_s2 = var_s3->valueA;
+        temp_s1 = var_s3->valueB;
+        if (0xFF == temp_v0) {
+            break;
+        }
+        if (((unsigned long)temp_s4) & (1 << (temp_v0 - 0x5C))) {
+            func_800371D0(temp_s2);
+            var_a0 = temp_s1;
+        } else {
+            func_800371D0(temp_s1);
+            var_a0 = temp_s2;
+        }
+        func_80037198(var_a0);
+        var_s3++;
+    }
+
+    temp_v0_2 = func_800372D0();
+    if (temp_v0_2->flags & 1) {
+        return temp_v0_2->value2D;
+    }
+}
+
+extern void *func_801E5A10(void *);
+
+typedef struct {
+    u8 pad00[0x24];
+    s16 unk24;
+    s16 unk26;
+    s16 unk28;
+    s16 unk2A;
+} WorkStruct;
+
+/**
+ * @brief Initialize the tips overlay state and kick off the work loop.
+ *
+ * Resets the selection trackers, waits for func_80035E00 to clear, sets up
+ * audio/display, allocates a WorkStruct via func_801F179C, zeroes the
+ * D_801E6B10 name buffer, runs the entry-scan, then initialises all overlay
+ * state variables and starts the main work function.
+ */
+void func_801E696C(void) {
+    extern s8 D_801E6B0C;
+    extern s8 D_801E6B10[];
+    extern s8 D_801E7B10;
+    extern s8 D_801E8310;
+    extern s16 D_801EC410;
+    extern u8 D_801EC420;
+    extern s16 D_801ED420;
+    extern s16 D_801ED422;
+    extern s16 D_801ED630;
+    WorkStruct *work;
+    s32 i;
+
+    D_801ED420 = -1;
+    D_801ED422 = -1;
+    while (func_80035E00() != 0) {
+        ;
+    }
+
+    func_80048C50(0);
+    func_80042634(0);
+    work = (WorkStruct *)func_801F179C(func_801E5A10, &func_801E67F4);
+    for (i = 0; i < 0x1000; i++) {
+        D_801E6B10[i] = 0;
+    }
+
+    func_801E688C();
+    func_801F0948(0);
+    if (work == 0) {
+        return;
+    }
+    D_801E7B10 = 0;
+    D_801E8310 = 0;
+    func_800360D0(0x7F, &D_801EC420);
+    work->unk24 = (work->unk28 = 0);
+    work->unk26 = 0;
+    work->unk2A = 0;
+    D_801EC410 = 0;
+    func_801F1D34(&D_801E6B0C);
+    func_801F1DB0(0);
+    func_801E5A10(work);
+    D_801ED630 = 0;
+}
