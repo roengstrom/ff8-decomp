@@ -48,7 +48,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 |--------|---|-----|-------|------------|
 | `SLUS_008.92` | 617 | 412 | 1029 | 60.0% |
 | `menumain.ovl` | 116 | 83 | 199 | 58.3% |
-| `menucfg.ovl` | 6 | 12 | 18 | 33.3% |
+| `menucfg.ovl` | 7 | 11 | 18 | 38.9% |
 | `menupty.ovl` | 15 | 34 | 49 | 30.6% |
 | `menusts.ovl` | 15 | 29 | 44 | 34.1% |
 | `menuabl.ovl` | 8 | 9 | 17 | 47.1% |
@@ -59,7 +59,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `menugf.ovl` | 8 | 14 | 22 | 36.4% |
 | `menujnc2.ovl` | 27 | 59 | 86 | 31.4% |
 | `menusav.ovl` | 57 | 67 | 124 | 46.0% |
-| `menucrd.ovl` | 11 | 10 | 21 | 52.4% |
+| `menucrd.ovl` | 12 | 9 | 21 | 57.1% |
 | `menututo.ovl` | 9 | 19 | 28 | 32.1% |
 | `menutmag.ovl` | 8 | 7 | 15 | 53.3% |
 | `menutips.ovl` | 14 | 2 | 16 | 87.5% |
@@ -71,7 +71,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 | `battle_render.bin` | 10 | 17 | 27 | 37.0% |
 | `battle_code.bin` | 510 | 891 | 1401 | 36.4% |
 | `field_engine_alt.bin` | 33 | 312 | 345 | 9.6% |
-| **Total** | **1830** | **3155** | **4985** | **36.7%** |
+| **Total** | **1832** | **3153** | **4985** | **36.8%** |
 
 PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
 
