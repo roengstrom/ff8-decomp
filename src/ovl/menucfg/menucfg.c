@@ -5,22 +5,61 @@ void func_801E5800(s32 a0) {
     func_801F798C(a0);
 }
 
+typedef struct {
+    u8 id;
+    u8 state;
+    u8 unk02;
+    u8 unk03;
+    u8 unk04;
+    u8 unk05;
+    u8 unk06;
+    u8 unk07;
+} CfgEntry;
+
+typedef struct {
+    u8 unk00[0x2E];
+    u8 flag_2E;
+} CfgContext;
+
+extern CfgEntry D_801E7094[];
+
 /**
  * @brief Count available config menu entries.
  *
  * Iterates through the D_801E7094 config entry table (8-byte stride,
- * 0xFF terminated). Counts entries that are either available (a0[0x2E] != 0)
- * or not of type 1 (entry[1] != 1).
+ * 0xFF-terminated). Counts entries where either flag_2E is set or the
+ * entry's state is not 1.
  *
- * @param a0 Pointer to config menu context (byte 0x2E is availability flag).
+ * @param arg0 Pointer to config menu context (byte 0x2E is availability flag).
  * @return Number of available config entries.
- *
- * @note Non-matching: Register allocation for loop constants differs.
- * Original keeps 0xFF in a3 and 1 in t0; compiler uses a2 and a3.
- * Original also copies 0xFF from v0 to a3 (extra instruction), while
- * compiler loads directly to a2.
  */
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5820);
+s32 func_801E5820(CfgContext *arg0)
+{
+    int count;
+    int new_var;
+    CfgEntry *entry;
+    s32 flag;
+    s32 one;
+    count = 0;
+    if (D_801E7094[0].id != 0xFF)
+    {
+        flag = arg0->flag_2E;
+        one = 1;
+        new_var = 0xFF;
+        do { } while (0);
+        entry = D_801E7094;
+        do
+        {
+            if ((flag != 0) || (entry->state != one))
+            {
+                count++;
+            }
+            entry++;
+        }
+        while (entry->id != new_var);
+    }
+    return count;
+}
 
 /**
  * @brief Initialize config menu availability flags.
