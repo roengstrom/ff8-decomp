@@ -7,6 +7,10 @@ extern s16 D_801E7D66;
 extern MenuDisplayConfig D_801FAB00;
 extern u8 D_801E7870;
 
+extern s32 func_80035E00(void);
+extern s16 func_80035E50(void);
+extern void func_800361F8(s16 id, void *addr);
+
 void func_801E582C(s32 a0);
 void func_801E5ABC(s32 a0);
 void func_801E5F7C(void);
@@ -31,20 +35,20 @@ s32 func_801E5800(s32 a0) {
  * position, triggers a card load at 0x801CD000 and resets both
  * position trackers to -1.
  */
-/**
- * @brief Update card display position after a transition completes.
- *
- * Checks if the card transition animation is done via func_80035E00.
- * If not done, gets the new position via func_80035E50. If the
- * target position (D_801E7D66) is valid and differs from the new
- * position, triggers a card load at 0x801CD000 and resets both
- * position trackers to -1.
- *
- * @note Non-matching: Compiler generates lhu+sll+sra for D_801E7D66 s16
- * load instead of the original's lh instruction. Also s0/s1 register
- * assignment is swapped (D_801E7D66 goes to s1 instead of s0).
- */
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E582C);
+void func_801E582C(s32 a0) {
+    int new_var;
+    s16 value;
+    if (func_80035E00() == 0) {
+        value = func_80035E50();
+        new_var = -1;
+        D_801E7D64 = value;
+        if (((D_801E7D66 >= 0) && (D_801E7D66 != value)) && (D_801E7D66 >= 0)) {
+            func_800361F8(D_801E7D66, (void *) 0x801CD000);
+            D_801E7D66 = new_var;
+            D_801E7D64 = -1;
+        }
+    }
+}
 
 /**
  * Stores a0 + 0x30 as a card position offset into D_801E7D66.
