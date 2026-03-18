@@ -22,6 +22,7 @@ typedef struct {
 } CfgContext;
 
 extern CfgEntry D_801E7094[];
+extern u16 D_801FA3C8[];
 
 /**
  * @brief Count available config menu entries.
@@ -109,13 +110,12 @@ void func_801E58EC(s32 a0, s32 a1) {
  * @param a0 Render context pointer.
  * @param a1 Config entry index.
  * @param a2 Raw value (divided by 64 to index the table).
- *
- * @note Non-matching: Compiler schedules `sw ra` into bgez delay slot
- * instead of `addu v1, a2, zero`. Original copies a2 to v1 for the
- * division rounding in the delay slot; compiled version defers this.
- * Result is 1 instruction shorter than original (33 vs 34 instructions).
  */
-INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E5918);
+void func_801E5918(s32 a0, s32 a1, s32 a2) {
+    a2 = D_801FA3C8[a2 / 64];
+    a2 = a2 * 150 / 4096;
+    func_801F0A34(a0, 0, a2 + 0x5A, D_801E7094[a1].unk03 + 0x2F);
+}
 
 /** @brief Draw inner panel with section id 0x2 and clear flag. */
 s32 func_801E59A0(s32 a0) {
