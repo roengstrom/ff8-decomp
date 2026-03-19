@@ -101,6 +101,75 @@ enum WeaponId {
 #define STATUS_ZOMBIE   0x40  /**< Zombie. */
 
 /**
+ * @brief Magic spell IDs (stored in MagicSlot.magicId).
+ *
+ * 56 spells (1–56); 0 = empty slot.
+ * Order matches the FF8 save file format (verified against Hyne).
+ *
+ * @note These would ideally be an enum, but C enums are always int-sized
+ *       (4 bytes), and MagicSlot.magicId must be 1 byte to keep MagicSlot
+ *       at 2 bytes. Compiling with -fshort-enums would allow using an enum
+ *       here, but that flag is not used in this project.
+ */
+#define MAGIC_NONE        0
+#define MAGIC_FIRE        1
+#define MAGIC_FIRA        2
+#define MAGIC_FIRAGA      3
+#define MAGIC_BLIZZARD    4
+#define MAGIC_BLIZZARA    5
+#define MAGIC_BLIZZAGA    6
+#define MAGIC_THUNDER     7
+#define MAGIC_THUNDARA    8
+#define MAGIC_THUNDAGA    9
+#define MAGIC_WATER      10
+#define MAGIC_AERO       11
+#define MAGIC_BIO        12
+#define MAGIC_DEMI       13
+#define MAGIC_HOLY       14
+#define MAGIC_FLARE      15
+#define MAGIC_METEOR     16
+#define MAGIC_QUAKE      17
+#define MAGIC_TORNADO    18
+#define MAGIC_ULTIMA     19
+#define MAGIC_APOCALYPSE 20
+#define MAGIC_CURE       21
+#define MAGIC_CURA       22
+#define MAGIC_CURAGA     23
+#define MAGIC_LIFE       24
+#define MAGIC_FULL_LIFE  25
+#define MAGIC_REGEN      26
+#define MAGIC_ESUNA      27
+#define MAGIC_DISPEL     28
+#define MAGIC_PROTECT    29
+#define MAGIC_SHELL      30
+#define MAGIC_REFLECT    31
+#define MAGIC_AURA       32
+#define MAGIC_DOUBLE     33
+#define MAGIC_TRIPLE     34
+#define MAGIC_HASTE      35
+#define MAGIC_SLOW       36
+#define MAGIC_STOP       37
+#define MAGIC_BLIND      38
+#define MAGIC_CONFUSE    39
+#define MAGIC_SLEEP      40
+#define MAGIC_SILENCE    41
+#define MAGIC_BREAK      42
+#define MAGIC_DEATH      43
+#define MAGIC_DRAIN      44
+#define MAGIC_PAIN       45
+#define MAGIC_BERSERK    46
+#define MAGIC_FLOAT      47
+#define MAGIC_ZOMBIE     48
+#define MAGIC_MELTDOWN   49
+#define MAGIC_SCAN       50
+#define MAGIC_FULL_CURE  51
+#define MAGIC_WALL       52
+#define MAGIC_RAPTURE    53
+#define MAGIC_PERCENT    54
+#define MAGIC_CATASTROPHE 55
+#define MAGIC_THE_END    56
+
+/**
  * @brief Magic inventory entry (2 bytes).
  *
  * 32 entries per character at offset 0x10 within CharacterData.
@@ -108,8 +177,8 @@ enum WeaponId {
  * func_801F7B10 clears magicId to 0 when quantity is 0.
  */
 typedef struct {
-    u8 magicId;    /**< +0x00: Magic spell ID (0 = empty). */
-    u8 quantity;   /**< +0x01: Number of spells stocked (0-100). */
+    u8 magicId;   /**< +0x00: Magic spell ID (see MAGIC_* defines). */
+    u8 quantity;  /**< +0x01: Number of spells stocked (0-100). */
 } MagicSlot; /* 2 bytes */
 
 /**
