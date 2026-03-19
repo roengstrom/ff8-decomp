@@ -13,8 +13,16 @@ typedef struct {
     u8 pad[3];
 } FlagEntry;
 
+typedef struct { u8 unk00[0x14]; } Unk14;
+typedef struct { u8 unk00[0x40]; } Unk40;
+typedef struct { u8 unk00[0x98]; } Unk98;
+
 extern FlagEntry D_801F87B8[];
 extern GfData g_gfData;
+extern Unk98 D_80077818[];
+extern Unk14 D_801ECF60[];
+extern Unk40 D_801ECF90[];
+extern s16 D_801ED010[];
 
 /**
  * @brief Format a string with escape sequence substitution.
@@ -127,7 +135,35 @@ done:;
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5A28);
+/**
+ * @brief Copy character junction and magic data into menu display buffers.
+ *
+ * @param arg0 Character index (0–7).
+ * @param arg1 Menu display slot index.
+ */
+void func_801E5A28(s32 arg0, s32 arg1) {
+    s32 i;
+    u8 *src;
+    u8 *dst;
+
+    D_801ED010[arg1] = g_gameState.chars[arg0].currentHp;
+
+    src = &g_gameState.chars[arg0].junctionHp;
+    dst = D_801ECF60[arg1].unk00;
+    for (i = 0; i < 0x13; i++) {
+        *dst = *src;
+        src++;
+        dst++;
+    }
+
+    src = D_80077818[arg0].unk00;
+    dst = D_801ECF90[arg1].unk00;
+    for (i = 0; i < 0x40; i++) {
+        *dst = *src;
+        src++;
+        dst++;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5B00);
 
@@ -142,8 +178,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5B00);
  * @return Slot index (1-31) if found, 0 if not found.
  */
 s32 func_801E5C00(s32 charIdx, s32 spellId) {
-    extern u8 D_80077818[];
-    u8 *ptr = D_80077818 + charIdx * 152;
+    u8 *ptr = D_80077818[charIdx].unk00;
     s32 i = 0;
 
     do {
