@@ -511,10 +511,10 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7190);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268);
 
-/** @brief Call func_80020608 with D_80077378 and 0x13A. */
+/** @brief Call func_80020608 with g_gameState and 0x13A. */
 void func_801E73C0(void) {
-    extern u8 D_80077378[];
-    func_80020608(D_80077378, 0x13A);
+    extern u8 g_gameState[];
+    func_80020608(g_gameState, 0x13A);
 }
 
 /**
@@ -611,15 +611,15 @@ s32 func_801E7524(s32 a0) {
 /**
  * @brief Compute XOR checksum from game state fields.
  *
- * XORs three values from the D_80077378 region (at offsets 0xCD0, 0xB0C,
+ * XORs three values from the g_gameState region (at offsets 0xCD0, 0xB0C,
  * and 0xCDC with the latter shifted left 16), then XORs with the result
  * of func_801E74BC.
  *
  * @return XOR checksum value.
  */
 s32 func_801E7550(void) {
-    extern u8 D_80077378[];
-    s32 base = D_80077378;
+    extern u8 g_gameState[];
+    s32 base = g_gameState;
     s32 s0 = *(s32 *)(base + 0xCD0);
     s32 v1 = *(s32 *)(base + 0xB0C);
     s32 v0 = *(s32 *)(base + 0xCDC);

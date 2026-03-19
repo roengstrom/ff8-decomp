@@ -700,7 +700,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8FA8);
  *
  * Chains several rendering functions: func_801E8E98 (palette/icon setup),
  * func_801E89C0 (sprite tiles), func_801E8AF0 (additional graphics),
- * then conditionally sets a flag at D_80077378+0xB1B if the data entry
+ * then conditionally sets a flag at g_gameState+0xB1B if the data entry
  * at offset 0x1B is not 0xFF. Finally calls func_801E8DB0 (text labels),
  * func_801E8C88 (color overlay), func_8002B898 (border), and
  * func_801E8FA8 (effects). Each chained function receives the return
@@ -713,7 +713,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8FA8);
  * @param arg5 Item data pointer.
  */
 void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 ctx = a0;
     s32 cfg = a2;
     s32 ot = a3;
@@ -726,7 +726,7 @@ void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     result = func_801E8AF0(ctx, result, cfg, ot, data);
 
     if (*(u8 *)(data + 0x1B) != 0xFF) {
-        s32 base = (s32)D_80077378;
+        s32 base = (s32)g_gameState;
         s32 shift = *(u8 *)(data + 0x1B);
         s32 val = *(u8 *)(base + 0xB1B);
         bit = 1 << shift;

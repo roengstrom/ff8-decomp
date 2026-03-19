@@ -238,7 +238,7 @@ typedef struct {
 } TextMarker;
 
 /**
- * View over g_gameState (D_80077378) exposing the fields used by tips text
+ * View over g_gameState (g_gameState) exposing the fields used by tips text
  * variable substitution: GF kill/KO tables, character kill/KO tables, and
  * misc battle counters.
  */

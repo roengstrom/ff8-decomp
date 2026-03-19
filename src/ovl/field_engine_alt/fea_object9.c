@@ -76,11 +76,11 @@ s32 func_800BD040(void) {
 }
 
 /**
- * @brief Subtract a clamped value from the HP-like counter at D_80077378+0xB0C.
+ * @brief Subtract a clamped value from the HP-like counter at g_gameState+0xB0C.
  */
 s32 func_800BD058(s32 amount) {
-    extern u8 D_80077378[];
-    s32 base = (s32)D_80077378;
+    extern u8 g_gameState[];
+    s32 base = (s32)g_gameState;
     s32 max;
 
     if (amount >= 0) {

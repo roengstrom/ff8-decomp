@@ -410,3 +410,4 @@ func_8017A94C = 0x8017A94C; // type:u32
 func_80151B5C = 0x80151B5C; // type:u32
 func_80151B74 = 0x80151B74; // type:u32
 func_80159718 = 0x80159718; // type:u32
+g_gameState = 0x80077378;

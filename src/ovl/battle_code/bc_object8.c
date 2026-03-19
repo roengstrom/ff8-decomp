@@ -13,7 +13,7 @@ extern u8 D_800EEECC[];
 extern u8 D_800EEEB8[];
 extern u8 D_800EEEBC[];
 extern u8 D_800EEEC0[];
-extern u8 D_80077378[];
+extern u8 g_gameState[];
 extern u8 D_800EE9E8[];
 void func_800B3164(void);
 void func_800B2F3C(void);
@@ -354,14 +354,14 @@ s32 func_800B2128(void) {
 }
 
 /**
- * @brief Copy 3 bytes from D_80077378 to D_800EE9E8 at stride 0x47.
+ * @brief Copy 3 bytes from g_gameState to D_800EE9E8 at stride 0x47.
  *
- * Copies bytes from D_80077378[i+0xAF4] to D_800EE9E8[i*0x47+0xA3]
+ * Copies bytes from g_gameState[i+0xAF4] to D_800EE9E8[i*0x47+0xA3]
  * for i = 0, 1, 2.
  */
 void func_800B21B4(void) {
     s32 i = 0;
-    u8 *src = D_80077378;
+    u8 *src = g_gameState;
     u8 *dst = D_800EE9E8;
     do {
         dst[0xA3] = src[i + 0xAF4];

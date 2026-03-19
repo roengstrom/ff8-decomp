@@ -136,14 +136,14 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEC1C)
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object10", func_800BEC60);
 
 /**
- * @brief Search D_80077378 array for an active entry with type 0xA2.
+ * @brief Search g_gameState array for an active entry with type 0xA2.
  */
 s32 func_800BED90(s32 *outIndex, s32 *outCount) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 found = 0;
     s32 i = found;
     s32 target = 0xA2;
-    u8 *ptr = D_80077378;
+    u8 *ptr = g_gameState;
     s32 type;
     s32 count;
 

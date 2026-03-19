@@ -72,17 +72,17 @@ void func_801E5EE8(u8 *a0) {
 /**
  * @brief Save character ability data to buffer.
  *
- * Copies 20 bytes from character @p a0's ability data (D_80077378 at
+ * Copies 20 bytes from character @p a0's ability data (g_gameState at
  * offset 0x4EC, stride 152) into the junction buffer D_801EEFA0.
  *
  * @param a0 Character index (0-7).
  */
 void func_801E5F24(s32 a0) {
     extern u8 D_801EEFA0[];
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 i = 0;
     s32 dst = (s32)D_801EEFA0;
-    s32 src = (s32)D_80077378;
+    s32 src = (s32)g_gameState;
     a0 = src + a0 * 152;
     do {
         *(u8 *)(i + dst) = *(u8 *)(a0 + i + 0x4EC);
@@ -93,11 +93,11 @@ void func_801E5F24(s32 a0) {
  * @brief Restore character ability data from buffer.
  *
  * Copies 20 bytes from the junction buffer D_801EEFA0 back into
- * character @p a0's ability data (D_80077378 at offset 0x4EC, stride 152).
+ * character @p a0's ability data (g_gameState at offset 0x4EC, stride 152).
  *
  * @param a0 Character index (0-7).
  *
- * @note Non-matching: Compiler swaps register allocation for D_80077378
+ * @note Non-matching: Compiler swaps register allocation for g_gameState
  * and D_801EEFA0 base addresses (a2/v1 vs v1/a2).
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5F78);
@@ -248,7 +248,7 @@ s32 func_801E6918(s32 a0) {
 /**
  * @brief Clear unlearned or out-of-range abilities from junction slots.
  *
- * Iterates through 4 ability slots at D_80077378[a0*152 + 0x4E0..0x4E3].
+ * Iterates through 4 ability slots at g_gameState[a0*152 + 0x4E0..0x4E3].
  * For each nonzero ability ID, checks if the ability is available
  * (learned via D_801EEFD0 bitmask) and in range [0x14, 0x27). If not
  * available or out of range, clears the slot to 0.
@@ -278,16 +278,16 @@ void func_801E6B88(u8 *a0) {
  * @brief Copy ability value from junction table to character data and update.
  *
  * Reads a 16-bit value from D_801EEDF0[a0 * 28 + 4] and writes it to
- * D_80077378[a0 * 152 + 0x490], then calls func_801F5190 to update.
+ * g_gameState[a0 * 152 + 0x490], then calls func_801F5190 to update.
  *
  * @param a0 Character/slot index
  */
 void func_801E6BC8(s32 a0) {
     extern u8 D_801EEDF0[];
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 v0 = (s32)D_801EEDF0;
     s32 v1 = a0 * 28 + v0;
-    s32 a1 = (s32)D_80077378;
+    s32 a1 = (s32)g_gameState;
 
     *(s16 *)(a1 + a0 * 152 + 0x490) = *(u16 *)(v1 + 4);
     func_801F5190();
@@ -296,7 +296,7 @@ void func_801E6BC8(s32 a0) {
 /**
  * @brief Apply junction table ability value to character and refresh display.
  *
- * Saves the current ability value from D_80077378[a0*152 + 0x4E8] into s2,
+ * Saves the current ability value from g_gameState[a0*152 + 0x4E8] into s2,
  * writes the junction table value (D_801EEDF0[a0*28 + 6]) into it,
  * calls func_801E6350 and func_801E6BC8 to update, copies data via
  * func_8002A318, then restores the old ability value and calls func_801F1B4C.
@@ -304,11 +304,11 @@ void func_801E6BC8(s32 a0) {
  * @param a0 Character/slot index.
  */
 void func_801E6C24(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_801EEDF0[];
     extern u8 D_80078720[];
     extern u8 D_801EEFE0[];
-    s32 charBase = (s32)D_80077378;
+    s32 charBase = (s32)g_gameState;
     s32 charOff = charBase + a0 * 152;
     s32 jncBase = (s32)D_801EEDF0;
     s32 jncOff = a0 * 28 + jncBase;
@@ -326,14 +326,14 @@ void func_801E6C24(s32 a0) {
  * @brief Copy ability value from junction table to character data and refresh.
  *
  * Reads a 16-bit value from D_801EEDF0[a0 * 28 + 6] and writes it to
- * D_80077378[a0 * 152 + 0x4E8], then calls func_801E6B88 to refresh display.
+ * g_gameState[a0 * 152 + 0x4E8], then calls func_801E6B88 to refresh display.
  *
  * @param a0 Character/slot index
  */
 void func_801E6CCC(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_801EEDF0[];
-    s32 base1 = (s32)D_80077378;
+    s32 base1 = (s32)g_gameState;
     s32 off1 = a0 * 152;
     s32 base2 = (s32)D_801EEDF0;
 
@@ -344,17 +344,17 @@ void func_801E6CCC(s32 a0) {
 /**
  * @brief Copy ability halfword from character data to junction table.
  *
- * Reads a 16-bit value from D_80077378[a0 * 152 + 0x4E8] and stores it
+ * Reads a 16-bit value from g_gameState[a0 * 152 + 0x4E8] and stores it
  * to D_801EEDF0[a0 * 28 + 6].
  *
  * @param a0 Character/slot index.
  */
 void func_801E6D28(s32 a0) {
     extern u8 D_801EEDF0[];
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 base1 = (s32)D_801EEDF0;
     s32 v1 = a0 * 28;
-    s32 base2 = (s32)D_80077378;
+    s32 base2 = (s32)g_gameState;
     *(s16 *)(v1 + base1 + 6) = *(u16 *)(base2 + a0 * 152 + 0x4E8);
 }
 
@@ -376,8 +376,8 @@ void func_801E6D6C(s32 a0, s32 a1) {
 /**
  * @brief Copy character ability data to junction table slot.
  *
- * Copies 4 bytes from character data D_80077378[a0*152 + 0x4E0] and
- * D_80077378[a0*152 + 0x4E4] into junction table D_801EEDF0[a0*28 + a1*4 + 0xC]
+ * Copies 4 bytes from character data g_gameState[a0*152 + 0x4E0] and
+ * g_gameState[a0*152 + 0x4E4] into junction table D_801EEDF0[a0*28 + a1*4 + 0xC]
  * and D_801EEDF0[a0*28 + a1*4 + 0x14] respectively.
  *
  * @param a0 Character/slot index.
@@ -389,17 +389,17 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
  * @brief Copy junction slot data back to character ability data.
  *
  * Copies 4 bytes from junction table D_801EEDF0[a0*28 + a1*4 + 0xC] and
- * D_801EEDF0[a0*28 + a1*4 + 0x14] into character data D_80077378[a0*152 + 0x4E0]
- * and D_80077378[a0*152 + 0x4E4] respectively.
+ * D_801EEDF0[a0*28 + a1*4 + 0x14] into character data g_gameState[a0*152 + 0x4E0]
+ * and g_gameState[a0*152 + 0x4E4] respectively.
  *
  * @param a0 Character/slot index.
  * @param a1 Junction sub-slot (0 or 1).
  */
 void func_801E6E0C(s32 a0, s32 a1) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern u8 D_801EEDF0[];
     s32 i = 0;
-    s32 charBase = (s32)D_80077378;
+    s32 charBase = (s32)g_gameState;
     s32 a7 = charBase + a0 * 152;
     s32 jncBase = (s32)D_801EEDF0;
     s32 jnc = a0 * 28 + jncBase;
@@ -432,19 +432,19 @@ void func_801E6E88(u8 *a0) {
  * @brief Reset junction slots and copy ability value from character data.
  *
  * Calls func_801E6D8C twice to clear both junction slots, then reads
- * the ability value from D_80077378[a0*152 + 0x490] and stores it
+ * the ability value from g_gameState[a0*152 + 0x490] and stores it
  * to the junction table via func_801E6D6C. Finally refreshes display
  * via func_801E5F24.
  *
  * @param a0 Character/slot index
  */
 void func_801E6EC4(s32 a0) {
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     s32 base;
     u16 val;
     func_801E6D8C(a0, 0);
     func_801E6D8C(a0, 1);
-    base = (s32)D_80077378;
+    base = (s32)g_gameState;
     val = *(u16 *)(base + a0 * 152 + 0x490);
     func_801E6D6C(a0, val);
     func_801E5F24(a0);

@@ -65,3 +65,4 @@ func_801EE494 = 0x801EE494; // type:func
 func_801EE718 = 0x801EE718; // type:func
 func_801EE82C = 0x801EE82C; // type:func
 func_801EE888 = 0x801EE888; // type:func
+g_gameState = 0x80077378;

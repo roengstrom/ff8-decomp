@@ -340,7 +340,7 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E90D0);
 /**
  * @brief Build a bitmask of party-eligible characters.
  *
- * Iterates through all 8 character slots in D_80077378 (stride 152).
+ * Iterates through all 8 character slots in g_gameState (stride 152).
  * For each character, checks bit 3 of the halfword at offset 0x524.
  * If set, the corresponding bit in the result mask is set.
  *

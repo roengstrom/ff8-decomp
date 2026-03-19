@@ -19,7 +19,7 @@ s32 func_8009AF3C(s32, s32, s32, s32, s32);
 void func_80048BB8(s32);
 void func_80012D5C(void);
 extern u8 D_80082C08[];
-extern u8 D_80077378[];
+extern u8 g_gameState[];
 void func_800389CC(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
@@ -396,7 +396,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEB50);
  * @brief Check conditions and trigger callback mode 3 for entity system.
  *
  * Returns early if D_80082C08[7] is non-zero, or if bit 2 of the
- * halfword at D_80082C08+2 is clear, or if D_80077378[0xCD4] is
+ * halfword at D_80082C08+2 is clear, or if g_gameState[0xCD4] is
  * non-zero, or if the halfword at D_80082C08 equals 0x13D.
  * Otherwise calls func_800AEACC(-1), sets mode to 3, stores 3 in
  * D_800EE449, and registers func_8009AD7C as callback.
@@ -411,7 +411,7 @@ void func_800AEC04(void) {
         return;
     }
     {
-        s32 gstate = (s32)D_80077378;
+        s32 gstate = (s32)g_gameState;
         REGALLOC_BARRIER(gstate);
         if (*(s32 *)(gstate + 0xCD4) != 0) {
             return;

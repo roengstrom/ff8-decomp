@@ -131,7 +131,7 @@ void func_801E6C84(s32 a0, s32 a1) {
 /**
  * @brief Render a GF ability entry with conditional highlight.
  *
- * Tests a bit in the D_80077378 ability table at offset 0x4E8, indexed by
+ * Tests a bit in the g_gameState ability table at offset 0x4E8, indexed by
  * @p arg4 (stride 152) and shifted by @p arg6. If the bit is set, renders
  * a highlighted entry via func_8002FF34; otherwise skips. Then renders the
  * ability name and icon via func_801F0FEC and func_801F4EA8.
@@ -140,7 +140,7 @@ void func_801E6C84(s32 a0, s32 a1) {
  * @param a1    Display string or value (updated if highlighted)
  * @param a2    X position
  * @param a3    Y position
- * @param arg4  GF index (stride 152 into D_80077378)
+ * @param arg4  GF index (stride 152 into g_gameState)
  * @param arg5  Parameter passed to func_80020E4C
  * @param arg6  Bit shift amount for ability flag test
  * @param arg7  Icon type (u16)
@@ -150,7 +150,7 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     int new_var5;
     s32 new_var;
     s32 new_var4;
-    extern u8 D_80077378[];
+    extern u8 g_gameState[];
     extern s32 D_80083848;
     unsigned char new_var3;
     s32 base;
@@ -162,7 +162,7 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     ret = func_80020E4C(new_var);
     new_var3 = 2;
     new_var5 = 0x4E8;
-    base = (s32)D_80077378;
+    base = (s32)g_gameState;
     new_var2 = arg4;
 
     if (((*((u16 *)((base + ((2 * new_var2) * 76)) + new_var5))) >> arg6) & 1) {

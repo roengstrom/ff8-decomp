@@ -10,7 +10,7 @@ void func_800AB1AC(void);
 s32 func_8009B3D0(void *);
 s32 func_800B0398(s32);
 extern u8 D_80078E00[];
-extern u8 D_80077378[];
+extern u8 g_gameState[];
 extern u8 D_8007809A[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
@@ -73,9 +73,9 @@ s32 func_800A9064(u8 *a0) {
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9084);
 
 /**
- * @brief Search D_80077378+0xB44 table for entry matching a given byte.
+ * @brief Search g_gameState+0xB44 table for entry matching a given byte.
  *
- * Iterates up to 198 entries (stride 2) in D_80077378 at offset 0xB44.
+ * Iterates up to 198 entries (stride 2) in g_gameState at offset 0xB44.
  * If byte[0] matches a0, returns byte[1]. Returns 0 if not found.
  *
  * @param a0 Value to search for.
@@ -543,7 +543,7 @@ s32 func_800AA9C8(s32 a0, s32 a1) {
 }
 
 /**
- * @brief Check battle state flag at D_80077378+0xCD4.
+ * @brief Check battle state flag at g_gameState+0xCD4.
  *
  * If a0 == 0, returns 1 when the flag is zero (sltiu pattern).
  * If a0 == 3, returns 1 when the flag is nonzero (sltu pattern).
@@ -552,7 +552,7 @@ s32 func_800AA9C8(s32 a0, s32 a1) {
  * @param a0 Query mode (0 or 3).
  * @return Boolean result based on the flag value.
  *
- * @note Non-matching: CC1PSX folds D_80077378+0xCD4 into a single
+ * @note Non-matching: CC1PSX folds g_gameState+0xCD4 into a single
  * symbol+constant address (lui/lw, 2 instructions per access) instead
  * of the original's unfolded lui/addiu/lw (3 instructions). No runtime
  * component to prevent folding. Also changes delay slot fill and branch

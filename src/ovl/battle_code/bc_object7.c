@@ -13,7 +13,7 @@ void func_800A4C84(s32);
 void func_800AE524(s32);
 void func_8009AE08(s32);
 extern u8 D_800ED158[];
-extern u8 D_80077378[];
+extern u8 g_gameState[];
 extern u8 D_800E3CF0[];
 extern u8 D_800EE4E8[];
 void func_800AE4A0(void);
@@ -46,8 +46,8 @@ void func_800AF654(void) {
  * @brief Copy entity animation data to lookup table and clear a flag.
  *
  * Computes entity pointer from D_800ED158 + a0*0xD0. Reads an index
- * byte from D_80077378 + a0 + 0xAF4, multiplies by 0x98 to find a
- * table entry at D_80077378 + 0x490. Copies entity halfword at 0x18
+ * byte from g_gameState + a0 + 0xAF4, multiplies by 0x98 to find a
+ * table entry at g_gameState + 0x490. Copies entity halfword at 0x18
  * to the table entry. Clears bit 5 of entity halfword at 0x80 and
  * stores the result at table entry + 0x96.
  *
@@ -55,7 +55,7 @@ void func_800AF654(void) {
  */
 /**
  * @note Non-matching: register allocation difference. Original uses $v1
- * for D_800ED158 base and $v0 for a0+D_80077378 sum; compiler allocates
+ * for D_800ED158 base and $v0 for a0+g_gameState sum; compiler allocates
  * them the other way around regardless of declaration order.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF6BC);

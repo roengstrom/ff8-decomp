@@ -23,7 +23,7 @@ extern u8 D_800EEBBA[];
 extern u8 D_800EEBC2[];
 extern u8 D_800ED160[];
 extern u8 D_80078720[];
-extern u8 D_80077378[];
+extern u8 g_gameState[];
 extern u8 D_800786D9[];
 
 s32 func_8009B79C(s32, s32);
@@ -411,7 +411,7 @@ s32 func_8009F46C(s32 entityIdx) {
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F4BC);
 
 /**
- * @brief Test a bit in the battle flag array at D_80077378+0xD0C.
+ * @brief Test a bit in the battle flag array at g_gameState+0xD0C.
  *
  * Computes the word index and bit position from the given bit index,
  * then tests whether the corresponding bit is set.
@@ -428,7 +428,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F4BC);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F52C);
 
 /**
- * @brief Set a bit in the battle flag array at D_80077378+0xD0C.
+ * @brief Set a bit in the battle flag array at g_gameState+0xD0C.
  *
  * Computes the word index and bit position from the given bit index,
  * then ORs the corresponding bit into the flag array.
@@ -438,7 +438,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F52C);
 void func_8009F570(s32 bitIndex) {
     s32 wordIdx = bitIndex / 32;
     s32 bitPos = bitIndex % 32;
-    s32 base = (s32)D_80077378;
+    s32 base = (s32)g_gameState;
     *(s32 *)(base + wordIdx * 4 + 0xD0C) |= (1 << bitPos);
 }
 

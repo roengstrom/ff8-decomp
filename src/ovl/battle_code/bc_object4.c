@@ -6,7 +6,7 @@ extern u8 D_80078720[];
 extern u8 D_80078E00[];
 extern u8 D_800EE38C[];
 extern u8 D_800EE9B3[];
-extern u8 D_80077378[];
+extern u8 g_gameState[];
 s32 func_8009B15C(void);
 s32 func_8009B74C(s32, s32);
 void func_800B0754(s32, s32, s32, s32);
@@ -512,11 +512,11 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A71C0);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7518);
 
 /**
- * @brief Test a bit in the D_80077378 bitfield at offset 0xD04.
+ * @brief Test a bit in the g_gameState bitfield at offset 0xD04.
  *
  * If a0 is nonzero, computes bit position (a0 - 1), divides by 32 to
  * find the word index and remainder, then tests that bit in the bitfield
- * at D_80077378 + word_index * 4 + 0xD04.
+ * at g_gameState + word_index * 4 + 0xD04.
  *
  * @param a0 1-based bit position to test. If 0, returns undefined.
  * @return 1 if the bit is set, 0 if clear.
@@ -529,11 +529,11 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7518);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A774C);
 
 /**
- * @brief Set a bit in the D_80077378 bitfield at offset 0xD04.
+ * @brief Set a bit in the g_gameState bitfield at offset 0xD04.
  *
  * If a0 is nonzero, computes bit position (a0 - 1), divides by 32 to
  * find the word index and remainder, then sets that bit in the bitfield
- * at D_80077378 + word_index * 4 + 0xD04.
+ * at g_gameState + word_index * 4 + 0xD04.
  *
  * @param a0 1-based bit position to set. If 0, does nothing.
  */
@@ -542,7 +542,7 @@ void func_800A779C(s32 a0) {
         s32 val = a0 - 1;
         s32 q = val / 32;
         s32 r = val - q * 32;
-        s32 base = (s32)D_80077378;
+        s32 base = (s32)g_gameState;
         *(s32 *)(base + q * 4 + 0xD04) |= (1 << r);
     }
 }

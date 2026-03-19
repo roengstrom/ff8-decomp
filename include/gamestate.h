@@ -253,19 +253,46 @@ typedef struct {
  *
  * The first 0x50 bytes are header/padding before MAIN data begins.
  */
-#define GAMESTATE_GFS_OFFSET       0x050  /**< GfSaveData[16] (1088 bytes). */
-#define GAMESTATE_PERSOS_OFFSET    0x490  /**< CharacterData[8] (1216 bytes). */
-#define GAMESTATE_SHOPS_OFFSET     0x950  /**< ShopData[20] (400 bytes). */
-#define GAMESTATE_CONFIG_OFFSET    0xAE0  /**< GameConfig (20 bytes). */
-#define GAMESTATE_PARTY_DATA_OFFSET 0xAF4 /**< PartyData (32 bytes). */
-#define GAMESTATE_LIMITB_OFFSET    0xB14  /**< LimitBreakData (16 bytes). */
-#define GAMESTATE_ITEMS_OFFSET     0xB24  /**< ItemData (428 bytes). */
-#define GAMESTATE_MISC2_OFFSET     0xCD0  /**< Battle vars / misc (144 bytes). */
-#define GAMESTATE_MISC3_OFFSET     0xD60  /**< Steps, SeeD rank, counters (256 bytes). */
-#define GAMESTATE_FIELD_OFFSET     0xE60  /**< Field script vars, TT rules (1024 bytes). */
-#define GAMESTATE_WORLDMAP_OFFSET  0x1260 /**< World map position/vehicles (128 bytes). */
-#define GAMESTATE_TTCARDS_OFFSET   0x12E0 /**< TripleTriadData (128 bytes). */
-#define GAMESTATE_CHOCOBO_OFFSET   0x1360 /**< ChocoboWorldData (64 bytes). */
-#define GAMESTATE_TOTAL_SIZE       0x13A0 /**< Total: 80 + 4944 = 5024 bytes. */
+#define GAMESTATE_GFS_OFFSET        0x050  /**< GfSaveData[16] (1088 bytes). */
+#define GAMESTATE_PERSOS_OFFSET     0x490  /**< CharacterData[8] (1216 bytes). */
+#define GAMESTATE_SHOPS_OFFSET      0x950  /**< ShopData[20] (400 bytes). */
+#define GAMESTATE_CONFIG_OFFSET     0xAE0  /**< GameConfig (20 bytes). */
+#define GAMESTATE_PARTY_DATA_OFFSET 0xAF4  /**< PartyData (32 bytes). */
+#define GAMESTATE_LIMITB_OFFSET     0xB14  /**< LimitBreakData (16 bytes). */
+#define GAMESTATE_ITEMS_OFFSET      0xB24  /**< ItemData (428 bytes). */
+#define GAMESTATE_MISC2_OFFSET      0xCD0  /**< Battle vars / misc (144 bytes). */
+#define GAMESTATE_MISC3_OFFSET      0xD60  /**< Steps, SeeD rank, counters (256 bytes). */
+#define GAMESTATE_FIELD_OFFSET      0xE60  /**< Field script vars, TT rules (1024 bytes). */
+#define GAMESTATE_WORLDMAP_OFFSET   0x1260 /**< World map position/vehicles (128 bytes). */
+#define GAMESTATE_TTCARDS_OFFSET    0x12E0 /**< TripleTriadData (128 bytes). */
+#define GAMESTATE_CHOCOBO_OFFSET    0x1360 /**< ChocoboWorldData (64 bytes). */
+#define GAMESTATE_TOTAL_SIZE        0x13A0 /**< Total: 80 + 4944 = 5024 bytes. */
+
+/**
+ * @brief Full game state (g_gameState at 0x80077378, 0x13A0 bytes).
+ *
+ * Sections not yet mapped to named structs are left as padding arrays.
+ * Use this for struct-based field access; for raw pointer arithmetic
+ * use (s32)&g_gameState to prevent CC1PSX symbol+constant folding.
+ */
+typedef struct {
+    /* 0x000 */ u8            pad000[0x50];               /**< Save header. */
+    /* 0x050 */ GfSaveData    gfs[GF_COUNT];               /**< GF save data (16 × 68 bytes). */
+    /* 0x490 */ CharacterData chars[CHARACTER_COUNT];      /**< Character data (8 × 152 bytes). */
+    /* 0x950 */ ShopData      shops[SHOP_COUNT];           /**< Shop inventory (20 × 20 bytes). */
+    /* 0xAE0 */ GameConfig    config;                      /**< Game config (20 bytes). */
+    /* 0xAF4 */ PartyData     party;                       /**< Party/gil/Griever (32 bytes). */
+    /* 0xB14 */ LimitBreakData limitBreaks;                /**< Limit break progress (16 bytes). */
+    /* 0xB24 */ ItemData      items;                       /**< Item inventory (428 bytes). */
+    /* 0xCD0 */ u8            padCD0[0x90];                /**< Battle vars / misc. */
+    /* 0xD60 */ u8            padD60[0x100];               /**< Steps, SeeD rank, counters. */
+    /* 0xE60 */ u8            padE60[0x400];               /**< Field script vars, TT rules. */
+    /* 0x1260 */ u8           pad1260[0x80];               /**< World map position/vehicles. */
+    /* 0x12E0 */ TripleTriadData cards;                    /**< Triple Triad data (128 bytes). */
+    /* 0x1360 */ ChocoboWorldData chocobo;                 /**< Chocobo World data (64 bytes). */
+} GameState; /* 0x13A0 = 5024 bytes */
+
+/** @brief Main game state (BSS at 0x80077378). */
+extern GameState g_gameState;
 
 #endif /* GAMESTATE_H */
