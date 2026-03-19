@@ -25,7 +25,7 @@ extern u8 D_801FAB30;
 extern u8 D_801FAB31;
 extern u8 D_801FAAF0;
 extern u8 D_801FAAF8;
-extern u16 D_801FABB8;
+extern u16 g_menumain_partyMemberMask;
 extern s32 D_801FACE8;
 extern u16 D_801FACE2;
 extern u16 D_801FACE4;
@@ -767,15 +767,15 @@ s32 func_801F2240(s32 a0) {
 }
 
 /** @brief Get party presence bitmask. */
-s32 func_801F2298(void) {
-    return D_801FABB8;
+s32 menumain_getPartyMemberMask(void) {
+    return g_menumain_partyMemberMask;
 }
 
 /**
  * @brief Compute party presence bitmask.
  *
  * Iterates 3 active party slots at g_gameState + 0xAF4, sets a bit
- * for each valid (non-0xFF) member ID. Stores result in D_801FABB8.
+ * for each valid (non-0xFF) member ID. Stores result in g_menumain_partyMemberMask.
  */
 void func_801F22A8(void) {
     s32 result = 0;
@@ -791,7 +791,7 @@ void func_801F22A8(void) {
             result |= (1 << val);
         }
     }
-    D_801FABB8 = result;
+    g_menumain_partyMemberMask = result;
 }
 
 /* ======================================================================== */
@@ -1247,7 +1247,7 @@ void func_801F63DC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
  * @return Updated draw pointer.
  */
 s32 func_801F6418(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
-    s32 mask = func_801F2298();
+    s32 mask = menumain_getPartyMemberMask();
 
     if (((mask & 0xFFFF) >> a0) & 1) {
         a2 = func_8002FF34(a1, a2, 0xD6, a3, a4, D_80083848);

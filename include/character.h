@@ -225,8 +225,7 @@ typedef struct {
     /* 0x92 */ u16 kos;                /**< KO count. */
     /* 0x94 */ u8 exists;              /**< Character exists/unlocked flag. */
     /* 0x95 */ u8 unknown95;           /**< Unknown. */
-    /* 0x96 */ u8 statusFlags;         /**< Status/condition flags. */
-    /* 0x97 */ u8 pad97;               /**< Padding. */
+    /* 0x96 */ u16 statusFlags;        /**< Status/condition flags. */
 } CharacterData; /* 0x98 = 152 bytes */
 
 #define CHARACTER_COUNT 8

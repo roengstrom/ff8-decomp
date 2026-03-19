@@ -65,34 +65,31 @@ copy_check:
 /**
  * @brief Get available GF mask filtered by character status flags.
  *
- * Calls func_801F22F4 and func_801F2298 to get base masks, ANDs them,
- * then iterates through 8 characters. For each, if the character's
- * status at g_gameState + i*152 + 0x526 has bits 0x4 or 0x10 set,
- * clears that character's bit from the result mask.
+ * Calls func_801F22F4 and menumain_getPartyMemberMask to get base masks, ANDs them,
+ * then iterates through 8 characters. For each, if the character has
+ * STATUS_PETRIFY or STATUS_SILENCE set, clears that character's bit from
+ * the result mask.
  *
  * @return Filtered GF availability bitmask.
  */
-s32 func_801E5918(void) {
+s32 _getJunctionableCharMask(void) {
     s32 result;
     s32 i;
     s32 bit;
-    u8 *ptr;
 
     result = func_801F22F4();
-    result &= func_801F2298();
+    result &= menumain_getPartyMemberMask();
     i = 0;
     bit = 1;
-    ptr = (u8 *)&g_gameState;
     do {
-        s32 flags = *(u16 *)(ptr + 0x526);
-        if (flags & 4) {
+        u16 flags = g_gameState.chars[i].statusFlags;
+        if (flags & STATUS_PETRIFY) {
             result &= ~(bit << i);
         }
-        if (flags & 0x10) {
+        if (flags & STATUS_SILENCE) {
             result &= ~(bit << i);
         }
         i++;
-        ptr += 0x98;
     } while (i < 8);
     return result;
 }
@@ -199,7 +196,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6648);
 /**
  * @brief Test if magic bit a0 is available.
  *
- * Computes (1 << a0), calls func_801E5918 to get available mask,
+ * Computes (1 << a0), calls _getJunctionableCharMask to get available mask,
  * and returns whether the bit is set.
  *
  * @param a0 Bit index to test.
@@ -207,7 +204,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6648);
  */
 s32 func_801E668C(s32 a0) {
     s32 mask = 1 << a0;
-    mask &= func_801E5918();
+    mask &= _getJunctionableCharMask();
     return mask != 0;
 }
 

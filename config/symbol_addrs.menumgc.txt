@@ -1,5 +1,5 @@
 menumgc_formatSpellCharName = 0x801E5800; // type:func
-func_801E5918 = 0x801E5918; // type:func
+_getJunctionableCharMask = 0x801E5918; // type:func
 getMagicNamePtr = 0x80020C08; // type:func
 getCharNamePtr = 0x80020E4C; // type:func
 copyString = 0x8002A2A8; // type:func
@@ -45,3 +45,4 @@ func_801EBF08 = 0x801EBF08; // type:func
 func_801EC43C = 0x801EC43C; // type:func
 g_gameState = 0x80077378;
 setCharacterMagicSlotId = 0x801E67B0; // type:func
+menumain_getPartyMemberMask = 0x801F2298; // type:func

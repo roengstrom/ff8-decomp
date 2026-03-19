@@ -126,3 +126,5 @@ g_gameState = 0x80077378;
 getMagicNamePtr = 0x80020C08; // type:func
 getCharNamePtr = 0x80020E4C; // type:func
 copyString = 0x8002A2A8; // type:func
+g_menumain_partyMemberMask = 0x801FABB8;
+menumain_getPartyMemberMask = 0x801F2298; // type:func
