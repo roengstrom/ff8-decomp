@@ -134,11 +134,9 @@ typedef struct {
  * The header region (0x00–0xE3) contains s32 pointers into the sub-table
  * regions that follow. These pointers are populated at runtime.
  *
- * @note Decomped code accesses g_gfData via raw pointer arithmetic with
- *       `(s32)` casts to prevent CC1PSX symbol+constant folding. Struct array
- *       indexing (e.g. `entries[a0].statParam0`) changes instruction scheduling
- *       vs `*(u16 *)(base + a0 * 8 + offset)`, breaking byte-matching.
- *       Comments in the C source map hex offsets back to these field names.
+ * @note Some sub-tables are still accessed via raw pointer arithmetic in older
+ *       decomped code. Prefer struct field access (`g_gfData.field[idx].member`)
+ *       when decomping new functions.
  */
 typedef struct {
     /* --- Header region: runtime pointers into sub-tables --- */
@@ -171,7 +169,8 @@ typedef struct {
 
     /* --- Sub-table body regions --- */
     u8 statTable8[0x138];     /**< +0xE4: AbilityEntry[39] (stride 8). */
-    u8 junctionData[0xD5E];   /**< +0x21C: GfJunctionEntry[16] + trailing data (stride 60). */
+    GfJunctionEntry junctionData[16]; /**< +0x21C: GF junction entries (16 × 60 bytes). */
+    u8 junctionDataTrailing[0x99E]; /**< +0x5DC: Trailing data before ability table. */
     u8 abilityTable132[0x2628]; /**< +0xF7A: GfAbilityTableEntry[~] (stride 132). */
     u8 levelCurve12[0x18C];   /**< +0x35B8: Level curve entries (stride 12). */
     u8 elementData24[0x60];   /**< +0x3744: Element data entries (stride 24). */

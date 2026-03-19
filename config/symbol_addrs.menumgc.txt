@@ -46,3 +46,4 @@ func_801EC43C = 0x801EC43C; // type:func
 g_gameState = 0x80077378;
 setCharacterMagicSlotId = 0x801E67B0; // type:func
 menumain_getPartyMemberMask = 0x801F2298; // type:func
+g_gfData = 0x80078E00;

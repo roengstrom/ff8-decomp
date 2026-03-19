@@ -1,10 +1,20 @@
 #include "common.h"
 #include "character.h"
 #include "gamestate.h"
+#include "gf.h"
 
 extern s32 getMagicNamePtr(s32 a0);
 extern s32 getCharNamePtr(s32 a0);
 extern void copyString(s32 a0, s32 a1);
+extern s32 func_801F79F8(s32 a0);
+
+typedef struct {
+    u8 flags;
+    u8 pad[3];
+} FlagEntry;
+
+extern FlagEntry D_801F87B8[];
+extern GfData g_gfData;
 
 /**
  * @brief Format a string with escape sequence substitution.
@@ -95,17 +105,27 @@ s32 _getJunctionableCharMask(void) {
 }
 
 /**
- * @brief Check if a character is available for magic junction.
+ * @brief Check if a GF slot is available for junctioning.
  *
- * Reads the low bit from D_801F87B8[charIdx] to determine availability.
- * If button 0x40 is held (func_801F79F8), returns the availability bit.
- * Otherwise checks the character's class at D_80078E00 + charIdx * 60 + 0x223:
- * if class is 5, 6, or higher, returns 0 (unavailable), else returns the bit.
+ * Reads the availability flag from D_801F87B8[idx]. If button 0x40 is held
+ * (func_801F79F8), returns the flag directly. Otherwise checks the GF type
+ * field in the GfJunctionEntry table (g_gfData + 0x21C): if the type is
+ * 5 or 6, returns 0 (unavailable); otherwise returns the flag.
  *
- * @param charIdx Character index (0-7).
+ * @param idx GF/slot index.
  * @return 1 if available, 0 if not.
  */
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E599C);
+s32 func_801E599C(s32 idx) {
+    s32 result = D_801F87B8[idx].flags & 1;
+    if (func_801F79F8(0x40) != 0) {
+        s32 gfType = g_gfData.junctionData[idx].pad07;
+        if (gfType >= 7) goto done;
+        if (gfType < 5) goto done;
+        result = 0;
+done:;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5A28);
 
