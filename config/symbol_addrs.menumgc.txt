@@ -39,3 +39,5 @@ func_801EBBE4 = 0x801EBBE4; // type:func
 func_801EBD40 = 0x801EBD40; // type:func
 func_801EBF08 = 0x801EBF08; // type:func
 func_801EC43C = 0x801EC43C; // type:func
+g_gameState = 0x80077378;
+setCharacterMagicSlotId = 0x801E67B0; // type:func

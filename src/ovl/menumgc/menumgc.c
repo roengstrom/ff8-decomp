@@ -1,5 +1,6 @@
 #include "common.h"
 #include "character.h"
+#include "gamestate.h"
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5800);
 
@@ -8,13 +9,12 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5800);
  *
  * Calls func_801F22F4 and func_801F2298 to get base masks, ANDs them,
  * then iterates through 8 characters. For each, if the character's
- * status at D_80077378 + i*152 + 0x526 has bits 0x4 or 0x10 set,
+ * status at g_gameState + i*152 + 0x526 has bits 0x4 or 0x10 set,
  * clears that character's bit from the result mask.
  *
  * @return Filtered GF availability bitmask.
  */
 s32 func_801E5918(void) {
-    extern u8 D_80077378[];
     s32 result;
     s32 i;
     s32 bit;
@@ -24,7 +24,7 @@ s32 func_801E5918(void) {
     result &= func_801F2298();
     i = 0;
     bit = 1;
-    ptr = D_80077378;
+    ptr = (u8 *)&g_gameState;
     do {
         s32 flags = *(u16 *)(ptr + 0x526);
         if (flags & 4) {
@@ -113,7 +113,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E64FC);
 /**
  * @brief Look up a magic spell ID for a character's slot.
  *
- * Indexes into D_80077378 at character @p a0 (stride 152) and slot @p a1
+ * Indexes into g_gameState at character @p a0 (stride 152) and slot @p a1
  * (stride 2). Checks if the count byte at offset 0x4A1 is nonzero;
  * if so, returns the spell ID at offset 0x4A0. Otherwise returns 0.
  *
@@ -124,7 +124,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E64FC);
 /**
  * @brief Look up a magic spell ID for a character's slot.
  *
- * Indexes into D_80077378 at character @p a0 (stride 152) and slot @p a1
+ * Indexes into g_gameState at character @p a0 (stride 152) and slot @p a1
  * (stride 2). Checks if the count byte at offset 0x4A1 is nonzero;
  * if so, returns the spell ID at offset 0x4A0. Otherwise returns 0.
  *
@@ -133,7 +133,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E64FC);
  * @return Spell ID byte, or 0 if slot is empty.
  *
  * @note Non-matching: Compiler schedules sll a1,a1,1 before lui/addiu
- * for D_80077378 base address, and uses different accumulation order
+ * for g_gameState base address, and uses different accumulation order
  * (v0+v1 then a1+v0 instead of a1+v0 then a1+v1).
  */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6648);
@@ -157,7 +157,16 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E66C0);
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E677C);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E67B0);
+/**
+ * @brief Set a character's magic slot spell ID.
+ *
+ * @param charIndex Character index (0–7, see CharacterId).
+ * @param slot      Magic slot index (0–31).
+ * @param value     Magic spell ID to store (see MAGIC_* defines).
+ */
+void setCharacterMagicSlotId(s32 charIndex, s32 slot, u8 value) {
+    g_gameState.chars[charIndex].magic[slot].magicId = value;
+}
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E67E0);
 
