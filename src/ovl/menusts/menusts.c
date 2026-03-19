@@ -48,12 +48,12 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5848);
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E586C);
 
 /**
- * @brief Wrapper that calls func_80020C08 with a0 offset by 0x33.
+ * @brief Wrapper that calls getMagicNamePtr with a0 offset by 0x33.
  *
  * @param a0 Base pointer to a menu entry structure.
  */
 void func_801E5890(u8 *a0) {
-    func_80020C08(a0 + 0x33);
+    getMagicNamePtr(a0 + 0x33);
 }
 
 /**

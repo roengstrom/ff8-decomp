@@ -870,7 +870,7 @@ s32 func_8002A238(s32 a0, s32 a1) {
  * @param src Source null-terminated string.
  * @note This is a second copy of the strcpy function (see also func_8002871C).
  */
-void func_8002A2A8(u8 *dst, u8 *src) {
+void copyString(u8 *dst, u8 *src) {
     s32 c;
     do {
         c = *src++;
@@ -887,7 +887,7 @@ void func_8002A2A8(u8 *dst, u8 *src) {
  */
 void func_8002A2C4(u8 *dst, u8 *src) {
     do { } while (*dst++);
-    func_8002A2A8(dst - 1, src);
+    copyString(dst - 1, src);
 }
 
 
@@ -954,12 +954,12 @@ void func_8002A340(u8 *src, u8 *dst, s32 n) {
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A36C);
 
 
-/** @brief Wrapper for func_80020E4C. */
-void func_8002A3A8(void) { func_80020E4C(); }
+/** @brief Wrapper for getCharNamePtr. */
+void func_8002A3A8(void) { getCharNamePtr(); }
 
 
-/** @brief Wrapper for func_80020E4C (duplicate of func_8002A3A8). */
-void func_8002A3C8(void) { func_80020E4C(); }
+/** @brief Wrapper for getCharNamePtr (duplicate of func_8002A3A8). */
+void func_8002A3C8(void) { getCharNamePtr(); }
 
 
 /** @brief Wrapper for func_80020DB8. */

@@ -39,7 +39,7 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E592C);
  * @brief Configure GF ability display by looking up base and alternate addresses.
  *
  * Calls func_80020F84(0x79) for a base lookup, passes the result with @p a1
- * to func_8002A2A8. Then calls func_80020C08 on @p a0+0x40 for an alternate
+ * to copyString. Then calls getMagicNamePtr on @p a0+0x40 for an alternate
  * lookup, passing that result with @p a1 to func_8002A2C4.
  *
  * @param a0 Pointer to GF ability data (offset +0x40 used for alternate lookup).
@@ -48,8 +48,8 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E592C);
 void func_801E5988(u8 *a0, u8 *a1) {
     s32 val;
     val = func_80020F84(0x79);
-    func_8002A2A8(a1, val);
-    val = func_80020C08(a0 + 0x40);
+    copyString(a1, val);
+    val = getMagicNamePtr(a0 + 0x40);
     func_8002A2C4(a1, val);
 }
 
@@ -141,7 +141,7 @@ void func_801E6C84(s32 a0, s32 a1) {
  * @param a2    X position
  * @param a3    Y position
  * @param arg4  GF index (stride 152 into g_gameState)
- * @param arg5  Parameter passed to func_80020E4C
+ * @param arg5  Parameter passed to getCharNamePtr
  * @param arg6  Bit shift amount for ability flag test
  * @param arg7  Icon type (u16)
  * @param arg8  Extra parameter for func_801F0FEC
@@ -159,7 +159,7 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     s32 result;
 
     new_var = arg5;
-    ret = func_80020E4C(new_var);
+    ret = getCharNamePtr(new_var);
     new_var3 = 2;
     new_var5 = 0x4E8;
     base = (s32)g_gameState;

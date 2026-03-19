@@ -1608,6 +1608,6 @@ s32 func_801F7C20(s32 a0) {
 void func_801F7C98(s32 a0, s32 a1) {
     u8 buf[16];
     func_8002F294(a0, buf, 0x30);
-    func_8002A2A8(a1, D_80056290);
+    copyString(a1, D_80056290);
     func_8002A2C4(a1, &buf[3]);
 }

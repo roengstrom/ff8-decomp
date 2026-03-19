@@ -79,3 +79,7 @@ func_801EAC54 = 0x801EAC54; // type:func
 func_801EAD64 = 0x801EAD64; // type:func
 func_9F9E2B80 = 0x9F9E2B80; // type:func
 g_gameState = 0x80077378;
+
+getMagicNamePtr = 0x80020C08; // type:func
+getCharNamePtr = 0x80020E4C; // type:func
+copyString = 0x8002A2A8; // type:func

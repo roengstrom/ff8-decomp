@@ -328,12 +328,17 @@ u8 *func_80020AD4(s32 a0) {
 
 
 /**
- * @brief Resolve a data pointer for a character or GF entity.
- * @param a0 Entity index; < 0x40 resolves via GfJunctionEntry[a0] in GfData.junctionData,
- *           >= 0x40 returns direct pointer into D_800762C8 (stride 68).
- * @return Resolved data pointer.
+ * @brief Get a pointer to a magic spell's name string.
+ *
+ * If @p a0 < 0x40, indexes into GfData.junctionData (stride 60) at offset
+ * 0x21C to get a 16-bit index, then resolves it via func_80020FBC against
+ * GfData.ptrGfSpellData (+0x84). If @p a0 >= 0x40, returns directly from
+ * D_800762C8 at stride 68.
+ *
+ * @param a0 Magic spell ID.
+ * @return Pointer to the spell's encoded name string.
  */
-u8 *func_80020C08(s32 a0) {
+u8 *getMagicNamePtr(s32 a0) {
     extern u8 g_gfData[];
     extern u8 D_800762C8[];
 
@@ -454,12 +459,17 @@ s32 func_80020DB8(s32 a0) {
 
 
 /**
- * @brief Resolve a data pointer based on entity type.
- * @param a0 Entity type; 0 returns D_80077390, 4 returns D_8007739C,
- *           otherwise looks up GfCurveEntry[a0] in GfData.xpCurves36.
- * @return Resolved data pointer.
+ * @brief Get a pointer to a character's name string.
+ *
+ * Special cases: characterId 0 returns g_gameState+0x18, characterId 4
+ * returns g_gameState+0x24. All others index into GfData.xpCurves36
+ * (stride 36) at offset 0x37A4 and resolve via func_80020FBC against
+ * GfData.ptrGfCurve36 (+0x98).
+ *
+ * @param a0 Character ID (see CharacterId).
+ * @return Pointer to the character's encoded name string.
  */
-u8 *func_80020E4C(s32 a0) {
+u8 *getCharNamePtr(s32 a0) {
     extern u8 g_gameState[];
     extern u8 g_gfData[];
 

@@ -63,7 +63,7 @@ void func_801E582C(s32 a0, s32 a1) {
 
 /**
  * Decodes a string using func_801F7A54 key and func_8002F294/func_8002F2EC,
- * then copies it to D_801E7ADC via func_8002A2A8.
+ * then copies it to D_801E7ADC via copyString.
  */
 void func_801E58B8(void) {
     u8 buf[0x20];
@@ -73,7 +73,7 @@ void func_801E58B8(void) {
     v0 = func_801F7A54();
     if (v0 == 0x1F) {
         v0 = func_801F6AFC(0x39);
-        func_8002A2A8((s32)&D_801E7ADC, v0);
+        copyString((s32)&D_801E7ADC, v0);
         return;
     }
     v0 = func_801F7A54();
@@ -96,7 +96,7 @@ void func_801E58B8(void) {
             } while (*q != 0);
         }
     }
-    func_8002A2A8((s32)&D_801E7ADC, (s32)p);
+    copyString((s32)&D_801E7ADC, (s32)p);
 }
 
 /**

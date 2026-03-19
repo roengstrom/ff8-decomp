@@ -45,7 +45,7 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5880);
 /**
  * @brief Return GF/summon data address if enabled, else return 0.
  * @param a0 Enable flag (non-zero to load D_801E8D80)
- * @return Address of D_801E8D80 after calling func_8002A2A8, or 0
+ * @return Address of D_801E8D80 after calling copyString, or 0
  *
  * @note Non-matching: compiler omits the a0-to-a1 copy that the original
  * uses before the branch (original: addu a1,a0,zero + bnez a1;
@@ -72,7 +72,7 @@ s32 func_801E5A88(void) {
  *
  * Gets the base address from func_801E5A88, adds the offset from *a1,
  * then copies bytes until a sentinel value of 2 is found.
- * Terminates the output by calling func_8002A2A8.
+ * Terminates the output by calling copyString.
  *
  * @param a0 Unused
  * @param a1 Pointer to u16 offset into the string table

@@ -158,7 +158,7 @@ s32 func_801E5958(s32 a0) {
  *
  * Calls func_801E5958 to get a tips data buffer. Copies the first three
  * halfwords from the buffer header into D_801EC412-D_801EC416, clears
- * D_801EC410, then calls func_8002A2A8 to set up the tips table, measures
+ * D_801EC410, then calls copyString to set up the tips table, measures
  * the text length with func_8002A2F4, and finalizes via func_801E6018.
  * Stores the result in D_801EC410.
  *
@@ -188,7 +188,7 @@ void func_801E597C(s32 a0) {
     D_801EC414 = ret->unk2;
     D_801EC416 = ret->unk4;
     buf += 8;
-    func_8002A2A8((s32)D_801E7B10, buf);
+    copyString((s32)D_801E7B10, buf);
     buf += func_8002A2F4(buf);
     D_801EC410 = func_801E6018(buf + 1, (s32)D_801E8310, (s32)D_801EC310);
 }

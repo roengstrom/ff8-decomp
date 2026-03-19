@@ -2,7 +2,65 @@
 #include "character.h"
 #include "gamestate.h"
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5800);
+extern s32 getMagicNamePtr(s32 a0);
+extern s32 getCharNamePtr(s32 a0);
+extern void copyString(s32 a0, s32 a1);
+
+/**
+ * @brief Format a string with escape sequence substitution.
+ *
+ * Copies bytes from @p src to @p dst, expanding two escape sequences:
+ * - `0x0A 0x26`: substitutes a numeric value derived from @p spellId via
+ *   getMagicNamePtr, converted to a string by copyString.
+ * - `0x0A 0x27`: substitutes the name of the character identified by
+ *   g_gameState.chars[@p charIdx].characterId, looked up via getCharNamePtr
+ *   and converted to a string by copyString.
+ * Unrecognized escape sequences are silently skipped.
+ * The output string is null-terminated.
+ *
+ * @param src     Source string to format (null-terminated, may contain escape sequences).
+ * @param dst     Destination buffer to write the formatted string.
+ * @param spellId Magic spell ID passed to getMagicNamePtr for the 0x26 substitution.
+ * @param charIdx Character index for the 0x27 name substitution.
+ */
+void menumgc_formatSpellCharName(u8 *src, u8 *dst, s32 spellId, s32 charIdx) {
+    u8 local_buf[0x40];
+    u8 *p;
+
+    while (1) {
+        s32 ch = *src++;
+        if (ch == 0)
+            break;
+        p = local_buf;
+        if (ch == 0xA)
+            goto escape;
+        *dst++ = ch;
+        continue;
+escape:
+        {
+            s32 esc = *src++;
+            local_buf[0] = 0;
+            if (esc == 0x26) goto esc26;
+            if (esc == 0x27) goto esc27;
+            goto copy_check;
+esc26:
+            {
+                s32 val = getMagicNamePtr(spellId);
+                copyString((s32)local_buf, val);
+                goto copy_check;
+            }
+esc27:
+            {
+                s32 val = getCharNamePtr(g_gameState.chars[charIdx].characterId);
+                copyString((s32)local_buf, val);
+            }
+copy_check:
+            while (*p)
+                *dst++ = *p++;
+        }
+    }
+    *dst = 0;
+}
 
 /**
  * @brief Get available GF mask filtered by character status flags.

@@ -1,4 +1,8 @@
+menumgc_formatSpellCharName = 0x801E5800; // type:func
 func_801E5918 = 0x801E5918; // type:func
+getMagicNamePtr = 0x80020C08; // type:func
+getCharNamePtr = 0x80020E4C; // type:func
+copyString = 0x8002A2A8; // type:func
 func_801E599C = 0x801E599C; // type:func
 func_801E5B00 = 0x801E5B00; // type:func
 func_801E5D14 = 0x801E5D14; // type:func
