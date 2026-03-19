@@ -215,15 +215,17 @@ EOF
 
 cat >> "${FUNC_DIR}/compile.sh" <<'COMPILE_EOF'
 
-cd "${DIR}"
 TMPDIR=$(mktemp -d)
 trap "rm -rf ${TMPDIR}" EXIT
+cd "${TMPDIR}"
 
 # Compile with CCPSX -S → ASPSX → psyq-obj-parser → .o
-SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -Iinclude -DPERMUTER \
-    ${COMPILE_FLAGS} "${INPUT}" -o "${TMPDIR}/out.s"
-${ASPSX} -q "${TMPDIR}/out.s" -o "${TMPDIR}/out.obj"
-${PSYQ_OBJ_PARSER} "${TMPDIR}/out.obj" -o "${OUTPUT}" > /dev/null 2>&1
+# Note: cd to TMPDIR so ASPSX writes its PQ* temp files there instead of the repo root.
+# Include path uses absolute DIR so -Iinclude still resolves correctly.
+SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -I"${DIR}/include" -DPERMUTER \
+    ${COMPILE_FLAGS} "${INPUT}" -o "out.s"
+${ASPSX} -q "out.s" -o "out.obj"
+${PSYQ_OBJ_PARSER} "out.obj" -o "${OUTPUT}" > /dev/null 2>&1
 COMPILE_EOF
 
 chmod +x "${FUNC_DIR}/compile.sh"
