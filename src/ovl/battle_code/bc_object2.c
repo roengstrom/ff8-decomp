@@ -22,7 +22,6 @@ extern u8 D_800EEBB8[];
 extern u8 D_800EEBBA[];
 extern u8 D_800EEBC2[];
 extern u8 D_800ED160[];
-extern u8 D_80078720[];
 extern u8 g_gameState[];
 extern u8 D_800786D9[];
 
@@ -564,7 +563,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A1760);
  * @param flags Flag value (masked to 0x30E7FFF).
  */
 void func_800A184C(s32 idx, s32 attr, s32 flags) {
-    u8 *entry = D_80078720 + idx * 0x1D0;
+    u8 *entry = (u8 *)&D_80078720[idx];
     *(u16 *)(entry + 0x1B2) = attr & 0x7F;
     *(s32 *)(entry + 0x188) = flags & 0x30E7FFF;
 }
