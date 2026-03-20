@@ -20,9 +20,12 @@ typedef struct { u8 unk00[0x98]; } Unk98;
 extern FlagEntry D_801F87B8[];
 extern GfData g_gfData;
 extern Unk98 D_80077818[];
+extern Unk98 D_80077864[];
 extern Unk14 D_801ECF60[];
 extern Unk40 D_801ECF90[];
 extern s16 D_801ED010[];
+extern void func_801F1B4C(s32 a0);
+extern void func_801F5400(s32 a0);
 
 /**
  * @brief Format a string with escape sequence substitution.
@@ -165,7 +168,40 @@ void func_801E5A28(s32 arg0, s32 arg1) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5B00);
+/**
+ * @brief Copy menu display buffers back to character junction and magic data.
+ *
+ * Reverse of func_801E5A28: writes cached HP, junction magic IDs, and magic
+ * inventory from menu buffers into the character save data.
+ *
+ * @param arg0 Character index (0–7).
+ * @param arg1 Menu display slot index.
+ */
+void func_801E5B00(s32 arg0, s32 arg1) {
+    s32 i;
+    u8 *src;
+    u8 *dst;
+
+    dst = D_80077864[arg0].unk00;
+    src = D_801ECF60[arg1].unk00;
+    for (i = 0; i < 0x13; i++) {
+        *dst = *src;
+        src++;
+        dst++;
+    }
+
+    g_gameState.chars[arg0].currentHp = D_801ED010[arg1];
+    dst = (u8 *)g_gameState.chars[arg0].magic;
+    src = D_801ECF90[arg1].unk00;
+    for (i = 0; i < 0x40; i++) {
+        *dst = *src;
+        src++;
+        dst++;
+    }
+
+    func_801F1B4C(arg0);
+    func_801F5400(arg0);
+}
 
 /**
  * @brief Search for a magic spell by ID in a character's spell table.
