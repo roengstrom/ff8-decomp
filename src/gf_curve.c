@@ -69,13 +69,13 @@ s32 func_8002172C(s32 a0, s32 a1) {
 
 /**
  * @brief Compute a stat value for an entity by looking up parameters from two data tables.
- * @param a0 Entity index into D_80078720 (stride 464 bytes).
+ * @param a0 Entity index into g_battleChars (stride 464 bytes).
  * @param a1 Level or modifier value passed to func_80021628.
  * @return Result of func_80021628 using two u8 fields from g_gfData indexed by a secondary ID.
- * @note Reads a sub-index from D_80078720 offset 0x1C3, then looks up linearCoeff/quadDivisor in g_gfData.xpCurves36.
+ * @note Reads a sub-index from g_battleChars offset 0x1C3, then looks up linearCoeff/quadDivisor in g_gfData.xpCurves36.
  */
 s32 func_8002178C(s32 entityIdx, s32 a1) {
-    u8 idx = D_80078720[entityIdx].characterId;
+    u8 idx = g_battleChars[entityIdx].characterId;
     return func_80021628(a1, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor);
 }
 

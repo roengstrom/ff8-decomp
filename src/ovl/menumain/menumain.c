@@ -1025,8 +1025,8 @@ void func_801F537C(s32 a0, CopyBlock16 *a1) {
     func_801F5300();
     func_801F5190(a0);
 
-    src = (CopyBlock16 *)D_80078720;
-    end = (CopyBlock16 *)((u8 *)D_80078720 + 0x1D0);
+    src = (CopyBlock16 *)g_battleChars;
+    end = (CopyBlock16 *)((u8 *)g_battleChars + 0x1D0);
     do {
         *a1++ = *src++;
     } while (src != end);
@@ -1100,7 +1100,7 @@ u16 func_801F57DC(s32 a0) {
 void func_801F5868(s32 a0, s16 a1) {
     if (a0 >= 16) {
         s32 idx = a0 - 16;
-        s32 base2 = (s32)D_80078720;
+        s32 base2 = (s32)g_battleChars;
         g_gameState.gfs[idx].hp = a1;
         *(s16 *)(base2 + idx * 12 + 0x618) = a1;
     } else {
@@ -1117,7 +1117,7 @@ s32 func_801F58EC(s32 a0) {
         return *(s16 *)(base + a0 * 32 + 0xA);
     } else {
         s32 idx = a0 - 16;
-        s32 base = (s32)D_80078720;
+        s32 base = (s32)g_battleChars;
         return *(s16 *)(base + idx * 12 + 0x61A);
     }
 }
@@ -1129,7 +1129,7 @@ s32 func_801F5938(s32 a0) {
         return *(u8 *)(base + a0 * 32 + 0xC);
     } else {
         s32 idx = a0 - 16;
-        s32 base = (s32)D_80078720;
+        s32 base = (s32)g_battleChars;
         return *(u8 *)(base + idx * 12 + 0x620);
     }
 }

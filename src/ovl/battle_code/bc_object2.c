@@ -554,7 +554,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A09D0);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A1760);
 
 /**
- * @brief Set masked attribute values on a D_80078720 table entry (stride 0x1D0).
+ * @brief Set masked attribute values on a g_battleChars table entry (stride 0x1D0).
  *
  * Stores a masked u16 at offset 0x1B2 and a masked u32 at offset 0x188.
  *
@@ -563,7 +563,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A1760);
  * @param flags Flag value (masked to 0x30E7FFF).
  */
 void func_800A184C(s32 idx, s32 attr, s32 flags) {
-    u8 *entry = (u8 *)&D_80078720[idx];
+    u8 *entry = (u8 *)&g_battleChars[idx];
     *(u16 *)(entry + 0x1B2) = attr & 0x7F;
     *(s32 *)(entry + 0x188) = flags & 0x30E7FFF;
 }
@@ -571,7 +571,7 @@ void func_800A184C(s32 idx, s32 attr, s32 flags) {
 /**
  * @brief Check entity attribute bit and call func_800A1760.
  *
- * Computes D_80078720 + a0 * 0x1D0, checks bit 0x10 in the
+ * Computes g_battleChars + a0 * 0x1D0, checks bit 0x10 in the
  * halfword at offset 0x1B2. Calls func_800A1760 with 1 if the
  * bit is set, or 0 if clear.
  *
@@ -583,7 +583,7 @@ void func_800A184C(s32 idx, s32 attr, s32 flags) {
  *
  * @code
  * void func_800A1888(s32 a0) {
- *     u8 *entry = (u8 *)((s32)D_80078720 + a0 * 0x1D0);
+ *     u8 *entry = (u8 *)((s32)g_battleChars + a0 * 0x1D0);
  *     s32 flag = 0;
  *     if (*(u16 *)(entry + 0x1B2) & 0x10) flag = 1;
  *     func_800A1760(flag);

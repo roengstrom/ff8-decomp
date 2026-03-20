@@ -1,6 +1,6 @@
 #include "common.h"
 
-extern u8 D_80078720[];
+extern u8 g_battleChars[];
 extern u8 D_800ED148[];
 extern u8 D_80082C0F[];
 extern u8 D_800EE449[];
@@ -290,12 +290,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE64C);
 /**
  * @brief Store two display values from func_800AE5D8 and func_800AE64C.
  *
- * Calls func_800AE5D8, stores result to D_80078720[0x570] as u16,
- * then calls func_800AE64C, stores result to D_80078720[0x572].
+ * Calls func_800AE5D8, stores result to g_battleChars[0x570] as u16,
+ * then calls func_800AE64C, stores result to g_battleChars[0x572].
  */
 void func_800AE6C0(void) {
     s32 val = func_800AE5D8();
-    u8 *base = D_80078720;
+    u8 *base = g_battleChars;
     *(u16 *)(base + 0x570) = val;
     *(u16 *)(base + 0x572) = func_800AE64C();
 }

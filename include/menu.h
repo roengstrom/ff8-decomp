@@ -37,4 +37,22 @@ typedef struct {
     /* 0x20 */ s32 dataPtr;       /**< Pointer to item data array */
 } MenuDisplayConfig; /* 0x24 bytes */
 
+/**
+ * @brief Per-character junction menu state (D_801EEDF0, stride 28).
+ *
+ * Tracks junction availability, cached character data, and backup
+ * copies of commands/abilities for the junction menu UI.
+ * Array of 8 entries (one per character).
+ */
+typedef struct {
+    /* 0x00 */ u32 availFlags;            /**< Junction availability bitmask. */
+    /* 0x04 */ u16 currentHp;             /**< Cached character HP. */
+    /* 0x06 */ u16 junctedGfs;            /**< Cached juncted GFs bitmask. */
+    /* 0x08 */ u8 abilityCount[2];        /**< Ability counts per sub-slot. */
+    /* 0x0A */ u8 unk0A;                  /**< Unknown. */
+    /* 0x0B */ u8 gfCompat;               /**< GF compatibility byte. */
+    /* 0x0C */ u8 commandsBackup[2][4];   /**< Command backups (2 sub-slots × 4). */
+    /* 0x14 */ u8 abilitiesBackup[2][4];  /**< Ability backups (2 sub-slots × 4). */
+} JunctionMenuEntry; /* 0x1C = 28 bytes */
+
 #endif /* MENU_H */

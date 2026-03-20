@@ -15,7 +15,7 @@ extern u8 D_800EE43C[];
 extern u8 D_800EE462[];
 extern u8 D_800ED158[];
 extern u8 D_80077E58[];
-extern u8 D_80078720[];
+extern u8 g_battleChars[];
 s32 func_800A4798(s32, s32);
 s32 func_8009B79C(s32, s32);
 void func_8009B320(s32, u8 *, u8 *);
@@ -71,7 +71,7 @@ void func_800A1940(s32 a0) {
     s32 offset = 0x24;
     func_800A18E0(a0);
     func_800A589C(a0);
-    displayBase = D_80078720;
+    displayBase = g_battleChars;
     entityBase = &D_800ED148;
     entity = (s32)entityBase + a0 * 0xD0;
     display = (s32)displayBase + a0 * 0x1D0;
@@ -158,16 +158,16 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A20AC);
  * @brief Count active party entities with display flag bit 0 set.
  *
  * Iterates through 3 party slots checking D_800ED148 (stride 0xD0) for
- * active flag bit 0 at +0x8C, and D_80078720 (stride 0x1D0) for display
+ * active flag bit 0 at +0x8C, and g_battleChars (stride 0x1D0) for display
  * flag bit 0 at +0x1B2. Returns count of entities with both flags set.
  *
  * @return Number of active displayed party members (0-3).
  */
 s32 func_800A2150(void) {
-    extern u8 D_80078720[];
+    extern u8 g_battleChars[];
     s32 count = 0;
     s32 i = 0;
-    u8 *display = D_80078720;
+    u8 *display = g_battleChars;
     u8 *entity = (u8 *)&D_800ED148;
 
     do {
@@ -639,16 +639,16 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5688);
  * @brief Copy entity timer data to display structure for party members.
  *
  * For party members (index < 3), copies two words at offsets +0x10 and +0x14
- * from D_800ED158 (entity data, stride 0xD0) to D_80078720 (display data,
+ * from D_800ED158 (entity data, stride 0xD0) to g_battleChars (display data,
  * stride 0x1D0) at offsets +0x180 and +0x184.
  *
  * @param idx Entity index.
  */
 void func_800A5778(s32 idx) {
     extern u8 D_800ED158[];
-    extern u8 D_80078720[];
+    extern u8 g_battleChars[];
     u8 *src = D_800ED158 + idx * 0xD0;
-    u8 *dst = D_80078720 + idx * 0x1D0;
+    u8 *dst = g_battleChars + idx * 0x1D0;
 
     if (idx < 3) {
         *(s32 *)(dst + 0x184) = *(s32 *)(src + 0x14);

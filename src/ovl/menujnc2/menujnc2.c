@@ -1,4 +1,10 @@
 #include "common.h"
+#include "menu.h"
+#include "gamestate.h"
+#include "battle.h"
+
+extern JunctionMenuEntry D_801EEDF0[];
+extern BattleCharData g_junctionPreview;
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 
@@ -19,11 +25,11 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
  * @return Updated output position.
  */
 s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern u8 D_801EEDF0[];
+
     s32 count;
 
     if (a2 == 0xB) {
-        s32 jncBase = (s32)D_801EEDF0;
+        s32 jncBase = (s32)&D_801EEDF0;
         count = *(u8 *)(a0 * 28 + jncBase + 9);
         if (count > 0) {
             do {
@@ -32,7 +38,7 @@ s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
             } while (count > 0);
         }
     } else if (a2 == 0xC) {
-        s32 jncBase = (s32)D_801EEDF0;
+        s32 jncBase = (s32)&D_801EEDF0;
         count = *(u8 *)(a0 * 28 + jncBase + 8);
         if (count > 0) {
             do {
@@ -59,8 +65,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
  * @param a0 Pointer to junction menu context.
  */
 void func_801E5EE8(u8 *a0) {
-    extern u8 D_801EEDF0[];
-    s32 base = (s32)D_801EEDF0;
+
+    s32 base = (s32)&D_801EEDF0;
     s32 val = *(u8 *)(base + a0[0x43] * 28 + 0xB);
     if (val != 0) {
         a0[0x47] = 3;
@@ -79,10 +85,10 @@ void func_801E5EE8(u8 *a0) {
  */
 void func_801E5F24(s32 a0) {
     extern u8 D_801EEFA0[];
-    extern u8 g_gameState[];
+
     s32 i = 0;
     s32 dst = (s32)D_801EEFA0;
-    s32 src = (s32)g_gameState;
+    s32 src = (s32)&g_gameState;
     a0 = src + a0 * 152;
     do {
         *(u8 *)(i + dst) = *(u8 *)(a0 + i + 0x4EC);
@@ -283,42 +289,33 @@ void func_801E6B88(u8 *a0) {
  * @param a0 Character/slot index
  */
 void func_801E6BC8(s32 a0) {
-    extern u8 D_801EEDF0[];
-    extern u8 g_gameState[];
-    s32 v0 = (s32)D_801EEDF0;
+
+
+    s32 v0 = (s32)&D_801EEDF0;
     s32 v1 = a0 * 28 + v0;
-    s32 a1 = (s32)g_gameState;
+    s32 a1 = (s32)&g_gameState;
 
     *(s16 *)(a1 + a0 * 152 + 0x490) = *(u16 *)(v1 + 4);
     func_801F5190();
 }
 
 /**
- * @brief Apply junction table ability value to character and refresh display.
+ * @brief Preview a junction change and snapshot the resulting battle stats.
  *
- * Saves the current ability value from g_gameState[a0*152 + 0x4E8] into s2,
- * writes the junction table value (D_801EEDF0[a0*28 + 6]) into it,
- * calls func_801E6350 and func_801E6BC8 to update, copies data via
- * func_8002A318, then restores the old ability value and calls func_801F1B4C.
+ * Temporarily applies the junction menu's GF selection to the character,
+ * recalculates stats, copies the result to the preview buffer, then
+ * restores the original junction state.
  *
- * @param a0 Character/slot index.
+ * @param a0 Character index (0-7).
  */
 void func_801E6C24(s32 a0) {
-    extern u8 g_gameState[];
-    extern u8 D_801EEDF0[];
-    extern u8 D_80078720[];
-    extern u8 D_801EEFE0[];
-    s32 charBase = (s32)g_gameState;
-    s32 charOff = charBase + a0 * 152;
-    s32 jncBase = (s32)D_801EEDF0;
-    s32 jncOff = a0 * 28 + jncBase;
-    u16 saved = *(u16 *)(charOff + 0x4E8);
+    u16 saved = g_gameState.chars[a0].junctedGfs;
 
-    *(s16 *)(charOff + 0x4E8) = *(u16 *)(jncOff + 6);
+    g_gameState.chars[a0].junctedGfs = D_801EEDF0[a0].junctedGfs;
     func_801E6350(a0);
     func_801E6BC8(a0);
-    func_8002A318(D_80078720, D_801EEFE0, 0x1D0);
-    *(s16 *)(charOff + 0x4E8) = saved;
+    func_8002A318(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
+    g_gameState.chars[a0].junctedGfs = saved;
     func_801F1B4C(a0);
 }
 
@@ -331,11 +328,11 @@ void func_801E6C24(s32 a0) {
  * @param a0 Character/slot index
  */
 void func_801E6CCC(s32 a0) {
-    extern u8 g_gameState[];
-    extern u8 D_801EEDF0[];
-    s32 base1 = (s32)g_gameState;
+
+
+    s32 base1 = (s32)&g_gameState;
     s32 off1 = a0 * 152;
-    s32 base2 = (s32)D_801EEDF0;
+    s32 base2 = (s32)&D_801EEDF0;
 
     *(s16 *)(off1 + base1 + 0x4E8) = *(u16 *)(base2 + a0 * 28 + 6);
     func_801E6B88(a0);
@@ -350,11 +347,11 @@ void func_801E6CCC(s32 a0) {
  * @param a0 Character/slot index.
  */
 void func_801E6D28(s32 a0) {
-    extern u8 D_801EEDF0[];
-    extern u8 g_gameState[];
-    s32 base1 = (s32)D_801EEDF0;
+
+
+    s32 base1 = (s32)&D_801EEDF0;
     s32 v1 = a0 * 28;
-    s32 base2 = (s32)g_gameState;
+    s32 base2 = (s32)&g_gameState;
     *(s16 *)(v1 + base1 + 6) = *(u16 *)(base2 + a0 * 152 + 0x4E8);
 }
 
@@ -368,8 +365,8 @@ void func_801E6D28(s32 a0) {
  * @param a1 Value to store.
  */
 void func_801E6D6C(s32 a0, s32 a1) {
-    extern u8 D_801EEDF0[];
-    s32 base = (s32)D_801EEDF0;
+
+    s32 base = (s32)&D_801EEDF0;
     *(u16 *)(base + a0 * 28 + 4) = a1;
 }
 
@@ -396,12 +393,12 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
  * @param a1 Junction sub-slot (0 or 1).
  */
 void func_801E6E0C(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
-    extern u8 D_801EEDF0[];
+
+
     s32 i = 0;
-    s32 charBase = (s32)g_gameState;
+    s32 charBase = (s32)&g_gameState;
     s32 a7 = charBase + a0 * 152;
-    s32 jncBase = (s32)D_801EEDF0;
+    s32 jncBase = (s32)&D_801EEDF0;
     s32 jnc = a0 * 28 + jncBase;
     s32 a4;
 
@@ -439,12 +436,12 @@ void func_801E6E88(u8 *a0) {
  * @param a0 Character/slot index
  */
 void func_801E6EC4(s32 a0) {
-    extern u8 g_gameState[];
+
     s32 base;
     u16 val;
     func_801E6D8C(a0, 0);
     func_801E6D8C(a0, 1);
-    base = (s32)g_gameState;
+    base = (s32)&g_gameState;
     val = *(u16 *)(base + a0 * 152 + 0x490);
     func_801E6D6C(a0, val);
     func_801E5F24(a0);
@@ -492,10 +489,10 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
  * @return 1 if junction was toggled, 0 if already set.
  */
 s32 func_801E72CC(s32 a0, s32 a1) {
-    extern u8 D_801EEDF0[];
+
     extern u8 D_801EED10[];
     s32 one = 1;
-    s32 jncBase = (s32)D_801EEDF0;
+    s32 jncBase = (s32)&D_801EEDF0;
     s32 jnc = a0 * 28 + jncBase;
     u16 flags = *(u16 *)(jnc + 6);
     s32 mask = one << a1;

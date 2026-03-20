@@ -165,7 +165,7 @@ typedef struct {
 } BattleEntity;        /* 0xD0 = 208 bytes */
 
 /**
- * @brief Battle character render data (D_80078720, stride 0x1D0 = 464 bytes).
+ * @brief Battle character render data (g_battleChars, stride 0x1D0 = 464 bytes).
  *
  * Contains display/render state for each battle participant.
  * Linked to BattleEntity (D_800ED148) for core battle logic.
@@ -176,6 +176,6 @@ typedef struct {
     u8 pad1C4[0x0C];      /**< 0x1C4..0x1CF: Unknown. */
 } BattleCharData;          /* 0x1D0 = 464 bytes */
 
-extern BattleCharData D_80078720[];
+extern BattleCharData g_battleChars[];
 
 #endif /* BATTLE_H */

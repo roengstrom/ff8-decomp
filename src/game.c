@@ -386,18 +386,18 @@ s32 func_80020D4C(s32 a0) {
  * Squall and Rinoa have custom names stored in the save header.
  * All other characters use the default name from GfData lookup.
  *
- * @param entityIdx Battle entity index into D_80078720.
+ * @param entityIdx Battle entity index into g_battleChars.
  * @return Pointer to the character's name string.
  */
 u8 *func_80020DB8(s32 entityIdx) {
-    if (D_80078720[entityIdx].characterId == CHAR_SQUALL) {
+    if (g_battleChars[entityIdx].characterId == CHAR_SQUALL) {
         return g_gameState.squallName;
     }
-    if (D_80078720[entityIdx].characterId == CHAR_RINOA) {
+    if (g_battleChars[entityIdx].characterId == CHAR_RINOA) {
         return g_gameState.rinoaName;
     }
     return func_80020FBC(
-        g_gfData.xpCurves36[D_80078720[entityIdx].characterId].lookupParam,
+        g_gfData.xpCurves36[g_battleChars[entityIdx].characterId].lookupParam,
         g_gfData.ptrGfCurve36);
 }
 

@@ -2,7 +2,7 @@
 
 extern u8 D_800ED148[];
 extern u8 D_800EE464[];
-extern u8 D_80078720[];
+extern u8 g_battleChars[];
 extern u8 D_80078E00[];
 extern u8 D_800EE38C[];
 extern u8 D_800EE9B3[];
@@ -558,7 +558,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A79A0);
 /**
  * @brief Two-level table lookup from entity to ability data.
  *
- * Indexes into D_80078720 by a0*464, reads byte at offset 0x1BA,
+ * Indexes into g_battleChars by a0*464, reads byte at offset 0x1BA,
  * then uses byte*12 to index into D_80078E00 at offset 0x35C1.
  *
  * @param a0 Entity index (stride 464).
@@ -566,19 +566,19 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A79A0);
  */
 s32 func_800A7A44(s32 a0) {
     u8 *table = D_80078E00;
-    u8 *base = D_80078720;
+    u8 *base = g_battleChars;
     s32 val = *(u8 *)(base + a0 * 464 + 0x1BA);
     return *(u8 *)(table + val * 12 + 0x35C1);
 }
 
 /**
- * @brief Look up a byte attribute from D_80078720 entity table (stride 0x1D0).
+ * @brief Look up a byte attribute from g_battleChars entity table (stride 0x1D0).
  *
  * @param idx Entity index.
  * @return Byte at offset 0x1B9 within the entity entry.
  */
 s32 func_800A7A8C(s32 idx) {
-    u8 *base = D_80078720;
+    u8 *base = g_battleChars;
     u8 *entry;
     asm("");
     entry = base + idx * 0x1D0;
@@ -713,17 +713,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A89B8);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8A48);
 
 /**
- * @brief Initialize 3 animation entries for an entity in D_80078720.
+ * @brief Initialize 3 animation entries for an entity in g_battleChars.
  *
- * Computes the entity base at D_80078720 + a0 * 0x1D0, then calls
+ * Computes the entity base at g_battleChars + a0 * 0x1D0, then calls
  * func_800A8A48 three times to set up entries 0 (id=0x23), 1 (id=0x24),
  * and 2 (id=0).
  *
- * @param a0 Entity index (stride 0x1D0 in D_80078720).
+ * @param a0 Entity index (stride 0x1D0 in g_battleChars).
  * @return Always 2.
  */
 s32 func_800A8AFC(s32 a0) {
-    u8 *entry = D_80078720 + a0 * 0x1D0;
+    u8 *entry = g_battleChars + a0 * 0x1D0;
     func_800A8A48(entry, 0, 0x23, 0);
     func_800A8A48(entry, 1, 0x24, 0);
     func_800A8A48(entry, 2, 0, 0);

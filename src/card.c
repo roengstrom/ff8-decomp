@@ -127,7 +127,7 @@ u16 func_80036F60(void) {
 /**
  * @brief Copy a GF's current HP from the character table to the GF table.
  *
- * Reads a u16 from D_80078720 + a0*12 + 0x61A and writes it to
+ * Reads a u16 from g_battleChars + a0*12 + 0x61A and writes it to
  * g_gameState + a0*68 + 0x62.
  *
  * @param a0 GF index (0-15).
@@ -136,7 +136,7 @@ void func_80036FA4(s32 a0) {
     extern u8 g_gameState[];
     s32 base1 = (s32)g_gameState;
     s32 off1 = a0 * 68;
-    s32 base2 = (s32)D_80078720;
+    s32 base2 = (s32)g_battleChars;
     *(s16 *)(base1 + off1 + 0x62) = *(u16 *)(base2 + a0 * 12 + 0x61A);
 }
 
