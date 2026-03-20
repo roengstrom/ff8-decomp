@@ -102,7 +102,6 @@ s32 func_80022C04(s32 a0) {
  */
 void func_80022C5C(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 D_80078720[];
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
     s32 base3;

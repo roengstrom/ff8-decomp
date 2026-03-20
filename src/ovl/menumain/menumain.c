@@ -42,7 +42,6 @@ extern u8 D_801FABC8[];
 extern u8 g_characterMagic[];
 extern u8 D_80077EBC[];
 extern u8 D_801FAB38[];
-extern u8 D_80078720[];
 extern u8 D_801F7F78[];
 /* D_801FAB00.animCounter is D_801FAB00.animCounter (offset +0x12) */
 extern s16 D_801FAA1E;

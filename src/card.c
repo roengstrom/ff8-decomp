@@ -133,7 +133,6 @@ u16 func_80036F60(void) {
  */
 void func_80036FA4(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 D_80078720[];
     s32 base1 = (s32)g_gameState;
     s32 off1 = a0 * 68;
     s32 base2 = (s32)D_80078720;
