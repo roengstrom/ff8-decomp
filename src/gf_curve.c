@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gf.h"
 
 INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002153C);
 
@@ -26,10 +27,7 @@ s32 func_80021628(s32 a0, s32 a1, s32 a2) {
  * @return Result of func_80021628(a1, linearCoeff, quadDivisor).
  */
 s32 func_8002166C(s32 a0, s32 a1) {
-    extern u8 g_gfData[];
-    s32 base = (s32)g_gfData;
-    s32 entry = base + a0 * 132;
-    return func_80021628(a1, *(u8 *)(entry + 0xF90), *(u8 *)(entry + 0xF91));
+    return func_80021628(a1, g_gfData.abilityTable132[a0].xpParamB, g_gfData.abilityTable132[a0].xpParamC);
 }
 
 
@@ -40,12 +38,9 @@ s32 func_8002166C(s32 a0, s32 a1) {
  * @return Level (1–100) where the curve value first exceeds a0, or 100 if never exceeded.
  */
 s32 func_800216B0(s32 a0, s32 a1) {
-    extern u8 g_gfData[];
     s32 i = 1;
-    s32 base = (s32)g_gfData;
-    s32 entry = base + a1 * 132;
     do {
-        if (a0 < func_80021628(i, *(u8 *)(entry + 0xF90), *(u8 *)(entry + 0xF91))) {
+        if (a0 < func_80021628(i, g_gfData.abilityTable132[a1].xpParamB, g_gfData.abilityTable132[a1].xpParamC)) {
             return i;
         }
         i++;
@@ -59,11 +54,10 @@ s32 func_800216B0(s32 a0, s32 a1) {
  * @param a0 Level or input value for the formula.
  * @param a1 Entry index into the g_gfData data table (stride 132 bytes).
  * @return Computed value as s16: a0*field0 + a0*a0*10/field1 + field2.
- * @note Uses fields at offsets 0xF8C (linear coeff), 0xF8D (quadratic divisor), 0xF8E (constant).
+ * @note Uses GfAbilityTableEntry fields xpLinear (+0x12), xpQuadDiv (+0x13), xpConst (+0x14).
  */
 s32 func_8002172C(s32 a0, s32 a1) {
-    extern u8 g_gfData[];
-    s32 base = (s32)g_gfData;
+    s32 base = (s32)&g_gfData;
     s32 entry = base + a1 * 132;
     u8 field1 = *(u8 *)(entry + 0xF8D);
     u8 field0 = *(u8 *)(entry + 0xF8C);
@@ -77,18 +71,15 @@ s32 func_8002172C(s32 a0, s32 a1) {
  * @param a0 Entity index into D_80078720 (stride 464 bytes).
  * @param a1 Level or modifier value passed to func_80021628.
  * @return Result of func_80021628 using two u8 fields from g_gfData indexed by a secondary ID.
- * @note Reads a sub-index from D_80078720 offset 0x1C3, then uses it to look up a g_gfData entry (stride 36).
+ * @note Reads a sub-index from D_80078720 offset 0x1C3, then looks up linearCoeff/quadDivisor in g_gfData.xpCurves36.
  */
 s32 func_8002178C(s32 a0, s32 a1) {
     extern u8 D_80078720[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)D_80078720;
     s32 entry = base1 + a0 * 464;
-    s32 base2;
     u8 idx;
-    base2 = (s32)g_gfData;
     idx = *(u8 *)(entry + 0x1C3);
-    return func_80021628(a1, *(u8 *)(base2 + idx * 36 + 0x37AA), *(u8 *)(base2 + idx * 36 + 0x37AB));
+    return func_80021628(a1, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor);
 }
 
 
@@ -97,18 +88,15 @@ s32 func_8002178C(s32 a0, s32 a1) {
  * @param a0 XP threshold to check against.
  * @param a1 Character slot index (stride 152 in g_gameState).
  * @return Level (1–100) where the curve value first exceeds a0, or 100 if never exceeded.
- * @note Reads a GF index from g_gameState offset 0x498, then uses g_gfData (stride 36) at offset 0x37AA.
+ * @note Reads a GF index from g_gameState offset 0x498, then uses g_gfData.xpCurves36 linearCoeff/quadDivisor.
  */
 s32 func_800217F4(s32 a0, s32 a1) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 i = 1;
     s32 base1 = (s32)g_gameState;
     u8 idx = *(u8 *)(base1 + a1 * 152 + 0x498);
-    s32 base2 = (s32)g_gfData;
-    s32 entry = base2 + idx * 36;
     do {
-        if (a0 < func_80021628(i, *(u8 *)(entry + 0x37AA), *(u8 *)(entry + 0x37AB))) {
+        if (a0 < func_80021628(i, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor)) {
             return i;
         }
         i++;
@@ -127,15 +115,12 @@ s32 func_800217F4(s32 a0, s32 a1) {
  */
 s32 func_80021894(s32 a0, s32 a1) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 i = 1;
     s32 base1 = (s32)g_gameState;
     u8 idx = *(u8 *)(base1 + a1 * 152 + 0x498);
-    s32 base2 = (s32)g_gfData;
-    s32 entry = base2 + idx * 36;
     s32 curveVal;
     do {
-        curveVal = func_80021628(i, *(u8 *)(entry + 0x37AA), *(u8 *)(entry + 0x37AB));
+        curveVal = func_80021628(i, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor);
         if (a0 < curveVal) {
             break;
         }
@@ -212,20 +197,16 @@ s32 func_800219B8(s32 a0, s32 a1) {
  */
 s32 func_800219E0(s32 a0, s32 a1) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 result = 100;
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
-    s32 base2;
     s32 off = base1 + a0 * 152;
-    base2 = (s32)g_gfData;
     do {
         s32 val = *(u8 *)(off + i + 0x4E4);
         s32 idx = val - 0x27;
         if ((u32)idx < 0x13) {
-            s32 entry = idx * 8 + base2;
-            if (*(u8 *)(entry + 0x421D) == a1) {
-                result += *(u8 *)(entry + 0x421E);
+            if (g_gfData.abilityRangeK[idx].typeField == a1) {
+                result += g_gfData.abilityRangeK[idx].bonusField;
             }
         }
         i++;
@@ -253,20 +234,17 @@ INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80021C10);
  */
 s32 func_80022028(s32 a0, s32 a1) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
-    s32 base2;
     u8 idx;
     u8 val;
     s32 result1;
 
-    base2 = (s32)g_gfData;
     idx = *(u8 *)(entry + 0x4F3);
-    val = *(u8 *)(base2 + idx * 60 + 0x23A);
+    val = g_gfData.junctionData[idx].magicParam;
 
     result1 = func_80021B58(a0, a1);
-    return func_800231B0(*(u8 *)(base2 + result1 * 12 + 0x35BF) + func_800219B8(val, func_80021944(a0, idx)));
+    return func_800231B0(g_gfData.levelCurve12[result1].field07 + func_800219B8(val, func_80021944(a0, idx)));
 }
 
 
@@ -279,16 +257,13 @@ s32 func_80022028(s32 a0, s32 a1) {
  */
 s32 func_800220E4(s32 a0, s32 a1) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
-    s32 base2;
     u8 idx;
     u8 val;
 
-    base2 = (s32)g_gfData;
     idx = *(u8 *)(entry + 0x4F2);
-    val = *(u8 *)(base2 + idx * 60 + 0x239);
+    val = g_gfData.junctionData[idx].spiritParam;
 
     return func_800231B0((a1 >> 2) + func_800219B8(val, func_80021944(a0, idx)));
 }
@@ -302,11 +277,9 @@ s32 func_800220E4(s32 a0, s32 a1) {
  */
 s32 func_8002216C(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
     u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F5);
-    s32 base2 = (s32)g_gfData;
-    return *(u8 *)(base2 + idx * 60 + 0x23C);
+    return g_gfData.junctionData[idx].statParamA;
 }
 
 
@@ -318,16 +291,13 @@ s32 func_8002216C(s32 a0) {
  */
 s32 func_800221B4(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
-    s32 base2;
     u8 idx;
     u8 val;
 
-    base2 = (s32)g_gfData;
     idx = *(u8 *)(entry + 0x4F5);
-    val = *(u8 *)(base2 + idx * 60 + 0x23D);
+    val = g_gfData.junctionData[idx].statParamB;
 
     return func_800219B8(val, func_80021944(a0, idx));
 }
@@ -344,11 +314,9 @@ INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80022228);
  */
 s32 func_80022328(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
     u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F6);
-    s32 base2 = (s32)g_gfData;
-    return *(u16 *)(base2 + idx * 60 + 0x242) & 0x7F;
+    return g_gfData.junctionData[idx].statusFlags & 0x7F;
 }
 
 
@@ -361,17 +329,14 @@ s32 func_80022328(s32 a0) {
  */
 s32 func_80022370(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
-    s32 base2;
     u8 idx;
     u16 flags;
     s32 val;
     s32 result;
 
     idx = *(u8 *)(base1 + a0 * 152 + 0x4F6);
-    base2 = (s32)g_gfData;
-    flags = *(u16 *)(base2 + idx * 60 + 0x242);
+    flags = g_gfData.junctionData[idx].statusFlags;
     val = flags & 0x80;
     result = val != 0;
     if (flags & 0x100) result |= 0x4;
@@ -391,16 +356,13 @@ s32 func_80022370(s32 a0) {
  */
 s32 func_80022404(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 base1 = (s32)g_gameState;
     s32 entry = base1 + a0 * 152;
-    s32 base2;
     u8 idx;
     u8 val;
 
-    base2 = (s32)g_gfData;
     idx = *(u8 *)(entry + 0x4F6);
-    val = *(u8 *)(base2 + idx * 60 + 0x240);
+    val = g_gfData.junctionData[idx].hitParam;
 
     return func_800219B8(val, func_80021944(a0, idx)) + 100;
 }

@@ -39,7 +39,6 @@ extern u16 D_80082C08[];
 extern u8 D_80082C0A[];
 extern u8 D_80082C0F[];
 extern s16 D_8005F11C;
-extern u8 g_gfData[];
 
 extern u8 D_80098030[];
 extern u8 D_800E19B4[];
@@ -1531,11 +1530,10 @@ void func_8009B924(s32 slot, s32 clearMask, s32 applyMask) {
  * @return Combined or default status flags (u16).
  */
 s32 func_8009BA5C(s32 slot, s32 defaultStatus) {
-    GfDataSubS *gf = (GfDataSubS *)g_gfData;
     unsigned short result;
 
-    result = func_800B0F9C(gf->subTableS[slot].abilityFlags);
-    result |= func_800B0F7C(gf->subTableS[slot].abilityFlags);
+    result = func_800B0F9C(g_gfData.subTableS[slot].abilityFlags);
+    result |= func_800B0F7C(g_gfData.subTableS[slot].abilityFlags);
 
     if (result & 0x8000)
         return (u16)result;

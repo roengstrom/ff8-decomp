@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gf.h"
 
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
 
@@ -17,16 +18,14 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
  * @param a2 Animation index to set.
  */
 void func_80022B04(u8 *a0, s32 a1, s32 a2) {
-    extern u8 g_gfData[];
     u8 *entry = a0 + a1 * 4;
-    u8 *table = g_gfData;
     s32 idx;
     *(volatile u8 *)(entry + 0x1E) = a2;
     idx = *(volatile u8 *)(entry + 0x1E);
-    entry[0x1F] = *(u8 *)(table + idx * 8 + 0xE9);
+    entry[0x1F] = g_gfData.statTable8[idx].typeField;
     idx = *(volatile u8 *)(entry + 0x1E);
     entry[0x21] = 0;
-    entry[0x20] = *(u8 *)(table + idx * 8 + 0xEA);
+    entry[0x20] = g_gfData.statTable8[idx].bonusField;
 }
 
 
@@ -39,21 +38,17 @@ void func_80022B04(u8 *a0, s32 a1, s32 a2) {
  */
 s32 func_80022B48(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     s32 result = 0;
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
-    s32 base2;
     s32 off = base1 + a0 * 152;
-    base2 = (s32)g_gfData;
     do {
         s32 val = *(u8 *)(off + i + 0x4E4);
         s32 idx = val - 0x3A;
         if ((u32)idx < 0x14) {
-            s32 entry = idx * 8 + base2;
-            u8 b = *(u8 *)(entry + 0x42B7);
-            u8 g = *(u8 *)(entry + 0x42B6);
-            u8 r = *(u8 *)(entry + 0x42B5);
+            u8 b = g_gfData.abilityRangeL[idx].extraField;
+            u8 g = g_gfData.abilityRangeL[idx].bonusField;
+            u8 r = g_gfData.abilityRangeL[idx].typeField;
             result |= (b << 16) | (g << 8) | r;
         }
         i++;
@@ -107,20 +102,17 @@ s32 func_80022C04(s32 a0) {
  */
 void func_80022C5C(s32 a0) {
     extern u8 g_gameState[];
-    extern u8 g_gfData[];
     extern u8 D_80078720[];
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
     s32 base3;
-    s32 base2;
     s32 off = base1 + a0 * 152;
     base3 = (s32)D_80078720;
-    base2 = (s32)g_gfData;
     do {
         s32 val = *(u8 *)(off + i + 0x4E4);
         s32 idx = val - 0x4E;
         if ((u32)idx < 5) {
-            *(u8 *)(base3 + 0x6D8) |= *(u8 *)(idx * 8 + base2 + 0x4355);
+            *(u8 *)(base3 + 0x6D8) |= g_gfData.abilityRangeM[idx].typeField;
         }
         i++;
     } while (i < 4);
