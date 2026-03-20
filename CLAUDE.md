@@ -6,6 +6,7 @@
 - **No proprietary data in the repo.** This is an open source project. ROMs, ISOs, and any extracted proprietary content must never be committed. Users provide their own copy of FF8 Disc 1.
 - **Document code with Doxygen.** When decomping or touching functions, add Doxygen-style comments (`/** ... */`) describing what the function does, its parameters, and return value. If you're not fully certain of a function's purpose, give your best estimation and note the uncertainty (e.g. `@note Purpose uncertain — appears to ...`).
 - **Verify the build before pushing.** Before running `git push`, always run `rm -rf asm && make split && make verify` and confirm that every target shows `Match`. Do not push if any target shows `Mismatch`, `Skip`, or `build failed`.
+- **Write code a human would write, not reverse-engineered code.** The goal is to produce source that looks like it was written by a developer in 1998, not transliterated from assembly. Use simple `for` loops with array indexing (`g_gameState.itemSlots[i].id`), not manual pointer arithmetic with goto labels (`ptr++; if (i < N) goto top;`). Use `count--` not `count = count - 1`. Use struct field access with natural expressions. If your code has raw casts, goto-based loops, or manual pointer walking where a for loop and array index would do, rewrite it. Ask: "would a human have written this?" — if not, simplify.
 
 ## Target Binary
 

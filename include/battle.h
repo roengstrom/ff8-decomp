@@ -164,4 +164,18 @@ typedef struct {
     u8 padCC[0x04];    /**< 0xCC..0xCF: Unknown. */
 } BattleEntity;        /* 0xD0 = 208 bytes */
 
+/**
+ * @brief Battle character render data (D_80078720, stride 0x1D0 = 464 bytes).
+ *
+ * Contains display/render state for each battle participant.
+ * Linked to BattleEntity (D_800ED148) for core battle logic.
+ */
+typedef struct {
+    u8 pad000[0x1C3];     /**< 0x000..0x1C2: Render state, animation, etc. */
+    u8 characterId;        /**< 0x1C3: Character ID (see CharacterId). */
+    u8 pad1C4[0x0C];      /**< 0x1C4..0x1CF: Unknown. */
+} BattleCharData;          /* 0x1D0 = 464 bytes */
+
+extern BattleCharData D_80078720[];
+
 #endif /* BATTLE_H */

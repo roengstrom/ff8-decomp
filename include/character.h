@@ -28,7 +28,7 @@
 #include "common.h"
 
 /** @brief Character IDs (index into CharacterData array). */
-enum CharacterId {
+typedef enum {
     CHAR_SQUALL  = 0,
     CHAR_ZELL    = 1,
     CHAR_IRVINE  = 2,
@@ -37,7 +37,7 @@ enum CharacterId {
     CHAR_SELPHIE = 5,
     CHAR_SEIFER  = 6,
     CHAR_EDEA    = 7
-};
+} CharacterId;
 
 /**
  * @brief Weapon IDs stored in CharacterData.weaponId.
@@ -133,69 +133,68 @@ enum JunctionType {
  *
  * 56 spells (1–56); 0 = empty slot.
  * Order matches the FF8 save file format (verified against Hyne).
- *
- * @note These would ideally be an enum, but C enums are always int-sized
- *       (4 bytes), and MagicSlot.magicId must be 1 byte to keep MagicSlot
- *       at 2 bytes. Compiling with -fshort-enums would allow using an enum
- *       here, but that flag is not used in this project.
  */
-#define MAGIC_NONE        0
-#define MAGIC_FIRE        1
-#define MAGIC_FIRA        2
-#define MAGIC_FIRAGA      3
-#define MAGIC_BLIZZARD    4
-#define MAGIC_BLIZZARA    5
-#define MAGIC_BLIZZAGA    6
-#define MAGIC_THUNDER     7
-#define MAGIC_THUNDARA    8
-#define MAGIC_THUNDAGA    9
-#define MAGIC_WATER      10
-#define MAGIC_AERO       11
-#define MAGIC_BIO        12
-#define MAGIC_DEMI       13
-#define MAGIC_HOLY       14
-#define MAGIC_FLARE      15
-#define MAGIC_METEOR     16
-#define MAGIC_QUAKE      17
-#define MAGIC_TORNADO    18
-#define MAGIC_ULTIMA     19
-#define MAGIC_APOCALYPSE 20
-#define MAGIC_CURE       21
-#define MAGIC_CURA       22
-#define MAGIC_CURAGA     23
-#define MAGIC_LIFE       24
-#define MAGIC_FULL_LIFE  25
-#define MAGIC_REGEN      26
-#define MAGIC_ESUNA      27
-#define MAGIC_DISPEL     28
-#define MAGIC_PROTECT    29
-#define MAGIC_SHELL      30
-#define MAGIC_REFLECT    31
-#define MAGIC_AURA       32
-#define MAGIC_DOUBLE     33
-#define MAGIC_TRIPLE     34
-#define MAGIC_HASTE      35
-#define MAGIC_SLOW       36
-#define MAGIC_STOP       37
-#define MAGIC_BLIND      38
-#define MAGIC_CONFUSE    39
-#define MAGIC_SLEEP      40
-#define MAGIC_SILENCE    41
-#define MAGIC_BREAK      42
-#define MAGIC_DEATH      43
-#define MAGIC_DRAIN      44
-#define MAGIC_PAIN       45
-#define MAGIC_BERSERK    46
-#define MAGIC_FLOAT      47
-#define MAGIC_ZOMBIE     48
-#define MAGIC_MELTDOWN   49
-#define MAGIC_SCAN       50
-#define MAGIC_FULL_CURE  51
-#define MAGIC_WALL       52
-#define MAGIC_RAPTURE    53
-#define MAGIC_PERCENT    54
-#define MAGIC_CATASTROPHE 55
-#define MAGIC_THE_END    56
+typedef enum {
+    MAGIC_NONE        = 0,
+    MAGIC_FIRE        = 1,
+    MAGIC_FIRA        = 2,
+    MAGIC_FIRAGA      = 3,
+    MAGIC_BLIZZARD    = 4,
+    MAGIC_BLIZZARA    = 5,
+    MAGIC_BLIZZAGA    = 6,
+    MAGIC_THUNDER     = 7,
+    MAGIC_THUNDARA    = 8,
+    MAGIC_THUNDAGA    = 9,
+    MAGIC_WATER       = 10,
+    MAGIC_AERO        = 11,
+    MAGIC_BIO         = 12,
+    MAGIC_DEMI        = 13,
+    MAGIC_HOLY        = 14,
+    MAGIC_FLARE       = 15,
+    MAGIC_METEOR      = 16,
+    MAGIC_QUAKE       = 17,
+    MAGIC_TORNADO     = 18,
+    MAGIC_ULTIMA      = 19,
+    MAGIC_APOCALYPSE  = 20,
+    MAGIC_CURE        = 21,
+    MAGIC_CURA        = 22,
+    MAGIC_CURAGA      = 23,
+    MAGIC_LIFE        = 24,
+    MAGIC_FULL_LIFE   = 25,
+    MAGIC_REGEN       = 26,
+    MAGIC_ESUNA       = 27,
+    MAGIC_DISPEL      = 28,
+    MAGIC_PROTECT     = 29,
+    MAGIC_SHELL       = 30,
+    MAGIC_REFLECT     = 31,
+    MAGIC_AURA        = 32,
+    MAGIC_DOUBLE      = 33,
+    MAGIC_TRIPLE      = 34,
+    MAGIC_HASTE       = 35,
+    MAGIC_SLOW        = 36,
+    MAGIC_STOP        = 37,
+    MAGIC_BLIND       = 38,
+    MAGIC_CONFUSE     = 39,
+    MAGIC_SLEEP       = 40,
+    MAGIC_SILENCE     = 41,
+    MAGIC_BREAK       = 42,
+    MAGIC_DEATH       = 43,
+    MAGIC_DRAIN       = 44,
+    MAGIC_PAIN        = 45,
+    MAGIC_BERSERK     = 46,
+    MAGIC_FLOAT       = 47,
+    MAGIC_ZOMBIE      = 48,
+    MAGIC_MELTDOWN    = 49,
+    MAGIC_SCAN        = 50,
+    MAGIC_FULL_CURE   = 51,
+    MAGIC_WALL        = 52,
+    MAGIC_RAPTURE     = 53,
+    MAGIC_PERCENT     = 54,
+    MAGIC_CATASTROPHE = 55,
+    MAGIC_THE_END     = 56
+} MagicId;
+
+#define MAGIC_SLOT_COUNT 32
 
 /**
  * @brief Magic inventory entry (2 bytes).
@@ -227,7 +226,7 @@ typedef struct {
     /* 0x0D */ u8 spr;                 /**< Spirit (PSY). */
     /* 0x0E */ u8 spd;                 /**< Speed (VTS). */
     /* 0x0F */ u8 lck;                 /**< Luck (CHC). */
-    /* 0x10 */ MagicSlot magic[32];    /**< Magic inventory (32 spell slots). */
+    /* 0x10 */ MagicSlot magic[MAGIC_SLOT_COUNT]; /**< Magic inventory (32 spell slots). */
     /* 0x50 */ u8 commands[3];         /**< Equipped battle commands. */
     /* 0x53 */ u8 padCommand;          /**< Unused command slot (padding). */
     /* 0x54 */ u8 abilities[4];        /**< Equipped character abilities. */

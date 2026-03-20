@@ -176,14 +176,20 @@ typedef struct {
 /* Items                                                                    */
 /* ======================================================================== */
 
+/** @brief Single item slot (2 bytes). */
+typedef struct {
+    u8 id;       /**< Item ID (0 = empty). */
+    u8 count;    /**< Item quantity (0-100). */
+} ItemSlot; /* 2 bytes */
+
 /**
  * @brief Item inventory (428 bytes).
  *
  * At g_gameState + 0xB24 (0x80077E9C).
  */
 typedef struct {
-    /* 0x00 */ u8 battleOrder[32];  /**< Battle item menu ordering (indices). */
-    /* 0x20 */ u16 items[198];      /**< Item slots: low byte = item ID, high byte = quantity. */
+    /* 0x00 */ u8 battleOrder[32];     /**< Battle item menu ordering (indices). */
+    /* 0x20 */ ItemSlot items[198];    /**< Item slots (ID + count pairs). */
 } ItemData; /* 0x1AC = 428 bytes */
 
 #define ITEM_SLOT_COUNT 198
@@ -276,14 +282,20 @@ typedef struct {
  * use (s32)&g_gameState to prevent CC1PSX symbol+constant folding.
  */
 typedef struct {
-    /* 0x000 */ u8            pad000[0x50];               /**< Save header. */
+    /* 0x000 */ u8            pad000[0x18];               /**< Save header prefix. */
+    /* 0x018 */ u8            squallName[12];              /**< Squall's name (null-terminated). */
+    /* 0x024 */ u8            rinoaName[12];               /**< Rinoa's name (null-terminated). */
+    /* 0x030 */ u8            angeloName[12];              /**< Angelo's name (null-terminated). */
+    /* 0x03C */ u8            bokoName[12];                /**< Boko's name (null-terminated). */
+    /* 0x048 */ u8            pad048[8];                   /**< Save header suffix. */
     /* 0x050 */ GfSaveData    gfs[GF_COUNT];               /**< GF save data (16 × 68 bytes). */
     /* 0x490 */ CharacterData chars[CHARACTER_COUNT];      /**< Character data (8 × 152 bytes). */
     /* 0x950 */ ShopData      shops[SHOP_COUNT];           /**< Shop inventory (20 × 20 bytes). */
     /* 0xAE0 */ GameConfig    config;                      /**< Game config (20 bytes). */
     /* 0xAF4 */ PartyData     party;                       /**< Party/gil/Griever (32 bytes). */
     /* 0xB14 */ LimitBreakData limitBreaks;                /**< Limit break progress (16 bytes). */
-    /* 0xB24 */ ItemData      items;                       /**< Item inventory (428 bytes). */
+    /* 0xB24 */ u8            battleOrder[32];              /**< Battle item menu ordering. */
+    /* 0xB44 */ ItemSlot      itemSlots[ITEM_SLOT_COUNT];  /**< Item inventory (198 slots). */
     /* 0xCD0 */ u8            padCD0[0x90];                /**< Battle vars / misc. */
     /* 0xD60 */ u8            padD60[0x100];               /**< Steps, SeeD rank, counters. */
     /* 0xE60 */ u8            padE60[0x400];               /**< Field script vars, TT rules. */

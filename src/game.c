@@ -2,6 +2,7 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 #include "gf.h"
+#include "gamestate.h"
 
 u8 *func_80020FBC(u16 a0, s32 a1);
 
@@ -67,27 +68,23 @@ void func_80020644(u8 *src, u8 *dst, s32 len) {
 }
 
 
-/** @brief Sets bit 0x1 in byte at g_gameState[a0 * 68 + 0x61].
- *  @param a0 Table index (stride 68 bytes).
+/** @brief Mark a GF as existing (sets exists flag).
+ *  @param a0 GF index (0-15).
  */
 void func_80020670(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base = (s32)g_gameState;
-    *(u8 *)(base + a0 * 68 + 0x61) |= 1;
+    g_gameState.gfs[a0].exists |= 1;
 }
 
 
-/** @brief Returns a pointer to the Boko name field in the save header (g_gameState + 0x3C). */
+/** @brief Returns a pointer to the Boko name field in the save header. */
 u8 *func_8002069C(void) {
-    extern u8 g_gameState[];
-    return g_gameState + 0x3C;
+    return g_gameState.bokoName;
 }
 
 
-/** @brief Returns a pointer to the Angelo name field in the save header (g_gameState + 0x30). */
+/** @brief Returns a pointer to the Angelo name field in the save header. */
 u8 *func_800206A8(void) {
-    extern u8 g_gameState[];
-    return g_gameState + 0x30;
+    return g_gameState.angeloName;
 }
 
 
@@ -104,14 +101,13 @@ s32 func_800206B4(s32 a0) {
  * @return Pointer from func_80020FBC lookup, or &D_800773A8 if a0 is 0.
  */
 u8 *func_800206F4(s32 a0) {
-    extern u8 g_gameState[];
     u8 *result;
 
     if (a0 != 0) {
         /* subTableT (+0x4A5C), ptrSubTableT (+0xD4) */
         result = func_80020FBC(g_gfData.subTableT[a0].param0, g_gfData.ptrSubTableT);
     } else {
-        result = g_gameState + 0x30;
+        result = g_gameState.angeloName;
     }
     return result;
 }
@@ -385,32 +381,24 @@ s32 func_80020D4C(s32 a0) {
 
 
 /**
- * @brief Resolve a data pointer from D_80078720 entity table (stride 464).
- * @param a0 Entity index. Reads entity type at offset 0x1C3:
- *           0 returns D_80077390, 4 returns D_8007739C,
- *           else looks up GfCurveEntry in GfData.xpCurves36.
- * @return Resolved data pointer.
+ * @brief Get a battle entity's name string pointer.
+ *
+ * Squall and Rinoa have custom names stored in the save header.
+ * All other characters use the default name from GfData lookup.
+ *
+ * @param entityIdx Battle entity index into D_80078720.
+ * @return Pointer to the character's name string.
  */
-s32 func_80020DB8(s32 a0) {
-    extern u8 D_80078720[];
-    extern u8 g_gameState[];
-    u8 *base = D_80078720;
-    u8 *entry;
-
-    entry = base + a0 * 464;
-
-    if (entry[0x1C3] == 0) {
-        return (s32)(g_gameState + 0x18);
+u8 *func_80020DB8(s32 entityIdx) {
+    if (D_80078720[entityIdx].characterId == CHAR_SQUALL) {
+        return g_gameState.squallName;
     }
-    if (entry[0x1C3] == 4) {
-        return (s32)(g_gameState + 0x24);
+    if (D_80078720[entityIdx].characterId == CHAR_RINOA) {
+        return g_gameState.rinoaName;
     }
-    {
-        /* xpCurves36 (+0x37A4, stride 36), ptrGfCurve36 (+0x98) */
-        return func_80020FBC(
-            g_gfData.xpCurves36[entry[0x1C3]].lookupParam,
-            g_gfData.ptrGfCurve36);
-    }
+    return func_80020FBC(
+        g_gfData.xpCurves36[D_80078720[entityIdx].characterId].lookupParam,
+        g_gfData.ptrGfCurve36);
 }
 
 
@@ -425,19 +413,14 @@ s32 func_80020DB8(s32 a0) {
  * @param a0 Character ID (see CharacterId).
  * @return Pointer to the character's encoded name string.
  */
-u8 *getCharNamePtr(s32 a0) {
-    extern u8 g_gameState[];
-
-    if (a0 == 0) {
-        return g_gameState + 0x18;
+u8 *getCharNamePtr(CharacterId charId) {
+    if (charId == CHAR_SQUALL) {
+        return g_gameState.squallName;
     }
-    if (a0 == 4) {
-        return g_gameState + 0x24;
+    if (charId == CHAR_RINOA) {
+        return g_gameState.rinoaName;
     }
-    {
-        /* xpCurves36 (+0x37A4, stride 36), ptrGfCurve36 (+0x98) */
-        return func_80020FBC(g_gfData.xpCurves36[a0].lookupParam, g_gfData.ptrGfCurve36);
-    }
+    return func_80020FBC(g_gfData.xpCurves36[charId].lookupParam, g_gfData.ptrGfCurve36);
 }
 
 
@@ -503,23 +486,17 @@ u8 *func_80020FBC(u16 a0, s32 a1) {
  * @param itemId The ID to match. If 0, the function returns immediately.
  */
 void func_80020FEC(s32 itemId) {
-    extern u8 g_gameState[];
-    u8 *ptr;
     s32 i;
 
     if (itemId == 0) {
         return;
     }
 
-    i = 0;
-    ptr = g_gameState;
-top:
-    if (ptr[0xB44] == itemId) {
-        ptr[0xB45] = ptr[0xB45] - 1;
+    for (i = 0; i < ITEM_SLOT_COUNT; i++) {
+        if (g_gameState.itemSlots[i].id == itemId) {
+            g_gameState.itemSlots[i].count--;
+        }
     }
-    i++;
-    ptr += 2;
-    if (i < 0xC6) goto top;
 }
 
 
@@ -595,57 +572,37 @@ INCLUDE_ASM("asm/nonmatchings/game", func_80021108);
  * @param abilityId Ability ID to add/increment.
  * @return 0 if added/incremented, 1 if count already >= 100, 2 if all slots full.
  */
-s32 func_800211B4(s32 entityIdx, s32 abilityId) {
-    extern u8 g_gameState[];
-    register s32 i asm("$7") = 0; //FIXME: forces i to a3 for register allocation match
-    s32 entry;
-    s32 newCount;
+/**
+ * @brief Give a magic spell to a character.
+ *
+ * If the character already has the spell, increments its quantity.
+ * Otherwise finds the first empty slot and places it there.
+ *
+ * @param charIdx Character index (0-7).
+ * @param magicId Magic spell ID to give (0 = no-op).
+ * @return 0 if given successfully, 1 if already at max quantity (100), 2 if inventory full.
+ */
+s32 giveCharacterMagic(CharacterId charIdx, MagicId magicId) {
+    s32 i;
 
-    if (abilityId != 0) goto search;
-    return 0;
+    if (magicId == 0) return 0;
 
-increment:
-    *(u8 *)(entry + 0x4A1) = newCount;
-    return 0;
-
-new_slot:
-    {
-        s32 count = *(u8 *)(entityIdx + 0x4A1);
-        *(u8 *)(entityIdx + 0x4A0) = abilityId;
-        count++;
-        *(u8 *)(entityIdx + 0x4A1) = count;
-    }
-    return 0;
-
-search:
-    {
-        s32 base = (s32)g_gameState;
-        s32 off = entityIdx * 152;
-    loop1:
-        entry = off + base;
-        if (*(u8 *)(entry + 0x4A0) == abilityId) {
-            u32 count = *(u8 *)(entry + 0x4A1);
-            if (count < 100) {
-                newCount = count + 1;
-                goto increment;
+    for (i = 0; i < MAGIC_SLOT_COUNT; i++) {
+        if (g_gameState.chars[charIdx].magic[i].magicId == magicId) {
+            if (g_gameState.chars[charIdx].magic[i].quantity < 100) {
+                g_gameState.chars[charIdx].magic[i].quantity++;
+                return 0;
             }
             return 1;
         }
-        i++;
-        off += 2;
-        if (i < 0x20) goto loop1;
     }
 
-    i = 0;
-    {
-        s32 base = (s32)g_gameState;
-        s32 off = entityIdx * 152;
-    loop2:
-        entityIdx = off + base;
-        if (*(u8 *)(entityIdx + 0x4A0) == 0) goto new_slot;
-        i++;
-        off += 2;
-        if (i < 0x20) goto loop2;
+    for (i = 0; i < MAGIC_SLOT_COUNT; i++) {
+        if (g_gameState.chars[charIdx].magic[i].magicId == 0) {
+            g_gameState.chars[charIdx].magic[i].magicId = magicId;
+            g_gameState.chars[charIdx].magic[i].quantity++;
+            return 0;
+        }
     }
 
     return 2;
@@ -663,20 +620,15 @@ s32 func_80021290(a0, a1)
 s32 a0;
 s32 a1;
 {
-    extern u8 g_gameState[];
-    s32 base;
     u8 slot_id;
     s32 i;
-    s32 ptr;
 
     if (a1 == 0) return 0;
 
-    base = (s32)g_gameState;
-    slot_id = *(u8 *)(a0 + base + 0xAF4);
+    slot_id = g_gameState.party.party[a0];
     i = 0;
-    ptr = base + slot_id * 152;
     while (i < 20) {
-        if (*(u8 *)(ptr + i + 0x4EC) == a1) {
+        if (g_gameState.chars[slot_id].junctions[i] == a1) {
             return 1;
         }
         i++;
@@ -772,11 +724,9 @@ default_case:
  * @note The stat at ptr+2 (likely HP or experience) is read as u16, added to a1, then clamped by func_800231C8.
  */
 void func_800214E0(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
-    u8 *base = g_gameState + a0;
-    u8 idx = base[0xAF4];
-    u8 *ptr = g_gameState + 0x490 + idx * 152;
-    *(s16 *)(ptr + 2) = func_800231C8(*(u16 *)(ptr + 2) + a1);
+    u8 idx = g_gameState.party.party[a0];
+    CharacterData *ch = &g_gameState.chars[idx];
+    ch->maxHp = func_800231C8(ch->maxHp + a1);
 }
 
 

@@ -221,7 +221,7 @@ s32 func_801E5C00(s32 charIdx, s32 spellId) {
         if (spellId == *ptr) return i;
         i++;
         ptr += 2;
-    } while (i < 32);
+    } while (i < MAGIC_SLOT_COUNT);
 
     return 0;
 }
@@ -282,7 +282,7 @@ s32 func_801E5CAC(s32 charIdx, s32 spellId) {
         }
         i++;
         ptr++;
-    } while (i < 0x20);
+    } while (i < MAGIC_SLOT_COUNT);
     result = 0;
 end:
     return result;
