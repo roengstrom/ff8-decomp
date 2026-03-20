@@ -226,9 +226,67 @@ s32 func_801E5C00(s32 charIdx, s32 spellId) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5C50);
+/**
+ * @brief Search a character's junction slots for a specific spell ID.
+ *
+ * Searches through the 19 junction stat slots (HP through DefStatus)
+ * in D_80077864 for the given spell ID.
+ *
+ * @param charIdx Character index (0-7).
+ * @param spellId Spell ID to search for (returns -1 if 0).
+ * @return Junction slot index (0-18) if found, -1 if not found or spellId is 0.
+ */
+s32 func_801E5C50(s32 charIdx, s32 spellId) {
+    u8 *ptr = D_80077864[charIdx].unk00;
+    s32 i;
+    s32 result;
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E5CAC);
+    if (spellId == 0) {
+        result = -1;
+        goto end;
+    }
+    i = 0;
+    do {
+        if (*ptr == spellId) { result = i; goto end; }
+        i++;
+        ptr++;
+    } while (i < 0x13);
+    result = -1;
+end:
+    return result;
+}
+
+/**
+ * @brief Search a character's magic inventory for a spell and return its quantity.
+ *
+ * Searches through 32 magic slots in D_80077818 for the given spell ID.
+ * Returns the quantity if found, 0 if not found or spellId is 0.
+ *
+ * @param charIdx Character index (0-7).
+ * @param spellId Spell ID to search for.
+ * @return Quantity of the spell, or 0 if not found.
+ */
+s32 func_801E5CAC(s32 charIdx, s32 spellId) {
+    u8 *ptr = D_80077818[charIdx].unk00;
+    s32 i;
+    s32 result;
+
+    if (spellId == 0) { result = 0; goto end; }
+    i = 0;
+    do {
+        u8 magicId = *ptr;
+        ptr++;
+        if (spellId == magicId) {
+            result = *ptr;
+            goto end;
+        }
+        i++;
+        ptr++;
+    } while (i < 0x20);
+    result = 0;
+end:
+    return result;
+}
 
 /**
  * @brief Check if either of two magic availability tests pass.
@@ -259,30 +317,18 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E64FC);
 /**
  * @brief Look up a magic spell ID for a character's slot.
  *
- * Indexes into g_gameState at character @p a0 (stride 152) and slot @p a1
- * (stride 2). Checks if the count byte at offset 0x4A1 is nonzero;
- * if so, returns the spell ID at offset 0x4A0. Otherwise returns 0.
+ * Returns the spell ID if the slot has a nonzero quantity, otherwise 0.
  *
- * @param a0 Character index (0-7).
- * @param a1 Magic slot index.
+ * @param charIdx Character index (0-7).
+ * @param slotIdx Magic slot index (0-31).
  * @return Spell ID byte, or 0 if slot is empty.
  */
-/**
- * @brief Look up a magic spell ID for a character's slot.
- *
- * Indexes into g_gameState at character @p a0 (stride 152) and slot @p a1
- * (stride 2). Checks if the count byte at offset 0x4A1 is nonzero;
- * if so, returns the spell ID at offset 0x4A0. Otherwise returns 0.
- *
- * @param a0 Character index (0-7).
- * @param a1 Magic slot index.
- * @return Spell ID byte, or 0 if slot is empty.
- *
- * @note Non-matching: Compiler schedules sll a1,a1,1 before lui/addiu
- * for g_gameState base address, and uses different accumulation order
- * (v0+v1 then a1+v0 instead of a1+v0 then a1+v1).
- */
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6648);
+s32 func_801E6648(s32 charIdx, s32 slotIdx) {
+    if (g_gameState.chars[charIdx].magic[slotIdx].quantity == 0) {
+        return 0;
+    }
+    return g_gameState.chars[charIdx].magic[slotIdx].magicId;
+}
 
 /**
  * @brief Test if magic bit a0 is available.
@@ -301,7 +347,16 @@ s32 func_801E668C(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E66C0);
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E677C);
+/**
+ * @brief Get the quantity of a magic spell in a character's slot.
+ *
+ * @param charIdx Character index (0-7).
+ * @param slotIdx Magic slot index (0-31).
+ * @return Quantity of spells stocked in the slot.
+ */
+u8 func_801E677C(s32 charIdx, s32 slotIdx) {
+    return g_gameState.chars[charIdx].magic[slotIdx].quantity;
+}
 
 /**
  * @brief Set a character's magic slot spell ID.
@@ -314,7 +369,16 @@ void setCharacterMagicSlotId(s32 charIndex, s32 slot, u8 value) {
     g_gameState.chars[charIndex].magic[slot].magicId = value;
 }
 
-INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E67E0);
+/**
+ * @brief Set the quantity of a magic spell in a character's slot.
+ *
+ * @param charIdx Character index (0-7).
+ * @param slotIdx Magic slot index (0-31).
+ * @param value Quantity to store.
+ */
+void func_801E67E0(s32 charIdx, s32 slotIdx, u8 value) {
+    g_gameState.chars[charIdx].magic[slotIdx].quantity = value;
+}
 
 /**
  * @brief Render magic entry with adjusted width based on character attribute.
