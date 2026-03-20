@@ -2,6 +2,7 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 #include "gf.h"
+#include "gamestate.h"
 
 INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002153C);
 
@@ -73,12 +74,8 @@ s32 func_8002172C(s32 a0, s32 a1) {
  * @return Result of func_80021628 using two u8 fields from g_gfData indexed by a secondary ID.
  * @note Reads a sub-index from D_80078720 offset 0x1C3, then looks up linearCoeff/quadDivisor in g_gfData.xpCurves36.
  */
-s32 func_8002178C(s32 a0, s32 a1) {
-    extern u8 D_80078720[];
-    s32 base1 = (s32)D_80078720;
-    s32 entry = base1 + a0 * 464;
-    u8 idx;
-    idx = *(u8 *)(entry + 0x1C3);
+s32 func_8002178C(s32 entityIdx, s32 a1) {
+    u8 idx = D_80078720[entityIdx].characterId;
     return func_80021628(a1, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor);
 }
 
@@ -91,10 +88,8 @@ s32 func_8002178C(s32 a0, s32 a1) {
  * @note Reads a GF index from g_gameState offset 0x498, then uses g_gfData.xpCurves36 linearCoeff/quadDivisor.
  */
 s32 func_800217F4(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
     s32 i = 1;
-    s32 base1 = (s32)g_gameState;
-    u8 idx = *(u8 *)(base1 + a1 * 152 + 0x498);
+    u8 idx = g_gameState.chars[a1].characterId;
     do {
         if (a0 < func_80021628(i, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor)) {
             return i;
@@ -114,10 +109,8 @@ s32 func_800217F4(s32 a0, s32 a1) {
  *       or 0 if level 100 is reached.
  */
 s32 func_80021894(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
     s32 i = 1;
-    s32 base1 = (s32)g_gameState;
-    u8 idx = *(u8 *)(base1 + a1 * 152 + 0x498);
+    u8 idx = g_gameState.chars[a1].characterId;
     s32 curveVal;
     do {
         curveVal = func_80021628(i, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor);
@@ -140,26 +133,15 @@ s32 func_80021894(s32 a0, s32 a1) {
  * @return The junction value (byte at offset +1 from matching entry), or 0 if not found.
  * @note Scans up to 32 entries (2 bytes each: ID at +0x4A0, value at +0x4A1).
  */
-s32 func_80021944(a0, a1)
+s32 func_80021944(s32 charIdx, MagicId magicId) {
+    s32 i;
 
-s32 a0;
-s32 a1;
-{
-    extern u8 g_gameState[];
-    s32 i = 0;
-    s32 base;
+    if (magicId == MAGIC_NONE) return 0;
 
-    if (a1 == 0) return 0;
-
-    base = (s32)g_gameState;
-    a0 = a0 * 152;
-    while (i < 32) {
-        u8 *ptr = (u8 *)(a0 + base);
-        if (ptr[0x4A0] == a1) {
-            return ptr[0x4A1];
+    for (i = 0; i < MAGIC_SLOT_COUNT; i++) {
+        if (g_gameState.chars[charIdx].magic[i].magicId == magicId) {
+            return g_gameState.chars[charIdx].magic[i].quantity;
         }
-        a0 += 2;
-        i++;
     }
     return 0;
 }
@@ -195,22 +177,18 @@ s32 func_800219B8(s32 a0, s32 a1) {
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x27..0x39 are looked up
  *       in g_gfData (stride 8, offset 0x421D for type, 0x421E for bonus).
  */
-s32 func_800219E0(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
+s32 func_800219E0(s32 charIdx, s32 a1) {
     s32 result = 100;
-    s32 i = 0;
-    s32 base1 = (s32)g_gameState;
-    s32 off = base1 + a0 * 152;
-    do {
-        s32 val = *(u8 *)(off + i + 0x4E4);
+    s32 i;
+    for (i = 0; i < 4; i++) {
+        s32 val = g_gameState.chars[charIdx].abilities[i];
         s32 idx = val - 0x27;
         if ((u32)idx < 0x13) {
             if (g_gfData.abilityRangeK[idx].typeField == a1) {
                 result += g_gfData.abilityRangeK[idx].bonusField;
             }
         }
-        i++;
-    } while (i < 4);
+    }
     return result;
 }
 
@@ -232,19 +210,11 @@ INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80021C10);
  * @note Reads GF/junction index from offset 0x4F3, looks up base value from g_gfData (stride 60),
  *       then adds a bonus from func_800219B8 scaled by junction quantity.
  */
-s32 func_80022028(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    s32 entry = base1 + a0 * 152;
-    u8 idx;
-    u8 val;
-    s32 result1;
-
-    idx = *(u8 *)(entry + 0x4F3);
-    val = g_gfData.junctionData[idx].magicParam;
-
-    result1 = func_80021B58(a0, a1);
-    return func_800231B0(g_gfData.levelCurve12[result1].field07 + func_800219B8(val, func_80021944(a0, idx)));
+s32 func_80022028(s32 charIdx, s32 a1) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_HIT];
+    u8 val = g_gfData.junctionData[idx].magicParam;
+    s32 result1 = func_80021B58(charIdx, a1);
+    return func_800231B0(g_gfData.levelCurve12[result1].field07 + func_800219B8(val, func_80021944(charIdx, idx)));
 }
 
 
@@ -255,17 +225,10 @@ s32 func_80022028(s32 a0, s32 a1) {
  * @return Clamped u8 result combining (a1/4) with a junction-scaled bonus from g_gfData.
  * @note Reads GF/junction index from offset 0x4F2, looks up multiplier from g_gfData (stride 60, offset 0x239).
  */
-s32 func_800220E4(s32 a0, s32 a1) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    s32 entry = base1 + a0 * 152;
-    u8 idx;
-    u8 val;
-
-    idx = *(u8 *)(entry + 0x4F2);
-    val = g_gfData.junctionData[idx].spiritParam;
-
-    return func_800231B0((a1 >> 2) + func_800219B8(val, func_80021944(a0, idx)));
+s32 func_800220E4(s32 charIdx, s32 a1) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_EVA];
+    u8 val = g_gfData.junctionData[idx].spiritParam;
+    return func_800231B0((a1 >> 2) + func_800219B8(val, func_80021944(charIdx, idx)));
 }
 
 
@@ -275,10 +238,8 @@ s32 func_800220E4(s32 a0, s32 a1) {
  * @return u8 value from g_gfData at stride 60, offset 0x23C for the character's GF index at slot 0x4F5.
  * @note Purpose uncertain -- appears to retrieve a GF compatibility or stat modifier base value.
  */
-s32 func_8002216C(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F5);
+s32 func_8002216C(s32 charIdx) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_ATK_ELEM];
     return g_gfData.junctionData[idx].statParamA;
 }
 
@@ -289,17 +250,10 @@ s32 func_8002216C(s32 a0) {
  * @return Product of a GF multiplier (from g_gfData offset 0x23D) and the junction quantity.
  * @note Reads GF index from offset 0x4F5, then computes multiplier * func_80021944(a0, idx).
  */
-s32 func_800221B4(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    s32 entry = base1 + a0 * 152;
-    u8 idx;
-    u8 val;
-
-    idx = *(u8 *)(entry + 0x4F5);
-    val = g_gfData.junctionData[idx].statParamB;
-
-    return func_800219B8(val, func_80021944(a0, idx));
+s32 func_800221B4(s32 charIdx) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_ATK_ELEM];
+    u8 val = g_gfData.junctionData[idx].statParamB;
+    return func_800219B8(val, func_80021944(charIdx, idx));
 }
 
 
@@ -312,10 +266,8 @@ INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80022228);
  * @return Lower 7 bits (0x7F mask) of a u16 flags field from g_gfData at offset 0x242.
  * @note Reads GF index from character slot offset 0x4F6, then looks up flags in GF data (stride 60).
  */
-s32 func_80022328(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    u8 idx = *(u8 *)(base1 + a0 * 152 + 0x4F6);
+s32 func_80022328(s32 charIdx) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_ATK_STATUS];
     return g_gfData.junctionData[idx].statusFlags & 0x7F;
 }
 
@@ -327,16 +279,11 @@ s32 func_80022328(s32 a0) {
  * @note Maps source bits to result bits: 0x80->0x1, 0x100->0x4, 0x200->0x8,
  *       0x400->0x200, 0x800->0x4000, 0x1000->0x8000.
  */
-s32 func_80022370(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    u8 idx;
-    u16 flags;
+s32 func_80022370(s32 charIdx) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_ATK_STATUS];
+    u16 flags = g_gfData.junctionData[idx].statusFlags;
     s32 val;
     s32 result;
-
-    idx = *(u8 *)(base1 + a0 * 152 + 0x4F6);
-    flags = g_gfData.junctionData[idx].statusFlags;
     val = flags & 0x80;
     result = val != 0;
     if (flags & 0x100) result |= 0x4;
@@ -354,17 +301,10 @@ s32 func_80022370(s32 a0) {
  * @return 100 + junction-scaled bonus from GF index at offset 0x4F6, g_gfData offset 0x240.
  * @note Calls func_800219B8 to scale the GF multiplier by junction quantity.
  */
-s32 func_80022404(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base1 = (s32)g_gameState;
-    s32 entry = base1 + a0 * 152;
-    u8 idx;
-    u8 val;
-
-    idx = *(u8 *)(entry + 0x4F6);
-    val = g_gfData.junctionData[idx].hitParam;
-
-    return func_800219B8(val, func_80021944(a0, idx)) + 100;
+s32 func_80022404(s32 charIdx) {
+    u8 idx = g_gameState.chars[charIdx].junctions[JUNCTION_ATK_STATUS];
+    u8 val = g_gfData.junctionData[idx].hitParam;
+    return func_800219B8(val, func_80021944(charIdx, idx)) + 100;
 }
 
 
