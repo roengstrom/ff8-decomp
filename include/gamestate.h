@@ -106,9 +106,9 @@ typedef struct {
     /* 0x01 */ u8 battleMsgSpeed;  /**< Battle message speed. */
     /* 0x02 */ u8 fieldMsgSpeed;   /**< Field message speed. */
     /* 0x03 */ u8 analogVolume;    /**< Analog volume level. */
-    /* 0x04 */ u8 flags;           /**< Config bitfield: bit0=ATB, bit1=sound, bit2=cursor,
-                                        bit5=controller, bit6=vibration, bit7=analog. */
-    /* 0x05 */ u8 scan;            /**< Scan mode. */
+    /* 0x04 */ u16 flags;           /**< Config bitfield: bit0=ATB, bit1=sound, bit2=cursor,
+                                        bit5=controller, bit6=vibration, bit7=analog,
+                                        bit8=scan mode. */
     /* 0x06 */ u8 camera;          /**< Camera mode. */
     /* 0x07 */ u8 pad07;           /**< Unknown. */
     /* 0x08 */ u8 buttonL2;        /**< L2 button mapping. */

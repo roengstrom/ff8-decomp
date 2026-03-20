@@ -151,7 +151,7 @@ void func_801E5A28(s32 arg0, s32 arg1) {
 
     D_801ED010[arg1] = g_gameState.chars[arg0].currentHp;
 
-    src = &g_gameState.chars[arg0].junctionHp;
+    src = g_gameState.chars[arg0].junctions;
     dst = D_801ECF60[arg1].unk00;
     for (i = 0; i < 0x13; i++) {
         *dst = *src;

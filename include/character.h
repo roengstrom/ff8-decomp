@@ -86,6 +86,34 @@ enum WeaponId {
 };
 
 /**
+ * @brief Junction slot indices (CharacterData.junctions[]).
+ *
+ * 19 slots: stats (HP-Lck), attack element/status, defense element/status.
+ */
+enum JunctionType {
+    JUNCTION_HP          = 0,
+    JUNCTION_STR         = 1,
+    JUNCTION_VIT         = 2,
+    JUNCTION_MAG         = 3,
+    JUNCTION_SPR         = 4,
+    JUNCTION_SPD         = 5,
+    JUNCTION_EVA         = 6,
+    JUNCTION_HIT         = 7,
+    JUNCTION_LCK         = 8,
+    JUNCTION_ATK_ELEM    = 9,
+    JUNCTION_ATK_STATUS  = 10,
+    JUNCTION_DEF_ELEM_0  = 11,
+    JUNCTION_DEF_ELEM_1  = 12,
+    JUNCTION_DEF_ELEM_2  = 13,
+    JUNCTION_DEF_ELEM_3  = 14,
+    JUNCTION_DEF_STATUS_0 = 15,
+    JUNCTION_DEF_STATUS_1 = 16,
+    JUNCTION_DEF_STATUS_2 = 17,
+    JUNCTION_DEF_STATUS_3 = 18,
+    JUNCTION_COUNT       = 19
+};
+
+/**
  * @brief Persistent status effect flags (CharacterData.statusFlags).
  *
  * These are status effects that persist outside of battle and are
@@ -206,19 +234,7 @@ typedef struct {
     /* 0x58 */ u16 junctedGfs;         /**< Bitfield of junctioned GFs (1 bit per GF). */
     /* 0x5A */ u8 unknown5A;           /**< Unknown (used). */
     /* 0x5B */ u8 alternateModel;      /**< Alternate model (SeeD/Galbadia costume). */
-    /* 0x5C */ u8 junctionHp;          /**< Junction: HP magic ID. */
-    /* 0x5D */ u8 junctionStr;         /**< Junction: Strength magic ID. */
-    /* 0x5E */ u8 junctionVit;         /**< Junction: Vitality magic ID. */
-    /* 0x5F */ u8 junctionMag;         /**< Junction: Magic magic ID. */
-    /* 0x60 */ u8 junctionSpr;         /**< Junction: Spirit magic ID. */
-    /* 0x61 */ u8 junctionSpd;         /**< Junction: Speed magic ID. */
-    /* 0x62 */ u8 junctionEva;         /**< Junction: Evasion magic ID. */
-    /* 0x63 */ u8 junctionHit;         /**< Junction: Hit% magic ID. */
-    /* 0x64 */ u8 junctionLck;         /**< Junction: Luck magic ID. */
-    /* 0x65 */ u8 junctionAtkElem;     /**< Junction: Attack element magic ID. */
-    /* 0x66 */ u8 junctionAtkStatus;   /**< Junction: Attack status magic ID. */
-    /* 0x67 */ u8 junctionDefElem[4];  /**< Junction: Defense element magic IDs. */
-    /* 0x6B */ u8 junctionDefStatus[4];/**< Junction: Defense status magic IDs. */
+    /* 0x5C */ u8 junctions[19];        /**< Junction slots (indexed by JunctionType). */
     /* 0x6F */ u8 pad6F;               /**< Padding. */
     /* 0x70 */ u16 gfCompatibility[16];/**< GF compatibility values (one per GF). */
     /* 0x90 */ u16 kills;              /**< Kill count. */

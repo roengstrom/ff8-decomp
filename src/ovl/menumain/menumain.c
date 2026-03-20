@@ -1,6 +1,7 @@
 #include "common.h"
 #include "battle.h"
 #include "menu.h"
+#include "gamestate.h"
 #include "psxsdk/libgpu.h"
 
 extern u8 D_801FA278;
@@ -36,7 +37,6 @@ extern u8 D_80077E5F;
 extern u16 g_configFlags;
 extern u8 D_801F889C[];
 extern u8 D_801F7F98[];
-extern u8 g_gameState[];
 extern u8 D_80077E6C[];
 extern u8 D_801FABC8[];
 extern u8 g_characterMagic[];
@@ -46,7 +46,7 @@ extern u8 D_80078720[];
 extern u8 D_801F7F78[];
 /* D_801FAB00.animCounter is D_801FAB00.animCounter (offset +0x12) */
 extern s16 D_801FAA1E;
-extern u8 D_801FABC4[];
+extern u8 D_801FABC4[4];
 extern u8 D_801F8BB8[];
 extern u16 D_800780E8;
 extern u8 g_characterAbilities[];
@@ -726,17 +726,15 @@ void func_801F1F98(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F202C);
 
-/** @brief Get character status flags (u16 at g_gameState + a0*152 + 0x526). */
+/** @brief Get character status flags. */
 s32 func_801F21D0(s32 a0) {
-    s32 base = (s32)g_gameState;
-    return *(u16 *)(base + a0 * 152 + 0x526);
+    return g_gameState.chars[a0].statusFlags;
 }
 
 /** @brief Set character status flags and sync to secondary table. */
 void func_801F21FC(s32 a0, s32 a1) {
-    s32 base = (s32)g_gameState;
     s32 base2 = (s32)D_801FABC8;
-    *(s16 *)(base + a0 * 152 + 0x526) = a1;
+    g_gameState.chars[a0].statusFlags = a1;
     *(s16 *)(base2 + a0 * 32 + 0xE) = a1;
 }
 
@@ -780,14 +778,12 @@ s32 menumain_getPartyMemberMask(void) {
 void func_801F22A8(void) {
     s32 result = 0;
     s32 i;
-    s32 base;
     REGALLOC_BARRIER(result);
     i = 0;
-    base = (s32)g_gameState;
 
     for (; i < 3; i++) {
-        u8 val = *(u8 *)(i + base + 0xAF4);
-        if (val != 0xFF) {
+        u8 val = g_gameState.party.party[i];
+        if (val != PARTY_SLOT_EMPTY) {
             result |= (1 << val);
         }
     }
@@ -1004,23 +1000,19 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F5190);
 /** @brief Save 3 active party slots to D_801FABC4 and clear originals to 0xFF. */
 void func_801F5300(void) {
     s32 i = 0;
-    s32 dstBase = (s32)D_801FABC4;
-    s32 srcBase = (s32)g_gameState;
 
     for (; i < 3; i++) {
-        *(u8 *)(i + dstBase) = *(u8 *)(i + srcBase + 0xAF4);
-        *(u8 *)(i + srcBase + 0xAF4) = 0xFF;
+        D_801FABC4[i] = g_gameState.party.party[i];
+        g_gameState.party.party[i] = PARTY_SLOT_EMPTY;
     }
 }
 
 /** @brief Restore 3 active party slots from D_801FABC4 backup. */
 void func_801F5340(void) {
     s32 i = 0;
-    s32 dstBase = (s32)g_gameState;
-    s32 srcBase = (s32)D_801FABC4;
 
     for (; i < 3; i++) {
-        *(u8 *)(i + dstBase + 0xAF4) = *(u8 *)(i + srcBase);
+        g_gameState.party.party[i] = D_801FABC4[i];
     }
 }
 
@@ -1095,17 +1087,13 @@ s32 func_801F57A4(s32 a0) {
  */
 u16 func_801F57DC(s32 a0) {
     if (a0 >= 16) {
-        s32 base = (s32)g_gameState;
         a0 -= 16;
-        return *(u16 *)(base + a0 * 68 + 0x62);
+        return g_gameState.gfs[a0].hp;
     } else {
         if (func_801F57A4(a0) & 1) {
             return 0;
         }
-        {
-            s32 base = (s32)g_gameState;
-            return *(u16 *)(base + a0 * 152 + 0x490);
-        }
+        return g_gameState.chars[a0].currentHp;
     }
 }
 
@@ -1113,14 +1101,12 @@ u16 func_801F57DC(s32 a0) {
 void func_801F5868(s32 a0, s16 a1) {
     if (a0 >= 16) {
         s32 idx = a0 - 16;
-        s32 base1 = (s32)g_gameState;
         s32 base2 = (s32)D_80078720;
-        *(s16 *)(base1 + idx * 68 + 0x62) = a1;
+        g_gameState.gfs[idx].hp = a1;
         *(s16 *)(base2 + idx * 12 + 0x618) = a1;
     } else {
-        s32 base1 = (s32)g_gameState;
         s32 base2 = (s32)D_801FABC8;
-        *(s16 *)(base1 + a0 * 152 + 0x490) = a1;
+        g_gameState.chars[a0].currentHp = a1;
         *(s16 *)(base2 + a0 * 32 + 0x8) = a1;
     }
 }
@@ -1451,15 +1437,13 @@ s32 func_801F77F8(s32 a0, s32 a1, s32 a2) {
     return a2;
 }
 
-/** @brief Equip ability a1 to character a0's junction slot. */
+/** @brief Equip magic a1 to character a0's junction slot of type a2. */
 void func_801F784C(s32 a0, s32 a1, s32 a2) {
     s32 ret;
-    s32 base;
     ret = func_801F776C(a1, a2);
     if (ret) {
         ret = func_801F77F8(a0, a1, a2);
-        base = (s32)g_gameState;
-        *(u8 *)(base + a0 * 152 + ret + 0x4EC) = a1;
+        g_gameState.chars[a0].junctions[ret] = a1;
     }
     func_801F1B4C(a0);
 }
@@ -1503,14 +1487,12 @@ s32 func_801F79F8(s32 a0) {
     return D_80077E5F & a0;
 }
 
-/** @brief Update party-data flag bit 0x40 based on slot 0 status. */
+/** @brief Update config vibration flag based on slot 0 status. */
 void func_801F7A08(void) {
     if (func_80027EC8(0) == 0xFF) {
-        s32 base = (s32)g_gameState;
-        *(u16 *)(base + 0xAE4) |= 0x40;
+        g_gameState.config.flags |= CONFIG_VIBRATION;
     } else {
-        s32 base = (s32)g_gameState;
-        *(u16 *)(base + 0xAE4) &= 0xFFBF;
+        g_gameState.config.flags &= ~CONFIG_VIBRATION;
     }
 }
 
