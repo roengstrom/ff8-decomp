@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "battle.h"
 #include "overlay.h"
 
 /**
