@@ -23,7 +23,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
  * @param pos Running output position (pass-through).
  * @return Updated output position.
  */
-s32 func_801E5C5C(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
+s32 renderJunctionSlots(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
     s32 count;
 
     if (slotType == JUNC_SLOT_DEF_ELEM) {
