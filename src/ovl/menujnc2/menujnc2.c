@@ -136,8 +136,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
  * @param a0 X position parameter.
  * @param a1 Row index (wrapped to JNC_ROWS_PER_PAGE).
  */
-void func_801E6534(s32 a0, s32 a1) {
-    func_801F0A34(a0, 0, JNC_W_MAGIC_LIST, (a1 % JNC_ROWS_PER_PAGE) * JNC_ROW_HEIGHT + JNC_Y_MAGIC_LIST);
+void func_801E6534(s32 renderCtx, s32 row) {
+    func_801F0A34(renderCtx, 0, JNC_W_MAGIC_LIST, (row % JNC_ROWS_PER_PAGE) * JNC_ROW_HEIGHT + JNC_Y_MAGIC_LIST);
 }
 
 /**
@@ -149,18 +149,18 @@ void func_801E6534(s32 a0, s32 a1) {
  * @param a1 Row index (0-5).
  * @param a2 Width offset to add.
  */
-void func_801E6584(s32 a0, s32 a1, s32 a2) {
+void func_801E6584(s32 renderCtx, s32 row, s32 widthOffset) {
     s32 width;
     s32 y;
-    if (a1 < JNC_LEFT_COL_ROWS) {
+    if (row < JNC_LEFT_COL_ROWS) {
         width = JNC_W_LEFT_COL;
-        y = (a1 + 1) * JNC_ROW_HEIGHT + JNC_Y_LEFT_COL;
+        y = (row + 1) * JNC_ROW_HEIGHT + JNC_Y_LEFT_COL;
     } else {
-        a1 -= JNC_LEFT_COL_ROWS;
+        row -= JNC_LEFT_COL_ROWS;
         width = JNC_W_RIGHT_COL;
-        y = a1 * JNC_ROW_HEIGHT + JNC_Y_RIGHT_COL;
+        y = row * JNC_ROW_HEIGHT + JNC_Y_RIGHT_COL;
     }
-    func_801F0A34(a0, 0, width + a2, y);
+    func_801F0A34(renderCtx, 0, width + widthOffset, y);
 }
 
 /**
@@ -169,9 +169,9 @@ void func_801E6584(s32 a0, s32 a1, s32 a2) {
  * @param a0 Entry data pointer.
  * @param slotIdx Slot index (wrapped to JNC_STAT_ROWS).
  */
-void func_801E65F0(s32 a0, s32 slotIdx) {
+void func_801E65F0(s32 renderCtx, s32 slotIdx) {
     slotIdx %= JNC_STAT_ROWS;
-    func_801F0A34(a0, 0, JNC_W_STAT_LIST, slotIdx * JNC_ROW_HEIGHT + JNC_Y_STAT_LIST);
+    func_801F0A34(renderCtx, 0, JNC_W_STAT_LIST, slotIdx * JNC_ROW_HEIGHT + JNC_Y_STAT_LIST);
 }
 
 /**
@@ -200,10 +200,10 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
  * @param a0 X position parameter.
  * @param a1 Linear row index.
  */
-void func_801E66F0(s32 a0, s32 a1) {
+void func_801E66F0(s32 renderCtx, s32 index) {
     s32 width = JNC_W_ABILITY;
-    s32 page = a1 / JNC_ABILITY_PAGES;
-    s32 row = a1 % JNC_ABILITY_PAGES;
+    s32 page = index / JNC_ABILITY_PAGES;
+    s32 row = index % JNC_ABILITY_PAGES;
     s32 y = row * JNC_ROW_HEIGHT + JNC_Y_ABILITY;
 
     if (page < 0) {
@@ -211,7 +211,7 @@ void func_801E66F0(s32 a0, s32 a1) {
     } else if (page == JNC_LEFT_COL_ROWS) {
         width = JNC_W_ABILITY_WIDE;
     }
-    func_801F0A34(a0, 0, width, y);
+    func_801F0A34(renderCtx, 0, width, y);
 }
 
 /**
@@ -239,8 +239,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E67EC);
  * @param a0 Linear item index.
  * @return Negative pixel offset for scrolling (0, -160, or -320).
  */
-s32 func_801E68AC(s32 a0) {
-    s32 page = a0 / 5;
+s32 func_801E68AC(s32 index) {
+    s32 page = index / 5;
     if (page >= 3) {
         page = 2;
     }
@@ -248,8 +248,8 @@ s32 func_801E68AC(s32 a0) {
 }
 
 /** @brief Draw inner panel with section id 0xB and clear flag. */
-s32 func_801E68EC(s32 a0) {
-    return func_801F08D4(1, 0xB, a0, 0);
+s32 func_801E68EC(s32 pos) {
+    return func_801F08D4(1, 0xB, pos, 0);
 }
 
 /**
@@ -257,8 +257,8 @@ s32 func_801E68EC(s32 a0) {
  * @param a0 Panel position parameter
  * @return Result of func_801F08D4
  */
-s32 func_801E6918(s32 a0) {
-    return func_801F08D4(1, 0xB, a0, 1);
+s32 func_801E6918(s32 pos) {
+    return func_801F08D4(1, 0xB, pos, 1);
 }
 
 /**
@@ -283,11 +283,11 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
  *
  * @param a0 Party context pointer.
  */
-void func_801E6B88(u8 *a0) {
+void func_801E6B88(s32 charIdx) {
     func_801E61F8();
-    func_801E6350(a0);
-    func_801E6944(a0);
-    func_801E69E0(a0);
+    func_801E6350(charIdx);
+    func_801E6944(charIdx);
+    func_801E69E0(charIdx);
 }
 
 /**
@@ -298,9 +298,9 @@ void func_801E6B88(u8 *a0) {
  *
  * @param a0 Character/slot index
  */
-void func_801E6BC8(s32 a0) {
-    u16 hp = g_junctionChars[a0].currentHp;
-    g_gameState.chars[a0].currentHp = hp;
+void func_801E6BC8(s32 charIdx) {
+    u16 hp = g_junctionChars[charIdx].currentHp;
+    g_gameState.chars[charIdx].currentHp = hp;
     func_801F5190();
 }
 
@@ -313,15 +313,15 @@ void func_801E6BC8(s32 a0) {
  *
  * @param a0 Character index (0-7).
  */
-void func_801E6C24(s32 a0) {
-    u16 saved = g_gameState.chars[a0].junctedGfs;
+void func_801E6C24(s32 charIdx) {
+    u16 saved = g_gameState.chars[charIdx].junctedGfs;
 
-    g_gameState.chars[a0].junctedGfs = g_junctionChars[a0].junctedGfs;
-    func_801E6350(a0);
-    func_801E6BC8(a0);
+    g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
+    func_801E6350(charIdx);
+    func_801E6BC8(charIdx);
     func_8002A318(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
-    g_gameState.chars[a0].junctedGfs = saved;
-    func_801F1B4C(a0);
+    g_gameState.chars[charIdx].junctedGfs = saved;
+    func_801F1B4C(charIdx);
 }
 
 /**
@@ -332,9 +332,9 @@ void func_801E6C24(s32 a0) {
  *
  * @param a0 Character/slot index
  */
-void func_801E6CCC(s32 a0) {
-    g_gameState.chars[a0].junctedGfs = g_junctionChars[a0].junctedGfs;
-    func_801E6B88(a0);
+void func_801E6CCC(s32 charIdx) {
+    g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
+    func_801E6B88(charIdx);
 }
 
 /**
@@ -345,8 +345,8 @@ void func_801E6CCC(s32 a0) {
  *
  * @param a0 Character/slot index.
  */
-void func_801E6D28(s32 a0) {
-    g_junctionChars[a0].junctedGfs = g_gameState.chars[a0].junctedGfs;
+void func_801E6D28(s32 charIdx) {
+    g_junctionChars[charIdx].junctedGfs = g_gameState.chars[charIdx].junctedGfs;
 }
 
 /**
@@ -358,8 +358,8 @@ void func_801E6D28(s32 a0) {
  * @param a0 Junction entry index.
  * @param a1 Value to store.
  */
-void func_801E6D6C(s32 a0, s32 a1) {
-    g_junctionChars[a0].currentHp = a1;
+void func_801E6D6C(s32 charIdx, s32 hp) {
+    g_junctionChars[charIdx].currentHp = hp;
 }
 
 /**
@@ -384,11 +384,11 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
  * @param a0 Character/slot index.
  * @param a1 Junction sub-slot (0 or 1).
  */
-void func_801E6E0C(s32 a0, s32 a1) {
+void func_801E6E0C(s32 charIdx, s32 subSlot) {
     s32 i;
     for (i = 0; i < 4; i++) {
-        g_gameState.chars[a0].commands[i] = g_junctionChars[a0].commandsBackup[a1][i];
-        g_gameState.chars[a0].abilities[i] = g_junctionChars[a0].abilitiesBackup[a1][i];
+        g_gameState.chars[charIdx].commands[i] = g_junctionChars[charIdx].commandsBackup[subSlot][i];
+        g_gameState.chars[charIdx].abilities[i] = g_junctionChars[charIdx].abilitiesBackup[subSlot][i];
     }
 }
 
@@ -400,10 +400,10 @@ void func_801E6E0C(s32 a0, s32 a1) {
  *
  * @param a0 Junction context pointer.
  */
-void func_801E6E88(u8 *a0) {
-    func_801E6D28((s32)a0);
-    func_801E6E0C(a0, 0);
-    func_801E5F78(a0);
+void func_801E6E88(s32 charIdx) {
+    func_801E6D28(charIdx);
+    func_801E6E0C(charIdx, 0);
+    func_801E5F78(charIdx);
 }
 
 /**
@@ -416,11 +416,11 @@ void func_801E6E88(u8 *a0) {
  *
  * @param a0 Character/slot index
  */
-void func_801E6EC4(s32 a0) {
-    func_801E6D8C(a0, 0);
-    func_801E6D8C(a0, 1);
-    func_801E6D6C(a0, g_gameState.chars[a0].currentHp);
-    stashCharacterJunctions(a0);
+void func_801E6EC4(s32 charIdx) {
+    func_801E6D8C(charIdx, 0);
+    func_801E6D8C(charIdx, 1);
+    func_801E6D6C(charIdx, g_gameState.chars[charIdx].currentHp);
+    stashCharacterJunctions(charIdx);
 }
 
 /**
@@ -464,13 +464,13 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
  * @param a1 GF index (0-15).
  * @return 1 if junction was toggled, 0 if already set.
  */
-s32 func_801E72CC(s32 a0, s32 a1) {
+s32 func_801E72CC(s32 charIdx, s32 gfIdx) {
 
     s32 one = 1;
     s32 jncBase = (s32)&g_junctionChars;
-    s32 jnc = a0 * 28 + jncBase;
+    s32 jnc = charIdx * 28 + jncBase;
     u16 flags = *(u16 *)(jnc + 6);
-    s32 mask = one << a1;
+    s32 mask = one << gfIdx;
 
     if (flags & mask) {
         return 0;
@@ -478,12 +478,12 @@ s32 func_801E72CC(s32 a0, s32 a1) {
     {
         s32 tblBase = (s32)D_801EED10;
         *(s16 *)(jnc + 6) = flags | mask;
-        *(u8 *)(a1 * 12 + tblBase + 5) = a0;
+        *(u8 *)(gfIdx * 12 + tblBase + 5) = charIdx;
     }
-    func_801E6F30(a0);
-    func_801E6E0C(a0, 1);
-    func_801E6B88(a0);
-    func_801E6C24(a0);
+    func_801E6F30(charIdx);
+    func_801E6E0C(charIdx, 1);
+    func_801E6B88(charIdx);
+    func_801E6C24(charIdx);
     return 1;
 }
 
@@ -502,13 +502,13 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E75C0);
  * @param a0 Parameter passed to the three conditional calls
  * @return Result from func_801E75C0
  */
-s32 func_801E76DC(s32 a0) {
+s32 func_801E76DC(s32 charIdx) {
     s32 result = func_801E75C0();
 
     if (result != 0) {
-        func_801E6C24(a0);
-        func_801E6B88(a0);
-        func_801E6C24(a0);
+        func_801E6C24(charIdx);
+        func_801E6B88(charIdx);
+        func_801E6C24(charIdx);
     }
     return result;
 }
@@ -602,10 +602,10 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBD90);
  * @return 7 if already junctioned, 1 if available, 0 if not.
  *
  */
-s32 func_801EBEBC(s32 a0, s32 a1, s32 a2) {
+s32 func_801EBEBC(s32 currentMask, s32 availMask, s32 abilityBit) {
     s32 result = 7;
-    if (!(a0 & a2)) {
-        result = (a1 & a2) != 0;
+    if (!(currentMask & abilityBit)) {
+        result = (availMask & abilityBit) != 0;
     }
     return result;
 }
@@ -636,16 +636,16 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
  * @param a1 Second parameter passed through to func_801EF9AC.
  * @param x X position for the display panel.
  * @param y Y position for the display panel.
- * @param a4 Fifth parameter passed as a2 to func_801EF9AC (on stack).
+ * @param renderParam Render parameter passed to func_801EF9AC (on stack).
  */
-void func_801ECE2C(s32 a0, s32 a1, s32 x, s32 y, s32 a4) {
+void func_801ECE2C(s32 ctx, s32 mode, s32 x, s32 y, s32 renderParam) {
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = x;
     g_menuDisplayCfg.w = 0x150;
     g_menuDisplayCfg.h = 0x48;
     g_menuDisplayCfg.y = y;
-    func_801EF9AC(a0, a1, a4, g_menuColor);
+    func_801EF9AC(ctx, mode, renderParam, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECE80);
