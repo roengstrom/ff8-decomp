@@ -53,21 +53,16 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
 /**
  * @brief Set junction slot count based on character GF compatibility.
  *
- * Reads the character index from @p a0[0x43], looks up the corresponding
- * entry in g_junctionChars (stride 28), and checks byte 0xB (GF compatibility
- * flag). If nonzero, sets @p a0[0x47] to 3 (full junction slots); otherwise
- * sets it to 2 (limited slots).
+ * If the character has GF compatibility, allows 3 junction slots
+ * (full). Otherwise limits to 2.
  *
- * @param a0 Pointer to junction menu context.
+ * @param ctx Pointer to junction menu context.
  */
-void func_801E5EE8(u8 *a0) {
-
-    s32 base = (s32)&g_junctionChars;
-    s32 val = *(u8 *)(base + a0[0x43] * 28 + 0xB);
-    if (val != 0) {
-        a0[0x47] = 3;
+void func_801E5EE8(u8 *ctx) {
+    if (g_junctionChars[ctx[0x43]].gfCompat != 0) {
+        ctx[0x47] = 3;
     } else {
-        a0[0x47] = 2;
+        ctx[0x47] = 2;
     }
 }
 
