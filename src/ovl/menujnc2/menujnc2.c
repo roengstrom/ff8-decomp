@@ -538,7 +538,15 @@ void func_801E6D6C(s32 charIdx, s32 hp) {
  * @param charIdx Character index (0-7).
  * @param subSlot Junction sub-slot (0 or 1).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
+void func_801E6D8C(s32 charIdx, s32 subSlot) {
+    s32 i;
+    for (i = 0; i < 4; i++) {
+        g_junctionChars[charIdx].commandsBackup[subSlot][i] =
+            g_gameState.chars[charIdx].commands[i];
+        g_junctionChars[charIdx].abilitiesBackup[subSlot][i] =
+            g_gameState.chars[charIdx].abilities[i];
+    }
+}
 
 /**
  * @brief Copy junction slot data back to character ability data.
