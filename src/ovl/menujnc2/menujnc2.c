@@ -7,6 +7,8 @@ extern JunctionMenuEntry g_junctionChars[];
 extern u8 g_junctionBackup[20];
 extern BattleCharData g_junctionPreview;
 extern u8 g_junctionMenuActive;
+extern MenuDisplayConfig D_801FAB00;
+extern s32 D_80083848;
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -624,28 +626,23 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
 /**
  * @brief Configure display panel and invoke rendering callback.
  *
- * Sets up D_801FAB00 with the given position, fixed size (0x150 x 0x48),
- * clears icon fields, and calls func_801EF9AC with D_80083848 and a
- * caller-supplied parameter.
+ * Sets up the menu display config with the given position and a fixed
+ * size of 0x150 x 0x48, clears icon fields, then calls func_801EF9AC.
  *
  * @param a0 First parameter passed through to func_801EF9AC.
  * @param a1 Second parameter passed through to func_801EF9AC.
- * @param a2 X position for the display panel.
- * @param a3 Y position for the display panel.
+ * @param x X position for the display panel.
+ * @param y Y position for the display panel.
  * @param a4 Fifth parameter passed as a2 to func_801EF9AC (on stack).
  */
-void func_801ECE2C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
-    extern u8 D_801FAB00[];
-    extern u8 D_80083848[];
-    s32 cfg = (s32)D_801FAB00;
-
-    *(u8 *)(cfg + 0x10) = 0;
-    *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)(cfg + 0) = a2;
-    *(s16 *)(cfg + 4) = 0x150;
-    *(s16 *)(cfg + 6) = 0x48;
-    *(s16 *)(cfg + 2) = a3;
-    func_801EF9AC(a0, a1, a4, *(s32 *)D_80083848);
+void func_801ECE2C(s32 a0, s32 a1, s32 x, s32 y, s32 a4) {
+    D_801FAB00.iconType = 0;
+    D_801FAB00.iconSubType = 0;
+    D_801FAB00.x = x;
+    D_801FAB00.w = 0x150;
+    D_801FAB00.h = 0x48;
+    D_801FAB00.y = y;
+    func_801EF9AC(a0, a1, a4, D_80083848);
 }
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECE80);
