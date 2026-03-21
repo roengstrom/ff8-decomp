@@ -14,6 +14,9 @@ extern s32 g_menuColor;
 extern void func_801E7BA4();
 extern void func_801EDF04();
 
+typedef struct { u8 unk00[0x98]; } Unk98;
+extern Unk98 D_80077818[];
+
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
 #define JNC_ROWS_PER_PAGE   4    /**< Rows visible per page. */
@@ -108,7 +111,71 @@ s32 renderJunctionSlots(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
     return pos;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
+extern u8 *D_801EEAB4[];
+
+/**
+ * @brief Auto-junction all slots for a character.
+ *
+ * Builds a bitmask of available magic (nonzero ID and quantity),
+ * clears all junction slots, then iterates through the slot type
+ * table calling renderJunctionSlots for each available type.
+ *
+ * @param charIdx Character index (0-7).
+ * @param tableIdx Index into slot type table D_801EEAB4.
+ */
+void func_801E5D60(s32 charIdx, s32 tableIdx) {
+    s32 flagMask = 0;
+    u32 rawFlags;
+    u8 *magicSlots = g_gameState.chars[charIdx].magic;
+    s32 slotType;
+    s32 i = flagMask;
+    s32 bit;
+    u8 *slotTable;
+    u8 *slotTypes;
+    s32 availFlags;
+
+    /* Build bitmask of available magic */
+    do {
+        u8 magicId = *magicSlots++;
+        u8 quantity = *magicSlots++;
+        if (magicId != 0 && quantity != 0) {
+            flagMask |= (1 << i);
+        }
+    } while (++i < MAGIC_SLOT_COUNT);
+
+    /* Clear all junction slots */
+    for (i = 0; i < JUNCTION_COUNT; i++) {
+        g_gameState.chars[charIdx].junctions[i] = 0;
+    }
+
+    /* Reload magic slots pointer and get slot type table */
+    magicSlots = g_gameState.chars[charIdx].magic;
+    slotTable = D_801EEAB4[tableIdx];
+    rawFlags = g_junctionChars[charIdx].availFlags;
+    slotTypes = slotTable;
+
+    /* Compute available junction flags */
+    availFlags = rawFlags;
+    availFlags &= 0x1FFF;
+    if (rawFlags & 0x6800) {
+        availFlags |= 0x800;
+    }
+    if (g_junctionChars[charIdx].availFlags & 0x19000) {
+        availFlags |= 0x1000;
+    }
+
+    /* Iterate slot types and auto-junction each */
+    while (1) {
+        slotType = *slotTypes++;
+        if (slotType == 0xFF) {
+            break;
+        }
+        bit = 1 << slotType;
+        if (availFlags & bit) {
+            flagMask = renderJunctionSlots(charIdx, (s32)magicSlots, slotType, flagMask);
+        }
+    }
+}
 
 /**
  * @brief Set junction slot count based on character GF compatibility.
