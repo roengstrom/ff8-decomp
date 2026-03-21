@@ -7,6 +7,26 @@ extern JunctionMenuEntry g_junctionChars[];
 extern u8 g_junctionBackup[20];
 extern BattleCharData g_junctionPreview;
 
+/** @brief Junction menu layout constants (pixel positions). */
+#define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
+#define JNC_ROWS_PER_PAGE   4    /**< Rows visible per page. */
+#define JNC_STAT_ROWS       11   /**< Rows in stat junction list. */
+#define JNC_ABILITY_PAGES   5    /**< Rows per ability page. */
+#define JNC_LEFT_COL_ROWS   3    /**< Rows in left stat column. */
+
+#define JNC_Y_MAGIC_LIST    0x3F /**< Y origin for magic list panel. */
+#define JNC_Y_STAT_LIST     0x42 /**< Y origin for stat junction list. */
+#define JNC_Y_LEFT_COL      0x51 /**< Y origin for left stat column. */
+#define JNC_Y_ABILITY       0x94 /**< Y origin for ability panel. */
+#define JNC_Y_RIGHT_COL     0x99 /**< Y origin for right stat column. */
+
+#define JNC_W_MAGIC_LIST    0x5A /**< Width of magic list entries. */
+#define JNC_W_STAT_LIST     0xDC /**< Width of stat junction list. */
+#define JNC_W_LEFT_COL      0x2B /**< Width of left stat column. */
+#define JNC_W_RIGHT_COL     0x46 /**< Width of right stat column. */
+#define JNC_W_ABILITY       0x28 /**< Width of ability entries. */
+#define JNC_W_ABILITY_WIDE  0xC8 /**< Width of wide ability entries (page 3). */
+
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
@@ -103,50 +123,46 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6350);
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
 
 /**
- * @brief Render junction entry at Y position computed from row modulo 4.
- * @param a0 X position parameter
- * @param a1 Row index (modulo 4, multiplied by 13, offset by 0x3F for Y)
+ * @brief Render magic list junction entry.
+ * @param a0 X position parameter.
+ * @param a1 Row index (wrapped to JNC_ROWS_PER_PAGE).
  */
 void func_801E6534(s32 a0, s32 a1) {
-    func_801F0A34(a0, 0, 0x5A, (a1 % 4) * 13 + 0x3F);
+    func_801F0A34(a0, 0, JNC_W_MAGIC_LIST, (a1 % JNC_ROWS_PER_PAGE) * JNC_ROW_HEIGHT + JNC_Y_MAGIC_LIST);
 }
 
 /**
- * @brief Render junction entry at computed grid position.
+ * @brief Render stat junction entry in two-column layout.
  *
- * If row index a1 < 3, renders in left column (width 0x2B, Y from row+1).
- * Otherwise renders in right column (width 0x46, Y from row-3).
+ * Left column (rows 0-2) or right column (rows 3-5).
  *
- * @param a0 X position parameter
- * @param a1 Row index (0-5)
- * @param a2 Width offset to add
+ * @param a0 X position parameter.
+ * @param a1 Row index (0-5).
+ * @param a2 Width offset to add.
  */
 void func_801E6584(s32 a0, s32 a1, s32 a2) {
     s32 width;
     s32 y;
-    if (a1 < 3) {
-        width = 0x2B;
-        y = (a1 + 1) * 13 + 0x51;
+    if (a1 < JNC_LEFT_COL_ROWS) {
+        width = JNC_W_LEFT_COL;
+        y = (a1 + 1) * JNC_ROW_HEIGHT + JNC_Y_LEFT_COL;
     } else {
-        a1 -= 3;
-        width = 0x46;
-        y = a1 * 13 + 0x99;
+        a1 -= JNC_LEFT_COL_ROWS;
+        width = JNC_W_RIGHT_COL;
+        y = a1 * JNC_ROW_HEIGHT + JNC_Y_RIGHT_COL;
     }
     func_801F0A34(a0, 0, width + a2, y);
 }
 
 /**
- * @brief Render a junction list entry at a Y position based on grid slot.
- *
- * Computes Y = (slotIdx % 11) * 13 + 0x42, then calls func_801F0A34
- * to render the entry with width 0xDC.
+ * @brief Render stat junction list entry.
  *
  * @param a0 Entry data pointer.
- * @param slotIdx Slot index (modulo 11 for row position).
+ * @param slotIdx Slot index (wrapped to JNC_STAT_ROWS).
  */
 void func_801E65F0(s32 a0, s32 slotIdx) {
-    slotIdx %= 11;
-    func_801F0A34(a0, 0, 0xDC, slotIdx * 13 + 0x42);
+    slotIdx %= JNC_STAT_ROWS;
+    func_801F0A34(a0, 0, JNC_W_STAT_LIST, slotIdx * JNC_ROW_HEIGHT + JNC_Y_STAT_LIST);
 }
 
 /**
@@ -168,26 +184,25 @@ void func_801E65F0(s32 a0, s32 slotIdx) {
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
 
 /**
- * @brief Render junction entry at Y position computed from row index.
+ * @brief Render ability junction entry.
  *
- * Computes page = a1/5, row = a1%5, Y = row*13 + 0x94. If page == 3,
- * width is set to 0xC8 instead of default 0x28.
+ * Uses wide width for the last page (page 3).
  *
  * @param a0 X position parameter.
  * @param a1 Linear row index.
  */
 void func_801E66F0(s32 a0, s32 a1) {
-    s32 a2 = 0x28;
-    s32 page = a1 / 5;
-    s32 row = a1 % 5;
-    s32 y = row * 13 + 0x94;
+    s32 width = JNC_W_ABILITY;
+    s32 page = a1 / JNC_ABILITY_PAGES;
+    s32 row = a1 % JNC_ABILITY_PAGES;
+    s32 y = row * JNC_ROW_HEIGHT + JNC_Y_ABILITY;
 
     if (page < 0) {
-    } else if (page < 3) {
-    } else if (page == 3) {
-        a2 = 0xC8;
+    } else if (page < JNC_LEFT_COL_ROWS) {
+    } else if (page == JNC_LEFT_COL_ROWS) {
+        width = JNC_W_ABILITY_WIDE;
     }
-    func_801F0A34(a0, 0, a2, y);
+    func_801F0A34(a0, 0, width, y);
 }
 
 /**
