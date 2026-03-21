@@ -690,35 +690,33 @@ void func_801EE718(MenuParentCtx *parentCtx) {
 
     ctx = (JunctionMenuCtx *)func_801F179C((s32)func_801E7BA4, (s32)func_801EDF04);
     func_801F5300();
-    if (ctx == 0) {
-        goto end;
-    }
-    ctx->parentParam = parentCtx->param;
-    ctx->charIdx = parentCtx->charIdx;
-    ctx->discId = func_80036F60();
-    ctx->discCount = func_80035A6C(ctx->discId);
-    ctx->unk64 = 0;
-    ctx->unk61 = 0;
-    ctx->unk62 = 0;
-    ctx->unk42 = 0;
-    ctx->unk4E = 0;
-    ctx->unk50 = 0;
-    ctx->unk40 = 0;
-    ctx->dataPtr = (s32)D_801EEB28;
-    ctx->unk63 = 0;
-    func_801E7004(ctx->parentParam);
-    func_801EE494();
+    if (ctx != NULL) {
+        ctx->parentParam = parentCtx->param;
+        ctx->charIdx = parentCtx->charIdx;
+        ctx->discId = func_80036F60();
+        ctx->discCount = func_80035A6C(ctx->discId);
+        ctx->unk64 = 0;
+        ctx->unk61 = 0;
+        ctx->unk62 = 0;
+        ctx->unk42 = 0;
+        ctx->unk4E = 0;
+        ctx->unk50 = 0;
+        ctx->unk40 = 0;
+        ctx->dataPtr = (s32)D_801EEB28;
+        ctx->unk63 = 0;
+        func_801E7004(ctx->parentParam);
+        func_801EE494();
 
-    for (i = 0; i < CHARACTER_COUNT; i++) {
-        func_801E6F30(i);
-        func_801E6B88(i);
-    }
+        for (i = 0; i < CHARACTER_COUNT; i++) {
+            func_801E6F30(i);
+            func_801E6B88(i);
+        }
 
-    func_801E6C24(ctx->charIdx);
-    func_801E7734(ctx->charIdx, -1, -1, -1);
-    func_801E7B1C(ctx->charIdx);
-    func_801E7BA4((s32)ctx);
-end:
+        func_801E6C24(ctx->charIdx);
+        func_801E7734(ctx->charIdx, -1, -1, -1);
+        func_801E7B1C(ctx->charIdx);
+        func_801E7BA4((s32)ctx);
+    }
     func_801F0948(0x1000);
 }
 
