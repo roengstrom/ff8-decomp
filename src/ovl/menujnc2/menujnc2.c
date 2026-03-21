@@ -4,11 +4,15 @@
 #include "battle.h"
 
 extern JunctionMenuEntry g_junctionChars[];
+extern JunctionGfEntry D_801EED10[];
 extern u8 g_junctionBackup[20];
+extern u8 D_801EEB28[];
 extern BattleCharData g_junctionPreview;
 extern u8 g_junctionMenuActive;
 extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
+extern void func_801E7BA4();
+extern void func_801EDF04();
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -462,7 +466,6 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
  */
 s32 func_801E72CC(s32 a0, s32 a1) {
 
-    extern u8 D_801EED10[];
     s32 one = 1;
     s32 jncBase = (s32)&g_junctionChars;
     s32 jnc = a0 * 28 + jncBase;
@@ -680,9 +683,6 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE494);
  * @param parentCtx Parent menu context with character and parameter info.
  */
 void func_801EE718(MenuParentCtx *parentCtx) {
-    extern u8 D_801EEB28[];
-    extern void func_801E7BA4();
-    extern void func_801EDF04();
     JunctionMenuCtx *ctx;
     s32 i;
 
