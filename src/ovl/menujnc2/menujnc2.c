@@ -3,7 +3,7 @@
 #include "gamestate.h"
 #include "battle.h"
 
-extern JunctionMenuEntry D_801EEDF0[];
+extern JunctionMenuEntry g_junctionChars[];
 extern BattleCharData g_junctionPreview;
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
@@ -13,9 +13,9 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
 /**
  * @brief Dispatch ability rendering based on type, with optional looping.
  *
- * If type (a2) is 0xB, reads the count from D_801EEDF0[a0*28 + 9] and
+ * If type (a2) is 0xB, reads the count from g_junctionChars[a0*28 + 9] and
  * calls func_801E59A4 that many times. If type is 0xC, reads count
- * from D_801EEDF0[a0*28 + 8] and loops similarly. Otherwise calls
+ * from g_junctionChars[a0*28 + 8] and loops similarly. Otherwise calls
  * func_801E59A4 once.
  *
  * @param a0 Character/slot index.
@@ -29,7 +29,7 @@ s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 count;
 
     if (a2 == 0xB) {
-        s32 jncBase = (s32)&D_801EEDF0;
+        s32 jncBase = (s32)&g_junctionChars;
         count = *(u8 *)(a0 * 28 + jncBase + 9);
         if (count > 0) {
             do {
@@ -38,7 +38,7 @@ s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
             } while (count > 0);
         }
     } else if (a2 == 0xC) {
-        s32 jncBase = (s32)&D_801EEDF0;
+        s32 jncBase = (s32)&g_junctionChars;
         count = *(u8 *)(a0 * 28 + jncBase + 8);
         if (count > 0) {
             do {
@@ -58,7 +58,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
  * @brief Set junction slot count based on character GF compatibility.
  *
  * Reads the character index from @p a0[0x43], looks up the corresponding
- * entry in D_801EEDF0 (stride 28), and checks byte 0xB (GF compatibility
+ * entry in g_junctionChars (stride 28), and checks byte 0xB (GF compatibility
  * flag). If nonzero, sets @p a0[0x47] to 3 (full junction slots); otherwise
  * sets it to 2 (limited slots).
  *
@@ -66,7 +66,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
  */
 void func_801E5EE8(u8 *a0) {
 
-    s32 base = (s32)&D_801EEDF0;
+    s32 base = (s32)&g_junctionChars;
     s32 val = *(u8 *)(base + a0[0x43] * 28 + 0xB);
     if (val != 0) {
         a0[0x47] = 3;
@@ -167,7 +167,7 @@ void func_801E65F0(s32 a0, s32 slotIdx) {
  * @brief Look up junction ability availability mask for a given slot.
  *
  * Indexes into D_801EEAC0 to get an ability type (0-18), then checks
- * corresponding bit(s) in the junction flags word at D_801EEDF0[a0 * 28].
+ * corresponding bit(s) in the junction flags word at g_junctionChars[a0 * 28].
  * Cases 0-8 test individual bits via (1 << type), case 9 tests 0x200,
  * case 10 tests 0x400, cases 11-14 test 0x6800, cases 15-18 test 0x19000.
  *
@@ -207,8 +207,8 @@ void func_801E66F0(s32 a0, s32 a1) {
 /**
  * @brief Get junction slot count based on slot type and character data.
  *
- * For slot type 0: reads D_801EEDF0[a0*28 + 8] and returns val+1 if
- * nonzero, else 2. For slot type 1: reads D_801EEDF0[a0*28 + 9] and
+ * For slot type 0: reads g_junctionChars[a0*28 + 8] and returns val+1 if
+ * nonzero, else 2. For slot type 1: reads g_junctionChars[a0*28 + 9] and
  * returns val+1 unless val+1 equals a1 (1), in which case returns 2.
  * Default returns 5.
  *
@@ -283,7 +283,7 @@ void func_801E6B88(u8 *a0) {
 /**
  * @brief Copy ability value from junction table to character data and update.
  *
- * Reads a 16-bit value from D_801EEDF0[a0 * 28 + 4] and writes it to
+ * Reads a 16-bit value from g_junctionChars[a0 * 28 + 4] and writes it to
  * g_gameState[a0 * 152 + 0x490], then calls func_801F5190 to update.
  *
  * @param a0 Character/slot index
@@ -291,7 +291,7 @@ void func_801E6B88(u8 *a0) {
 void func_801E6BC8(s32 a0) {
 
 
-    s32 v0 = (s32)&D_801EEDF0;
+    s32 v0 = (s32)&g_junctionChars;
     s32 v1 = a0 * 28 + v0;
     s32 a1 = (s32)&g_gameState;
 
@@ -311,7 +311,7 @@ void func_801E6BC8(s32 a0) {
 void func_801E6C24(s32 a0) {
     u16 saved = g_gameState.chars[a0].junctedGfs;
 
-    g_gameState.chars[a0].junctedGfs = D_801EEDF0[a0].junctedGfs;
+    g_gameState.chars[a0].junctedGfs = g_junctionChars[a0].junctedGfs;
     func_801E6350(a0);
     func_801E6BC8(a0);
     func_8002A318(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
@@ -322,7 +322,7 @@ void func_801E6C24(s32 a0) {
 /**
  * @brief Copy ability value from junction table to character data and refresh.
  *
- * Reads a 16-bit value from D_801EEDF0[a0 * 28 + 6] and writes it to
+ * Reads a 16-bit value from g_junctionChars[a0 * 28 + 6] and writes it to
  * g_gameState[a0 * 152 + 0x4E8], then calls func_801E6B88 to refresh display.
  *
  * @param a0 Character/slot index
@@ -332,7 +332,7 @@ void func_801E6CCC(s32 a0) {
 
     s32 base1 = (s32)&g_gameState;
     s32 off1 = a0 * 152;
-    s32 base2 = (s32)&D_801EEDF0;
+    s32 base2 = (s32)&g_junctionChars;
 
     *(s16 *)(off1 + base1 + 0x4E8) = *(u16 *)(base2 + a0 * 28 + 6);
     func_801E6B88(a0);
@@ -342,14 +342,14 @@ void func_801E6CCC(s32 a0) {
  * @brief Copy ability halfword from character data to junction table.
  *
  * Reads a 16-bit value from g_gameState[a0 * 152 + 0x4E8] and stores it
- * to D_801EEDF0[a0 * 28 + 6].
+ * to g_junctionChars[a0 * 28 + 6].
  *
  * @param a0 Character/slot index.
  */
 void func_801E6D28(s32 a0) {
 
 
-    s32 base1 = (s32)&D_801EEDF0;
+    s32 base1 = (s32)&g_junctionChars;
     s32 v1 = a0 * 28;
     s32 base2 = (s32)&g_gameState;
     *(s16 *)(v1 + base1 + 6) = *(u16 *)(base2 + a0 * 152 + 0x4E8);
@@ -358,7 +358,7 @@ void func_801E6D28(s32 a0) {
 /**
  * @brief Store a halfword into junction table entry.
  *
- * Indexes into D_801EEDF0 at stride 28 (a0 * 28), and stores
+ * Indexes into g_junctionChars at stride 28 (a0 * 28), and stores
  * a1 as a halfword at offset +4.
  *
  * @param a0 Junction entry index.
@@ -366,7 +366,7 @@ void func_801E6D28(s32 a0) {
  */
 void func_801E6D6C(s32 a0, s32 a1) {
 
-    s32 base = (s32)&D_801EEDF0;
+    s32 base = (s32)&g_junctionChars;
     *(u16 *)(base + a0 * 28 + 4) = a1;
 }
 
@@ -374,8 +374,8 @@ void func_801E6D6C(s32 a0, s32 a1) {
  * @brief Copy character ability data to junction table slot.
  *
  * Copies 4 bytes from character data g_gameState[a0*152 + 0x4E0] and
- * g_gameState[a0*152 + 0x4E4] into junction table D_801EEDF0[a0*28 + a1*4 + 0xC]
- * and D_801EEDF0[a0*28 + a1*4 + 0x14] respectively.
+ * g_gameState[a0*152 + 0x4E4] into junction table g_junctionChars[a0*28 + a1*4 + 0xC]
+ * and g_junctionChars[a0*28 + a1*4 + 0x14] respectively.
  *
  * @param a0 Character/slot index.
  * @param a1 Junction sub-slot (0 or 1).
@@ -385,8 +385,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
 /**
  * @brief Copy junction slot data back to character ability data.
  *
- * Copies 4 bytes from junction table D_801EEDF0[a0*28 + a1*4 + 0xC] and
- * D_801EEDF0[a0*28 + a1*4 + 0x14] into character data g_gameState[a0*152 + 0x4E0]
+ * Copies 4 bytes from junction table g_junctionChars[a0*28 + a1*4 + 0xC] and
+ * g_junctionChars[a0*28 + a1*4 + 0x14] into character data g_gameState[a0*152 + 0x4E0]
  * and g_gameState[a0*152 + 0x4E4] respectively.
  *
  * @param a0 Character/slot index.
@@ -398,7 +398,7 @@ void func_801E6E0C(s32 a0, s32 a1) {
     s32 i = 0;
     s32 charBase = (s32)&g_gameState;
     s32 a7 = charBase + a0 * 152;
-    s32 jncBase = (s32)&D_801EEDF0;
+    s32 jncBase = (s32)&g_junctionChars;
     s32 jnc = a0 * 28 + jncBase;
     s32 a4;
 
@@ -450,10 +450,10 @@ void func_801E6EC4(s32 a0) {
 /**
  * @brief Rebuild junction flags and stat limits from GF data.
  *
- * Iterates through 16 GFs, checking each GF bit in D_801EEDF0[a0*28 + 6].
+ * Iterates through 16 GFs, checking each GF bit in g_junctionChars[a0*28 + 6].
  * For each active GF, ORs its flag word from D_801EED10[gf*12] into the
  * combined flags, and updates the maximum stat byte indices from
- * D_801EED10[gf*12 + 6/7/8]. Stores the result back into D_801EEDF0.
+ * D_801EED10[gf*12 + 6/7/8]. Stores the result back into g_junctionChars.
  *
  * @param a0 Character index.
  */
@@ -480,7 +480,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
 /**
  * @brief Toggle a GF junction for a character.
  *
- * Checks if GF bit (1 << a1) is already set in D_801EEDF0[a0*28 + 6].
+ * Checks if GF bit (1 << a1) is already set in g_junctionChars[a0*28 + 6].
  * If set, returns 0. If not set, ORs the bit in, records the character
  * index at D_801EED10[a1*12 + 5], rebuilds ability table, updates display.
  *
@@ -492,7 +492,7 @@ s32 func_801E72CC(s32 a0, s32 a1) {
 
     extern u8 D_801EED10[];
     s32 one = 1;
-    s32 jncBase = (s32)&D_801EEDF0;
+    s32 jncBase = (s32)&g_junctionChars;
     s32 jnc = a0 * 28 + jncBase;
     u16 flags = *(u16 *)(jnc + 6);
     s32 mask = one << a1;
@@ -547,7 +547,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E79A4);
  *
  * Calls func_801E63FC to update ability lists, then determines a flag
  * byte based on available abilities (D_801EEF38 + D_801EEF9A counts)
- * and junction table state (D_801EEDF0[a0*28 + 6], [+0], [+0xB]).
+ * and junction table state (g_junctionChars[a0*28 + 6], [+0], [+0xB]).
  *
  * @param a0 Character/slot index.
  * @return Navigation flag byte (combination of 0x1, 0x2, 0x4, 0x9).

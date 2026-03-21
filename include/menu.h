@@ -38,7 +38,7 @@ typedef struct {
 } MenuDisplayConfig; /* 0x24 bytes */
 
 /**
- * @brief Per-character junction menu state (D_801EEDF0, stride 28).
+ * @brief Per-character junction menu state (g_junctionChars, stride 28).
  *
  * Tracks junction availability, cached character data, and backup
  * copies of commands/abilities for the junction menu UI.
