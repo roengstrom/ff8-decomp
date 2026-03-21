@@ -4,6 +4,7 @@
 #include "battle.h"
 
 extern JunctionMenuEntry g_junctionChars[];
+extern u8 g_junctionBackup[20];
 extern BattleCharData g_junctionPreview;
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
@@ -69,28 +70,27 @@ void func_801E5EE8(JunctionMenuCtx *ctx) {
 /**
  * @brief Save character junction data to backup buffer.
  *
- * Copies the 19 junction slots + padding byte into D_801EEFA0.
+ * Copies the 19 junction slots + padding byte into g_junctionBackup.
  *
  * @param charIdx Character index (0-7).
  */
 void func_801E5F24(s32 charIdx) {
-    extern u8 D_801EEFA0[];
-    s32 i = 0;
-    do {
-        D_801EEFA0[i] = g_gameState.chars[charIdx].junctions[i];
-    } while (++i < 20);
+    s32 i;
+    for (i = 0; i < 20; i++) {
+        g_junctionBackup[i] = g_gameState.chars[charIdx].junctions[i];
+    }
 }
 
 /**
  * @brief Restore character ability data from buffer.
  *
- * Copies 20 bytes from the junction buffer D_801EEFA0 back into
+ * Copies 20 bytes from the junction buffer g_junctionBackup back into
  * character @p a0's ability data (g_gameState at offset 0x4EC, stride 152).
  *
  * @param a0 Character index (0-7).
  *
  * @note Non-matching: Compiler swaps register allocation for g_gameState
- * and D_801EEFA0 base addresses (a2/v1 vs v1/a2).
+ * and g_junctionBackup base addresses (a2/v1 vs v1/a2).
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5F78);
 

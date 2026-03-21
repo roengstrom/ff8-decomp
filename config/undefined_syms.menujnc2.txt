@@ -1,3 +1,4 @@
 g_junctionChars = 0x801EEDF0;
+g_junctionBackup = 0x801EEFA0;
 g_battleChars = 0x80078720;
 g_junctionPreview = 0x801EEFE0;
