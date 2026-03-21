@@ -125,7 +125,7 @@ extern u8 *g_autoJunctionPriority[];
  * @param charIdx Character index (0-7).
  * @param tableIdx Auto-junction mode (AutoJunctionMode: ATK=0, MAG=1, DEF=2).
  */
-void func_801E5D60(s32 charIdx, s32 tableIdx) {
+void autoJunctionAll(s32 charIdx, s32 tableIdx) {
     s32 flagMask = 0;
     u32 rawFlags;
     u8 *magicSlots = g_gameState.chars[charIdx].magic;
