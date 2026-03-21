@@ -672,54 +672,52 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDF04);
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE494);
 
 /**
- * @brief Initialize and configure junction menu display.
+ * @brief Initialize and enter the junction menu.
  *
- * Sets up the main junction menu handler pair (func_801E7BA4/func_801EDF04),
- * allocates display context via func_801F5300, configures character data,
- * initializes ability tables for all 8 characters, and enters the main
- * junction processing loop.
+ * Allocates a JunctionMenuCtx, copies character/disc info from the
+ * parent menu, initializes ability tables for all 8 characters,
+ * previews the selected character's junction, and enters the main
+ * junction menu handler.
  *
- * @param a0 Menu context pointer with character index at offset 0x20-0x22.
+ * @param parentCtx Parent menu context (charIdx at +0x22, param at +0x20).
  */
 void func_801EE718(s32 a0) {
     extern u8 D_801EEB28[];
     extern void func_801E7BA4();
     extern void func_801EDF04();
-    s32 ctx;
+    JunctionMenuCtx *ctx;
     s32 i;
 
-    ctx = func_801F179C((s32)func_801E7BA4, (s32)func_801EDF04);
+    ctx = (JunctionMenuCtx *)func_801F179C((s32)func_801E7BA4, (s32)func_801EDF04);
     func_801F5300();
     if (ctx == 0) {
         goto end;
     }
-    *(u16 *)(ctx + 0x30) = *(u16 *)(a0 + 0x20);
-    *(u8 *)(ctx + 0x43) = *(u8 *)(a0 + 0x22);
-    *(u16 *)(ctx + 0x32) = func_80036F60();
-    *(u8 *)(ctx + 0x5B) = func_80035A6C(*(u16 *)(ctx + 0x32));
-    *(u16 *)(ctx + 0x64) = 0;
-    *(u8 *)(ctx + 0x61) = 0;
-    *(u8 *)(ctx + 0x62) = 0;
-    *(u8 *)(ctx + 0x42) = 0;
-    *(u8 *)(ctx + 0x4E) = 0;
-    *(u8 *)(ctx + 0x50) = 0;
-    *(u16 *)(ctx + 0x40) = 0;
-    *(s32 *)(ctx + 0x28) = (s32)D_801EEB28;
-    *(u8 *)(ctx + 0x63) = 0;
-    func_801E7004(*(u16 *)(ctx + 0x30));
+    ctx->parentParam = *(u16 *)(a0 + 0x20);
+    ctx->charIdx = *(u8 *)(a0 + 0x22);
+    ctx->discId = func_80036F60();
+    ctx->discCount = func_80035A6C(ctx->discId);
+    ctx->unk64 = 0;
+    ctx->unk61 = 0;
+    ctx->unk62 = 0;
+    ctx->unk42 = 0;
+    ctx->unk4E = 0;
+    ctx->unk50 = 0;
+    ctx->unk40 = 0;
+    ctx->dataPtr = (s32)D_801EEB28;
+    ctx->unk63 = 0;
+    func_801E7004(ctx->parentParam);
     func_801EE494();
 
-    i = 0;
-    do {
+    for (i = 0; i < CHARACTER_COUNT; i++) {
         func_801E6F30(i);
         func_801E6B88(i);
-        i++;
-    } while (i < 8);
+    }
 
-    func_801E6C24(*(u8 *)(ctx + 0x43));
-    func_801E7734(*(u8 *)(ctx + 0x43), -1, -1, -1);
-    func_801E7B1C(*(u8 *)(ctx + 0x43));
-    func_801E7BA4(ctx);
+    func_801E6C24(ctx->charIdx);
+    func_801E7734(ctx->charIdx, -1, -1, -1);
+    func_801E7B1C(ctx->charIdx);
+    func_801E7BA4((s32)ctx);
 end:
     func_801F0948(0x1000);
 }
