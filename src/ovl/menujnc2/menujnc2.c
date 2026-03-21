@@ -3,7 +3,6 @@
 #include "gamestate.h"
 #include "battle.h"
 
-extern JunctionMenuState g_junctionMenu;
 extern JunctionMenuEntry D_801EEDF0[];
 extern BattleCharData g_junctionPreview;
 
@@ -30,7 +29,7 @@ s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 count;
 
     if (a2 == 0xB) {
-        s32 jncBase = (s32)&g_junctionMenu.chars;
+        s32 jncBase = (s32)&D_801EEDF0;
         count = *(u8 *)(a0 * 28 + jncBase + 9);
         if (count > 0) {
             do {
@@ -39,7 +38,7 @@ s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
             } while (count > 0);
         }
     } else if (a2 == 0xC) {
-        s32 jncBase = (s32)&g_junctionMenu.chars;
+        s32 jncBase = (s32)&D_801EEDF0;
         count = *(u8 *)(a0 * 28 + jncBase + 8);
         if (count > 0) {
             do {
@@ -67,7 +66,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
  */
 void func_801E5EE8(u8 *a0) {
 
-    s32 base = (s32)&g_junctionMenu.chars;
+    s32 base = (s32)&D_801EEDF0;
     s32 val = *(u8 *)(base + a0[0x43] * 28 + 0xB);
     if (val != 0) {
         a0[0x47] = 3;
@@ -292,7 +291,7 @@ void func_801E6B88(u8 *a0) {
 void func_801E6BC8(s32 a0) {
 
 
-    s32 v0 = (s32)&g_junctionMenu.chars;
+    s32 v0 = (s32)&D_801EEDF0;
     s32 v1 = a0 * 28 + v0;
     s32 a1 = (s32)&g_gameState;
 
@@ -333,7 +332,7 @@ void func_801E6CCC(s32 a0) {
 
     s32 base1 = (s32)&g_gameState;
     s32 off1 = a0 * 152;
-    s32 base2 = (s32)&g_junctionMenu.chars;
+    s32 base2 = (s32)&D_801EEDF0;
 
     *(s16 *)(off1 + base1 + 0x4E8) = *(u16 *)(base2 + a0 * 28 + 6);
     func_801E6B88(a0);
@@ -350,7 +349,7 @@ void func_801E6CCC(s32 a0) {
 void func_801E6D28(s32 a0) {
 
 
-    s32 base1 = (s32)&g_junctionMenu.chars;
+    s32 base1 = (s32)&D_801EEDF0;
     s32 v1 = a0 * 28;
     s32 base2 = (s32)&g_gameState;
     *(s16 *)(v1 + base1 + 6) = *(u16 *)(base2 + a0 * 152 + 0x4E8);
@@ -367,7 +366,7 @@ void func_801E6D28(s32 a0) {
  */
 void func_801E6D6C(s32 a0, s32 a1) {
 
-    s32 base = (s32)&g_junctionMenu.chars;
+    s32 base = (s32)&D_801EEDF0;
     *(u16 *)(base + a0 * 28 + 4) = a1;
 }
 
@@ -399,7 +398,7 @@ void func_801E6E0C(s32 a0, s32 a1) {
     s32 i = 0;
     s32 charBase = (s32)&g_gameState;
     s32 a7 = charBase + a0 * 152;
-    s32 jncBase = (s32)&g_junctionMenu.chars;
+    s32 jncBase = (s32)&D_801EEDF0;
     s32 jnc = a0 * 28 + jncBase;
     s32 a4;
 
@@ -493,7 +492,7 @@ s32 func_801E72CC(s32 a0, s32 a1) {
 
     extern u8 D_801EED10[];
     s32 one = 1;
-    s32 jncBase = (s32)&g_junctionMenu.chars;
+    s32 jncBase = (s32)&D_801EEDF0;
     s32 jnc = a0 * 28 + jncBase;
     u16 flags = *(u16 *)(jnc + 6);
     s32 mask = one << a1;

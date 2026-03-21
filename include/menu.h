@@ -64,30 +64,4 @@ typedef struct {
     /* 0x06 */ u8 pad06[6];           /**< Unknown. */
 } JunctionGfEntry; /* 0x0C = 12 bytes */
 
-/**
- * @brief Full junction menu state (g_junctionMenu, 0x2E0 bytes).
- *
- * Contains all working data for the junction menu screen:
- * GF table, per-character junction entries, ability lists, and backups.
- */
-typedef struct {
-    /* 0x000 */ s32 contextPtr;                /**< Menu context/state pointer. */
-    /* 0x004 */ u8 active;                     /**< Menu active flag. */
-    /* 0x005 */ u8 pad005[0xB];                /**< Unknown. */
-    /* 0x010 */ JunctionGfEntry gfTable[16];   /**< GF ability data (16 GFs). */
-    /* 0x0D0 */ u8 pad0D0[0x10];               /**< Unknown. */
-    /* 0x0E0 */ u8 pad0E0[0x10];               /**< Unknown. */
-    /* 0x0F0 */ JunctionMenuEntry chars[8];    /**< Per-character junction state. */
-    /* 0x1D0 */ u8 abilityIds[64];             /**< Ability ID list (0xFF = empty). */
-    /* 0x210 */ u8 sortedAbilities[40];        /**< Sorted/filtered ability list. */
-    /* 0x238 */ u8 abilityCount1;              /**< Ability count (slot type 0). */
-    /* 0x239 */ u8 pad239[7];                  /**< Unknown. */
-    /* 0x240 */ u8 abilitySlots[90];           /**< Ability slot data. */
-    /* 0x29A */ u8 abilityCount2;              /**< Ability count (slot type 1). */
-    /* 0x29B */ u8 pad29B[5];                  /**< Unknown. */
-    /* 0x2A0 */ u8 junctionBackup[32];         /**< Junction slot backup (20 used). */
-    /* 0x2C0 */ u8 pad2C0[0x10];               /**< Unknown. */
-    /* 0x2D0 */ u8 learnedAbilities[16];       /**< Learned ability bitmask (128 bits). */
-} JunctionMenuState; /* 0x2E0 = 736 bytes */
-
 #endif /* MENU_H */
