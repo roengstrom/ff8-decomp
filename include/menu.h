@@ -90,6 +90,19 @@ typedef struct {
     /* 0x66 */ u8 pad66[2];            /**< Unknown. */
 } JunctionMenuCtx; /* 0x68 bytes */
 
+/**
+ * @brief Parent menu context passed to junction menu entry points.
+ *
+ * Passed from the main menu system into the junction overlay.
+ * @note Only fields accessed by menujnc2 are mapped.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x20];         /**< Unknown. */
+    /* 0x20 */ u16 param;              /**< Menu parameter (copied to JunctionMenuCtx.parentParam). */
+    /* 0x22 */ u8 charIdx;             /**< Character index to junction. */
+    /* 0x23 */ u8 pad23;               /**< Unknown. */
+} MenuParentCtx; /* 0x24 bytes (minimum) */
+
 /** @brief Junction menu slot type IDs (passed to rendering dispatch). */
 #define JUNC_SLOT_DEF_ELEM   0xB  /**< Defense element junction slots. */
 #define JUNC_SLOT_DEF_STATUS 0xC  /**< Defense status junction slots. */

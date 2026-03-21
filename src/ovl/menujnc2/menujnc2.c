@@ -679,11 +679,9 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE494);
  * previews the selected character's junction, and enters the main
  * junction menu handler.
  *
- * @param parentCfg Parent menu display config. The junction menu reads
- *        a u16 param at +0x20 and the character index at +0x22
- *        (repurposing the dataPtr field).
+ * @param parentCtx Parent menu context with character and parameter info.
  */
-void func_801EE718(MenuDisplayConfig *parentCfg) {
+void func_801EE718(MenuParentCtx *parentCtx) {
     extern u8 D_801EEB28[];
     extern void func_801E7BA4();
     extern void func_801EDF04();
@@ -695,8 +693,8 @@ void func_801EE718(MenuDisplayConfig *parentCfg) {
     if (ctx == 0) {
         goto end;
     }
-    ctx->parentParam = *(u16 *)&parentCfg->dataPtr;
-    ctx->charIdx = *((u8 *)&parentCfg->dataPtr + 2);
+    ctx->parentParam = parentCtx->param;
+    ctx->charIdx = parentCtx->charIdx;
     ctx->discId = func_80036F60();
     ctx->discCount = func_80035A6C(ctx->discId);
     ctx->unk64 = 0;
@@ -733,14 +731,14 @@ end:
  *
  * @param a0 Menu context pointer
  */
-void func_801EE82C(MenuDisplayConfig *cfg) {
+void func_801EE82C(MenuParentCtx *parentCtx) {
     extern u8 D_801EED04;
 
     func_801F1DBC(1);
-    func_801E2ABC((s32)cfg);
+    func_801E2ABC((s32)parentCtx);
     func_801F1210(0x801D1000, 0x801CD000);
     D_801EED04 = 1;
-    func_801EE718(cfg);
+    func_801EE718(parentCtx);
 }
 
 /**
@@ -751,9 +749,9 @@ void func_801EE82C(MenuDisplayConfig *cfg) {
  *
  * @param a0 Junction context pointer.
  */
-void func_801EE888(MenuDisplayConfig *cfg) {
+void func_801EE888(MenuParentCtx *parentCtx) {
     extern u8 D_801EED04;
     func_801F1DBC(1);
     D_801EED04 = 0;
-    func_801EE718(cfg);
+    func_801EE718(parentCtx);
 }
