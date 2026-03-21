@@ -34,6 +34,23 @@ extern void func_801EDF04();
 #define JNC_W_ABILITY       40   /**< Width of ability entries. */
 #define JNC_W_ABILITY_WIDE  200  /**< Width of wide ability entries (page 3). */
 
+/**
+ * @brief Decode FF8 encoded text string with escape sequence handling.
+ *
+ * Uses PS1 scratchpad RAM as intermediate decode buffer.
+ * Handles escape codes: 0x00/0x01/0x07 = end, 0x02 = next segment,
+ * 0x0A+0x27 = character name substitution, 0x05 = control callback,
+ * 0x10-0x18 = control codes, 0x19-0x1F = two-byte sequences.
+ *
+ * @param src Source encoded string (NULL = immediate return).
+ * @param dst Destination buffer for decoded text.
+ * @param charIdx Character index for name substitution.
+ * @return Pointer to scratchpad decode buffer.
+ *
+ * @note Non-matching: 14 diffs (a0<->v1 for ch variable).
+ * ch = *pos++ double assignment causes CC1PSX to allocate ch to v1
+ * instead of a0. https://decomp.me/scratch/jAhT2
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
