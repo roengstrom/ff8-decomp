@@ -448,19 +448,7 @@ s32 func_801E6918(s32 pos) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6944(s32 charIdx) {
-    s32 i;
-    for (i = 0; i < 4; i++) {
-        s32 cmd = g_gameState.chars[charIdx].commands[i];
-        if (cmd != 0) {
-            s32 bit = 1 << (cmd & 0x1F);
-            if (!(D_801EEFD0[cmd / 32] & bit) ||
-                cmd < 20 || cmd >= 39) {
-                g_gameState.chars[charIdx].commands[i] = 0;
-            }
-        }
-    }
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6944);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
 
@@ -754,24 +742,7 @@ s32 func_801E7A80(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-extern u8 D_801EEED0[];
-
-void func_801E7B1C(s32 charIdx) {
-    u8 *magicSlots = g_gameState.chars[charIdx].magic;
-    s32 i;
-
-    for (i = 56; i >= 0; i--) {
-        D_801EEED0[i] = 0xFF;
-    }
-
-    for (i = 0; i < MAGIC_SLOT_COUNT; i++) {
-        u8 magicId = *magicSlots++;
-        u8 quantity = *magicSlots++;
-        if (magicId != 0 && quantity != 0) {
-            D_801EEED0[magicId] = i;
-        }
-    }
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7B1C);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7BA4);
 

@@ -125,11 +125,18 @@ typedef enum {
 
 /**
  * @brief GF entry in junction menu state (stride 12).
+ *
+ * Each entry corresponds to one of the 16 GFs. Stores the GF's
+ * junction ability flags and slot counts for the junction menu.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[5];           /**< Unknown. */
+    /* 0x00 */ u32 abilityFlags;      /**< OR'd into g_junctionChars[].availFlags. */
+    /* 0x04 */ u8 pad04;              /**< Unknown. */
     /* 0x05 */ u8 charIdx;            /**< Character this GF is junctioned to. */
-    /* 0x06 */ u8 pad06[6];           /**< Unknown. */
+    /* 0x06 */ u8 cmdSlotCount;       /**< Command slot count from this GF. */
+    /* 0x07 */ u8 ablSlotCount;       /**< Ability slot count from this GF. */
+    /* 0x08 */ u8 maxAbilitySlots;    /**< Max ability slots from this GF. */
+    /* 0x09 */ u8 pad09[3];           /**< Padding. */
 } JunctionGfEntry; /* 0x0C = 12 bytes */
 
 #endif /* MENU_H */
