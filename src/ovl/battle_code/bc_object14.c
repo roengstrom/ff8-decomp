@@ -166,11 +166,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C599C);
  * @param a1 Bitmask for word at offset 0x8.
  * @param a2 Bitmask for indirect halfword check.
  * @return 0 if blocked, 1 if entity passes all checks.
- *
- * @note Non-matching: CC1PSX generates separate basic blocks for each
- * return 0 path instead of sharing a single return label with v0=0
- * in branch delay slots. Also inserts nop for third branch delay
- * instead of using `li v0,1` (the return value).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5A34);
 
@@ -259,10 +254,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C65A8);
  * calls func_800408C4 with dimensions 0xA0 x 0x6C, stores 0x200 to
  * D_800FA500, calls func_800408E4 with 0x200, sets D_800FA4F8 to 0x11,
  * and sets bit 2 of D_800EEC5C.
- *
- * @note Non-matching: CC1PSX fills func_8003F41C jal delay slot with
- * li a0,0xA0 (for the next call), eliminating a nop and making the
- * function 4 bytes shorter than the original.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C66E4);
 

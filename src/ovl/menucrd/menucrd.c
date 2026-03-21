@@ -266,10 +266,6 @@ s32 func_801E6228(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
  * @param a3 Text index
  * @param stackArg Color/attribute
  * @return Result from func_800376A8
- *
- * @note Non-matching: Temp register assignment for saved arguments
- * differs — compiler assigns a0→t2/a3→t1 instead of a0→t0/a1→t1/a3→t2.
- * The cross-jumping of the two func_800376A8 calls matches structurally.
  */
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6270);
 
@@ -377,11 +373,5 @@ void func_801E6AA8(void) {
  * @param a0 Card index
  * @param a1 Field selector (1-7)
  * @return Requested field value, or 0 if a1 is out of range
- *
- * @note Non-matching: Contains a 7-case switch with a jump table in .rodata
- * (jtbl_801E6CDC). Decomping to C generates a new jump table, but the
- * original asm jump table in rodata references .L labels that no longer
- * exist, causing linker errors. Requires rodata segment splitting in the
- * yaml to separate the jump table from other rodata.
  */
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6B40);

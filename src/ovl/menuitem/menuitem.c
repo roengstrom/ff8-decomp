@@ -256,10 +256,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3158);
  *
  * @param a0 Context pointer.
  * @return 1 if processed, 0 otherwise.
- *
- * @note Non-matching: compiler optimizes away the copy of func_801F57A4 result
- * to a temp register (a2), testing v0 directly instead of through a2.
- * Original: addu a2,v0,zero / andi v0,a2,1; compiled: andi v0,v0,1.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3288);
 
@@ -282,10 +278,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3288);
  *
  * @param a0 Context pointer.
  * @return 1 if the action was processed (odd action), 0 otherwise.
- *
- * @note Non-matching: compiler optimizes away the copy of func_801F57A4 result
- * to a temp register (a2), testing v0 directly instead of through a2.
- * Original: addu a2,v0,zero / andi v0,a2,1; compiled: andi v0,v0,1.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3314);
 
@@ -328,10 +320,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E37A4);
  *
  * @param a0 Character index.
  * @param a1 Ability ID to search for.
- *
- * @note Non-matching: compiler does not keep constant 1 in register t0
- * across loop iterations. Original pre-loads t0=1 and uses sllv v0,t0,v0;
- * compiler inlines li v0,1 and uses different register for shift amount.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3854);
 
@@ -344,11 +332,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3854);
  *
  * @param a0 Character index.
  * @param a1 Ability ID to search for.
- *
- * @note Non-matching: compiler does not keep constant 1 in register t0
- * across loop iterations. Original pre-loads t0=1 and uses sllv v0,t0,v0;
- * compiler inlines li v0,1 and uses different register for shift amount.
- * Same issue as func_801E3854.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E38DC);
 
@@ -360,9 +343,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3C1C);
  * @brief Reset four item menu state words to -1.
  *
  * Sets D_801ECEDC, D_801ECEE4, D_801ECEE8, and D_801ECEE0 all to -1.
- *
- * @note Non-matching: compiler schedules li v1,-1 before the first lui
- * for D_801ECEDC. Original has lui first with li filling the delay slot.
  */
 void func_801E3E94(void) {
     extern s32 D_801ECEDC;
@@ -418,10 +398,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4394);
  * @param a1 Base pointer to item table.
  * @param a2 Entry index.
  * @return 1 if count was decremented but not depleted, 0 otherwise.
- *
- * @note Non-matching: compiler allocates count to v0 instead of v1,
- * preventing the v0=0 return value from being set in the blez delay slot.
- * Original uses v1 for count and v0 for return value independently.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E457C);
 
@@ -495,10 +471,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E476C);
  *
  * @param a0 First argument passed through to func_801F0A34.
  * @param a1 Index value, divided by 11 to determine column.
- *
- * @note Non-matching: compiler computes multiply-by-13 directly into a3
- * (target argument register), but original uses v0 as intermediate and
- * accumulates into v1, then copies v1 to a3 via addiu.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E47E0);
 
@@ -570,9 +542,6 @@ void func_801E4B80(s32 a0, s32 a1) {
  * func_80020D4C to get the item description and stores it at @p a0[0x28].
  *
  * @param a0 Pointer to item menu context.
- *
- * @note Non-matching: Compiler swaps v0/v1 register allocation for
- * the halfword index (lh) and base pointer (lw) loads.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4BB4);
 
@@ -582,8 +551,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4BB4);
  * Same as func_801E4BB4 but uses the secondary index at @p a0[0x58].
  *
  * @param a0 Pointer to item menu context.
- *
- * @note Non-matching: Same v0/v1 swap as func_801E4BB4.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4C14);
 
@@ -835,10 +802,6 @@ void func_801E9B98(void) {
  * @param a0 Pointer to byte string.
  * @param a1 Maximum number of bytes to scan.
  * @return Count of leading non-null bytes, capped at a1-1.
- *
- * @note Non-matching: compiler schedules the first three initialization
- * instructions differently (blez before move vs after), and uses different
- * return value setup (move v0,v1 in bnez delay vs jr delay).
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9C90);
 
@@ -872,10 +835,6 @@ void func_801E9DE4(u8 *a0) {
  *
  * @param a0 Pointer to a null-terminated byte string.
  * @return 1 if a mismatch is found, 0 otherwise.
- *
- * @note Non-matching: compiler assigns s1 to pointer and s0 to char variable,
- * but original uses s0 for pointer and s1 for char. Declaration order and
- * use-count tie-breaking do not change the assignment.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9E10);
 
@@ -1001,9 +960,5 @@ s32 func_801EAC54(s32 a0, s32 a1, s32 a2) {
  * reads button input to determine item type. If the context pointer is valid,
  * sets up the data table pointer, string, and various byte fields, then
  * calls func_801E9F94 to render.
- *
- * @note Non-matching: compiler assigns input variable to $a1 instead of $a0
- * for the first func_801F000C result mask. Also optimizes away the store-then-
- * reload pattern at offset 0x2C.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAD64);

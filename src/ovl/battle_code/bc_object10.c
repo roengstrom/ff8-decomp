@@ -334,10 +334,6 @@ s32 func_800B91CC(void) {
  * first entry where byte at offset 1 is zero, or NULL if all occupied.
  *
  * @return Pointer to free slot, or 0 if none found.
- *
- * @note Non-matching: CC1PSX puts loop increment in beqz delay slot
- * instead of pointer copy, generating a separate return block
- * (16 instructions vs 14 in original).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B91E4);
 

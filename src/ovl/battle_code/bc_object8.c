@@ -378,10 +378,6 @@ void func_800B21B4(void) {
  *
  * @param a0 Value to search for.
  * @return 0 if found, 1 if not found.
- *
- * @note Non-matching: CC1PSX puts loop increment in beq delay slot
- * instead of return value setup, generating a separate return block
- * (16 instructions vs 14 in original).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object8", func_800B21EC);
 

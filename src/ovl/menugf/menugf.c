@@ -27,11 +27,6 @@ void func_801E58C8(u8 *a0, s32 a1) {
  * row = a0 / 8 (y = row * 72 + 0x46). Calls func_801F0994 to draw.
  *
  * @param a0 Linear index into the ability grid.
- *
- * @note Non-matching: Register allocation differs. Original puts a0/8 result
- * in $5 (a1) then copies to $3 (v1); compiler puts it in $2 (v0) then copies
- * to $3 (v1). Same instruction count and structure, just v0/a1 swapped for
- * the division result and col computation intermediates.
  */
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E592C);
 

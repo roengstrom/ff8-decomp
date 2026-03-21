@@ -186,11 +186,6 @@ void func_801E2D78(s32 a0) {
  *   D_80085149 if no data, sets a0[0x57] to 0
  *
  * @param a0 Save context pointer.
- *
- * @note Non-matching: original uses 2-instruction sequence (addiu v0,-0x11;
- * and v0,v1,v0) for v1 & ~0x10, compiler uses single andi v0,v1,0xEF.
- * This saves 2 instructions total (one per branch), making the compiled
- * version 4 instructions shorter.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
 
@@ -202,10 +197,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
  *
  * @param a0 Save context pointer.
  * @return The stored flag value.
- *
- * @note Non-matching: CC1PSX schedules the two lbu loads together
- * and puts sltiu in the beqz delay slot, eliminating the nop between
- * loads that the original has.
  */
 /**
  * @brief Check if either save slot flag indicates availability.
@@ -215,9 +206,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
  *
  * @param a0 Save context pointer.
  * @return 1 if available, 0 otherwise.
- *
- * @note Non-matching: compiler fills first lbu delay with second lbu,
- * reorders sltiu comparisons, and puts sltiu v1 in branch delay slot.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C);
 
@@ -403,10 +391,6 @@ void func_801E5B70(s32 a0, s32 a1, s32 a2) {
  * @param a2 Third render parameter (0x100 added).
  * @param a3 Fourth render parameter (0x14 added).
  * @param stack_arg Save slot index for func_801E2800.
- *
- * @note Non-matching: scrambled prologue s-reg allocation. Original assigns
- * a0->s3, a1->s2, a2+0x100->s0, a3+0x14->s1 but compiler produces
- * different assignment order.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5BCC);
 
@@ -426,10 +410,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04);
  * @param a2 Third render parameter (0x100 added).
  * @param a3 Fourth render parameter (0x8 added).
  * @param stack_arg Save slot index for func_801E2800.
- *
- * @note Non-matching: scrambled prologue s-reg allocation. Same pattern
- * as func_801E5BCC: original assigns a0->s3, a1->s2, a2+0x100->s0,
- * a3+0x8->s1.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5DC4);
 
@@ -672,10 +652,6 @@ void func_801E7598(void) {
  *
  * @param a0 Save menu context pointer.
  * @return Processed input result.
- *
- * @note Non-matching: compiler allocates 3 s-regs (s0-s2) instead of
- * original's 2 (s0-s1). Bit manipulation uses s0 instead of v0,
- * requiring an extra callee-saved register for the context pointer.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E760C);
 
@@ -771,10 +747,6 @@ s32 func_801E7B40(s32 a0) {
  * - State 3+: no-op
  *
  * @param a0 Save context pointer.
- *
- * @note Non-matching: compiler generates bne-chain for switch instead of
- * original's beq+slti split pattern with nop-filled delay slots.
- * Produces 6 fewer instructions.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B5C);
 
@@ -886,8 +858,6 @@ void func_801EAE4C(void) {
 
 /**
  * @brief Call func_801EAE4C then clear D_801EC301.
- *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
  */
 /**
  * @brief Call func_801EAE4C then clear D_801EC301.
@@ -987,10 +957,6 @@ s32 func_801EB0B8(void) {
  * @param a0 Value to convert.
  * @param a1 Output character buffer.
  * @param a2 Character offset added to each digit.
- *
- * @note Non-matching: compiler swaps register allocation for digit (a3 vs v1)
- * and divisor (v1 vs a3) in leaf function. Also moves table++ out of
- * branch delay slot.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
 
@@ -1002,9 +968,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
  * @param a0 Value to convert.
  * @param a1 Output character buffer.
  * @param a2 Character offset added to each digit.
- *
- * @note Non-matching: compiler swaps register allocation for digit (a3 vs v1)
- * and divisor (v1 vs a3) in leaf function. Same issue as func_801EB0F4.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB150);
 
@@ -1069,9 +1032,6 @@ s32 func_801EB1DC(s32 a0) {
  * @param a0 BCD-encoded input value
  * @param a1 Offset to add
  * @return Encoded result masked to byte
- *
- * @note Non-matching: register allocation -- compiler puts a0 & 0xF result
- * in v0 instead of keeping it in a0.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
 
@@ -1084,9 +1044,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
  * @param a0 BCD-encoded input value
  * @param a1 Offset to subtract
  * @return Encoded result masked to byte
- *
- * @note Non-matching: register allocation -- compiler puts a0 & 0xF result
- * in v0 instead of keeping it in a0. Same issue as func_801EB224.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
 
@@ -1107,10 +1064,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
  *
  * @param a0 BCD-encoded value.
  * @return Decimal value, or 100 if input is zero.
- *
- * @note Non-matching: original puts sra in bnez delay slot and li 100
- * in j delay slot, but compiler hoists sra before branch and swaps
- * v0/v1 register allocation.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8);
 
@@ -1196,10 +1149,6 @@ s32 func_801EB578(s32 a0, s32 a1) {
  * @param a2 Number of pairs to search.
  * @param a3 Pointer to byte pair array.
  * @return 0 if match found, 1 otherwise.
- *
- * @note Non-matching: Compiler allocates loop counter to t0 instead of v1,
- * and schedules return value setup (li v0,1) into blez delay slot
- * instead of counter init.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB5F0);
 
@@ -1228,9 +1177,6 @@ void func_801EB850(void) {
  * func_801EB0B8, transforms with multiply-shift (val * 9 >> 7),
  * and stores at offsets 0x03, 0x10, 0x12, 0x32 in the save data.
  * Finally calls func_801EB850 to update checksum.
- *
- * @note Non-matching: v0/v1 register swap in multiply-shift chain.
- * Original uses v1 for (v0<<3)+v0 result, compiler uses v0.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB890);
 

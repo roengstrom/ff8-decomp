@@ -197,14 +197,5 @@ void func_80098390(void) {
  *   9. Calls func_80027FBC(i, 0, 0) to reset display coordinates
  *  10. Sets fieldC3 to 0x31 and linkedIdx to i
  *  11. Clears field0C..field0F (color fields)
- *
- * @note Non-matching. Two toolchain differences prevent byte-matching:
- *   (1) CC1PSX -G0 address expansion uses $v0 as intermediate
- *       (lui $v0; addiu $s0,$v0), but the original has direct $s0
- *       (lui $s0; addiu $s0,$s0) suggesting ASPSX pseudo expansion.
- *   (2) CC1PSX -O2 optimizes away a redundant register copy
- *       (addu $v0,$v1,$zero before sb) that the original retains,
- *       causing the function to be 1 instruction shorter and all
- *       subsequent instructions to shift. Permuter score: 715.
  */
 INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_800983B8);

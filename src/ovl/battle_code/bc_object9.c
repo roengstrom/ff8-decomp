@@ -211,8 +211,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B6584);
  *
  * @param a0 State control structure (state at +0xD, pointer at +0x10).
  * @return 2 when initialization complete, 0 otherwise.
- * @note Non-matching: maspsx fills beqz delay slot with li v0,1 (saves 1
- *       instruction), original has nop in delay slot.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object9", func_800B66E0);
 

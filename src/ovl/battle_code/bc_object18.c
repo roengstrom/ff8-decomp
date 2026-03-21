@@ -171,10 +171,6 @@ void func_800D3BB8(void) {
  * D_8007873E at index * 464 + sub * 4.
  *
  * @return Pointer to entity field (as integer).
- *
- * @note Non-matching: CC1PSX scheduler moves `sll a0, a0, 2` (sub*4)
- * before `lui v1, %hi(D_8007873E)`, reordering the addition as
- * (sub*4 + base) + idx*464 vs original (base + idx*464) + sub*4.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object18", func_800D3C14);
 

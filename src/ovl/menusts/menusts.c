@@ -14,9 +14,6 @@ u16 func_801E5800(s32 a0) {
  *
  * @param a0 Status entry index.
  * @return Type byte.
- *
- * @note Non-matching: Leaf register allocation puts base address in v0
- * (original) vs a0 (compiled).
  */
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E582C);
 
@@ -28,9 +25,6 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E582C);
  *
  * @param a0 Status entry index.
  * @return Computed address.
- *
- * @note Non-matching: Leaf register allocation uses v1 for table base
- * (original) vs v0/a0 (compiled).
  */
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5848);
 
@@ -42,8 +36,6 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E5848);
  *
  * @param a0 Status entry index.
  * @return Computed address.
- *
- * @note Non-matching: Same leaf register allocation issue as func_801E5848.
  */
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E586C);
 

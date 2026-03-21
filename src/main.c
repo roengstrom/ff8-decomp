@@ -110,14 +110,6 @@ void func_800115F0(void) {
  *  12 frames), one increments a game frame counter at g_gameState+0xCD0
  *  and the other decrements a countdown timer at g_gameState+0xCD4.
  *
- *  @note Non-matching (3 instructions shorter). Two codegen differences:
- *        1. CC1PSX fills beqz delay slot with `addu v0,v0,-1` (countdown
- *           decrement) instead of original `li v0,1` (early-return value),
- *           eliminating a 3-instruction reload sequence.
- *        2. Switch jump table rodata must be at 0x80010000 (before asm
- *           rodata) — requires linker script reorder: move 1D2C.o(.rodata)
- *           first, add `. = ALIGN(8);` after it.
- *
  *  @code
  *  void VsyncHandler(void) {
  *      extern volatile s32 D_8005F154;
@@ -216,18 +208,6 @@ void InitHardware(void) {
  *  animation states, and display parameters from the battle entity array
  *  (stride 612 at D_80085224) into g_gameState+0xD40..0xD5C. The snapshot
  *  is later restored by RestoreSnapshot when returning from battle.
- *
- *  @note Non-matching: same instruction count (89) but different register
- *  allocation and scheduling. Pre-loop: compiler skips "through $v0" copies
- *  for g_gameState/g_fieldEntity addresses (addiu directly into target reg
- *  instead of same-reg addiu + addu copy). Can be fixed with register
- *  asm("$2") temp + REGALLOC_BARRIER, but causes scheduling side effects.
- *  Loop body: all 4 temp registers shifted (idx=$a0 vs $a1, eoff=$a3 vs
- *  $a2, stp=$a2 vs $a0, entityPtr=$a1 vs $a3). Loop increment: direct
- *  addiu instead of through-$a0 copy pattern (addiu $a0,$t0,1; addu
- *  $t0,$a0,$zero), preventing $v0 from staying free for delay slot sb.
- *  Epilogue: uses 2 registers (sequential) instead of 3 (interleaved).
- *  Permuter best score: ~4850 (base 6025), not trending toward 0.
  *
  *  @code
  *  void func_80011870(void) {
@@ -508,17 +488,6 @@ void func_80011E18(void) {
  *
  *  On exit (g_fieldEntity[0] == 4), shuts down sound, resets GPU, and
  *  reinitializes everything from the top.
- *
- *  @note Non-matching due to ASPSX vs GAS assembler differences.
- *        CC1PSX output is identical, but ASPSX (SN Systems assembler) performs
- *        optimizations that GAS/maspsx cannot replicate:
- *        1. %hi caching: ASPSX caches %hi(g_fieldEntity) in $fp and
- *           %hi(D_80082C08) in $s7, reusing them across accesses (~8 insns).
- *        2. Constant substitution: ASPSX replaces `li $v0,N; beq $v1,$v0`
- *           with `beq $v1,$sN` when an s-register holds the constant (~3 insns).
- *        3. Delay slot filling around pseudo-instruction expansions.
- *        This only affects files without -G0 (1D2C.c), where CC1PSX emits
- *        assembler pseudo-instructions instead of explicit lui/lw sequences.
  */
 INCLUDE_ASM("asm/nonmatchings/main", main);
 

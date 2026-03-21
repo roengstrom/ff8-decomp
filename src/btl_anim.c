@@ -502,11 +502,6 @@ void func_80028CB4(void) {
  *
  * Clears byte at +0x21, fills 2 sets of 4 consecutive bytes starting at
  * +0x27 (then +0x2B) with the value 2, then calls func_80028CB4.
- *
- * @note Non-matching: register allocation differs — original keeps base
- *       address in $v0 for initial store then copies to $a0 for loop;
- *       compiler loads directly into $a0. Also const 2 is placed before
- *       the loop in original but inside in ours (1 instruction shorter).
  */
 /**
  * @brief Initialize SFX entry command bytes and reset state.
@@ -946,10 +941,6 @@ void func_8002A340(u8 *src, u8 *dst, s32 n) {
  * @param b Pointer to second byte array.
  * @param count Number of bytes to compare.
  * @return 1 if all bytes match (or count <= 0), 0 on first mismatch.
- *
- * @note Non-matching: compiler loop-inverts the blez pre-check + bgtz do-while
- *       into j-to-check + bgtz (1 instruction longer). Also inverts beq
- *       (skip over mismatch return) to bne (jump to mismatch at end).
  */
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A36C);
 

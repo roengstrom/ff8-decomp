@@ -269,10 +269,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DBF9C);
  * @param a1 Value to search (16-bit).
  * @param a2 Mask source value (16-bit).
  * @return Matched bit position, masked to 16 bits.
- *
- * @note Non-matching: CC1PSX eliminates s1 (saves only a1→s0, uses
- * v0 directly for return), producing 16 instructions (0x40) vs
- * target's 20 (0x50) with two s-regs.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DC030);
 

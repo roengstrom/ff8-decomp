@@ -46,10 +46,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5880);
  * @brief Return GF/summon data address if enabled, else return 0.
  * @param a0 Enable flag (non-zero to load D_801E8D80)
  * @return Address of D_801E8D80 after calling copyString, or 0
- *
- * @note Non-matching: compiler omits the a0-to-a1 copy that the original
- * uses before the branch (original: addu a1,a0,zero + bnez a1;
- * compiled: beq a0,$0 directly). One instruction shorter.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E595C);
 
@@ -77,9 +73,6 @@ s32 func_801E5A88(void) {
  * @param a0 Unused
  * @param a1 Pointer to u16 offset into the string table
  * @param a2 Output buffer pointer
- *
- * @note Non-matching: compiler puts combined pointer (base+offset) in $v0
- * instead of $a1, and fills load delay slots that original leaves as nop.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A94);
 
@@ -93,11 +86,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A94);
  * @param a0 Unused
  * @param a1 Pointer to u16 offset into string table
  * @return Pointer to filtered string in D_801E8D00
- *
- * @note Non-matching: addu operand order for combined pointer differs by
- * one byte. Original: addu v1,v0,v1 (base+offset). Compiled: addu v1,v1,v0
- * (offset+base). Same result, different encoding. All other 35 instructions
- * match including scrambled prologue (s0,s2,s1 save order).
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5AF8);
 
@@ -109,10 +97,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5C08);
  * @brief Render extension entry at Y position computed from row modulo 11.
  * @param a0 Render context pointer.
  * @param a1 Row index (modulo 11, multiplied by 13, offset by 0x41 for Y).
- *
- * @note Non-matching: compiler pre-allocates a3 for the *13 multiply
- * (sll/addu/sll/addu directly in a3) instead of using v0 as temp with
- * a final addu v1,v1,v0. Register preallocation to argument register.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5CF8);
 
@@ -344,9 +328,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6338);
  * @param a1 Table base pointer
  * @param a2 Parameter passed to func_801E5FA8
  * @return 2 if no entry or negative index with low compat, 1 if high compat, 0 otherwise
- *
- * @note Non-matching: compiler copy-propagates s0 into negu (subu v0,zero,s0
- * instead of subu v0,zero,v0). One byte difference in negu source register.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E63F4);
 
@@ -361,9 +342,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E63F4);
  * @param a1 Entry index (absolute value used, decremented by 1)
  * @param a2 Parameter passed through to func_801E6338
  * @return 3 if func_801E6338 returns 0, otherwise 0
- *
- * @note Non-matching: compiler fills bgez delay slot with sw ra instead of
- * leaving nop, making the function 4 bytes shorter than the original.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E6458);
 
@@ -414,11 +392,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7C9C);
  * @param a3 Unused
  * @param arg5 X offset added to base position
  * @return Result of func_801F0FEC if entry exists, otherwise a1
- *
- * @note Non-matching: compiler assigns g_menuDisplayCfg lui result to $v1 and
- * full address to $a3, but original has lui in $a3 and full address in $v1.
- * This swaps all subsequent register uses for g_menuDisplayCfg access and changes
- * prologue save interleaving. 13 of 44 instructions differ.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
 

@@ -53,11 +53,6 @@ void func_800AF654(void) {
  *
  * @param a0 Entity index (stride 0xD0).
  */
-/**
- * @note Non-matching: register allocation difference. Original uses $v1
- * for D_800ED158 base and $v0 for a0+g_gameState sum; compiler allocates
- * them the other way around regardless of declaration order.
- */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF6BC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF740);
@@ -108,9 +103,6 @@ s32 func_800AF988(s32 a0) {
  *
  * @param a0 Input value (low 16 bits used).
  * @return min(a0 & 0xFFFF, 60000).
- *
- * @note Non-matching: CC1PSX schedules move v1,v0 before andi a0,0xFFFF
- * (fills slot after li v0 with dependent copy), original has andi first.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF9C4);
 

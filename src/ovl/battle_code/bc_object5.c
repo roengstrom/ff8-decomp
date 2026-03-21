@@ -80,10 +80,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9084);
  *
  * @param a0 Value to search for.
  * @return Unsigned byte at offset 1 of matching entry, or 0 if not found.
- *
- * @note Non-matching: CC1PSX inverts bne to beq and fills delay slot,
- * producing 15 instructions instead of 17. Branch direction inversion
- * in search loop.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A9240);
 
@@ -103,11 +99,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A94E0);
  *
  * @param a0 Value to search for.
  * @return 1 if found, 0 if not found.
- *
- * @note Non-matching: beq delay slot filling. Original puts
- * `li v0, 1` (return value) in the beq delay slot; compiler puts
- * `addiu a1, 1` (loop increment) instead, adding an extra `j`
- * for the not-found path.
  *
  * @code
  * s32 func_800A9568(s32 a0) {
@@ -551,12 +542,6 @@ s32 func_800AA9C8(s32 a0, s32 a1) {
  *
  * @param a0 Query mode (0 or 3).
  * @return Boolean result based on the flag value.
- *
- * @note Non-matching: CC1PSX folds g_gameState+0xCD4 into a single
- * symbol+constant address (lui/lw, 2 instructions per access) instead
- * of the original's unfolded lui/addiu/lw (3 instructions). No runtime
- * component to prevent folding. Also changes delay slot fill and branch
- * structure.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAA10);
 

@@ -47,10 +47,6 @@ s32 func_800A1760(s32);
  * @param a0 Entity index (stride 0x18).
  * @param a1 Default return value if bit 15 not set.
  * @return Combined ability flags (u16) or a1 (u16).
- *
- * @note Non-matching: Original uses addu v0,s0 + andi s0,0x8000 (separate
- *       copy before bit test), compiler optimizes to andi v0,s0,0x8000
- *       (eliminates copy). Also store-to-D_800EE476 scheduling differs.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BAC4);
 
@@ -79,9 +75,6 @@ s32 func_8009BB3C(s32 a0) {
  * at offset 0x5C5 for value 0xFA. Returns the index of the first match.
  *
  * @return Index of matching entry (0-31), or 0 if none found.
- *
- * @note Non-matching: compiler swaps i/ptr register allocation (a0/v1 vs v1/a0)
- * and places return value in jr's delay slot instead of beq's delay slot.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BB98);
 
@@ -91,10 +84,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BB98);
  * Calls func_8009BB98 to get entity index, looks up entry in
  * D_800ED70C (stride 20), copies entry[0] and D_800ED70C[0xD6A]
  * into D_800EE4C0 buffer with command byte 0xF9.
- *
- * @note Non-matching: compiler omits redundant entry pointer copy
- * (addu v0,v1,$0) and uses different addressing for D_800EE4C0
- * (addiu+negative offset vs lui hi + lo), making function 4 bytes shorter.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BBD0);
 
@@ -170,10 +159,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BFE0);
  * @param a2 Pointer to entity flags word.
  * @param a3 Proposed status flag to apply.
  * @return 1 if flag was applied, 0 if rejected.
- *
- * @note Non-matching: compiler pre-copies a3 to a1 at function entry
- * for the later func_800B0574(a0, a3) call, adding move instructions
- * and changing register usage throughout.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009C090);
 
@@ -417,12 +402,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F4BC);
  *
  * @param bitIndex The bit index to test.
  * @return 1 if the bit is set, 0 otherwise.
- *
- * @note Non-matching: register allocation differs from sister function
- * func_8009F570. Original copies bitIndex to $v0 and keeps quotient
- * in $a0; compiler copies to $v1 and puts quotient in $v1. Extra
- * variables (mask, val) for the read+test pattern change allocation
- * priority compared to the write pattern.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F52C);
 
@@ -576,10 +555,6 @@ void func_800A184C(s32 idx, s32 attr, s32 flags) {
  * bit is set, or 0 if clear.
  *
  * @param a0 Entity index (stride 0x1D0).
- *
- * @note Non-matching: compiler converts if/else to sltu boolean
- * (1 instruction vs 3-instruction branch pattern). Also entry
- * pointer goes to v0 instead of a1.
  *
  * @code
  * void func_800A1888(s32 a0) {

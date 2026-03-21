@@ -12,9 +12,6 @@
  * @param a1 Ability list index.
  * @param a2 Unused (passed through to func_801F0A78).
  * @param a3 Pointer to data (reads halfword at offset 0x2E).
- *
- * @note Non-matching: Compiler eliminates `addu t0, a3, zero` copy,
- * modifying a3 directly instead of through a temp register.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2800);
 
@@ -74,9 +71,6 @@ s32 func_801E2934(void) {
  *
  * @param a0 Ability list index.
  * @return Pointer to ability name string, or NULL if index out of bounds.
- *
- * @note Non-matching: Compiler inverts branch direction (bnez into lookup
- * vs original beqz over lookup).
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2944);
 
@@ -88,9 +82,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2944);
  * (D_801E3D70) allows it. If valid and the ability count (offset 0x10)
  * is non-zero, adds the slot index to D_801E3DA4 and increments
  * the count in D_801E3DB8.
- *
- * @note Non-matching: Leaf function register allocation differs — compiler
- * assigns D_801E3DB8 lui to v0 instead of v1 in initialization.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2990);
 
@@ -103,10 +94,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2990);
  * movement, ability equip/unequip, and input processing.
  *
  * @param a0 Menu state pointer.
- *
- * @note Non-matching: Contains 26-case switch with jump table in rodata
- * (jtbl_801E3D08). Jump table references internal labels that cannot be
- * generated from C compilation. Also has scrambled prologue.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
 
@@ -150,9 +137,6 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
  * @param a3 Y position.
  * @param stackArg Display list pointer (5th arg on stack).
  * @return Updated display list pointer.
- *
- * @note Non-matching: Scrambled prologue — s3 saved first with init
- * interleaved before s2/s1/s0 saves.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3580);
 
@@ -205,9 +189,6 @@ void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
  * @param a3 Row offset.
  * @param stackArg X base offset.
  * @return Updated display list pointer.
- *
- * @note Non-matching: Scrambled prologue — s5 saved first with init
- * interleaved before other s-reg saves.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
 
@@ -268,9 +249,6 @@ void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
  * @param a3 Row index (multiplied by 13 for y offset).
  * @param stackArg X base offset added to g_menuDisplayCfg.x.
  * @return Updated display list pointer.
- *
- * @note Non-matching: Scrambled prologue — s1 save is at position 4 instead
- * of position 7 in original instruction order.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
 
@@ -304,9 +282,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
  * @param a2 Column position parameter.
  * @param a3 Panel X position.
  * @param stackArg Panel Y position (5th arg on stack).
- *
- * @note Non-matching: Compiler schedules lbu (src+0x38 re-read) before
- * scrollbar result save, using v1 instead of v0 for the load.
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E39E0);
 
@@ -335,9 +310,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E39E0);
  * @param a1 OT/display list pointer.
  * @param a2 Column offset parameter.
  * @return Updated display list pointer, or a2 if state != 0xE.
- *
- * @note Non-matching: Scrambled prologue — s-reg save order and arg-to-sreg
- * mapping differs (compiler assigns a1→s1 instead of a1→s4).
  */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3AE0);
 

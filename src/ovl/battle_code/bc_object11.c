@@ -91,10 +91,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC908);
  *
  * @param a0 Pointer to bit stream state (word 0 = byte ptr, word 4 = bit index).
  * @return Processed value or 0x400.
- *
- * @note Non-matching: CC1PSX fills beqz delay slot with li v0,0x400
- * (the false-path return value), eliminating the separate default block
- * and the j instruction after sign extension. Function is 8 bytes shorter.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BC9C8);
 
@@ -156,9 +152,6 @@ void func_800BD230(void) {
  * Reads the current pointer from D_800F16A8, advances it by 0x18,
  * calls func_800BFE1C with the old pointer, then copies the first
  * byte at the new pointer to D_800F16BC.
- *
- * @note Non-matching: CC1PSX computes val+0x18 into v1 then copies val→a0;
- * target modifies v0 in-place (a0=v0 first, then v0+=0x18).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object11", func_800BD260);
 

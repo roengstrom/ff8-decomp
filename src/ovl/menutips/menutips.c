@@ -102,10 +102,6 @@ s32 func_801E58C0(void) {
  *
  * @param a0 Render context pointer.
  * @param a1 Index into the coordinate table.
- *
- * @note Non-matching: register allocation swapped — original puts
- * a1*8 in v0 and base in v1 (addu v0,v0,v1), compiler puts base in
- * v0 and a1*8 in v1 regardless of variable ordering or declaration order.
  */
 /**
  * @brief Render a tips entry at a table-derived position.

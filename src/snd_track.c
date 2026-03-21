@@ -141,10 +141,6 @@ void func_8001C5D8(u8 *a0) {
  * offset field. Both paths end with storing the new cursor and returning.
  *
  * @param a0 Pointer to the stream state (cursor at +0x00).
- *
- * @note Non-matching: compiler adds unnecessary andi for zero-extension after
- *       lhu/lbu, uses sltu instead of slt, and schedules the cursor store
- *       into the branch delay slot instead of before the conditional block.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C604);
 
@@ -808,9 +804,6 @@ void func_8001DAB4(u8 *a0) {
  *        then clears +0x6A and +0x66.
  *
  * @param a0 Pointer to the stream state.
- *
- * @note Non-matching: register allocation — compiler assigns dest to $3 (v1)
- *       instead of $5 (a1). Declaration order doesn't affect assignment.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DACC);
 
@@ -819,9 +812,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DACC);
  *        D_80074F08+0x6C (low byte first, high byte shifted left 8).
  *
  * @param a0 Pointer to the stream state.
- *
- * @note Non-matching: register allocation — compiler assigns ptr to $3 (v1)
- *       instead of $5 (a1). Same leaf register allocation issue as func_8001DACC.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DB04);
 

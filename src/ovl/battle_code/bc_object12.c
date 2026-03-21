@@ -215,11 +215,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0BB8);
  * @param a0 Entity pointer with table reference at offset 0x64.
  * @param a1 Table index to check.
  * @return 1 if entry is valid, 0 otherwise.
- *
- * @note Non-matching: CC1PSX converts `if (val != 0) return 1; return 0;`
- * into `sltu v0,$0,v0` (boolean conversion) and fills the first branch
- * delay slot with the sll computation instead of the return value.
- * Original uses separate bnez+delay patterns for each return path.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object12", func_800C0CB8);
 

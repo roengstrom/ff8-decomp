@@ -170,11 +170,6 @@ s32 func_8002CE74(void) {
  * @param idx Index into the SFX entry array (stride 60).
  * @return Remaining duration, or -1 if inactive.
  */
-/**
- * @note Non-matching: leaf register allocation (entry in $a0 instead of $v0),
- *       branch direction inversion (beqz vs bnez), and compiler fills j
- *       delay slot with subu making function 1 instruction shorter.
- */
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CE84);
 
 

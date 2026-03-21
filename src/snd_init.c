@@ -211,10 +211,6 @@ void func_80012FBC(s32 a0, s32 a1) {
  * (field_0x6C << 16) | (field_0x66 + 1).
  *
  * @return Packed position value, or 0 if inactive.
- *
- * @note Non-matching: branch direction inversion (original uses beqz to skip
- *       computation, compiler generates bnez to jump to it) and register
- *       allocation (pointer in $5 original vs $4 ours).
  */
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_80012FEC);
 
@@ -365,10 +361,6 @@ void func_8001336C(u32 a0) {
  *
  * @param a0 Input value to shift.
  * @return a0 * 256 (full 32-bit result, not truncated).
- *
- * @note Non-matching: GCC 2.8.0 combines (a0<<8)<<16 into a0<<24,
- * reading a0 directly instead of the saved s0 value. Original has
- * sll a0, s0, 16 (reads shifted from s0); compiler emits sll a0, a0, 24.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_800133D8);
 

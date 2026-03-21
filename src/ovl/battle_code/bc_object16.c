@@ -197,10 +197,6 @@ s32 func_800CECC8(void) {
  * If a0 is nonzero, sets bit 4 (OR 0x10). If zero, clears bit 4 (AND ~0x10).
  *
  * @param a0 Nonzero to set, zero to clear.
- *
- * @note Non-matching: CC1PSX folds base 0x1F800390 + offset 0x1E into
- * 0x1F8003AE (ori 0x03AE + lhu 0) instead of original's separate
- * ori 0x0390 + lhu 0x1E. Constant address folding cannot be prevented.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CED0C);
 
@@ -308,9 +304,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF33C);
  * gp+0x1C, and conditionally calls func_800D5E48 if bit 6 of the
  * scratchpad status halfword at gp+0x1E is set. Always calls
  * func_800A5454.
- *
- * @note Non-matching: original uses $gp-relative scratchpad access
- * (lhu/sh via $gp+offset) which can't be produced with -G0 compilation.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CF38C);
 

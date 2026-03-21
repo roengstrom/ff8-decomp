@@ -163,9 +163,6 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80023C48);
  * updated state.
  *
  * @return Pseudo-random value in [0, 32767].
- *
- * @note Non-matching: Compiler allocates v1 for pointer (original uses a0).
- * All multiply-by-69069 decomposition and epilogue scheduling match correctly.
  */
 INCLUDE_ASM("asm/nonmatchings/item", func_80023D04);
 

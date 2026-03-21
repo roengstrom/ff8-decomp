@@ -75,10 +75,6 @@ void func_801E293C(s32 a0, s32 a1) {
  *
  * @param a0 OT pointer
  * @param a1 Pointer to tutorial state structure
- *
- * @note Non-matching: register allocation — compiler loads field 0x2C into v1
- * and computes subtraction in v0, while original uses a2 for both the load
- * and subtraction result. Only 2 bytes differ (lh a2 vs lh v1, subu a2 vs subu v0).
  */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E296C);
 
@@ -147,12 +143,6 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0);
  * @param a0 Pointer to structure with s16 field at offset 0x20
  * @param a1 First argument passed to func_801E4BD0
  * @param a2 Second argument passed to func_801E4BD0
- *
- * @note Non-matching: register allocation — compiler is one instruction shorter.
- * Original saves a2 to v0 before loading field 0x20 into a2 (addu v0,a2,zero;
- * lh a2,0x20(a0); beqz a2; addu a1,v0,zero). Compiled version loads into v0
- * instead (lh v0,0x20(a0); beqz v0; move a1,a2), eliminating the save
- * instruction. 13 vs 12 instructions — size mismatch.
  */
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0);
 

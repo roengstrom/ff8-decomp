@@ -185,9 +185,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030754);
  * or 0 if all are zero.
  *
  * @return 1 if any entry is active, 0 otherwise.
- *
- * @note Non-matching: Compiler inverts branch direction (bnez to end vs
- * original beqz+j pattern for early return inside loop).
  */
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800307F8);
 

@@ -92,10 +92,6 @@ void func_801E6008(s32 a0, s32 a1, s32 xOff, s32 yOff, u16 *src) {
  * @param ctx Render context.
  * @param buf Buffer/primitive pointer.
  * @param entryData Entry data pointer (passed to GPU primitive setup).
- *
- * @note Non-matching: register allocation differs. Original assigns ctx to s2
- * and buf to s0, but the compiler assigns ctx to s1 and buf to s3 due to
- * different use-count priority ordering.
  */
 INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E606C);
 

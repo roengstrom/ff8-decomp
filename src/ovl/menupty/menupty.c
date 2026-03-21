@@ -38,10 +38,6 @@ s32 func_801E5980(s32 a0) {
  *
  * @param a0 Party context pointer.
  * @return Attribute byte value.
- *
- * @note Non-matching: CC1PSX fills bnez delay slot with the first lbu
- * of the fall-through path and reverses addu operand order (v0+a0
- * instead of a0+v0).
  */
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E59AC);
 
@@ -105,8 +101,6 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6C68);
  * @param a3 Y position base.
  * @param stackArg0 Width parameter.
  * @param stackArg1 Height parameter.
- *
- * @note Non-matching: s-reg allocation differs from original.
  */
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6D34);
 
@@ -345,9 +339,6 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E90D0);
  * If set, the corresponding bit in the result mask is set.
  *
  * @return Bitmask where bit N is set if character N is party-eligible.
- *
- * @note Non-matching: Compiler uses copy propagation for i=0 init
- * (move v1,a1 instead of addu v1,zero,zero) since result is already 0.
  */
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E92B8);
 

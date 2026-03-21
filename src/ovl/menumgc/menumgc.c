@@ -389,10 +389,6 @@ void func_801E67E0(s32 charIdx, s32 slotIdx, u8 value) {
  * @param a0 Pointer to character data (byte at 0x5B used for width adjustment).
  * @param a1 X position parameter.
  * @param a2 Row index (multiplied by 13 and offset by 0x78 for Y position).
- *
- * @note Non-matching: register allocation -- compiler puts 0xCA constant
- * in v1 and lbu result in v0, but original uses v0 for constant and v1
- * for lbu. Instruction order is identical otherwise.
  */
 /**
  * @brief Render magic entry with adjusted width based on character attribute.
@@ -415,8 +411,6 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6810);
  * @param a0 Pointer to character data (byte at 0x5B used for width adjustment).
  * @param a1 X position parameter.
  * @param a2 Row index (multiplied by 13 and offset by 0x71 for Y position).
- *
- * @note Non-matching: same register allocation issue as func_801E6810.
  */
 INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6858);
 

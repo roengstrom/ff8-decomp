@@ -166,11 +166,6 @@ void func_800D0F74(void);
  * pointer, calls func_8009B6D0 with D_80082C08 halfword, adjusts entity
  * by -0xCDC, conditionally merges status bits from entity+0xCDD into
  * D_80082C08+2, then calls 14 setup functions ending with func_8009AF14.
- *
- * @note Non-matching: 11/94 instruction diffs. Init block lui/li ordering
- * (3 diffs), maspsx vs ASPSX delay slot filling (3 diffs), else branch
- * load scheduling — CC1PSX orders by base register number s0<s1 but
- * target has s1-based lhu first (5 diffs).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_80099FE8);
 
@@ -268,9 +263,6 @@ u32 func_8009A2F4(void) {
  * yields again, then calls func_800B26B8.
  */
 /**
- * @note Non-matching: s-reg allocation swapped (s0=base, s1=one vs original
- * s1=base, s0=one), and compiler eliminates the intermediate v1 register
- * for D_800ED148 address, producing 4 fewer instructions.
  *
  * Best attempt:
  * @code
@@ -337,9 +329,6 @@ void func_8009A3F4(void) {
  * @param a1 Offset into entity data for hit type lookup.
  */
 /**
- * @note Non-matching: prologue interleaving. Original interleaves entity offset
- * computation (sll/addu chain) between s2 init and s0 save. Compiler groups
- * all s-reg saves before computations. 30-byte difference, same instruction count.
  *
  * Best attempt:
  * @code
@@ -398,10 +387,6 @@ s32 func_8009A514(s32 a0, s32 a1) {
  * @param a0 Entity slot index.
  * @param a1 Source entity index for position lookup.
  *
- * @note Non-matching: scrambled prologue (s2,s3,s1,s0 save order) with offset
- * computation interleaved between s-reg saves. Also maspsx fills epilogue
- * delay slots (FILLED epilogue, 2 instructions shorter).
- *
  * Best attempt:
  * @code
  * void func_8009A528(s32 a0, s32 a1) {
@@ -457,9 +442,6 @@ void func_8009A638(void) {
  * then plays sound 0x67 targeting the entity with position data cleared.
  * @param a0 Entity slot index.
  *
- * @note Non-matching: deeply scrambled prologue (s3,s1,s0,s2 save order)
- * with entity offset computation interleaved between saves.
- *
  * Best attempt:
  * @code
  * void func_8009A6A8(s32 a0) {
@@ -486,9 +468,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A6A8);
  * then iterates entities calling func_8009A6A8 for each active one.
  * Sets position data based on entity count using lookup tables
  * D_800E3CA4, D_800E3CA8, and D_800E3CB0.
- *
- * @note Non-matching: deeply scrambled prologue (s3,s1,...,s6,s5,s4,s2,s0
- * save order). s3 and s1 initialized to 0 with s3 saved first; 7 s-regs used.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A74C);
 
@@ -501,10 +480,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A74C);
  * @param a0 Entity slot index.
  */
 /**
- * @note Non-matching: prologue interleaving. Original has s2=idx(a0) saved
- * first, then s0 for entity offset computation interleaved with s1 save.
- * Compiler groups saves before computation. Also maspsx fills epilogue delay
- * slots (FILLED epilogue, 2 instructions shorter).
  *
  * Best attempt:
  * @code
@@ -548,11 +523,6 @@ void func_8009A928(void) {
  * clears the D7/D8 fields. Special handling for type 2 with bit 0
  * of status (0x90).
  * @param a0 Effect type to process.
- */
-/**
- * @note Non-matching: compiler folds base+0xD7 into s0 (offset folding),
- * hoists constant 2 into a register before the loop, and uses v1 for
- * effectType instead of a1.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A990);
 
@@ -757,9 +727,6 @@ void func_8009ACEC(void) {
  * Reads D_800EE449 (speed setting 0-3), maps to frame counts:
  * 0 or 3 -> 0x3C (60), 1 -> 0x1E (30), 2 -> 0x28 (40).
  * Schedules timer via func_8009AB54 and stores to entity timer field.
- *
- * @note Non-matching: CC1PSX folds D_800ED148+0xC into a single lui+sb,
- * producing 34 instructions vs target's 35 with explicit addiu.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AD7C);
 
@@ -774,11 +741,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AD7C);
  * - case 9: Schedule func_8009AC68
  * - case 10: Schedule func_8009ACEC
  * @param a0 State transition command (5-10).
- *
- * @note Non-matching: switch generates jump table in .rodata at a
- * different address than the original jtbl_80098018 (in bc_dispatch .text).
- * Overlay decomp limitation: compiler-generated jump tables cannot be
- * placed at the original address.
  *
  * Best attempt:
  * @code
@@ -802,11 +764,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AE08);
  * Checks 0x12E8 for phase 2 and compares 0x12ED with 0x12EE.
  * If different, plays sound 0x6D (or 0x6C if 0x12ED == 1) at
  * volume 0xF0. Copies 0x12ED to 0x12EE.
- */
-/**
- * @note Non-matching: maspsx schedules sb into lw-ra load delay slot
- * and fills jr-ra branch delay slot with addiu-sp (FILLED epilogue),
- * but original has UNFILLED epilogue (4 instructions shorter).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AE9C);
 
@@ -1261,11 +1218,6 @@ top:
  * @param a1 Output pointer for first value.
  * @param a2 Output pointer for second value.
  *
- * @note Non-matching: CSE merges two separate `base + offset` address
- * computations into one, using a single addu and pointer for both loads.
- * Original computes `addu v1, a0, v0` and `addu v0, v0, a0` separately
- * (redundant but different registers). GCC -O2 CSE cannot be prevented.
- *
  * Best attempt:
  * @code
  * void func_8009B59C(s32 a0, s32 *a1, s32 *a2) {
@@ -1290,11 +1242,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B59C);
  * @param a1 Sound bank ID.
  * @param a2 Direction flag (0 = func_8003882C, else func_80038868).
  * @param a3 Callback user data.
- *
- * @note Non-matching: CSE merges two D_800E19BC address computations into one
- * addu (original has addu v1,a0,v0 + addu v0,v0,a0). With asm barrier + register
- * constraint, matches except for sw s1 prologue position. Without hacks, CSE
- * causes a1 to go to $v1 instead of $t0 (v0/v1 not occupied by double addu).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B5C4);
 

@@ -171,10 +171,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF4E4);
  * configures display dimensions via func_800D5D08, and sets screen
  * parameters: D_801031A0=0xC5, D_80103198=0x5F, D_8010319C=0x80,
  * D_8010319E=0x10, D_80103191=0.
- *
- * @note Non-matching: CC1PSX schedules addiu v1 (base address computation)
- * before li v0,0x80 (store value), but original has the reverse order.
- * Both are independent instructions; scheduling cannot be controlled from C.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF6AC);
 

@@ -165,9 +165,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
  * by D_80074F08 at offset 0x5E.
  *
  * @param a0 Pointer to a sound config structure (word 0 = track ID, halfword 8 = sequence ID).
- *
- * @note Non-matching: GCC 2.8.0 folds symbol+constant even with (s32) cast
- * local variable trick. Multiple scheduling and register allocation differences.
  */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018158);
 

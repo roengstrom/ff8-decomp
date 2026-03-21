@@ -58,8 +58,6 @@ void func_8009EB98(void) {
 
 /**
  * @brief Call func_80098D28 with D_801D3C68 and store result in D_801D3D08.
- *
- * @note Non-matching: PsyQ 4.3 filled epilogue in PsyQ 4.1 overlay.
  */
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBCC);
 

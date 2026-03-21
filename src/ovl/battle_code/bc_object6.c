@@ -79,11 +79,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AC4E4);
  *
  * @param a0 Entity index (stride 0xD0).
  * @return 1 if entity is available, 0 otherwise.
- *
- * @note Non-matching: CC1PSX uses srl+xori for the 0x4000 bit test
- * instead of andi+sltiu. Both bnez branches share the same return
- * label with v0=0 in delay slots; CC1PSX generates separate basic blocks.
- * Also, multiply chain is emitted before lui/addiu for D_800ED148.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACED4);
 
@@ -96,9 +91,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACED4);
  *
  * @param a0 Entity index (stride 0xD0).
  * @return 1 if entity is available, 0 otherwise.
- *
- * @note Non-matching: Same issues as func_800ACED4 (srl+xori bit test,
- * separate return basic blocks, multiply-before-lui ordering).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ACF2C);
 
@@ -234,11 +226,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800ADF08);
  * @param a0 Value to search for.
  * @return Signed byte at offset 1 of matching entry, or 0 if not found.
  */
-/**
- * @note Non-matching: CC1PSX inverts bne to beq and fills delay slot,
- * producing 15 instructions instead of 17. Branch direction inversion
- * in search loop.
- */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE390);
 
 /**
@@ -308,10 +295,6 @@ void func_800AE6C0(void) {
  * 0x8C set.
  *
  * @return Entity index (0-2) if found.
- *
- * @note Non-matching: CC1PSX fills beqz delay slot with loop increment
- * instead of return value copy, generating a separate addu for the
- * return path.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE6F8);
 
@@ -325,10 +308,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE730);
  * at offset 0x90 are both clear.
  *
  * @return Entity index (3-6), or 0xFF if none available.
- *
- * @note Non-matching: CC1PSX combines `!(flags & 1) && !(flags & 4)`
- * into a single `andi v0,v0,5` test. Original tests bits separately,
- * scheduling the second andi in the first branch's delay slot.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE788);
 
@@ -524,10 +503,6 @@ s32 func_8009B15C(void);
  * Returns 0-3 based on which range the frame falls into.
  *
  * @return Range classification: 0 (low), 1 (mid), 2 (high), 3 (very high).
- *
- * @note Non-matching: compiler allocates result to $v1 instead of $v0,
- * adding an extra `move v0, v1` at end. Original reuses $v0 for both
- * slti destination and result variable.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEEAC);
 

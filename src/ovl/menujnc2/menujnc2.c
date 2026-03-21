@@ -57,10 +57,6 @@ extern u8 func_80036978(s32 id);
  * @param dst Destination buffer for decoded text.
  * @param charIdx Character index for name substitution.
  * @return Pointer to scratchpad decode buffer.
- *
- * @note Non-matching: 14 diffs (a0<->v1 for ch variable).
- * ch = *pos++ double assignment causes CC1PSX to allocate ch to v1
- * instead of a0. https://decomp.me/scratch/jAhT2
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 
@@ -75,9 +71,6 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
  * @param slotType Junction slot type (0-12).
  * @param flagMask Available magic bitmask.
  * @return Updated flagMask with selected slot's bit cleared.
- *
- * @note Non-matching: score 35 on decomp.me.
- * https://decomp.me/scratch/d1Snc
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
 
@@ -353,10 +346,6 @@ void func_801E65F0(s32 renderCtx, s32 slotIdx) {
  * @param charIdx Character index.
  * @param slotOffset Ability slot offset into D_801EEAC0.
  * @return Masked flags value, or 0 if type >= 19.
- *
- * @note Non-matching: compiler adds extra andi for u8 masking, uses
- * different register allocation for type variable, reorders switch
- * case bodies, and generates jump table at different rodata offset.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
 

@@ -108,10 +108,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9424);
  *
  * @param a0 Array index.
  * @return Pointer from D_800EBF24[a0] or D_800EBF24[0] on fallback.
- *
- * @note Non-matching: CC1PSX puts nop in beqz delay slot instead of
- * moving return value there; uses lw a0 + move v0,a0 instead of
- * direct lw v0. 14 instructions vs target's 13.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C94B8);
 

@@ -339,12 +339,6 @@ void func_800A2F54(void) {
  * (stride 0xD0), reads ability byte at entity+0xDA, then indexes
  * into D_80078E00 table at offset 0x4CFC. Calls func_800DEAA4 with
  * base[0x131A] and the table lookup result.
- *
- * @note Non-matching: Compiler loads D_80078E00 into $v1 late (after
- * multiply chain) instead of into $a1 early (before sw ra). This
- * creates a nop for the load delay slot that the original fills with
- * the D_80078E00 addiu. Register allocation difference ($v1 vs $a1)
- * cascades through the table index computation.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A2FC8);
 
@@ -610,11 +604,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5454);
  * and clears offset 0x14. The entry is at D_800ED158 + a0 * 208.
  *
  * @param a0 Entity index (stride 208).
- *
- * @note Non-matching: CC1PSX fills jr ra delay slot with sw v0,0x10(v1)
- * and moves sw $zero,0x14(v1) before the multiply chain, producing 19
- * instructions instead of target's 20. Branch delay slot filling cannot
- * be prevented from C.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A554C);
 

@@ -23,9 +23,6 @@ void func_80098780(void) {
 
 /**
  * @brief Two adjacent void stubs merged by splat.
- *
- * @note Non-matching: dual jr $ra — two void functions merged into one
- * INCLUDE_ASM by splat. Cannot decomp as single C function.
  */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098788);
 
@@ -39,9 +36,6 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098798);
  *
  * @param idx Entry index in the name table (stride 10).
  * @param src Pointer to the source string.
- *
- * @note Non-matching: Leaf register allocation swaps v0/v1 for the
- * multiply result vs table base address.
  */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_800988EC);
 
@@ -228,9 +222,6 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098C9C);
  * Sets GPU attribute flags on 8 entity slots, configures entity
  * visibility flags at offsets 0x61/0xA5/0xE9, and fills the
  * animation tile table at offset 0xB44 with incrementing indices.
- *
- * @note Non-matching: Leaf register allocation — compiler puts base
- * pointer in $a0 instead of $v1 for loop 1.
  */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A368);
 
@@ -247,9 +238,6 @@ void func_8009A60C(void) {
  * Sums 0x9E08 bytes from D_80078E00 and returns the total.
  *
  * @return Byte sum of the buffer.
- *
- * @note Non-matching: Trailing dead code (jr $ra / nop) after the
- * function's return produces 2 extra instructions that C cannot emit.
  */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A630);
 

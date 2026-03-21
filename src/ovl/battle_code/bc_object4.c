@@ -404,10 +404,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6EBC);
  * 100 become 100.
  *
  * @return Clamped remainder in range [1, 100].
- *
- * @note Non-matching: Original stores mfhi result in $a0 and uses
- * $v1 for the slti comparison. CC1PSX stores mfhi in $v0, overwriting
- * it with slti, and inverts the second branch direction (bnez vs beqz).
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A6F64);
 
@@ -520,11 +516,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A7518);
  *
  * @param a0 1-based bit position to test. If 0, returns undefined.
  * @return 1 if the bit is set, 0 if clear.
- */
-/**
- * @note Non-matching: CC1PSX fills beqz delay slot with addiu v0,a0,-1
- * (target has nop), and allocates quotient to v1 (in-place sra) instead
- * of target's a0.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A774C);
 
@@ -701,10 +692,6 @@ void func_800A890C(s32 a0) {
  * Iterates over entities at indices 3 through 6 in the D_800ED148 table
  * (stride 0xD0). For each entity whose flags word at offset 0x8C has
  * bit 0 set, calls func_800A890C with the entity index.
- *
- * @note Non-matching: Original puts addiu a0,s0,3 in beqz delay slot
- *       (before jal), compiler puts it in jal delay slot instead. Same
- *       instruction count but different byte positions.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object4", func_800A8948);
 

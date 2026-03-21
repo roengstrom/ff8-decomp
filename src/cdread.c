@@ -286,9 +286,6 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_800396E0);
  * @param idx Index into the table (8-byte stride)
  * @param out Output pointer to receive the second field value
  * @return Absolute pointer computed as base + entry[0]
- *
- * @note Non-matching: CC1PSX folds addiu+4 into lw immediates (offset folding),
- * and ASPSX inserts a load delay nop that maspsx correctly omits.
  */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039728);
 
@@ -302,9 +299,6 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039728);
  * @param base Pointer to the start of the relative offset table
  * @param idx Index into the table
  * @return Absolute pointer computed as base + base[idx]
- *
- * @note Non-matching: ASPSX inserts a load delay nop between lw and jr
- * that maspsx correctly omits (5 vs 6 instructions).
  */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_8003974C);
 
@@ -323,9 +317,6 @@ s32 func_800398A8(void);
  * - D_8008A404+0x04 = func_800398A8 (secondary handler)
  * - D_8008A404-0x04 = 0 (status cleared)
  * - D_8008A404+0x08 = 0 (status cleared)
- *
- * @note Non-matching: scheduler interleaves lui for func_80039910 into
- *       D_8008A404 load delay, and folds %lo(D_8008A404) into sw immediate.
  */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_8003987C);
 
@@ -351,9 +342,6 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039910);
  * Returns the current value of D_800565BC and resets it to zero.
  *
  * @return The previous value of D_800565BC.
- *
- * @note Non-matching: CC1PSX generates two independent lui for the same
- *       symbol (load + store), while our compiler CSEs them into one.
  */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AA0);
 
@@ -367,9 +355,6 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AB4);
  * Enters a critical section via func_800472E4, removes the CD interrupt
  * callback from RCnt(3) via ChangeClearRCnt and SysDeqIntRP, then exits
  * the critical section via func_800472F4.
- *
- * @note Non-matching: CC1PSX schedules SysDeqIntRP arg setup differently —
- * puts a1 address completion in jal delay slot instead of a0 constant.
  */
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039B80);
 
