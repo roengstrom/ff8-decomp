@@ -171,9 +171,13 @@ typedef struct {
  * Linked to BattleEntity (D_800ED148) for core battle logic.
  */
 typedef struct {
-    u8 pad000[0x1C3];     /**< 0x000..0x1C2: Render state, animation, etc. */
-    u8 characterId;        /**< 0x1C3: Character ID (see CharacterId). */
-    u8 pad1C4[0x0C];      /**< 0x1C4..0x1CF: Unknown. */
+    /* 0x000 */ u8 pad000[0x18C];      /**< Render state, animation, etc. */
+    /* 0x18C */ s32 abilityFlags;       /**< Ability/status flag bits. */
+    /* 0x190 */ u8 pad190[0x24];       /**< Unknown. */
+    /* 0x1B4 */ u16 abilityValue;      /**< Base ability value (lower 7 bits used). */
+    /* 0x1B6 */ u8 pad1B6[0x0D];      /**< Unknown. */
+    /* 0x1C3 */ u8 characterId;        /**< Character ID (see CharacterId). */
+    /* 0x1C4 */ u8 pad1C4[0x0C];      /**< Unknown. */
 } BattleCharData;          /* 0x1D0 = 464 bytes */
 
 extern BattleCharData g_battleChars[];

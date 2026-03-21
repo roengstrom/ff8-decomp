@@ -531,19 +531,17 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7B1C);
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7BA4);
 
 /**
- * @brief Build junction ability flags from character data.
+ * @brief Build junction ability flags from battle character data.
  *
- * Reads the base ability value (lower 7 bits of halfword at +0x1B4) and
- * tests 6 flag bits in the word at +0x18C to compose a bitmask:
- *   bit 0x01 -> 0x80, bit 0x04 -> 0x100, bit 0x08 -> 0x200,
- *   bit 0x200 -> 0x400, bit 0x4000 -> 0x800, bit 0x8000 -> 0x1000.
+ * Extracts the base ability value (lower 7 bits) and remaps
+ * abilityFlags bits into the junction flag format.
  *
- * @param data Pointer to character/junction data block.
+ * @param charData Pointer to battle character data.
  * @return Composed ability flags word.
  */
-s32 func_801EA838(u8 *data) {
-    s32 result = *(u16 *)(data + 0x1B4) & 0x7F;
-    s32 flags = *(s32 *)(data + 0x18C);
+s32 func_801EA838(BattleCharData *charData) {
+    s32 result = charData->abilityValue & 0x7F;
+    s32 flags = charData->abilityFlags;
 
     if (flags & 0x1) result |= 0x80;
     if (flags & 0x4) result |= 0x100;
