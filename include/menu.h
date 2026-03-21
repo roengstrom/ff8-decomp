@@ -108,6 +108,22 @@ typedef struct {
 #define JUNC_SLOT_DEF_STATUS 0xC  /**< Defense status junction slots. */
 
 /**
+ * @brief Auto-junction mode selection.
+ *
+ * Indexes into g_autoJunctionPriority[] to select which stat priority
+ * ordering to use when auto-junctioning magic. Each mode fills stats
+ * in a different order:
+ *   - ATK: STR, SPD, EVA, HIT, LCK first
+ *   - MAG: MAG, SPD, HP first
+ *   - DEF: HP, VIT, SPR, EVA first
+ */
+typedef enum {
+    AUTO_JUNC_ATK = 0,  /**< Attack-focused: prioritizes offensive stats. */
+    AUTO_JUNC_MAG = 1,  /**< Magic-focused: prioritizes magic stats. */
+    AUTO_JUNC_DEF = 2   /**< Defense-focused: prioritizes defensive stats. */
+} AutoJunctionMode;
+
+/**
  * @brief GF entry in junction menu state (stride 12).
  */
 typedef struct {

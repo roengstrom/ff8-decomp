@@ -111,17 +111,19 @@ s32 renderJunctionSlots(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
     return pos;
 }
 
-extern u8 *D_801EEAB4[];
+/** @brief Auto-junction priority tables (Atk/Mag/Def), each a 0xFF-terminated slot type list. */
+extern u8 *g_autoJunctionPriority[];
 
 /**
  * @brief Auto-junction all slots for a character.
  *
- * Builds a bitmask of available magic (nonzero ID and quantity),
- * clears all junction slots, then iterates through the slot type
- * table calling renderJunctionSlots for each available type.
+ * Implements the "Auto" junction command (Atk/Mag/Def). Builds a bitmask
+ * of available magic (nonzero ID and quantity), clears all current junction
+ * slots, then iterates through the selected priority table assigning the
+ * best available magic to each stat slot.
  *
  * @param charIdx Character index (0-7).
- * @param tableIdx Index into slot type table D_801EEAB4.
+ * @param tableIdx Auto-junction mode (AutoJunctionMode: ATK=0, MAG=1, DEF=2).
  */
 void func_801E5D60(s32 charIdx, s32 tableIdx) {
     s32 flagMask = 0;
@@ -150,7 +152,7 @@ void func_801E5D60(s32 charIdx, s32 tableIdx) {
 
     /* Reload magic slots pointer and get slot type table */
     magicSlots = g_gameState.chars[charIdx].magic;
-    slotTable = D_801EEAB4[tableIdx];
+    slotTable = g_autoJunctionPriority[tableIdx];
     rawFlags = g_junctionChars[charIdx].availFlags;
     slotTypes = slotTable;
 
