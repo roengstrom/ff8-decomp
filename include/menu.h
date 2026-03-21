@@ -55,6 +55,25 @@ typedef struct {
     /* 0x14 */ u8 abilitiesBackup[2][4];  /**< Ability backups (2 sub-slots × 4). */
 } JunctionMenuEntry; /* 0x1C = 28 bytes */
 
+/**
+ * @brief Junction menu context (passed to most menujnc2 functions).
+ *
+ * Contains UI state for the junction menu screen: selected character,
+ * current slot, navigation state, and display parameters.
+ * @note Many fields still unmapped — extend as functions are decomped.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x40];         /**< Unknown. */
+    /* 0x40 */ u16 unk40;              /**< Unknown u16. */
+    /* 0x42 */ u8 unk42;               /**< Unknown. */
+    /* 0x43 */ u8 charIdx;             /**< Selected character index (0-7). */
+    /* 0x44 */ u8 unk44;               /**< Unknown. */
+    /* 0x45 */ u8 unk45;               /**< Unknown. */
+    /* 0x46 */ u8 unk46;               /**< Unknown. */
+    /* 0x47 */ u8 slotCount;           /**< Number of junction slots (2 or 3). */
+    /* 0x48 */ u8 pad48[0x20];         /**< Unknown. */
+} JunctionMenuCtx; /* 0x68 bytes (minimum) */
+
 /** @brief Junction menu slot type IDs (passed to rendering dispatch). */
 #define JUNC_SLOT_DEF_ELEM   0xB  /**< Defense element junction slots. */
 #define JUNC_SLOT_DEF_STATUS 0xC  /**< Defense status junction slots. */
