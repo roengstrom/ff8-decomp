@@ -720,3 +720,4 @@ g_gfData = 0x80078E00;
 RestoreSnapshot = 0x800119D4;
 load_table = 0x80053C58; // 19-entry file descriptor table (overlays + mngrp.bin + init.out)
 index = 0x80051684;
+g_battleChars = 0x80078720;

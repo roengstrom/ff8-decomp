@@ -12,3 +12,5 @@ g_fileTableDesc = 0x80051694;
 /* PsyQ BIOS functions referenced by libetc/pad and libsnd */
 EnterCriticalSection = 0x800472E4;
 ExitCriticalSection = 0x800472F4;
+/* Symbol aliases for renamed globals */
+D_80078720 = 0x80078720;
