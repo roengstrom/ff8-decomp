@@ -53,6 +53,21 @@ extern void func_801EDF04();
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 
+/**
+ * @brief Auto-junction the best magic for a given slot type.
+ *
+ * Scores all 32 magic slots and picks the best for the junction type.
+ * For defense element/status, finds the first empty sub-slot.
+ *
+ * @param charIdx Character index (0-7).
+ * @param magicSlots Pointer to magic slot pairs (magicId, quantity).
+ * @param slotType Junction slot type (0-12).
+ * @param flagMask Available magic bitmask.
+ * @return Updated flagMask with selected slot's bit cleared.
+ *
+ * @note Non-matching: score 35 on decomp.me.
+ * https://decomp.me/scratch/d1Snc
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
 
 /**
