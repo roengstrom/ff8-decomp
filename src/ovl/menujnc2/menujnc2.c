@@ -67,23 +67,18 @@ void func_801E5EE8(JunctionMenuCtx *ctx) {
 }
 
 /**
- * @brief Save character ability data to buffer.
+ * @brief Save character junction data to backup buffer.
  *
- * Copies 20 bytes from character @p a0's ability data (g_gameState at
- * offset 0x4EC, stride 152) into the junction buffer D_801EEFA0.
+ * Copies the 19 junction slots + padding byte into D_801EEFA0.
  *
- * @param a0 Character index (0-7).
+ * @param charIdx Character index (0-7).
  */
-void func_801E5F24(s32 a0) {
+void func_801E5F24(s32 charIdx) {
     extern u8 D_801EEFA0[];
-
     s32 i = 0;
-    s32 dst = (s32)D_801EEFA0;
-    s32 src = (s32)&g_gameState;
-    a0 = src + a0 * 152;
     do {
-        *(u8 *)(i + dst) = *(u8 *)(a0 + i + 0x4EC);
-    } while (++i < 0x14);
+        D_801EEFA0[i] = g_gameState.chars[charIdx].junctions[i];
+    } while (++i < 20);
 }
 
 /**
