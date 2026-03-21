@@ -113,6 +113,8 @@ enum JunctionType {
     JUNCTION_COUNT       = 19
 };
 
+#define JUNCTION_SLOT_SIZE 20  /**< Size of junctions array (19 slots + 1 reserved). */
+
 /**
  * @brief Persistent status effect flags (CharacterData.statusFlags).
  *
@@ -233,8 +235,7 @@ typedef struct {
     /* 0x58 */ u16 junctedGfs;         /**< Bitfield of junctioned GFs (1 bit per GF). */
     /* 0x5A */ u8 unknown5A;           /**< Unknown (used). */
     /* 0x5B */ u8 alternateModel;      /**< Alternate model (SeeD/Galbadia costume). */
-    /* 0x5C */ u8 junctions[19];        /**< Junction slots (indexed by JunctionType). */
-    /* 0x6F */ u8 pad6F;               /**< Padding. */
+    /* 0x5C */ u8 junctions[20];        /**< Junction slots (indexed by JunctionType, last byte reserved). */
     /* 0x70 */ u16 gfCompatibility[16];/**< GF compatibility values (one per GF). */
     /* 0x90 */ u16 kills;              /**< Kill count. */
     /* 0x92 */ u16 kos;                /**< KO count. */

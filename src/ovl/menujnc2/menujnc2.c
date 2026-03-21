@@ -98,7 +98,7 @@ void updateJunctionSlotCount(JunctionMenuCtx *ctx) {
  */
 void stashCharacterJunctions(s32 charIdx) {
     s32 i;
-    for (i = 0; i < 20; i++) {
+    for (i = 0; i < JUNCTION_SLOT_SIZE; i++) {
         g_junctionBackup[i] = g_gameState.chars[charIdx].junctions[i];
     }
 }
