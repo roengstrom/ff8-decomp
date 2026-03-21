@@ -680,8 +680,9 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE494);
  * junction menu handler.
  *
  * @param parentCtx Parent menu context (charIdx at +0x22, param at +0x20).
+ *        @note Structure unknown — only two fields accessed.
  */
-void func_801EE718(s32 a0) {
+void func_801EE718(u8 *parentCtx) {
     extern u8 D_801EEB28[];
     extern void func_801E7BA4();
     extern void func_801EDF04();
@@ -693,8 +694,8 @@ void func_801EE718(s32 a0) {
     if (ctx == 0) {
         goto end;
     }
-    ctx->parentParam = *(u16 *)(a0 + 0x20);
-    ctx->charIdx = *(u8 *)(a0 + 0x22);
+    ctx->parentParam = *(u16 *)(parentCtx + 0x20);
+    ctx->charIdx = parentCtx[0x22];
     ctx->discId = func_80036F60();
     ctx->discCount = func_80035A6C(ctx->discId);
     ctx->unk64 = 0;
@@ -731,11 +732,11 @@ end:
  *
  * @param a0 Menu context pointer
  */
-void func_801EE82C(s32 a0) {
+void func_801EE82C(u8 *a0) {
     extern u8 D_801EED04;
 
     func_801F1DBC(1);
-    func_801E2ABC(a0);
+    func_801E2ABC((s32)a0);
     func_801F1210(0x801D1000, 0x801CD000);
     D_801EED04 = 1;
     func_801EE718(a0);
