@@ -14,18 +14,18 @@ extern BattleCharData g_junctionPreview;
 #define JNC_ABILITY_PAGES   5    /**< Rows per ability page. */
 #define JNC_LEFT_COL_ROWS   3    /**< Rows in left stat column. */
 
-#define JNC_Y_MAGIC_LIST    0x3F /**< Y origin for magic list panel. */
-#define JNC_Y_STAT_LIST     0x42 /**< Y origin for stat junction list. */
-#define JNC_Y_LEFT_COL      0x51 /**< Y origin for left stat column. */
-#define JNC_Y_ABILITY       0x94 /**< Y origin for ability panel. */
-#define JNC_Y_RIGHT_COL     0x99 /**< Y origin for right stat column. */
+#define JNC_Y_MAGIC_LIST    63   /**< Y origin for magic list panel. */
+#define JNC_Y_STAT_LIST     66   /**< Y origin for stat junction list. */
+#define JNC_Y_LEFT_COL      81   /**< Y origin for left stat column. */
+#define JNC_Y_ABILITY       148  /**< Y origin for ability panel. */
+#define JNC_Y_RIGHT_COL     153  /**< Y origin for right stat column. */
 
-#define JNC_W_MAGIC_LIST    0x5A /**< Width of magic list entries. */
-#define JNC_W_STAT_LIST     0xDC /**< Width of stat junction list. */
-#define JNC_W_LEFT_COL      0x2B /**< Width of left stat column. */
-#define JNC_W_RIGHT_COL     0x46 /**< Width of right stat column. */
-#define JNC_W_ABILITY       0x28 /**< Width of ability entries. */
-#define JNC_W_ABILITY_WIDE  0xC8 /**< Width of wide ability entries (page 3). */
+#define JNC_W_MAGIC_LIST    90   /**< Width of magic list entries. */
+#define JNC_W_STAT_LIST     220  /**< Width of stat junction list. */
+#define JNC_W_LEFT_COL      43   /**< Width of left stat column. */
+#define JNC_W_RIGHT_COL     70   /**< Width of right stat column. */
+#define JNC_W_ABILITY       40   /**< Width of ability entries. */
+#define JNC_W_ABILITY_WIDE  200  /**< Width of wide ability entries (page 3). */
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 
@@ -292,13 +292,8 @@ void func_801E6B88(u8 *a0) {
  * @param a0 Character/slot index
  */
 void func_801E6BC8(s32 a0) {
-
-
-    s32 v0 = (s32)&g_junctionChars;
-    s32 v1 = a0 * 28 + v0;
-    s32 a1 = (s32)&g_gameState;
-
-    *(s16 *)(a1 + a0 * 152 + 0x490) = *(u16 *)(v1 + 4);
+    u16 hp = g_junctionChars[a0].currentHp;
+    g_gameState.chars[a0].currentHp = hp;
     func_801F5190();
 }
 
@@ -331,13 +326,7 @@ void func_801E6C24(s32 a0) {
  * @param a0 Character/slot index
  */
 void func_801E6CCC(s32 a0) {
-
-
-    s32 base1 = (s32)&g_gameState;
-    s32 off1 = a0 * 152;
-    s32 base2 = (s32)&g_junctionChars;
-
-    *(s16 *)(off1 + base1 + 0x4E8) = *(u16 *)(base2 + a0 * 28 + 6);
+    g_gameState.chars[a0].junctedGfs = g_junctionChars[a0].junctedGfs;
     func_801E6B88(a0);
 }
 
@@ -350,12 +339,7 @@ void func_801E6CCC(s32 a0) {
  * @param a0 Character/slot index.
  */
 void func_801E6D28(s32 a0) {
-
-
-    s32 base1 = (s32)&g_junctionChars;
-    s32 v1 = a0 * 28;
-    s32 base2 = (s32)&g_gameState;
-    *(s16 *)(v1 + base1 + 6) = *(u16 *)(base2 + a0 * 152 + 0x4E8);
+    g_junctionChars[a0].junctedGfs = g_gameState.chars[a0].junctedGfs;
 }
 
 /**
@@ -368,9 +352,7 @@ void func_801E6D28(s32 a0) {
  * @param a1 Value to store.
  */
 void func_801E6D6C(s32 a0, s32 a1) {
-
-    s32 base = (s32)&g_junctionChars;
-    *(u16 *)(base + a0 * 28 + 4) = a1;
+    g_junctionChars[a0].currentHp = a1;
 }
 
 /**
@@ -396,22 +378,11 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
  * @param a1 Junction sub-slot (0 or 1).
  */
 void func_801E6E0C(s32 a0, s32 a1) {
-
-
-    s32 i = 0;
-    s32 charBase = (s32)&g_gameState;
-    s32 a7 = charBase + a0 * 152;
-    s32 jncBase = (s32)&g_junctionChars;
-    s32 jnc = a0 * 28 + jncBase;
-    s32 a4;
-
-    a1 = a1 * 4 + jnc;
-    a4 = a1 + 0x14;
-    do {
-        *(u8 *)(a7 + i + 0x4E0) = *(u8 *)(a1 + i + 0xC);
-        *(u8 *)(a7 + i + 0x4E4) = *(u8 *)(a4 + i);
-        i++;
-    } while (i < 4);
+    s32 i;
+    for (i = 0; i < 4; i++) {
+        g_gameState.chars[a0].commands[i] = g_junctionChars[a0].commandsBackup[a1][i];
+        g_gameState.chars[a0].abilities[i] = g_junctionChars[a0].abilitiesBackup[a1][i];
+    }
 }
 
 /**
@@ -439,14 +410,9 @@ void func_801E6E88(u8 *a0) {
  * @param a0 Character/slot index
  */
 void func_801E6EC4(s32 a0) {
-
-    s32 base;
-    u16 val;
     func_801E6D8C(a0, 0);
     func_801E6D8C(a0, 1);
-    base = (s32)&g_gameState;
-    val = *(u16 *)(base + a0 * 152 + 0x490);
-    func_801E6D6C(a0, val);
+    func_801E6D6C(a0, g_gameState.chars[a0].currentHp);
     stashCharacterJunctions(a0);
 }
 
