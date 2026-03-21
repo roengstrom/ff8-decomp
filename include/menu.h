@@ -55,6 +55,10 @@ typedef struct {
     /* 0x14 */ u8 abilitiesBackup[2][4];  /**< Ability backups (2 sub-slots × 4). */
 } JunctionMenuEntry; /* 0x1C = 28 bytes */
 
+/** @brief Junction menu slot type IDs (passed to rendering dispatch). */
+#define JUNC_SLOT_DEF_ELEM   0xB  /**< Defense element junction slots. */
+#define JUNC_SLOT_DEF_STATUS 0xC  /**< Defense status junction slots. */
+
 /**
  * @brief GF entry in junction menu state (stride 12).
  */

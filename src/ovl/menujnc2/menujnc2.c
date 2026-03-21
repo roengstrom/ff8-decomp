@@ -11,45 +11,41 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
 
 /**
- * @brief Dispatch ability rendering based on type, with optional looping.
+ * @brief Dispatch ability rendering based on slot type, with optional looping.
  *
- * If type (a2) is 0xB, reads the count from g_junctionChars[a0*28 + 9] and
- * calls func_801E59A4 that many times. If type is 0xC, reads count
- * from g_junctionChars[a0*28 + 8] and loops similarly. Otherwise calls
- * func_801E59A4 once.
+ * For JUNC_SLOT_DEF_ELEM, renders once per ability in sub-slot 1.
+ * For JUNC_SLOT_DEF_STATUS, renders once per ability in sub-slot 0.
+ * Otherwise renders once.
  *
- * @param a0 Character/slot index.
- * @param a1 Ability list pointer.
- * @param a2 Type selector (0xB, 0xC, or other).
- * @param a3 Running output position (pass-through).
+ * @param charIdx Character index (0-7).
+ * @param abilityList Ability list pointer.
+ * @param slotType Type selector (JUNC_SLOT_DEF_ELEM, JUNC_SLOT_DEF_STATUS, or other).
+ * @param pos Running output position (pass-through).
  * @return Updated output position.
  */
-s32 func_801E5C5C(s32 a0, s32 a1, s32 a2, s32 a3) {
-
+s32 func_801E5C5C(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
     s32 count;
 
-    if (a2 == 0xB) {
-        s32 jncBase = (s32)&g_junctionChars;
-        count = *(u8 *)(a0 * 28 + jncBase + 9);
+    if (slotType == JUNC_SLOT_DEF_ELEM) {
+        count = g_junctionChars[charIdx].abilityCount[1];
         if (count > 0) {
             do {
-                a3 = func_801E59A4(a0, a1, a2);
+                pos = func_801E59A4(charIdx, abilityList, slotType);
                 count--;
             } while (count > 0);
         }
-    } else if (a2 == 0xC) {
-        s32 jncBase = (s32)&g_junctionChars;
-        count = *(u8 *)(a0 * 28 + jncBase + 8);
+    } else if (slotType == JUNC_SLOT_DEF_STATUS) {
+        count = g_junctionChars[charIdx].abilityCount[0];
         if (count > 0) {
             do {
-                a3 = func_801E59A4(a0, a1, a2);
+                pos = func_801E59A4(charIdx, abilityList, slotType);
                 count--;
             } while (count > 0);
         }
     } else {
-        a3 = func_801E59A4(a0, a1, a2);
+        pos = func_801E59A4(charIdx, abilityList, slotType);
     }
-    return a3;
+    return pos;
 }
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
