@@ -79,7 +79,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5D60);
  *
  * @param ctx Junction menu context.
  */
-void func_801E5EE8(JunctionMenuCtx *ctx) {
+void updateJunctionSlotCount(JunctionMenuCtx *ctx) {
     if (g_junctionChars[ctx->charIdx].gfCompat != 0) {
         ctx->slotCount = 3;
     } else {
