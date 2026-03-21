@@ -88,13 +88,15 @@ void updateJunctionSlotCount(JunctionMenuCtx *ctx) {
 }
 
 /**
- * @brief Save character junction data to backup buffer.
+ * @brief Stash a character's junction slots into the backup buffer.
  *
- * Copies the 19 junction slots + padding byte into g_junctionBackup.
+ * Saves all junction slot assignments (HP, Str, Vit, ... DefStatus)
+ * to g_junctionBackup so they can be restored later (e.g. after a
+ * junction preview or swap operation).
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E5F24(s32 charIdx) {
+void stashCharacterJunctions(s32 charIdx) {
     s32 i;
     for (i = 0; i < 20; i++) {
         g_junctionBackup[i] = g_gameState.chars[charIdx].junctions[i];
@@ -432,7 +434,7 @@ void func_801E6E88(u8 *a0) {
  * Calls func_801E6D8C twice to clear both junction slots, then reads
  * the ability value from g_gameState[a0*152 + 0x490] and stores it
  * to the junction table via func_801E6D6C. Finally refreshes display
- * via func_801E5F24.
+ * via stashCharacterJunctions.
  *
  * @param a0 Character/slot index
  */
@@ -445,7 +447,7 @@ void func_801E6EC4(s32 a0) {
     base = (s32)&g_gameState;
     val = *(u16 *)(base + a0 * 152 + 0x490);
     func_801E6D6C(a0, val);
-    func_801E5F24(a0);
+    stashCharacterJunctions(a0);
 }
 
 /**

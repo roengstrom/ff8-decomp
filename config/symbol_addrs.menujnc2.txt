@@ -72,3 +72,4 @@ getCharNamePtr = 0x80020E4C; // type:func
 copyString = 0x8002A2A8; // type:func
 g_battleChars = 0x80078720;
 updateJunctionSlotCount = 0x801E5EE8; // type:func
+stashCharacterJunctions = 0x801E5F24; // type:func
