@@ -16,9 +16,14 @@ extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
 extern void func_801E7BA4();
 extern void func_801EDF04();
+extern s32 D_801EEFC0[];
+extern s32 D_801EEFD0[];
+extern u8 D_801EEF10[];
+extern u8 D_801EEF38;
+extern u8 D_801EEF40[];
+extern u8 D_801EEF9A;
+extern u8 func_80036978(s32 id);
 
-typedef struct { u8 unk00[0x98]; } Unk98;
-extern Unk98 D_80077818[];
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -244,13 +249,6 @@ void restoreCharacterJunctions(s32 charIdx) {
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
 
-extern s32 D_801EEFC0[];
-extern s32 D_801EEFD0[];
-extern u8 D_801EEF10[];
-extern u8 D_801EEF38;
-extern u8 D_801EEF40[];
-extern u8 D_801EEF9A;
-extern u8 func_80036978(s32 id);
 
 /**
  * @brief Build bitmask of currently assigned commands and abilities.
@@ -292,11 +290,10 @@ void func_801E61F8(s32 charIdx) {
  * character, ORs the GF's completed abilities bitmask into D_801EEFD0.
  *
  * @param charIdx Character index (0-7).
- */
-/**
- * @note Near-match (15 diffs): register swaps in clear loop counter (a3 vs a1)
- * and inner loop pointers (a1/a2 swapped). Uses raw g_gameState offset because
- * typed struct access folds the GF data offset into the base address.
+ *
+ * @note Near-match (15 diffs): register swaps in clear loop counter
+ * and inner loop pointers. Typed struct access folds GF data offset
+ * into base address, preventing match.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6350);
 
@@ -700,7 +697,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7A80);
  * @brief Initialize GF ability assignment table for a character.
  *
  * First fills D_801EEED0[0..0x38] with 0xFF, then iterates through
- * 32 GF ability pairs from D_80077818[charIdx], storing the pair index
+ * 32 magic slots from g_gameState.chars[charIdx].magic, storing the pair index
  * into the corresponding slot if both ability bytes are nonzero.
  *
  * @param charIdx Character index (0-7).
