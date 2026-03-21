@@ -40,3 +40,4 @@ g_gameState = 0x80077378;
 getMagicNamePtr = 0x80020C08; // type:func
 getCharNamePtr = 0x80020E4C; // type:func
 copyString = 0x8002A2A8; // type:func
+g_battleChars = 0x80078720;
