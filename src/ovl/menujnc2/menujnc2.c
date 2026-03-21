@@ -114,9 +114,9 @@ void stashCharacterJunctions(s32 charIdx) {
  * @brief Restore character ability data from buffer.
  *
  * Copies 20 bytes from the junction buffer g_junctionBackup back into
- * character @p a0's ability data (g_gameState at offset 0x4EC, stride 152).
+ * the character's junction slots from g_junctionBackup.
  *
- * @param a0 Character index (0-7).
+ * @param charIdx Character index (0-7).
  *
  * @note Non-matching: Compiler swaps register allocation for g_gameState
  * and g_junctionBackup base addresses (a2/v1 vs v1/a2).
@@ -133,8 +133,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
 
 /**
  * @brief Render magic list junction entry.
- * @param a0 X position parameter.
- * @param a1 Row index (wrapped to JNC_ROWS_PER_PAGE).
+ * @param renderCtx Render context.
+ * @param row Row index (wrapped to JNC_ROWS_PER_PAGE).
  */
 void func_801E6534(s32 renderCtx, s32 row) {
     func_801F0A34(renderCtx, 0, JNC_W_MAGIC_LIST, (row % JNC_ROWS_PER_PAGE) * JNC_ROW_HEIGHT + JNC_Y_MAGIC_LIST);
@@ -145,9 +145,9 @@ void func_801E6534(s32 renderCtx, s32 row) {
  *
  * Left column (rows 0-2) or right column (rows 3-5).
  *
- * @param a0 X position parameter.
- * @param a1 Row index (0-5).
- * @param a2 Width offset to add.
+ * @param renderCtx Render context.
+ * @param row Row index (0-5).
+ * @param widthOffset Width offset to add.
  */
 void func_801E6584(s32 renderCtx, s32 row, s32 widthOffset) {
     s32 width;
@@ -166,7 +166,7 @@ void func_801E6584(s32 renderCtx, s32 row, s32 widthOffset) {
 /**
  * @brief Render stat junction list entry.
  *
- * @param a0 Entry data pointer.
+ * @param renderCtx Render context.
  * @param slotIdx Slot index (wrapped to JNC_STAT_ROWS).
  */
 void func_801E65F0(s32 renderCtx, s32 slotIdx) {
@@ -178,16 +178,16 @@ void func_801E65F0(s32 renderCtx, s32 slotIdx) {
  * @brief Look up junction ability availability mask for a given slot.
  *
  * Indexes into D_801EEAC0 to get an ability type (0-18), then checks
- * corresponding bit(s) in the junction flags word at g_junctionChars[a0 * 28].
+ * corresponding bit(s) in the junction flags word at g_junctionChars.
  * Cases 0-8 test individual bits via (1 << type), case 9 tests 0x200,
  * case 10 tests 0x400, cases 11-14 test 0x6800, cases 15-18 test 0x19000.
  *
- * @param a0 Character/slot index.
- * @param a1 Ability slot offset into D_801EEAC0.
+ * @param charIdx Character index.
+ * @param slotOffset Ability slot offset into D_801EEAC0.
  * @return Masked flags value, or 0 if type >= 19.
  *
  * @note Non-matching: compiler adds extra andi for u8 masking, uses
- * different register allocation (a2 vs a0 for type), reorders switch
+ * different register allocation for type variable, reorders switch
  * case bodies, and generates jump table at different rodata offset.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
@@ -197,8 +197,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
  *
  * Uses wide width for the last page (page 3).
  *
- * @param a0 X position parameter.
- * @param a1 Linear row index.
+ * @param renderCtx Render context.
+ * @param index Linear row index.
  */
 void func_801E66F0(s32 renderCtx, s32 index) {
     s32 width = JNC_W_ABILITY;
@@ -217,13 +217,13 @@ void func_801E66F0(s32 renderCtx, s32 index) {
 /**
  * @brief Get junction slot count based on slot type and character data.
  *
- * For slot type 0: reads g_junctionChars[a0*28 + 8] and returns val+1 if
- * nonzero, else 2. For slot type 1: reads g_junctionChars[a0*28 + 9] and
- * returns val+1 unless val+1 equals a1 (1), in which case returns 2.
+ * For slot type 0: reads g_junctionChars[charIdx].abilityCount[0] and returns val+1 if
+ * nonzero, else 2. For slot type 1: reads g_junctionChars[charIdx].abilityCount[1] and
+ * returns val+1 unless val+1 equals slotType (1), in which case returns 2.
  * Default returns 5.
  *
- * @param a0 Character/slot index.
- * @param a1 Slot type (0, 1, or other).
+ * @param charIdx Character index.
+ * @param slotType Slot type (0, 1, or other).
  * @return Slot count value.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E676C);
@@ -233,10 +233,10 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E67EC);
 /**
  * @brief Compute negative scroll offset from page index.
  *
- * Divides @p a0 by 5 to get the page number, clamps to a maximum of 2,
+ * Divides index by 5 to get the page number, clamps to a maximum of 2,
  * then returns the negative offset as -(page * 160).
  *
- * @param a0 Linear item index.
+ * @param index Linear item index.
  * @return Negative pixel offset for scrolling (0, -160, or -320).
  */
 s32 func_801E68AC(s32 index) {
@@ -254,7 +254,7 @@ s32 func_801E68EC(s32 pos) {
 
 /**
  * @brief Draw inner panel with section id 0xB and set flag.
- * @param a0 Panel position parameter
+ * @param pos Panel position parameter
  * @return Result of func_801F08D4
  */
 s32 func_801E6918(s32 pos) {
@@ -264,12 +264,12 @@ s32 func_801E6918(s32 pos) {
 /**
  * @brief Clear unlearned or out-of-range abilities from junction slots.
  *
- * Iterates through 4 ability slots at g_gameState[a0*152 + 0x4E0..0x4E3].
+ * Iterates through 4 ability slots at g_gameState.chars[charIdx].commands.
  * For each nonzero ability ID, checks if the ability is available
- * (learned via D_801EEFD0 bitmask) and in range [0x14, 0x27). If not
+ * (learned via ability bitmask) and in range [0x14, 0x27). If not
  * available or out of range, clears the slot to 0.
  *
- * @param a0 Character index.
+ * @param charIdx Character index.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6944);
 
@@ -281,7 +281,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
  * Calls func_801E61F8, func_801E6350, func_801E6944, and
  * func_801E69E0 in sequence with the party context.
  *
- * @param a0 Party context pointer.
+ * @param charIdx Character index (0-7).
  */
 void func_801E6B88(s32 charIdx) {
     func_801E61F8();
@@ -293,10 +293,9 @@ void func_801E6B88(s32 charIdx) {
 /**
  * @brief Copy ability value from junction table to character data and update.
  *
- * Reads a 16-bit value from g_junctionChars[a0 * 28 + 4] and writes it to
- * g_gameState[a0 * 152 + 0x490], then calls func_801F5190 to update.
+ * Copies cached HP from g_junctionChars to g_gameState.chars, then calls func_801F5190 to update.
  *
- * @param a0 Character/slot index
+ * @param charIdx Character index (0-7).
  */
 void func_801E6BC8(s32 charIdx) {
     u16 hp = g_junctionChars[charIdx].currentHp;
@@ -311,7 +310,7 @@ void func_801E6BC8(s32 charIdx) {
  * recalculates stats, copies the result to the preview buffer, then
  * restores the original junction state.
  *
- * @param a0 Character index (0-7).
+ * @param charIdx Character index (0-7).
  */
 void func_801E6C24(s32 charIdx) {
     u16 saved = g_gameState.chars[charIdx].junctedGfs;
@@ -327,10 +326,9 @@ void func_801E6C24(s32 charIdx) {
 /**
  * @brief Copy ability value from junction table to character data and refresh.
  *
- * Reads a 16-bit value from g_junctionChars[a0 * 28 + 6] and writes it to
- * g_gameState[a0 * 152 + 0x4E8], then calls func_801E6B88 to refresh display.
+ * Copies juncted GFs from g_junctionChars to g_gameState.chars and refreshes display.
  *
- * @param a0 Character/slot index
+ * @param charIdx Character index (0-7).
  */
 void func_801E6CCC(s32 charIdx) {
     g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
@@ -340,10 +338,9 @@ void func_801E6CCC(s32 charIdx) {
 /**
  * @brief Copy ability halfword from character data to junction table.
  *
- * Reads a 16-bit value from g_gameState[a0 * 152 + 0x4E8] and stores it
- * to g_junctionChars[a0 * 28 + 6].
+ * Copies juncted GFs from g_gameState.chars to g_junctionChars.
  *
- * @param a0 Character/slot index.
+ * @param charIdx Character index (0-7).
  */
 void func_801E6D28(s32 charIdx) {
     g_junctionChars[charIdx].junctedGfs = g_gameState.chars[charIdx].junctedGfs;
@@ -352,11 +349,10 @@ void func_801E6D28(s32 charIdx) {
 /**
  * @brief Store a halfword into junction table entry.
  *
- * Indexes into g_junctionChars at stride 28 (a0 * 28), and stores
- * a1 as a halfword at offset +4.
+ * Sets the cached HP value in g_junctionChars for a character.
  *
- * @param a0 Junction entry index.
- * @param a1 Value to store.
+ * @param charIdx Character index (0-7).
+ * @param hp HP value to store.
  */
 void func_801E6D6C(s32 charIdx, s32 hp) {
     g_junctionChars[charIdx].currentHp = hp;
@@ -365,24 +361,22 @@ void func_801E6D6C(s32 charIdx, s32 hp) {
 /**
  * @brief Copy character ability data to junction table slot.
  *
- * Copies 4 bytes from character data g_gameState[a0*152 + 0x4E0] and
- * g_gameState[a0*152 + 0x4E4] into junction table g_junctionChars[a0*28 + a1*4 + 0xC]
- * and g_junctionChars[a0*28 + a1*4 + 0x14] respectively.
+ * Copies 4 bytes from character data g_gameState.chars[charIdx].commands and abilities into
+ * g_junctionChars[charIdx].commandsBackup[subSlot] and abilitiesBackup[subSlot].
  *
- * @param a0 Character/slot index.
- * @param a1 Junction sub-slot (0 or 1).
+ * @param charIdx Character index (0-7).
+ * @param subSlot Junction sub-slot (0 or 1).
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6D8C);
 
 /**
  * @brief Copy junction slot data back to character ability data.
  *
- * Copies 4 bytes from junction table g_junctionChars[a0*28 + a1*4 + 0xC] and
- * g_junctionChars[a0*28 + a1*4 + 0x14] into character data g_gameState[a0*152 + 0x4E0]
- * and g_gameState[a0*152 + 0x4E4] respectively.
+ * Copies 4 bytes from junction table g_junctionChars[charIdx].commandsBackup[subSlot] and abilitiesBackup[subSlot]
+ * into g_gameState.chars[charIdx].commands and abilities.
  *
- * @param a0 Character/slot index.
- * @param a1 Junction sub-slot (0 or 1).
+ * @param charIdx Character index (0-7).
+ * @param subSlot Junction sub-slot (0 or 1).
  */
 void func_801E6E0C(s32 charIdx, s32 subSlot) {
     s32 i;
@@ -395,10 +389,10 @@ void func_801E6E0C(s32 charIdx, s32 subSlot) {
 /**
  * @brief Initialize junction entry and refresh display.
  *
- * Calls func_801E6D28, then func_801E6E0C with the context and
- * flag 0, then func_801E5F78 to refresh.
+ * Saves juncted GFs, restores commands/abilities from sub-slot 0,
+ * then restores junction slots from backup.
  *
- * @param a0 Junction context pointer.
+ * @param charIdx Character index (0-7).
  */
 void func_801E6E88(s32 charIdx) {
     func_801E6D28(charIdx);
@@ -410,11 +404,11 @@ void func_801E6E88(s32 charIdx) {
  * @brief Reset junction slots and copy ability value from character data.
  *
  * Calls func_801E6D8C twice to clear both junction slots, then reads
- * the ability value from g_gameState[a0*152 + 0x490] and stores it
+ * the ability value from g_gameState.chars[charIdx].currentHp and stores it
  * to the junction table via func_801E6D6C. Finally refreshes display
  * via stashCharacterJunctions.
  *
- * @param a0 Character/slot index
+ * @param charIdx Character index (0-7).
  */
 void func_801E6EC4(s32 charIdx) {
     func_801E6D8C(charIdx, 0);
@@ -426,12 +420,12 @@ void func_801E6EC4(s32 charIdx) {
 /**
  * @brief Rebuild junction flags and stat limits from GF data.
  *
- * Iterates through 16 GFs, checking each GF bit in g_junctionChars[a0*28 + 6].
- * For each active GF, ORs its flag word from D_801EED10[gf*12] into the
+ * Iterates through 16 GFs, checking each GF bit in g_junctionChars[charIdx].junctedGfs.
+ * For each active GF, ORs its flag word from D_801EED10[gf] into the
  * combined flags, and updates the maximum stat byte indices from
- * D_801EED10[gf*12 + 6/7/8]. Stores the result back into g_junctionChars.
+ * D_801EED10[gf] fields. Stores the result back into g_junctionChars.
  *
- * @param a0 Character index.
+ * @param charIdx Character index.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6F30);
 
@@ -445,9 +439,9 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E70C8);
  * Decodes stat names into two stack buffers, computes the stat difference
  * between current and new values, and renders as a progress bar.
  *
- * @param a0 Pointer to junction context (with stat table at +0x28, index at +0x4E).
- * @param a1 Render context parameter.
- * @param a2 Column index for rendering.
+ * @param ctx Pointer to JunctionMenuCtx.
+ * @param renderCtx Render context parameter.
+ * @param column Column index for rendering.
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E717C);
 
@@ -456,12 +450,12 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
 /**
  * @brief Toggle a GF junction for a character.
  *
- * Checks if GF bit (1 << a1) is already set in g_junctionChars[a0*28 + 6].
+ * Checks if GF bit (1 << a1) is already set in g_junctionChars[charIdx].junctedGfs.
  * If set, returns 0. If not set, ORs the bit in, records the character
- * index at D_801EED10[a1*12 + 5], rebuilds ability table, updates display.
+ * index at D_801EED10[gfIdx].charIdx, rebuilds ability table, updates display.
  *
- * @param a0 Character/slot index.
- * @param a1 GF index (0-15).
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (0-15).
  * @return 1 if junction was toggled, 0 if already set.
  */
 s32 func_801E72CC(s32 charIdx, s32 gfIdx) {
@@ -499,7 +493,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E75C0);
  * Calls func_801E75C0 and if the result is non-zero, calls func_801E6C24,
  * func_801E6B88, then func_801E6C24 again, all with the same parameter.
  *
- * @param a0 Parameter passed to the three conditional calls
+ * @param charIdx Character index passed to the conditional calls
  * @return Result from func_801E75C0
  */
 s32 func_801E76DC(s32 charIdx) {
@@ -522,9 +516,9 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E79A4);
  *
  * Calls func_801E63FC to update ability lists, then determines a flag
  * byte based on available abilities (D_801EEF38 + D_801EEF9A counts)
- * and junction table state (g_junctionChars[a0*28 + 6], [+0], [+0xB]).
+ * and junction table state (g_junctionChars[charIdx].junctedGfs, [+0], [+0xB]).
  *
- * @param a0 Character/slot index.
+ * @param charIdx Character index (0-7).
  * @return Navigation flag byte (combination of 0x1, 0x2, 0x4, 0x9).
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7A80);
@@ -533,10 +527,10 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7A80);
  * @brief Initialize GF ability assignment table for a character.
  *
  * First fills D_801EEED0[0..0x38] with 0xFF, then iterates through
- * 32 GF ability pairs from D_80077818[a0*152], storing the pair index
+ * 32 GF ability pairs from D_80077818[charIdx], storing the pair index
  * into the corresponding slot if both ability bytes are nonzero.
  *
- * @param a0 Character index (0-7).
+ * @param charIdx Character index (0-7).
  */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7B1C);
 
@@ -593,12 +587,12 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBD90);
 /**
  * @brief Check junction ability mask compatibility.
  *
- * If a0 has any bits in common with a2, returns 7 (incompatible).
- * Otherwise returns whether a1 shares any bits with a2.
+ * If currentMask has any bits in common with abilityBit, returns 7
+ * (incompatible). Otherwise returns whether availMask has the bit set.
  *
- * @param a0 Current junction mask.
- * @param a1 Available abilities mask.
- * @param a2 Ability bit to check.
+ * @param currentMask Current junction mask.
+ * @param availMask Available abilities mask.
+ * @param abilityBit Ability bit to check.
  * @return 7 if already junctioned, 1 if available, 0 if not.
  *
  */
@@ -632,8 +626,8 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
  * Sets up the menu display config with the given position and a fixed
  * size of 0x150 x 0x48, clears icon fields, then calls func_801EF9AC.
  *
- * @param a0 First parameter passed through to func_801EF9AC.
- * @param a1 Second parameter passed through to func_801EF9AC.
+ * @param ctx Render context passed through to func_801EF9AC.
+ * @param mode Render mode passed through to func_801EF9AC.
  * @param x X position for the display panel.
  * @param y Y position for the display panel.
  * @param renderParam Render parameter passed to func_801EF9AC (on stack).
@@ -725,7 +719,7 @@ void func_801EE718(MenuParentCtx *parentCtx) {
  * configuring display areas, setting the active flag g_junctionMenuActive to 1,
  * then entering the main junction menu handler.
  *
- * @param a0 Menu context pointer
+ * @param parentCtx Parent menu context.
  */
 void func_801EE82C(MenuParentCtx *parentCtx) {
 
@@ -742,7 +736,7 @@ void func_801EE82C(MenuParentCtx *parentCtx) {
  * Calls func_801F1DBC(1), clears g_junctionMenuActive, then calls
  * func_801EE718 with the context.
  *
- * @param a0 Junction context pointer.
+ * @param charIdx Character index (0-7).
  */
 void func_801EE888(MenuParentCtx *parentCtx) {
     func_801F1DBC(1);
