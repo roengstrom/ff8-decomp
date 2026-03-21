@@ -6,6 +6,7 @@
 extern JunctionMenuEntry g_junctionChars[];
 extern u8 g_junctionBackup[20];
 extern BattleCharData g_junctionPreview;
+extern u8 g_junctionMenuActive;
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -724,32 +725,30 @@ void func_801EE718(MenuParentCtx *parentCtx) {
  * @brief Initialize junction menu: set mode 1, configure display, enable flag.
  *
  * Sets up the junction menu display by calling initialization functions,
- * configuring display areas, setting the active flag D_801EED04 to 1,
+ * configuring display areas, setting the active flag g_junctionMenuActive to 1,
  * then entering the main junction menu handler.
  *
  * @param a0 Menu context pointer
  */
 void func_801EE82C(MenuParentCtx *parentCtx) {
-    extern u8 D_801EED04;
 
     func_801F1DBC(1);
     func_801E2ABC((s32)parentCtx);
     func_801F1210(0x801D1000, 0x801CD000);
-    D_801EED04 = 1;
+    g_junctionMenuActive = 1;
     func_801EE718(parentCtx);
 }
 
 /**
  * @brief Reset junction menu state and reinitialize.
  *
- * Calls func_801F1DBC(1), clears D_801EED04, then calls
+ * Calls func_801F1DBC(1), clears g_junctionMenuActive, then calls
  * func_801EE718 with the context.
  *
  * @param a0 Junction context pointer.
  */
 void func_801EE888(MenuParentCtx *parentCtx) {
-    extern u8 D_801EED04;
     func_801F1DBC(1);
-    D_801EED04 = 0;
+    g_junctionMenuActive = 0;
     func_801EE718(parentCtx);
 }
