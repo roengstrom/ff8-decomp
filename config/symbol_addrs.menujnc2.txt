@@ -75,3 +75,4 @@ updateJunctionSlotCount = 0x801E5EE8; // type:func
 stashCharacterJunctions = 0x801E5F24; // type:func
 g_menuDisplayCfg = 0x801FAB00;
 g_menuColor = 0x80083848;
+g_junctionGfTable = 0x801EED10;

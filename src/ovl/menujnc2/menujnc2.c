@@ -4,7 +4,7 @@
 #include "battle.h"
 
 extern JunctionMenuEntry g_junctionChars[];
-extern JunctionGfEntry D_801EED10[];
+extern JunctionGfEntry g_junctionGfTable[];
 extern u8 g_junctionBackup[20];
 extern u8 D_801EEB28[];
 extern BattleCharData g_junctionPreview;
@@ -421,9 +421,9 @@ void func_801E6EC4(s32 charIdx) {
  * @brief Rebuild junction flags and stat limits from GF data.
  *
  * Iterates through 16 GFs, checking each GF bit in g_junctionChars[charIdx].junctedGfs.
- * For each active GF, ORs its flag word from D_801EED10[gf] into the
+ * For each active GF, ORs its flag word from g_junctionGfTable[gf] into the
  * combined flags, and updates the maximum stat byte indices from
- * D_801EED10[gf] fields. Stores the result back into g_junctionChars.
+ * g_junctionGfTable[gf] fields. Stores the result back into g_junctionChars.
  *
  * @param charIdx Character index.
  */
@@ -452,7 +452,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
  *
  * Checks if GF bit (1 << a1) is already set in g_junctionChars[charIdx].junctedGfs.
  * If set, returns 0. If not set, ORs the bit in, records the character
- * index at D_801EED10[gfIdx].charIdx, rebuilds ability table, updates display.
+ * index at g_junctionGfTable[gfIdx].charIdx, rebuilds ability table, updates display.
  *
  * @param charIdx Character index (0-7).
  * @param gfIdx GF index (0-15).
@@ -467,7 +467,7 @@ s32 func_801E72CC(s32 charIdx, s32 gfIdx) {
         return 0;
     }
     g_junctionChars[charIdx].junctedGfs = flags | mask;
-    D_801EED10[gfIdx].charIdx = charIdx;
+    g_junctionGfTable[gfIdx].charIdx = charIdx;
     func_801E6F30(charIdx);
     func_801E6E0C(charIdx, 1);
     func_801E6B88(charIdx);
