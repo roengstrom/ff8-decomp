@@ -226,10 +226,78 @@ void restoreCharacterJunctions(s32 charIdx) {
     }
 }
 
+/**
+ * @brief Assign a command or ability to a character's junction slot.
+ *
+ * Looks up the actual command/ability ID from a lookup table (D_801EEF10
+ * for commands, D_801EEF40 for abilities), clears any duplicate assignments
+ * in the same slot group, and writes the new value. Plays a success or
+ * error sound depending on whether a change was made.
+ *
+ * @param charIdx Character index (0-7).
+ * @param slotIndex Slot index (0-2 = commands, 3-6 = abilities).
+ * @param mode Lookup table selector (1 = commands, 2 = abilities).
+ * @param selection Menu selection index into the lookup table.
+ * @param doWrite If nonzero, write the new value; if zero, just clear duplicates.
+ *
+ * @see https://decomp.me/scratch/ZRPWL
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E61F8);
+extern s32 D_801EEFC0[];
+extern s32 D_801EEFD0[];
+extern u8 D_801EEF10[];
+extern u8 D_801EEF38;
+extern u8 D_801EEF40[];
+extern u8 D_801EEF9A;
+extern u8 func_80036978(s32 id);
 
+/**
+ * @brief Build bitmask of currently assigned commands and abilities.
+ *
+ * Clears D_801EEFC0 (4 words), then sets a bit for each nonzero
+ * command (3 slots) and ability (variable count from g_junctionChars).
+ *
+ * @param charIdx Character index (0-7).
+ */
+void func_801E61F8(s32 charIdx) {
+    s32 i;
+
+    for (i = 3; i >= 0; i--) {
+        D_801EEFC0[i] = 0;
+    }
+
+    for (i = 0; i < 3; i++) {
+        s32 cmd = g_gameState.chars[charIdx].commands[i];
+        if (cmd != 0) {
+            D_801EEFC0[cmd / 32] |= (1 << (cmd & 0x1F));
+        }
+    }
+
+    i = 0;
+    if (g_junctionChars[charIdx].unk0A != 0) {
+        do {
+            s32 abl = g_gameState.chars[charIdx].abilities[i];
+            if (abl != 0) {
+                D_801EEFC0[abl / 32] |= (1 << (abl & 0x1F));
+            }
+        } while (++i < g_junctionChars[charIdx].unk0A);
+    }
+}
+
+/**
+ * @brief Build bitmask of available abilities from junctioned GFs.
+ *
+ * Clears D_801EEFD0 (4 words), then for each GF junctioned to this
+ * character, ORs the GF's completed abilities bitmask into D_801EEFD0.
+ *
+ * @param charIdx Character index (0-7).
+ */
+/**
+ * @note Near-match (15 diffs): register swaps in clear loop counter (a3 vs a1)
+ * and inner loop pointers (a1/a2 swapped). Uses raw g_gameState offset because
+ * typed struct access folds the GF data offset into the base address.
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6350);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
@@ -387,7 +455,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
  * @param charIdx Character index (0-7).
  */
 void func_801E6B88(s32 charIdx) {
-    func_801E61F8();
+    func_801E61F8(charIdx);
     func_801E6350(charIdx);
     func_801E6944(charIdx);
     func_801E69E0(charIdx);
