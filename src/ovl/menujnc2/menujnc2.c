@@ -459,21 +459,15 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
  * @return 1 if junction was toggled, 0 if already set.
  */
 s32 func_801E72CC(s32 charIdx, s32 gfIdx) {
-
     s32 one = 1;
-    s32 jncBase = (s32)&g_junctionChars;
-    s32 jnc = charIdx * 28 + jncBase;
-    u16 flags = *(u16 *)(jnc + 6);
+    u16 flags = g_junctionChars[charIdx].junctedGfs;
     s32 mask = one << gfIdx;
 
     if (flags & mask) {
         return 0;
     }
-    {
-        s32 tblBase = (s32)D_801EED10;
-        *(s16 *)(jnc + 6) = flags | mask;
-        *(u8 *)(gfIdx * 12 + tblBase + 5) = charIdx;
-    }
+    g_junctionChars[charIdx].junctedGfs = flags | mask;
+    D_801EED10[gfIdx].charIdx = charIdx;
     func_801E6F30(charIdx);
     func_801E6E0C(charIdx, 1);
     func_801E6B88(charIdx);
