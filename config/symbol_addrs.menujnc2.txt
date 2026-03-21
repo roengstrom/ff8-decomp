@@ -1,6 +1,7 @@
 func_801E59A4 = 0x801E59A4; // type:func
 renderJunctionSlots = 0x801E5C5C; // type:func
 autoJunctionAll = 0x801E5D60; // type:func
+restoreCharacterJunctions = 0x801E5F78; // type:func
 func_801E5FCC = 0x801E5FCC; // type:func
 func_801E63FC = 0x801E63FC; // type:func
 func_801E6534 = 0x801E6534; // type:func

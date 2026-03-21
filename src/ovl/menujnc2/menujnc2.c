@@ -3,6 +3,9 @@
 #include "gamestate.h"
 #include "battle.h"
 
+/** @brief Auto-junction priority tables (Atk/Mag/Def), each a 0xFF-terminated slot type list. */
+extern u8 *g_autoJunctionPriority[];
+
 extern JunctionMenuEntry g_junctionChars[];
 extern JunctionGfEntry g_junctionGfTable[];
 extern u8 g_junctionBackup[20];
@@ -111,9 +114,6 @@ s32 renderJunctionSlots(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
     return pos;
 }
 
-/** @brief Auto-junction priority tables (Atk/Mag/Def), each a 0xFF-terminated slot type list. */
-extern u8 *g_autoJunctionPriority[];
-
 /**
  * @brief Auto-junction all slots for a character.
  *
@@ -212,17 +212,19 @@ void stashCharacterJunctions(s32 charIdx) {
 }
 
 /**
- * @brief Restore character ability data from buffer.
+ * @brief Restore character junction slots from backup.
  *
- * Copies 20 bytes from the junction buffer g_junctionBackup back into
- * the character's junction slots from g_junctionBackup.
+ * Copies 20 bytes from g_junctionBackup back into the character's
+ * junction slots. Reverses stashCharacterJunctions.
  *
  * @param charIdx Character index (0-7).
- *
- * @note Non-matching: Compiler swaps register allocation for g_gameState
- * and g_junctionBackup base addresses (a2/v1 vs v1/a2).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5F78);
+void restoreCharacterJunctions(s32 charIdx) {
+    s32 i;
+    for (i = 0; i < JUNCTION_SLOT_SIZE; i++) {
+        g_gameState.chars[charIdx].junctions[i] = g_junctionBackup[i];
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
 
@@ -498,7 +500,7 @@ void func_801E6E0C(s32 charIdx, s32 subSlot) {
 void func_801E6E88(s32 charIdx) {
     func_801E6D28(charIdx);
     func_801E6E0C(charIdx, 0);
-    func_801E5F78(charIdx);
+    restoreCharacterJunctions(charIdx);
 }
 
 /**
