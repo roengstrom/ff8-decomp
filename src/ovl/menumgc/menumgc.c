@@ -553,9 +553,9 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB0F4);
 /**
  * @brief Render a list item with name lookup and positioned text.
  *
- * Loads the item pointer from D_801FAB00+0x20 at offset a2*4, decodes
+ * Loads the item pointer from g_menuDisplayCfg+0x20 at offset a2*4, decodes
  * a name string via func_8002F688 and renders it via func_801F0FEC.
- * Position is computed from D_801FAB00 fields + the 5th stack arg + 0xA.
+ * Position is computed from g_menuDisplayCfg fields + the 5th stack arg + 0xA.
  *
  * @param a0 Render context pointer.
  * @param a1 Current display state value.
@@ -568,7 +568,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB1A0);
 /**
  * @brief Register a list-style menu display callback with header config.
  *
- * Configures the D_801FAB00 menu display config struct with icon type 0x55,
+ * Configures the g_menuDisplayCfg menu display config struct with icon type 0x55,
  * dimensions (0x144 x 0x1A), scroll enabled, page mode, and registers
  * func_801EB1A0 as the display callback via func_801EFBB4.
  *
@@ -579,9 +579,9 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB1A0);
  * @param arg4 Y2 position for menu display.
  */
 void func_801EB250(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 D_801FAB00[];
+    extern u8 g_menuDisplayCfg[];
     extern void func_801EB1A0();
-    u8 *cfg = D_801FAB00;
+    u8 *cfg = g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;

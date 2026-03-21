@@ -411,3 +411,5 @@ func_80151B5C = 0x80151B5C; // type:u32
 func_80151B74 = 0x80151B74; // type:u32
 func_80159718 = 0x80159718; // type:u32
 g_gameState = 0x80077378;
+g_menuDisplayCfg = 0x801FAB00;
+g_menuColor = 0x80083848;

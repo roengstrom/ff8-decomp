@@ -7,8 +7,8 @@ extern JunctionMenuEntry g_junctionChars[];
 extern u8 g_junctionBackup[20];
 extern BattleCharData g_junctionPreview;
 extern u8 g_junctionMenuActive;
-extern MenuDisplayConfig D_801FAB00;
-extern s32 D_80083848;
+extern MenuDisplayConfig g_menuDisplayCfg;
+extern s32 g_menuColor;
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -636,13 +636,13 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
  * @param a4 Fifth parameter passed as a2 to func_801EF9AC (on stack).
  */
 void func_801ECE2C(s32 a0, s32 a1, s32 x, s32 y, s32 a4) {
-    D_801FAB00.iconType = 0;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = x;
-    D_801FAB00.w = 0x150;
-    D_801FAB00.h = 0x48;
-    D_801FAB00.y = y;
-    func_801EF9AC(a0, a1, a4, D_80083848);
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = x;
+    g_menuDisplayCfg.w = 0x150;
+    g_menuDisplayCfg.h = 0x48;
+    g_menuDisplayCfg.y = y;
+    func_801EF9AC(a0, a1, a4, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECE80);

@@ -90,7 +90,7 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E68A4);
 /**
  * @brief Configure and draw a status menu panel border.
  *
- * Sets up D_801FAB00 with no icon, position from a2/a3,
+ * Sets up g_menuDisplayCfg with no icon, position from a2/a3,
  * fixed size (0xF4 x 0x12), then draws via func_801EF9AC.
  *
  * @param a0 Display list pointer
@@ -99,10 +99,10 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E68A4);
  * @param a3 Y position
  */
 void func_801E6994(s32 a0, s32 a1, s16 a2, s16 a3) {
-    extern u8 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u8 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
 
-    s32 cfg = (s32)D_801FAB00;
+    s32 cfg = (s32)g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
@@ -110,7 +110,7 @@ void func_801E6994(s32 a0, s32 a1, s16 a2, s16 a3) {
     *(s16 *)(cfg + 0x4) = 0xF4;
     *(s16 *)(cfg + 0x6) = 0x12;
     *(s16 *)(cfg + 0x2) = a3;
-    func_801EF9AC(a0, a1, 0x1000, D_80083848);
+    func_801EF9AC(a0, a1, 0x1000, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E69E4);
@@ -248,10 +248,10 @@ void func_801E8950(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
  */
 void func_801E8990(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6, s32 arg7) {
     extern s32 D_801E961C[];
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     s32 (*fn)(s32, s32, s32, s32, s32, s32) = (void *)D_801E961C[a1];
     s32 result = fn(a0, a2, a3, arg5, arg6, arg7);
-    func_801EF9AC(a2, result, arg7, D_80083848);
+    func_801EF9AC(a2, result, arg7, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E8A08);

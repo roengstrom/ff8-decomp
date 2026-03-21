@@ -66,7 +66,7 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6A8C);
 /**
  * @brief Configure GF ability list display and register callback.
  *
- * Sets up D_801FAB00 display config with icon 0x55, dimensions 0x144 x 0x1A,
+ * Sets up g_menuDisplayCfg display config with icon 0x55, dimensions 0x144 x 0x1A,
  * scroll enabled, and page mode. Reads total item count from offset 0x28
  * and data pointer from offset 0x20. Registers func_801E6A8C as callback.
  *
@@ -77,13 +77,13 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6A8C);
  * @param arg4 Y position for display config.
  */
 void func_801E6B3C(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 D_801FAB00[];
+    extern u8 g_menuDisplayCfg[];
     extern void func_801E6A8C();
-    u8 *cfg = D_801FAB00;
+    u8 *cfg = g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)&g_menuDisplayCfg[0] = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x1A;
     *(u8 *)(cfg + 0x13) = 1;
@@ -101,7 +101,7 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6BB8);
  * @brief Set up GF summary display with icon and border rendering.
  *
  * Calls func_80036F60 to get a status value, then passes it along with
- * position constants to func_801E69B0 for rendering. Configures D_801FAB00
+ * position constants to func_801E69B0 for rendering. Configures g_menuDisplayCfg
  * with icon 0x50, position (0x18, 0x38), dimensions (0x150 x 0xA0), and
  * calls func_801EF9AC for final display.
  *
@@ -109,8 +109,8 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6BB8);
  * @param a1 Render context.
  */
 void func_801E6C84(s32 a0, s32 a1) {
-    extern u8 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u8 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
     s32 ctx = a0;
     s32 renderCtx = a1;
     s32 result;
@@ -118,14 +118,14 @@ void func_801E6C84(s32 a0, s32 a1) {
 
     result = func_80036F60() & 0xFFFF;
     result = func_801E69B0(ctx, renderCtx, 0x18, 0x38, result);
-    cfg = D_801FAB00;
+    cfg = g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x50;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = 0x18;
+    *(s16 *)&g_menuDisplayCfg[0] = 0x18;
     *(s16 *)(cfg + 0x02) = 0x38;
     *(s16 *)(cfg + 0x04) = 0x150;
     *(s16 *)(cfg + 0x06) = 0xA0;
-    func_801EF9AC(ctx, result, 0x1000, D_80083848);
+    func_801EF9AC(ctx, result, 0x1000, g_menuColor);
 }
 
 /**
@@ -151,7 +151,7 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     s32 new_var;
     s32 new_var4;
     extern u8 g_gameState[];
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     unsigned char new_var3;
     s32 base;
     s32 new_var2;
@@ -166,7 +166,7 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     new_var2 = arg4;
 
     if (((*((u16 *)((base + ((2 * new_var2) * 76)) + new_var5))) >> arg6) & 1) {
-        new_var4 = D_80083848;
+        new_var4 = g_menuColor;
         result = (new_var2 = new_var4);
         a1 = func_8002FF34(a0, a1, 0xC0, a2 - 10, a3, result);
     }

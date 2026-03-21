@@ -404,8 +404,8 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7C9C);
 /**
  * @brief Render text entry from data table at computed position.
  *
- * Looks up a pointer from the D_801FAB00 table at index a2, decodes it
- * with func_8002F688, then renders at position computed from D_801FAB00
+ * Looks up a pointer from the g_menuDisplayCfg table at index a2, decodes it
+ * with func_8002F688, then renders at position computed from g_menuDisplayCfg
  * base coordinates plus offsets.
  *
  * @param a0 Render context
@@ -415,9 +415,9 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7C9C);
  * @param arg5 X offset added to base position
  * @return Result of func_801F0FEC if entry exists, otherwise a1
  *
- * @note Non-matching: compiler assigns D_801FAB00 lui result to $v1 and
+ * @note Non-matching: compiler assigns g_menuDisplayCfg lui result to $v1 and
  * full address to $a3, but original has lui in $a3 and full address in $v1.
- * This swaps all subsequent register uses for D_801FAB00 access and changes
+ * This swaps all subsequent register uses for g_menuDisplayCfg access and changes
  * prologue save interleaving. 13 of 44 instructions differ.
  */
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
@@ -425,7 +425,7 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
 /**
  * @brief Configure display parameters and invoke callback for extension rendering.
  *
- * Sets up D_801FAB00 display configuration with the given position and size,
+ * Sets up g_menuDisplayCfg display configuration with the given position and size,
  * stores the pointer at a0+0x28 as the data source, reads scroll offset from
  * a0+0x3A, then calls func_801EFBB4 with func_801E7D88 as the render callback.
  *
@@ -436,11 +436,11 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
  * @param arg5 Y position for the display configuration
  */
 void func_801E7E38(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 D_801FAB00[];
-    s32 cfg = (s32)D_801FAB00;
+    extern u8 g_menuDisplayCfg[];
+    s32 cfg = (s32)g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)&g_menuDisplayCfg[0] = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x1A;
     *(u8 *)(cfg + 0x13) = 1;

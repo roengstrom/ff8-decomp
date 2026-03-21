@@ -445,7 +445,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E613C);
  * @brief Build a parameter struct on the stack and call func_8002B898.
  *
  * Constructs a 3-field struct: {u16 a2+0x80, u16 a3+0x1F, u32 0x1600D0}
- * and passes it along with the D_80083848 global to func_8002B898.
+ * and passes it along with the g_menuColor global to func_8002B898.
  *
  * @param a0 First parameter (passed through).
  * @param a1 Second parameter (passed through).
@@ -453,12 +453,12 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E613C);
  * @param a3 Height value (0x1F added).
  */
 void func_801E61C0(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     s32 buf[2];
     *(u16 *)((u8 *)buf + 0) = a2 + 0x80;
     *(u16 *)((u8 *)buf + 2) = a3 + 0x1F;
     *(s32 *)((u8 *)buf + 4) = 0x1600D0;
-    func_8002B898(a0, a1, (s32)buf, D_80083848);
+    func_8002B898(a0, a1, (s32)buf, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6204);
@@ -835,7 +835,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4);
 /**
  * @brief Copy rectangle parameters with offset and dispatch rendering.
  *
- * Copies 4 halfwords from the 5th arg pointer into D_801FAB00,
+ * Copies 4 halfwords from the 5th arg pointer into g_menuDisplayCfg,
  * adding a2 to the X coordinate and a3 to the Y coordinate.
  * Then calls func_801E9CD4 with the modified display config.
  *
@@ -846,13 +846,13 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4);
  * @param src Pointer to source rectangle (4 halfwords: x, y, w, h).
  */
 void func_801E9D84(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
-    extern s32 D_80083848;
-    extern u16 D_801FAB00[];
-    D_801FAB00[0] = src[0] + a2;
-    D_801FAB00[1] = src[1] + a3;
-    D_801FAB00[2] = src[2];
-    D_801FAB00[3] = src[3];
-    func_801E9CD4(a0, a1, (s32)D_801FAB00, D_80083848, (s32)src);
+    extern s32 g_menuColor;
+    extern u16 g_menuDisplayCfg[];
+    g_menuDisplayCfg[0] = src[0] + a2;
+    g_menuDisplayCfg[1] = src[1] + a3;
+    g_menuDisplayCfg[2] = src[2];
+    g_menuDisplayCfg[3] = src[3];
+    func_801E9CD4(a0, a1, (s32)g_menuDisplayCfg, g_menuColor, (s32)src);
 }
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9DE8);

@@ -113,7 +113,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
 /**
  * @brief Configure and draw an ability menu panel border.
  *
- * Sets up D_801FAB00 with no icon, position from a2/a3,
+ * Sets up g_menuDisplayCfg with no icon, position from a2/a3,
  * fixed size (0xF4 x 0x12), then draws via func_801EF9AC.
  *
  * @param a0 Display list pointer
@@ -122,10 +122,10 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
  * @param a3 Y position
  */
 void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
-    extern u8 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u8 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
 
-    s32 cfg = (s32)D_801FAB00;
+    s32 cfg = (s32)g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
@@ -133,14 +133,14 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
     *(s16 *)(cfg + 0x4) = 0xF4;
     *(s16 *)(cfg + 0x6) = 0x12;
     *(s16 *)(cfg + 0x2) = a3;
-    func_801EF9AC(a0, a1, 0x1000, D_80083848);
+    func_801EF9AC(a0, a1, 0x1000, g_menuColor);
 }
 
 /**
  * @brief Render ability list entry callback for scrolling panel.
  *
  * Called by the panel rendering system for each visible entry. Loads
- * a pointer from D_801FAB00+0x20, decodes it via func_8002F688 into
+ * a pointer from g_menuDisplayCfg+0x20, decodes it via func_8002F688 into
  * a text buffer, then draws the text using func_801F0FEC with
  * color code 7.
  *
@@ -159,7 +159,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3580);
 /**
  * @brief Configure and draw an ability list panel with scrolling.
  *
- * Sets up D_801FAB00 with icon type 0x55, position and scroll
+ * Sets up g_menuDisplayCfg with icon type 0x55, position and scroll
  * parameters from the source data, then registers func_801E3580
  * as the rendering callback via func_801EFBB4.
  *
@@ -170,10 +170,10 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3580);
  * @param stackArg Panel Y position (5th arg on stack)
  */
 void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    extern u8 D_801FAB00[];
+    extern u8 g_menuDisplayCfg[];
     extern void func_801E3580();
 
-    s32 cfg = (s32)D_801FAB00;
+    s32 cfg = (s32)g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
@@ -192,7 +192,7 @@ void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
 /**
  * @brief Render ability entry with conditional highlight in ability list.
  *
- * Computes x/y position from D_801FAB00 base coordinates plus column/row
+ * Computes x/y position from g_menuDisplayCfg base coordinates plus column/row
  * offsets derived from a2 (column * 11) and a3 (row * 13). If the computed
  * index is within bounds (D_801E3D9C), looks up the ability from D_801E3D84,
  * checks its type (0xFF = disabled, 0x80 = conditional, 0x81 = flag-based),
@@ -214,7 +214,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
 /**
  * @brief Configure ability list panel with character ability data and render.
  *
- * Sets up D_801FAB00 with icon type 0x5E, size 0x8A x 0xA0, 11 rows,
+ * Sets up g_menuDisplayCfg with icon type 0x5E, size 0x8A x 0xA0, 11 rows,
  * copies scroll parameters from source data (offsets 0x36, 0x37),
  * stores the total ability count and source pointer. If the count exceeds
  * 12, calls func_801F5F30/func_801F5F60 for scrollbar rendering.
@@ -227,13 +227,13 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
  * @param stackArg Panel Y position (5th arg on stack).
  */
 void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    extern u8 D_801FAB00[];
+    extern u8 g_menuDisplayCfg[];
     extern u8 D_801E3D9C;
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     extern void func_801E36AC();
 
     s32 src = a0;
-    s32 cfg = (s32)D_801FAB00;
+    s32 cfg = (s32)g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x5E;
     *(u8 *)(cfg + 0x11) = 0;
@@ -248,8 +248,8 @@ void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     *(s32 *)(cfg + 0x20) = src;
 
     if (D_801E3D9C >= 0xC) {
-        s32 scrollbar = func_801F5F30(a1, a2, a3 + 0x28, stackArg, D_80083848, *(u8 *)(src + 0x36));
-        a2 = func_801F5F60(a1, scrollbar, D_80083848, 3);
+        s32 scrollbar = func_801F5F30(a1, a2, a3 + 0x28, stackArg, g_menuColor, *(u8 *)(src + 0x36));
+        a2 = func_801F5F60(a1, scrollbar, g_menuColor, 3);
     }
     func_801EFBB4(a1, a2, (s32)func_801E36AC);
 }
@@ -257,7 +257,7 @@ void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
 /**
  * @brief Render GF ability name at computed position in ability list.
  *
- * Computes x/y position from D_801FAB00 base coordinates plus column/row
+ * Computes x/y position from g_menuDisplayCfg base coordinates plus column/row
  * offsets. If the computed index is within bounds (D_801E3DB8), looks up
  * the ability ID from D_801E3DA4, gets the name via func_801F6AA4,
  * and draws it using func_801F0FEC.
@@ -266,7 +266,7 @@ void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
  * @param a1 OT pointer.
  * @param a2 Column index.
  * @param a3 Row index (multiplied by 13 for y offset).
- * @param stackArg X base offset added to D_801FAB00.x.
+ * @param stackArg X base offset added to g_menuDisplayCfg.x.
  * @return Updated display list pointer.
  *
  * @note Non-matching: Scrambled prologue — s1 save is at position 4 instead
@@ -277,7 +277,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
 /**
  * @brief Configure GF ability list panel with scroll support and render.
  *
- * Sets up D_801FAB00 with icon type 0x49, size 0xC6 x 0xA0, 11 rows,
+ * Sets up g_menuDisplayCfg with icon type 0x49, size 0xC6 x 0xA0, 11 rows,
  * copies scroll parameters from source data (offsets 0x38, 0x39),
  * stores the GF ability count and source pointer. If the count exceeds
  * 12, renders scrollbar via func_801F5F30/func_801F5F60. Scrollbar
@@ -293,7 +293,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
 /**
  * @brief Configure GF ability list panel with scroll support and render.
  *
- * Sets up D_801FAB00 with icon type 0x49, size 0xC6 x 0xA0, 11 rows,
+ * Sets up g_menuDisplayCfg with icon type 0x49, size 0xC6 x 0xA0, 11 rows,
  * copies scroll parameters from source data (offsets 0x38, 0x39),
  * stores the GF ability count and source pointer. If the count exceeds
  * 12, renders scrollbar via func_801F5F30/func_801F5F60.

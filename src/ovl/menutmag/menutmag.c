@@ -62,7 +62,7 @@ void func_801E5F5C(s32 ctx, s32 a1, s32 display, s32 colorData, s32 src) {
 /**
  * @brief Set up display config from a source struct and render triple magic entry.
  *
- * Copies four halfwords from the source struct to D_801FAB00, adding x and y
+ * Copies four halfwords from the source struct to g_menuDisplayCfg, adding x and y
  * offsets to the first two fields. Then calls func_801E5F5C to perform the
  * actual rendering with the configured display parameters.
  *
@@ -73,14 +73,14 @@ void func_801E5F5C(s32 ctx, s32 a1, s32 display, s32 colorData, s32 src) {
  * @param src Pointer to source coordinate/size struct (4 halfwords).
  */
 void func_801E6008(s32 a0, s32 a1, s32 xOff, s32 yOff, u16 *src) {
-    extern u16 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u16 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
 
-    D_801FAB00[0] = src[0] + xOff;
-    D_801FAB00[1] = src[1] + yOff;
-    D_801FAB00[2] = src[2];
-    D_801FAB00[3] = src[3];
-    func_801E5F5C(a0, a1, D_801FAB00, D_80083848, src);
+    g_menuDisplayCfg[0] = src[0] + xOff;
+    g_menuDisplayCfg[1] = src[1] + yOff;
+    g_menuDisplayCfg[2] = src[2];
+    g_menuDisplayCfg[3] = src[3];
+    func_801E5F5C(a0, a1, g_menuDisplayCfg, g_menuColor, src);
 }
 
 /**

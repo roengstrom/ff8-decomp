@@ -20,10 +20,10 @@ void func_80033298(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
 
 
 /**
- * @brief Call func_800330F4 with a color from D_80083848 selected by arg4.
+ * @brief Call func_800330F4 with a color from g_menuColor selected by arg4.
  *
- * If arg4 >= 8, subtracts 8 and uses D_80083848[1]; otherwise uses
- * D_80083848[0]. Passes the selected color as the 5th arg and the
+ * If arg4 >= 8, subtracts 8 and uses g_menuColor[1]; otherwise uses
+ * g_menuColor[0]. Passes the selected color as the 5th arg and the
  * modified arg4 as the 6th.
  *
  * @param a0 First argument passed through.
@@ -33,7 +33,7 @@ void func_80033298(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
  * @param arg4 Mode index; values >= 8 select the alternate color table.
  */
 void func_800332C4(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern s32 D_80083848[];
+    extern s32 g_menuColor[];
     s32 idx;
     if (arg4 >= 8) {
         arg4 -= 8;
@@ -41,12 +41,12 @@ void func_800332C4(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
     } else {
         idx = 0;
     }
-    func_800330F4(a0, a1, a2, a3, D_80083848[idx], arg4);
+    func_800330F4(a0, a1, a2, a3, g_menuColor[idx], arg4);
 }
 
 
 /**
- * Calls func_800330F4 with D_80083848 as the 5th arg and 7 as the 6th.
+ * Calls func_800330F4 with g_menuColor as the 5th arg and 7 as the 6th.
  *
  * @param a0 First argument passed through
  * @param a1 Second argument passed through
@@ -54,8 +54,8 @@ void func_800332C4(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
  * @param a3 Fourth argument passed through
  */
 void func_8003331C(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern s32 D_80083848;
-    func_800330F4(a0, a1, a2, a3, D_80083848, 7);
+    extern s32 g_menuColor;
+    func_800330F4(a0, a1, a2, a3, g_menuColor, 7);
 }
 
 

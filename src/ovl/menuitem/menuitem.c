@@ -604,14 +604,14 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8024);
 /**
  * @brief Render an item description text for a specific table entry.
  *
- * Reads a data pointer from D_801FAB00[0x20] indexed by @p a2. If the pointer
+ * Reads a data pointer from g_menuDisplayCfg[0x20] indexed by @p a2. If the pointer
  * is non-null, decodes the string via func_8002F688 into a local buffer, then
- * renders it via func_801F0FEC at a position derived from D_801FAB00 fields.
+ * renders it via func_801F0FEC at a position derived from g_menuDisplayCfg fields.
  *
  * @param a0 Rendering context pointer.
  * @param a1 Current rendering state (returned unchanged if entry is null).
  * @param a2 Table entry index.
- * @param arg5 Additional offset added to D_801FAB00 X position.
+ * @param arg5 Additional offset added to g_menuDisplayCfg X position.
  * @return Updated rendering state after text is rendered.
  */
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E80D0);
@@ -619,7 +619,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E80D0);
 /**
  * @brief Configure item list display and register render callback.
  *
- * Sets up D_801FAB00 display config with icon 0x55, dimensions 0x144 x 0x1A,
+ * Sets up g_menuDisplayCfg display config with icon 0x55, dimensions 0x144 x 0x1A,
  * scroll enabled, and page mode. Computes total item count from three fields
  * at offsets 0x48, 0x4C, and 0x50 of the source struct. Registers
  * func_801E80D0 as the display callback via func_801EFBB4.
@@ -631,13 +631,13 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E80D0);
  * @param arg4 Y position for display config.
  */
 void func_801E8180(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 D_801FAB00[];
+    extern u8 g_menuDisplayCfg[];
     extern void func_801E80D0();
-    u8 *cfg = D_801FAB00;
+    u8 *cfg = g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)&g_menuDisplayCfg[0] = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x1A;
     *(u8 *)(cfg + 0x13) = 1;
@@ -743,9 +743,9 @@ void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
  * @brief Configure display rect from template and render item sprite data.
  *
  * Copies a 4-halfword rectangle template from @p arg5, adding @p a2 to the
- * X position and @p a3 to the Y position. Stores the result in D_801FAB00,
+ * X position and @p a3 to the Y position. Stores the result in g_menuDisplayCfg,
  * then calls func_801E90D8 to render with the display configuration and
- * D_80083848 as the OT pointer.
+ * g_menuColor as the OT pointer.
  *
  * @param a0 First parameter passed through to func_801E90D8.
  * @param a1 Second parameter passed through to func_801E90D8.
@@ -754,14 +754,14 @@ void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
  * @param arg5 Pointer to 4-halfword rectangle template.
  */
 void func_801E91E4(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
-    extern u16 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u16 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
 
-    D_801FAB00[0] = src[0] + a2;
-    D_801FAB00[1] = src[1] + a3;
-    D_801FAB00[2] = src[2];
-    D_801FAB00[3] = src[3];
-    func_801E90D8(a0, a1, D_801FAB00, D_80083848, src);
+    g_menuDisplayCfg[0] = src[0] + a2;
+    g_menuDisplayCfg[1] = src[1] + a3;
+    g_menuDisplayCfg[2] = src[2];
+    g_menuDisplayCfg[3] = src[3];
+    func_801E90D8(a0, a1, g_menuDisplayCfg, g_menuColor, src);
 }
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9248);
@@ -889,7 +889,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9EA8);
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9F94);
 
 /**
- * @brief Call func_800375A0 with rearranged args and D_80083848 as 6th arg.
+ * @brief Call func_800375A0 with rearranged args and g_menuColor as 6th arg.
  * @param a0 First parameter passed through
  * @param a1 Second parameter passed through
  * @param a2 Becomes 4th argument to callee
@@ -897,9 +897,9 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9F94);
  * @param arg5 Becomes 3rd argument to callee
  */
 s32 func_801EA500(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
 
-    return func_800375A0(a0, a1, arg5, a2, a3, D_80083848);
+    return func_800375A0(a0, a1, arg5, a2, a3, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EA538);
@@ -916,9 +916,9 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAA04);
  * @brief Render a menu panel with text and display configuration.
  *
  * Calls func_801EAA04 with adjusted position args (a3+8 for width,
- * arg5+0xA pushed to stack). Configures D_801FAB00 with panel position,
+ * arg5+0xA pushed to stack). Configures g_menuDisplayCfg with panel position,
  * size, and display properties, then calls func_801EF9AC with the result
- * and D_80083848 as the OT pointer.
+ * and g_menuColor as the OT pointer.
  *
  * @param a0 First parameter passed through.
  * @param a1 Text data parameter.
@@ -927,20 +927,20 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAA04);
  * @param arg5 Y position for panel.
  */
 s32 func_801EAB00(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u8 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
     s32 result;
     s32 cfg;
 
     result = func_801EAA04(a0, a1, a2, a3 + 8, arg5 + 0xA);
-    cfg = D_801FAB00;
+    cfg = g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
     *(s16 *)(cfg) = a3;
     *(s16 *)(cfg + 4) = 0x102;
     *(s16 *)(cfg + 2) = arg5;
     *(s16 *)(cfg + 6) = 0x7D;
-    return func_801EF9AC(a1, result, 0x1000, D_80083848);
+    return func_801EF9AC(a1, result, 0x1000, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAB8C);

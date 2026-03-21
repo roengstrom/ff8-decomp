@@ -122,7 +122,7 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6EB0);
 /**
  * @brief Configure display parameters and invoke callback for shop list rendering.
  *
- * Sets up the D_801FAB00 display configuration structure with the given
+ * Sets up the g_menuDisplayCfg display configuration structure with the given
  * position and size values, stores the pointer at a0+0x20 as the data source,
  * reads a halfword at a0+0x3A as the display ID, then calls func_801EFBB4
  * with func_801E6EB0 as the render callback.
@@ -134,11 +134,11 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6EB0);
  * @param arg5 X position for the display configuration.
  */
 void func_801E6F60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 D_801FAB00[];
-    s32 cfg = (s32)D_801FAB00;
+    extern u8 g_menuDisplayCfg[];
+    s32 cfg = (s32)g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)&g_menuDisplayCfg[0] = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x14;
     *(u8 *)(cfg + 0x13) = 1;
@@ -262,7 +262,7 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8AB0);
 /**
  * @brief Configure display parameters and invoke callback for shop sell rendering.
  *
- * Sets up the D_801FAB00 display configuration structure with the given
+ * Sets up the g_menuDisplayCfg display configuration structure with the given
  * position and size values, stores the pointer at a0+0x20 as the data source,
  * reads a halfword at a0+0x36 as the display ID, then calls func_801EFBB4
  * with func_801E8AB0 as the render callback.
@@ -274,11 +274,11 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8AB0);
  * @param arg5 X position for the display configuration.
  */
 void func_801E8B60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 D_801FAB00[];
-    s32 cfg = (s32)D_801FAB00;
+    extern u8 g_menuDisplayCfg[];
+    s32 cfg = (s32)g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)&g_menuDisplayCfg[0] = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x14;
     *(u8 *)(cfg + 0x13) = 1;
@@ -322,9 +322,9 @@ void func_801E90BC(void) {
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90F8);
 
 /**
- * @brief Configure shop display and render with D_801FAB00 settings.
+ * @brief Configure shop display and render with g_menuDisplayCfg settings.
  *
- * Calls func_801E90F8 with all parameters, then sets up D_801FAB00
+ * Calls func_801E90F8 with all parameters, then sets up g_menuDisplayCfg
  * display config (icon 0x57, 0x150 x 0x26, x=a3, y=arg5) and calls
  * func_801EF9AC to render.
  *
@@ -335,20 +335,20 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90F8);
  * @param arg4 Y position for display config.
  */
 void func_801E9554(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u8 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
     s32 result;
     u8 *cfg;
 
     result = func_801E90F8(a0, a1, a2, a3, arg4);
-    cfg = D_801FAB00;
+    cfg = g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x57;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&D_801FAB00[0] = a3;
+    *(s16 *)&g_menuDisplayCfg[0] = a3;
     *(s16 *)(cfg + 0x04) = 0x150;
     *(s16 *)(cfg + 0x02) = arg4;
     *(s16 *)(cfg + 0x06) = 0x26;
-    func_801EF9AC(a1, result, 0x1000, D_80083848);
+    func_801EF9AC(a1, result, 0x1000, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E95DC);

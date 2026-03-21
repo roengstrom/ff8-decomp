@@ -341,18 +341,18 @@ void func_801E64B0(s32 a0) {
  * @return Updated OT pointer from func_801EF9AC.
  */
 s32 func_801E6514(s32 a0, s32 a1) {
-    extern u8 D_801FAB00[];
+    extern u8 g_menuDisplayCfg[];
     extern s16 D_801EC410;
     extern u16 D_801EC414;
     extern u16 D_801EC416;
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     s32 ot = a1;
     s32 resource;
     s32 tw;
     s32 width;
     s32 xPos = 0x18;
     s32 yPos;
-    u8 *cfg = D_801FAB00;
+    u8 *cfg = g_menuDisplayCfg;
     yPos = 0xC4;
     if (D_801EC410 != 0) {
         resource = func_801E5800(0xE);
@@ -379,7 +379,7 @@ s32 func_801E6514(s32 a0, s32 a1) {
     *(s16 *)(cfg + 0x2) = yPos;
     *(s16 *)(cfg + 0x4) = width;
     *(s16 *)(cfg + 0x6) = 0x14;
-    return func_801EF9AC(a0, ot, 0x1000, D_80083848);
+    return func_801EF9AC(a0, ot, 0x1000, g_menuColor);
 }
 
 typedef struct {
@@ -396,7 +396,7 @@ typedef struct {
  * @brief Render the tips content panel with scroll state.
  *
  * Saves the current palette context, renders the tips text region via
- * func_8002EAD0, restores the palette, then configures the D_801FAB00
+ * func_8002EAD0, restores the palette, then configures the g_menuDisplayCfg
  * display panel and calls func_801F5F60 (if either scroll indicator is
  * active) followed by func_801EF9AC to draw the panel.
  *
@@ -405,11 +405,11 @@ typedef struct {
  * @return Updated OT pointer from func_801EF9AC.
  */
 s32 func_801E6668(s32 arg0, s32 arg1) {
-    extern WorkData D_801FAB00;
+    extern WorkData g_menuDisplayCfg;
     extern s8 D_801E8310;
     extern u16 D_801EC414;
     extern u16 D_801EC416;
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     s32 temp_s0;
     s32 var_a3;
     s32 var_s1;
@@ -420,27 +420,27 @@ s32 func_801E6668(s32 arg0, s32 arg1) {
     func_8002EAD0(arg0, 0x22, 0x23, &D_801E8310);
     var_s1 = func_8002A888();
     func_8002A8B8(temp_s0);
-    D_801FAB00.unk10 = 0;
-    D_801FAB00.unk11 = 0;
-    D_801FAB00.unk0 = 0x18;
-    D_801FAB00.unk2 = 0x1D;
-    D_801FAB00.unk4 = 0x150;
-    D_801FAB00.unk6 = 0xA7;
+    g_menuDisplayCfg.unk10 = 0;
+    g_menuDisplayCfg.unk11 = 0;
+    g_menuDisplayCfg.unk0 = 0x18;
+    g_menuDisplayCfg.unk2 = 0x1D;
+    g_menuDisplayCfg.unk4 = 0x150;
+    g_menuDisplayCfg.unk6 = 0xA7;
     var_a3 = D_801EC414 != 0xFFFF;
     if (D_801EC416 != 0xFFFF) {
         var_a3 |= 2;
     }
     if (var_a3 != 0) {
-        var_s1 = func_801F5F60(arg0, var_s1, D_80083848, var_a3);
+        var_s1 = func_801F5F60(arg0, var_s1, g_menuColor, var_a3);
     }
-    return func_801EF9AC(arg0, var_s1, 0x1000, D_80083848);
+    return func_801EF9AC(arg0, var_s1, 0x1000, g_menuColor);
 }
 
 /**
  * @brief Render tips header panel.
  *
  * Calls func_8002EAD0 to set up the display region using the D_801E7B10
- * data table, then configures D_801FAB00 with fixed panel dimensions
+ * data table, then configures g_menuDisplayCfg with fixed panel dimensions
  * and calls func_801EF9AC to render.
  *
  * @param a0 Display list pointer.
@@ -449,8 +449,8 @@ s32 func_801E6668(s32 arg0, s32 arg1) {
  */
 s32 func_801E6768(s32 a0, s32 a1) {
     extern u8 D_801E7B10[];
-    extern u8 D_801FAB00[];
-    extern s32 D_80083848;
+    extern u8 g_menuDisplayCfg[];
+    extern s32 g_menuColor;
     u8 *new_var;
     s32 ot;
     s32 disp;
@@ -460,15 +460,15 @@ s32 func_801E6768(s32 a0, s32 a1) {
         ot = a1;
         new_var = D_801E7B10;
         func_8002EAD0(disp, 0x24, 0xC, (((s32)new_var) + ot) - ot);
-        cfg = (s32)D_801FAB00;
+        cfg = (s32)g_menuDisplayCfg;
         *(u8 *)(cfg + 0x10) = 0;
         *(u8 *)(cfg + 0x11) = 0;
-        *(s16 *)&D_801FAB00[0] = 0x18;
+        *(s16 *)&g_menuDisplayCfg[0] = 0x18;
         *(s16 *)(cfg + 2) = 6;
     }
     *(s16 *)(cfg + 4) = 0xF4;
     *(s16 *)(cfg + 6) = 0x16;
-    return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+    return func_801EF9AC(disp, ot, 0x1000, g_menuColor);
 }
 
 /**

@@ -1,10 +1,10 @@
 #include "common.h"
 #include "menu.h"
 
-extern s32 D_80083848;
+extern s32 g_menuColor;
 extern s16 D_801E7D64;
 extern s16 D_801E7D66;
-extern MenuDisplayConfig D_801FAB00;
+extern MenuDisplayConfig g_menuDisplayCfg;
 extern u8 D_801E7870;
 
 extern s32 func_80035E00(void);
@@ -186,19 +186,19 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E5F7C);
  * @param stackArg Scroll offset
  */
 s32 func_801E6058(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    D_801FAB00.iconType = 0x55;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = a3;
-    D_801FAB00.w = 0xF5;
-    D_801FAB00.h = 0x16;
-    D_801FAB00.columnCount = 1;
-    D_801FAB00.pageStart = 0;
-    D_801FAB00.pageEnd = 1;
-    D_801FAB00.y = stackArg;
-    D_801FAB00.scrollOffset = *(u16 *)(a0 + 0x28);
-    D_801FAB00.dataPtr = a0 + 0x20;
-    D_801FAB00.itemId = *(u8 *)(a0 + 0x2E);
-    D_801FAB00.itemAttr = *(u8 *)(a0 + 0x2C);
+    g_menuDisplayCfg.iconType = 0x55;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = a3;
+    g_menuDisplayCfg.w = 0xF5;
+    g_menuDisplayCfg.h = 0x16;
+    g_menuDisplayCfg.columnCount = 1;
+    g_menuDisplayCfg.pageStart = 0;
+    g_menuDisplayCfg.pageEnd = 1;
+    g_menuDisplayCfg.y = stackArg;
+    g_menuDisplayCfg.scrollOffset = *(u16 *)(a0 + 0x28);
+    g_menuDisplayCfg.dataPtr = a0 + 0x20;
+    g_menuDisplayCfg.itemId = *(u8 *)(a0 + 0x2E);
+    g_menuDisplayCfg.itemAttr = *(u8 *)(a0 + 0x2C);
     func_801EFBB4(a1, a2, (s32)func_801E5F7C);
 }
 
@@ -216,7 +216,7 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E60E8);
  * @return Result from func_800376A8
  */
 s32 func_801E6228(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    return func_800376A8(a1, a2, (s32)&D_801E7870, 0xB, a3, stackArg, D_80083848);
+    return func_800376A8(a1, a2, (s32)&D_801E7870, 0xB, a3, stackArg, g_menuColor);
 }
 
 /**
@@ -291,19 +291,19 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E67E4);
  * @param stackArg Scroll offset
  */
 s32 func_801E6920(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    D_801FAB00.iconType = 0;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = a3;
-    D_801FAB00.w = 0x150;
-    D_801FAB00.h = 0x16;
-    D_801FAB00.columnCount = 1;
-    D_801FAB00.pageStart = 0;
-    D_801FAB00.pageEnd = 1;
-    D_801FAB00.y = stackArg;
-    D_801FAB00.scrollOffset = *(u16 *)(a0 + 0x28);
-    D_801FAB00.dataPtr = a0 + 0x20;
-    D_801FAB00.itemId = *(u8 *)(a0 + 0x2E);
-    D_801FAB00.itemAttr = *(u8 *)(a0 + 0x2C);
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = a3;
+    g_menuDisplayCfg.w = 0x150;
+    g_menuDisplayCfg.h = 0x16;
+    g_menuDisplayCfg.columnCount = 1;
+    g_menuDisplayCfg.pageStart = 0;
+    g_menuDisplayCfg.pageEnd = 1;
+    g_menuDisplayCfg.y = stackArg;
+    g_menuDisplayCfg.scrollOffset = *(u16 *)(a0 + 0x28);
+    g_menuDisplayCfg.dataPtr = a0 + 0x20;
+    g_menuDisplayCfg.itemId = *(u8 *)(a0 + 0x2E);
+    g_menuDisplayCfg.itemAttr = *(u8 *)(a0 + 0x2C);
     func_801EFBB4(a1, a2, (s32)func_801E67E4);
 }
 

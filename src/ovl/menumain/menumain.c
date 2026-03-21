@@ -43,7 +43,7 @@ extern u8 g_characterMagic[];
 extern u8 D_80077EBC[];
 extern u8 D_801FAB38[];
 extern u8 D_801F7F78[];
-/* D_801FAB00.animCounter is D_801FAB00.animCounter (offset +0x12) */
+/* g_menuDisplayCfg.animCounter is g_menuDisplayCfg.animCounter (offset +0x12) */
 extern s16 D_801FAA1E;
 extern u8 D_801FABC4[4];
 extern u8 D_801F8BB8[];
@@ -53,8 +53,8 @@ extern u8 D_80056290[];
 extern u8 D_801F7E6C[];
 extern u8 D_801FAB88[];
 extern u16 D_8007737C;
-extern s32 D_80083848;
-extern MenuDisplayConfig D_801FAB00;
+extern s32 g_menuColor;
+extern MenuDisplayConfig g_menuDisplayCfg;
 extern u8 D_801F7FB0[];
 extern u8 D_801F7F74[];
 extern u8 D_80078D38[];
@@ -319,11 +319,11 @@ void func_801F0994(s32 a0, s32 a1, s32 a2) {
 /**
  * @brief Render text with blink effect.
  *
- * If (D_801FAB00.animCounter + D_801FAA1E) is odd, sets color to -1 (hidden),
+ * If (g_menuDisplayCfg.animCounter + D_801FAA1E) is odd, sets color to -1 (hidden),
  * creating a blinking text effect for highlighted menu items.
  */
 void func_801F09C4(s32 a0, s32 a1, s32 a2, s32 a3) {
-    if (!((D_801FAB00.animCounter + D_801FAA1E) & 1)) {
+    if (!((g_menuDisplayCfg.animCounter + D_801FAA1E) & 1)) {
         a0 = -1;
     }
     func_801F0954(a0, a1, a2, a3);
@@ -815,7 +815,7 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F3824);
  * @brief Draw character name panel with icon.
  *
  * Looks up the character name via func_801F6AD0, renders it with
- * func_801F0FEC, configures D_801FAB00 (icon 0x55), and draws
+ * func_801F0FEC, configures g_menuDisplayCfg (icon 0x55), and draws
  * the panel border via func_801EF9AC.
  */
 void func_801F38F8(s32 a0, s32 a1, s32 a2) {
@@ -824,12 +824,12 @@ void func_801F38F8(s32 a0, s32 a1, s32 a2) {
 
     ret1 = func_801F6AD0(*(u8 *)(a0 + 0x46));
     ret2 = func_801F0FEC(a1, a2, 0x22, 0xF, ret1, 7);
-    D_801FAB00.iconType = 0x55;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = 0x18;
-    D_801FAB00.y = 7;
-    *(s32 *)&D_801FAB00.w = 0x001900F4; /* w=0xF4, h=0x19 packed */
-    func_801EF9AC(a1, ret2, 0x1000, D_80083848);
+    g_menuDisplayCfg.iconType = 0x55;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = 0x18;
+    g_menuDisplayCfg.y = 7;
+    *(s32 *)&g_menuDisplayCfg.w = 0x001900F4; /* w=0xF4, h=0x19 packed */
+    func_801EF9AC(a1, ret2, 0x1000, g_menuColor);
 }
 
 /** @brief Render text with explicit parameters (arg-reorder wrapper for func_801F0FEC). */
@@ -909,19 +909,19 @@ s32 func_801F486C(u8 *a0, s32 a1) {
 /**
  * @brief Draw Gil (money) display panel.
  *
- * Renders the Gil label string, sets up D_801FAB00 rendering params,
+ * Renders the Gil label string, sets up g_menuDisplayCfg rendering params,
  * and draws the panel decoration via func_801EF9AC.
  */
 void func_801F4918(s32 a0, s32 a1, s32 a2) {
     s32 ret;
     ret = func_801F6358(a1, a2, 0x22, 0xC6, (s32)D_8007737C);
-    D_801FAB00.iconType = 0;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = 0x18;
-    D_801FAB00.y = 0xBE;
-    D_801FAB00.w = 0xF4;
-    D_801FAB00.h = 0x1A;
-    func_801EF9AC(a1, ret, 0x1000, D_80083848);
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = 0x18;
+    g_menuDisplayCfg.y = 0xBE;
+    g_menuDisplayCfg.w = 0xF4;
+    g_menuDisplayCfg.h = 0x1A;
+    func_801EF9AC(a1, ret, 0x1000, g_menuColor);
 }
 
 /* ======================================================================== */
@@ -1235,7 +1235,7 @@ s32 func_801F6418(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
     s32 mask = menumain_getPartyMemberMask();
 
     if (((mask & 0xFFFF) >> a0) & 1) {
-        a2 = func_8002FF34(a1, a2, 0xD6, a3, a4, D_80083848);
+        a2 = func_8002FF34(a1, a2, 0xD6, a3, a4, g_menuColor);
     }
     return a2;
 }
@@ -1354,25 +1354,25 @@ s32 func_801F7394(s32 a0) {
 /**
  * @brief Render scrollable panel with footer.
  *
- * Sets up D_801FAB00 rendering params (icon 0x4A), then renders
+ * Sets up g_menuDisplayCfg rendering params (icon 0x4A), then renders
  * the list, scroll indicator, and footer/help text.
  */
 void func_801F739C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    s32 base = (s32)&D_801FAB00;
+    s32 base = (s32)&g_menuDisplayCfg;
     s32 ret1;
     s32 ret2;
 
     *(u8 *)(base + 0x10) = 0x4A;  /* iconType */
     *(u8 *)(base + 0x11) = 0;     /* iconSubType */
-    *(s16 *)&D_801FAB00 = a2;     /* x */
+    *(s16 *)&g_menuDisplayCfg = a2;     /* x */
     *(s16 *)(base + 4) = 0x9A;    /* w */
     *(s16 *)(base + 2) = a3;      /* y */
     *(s16 *)(base + 6) = 0x40;    /* h */
     *(u8 *)(base + 0x13) = 4;     /* columnCount */
     *(u8 *)(base + 0x1E) = a4;    /* itemId */
 
-    ret1 = func_801F5F30(a0, a1, a2 + 0x24, a3, D_80083848, *(u8 *)(base + 0x16) /* pageStart */);
-    ret2 = func_801F5F60(a0, ret1, D_80083848, 3);
+    ret1 = func_801F5F30(a0, a1, a2 + 0x24, a3, g_menuColor, *(u8 *)(base + 0x16) /* pageStart */);
+    ret2 = func_801F5F60(a0, ret1, g_menuColor, 3);
     func_801EFBB4(a0, ret2, a5);
 }
 

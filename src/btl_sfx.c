@@ -542,13 +542,13 @@ u16 func_8002E7A4(s32 a0) {
  *
  * Stores the raw value in D_80083850, then divides by 32, masks to 8 bits,
  * replicates across R/G/B, sets command byte to 0x64, and stores to
- * D_80083848 before triggering an SFX update.
+ * g_menuColor before triggering an SFX update.
  *
  * @param a0 Scalar intensity value.
  */
 void func_8002E7C4(s32 a0) {
     extern s32 D_80083850;
-    extern s32 D_80083848;
+    extern s32 g_menuColor;
     D_80083850 = a0;
     {
         s32 val = (u32)a0 >> 5;
@@ -556,7 +556,7 @@ void func_8002E7C4(s32 a0) {
     }
     a0 |= (a0 << 16) | (a0 << 8);
     a0 |= 0x64000000;
-    D_80083848 = a0;
+    g_menuColor = a0;
     func_8002C8A4();
 }
 

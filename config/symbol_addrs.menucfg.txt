@@ -16,3 +16,5 @@ func_801E698C = 0x801E698C; // type:func
 func_801E6D34 = 0x801E6D34; // type:func
 func_801E6E58 = 0x801E6E58; // type:func
 g_gameState = 0x80077378;
+g_menuDisplayCfg = 0x801FAB00;
+g_menuColor = 0x80083848;

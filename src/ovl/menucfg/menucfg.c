@@ -132,14 +132,14 @@ INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E59F8);
 
 extern void func_801EF9AC(void *arg0, s32 arg1, s32 arg2, s32 arg3);
 extern s32 func_801F0FEC(void *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-extern s32 D_80083848;
-extern MenuDisplayConfig D_801FAB00;
+extern s32 g_menuColor;
+extern MenuDisplayConfig g_menuDisplayCfg;
 
 /**
  * @brief Render a bordered panel at the given position.
  *
  * If @p flags is nonzero, calls func_801F0FEC to compute a modified
- * value from @p data at position (x+10, y+7). Then configures D_801FAB00
+ * value from @p data at position (x+10, y+7). Then configures g_menuDisplayCfg
  * with the given position (fixed size 0xF4 x 0x16, iconType=0x55,
  * iconSubType=0) and calls func_801EF9AC to draw the panel.
  *
@@ -151,7 +151,7 @@ extern MenuDisplayConfig D_801FAB00;
  */
 void func_801E61A0(s32 flags, void *data, s32 value, s32 x, s32 y)
 {
-    MenuDisplayConfig *s = &D_801FAB00;
+    MenuDisplayConfig *s = &g_menuDisplayCfg;
     s32 xoff = x + 10;
     s32 yoff = y + 7;
 
@@ -167,7 +167,7 @@ void func_801E61A0(s32 flags, void *data, s32 value, s32 x, s32 y)
     s->y = y;
     s->h = 0x16;
 
-    func_801EF9AC(data, value, 0x1000, D_80083848);
+    func_801EF9AC(data, value, 0x1000, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E625C);
@@ -179,8 +179,8 @@ INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E6538);
 /**
  * @brief Configure display panel and invoke rendering callback.
  *
- * Sets up D_801FAB00 with the given position, fixed size (0x11C x 0x25),
- * clears icon fields, and calls func_801EF9AC with D_80083848 and a
+ * Sets up g_menuDisplayCfg with the given position, fixed size (0x11C x 0x25),
+ * clears icon fields, and calls func_801EF9AC with g_menuColor and a
  * caller-supplied 0x1000 parameter.
  *
  * @param a0 Unused.
@@ -190,7 +190,7 @@ INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E6538);
  * @param arg4 Y position for the display panel.
  */
 void func_801E67A8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    s32 cfg = (s32)&D_801FAB00;
+    s32 cfg = (s32)&g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
@@ -198,7 +198,7 @@ void func_801E67A8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
     *(s16 *)(cfg + 4) = 0x11C;
     *(s16 *)(cfg + 6) = 0x25;
     *(s16 *)(cfg + 2) = arg4;
-    func_801EF9AC(a1, a2, 0x1000, D_80083848);
+    func_801EF9AC(a1, a2, 0x1000, g_menuColor);
 }
 
 INCLUDE_ASM("asm/ovl/menucfg/nonmatchings/menucfg", func_801E6804);

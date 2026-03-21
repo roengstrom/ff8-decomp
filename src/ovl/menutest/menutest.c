@@ -9,9 +9,9 @@ extern u8 D_801E69BC;
 extern u8 D_801E71BC;
 extern u8 D_801E79BC;
 extern u16 D_801FA3C8;
-extern MenuDisplayConfig D_801FAB00;
+extern MenuDisplayConfig g_menuDisplayCfg;
 extern u8 D_801FABD4;
-extern s32 D_80083848;
+extern s32 g_menuColor;
 extern u8 D_800780AB;
 extern u8 g_gameState;
 extern u32 D_801E69B8;
@@ -139,7 +139,7 @@ void func_801E5D18(s32 a0, s32 a1) {
  * Reads input via func_801F0948/func_80035E00, updates scroll position at +0x24,
  * manages page index at +0x2D and +0x2E, and dispatches rendering via func_801E582C,
  * func_801E5D18, func_801E58B8, func_801F6800.
- * @param a0 Menu state structure pointer (s1=a0, s2=a0+0x10, s3/s0 from D_801FAB00)
+ * @param a0 Menu state structure pointer (s1=a0, s2=a0+0x10, s3/s0 from g_menuDisplayCfg)
  * @note Scrambled prologue (s1,s2,ra,s3,s0) with s-reg assignment locked by graph
  *       coloring — C compiler cannot reproduce the exact register allocation.
  *       See asm/ovl/menutest/nonmatchings/menutest/func_801E5D74.s.
@@ -149,7 +149,7 @@ INCLUDE_ASM("asm/ovl/menutest/nonmatchings/menutest", func_801E5D74);
 /**
  * Sets up a GPU frame with centered text display for the header area.
  * Measures text width via func_8002E680, centers it within 0xF4 pixels,
- * draws via func_8002EAD0, configures D_801FAB00 display struct
+ * draws via func_8002EAD0, configures g_menuDisplayCfg display struct
  * (0x18, 0x6, 0xF4, 0x16), and submits via func_801EF9AC.
  * @param a0 Display list pointer
  * @param a1 OT pointer
@@ -169,20 +169,20 @@ s32 func_801E64B4(s32 a0, s32 a1) {
     v0 = func_8002E680(ot + text - ot);
     CalcCenter(maxW, v0, 0xF4);
     func_8002EAD0(disp, v0 + 0x18, 0xC, text);
-    D_801FAB00.iconType = 0;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = 0x18;
-    D_801FAB00.y = 6;
-    D_801FAB00.w = maxW;
-    D_801FAB00.h = 0x16;
-    return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = 0x18;
+    g_menuDisplayCfg.y = 6;
+    g_menuDisplayCfg.w = maxW;
+    g_menuDisplayCfg.h = 0x16;
+    return func_801EF9AC(disp, ot, 0x1000, g_menuColor);
 }
 
 /**
  * Sets up GPU display for the scrollable text body area.
  * Computes scroll offset from D_801FA3C8 animation table (same pattern as
  * func_801E582C), draws text at scroll-adjusted Y position via func_8002EAD0,
- * then configures two D_801FAB00 display regions:
+ * then configures two g_menuDisplayCfg display regions:
  * first (0x1C, 0x21, 0x148, 0x9F) submitted via func_801EF800,
  * second (0x18, 0x1D, 0x150, 0xA7) submitted via func_801EF9AC.
  * @param a0 Menu state structure
@@ -196,7 +196,7 @@ s32 func_801E64B4(s32 a0, s32 a1) {
 s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     s32 disp = a1;
     s32 yPos = 0x22;
-    s32 buf = (s32)&D_801FAB00;
+    s32 buf = (s32)&g_menuDisplayCfg;
     s32 scroll = *(s16 *)(a2 + a0 + 0x2A - a2);
     s32 v0;
     s32 v1;
@@ -210,7 +210,7 @@ s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
     a2 = func_801EF8D8(disp, a2);
     func_8002EAD0(disp, yPos, 0x23, (s32)&D_801E69BC);
 
-    *(s16 *)&D_801FAB00 = 0x1C;     /* x */
+    *(s16 *)&g_menuDisplayCfg = 0x1C;     /* x */
     *(s16 *)(buf + 2) = 0x21;       /* y */
     *(s16 *)(buf + 4) = 0x148;      /* w */
     *(s16 *)(buf + 6) = 0x9F;       /* h */
@@ -218,17 +218,17 @@ s32 func_801E6570(s32 a0, s32 a1, s32 a2) {
 
     *(u8 *)(buf + 0x10) = 0;        /* iconType */
     *(u8 *)(buf + 0x11) = 0;        /* iconSubType */
-    *(s16 *)&D_801FAB00 = 0x18;     /* x */
+    *(s16 *)&g_menuDisplayCfg = 0x18;     /* x */
     *(s16 *)(buf + 2) = 0x1D;       /* y */
     *(s16 *)(buf + 4) = 0x150;      /* w */
     *(s16 *)(buf + 6) = 0xA7;       /* h */
-    return func_801EF9AC(disp, v0, 0x1000, D_80083848);
+    return func_801EF9AC(disp, v0, 0x1000, g_menuColor);
 }
 
 /**
  * Sets up GPU display for a secondary text area, similar to func_801E64B4.
  * Centers text from *(a0 + 0x20) within 0x150 pixels, draws via func_8002EAD0
- * at Y=0xC8, configures D_801FAB00 (0x18, 0xC4, 0x150, 0x14), and submits
+ * at Y=0xC8, configures g_menuDisplayCfg (0x18, 0xC4, 0x150, 0x14), and submits
  * via func_801EF9AC.
  * @param a0 Menu state structure
  * @param a1 Display list pointer
@@ -245,13 +245,13 @@ s32 func_801E66A8(s32 a0, s32 a1, s32 a2) {
     v0 = func_8002E680(ot + *(s32 *)(state + 0x20) - ot);
     CalcCenter(maxW, v0, 0x150);
     func_8002EAD0(disp, v0 + 0x18, 0xC8, *(s32 *)(state + 0x20));
-    D_801FAB00.iconType = 0;
-    D_801FAB00.iconSubType = 0;
-    D_801FAB00.x = 0x18;
-    D_801FAB00.y = 0xC4;
-    D_801FAB00.w = maxW;
-    D_801FAB00.h = 0x14;
-    return func_801EF9AC(disp, ot, 0x1000, D_80083848);
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = 0x18;
+    g_menuDisplayCfg.y = 0xC4;
+    g_menuDisplayCfg.w = maxW;
+    g_menuDisplayCfg.h = 0x14;
+    return func_801EF9AC(disp, ot, 0x1000, g_menuColor);
 }
 
 /**

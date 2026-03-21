@@ -73,3 +73,5 @@ copyString = 0x8002A2A8; // type:func
 g_battleChars = 0x80078720;
 updateJunctionSlotCount = 0x801E5EE8; // type:func
 stashCharacterJunctions = 0x801E5F24; // type:func
+g_menuDisplayCfg = 0x801FAB00;
+g_menuColor = 0x80083848;
