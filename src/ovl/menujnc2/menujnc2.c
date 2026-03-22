@@ -452,7 +452,42 @@ s32 func_801E6918(s32 pos) {
  *
  * @param charIdx Character index (0-7).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6944);
+/**
+ * @brief Validate command slots against available GF abilities.
+ *
+ * Checks each of the 4 command slots. If a command is nonzero but not
+ * available in D_801EEFD0, or outside the valid command range [20, 39),
+ * clears the slot.
+ *
+ * @param charIdx Character index (0-7).
+ */
+/**
+ * @brief Validate command slots against available GF abilities.
+ *
+ * Checks each of the 4 command slots. If a command is nonzero but not
+ * available in D_801EEFD0, or outside the valid command range [20, 39),
+ * clears the slot.
+ *
+ * @param charIdx Character index (0-7).
+ */
+void func_801E6944(s32 charIdx) {
+    s32 val;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        s32 cmd = g_gameState.chars[charIdx].commands[i];
+        val = cmd;
+        if (val != 0) {
+            s32 word = D_801EEFD0[val / 32];
+            s32 shift = val & 0x1F;
+            s32 mask = 1 << shift;
+            cmd = word;
+            if (!(cmd & mask) || val < 20 || val >= 39) {
+                g_gameState.chars[charIdx].commands[i] = 0;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
 
