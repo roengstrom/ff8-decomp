@@ -704,7 +704,40 @@ void func_801E6EC4(s32 charIdx) {
  *
  * @param charIdx Character index.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6F30);
+void func_801E6F30(s32 charIdx) {
+    s32 flags = 0;
+    u16 junctedGfs = g_junctionChars[charIdx].junctedGfs;
+    u8 *maxAblPtr;
+    s32 cmdSlots = flags;
+    s32 ablSlots = cmdSlots;
+    s32 maxAbl = 2;
+    s32 i = cmdSlots;
+    s32 one = 1;
+    JunctionGfEntry *gf = g_junctionGfTable;
+
+    do {
+        u16 bit = one << i;
+        maxAblPtr = &gf->maxAbilitySlots;
+        if (junctedGfs & bit) {
+            u8 cs = gf->cmdSlotCount;
+            flags |= gf->abilityFlags;
+            if (cmdSlots < cs)
+                cmdSlots = cs;
+            if (ablSlots < gf->ablSlotCount)
+                ablSlots = gf->ablSlotCount;
+            if (maxAbl < *maxAblPtr)
+                maxAbl = gf->maxAbilitySlots;
+        }
+        i++;
+        if ((gf->maxAbilitySlots && *maxAblPtr) && *maxAblPtr) {}
+        gf++;
+    } while (i < 16);
+
+    g_junctionChars[charIdx].availFlags = flags;
+    g_junctionChars[charIdx].abilityCount[0] = cmdSlots;
+    g_junctionChars[charIdx].abilityCount[1] = ablSlots;
+    g_junctionChars[charIdx].unk0A = maxAbl;
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7004);
 
