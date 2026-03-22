@@ -482,7 +482,17 @@ void validateCommandSlots(s32 charIdx) {
     }
 }
 
-void func_801E69E0(s32 charIdx) {
+/**
+ * @brief Validate and compact ability slots.
+ *
+ * Checks each of the 4 ability slots. If an ability is nonzero but not
+ * available in g_availableAbilities, or outside the valid ability range
+ * [39, 83), clears it. Then compacts remaining abilities to the front
+ * and zeros out any excess slots beyond the character's max ability count.
+ *
+ * @param charIdx Character index (0-7).
+ */
+void validateAbilitySlots(s32 charIdx) {
     s32 i;
     u8 buf[4];
     s32 maxSlots;
@@ -490,9 +500,7 @@ void func_801E69E0(s32 charIdx) {
     for (i = 0; i < 4; i++) {
         s32 cmd = g_gameState.chars[charIdx].abilities[i];
         s32 val = cmd;
-        maxSlots = val;
-        maxSlots = maxSlots != 0;
-        if (maxSlots) {
+        if (val != 0) {
             s32 word = g_availableAbilities[val / 32];
             s32 shift = val & 0x1F;
             s32 mask = 1 << shift;
@@ -505,7 +513,7 @@ void func_801E69E0(s32 charIdx) {
 
     maxSlots = g_junctionChars[charIdx].unk0A;
     {
-        u8 *src = g_characterAbilities + charIdx * 152;
+        u8 *src = g_gameState.chars[charIdx].abilities;
         u8 *dst = buf;
 
         for (i = 3; i >= 0; i--) {
@@ -530,11 +538,9 @@ void func_801E69E0(s32 charIdx) {
         }
     }
 
-    if (maxSlots < 4) {
-        while (maxSlots < 4) {
-            g_gameState.chars[charIdx].abilities[maxSlots] = 0;
-            maxSlots++;
-        }
+    while (maxSlots < 4) {
+        g_gameState.chars[charIdx].abilities[maxSlots] = 0;
+        maxSlots++;
     }
 }
 
@@ -542,7 +548,7 @@ void func_801E69E0(s32 charIdx) {
  * @brief Full junction menu refresh sequence.
  *
  * Calls func_801E61F8, func_801E6350, validateCommandSlots, and
- * func_801E69E0 in sequence with the party context.
+ * validateAbilitySlots in sequence with the party context.
  *
  * @param charIdx Character index (0-7).
  */
@@ -550,7 +556,7 @@ void func_801E6B88(s32 charIdx) {
     func_801E61F8(charIdx);
     func_801E6350(charIdx);
     validateCommandSlots(charIdx);
-    func_801E69E0(charIdx);
+    validateAbilitySlots(charIdx);
 }
 
 /**

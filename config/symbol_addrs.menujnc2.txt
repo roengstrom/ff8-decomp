@@ -79,3 +79,5 @@ g_menuColor = 0x80083848;
 g_junctionGfTable = 0x801EED10;
 g_autoJunctionPriority = 0x801EEAB4;
 validateCommandSlots = 0x801E6944; // type:func
+validateAbilitySlots = 0x801E69E0; // type:func
+
