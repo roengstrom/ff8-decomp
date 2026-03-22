@@ -6,3 +6,6 @@ g_junctionMenuActive = 0x801EED04;
 g_junctionGfTable = 0x801EED10;
 g_assignedAbilities = 0x801EEFC0;
 g_availableAbilities = 0x801EEFD0;
+g_characterAbilities = 0x8007785C;
+g_characterJunctions = 0x80077864;
+g_characterMagic = 0x80077818;
