@@ -462,7 +462,7 @@ s32 func_801E6918(s32 pos) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6944(s32 charIdx) {
+void validateCommandSlots(s32 charIdx) {
     s32 val;
     s32 i;
 
@@ -486,7 +486,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
 /**
  * @brief Full junction menu refresh sequence.
  *
- * Calls func_801E61F8, func_801E6350, func_801E6944, and
+ * Calls func_801E61F8, func_801E6350, validateCommandSlots, and
  * func_801E69E0 in sequence with the party context.
  *
  * @param charIdx Character index (0-7).
@@ -494,7 +494,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
 void func_801E6B88(s32 charIdx) {
     func_801E61F8(charIdx);
     func_801E6350(charIdx);
-    func_801E6944(charIdx);
+    validateCommandSlots(charIdx);
     func_801E69E0(charIdx);
 }
 
