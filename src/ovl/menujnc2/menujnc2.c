@@ -23,6 +23,7 @@ extern u8 D_801EEF38;
 extern u8 D_801EEF40[];
 extern u8 D_801EEF9A;
 extern u8 func_80036978(s32 id);
+extern u8 g_characterAbilities[];
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -481,7 +482,61 @@ void validateCommandSlots(s32 charIdx) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E69E0);
+void func_801E69E0(s32 charIdx) {
+    s32 i;
+    u8 buf[4];
+    s32 maxSlots;
+
+    for (i = 0; i < 4; i++) {
+        s32 cmd = g_gameState.chars[charIdx].abilities[i];
+        s32 val = cmd;
+        maxSlots = val;
+        maxSlots = maxSlots != 0;
+        if (maxSlots) {
+            s32 word = g_availableAbilities[val / 32];
+            s32 shift = val & 0x1F;
+            s32 mask = 1 << shift;
+            cmd = word;
+            if (!(cmd & mask) || val < 39 || val >= 83) {
+                g_gameState.chars[charIdx].abilities[i] = 0;
+            }
+        }
+    }
+
+    maxSlots = g_junctionChars[charIdx].unk0A;
+    {
+        u8 *src = g_characterAbilities + charIdx * 152;
+        u8 *dst = buf;
+
+        for (i = 3; i >= 0; i--) {
+            *dst = 0;
+            dst++;
+        }
+
+        dst = buf;
+        for (i = 0; i < 4; i++) {
+            u8 abl = *src;
+            src++;
+            if (abl != 0) {
+                *dst = abl;
+                dst++;
+            }
+        }
+
+        dst = buf;
+        for (i = 0; i < 4; i++) {
+            g_gameState.chars[charIdx].abilities[i] = *dst;
+            dst++;
+        }
+    }
+
+    if (maxSlots < 4) {
+        while (maxSlots < 4) {
+            g_gameState.chars[charIdx].abilities[maxSlots] = 0;
+            maxSlots++;
+        }
+    }
+}
 
 /**
  * @brief Full junction menu refresh sequence.
