@@ -283,12 +283,27 @@ void func_801E61F8(s32 charIdx) {
  * character, ORs the GF's completed abilities bitmask into D_801EEFD0.
  *
  * @param charIdx Character index (0-7).
- *
- * @note Near-match (15 diffs): register swaps in clear loop counter
- * and inner loop pointers. Typed struct access folds GF data offset
- * into base address, preventing match.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6350);
+void func_801E6350(s32 charIdx) {
+    s32 junctedGfs = g_junctionChars[charIdx].junctedGfs;
+    s32 gfIdx;
+    s32 one = 1;
+
+    for (gfIdx = 3; gfIdx >= 0; gfIdx--) {
+        D_801EEFD0[gfIdx] = 0;
+    }
+
+    gfIdx = 0;
+    one = 1;
+    for (; gfIdx < GF_COUNT; gfIdx++) {
+        if (junctedGfs & (one << gfIdx)) {
+            s32 j;
+            for (j = 0; j < 4; j++) {
+                D_801EEFD0[j] |= g_gameState.gfs[gfIdx].completeAbilities[j];
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
 

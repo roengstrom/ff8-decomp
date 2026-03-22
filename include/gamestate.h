@@ -39,7 +39,7 @@ typedef struct {
     /* 0x10 */ u8 unknown10;             /**< Unknown. */
     /* 0x11 */ u8 exists;                /**< GF exists/unlocked flag. */
     /* 0x12 */ u16 hp;                   /**< Current HP. */
-    /* 0x14 */ u8 completeAbilities[16]; /**< Learned ability flags (bitfield, 116+1 valid). */
+    /* 0x14 */ s32 completeAbilities[4]; /**< Learned ability flags (128-bit bitfield, accessed as 4 words). */
     /* 0x24 */ u8 aps[24];              /**< AP per ability slot (22 used + 2 unused). */
     /* 0x3C */ u16 kills;                /**< Kill count. */
     /* 0x3E */ u16 kos;                  /**< KO count. */
