@@ -16,8 +16,8 @@ extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
 extern void func_801E7BA4();
 extern void func_801EDF04();
-extern s32 D_801EEFC0[];
-extern s32 D_801EEFD0[];
+extern s32 g_assignedAbilities[];
+extern s32 g_availableAbilities[];
 extern u8 D_801EEF10[];
 extern u8 D_801EEF38;
 extern u8 D_801EEF40[];
@@ -246,7 +246,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
 /**
  * @brief Build bitmask of currently assigned commands and abilities.
  *
- * Clears D_801EEFC0 (4 words), then sets a bit for each nonzero
+ * Clears g_assignedAbilities (4 words), then sets a bit for each nonzero
  * command (3 slots) and ability (variable count from g_junctionChars).
  *
  * @param charIdx Character index (0-7).
@@ -255,13 +255,13 @@ void func_801E61F8(s32 charIdx) {
     s32 i;
 
     for (i = 3; i >= 0; i--) {
-        D_801EEFC0[i] = 0;
+        g_assignedAbilities[i] = 0;
     }
 
     for (i = 0; i < 3; i++) {
         s32 cmd = g_gameState.chars[charIdx].commands[i];
         if (cmd != 0) {
-            D_801EEFC0[cmd / 32] |= (1 << (cmd & 0x1F));
+            g_assignedAbilities[cmd / 32] |= (1 << (cmd & 0x1F));
         }
     }
 
@@ -270,7 +270,7 @@ void func_801E61F8(s32 charIdx) {
         do {
             s32 abl = g_gameState.chars[charIdx].abilities[i];
             if (abl != 0) {
-                D_801EEFC0[abl / 32] |= (1 << (abl & 0x1F));
+                g_assignedAbilities[abl / 32] |= (1 << (abl & 0x1F));
             }
         } while (++i < g_junctionChars[charIdx].unk0A);
     }
@@ -279,8 +279,8 @@ void func_801E61F8(s32 charIdx) {
 /**
  * @brief Build bitmask of available abilities from junctioned GFs.
  *
- * Clears D_801EEFD0 (4 words), then for each GF junctioned to this
- * character, ORs the GF's completed abilities bitmask into D_801EEFD0.
+ * Clears g_availableAbilities (4 words), then for each GF junctioned to this
+ * character, ORs the GF's completed abilities bitmask into g_availableAbilities.
  *
  * @param charIdx Character index (0-7).
  */
@@ -290,7 +290,7 @@ void func_801E6350(s32 charIdx) {
     s32 one = 1;
 
     for (gfIdx = 3; gfIdx >= 0; gfIdx--) {
-        D_801EEFD0[gfIdx] = 0;
+        g_availableAbilities[gfIdx] = 0;
     }
 
     gfIdx = 0;
@@ -299,7 +299,7 @@ void func_801E6350(s32 charIdx) {
         if (junctedGfs & (one << gfIdx)) {
             s32 j;
             for (j = 0; j < 4; j++) {
-                D_801EEFD0[j] |= g_gameState.gfs[gfIdx].completeAbilities[j];
+                g_availableAbilities[j] |= g_gameState.gfs[gfIdx].completeAbilities[j];
             }
         }
     }
@@ -447,25 +447,17 @@ s32 func_801E6918(s32 pos) {
  * @brief Validate command slots against available GF abilities.
  *
  * Checks each of the 4 command slots. If a command is nonzero but its
- * ability bit isn't set in D_801EEFD0, or the command ID is outside
+ * ability bit isn't set in g_availableAbilities, or the command ID is outside
  * the valid range (20-38), clears the slot to 0.
  *
  * @param charIdx Character index (0-7).
  */
+
 /**
  * @brief Validate command slots against available GF abilities.
  *
  * Checks each of the 4 command slots. If a command is nonzero but not
- * available in D_801EEFD0, or outside the valid command range [20, 39),
- * clears the slot.
- *
- * @param charIdx Character index (0-7).
- */
-/**
- * @brief Validate command slots against available GF abilities.
- *
- * Checks each of the 4 command slots. If a command is nonzero but not
- * available in D_801EEFD0, or outside the valid command range [20, 39),
+ * available in g_availableAbilities, or outside the valid command range [20, 39),
  * clears the slot.
  *
  * @param charIdx Character index (0-7).
@@ -478,7 +470,7 @@ void func_801E6944(s32 charIdx) {
         s32 cmd = g_gameState.chars[charIdx].commands[i];
         val = cmd;
         if (val != 0) {
-            s32 word = D_801EEFD0[val / 32];
+            s32 word = g_availableAbilities[val / 32];
             s32 shift = val & 0x1F;
             s32 mask = 1 << shift;
             cmd = word;

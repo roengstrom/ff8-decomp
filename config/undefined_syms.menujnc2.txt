@@ -4,3 +4,5 @@ g_battleChars = 0x80078720;
 g_junctionPreview = 0x801EEFE0;
 g_junctionMenuActive = 0x801EED04;
 g_junctionGfTable = 0x801EED10;
+g_assignedAbilities = 0x801EEFC0;
+g_availableAbilities = 0x801EEFD0;
