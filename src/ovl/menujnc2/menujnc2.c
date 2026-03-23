@@ -1409,6 +1409,26 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDC88);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDDF8);
 
+/**
+ * @brief Render callback for the junction menu.
+ *
+ * Main rendering dispatcher for all junction menu states. Computes a
+ * stat scale factor from ctx->statScale via a lookup table (D_801FA3C8),
+ * then switches on ctx->unk42 to render the appropriate panel:
+ *   - Case 1: stat bars at full scale (0x1000)
+ *   - Case 3: stat bars at current scale
+ *   - Case 4: GF junction panel (scrolling slots, GF-to-character mapping)
+ *   - Case 6: ability junction panel (nested switch on ability type 9–18)
+ *   - Case 7: summary panel (stat delta bars)
+ * After the switch, renders the common bottom panel, cursor overlay,
+ * and help text. Returns the updated Y cursor position.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context handle.
+ * @param cursorY Current Y cursor position.
+ * @return Updated Y cursor position after rendering.
+ * @note Non-matching — see https://decomp.me/scratch/xG3NK
+ */
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderJunctionMenu);
 
 /**
