@@ -29,6 +29,8 @@ extern u8 D_801EEED0[];
 extern s32 func_801F776C(s32 magicId, s32 slotType);
 extern s32 func_80020F2C(s32 arg);
 extern s32 func_80020AD4(s32 arg);
+extern u16 D_801FA3C8[];
+extern u8 D_801EEB1C[];
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -801,7 +803,41 @@ void func_801E6F30(s32 charIdx) {
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7004);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E70C8);
+/**
+ * @brief Render stat effectiveness indicator bar.
+ *
+ * Computes x position from a stat scaling lookup table (D_801FA3C8)
+ * and y position from the current stat slot, then calls func_801F0A34
+ * to draw the indicator at that position.
+ *
+ * @param renderCtx Render context parameter.
+ * @param ctx Junction menu context.
+ */
+void func_801E70C8(s32 renderCtx, JunctionMenuCtx *ctx) {
+    s8 slot = ctx->statSlot;
+    s32 tableIdx;
+
+    if (slot >= 0) {
+        s32 scaled = ctx->statScale;
+        s32 idx;
+        short row;
+
+        scaled = 0x1000 - scaled;
+        idx = scaled;
+        if (scaled < 0) {
+            idx = scaled + 63;
+        }
+        idx >>= 6;
+        tableIdx = idx;
+        scaled = D_801FA3C8[tableIdx];
+        scaled = (scaled * 150) / 4096;
+
+        row = slot - ((slot / 4) * 4);
+        row = row * 13;
+
+        func_801F0A34(renderCtx, 0, scaled + (tableIdx = 0xD4), row + 0x3F);
+    }
+}
 
 /**
  * @brief Render stat delta bar for a junction change.
@@ -813,9 +849,63 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E70C8);
  * @param renderCtx Render context parameter.
  * @param column Column index for rendering.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E717C);
+/**
+ * @brief Render stat delta bar for a junction change.
+ *
+ * Decodes stat names from D_801EEB1C and ability data from ctx->dataPtr
+ * into two stack buffers, computes the stat difference between adjacent
+ * entries, and renders the bar via func_801F0A34.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context parameter.
+ * @param column Column index for rendering.
+ */
+void func_801E717C(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
+    s16 buffer1[36];
+    s16 buffer2[36];
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7228);
+    if (ctx->dataPtr == 0) {
+        return;
+    }
+
+    func_801F5984(D_801EEB1C, buffer1, 11);
+    func_801F5984((u8 *)ctx->dataPtr, buffer2, 11);
+
+    {
+        s32 statIdx = ctx->unk4E;
+        s32 width;
+
+        width = buffer1[statIdx + 1] - buffer1[statIdx];
+        width += 86 + buffer2[column];
+
+        func_801F0A34(renderCtx, 0, width, 13);
+    }
+}
+
+/**
+ * @brief Render a stat value bar in the junction menu.
+ *
+ * Decodes stat names from D_801EEB1C, looks up the value for the
+ * given column, scales it by ctx->unk40, and renders the bar
+ * via func_801F0A78.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context parameter.
+ * @param column Column index into the decoded stat buffer.
+ */
+void func_801E7228(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
+    s16 statBuf[36];
+    s32 scale;
+    s32 product;
+
+    scale = ctx->unk40;
+    scale = 0x1000 - scale;
+    func_801F5984(D_801EEB1C, statBuf, 11);
+
+    product = (scale * statBuf[column]) / 4096;
+
+    func_801F0A78(renderCtx, 0, ctx->unk3A, product + 50, 13);
+}
 
 /**
  * @brief Toggle a GF junction for a character.
