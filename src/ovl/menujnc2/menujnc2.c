@@ -839,6 +839,8 @@ void func_801E70C8(s32 renderCtx, JunctionMenuCtx *ctx) {
         row = slot - ((slot / 4) * 4);
         row = row * 13;
 
+        /* Regalloc: (tableIdx = 0xD4) keeps tableIdx alive, preventing the
+           compiler from eliminating the idx→tableIdx copy above. */
         func_801F0A34(renderCtx, 0, scaled + (tableIdx = 0xD4), row + 0x3F);
     }
 }
@@ -1163,6 +1165,8 @@ void func_801EB9CC(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam, s16 x
         g_menuDisplayCfg.scrollOffset = 0;
     }
     if (ctx->unk42 == 6) {
+        /* Regalloc: callbackParam++/-- forces renderCtx→t1 instead of
+           keeping it in a1, matching original register assignment. */
         callbackParam++;
         callbackParam--;
         g_menuDisplayCfg.scrollOffset = 0;
@@ -1227,6 +1231,8 @@ void func_801EC280(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 
     {
         s32 menuCol = g_menuColor;
+        /* Regalloc: color++/-- and do{x++/--}while(0) raise reference counts
+           to assign x→s0, color→s1 (instead of default renderCtx→s0). */
         color++;
         color--;
         do { x++; x--; } while (0);
@@ -1250,6 +1256,7 @@ void func_801EC358(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 
     {
         s32 menuCol = g_menuColor;
+        /* Regalloc: see func_801EC280 comment. */
         color++;
         color--;
         do { x++; x--; } while (0);
@@ -1273,6 +1280,7 @@ void func_801EC434(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 
     {
         s32 menuCol = g_menuColor;
+        /* Regalloc: see func_801EC280 comment. */
         color++;
         color--;
         do { x++; x--; } while (0);
@@ -1296,6 +1304,7 @@ void func_801EC50C(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 
     {
         s32 menuCol = g_menuColor;
+        /* Regalloc: see func_801EC280 comment. */
         color++;
         color--;
         do { x++; x--; } while (0);
