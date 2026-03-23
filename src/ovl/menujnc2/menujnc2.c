@@ -1425,7 +1425,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDC88);
  * @param charIdx Character index (0-7), or 0xFF to skip name rendering.
  * @return Updated Y cursor position.
  */
-s32 func_801EDDF8(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 charIdx) {
+s32 renderCharNameBar(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 charIdx) {
     CharMenuInfo *menuInfo;
 
     g_menuDisplayCfg.x = x;
