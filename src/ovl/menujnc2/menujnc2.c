@@ -15,7 +15,7 @@ extern BattleCharData g_junctionPreview;
 extern u8 g_junctionMenuActive;
 extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
-extern void func_801E7BA4();
+extern void junctionMenuUpdate();
 extern void func_801EDF04();
 extern s32 g_assignedAbilities[];
 extern s32 g_availableAbilities[];
@@ -374,7 +374,41 @@ void func_801E65F0(s32 renderCtx, s32 slotIdx) {
  * @param slotOffset Ability slot offset into D_801EEAC0.
  * @return Masked flags value, or 0 if type >= 19.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E6658);
+s32 func_801E6658(s32 charIdx, s32 slotOffset) {
+    extern u8 D_801EEAC0[];
+    u32 flags;
+
+    flags = g_junctionChars[charIdx].availFlags;
+    charIdx = D_801EEAC0[slotOffset];
+    switch (charIdx) {
+        case 10:
+            return flags & 0x400;
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+            return flags & 0x19000;
+        case 9:
+            return flags & 0x200;
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+            return flags & 0x6800;
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+            return flags & (1 << charIdx);
+        default:
+            return 0;
+    }
+}
 
 /**
  * @brief Render ability junction entry.
@@ -1094,7 +1128,21 @@ void func_801E7B1C(s32 charIdx) {
     } while (++i < MAGIC_SLOT_COUNT);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7BA4);
+/**
+ * @brief Main junction menu per-frame update and state machine.
+ *
+ * Called every frame while the junction menu is active. Reads the current
+ * state from ctx->state (offset 0x10) and dispatches to one of 74 cases
+ * (0x00–0x49) via a switch/jump table. Handles all junction menu logic:
+ * panel animations, button input, GF/ability selection, auto-junction,
+ * stat display, and screen transitions.
+ *
+ * 11,412 bytes — the largest function in menujnc2.
+ *
+ * @param ctx Junction menu context (JunctionMenuCtx *).
+ * @see https://decomp.me/scratch/1glKK
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", junctionMenuUpdate);
 
 /**
  * @brief Build junction ability flags from battle character data.
@@ -1379,7 +1427,7 @@ void func_801EE718(MenuParentCtx *parentCtx) {
     JunctionMenuCtx *ctx;
     s32 i;
 
-    ctx = (JunctionMenuCtx *)func_801F179C((s32)func_801E7BA4, (s32)func_801EDF04);
+    ctx = (JunctionMenuCtx *)func_801F179C((s32)junctionMenuUpdate, (s32)func_801EDF04);
     func_801F5300();
     if (ctx != NULL) {
         ctx->parentParam = parentCtx->param;
@@ -1406,7 +1454,7 @@ void func_801EE718(MenuParentCtx *parentCtx) {
         func_801E6C24(ctx->charIdx);
         func_801E7734(ctx->charIdx, -1, -1, -1);
         func_801E7B1C(ctx->charIdx);
-        func_801E7BA4((s32)ctx);
+        junctionMenuUpdate((s32)ctx);
     }
     func_801F0948(0x1000);
 }
