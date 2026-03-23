@@ -16,7 +16,7 @@ extern u8 g_junctionMenuActive;
 extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
 extern void junctionMenuUpdate();
-extern void func_801EDF04();
+extern void renderJunctionMenu();
 extern s32 g_assignedAbilities[];
 extern s32 g_availableAbilities[];
 extern u8 D_801EEF10[];
@@ -1409,9 +1409,21 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDC88);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDDF8);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDF04);
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderJunctionMenu);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EE494);
+/**
+ * @brief Initialize the junction GF table.
+ *
+ * For each of the 16 GFs: clears ability flags, loads GF compatibility byte,
+ * queries learned abilities via func_800369CC and ORs their flag words into
+ * abilityFlags. Then derives command/ability/max slot counts from the flag
+ * bits. Initializes the sentinel entry at index 16. Maps juncted GFs to
+ * characters by scanning each character's junctedGfs bitmask. Finally builds
+ * the available GF index list (D_801EEDE0) from the availGfs bitmask.
+ *
+ * @note Non-matching — see https://decomp.me/scratch/CZM5k
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", initJunctionGfTable);
 
 /**
  * @brief Initialize and enter the junction menu.
@@ -1427,7 +1439,7 @@ void func_801EE718(MenuParentCtx *parentCtx) {
     JunctionMenuCtx *ctx;
     s32 i;
 
-    ctx = (JunctionMenuCtx *)func_801F179C((s32)junctionMenuUpdate, (s32)func_801EDF04);
+    ctx = (JunctionMenuCtx *)func_801F179C((s32)junctionMenuUpdate, (s32)renderJunctionMenu);
     func_801F5300();
     if (ctx != NULL) {
         ctx->parentParam = parentCtx->param;
@@ -1444,7 +1456,7 @@ void func_801EE718(MenuParentCtx *parentCtx) {
         ctx->dataPtr = (s32)D_801EEB28;
         ctx->unk63 = 0;
         func_801E7004(ctx->parentParam);
-        func_801EE494();
+        initJunctionGfTable();
 
         for (i = 0; i < CHARACTER_COUNT; i++) {
             func_801E6F30(i);
