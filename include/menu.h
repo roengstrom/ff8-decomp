@@ -63,12 +63,14 @@ typedef struct {
  * @note Many fields still unmapped — extend as functions are decomped.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[0x28];         /**< Unknown. */
+    /* 0x00 */ u8 pad00[0x20];         /**< Unknown. */
+    /* 0x20 */ u8 itemData[8];         /**< Item/ability data passed to rendering callbacks. */
     /* 0x28 */ s32 dataPtr;            /**< Pointer to ability data table. */
     /* 0x2C */ u8 pad2C[4];            /**< Unknown. */
     /* 0x30 */ u16 parentParam;        /**< Parameter from parent menu context. */
     /* 0x32 */ u16 discId;             /**< Current disc ID. */
-    /* 0x34 */ u8 pad34[6];             /**< Unknown. */
+    /* 0x34 */ u16 unk34;               /**< Scroll offset source (copied to g_menuDisplayCfg.scrollOffset). */
+    /* 0x36 */ u8 pad36[4];             /**< Unknown. */
     /* 0x3A */ s16 unk3A;              /**< Unknown s16 (used in stat bar rendering). */
     /* 0x3C */ s16 statScale;          /**< Stat scale value (0x1000 = 1.0). */
     /* 0x3E */ u8 pad3E[2];            /**< Unknown. */

@@ -31,6 +31,8 @@ extern s32 func_80020F2C(s32 arg);
 extern s32 func_80020AD4(s32 arg);
 extern u16 D_801FA3C8[];
 extern u8 D_801EEB1C[];
+extern void func_801EFBB4(s32 renderCtx, s32 param, void *callback);
+extern s32 func_801EB91C();
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -1128,7 +1130,44 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB740);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB91C);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB9CC);
+/**
+ * @brief Set up menu display config and render a junction panel with callback.
+ *
+ * Configures g_menuDisplayCfg with panel dimensions, icon type 0x55,
+ * scroll offset from ctx, and pointer to item data. Clears scroll
+ * offset if ctx->unk42 is 4 or 6. Then calls func_801EFBB4 to render
+ * the panel using func_801EB91C as the item rendering callback.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context parameter.
+ * @param callbackParam Parameter passed through to rendering callback.
+ * @param x Panel x position.
+ * @param y Panel y position.
+ */
+void func_801EB9CC(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam, s16 x, s16 y) {
+    g_menuDisplayCfg.iconType = 0x55;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = x;
+    g_menuDisplayCfg.w = 0x144;
+    g_menuDisplayCfg.h = 0x1A;
+    g_menuDisplayCfg.columnCount = 1;
+    g_menuDisplayCfg.pageStart = 0;
+    g_menuDisplayCfg.pageEnd = 1;
+    g_menuDisplayCfg.y = y;
+    g_menuDisplayCfg.scrollOffset = ctx->unk34;
+    g_menuDisplayCfg.dataPtr = (s32)&ctx->itemData;
+
+    if (ctx->unk42 == 4) {
+        g_menuDisplayCfg.scrollOffset = 0;
+    }
+    if (ctx->unk42 == 6) {
+        callbackParam++;
+        callbackParam--;
+        g_menuDisplayCfg.scrollOffset = 0;
+    }
+
+    func_801EFBB4(renderCtx, callbackParam, func_801EB91C);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBA78);
 
