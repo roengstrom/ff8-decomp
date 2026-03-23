@@ -400,7 +400,32 @@ void func_801E66F0(s32 renderCtx, s32 index) {
  * @param slotType Slot type (0, 1, or other).
  * @return Slot count value.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E676C);
+s32 func_801E676C(s32 charIdx, s32 slotType) {
+    s32 result;
+
+    switch (slotType) {
+    case 0: {
+        s32 count = g_junctionChars[charIdx].abilityCount[0];
+        result = count + 1;
+        if (count == 0) {
+            result = 2;
+        }
+        break;
+    }
+    case 1: {
+        s32 count = g_junctionChars[charIdx].abilityCount[1];
+        result = count + 1;
+        if (result == slotType) {
+            result = 2;
+        }
+        break;
+    }
+    default:
+        result = 5;
+        break;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E67EC);
 
