@@ -33,6 +33,8 @@ extern u16 D_801FA3C8[];
 extern u8 D_801EEB1C[];
 extern void func_801EFBB4(s32 renderCtx, s32 param, void *callback);
 extern s32 func_801EB91C();
+extern JunctionGfEntry D_801EEDD0;
+extern void func_800300F8(s32 renderCtx, s32 x, s32 w, s32 y, s32 color, s32 menuColor, s32 selColor);
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -1197,7 +1199,41 @@ s32 func_801EBEBC(s32 currentMask, s32 availMask, s32 abilityBit) {
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBED8);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC280);
+/**
+ * @brief Render a junction ability slot with availability coloring.
+ *
+ * Checks if the HP-J ability (bit 0x400) is available for the given
+ * character based on juncted GFs. Renders the label in white (0x80)
+ * if available, grayed out (0x1C0) if not.
+ *
+ * @param renderCtx Render context.
+ * @param x X position.
+ * @param y Y position.
+ * @param color Base text color.
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (-1 for default/none).
+ */
+void func_801EC280(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+    JunctionGfEntry *gfEntry;
+    s32 available;
+
+    if (gfIdx < 0) {
+        gfEntry = &D_801EEDD0;
+    } else {
+        gfEntry = &g_junctionGfTable[gfIdx];
+    }
+
+    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x400);
+
+    {
+        s32 menuCol = g_menuColor;
+        color++;
+        color--;
+        do { x++; x--; } while (0);
+
+        func_800300F8(renderCtx, x, 0x128, y, color, menuCol, (!available) ? 0x1C0 : 0x80);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC358);
 
