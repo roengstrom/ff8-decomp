@@ -24,6 +24,7 @@ extern u8 D_801EEF40[];
 extern u8 D_801EEF9A;
 extern u8 func_80036978(s32 id);
 extern u8 g_characterAbilities[];
+extern u8 D_801EEED0[];
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -867,7 +868,29 @@ s32 func_801E7A80(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7B1C);
+void func_801E7B1C(s32 charIdx) {
+    s32 idx;
+    s32 i;
+    u8 *magic = (u8 *)g_gameState.chars[charIdx].magic;
+    u8 fillVal = 0xFF;
+    u8 *table;
+
+    for (i = 0x38; i >= 0; i--) {
+        do { idx = i; } while (0);
+        D_801EEED0[idx] = fillVal;
+    }
+
+    i = 0;
+    table = D_801EEED0;
+    do {
+        u8 magicId = *magic++;
+        u8 quantity = *magic++;
+        s16 id = magicId;
+        if (id != 0 && quantity != 0) {
+            table[magicId] = i;
+        }
+    } while (++i < MAGIC_SLOT_COUNT);
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7BA4);
 
