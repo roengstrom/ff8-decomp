@@ -2,6 +2,7 @@
 #include "menu.h"
 #include "gamestate.h"
 #include "battle.h"
+#include "gf.h"
 
 /** @brief Auto-junction priority tables (Atk/Mag/Def), each a 0xFF-terminated slot type list. */
 extern u8 *g_autoJunctionPriority[];
@@ -26,6 +27,8 @@ extern u8 func_80036978(s32 id);
 extern u8 g_characterAbilities[];
 extern u8 D_801EEED0[];
 extern s32 func_801F776C(s32 magicId, s32 slotType);
+extern s32 func_80020F2C(s32 arg);
+extern s32 func_80020AD4(s32 arg);
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -870,7 +873,54 @@ s32 func_801E76DC(s32 charIdx) {
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7734);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E79A4);
+/**
+ * @brief Look up ability/command name string by type and index.
+ *
+ * For type 1 (commands): looks up command ID from D_801EEF10, finds
+ * the GF ability index in g_gfData, and returns the name via func_80020F2C.
+ * For type 2 (abilities): looks up ability ID from D_801EEF40 and
+ * returns the name via func_80020AD4.
+ *
+ * @param type Lookup type (0=none, 1=command, 2=ability).
+ * @param index Index into the lookup table.
+ * @return Name string pointer, or 0 if not found.
+ */
+s32 func_801E79A4(s32 type, s32 index) {
+    extern u8 D_801EEAC0[];
+    extern u8 D_80078E00[];
+    s32 result;
+    u8 *gfData;
+    s32 stride;
+
+    switch (type) {
+    case 0:
+        result = 0;
+        break;
+    case 1:
+        if (index < D_801EEF38) {
+            u8 cmdId = D_801EEF10[index * 2];
+            gfData = D_80078E00;
+            stride = 8;
+            /* g_gfData ability range J: typeField at offset 0x4180 + 5 = 0x4185 */
+            result = func_80020F2C(gfData[(cmdId - 0x14) * stride + 0x4185]);
+        } else {
+            result = 0;
+        }
+        break;
+    case 2:
+        if (index < D_801EEF9A) {
+            u8 ablId = D_801EEF40[index * 2];
+            result = func_80020AD4(ablId);
+        } else {
+            result = 0;
+        }
+        break;
+        result = 0;
+    default:
+        break;
+    }
+    return result;
+}
 
 /**
  * @brief Calculate junction menu navigation flags.

@@ -9,3 +9,4 @@ g_availableAbilities = 0x801EEFD0;
 g_characterAbilities = 0x8007785C;
 g_characterJunctions = 0x80077864;
 g_characterMagic = 0x80077818;
+g_cmdAbilities = 0x8007CF80;
