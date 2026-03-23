@@ -25,6 +25,7 @@ extern u8 D_801EEF9A;
 extern u8 func_80036978(s32 id);
 extern u8 g_characterAbilities[];
 extern u8 D_801EEED0[];
+extern s32 func_801F776C(s32 magicId, s32 slotType);
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -427,7 +428,37 @@ s32 func_801E676C(s32 charIdx, s32 slotType) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E67EC);
+/**
+ * @brief Compute magic availability bitmask for a junction slot type.
+ *
+ * Loops through 32 magic slots, checking each against the given slot
+ * type via func_801F776C. Returns a bitmask of which slots have
+ * compatible magic.
+ *
+ * @param charIdx Character index (0-7).
+ * @param slotOffset Offset into D_801EEAC0 junction type table.
+ * @return 32-bit bitmask of available magic slots.
+ */
+s32 func_801E67EC(s32 charIdx, s32 slotOffset) {
+    extern u8 D_801EEAC0[];
+    u8 *magic = (u8 *)g_gameState.chars[charIdx].magic;
+    s32 result = 0;
+    u32 type = D_801EEAC0[slotOffset];
+    s32 i = result;
+    s32 one = 1;
+
+    do {
+        u32 magicId = *magic++;
+        u8 qty = *magic++;
+        if (qty != 0 && magicId != 0) {
+            if (func_801F776C(magicId, type) != 0) {
+                result |= (one << i);
+            }
+        }
+    } while (++i < MAGIC_SLOT_COUNT);
+
+    return result;
+}
 
 /**
  * @brief Compute negative scroll offset from page index.
