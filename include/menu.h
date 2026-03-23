@@ -144,4 +144,24 @@ typedef struct {
     /* 0x09 */ u8 pad09[3];           /**< Padding. */
 } JunctionGfEntry; /* 0x0C = 12 bytes */
 
+/**
+ * @brief Character display info for menu rendering (stride 32).
+ *
+ * Cached summary of character data used by the menu system.
+ * Array of 8 entries indexed by character ID, located at D_801FABC8.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[8];        /**< Unknown. */
+    /* 0x08 */ s16 currentHp;      /**< Cached current HP. */
+    /* 0x0A */ s16 unk0A;          /**< Unknown stat value. */
+    /* 0x0C */ u8 unk0C;           /**< Unknown byte. */
+    /* 0x0D */ u8 pad0D;           /**< Padding. */
+    /* 0x0E */ u16 statusFlags;    /**< Character status flags (synced from CharacterData). */
+    /* 0x10 */ u8 pad10[2];        /**< Unknown. */
+    /* 0x12 */ u8 unk12;           /**< Unknown byte. */
+    /* 0x13 */ u8 pad13[13];       /**< Unknown. */
+} CharMenuInfo; /* 0x20 = 32 bytes */
+
+extern CharMenuInfo g_charMenuInfo[];
+
 #endif /* MENU_H */

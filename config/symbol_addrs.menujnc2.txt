@@ -80,3 +80,4 @@ g_junctionGfTable = 0x801EED10;
 g_autoJunctionPriority = 0x801EEAB4;
 validateCommandSlots = 0x801E6944; // type:func
 
+g_charMenuInfo = 0x801FABC8;

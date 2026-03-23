@@ -35,6 +35,10 @@ extern void func_801EFBB4(s32 renderCtx, s32 param, void *callback);
 extern s32 func_801EB91C();
 extern JunctionGfEntry D_801EEDD0;
 extern void func_800300F8(s32 renderCtx, s32 x, s32 w, s32 y, s32 color, s32 menuColor, s32 selColor);
+extern s32 func_801F3FB4(u16 statusFlags);
+extern s32 getCharNamePtr(u8 characterId);
+extern s32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
+extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
 
 
 /** @brief Junction menu layout constants (pixel positions). */
@@ -1407,7 +1411,41 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDAA0);
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDC88);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDDF8);
+/**
+ * @brief Render a character name and status bar in the junction menu.
+ *
+ * Sets up g_menuDisplayCfg dimensions, optionally renders the character
+ * name (looked up via getCharNamePtr from the character's ID in g_gameState),
+ * then draws a color bar via func_801EF9AC.
+ *
+ * @param renderCtx Render context handle.
+ * @param cursorY Current Y cursor position.
+ * @param x X position for the panel.
+ * @param height Y position / height parameter.
+ * @param charIdx Character index (0-7), or 0xFF to skip name rendering.
+ * @return Updated Y cursor position.
+ */
+s32 func_801EDDF8(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 charIdx) {
+    CharMenuInfo *menuInfo;
+
+    g_menuDisplayCfg.x = x;
+    x += 9;
+    g_menuDisplayCfg.y = height;
+    g_menuDisplayCfg.w = 0x9A;
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.h = 0x16;
+    height += 7;
+
+    do {
+        if (charIdx != 0xFF) {
+            s32 gfInfo = func_801F3FB4((*(menuInfo = &g_charMenuInfo[charIdx])).statusFlags);
+            s32 namePtr = getCharNamePtr(g_gameState.chars[charIdx].characterId);
+            cursorY = func_801F0FEC(renderCtx, cursorY, x, height, namePtr, gfInfo);
+        }
+        return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+    } while (0);
+}
 
 /**
  * @brief Render callback for the junction menu.
