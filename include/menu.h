@@ -68,7 +68,9 @@ typedef struct {
     /* 0x2C */ u8 pad2C[4];            /**< Unknown. */
     /* 0x30 */ u16 parentParam;        /**< Parameter from parent menu context. */
     /* 0x32 */ u16 discId;             /**< Current disc ID. */
-    /* 0x34 */ u8 pad34[0xC];          /**< Unknown. */
+    /* 0x34 */ u8 pad34[8];             /**< Unknown. */
+    /* 0x3C */ s16 statScale;          /**< Stat scale value (0x1000 = 1.0). */
+    /* 0x3E */ u8 pad3E[2];            /**< Unknown. */
     /* 0x40 */ u16 unk40;              /**< Unknown u16. */
     /* 0x42 */ u8 unk42;               /**< Unknown. */
     /* 0x43 */ u8 charIdx;             /**< Selected character index (0-7). */
@@ -78,7 +80,7 @@ typedef struct {
     /* 0x47 */ u8 slotCount;           /**< Number of junction slots (2 or 3). */
     /* 0x48 */ u8 pad48[6];            /**< Unknown. */
     /* 0x4E */ u8 unk4E;               /**< Unknown. */
-    /* 0x4F */ u8 pad4F;               /**< Unknown. */
+    /* 0x4F */ s8 statSlot;             /**< Current stat slot index (-1 = none). */
     /* 0x50 */ u8 unk50;               /**< Unknown. */
     /* 0x51 */ u8 pad51[0xA];          /**< Unknown. */
     /* 0x5B */ u8 discCount;           /**< Number of discs (from func_80035A6C). */
