@@ -1235,11 +1235,74 @@ void func_801EC280(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
     }
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC358);
+/** @brief Render junction ability slot — checks combined ability bits 0x19000. */
+void func_801EC358(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+    JunctionGfEntry *gfEntry;
+    s32 available;
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC434);
+    if (gfIdx < 0) {
+        gfEntry = &D_801EEDD0;
+    } else {
+        gfEntry = &g_junctionGfTable[gfIdx];
+    }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC50C);
+    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x19000);
+
+    {
+        s32 menuCol = g_menuColor;
+        color++;
+        color--;
+        do { x++; x--; } while (0);
+
+        func_800300F8(renderCtx, x, 0x129, y, color, menuCol, (!available) ? 0x1C0 : 0x80);
+    }
+}
+
+/** @brief Render junction ability slot — checks ability bit 0x200. */
+void func_801EC434(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+    JunctionGfEntry *gfEntry;
+    s32 available;
+
+    if (gfIdx < 0) {
+        gfEntry = &D_801EEDD0;
+    } else {
+        gfEntry = &g_junctionGfTable[gfIdx];
+    }
+
+    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x200);
+
+    {
+        s32 menuCol = g_menuColor;
+        color++;
+        color--;
+        do { x++; x--; } while (0);
+
+        func_800300F8(renderCtx, x, 0x12A, y, color, menuCol, (!available) ? 0x1C0 : 0x80);
+    }
+}
+
+/** @brief Render junction ability slot — checks ability bits 0x6800. */
+void func_801EC50C(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+    JunctionGfEntry *gfEntry;
+    s32 available;
+
+    if (gfIdx < 0) {
+        gfEntry = &D_801EEDD0;
+    } else {
+        gfEntry = &g_junctionGfTable[gfIdx];
+    }
+
+    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x6800);
+
+    {
+        s32 menuCol = g_menuColor;
+        color++;
+        color--;
+        do { x++; x--; } while (0);
+
+        func_800300F8(renderCtx, x, 0x12B, y, color, menuCol, (!available) ? 0x1C0 : 0x80);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC5E4);
 
