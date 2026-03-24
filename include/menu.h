@@ -63,44 +63,60 @@ typedef struct {
  * @note Many fields still unmapped — extend as functions are decomped.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[0x20];         /**< Unknown. */
+    /* 0x00 */ u8 pad00[0x10];         /**< Unknown. */
+    /* 0x10 */ u16 state;              /**< Current state machine state (0x00-0x49). */
+    /* 0x12 */ u8 pad12[4];            /**< Unknown. */
+    /* 0x16 */ u16 returnState;        /**< State to return to after sub-menu. */
+    /* 0x18 */ u16 exitState;          /**< State to transition to on exit. */
+    /* 0x1A */ u8 pad1A[6];            /**< Unknown. */
     /* 0x20 */ u8 itemData[8];         /**< Item/ability data passed to rendering callbacks. */
     /* 0x28 */ s32 dataPtr;            /**< Pointer to ability data table. */
     /* 0x2C */ s32 unk2C;               /**< Secondary data pointer (for ability list callbacks). */
     /* 0x30 */ u16 parentParam;        /**< Parameter from parent menu context. */
     /* 0x32 */ u16 discId;             /**< Current disc ID. */
     /* 0x34 */ u16 unk34;               /**< Scroll offset source (copied to g_menuDisplayCfg.scrollOffset). */
-    /* 0x36 */ u8 pad36[2];             /**< Unknown. */
+    /* 0x36 */ s16 unk36;              /**< Panel animation scale. */
     /* 0x38 */ s16 unk38;              /**< Offset added to Y position in stat panel rendering. */
-    /* 0x3A */ s16 unk3A;              /**< Unknown s16 (used in stat bar rendering). */
+    /* 0x3A */ s16 unk3A;              /**< Fade/transition scale value. */
     /* 0x3C */ s16 statScale;          /**< Stat scale value (0x1000 = 1.0). */
     /* 0x3E */ u16 unk3E;              /**< Stat delta value for scaling panel. */
     /* 0x40 */ s16 unk40;              /**< Unknown s16 (scaling factor, similar to statScale). */
-    /* 0x42 */ u8 unk42;               /**< Unknown. */
+    /* 0x42 */ u8 unk42;               /**< Panel display mode. */
     /* 0x43 */ u8 charIdx;             /**< Selected character index (0-7). */
-    /* 0x44 */ u8 unk44;               /**< Unknown. */
-    /* 0x45 */ u8 unk45;               /**< Unknown. */
-    /* 0x46 */ u8 unk46;               /**< Unknown. */
+    /* 0x44 */ u8 unk44;               /**< Page/row index for rendering. */
+    /* 0x45 */ u8 unk45;               /**< Page offset for rendering. */
+    /* 0x46 */ u8 unk46;               /**< Slot navigation mode. */
     /* 0x47 */ u8 slotCount;           /**< Number of junction slots (2 or 3). */
-    /* 0x48 */ u8 pad48[6];            /**< Unknown. */
+    /* 0x48 */ u8 unk48;               /**< Ability navigation limit. */
+    /* 0x49 */ u8 pad49;               /**< Unknown. */
+    /* 0x4A */ s8 unk4A;               /**< Stat delta column index. */
+    /* 0x4B */ s8 unk4B;               /**< Sub-slot selection index. */
+    /* 0x4C */ s8 unk4C;               /**< Auto-junction table index. */
+    /* 0x4D */ u8 pad4D;               /**< Unknown. */
     /* 0x4E */ s8 unk4E;               /**< Stat index for delta bar rendering. */
     /* 0x4F */ s8 statSlot;             /**< Current stat slot index (-1 = none). */
-    /* 0x50 */ u8 unk50;               /**< Unknown. */
-    /* 0x51 */ u8 pad51[5];             /**< Unknown. */
+    /* 0x50 */ s8 unk50;               /**< Magic list cursor position. */
+    /* 0x51 */ u8 unk51;               /**< Unknown. */
+    /* 0x52 */ u8 unk52;               /**< Ability page slot value (per-type). */
+    /* 0x53 */ u8 unk53;               /**< Ability page slot value 2. */
+    /* 0x54 */ u8 unk54;               /**< Unknown. */
+    /* 0x55 */ u8 unk55;               /**< Unknown. */
     /* 0x56 */ u8 unk56;               /**< Ability list type (0=none, 1=commands, 2=abilities). */
-    /* 0x57 */ u8 pad57;               /**< Unknown. */
+    /* 0x57 */ u8 unk57;               /**< Ability count for current navigation. */
     /* 0x58 */ u8 unk58;               /**< Header panel category index. */
-    /* 0x59 */ u8 pad59;               /**< Unknown. */
+    /* 0x59 */ u8 unk59;               /**< Junction slot count for current type. */
     /* 0x5A */ u8 unk5A;               /**< Stat display type byte. */
     /* 0x5B */ u8 discCount;           /**< Number of discs (from func_80035A6C). */
-    /* 0x5C */ u8 pad5C;               /**< Unknown. */
+    /* 0x5C */ s8 unk5C;               /**< GF navigation index. */
     /* 0x5D */ u8 unk5D;               /**< Character index for scaling panel comparison. */
-    /* 0x5E */ u8 pad5E[3];            /**< Unknown. */
-    /* 0x61 */ u8 unk61;               /**< Unknown. */
-    /* 0x62 */ u8 unk62;               /**< Unknown. */
-    /* 0x63 */ u8 unk63;               /**< Unknown. */
-    /* 0x64 */ u16 unk64;              /**< Unknown u16. */
-    /* 0x66 */ u8 pad66[2];            /**< Unknown. */
+    /* 0x5E */ s8 unk5E;               /**< Column/stat selection index. */
+    /* 0x5F */ u8 unk5F;               /**< GF ability slot count. */
+    /* 0x60 */ u8 unk60;               /**< Junction modification flags. */
+    /* 0x61 */ u8 unk61;               /**< Modified flag (set when junction changed). */
+    /* 0x62 */ u8 unk62;               /**< Sub-mode flag. */
+    /* 0x63 */ u8 unk63;               /**< Unjunction-all flag. */
+    /* 0x64 */ u16 unk64;              /**< GF confirm timer. */
+    /* 0x66 */ u16 unk66;              /**< Message display timer. */
 } JunctionMenuCtx; /* 0x68 bytes */
 
 /**
