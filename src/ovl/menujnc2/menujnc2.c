@@ -1195,26 +1195,126 @@ s32 junctionGfToChar(s32 charIdx, s32 gfIdx) {
 }
 
 /**
- * @brief Compact command name slots, removing gaps.
+ * @brief Compact defense-element junction slots, removing gaps.
  *
- * Scans the 4 command name bytes at g_gameState offset 0x4F7 for the
- * given character, collecting non-zero entries into a temp buffer. If
- * the last non-zero position exceeds the allowed max (from abilityCount[1]),
- * clears all slots and copies back only up to the max count.
+ * Scans the 4 defense-element junction slots (JUNCTION_DEF_ELEM_0..3)
+ * for the given character, collecting non-zero entries into a temp buffer.
+ * If the last occupied slot index exceeds the allowed max count (from
+ * g_junctionChars abilityCount[1]), clears all 4 slots and copies back
+ * only up to the max count, compacting them to the front.
  *
  * @param charIdx Character index (0-7).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", compactCommandSlots);
+void compactCommandSlots(s32 charIdx) {
+    u8 tmp[4];
+    s32 maxCount;
+    s32 i;
+    s32 writeIdx;
+    s32 lastSrcIdx;
+    u8 *p;
+
+    maxCount = g_junctionChars[charIdx].abilityCount[1];
+    writeIdx = 0;
+    lastSrcIdx = writeIdx;
+
+    i = 3;
+    p = &tmp[3];
+    do {
+        *p-- = 0;
+    } while (--i >= 0);
+
+    for (i = 0; i < 4; i++) {
+        u8 val = g_gameState.chars[charIdx].junctions[JUNCTION_DEF_ELEM_0 + i];
+        if (val != 0) {
+            tmp[writeIdx] = val;
+            writeIdx++;
+            lastSrcIdx = i;
+        }
+    }
+
+    if (lastSrcIdx < maxCount) {
+        return;
+    }
+
+    i = 3;
+    {
+        s32 base = (s32)&g_gameState;
+        u8 *q = (u8 *)(base + charIdx * 152 + 3);
+        do {
+            *(u8 *)((s32)q + 0x4F7) = 0;
+            q--;
+        } while (--i >= 0);
+    }
+
+    if (maxCount == 0) {
+        return;
+    }
+
+    i = 0;
+    do {
+        g_gameState.chars[charIdx].junctions[JUNCTION_DEF_ELEM_0 + i] = tmp[i];
+    } while (++i < maxCount);
+}
 
 /**
- * @brief Compact ability name slots, removing gaps.
+ * @brief Compact defense-status junction slots, removing gaps.
  *
- * Same logic as compactCommandSlots but operates on the 4 ability name
- * bytes at g_gameState offset 0x4FB and uses abilityCount[0] as the max.
+ * Same logic as compactCommandSlots but operates on the 4 defense-status
+ * junction slots (JUNCTION_DEF_STATUS_0..3) and uses abilityCount[0]
+ * as the max.
  *
  * @param charIdx Character index (0-7).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", compactAbilitySlots);
+void compactAbilitySlots(s32 charIdx) {
+    u8 tmp[4];
+    s32 maxCount;
+    s32 i;
+    s32 writeIdx;
+    s32 lastSrcIdx;
+    u8 *p;
+
+    maxCount = g_junctionChars[charIdx].abilityCount[0];
+    writeIdx = 0;
+    lastSrcIdx = writeIdx;
+
+    i = 3;
+    p = &tmp[3];
+    do {
+        *p-- = 0;
+    } while (--i >= 0);
+
+    for (i = 0; i < 4; i++) {
+        u8 val = g_gameState.chars[charIdx].junctions[JUNCTION_DEF_STATUS_0 + i];
+        if (val != 0) {
+            tmp[writeIdx] = val;
+            writeIdx++;
+            lastSrcIdx = i;
+        }
+    }
+
+    if (lastSrcIdx < maxCount) {
+        return;
+    }
+
+    i = 3;
+    {
+        s32 base = (s32)&g_gameState;
+        u8 *q = (u8 *)(base + charIdx * 152 + 3);
+        do {
+            *(u8 *)((s32)q + 0x4FB) = 0;
+            q--;
+        } while (--i >= 0);
+    }
+
+    if (maxCount == 0) {
+        return;
+    }
+
+    i = 0;
+    do {
+        g_gameState.chars[charIdx].junctions[JUNCTION_DEF_STATUS_0 + i] = tmp[i];
+    } while (++i < maxCount);
+}
 
 /**
  * @brief Remove a GF junction from a character.
