@@ -40,6 +40,8 @@ extern s32 getCharNamePtr(u8 characterId);
 extern s32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
 extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
 
+extern MagicJunctionData g_magicJunctionData[];
+extern s32 func_80035A6C(s32 flags);
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -88,7 +90,90 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", decodeMenuString);
  * @param flagMask Available magic bitmask.
  * @return Updated flagMask with selected slot's bit cleared.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", autoJunctionSlot);
+s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
+    s32 charIdx;
+    MagicSlot *magicSlots;
+    s32 slotType;
+    s32 flagMask;
+{
+    s32 bestScore = 0;
+    s32 bestMagicId = bestScore; /* Regalloc: chained init for prologue save order */
+    MagicJunctionData *tableBase;
+    s32 bestBitIdx = -1;
+    s32 i = bestMagicId; /* Regalloc: chained init for prologue save order */
+    MagicJunctionData *entry;
+    s32 magicId; /* s32 not u8: avoids andi truncation on bestMagicId assignment */
+    s32 quantity; /* s32 not u8: fixes mult operand order and s-reg numbering */
+
+    tableBase = g_magicJunctionData; /* Regalloc: intermediate var controls addu operand order */
+    do {
+        s32 mask = 1 << i;
+        if (flagMask & mask) {
+            s32 score;
+
+            magicId = magicSlots->magicId;
+            quantity = magicSlots->quantity;
+            entry = tableBase + magicId;
+
+            if (slotType < JUNCTION_ATK_ELEM) {
+                score = entry->statJunction[slotType];
+            } else if (slotType == JUNCTION_ATK_ELEM) {
+                score = entry->atkElemBonus * func_80035A6C(entry->atkElemFlags);
+            } else if (slotType == JUNCTION_ATK_STATUS) {
+                score = entry->atkStatusBonus * func_80035A6C(entry->atkStatusFlags);
+            } else if (slotType == JUNC_SLOT_DEF_ELEM) {
+                score = entry->defElemBonus * func_80035A6C(entry->defElemFlags);
+            } else if (slotType == JUNC_SLOT_DEF_STATUS) {
+                score = entry->defStatusBonus * func_80035A6C(entry->defStatusFlags);
+            } else {
+                score = 0;
+            }
+
+            score *= quantity;
+            if (score > bestScore) {
+                bestMagicId = magicId;
+                bestBitIdx = i;
+                bestScore = score;
+            }
+        }
+        i++;
+        magicSlots++;
+    } while (i < MAGIC_SLOT_COUNT);
+
+    if (bestBitIdx >= 0) {
+        flagMask &= ~(1 << bestBitIdx);
+
+        if (slotType < JUNC_SLOT_DEF_ELEM) {
+            g_gameState.chars[charIdx].junctions[slotType] = bestMagicId;
+        }
+
+        if (slotType == JUNC_SLOT_DEF_ELEM) {
+            u8 *slot = &g_gameState.chars[charIdx].junctions[JUNCTION_DEF_ELEM_0];
+            s32 j;
+            for (j = 0; j < 4; j++) {
+                if (*slot == 0) {
+                    *slot = bestMagicId;
+                    break;
+                }
+                slot++;
+            }
+        }
+
+        if (slotType == JUNC_SLOT_DEF_STATUS) {
+            u8 *slot = &g_gameState.chars[charIdx].junctions[JUNCTION_DEF_STATUS_0];
+            s32 j;
+            for (j = 0; j < 4; j++) {
+                if (*slot == 0) {
+                    *slot = bestMagicId;
+                    break;
+                }
+                slot++;
+            }
+        }
+    }
+
+    return flagMask;
+}
 
 /**
  * @brief Dispatch ability rendering based on slot type, with optional looping.

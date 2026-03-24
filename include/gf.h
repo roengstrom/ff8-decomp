@@ -266,4 +266,28 @@ typedef struct {
 /** @brief Runtime GF data region (BSS, populated at load time). */
 extern GfData g_gfData;
 
+/**
+ * @brief Per-magic-spell junction data (stride 60 bytes).
+ *
+ * Indexed by magic ID (0–56). Each entry holds the stat junction bonus
+ * for each of the 9 stats, plus element/status flags and multipliers
+ * used to score magic for auto-junction.
+ *
+ * Lives at D_8007901C (= g_gfData + 0x21C, same region as junctionData
+ * but indexed by magic spell, not GF).
+ */
+typedef struct {
+    u8 pad00[0x17];           /**< +0x00: Preamble (name params, base stats, etc.). */
+    u8 statJunction[9];       /**< +0x17: Stat junction values [HP,Str,Vit,Mag,Spr,Spd,Eva,Hit,Lck]. */
+    u8 atkElemFlags;          /**< +0x20: Attack element flags (popcount → number of elements). */
+    u8 atkElemBonus;          /**< +0x21: Attack element bonus multiplier. */
+    u8 defElemFlags;          /**< +0x22: Defense element flags (popcount → number of elements). */
+    u8 defElemBonus;          /**< +0x23: Defense element bonus multiplier. */
+    u8 atkStatusBonus;        /**< +0x24: Attack status bonus multiplier. */
+    u8 defStatusBonus;        /**< +0x25: Defense status bonus multiplier. */
+    u16 atkStatusFlags;       /**< +0x26: Attack status bitmask (popcount → number of statuses). */
+    u16 defStatusFlags;       /**< +0x28: Defense status bitmask (popcount → number of statuses). */
+    u8 pad2A[0x12];           /**< +0x2A: Remaining fields (total 60 bytes). */
+} MagicJunctionData; /* 60 bytes */
+
 #endif /* GF_H */

@@ -96,3 +96,5 @@ rebuildJunctionFlags = 0x801E6F30; // type:func
 buildMagicLookupTable = 0x801E7B1C; // type:func
 encodeBattleAbilityFlags = 0x801EA838; // type:func
 checkJunctionCompat = 0x801EBEBC; // type:func
+g_characterJunctions = 0x80077864;
+g_magicJunctionData = 0x8007901C;
