@@ -1401,7 +1401,55 @@ void setupMagicListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam,
  * @param xBase Base X position.
  * @param yBase Base Y position.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderGfMagicGrid);
+void renderGfMagicGrid(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 i = 0;
+    s32 color;
+    s32 row, col;
+    s32 x, y;
+    s32 xOff, yOff;
+    s32 namePtr;
+    s32 junctedGfs;
+    u16 numGfs;
+    s32 mask;
+    s32 xPos;
+
+    junctedGfs = g_junctionChars[ctx->charIdx].junctedGfs;
+    numGfs = 16;
+
+    do {
+        mask = 1 << i;
+        if (junctedGfs & mask) {
+            row = i / 2;
+            col = i % 2;
+            xOff = col * 85 + 6;
+            xPos = xBase + xOff;
+            yOff = row * 11 + 6;
+            y = yBase + yOff;
+            x = xPos;
+
+            if (func_801F2240(i) & 1) {
+                color = 1;
+            } else {
+                color = 7;
+            }
+
+            namePtr = getMagicNamePtr(i + 0x40);
+            cursorY = func_8002E8DC(renderCtx, cursorY, x, y - 3, namePtr, color);
+        }
+    } while (++i < numGfs);
+
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = xBase;
+    cfg->w = 0xB0;
+    cfg->y = yBase;
+    /* Regalloc: cursorY++/-- boosts cursorY priority to s3 over x(s4) */
+    cursorY++;
+    cursorY--;
+    cfg->h = 0x5E;
+    func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+}
 
 /**
  * @brief Render a single GF magic entry from the junction list.
