@@ -477,14 +477,56 @@ void buildAvailableAbilities(s32 charIdx) {
 /**
  * @brief Build command and ability lookup tables from available abilities.
  *
- * Scans the ability availability bitfield (D_801EEFD0) for commands
+ * Scans the ability availability bitfield (g_availableAbilities) for commands
  * (IDs 0x14-0x26) and abilities (IDs 0x27-0x52). For each available
  * entry, stores the ID and type (from func_80036978) into D_801EEF10
  * (commands) or D_801EEF40 (abilities), then updates the counts.
  *
  * @param charIdx Character index (0-7).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", buildAbilityTables);
+void buildAbilityTables(s32 charIdx) {
+    s32 id;
+    s32 count;
+    s32 one;
+    s32 *availBits;
+    u8 *table;
+
+    buildAvailableAbilities(charIdx);
+
+    count = 0;
+    availBits = g_availableAbilities;
+    /* Regalloc: boost availBits priority so it gets s3 (lower than one's s4) */
+    availBits++;
+    availBits--;
+    id = 0x14;
+    one = 1;
+    table = D_801EEF10;
+    for (; id < 0x27; id++) {
+        if (availBits[id / 32] & (one << (id & 0x1F))) {
+            table[0] = id;
+            table[1] = func_80036978(id);
+            table += 2;
+            count++;
+        }
+    }
+    D_801EEF38 = count;
+
+    count = 0;
+    id = 0x27;
+    one = 1;
+    table = D_801EEF40;
+    for (; id < 0x53; id++) {
+        if (availBits[id / 32] & (one << (id & 0x1F))) {
+            table[0] = id;
+            table[1] = func_80036978(id);
+            table += 2;
+            count++;
+        }
+    }
+    D_801EEF9A = count;
+
+    buildAssignedAbilities(charIdx);
+}
 
 /**
  * @brief Render magic list junction entry.
