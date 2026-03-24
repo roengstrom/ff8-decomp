@@ -66,14 +66,15 @@ typedef struct {
     /* 0x00 */ u8 pad00[0x20];         /**< Unknown. */
     /* 0x20 */ u8 itemData[8];         /**< Item/ability data passed to rendering callbacks. */
     /* 0x28 */ s32 dataPtr;            /**< Pointer to ability data table. */
-    /* 0x2C */ u8 pad2C[4];            /**< Unknown. */
+    /* 0x2C */ s32 unk2C;               /**< Secondary data pointer (for ability list callbacks). */
     /* 0x30 */ u16 parentParam;        /**< Parameter from parent menu context. */
     /* 0x32 */ u16 discId;             /**< Current disc ID. */
     /* 0x34 */ u16 unk34;               /**< Scroll offset source (copied to g_menuDisplayCfg.scrollOffset). */
-    /* 0x36 */ u8 pad36[4];             /**< Unknown. */
+    /* 0x36 */ u8 pad36[2];             /**< Unknown. */
+    /* 0x38 */ s16 unk38;              /**< Offset added to Y position in stat panel rendering. */
     /* 0x3A */ s16 unk3A;              /**< Unknown s16 (used in stat bar rendering). */
     /* 0x3C */ s16 statScale;          /**< Stat scale value (0x1000 = 1.0). */
-    /* 0x3E */ u8 pad3E[2];            /**< Unknown. */
+    /* 0x3E */ u16 unk3E;              /**< Stat delta value for scaling panel. */
     /* 0x40 */ s16 unk40;              /**< Unknown s16 (scaling factor, similar to statScale). */
     /* 0x42 */ u8 unk42;               /**< Unknown. */
     /* 0x43 */ u8 charIdx;             /**< Selected character index (0-7). */
@@ -85,9 +86,16 @@ typedef struct {
     /* 0x4E */ s8 unk4E;               /**< Stat index for delta bar rendering. */
     /* 0x4F */ s8 statSlot;             /**< Current stat slot index (-1 = none). */
     /* 0x50 */ u8 unk50;               /**< Unknown. */
-    /* 0x51 */ u8 pad51[0xA];          /**< Unknown. */
+    /* 0x51 */ u8 pad51[5];             /**< Unknown. */
+    /* 0x56 */ u8 unk56;               /**< Ability list type (0=none, 1=commands, 2=abilities). */
+    /* 0x57 */ u8 pad57;               /**< Unknown. */
+    /* 0x58 */ u8 unk58;               /**< Header panel category index. */
+    /* 0x59 */ u8 pad59;               /**< Unknown. */
+    /* 0x5A */ u8 unk5A;               /**< Stat display type byte. */
     /* 0x5B */ u8 discCount;           /**< Number of discs (from func_80035A6C). */
-    /* 0x5C */ u8 pad5C[5];            /**< Unknown. */
+    /* 0x5C */ u8 pad5C;               /**< Unknown. */
+    /* 0x5D */ u8 unk5D;               /**< Character index for scaling panel comparison. */
+    /* 0x5E */ u8 pad5E[3];            /**< Unknown. */
     /* 0x61 */ u8 unk61;               /**< Unknown. */
     /* 0x62 */ u8 unk62;               /**< Unknown. */
     /* 0x63 */ u8 unk63;               /**< Unknown. */

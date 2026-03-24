@@ -32,7 +32,7 @@ extern s32 func_80020AD4(s32 arg);
 extern u16 D_801FA3C8[];
 extern u8 D_801EEB1C[];
 extern void func_801EFBB4(s32 renderCtx, s32 param, void *callback);
-extern s32 func_801EB91C();
+extern s32 renderMagicItemCallback();
 extern JunctionGfEntry D_801EEDD0;
 extern void func_800300F8(s32 renderCtx, s32 x, s32 w, s32 y, s32 color, s32 menuColor, s32 selColor);
 extern s32 func_801F3FB4(u16 statusFlags);
@@ -74,7 +74,7 @@ extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
  * @param charIdx Character index for name substitution.
  * @return Pointer to scratchpad decode buffer.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", decodeMenuString);
 
 /**
  * @brief Auto-junction the best magic for a given slot type.
@@ -88,7 +88,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5800);
  * @param flagMask Available magic bitmask.
  * @return Updated flagMask with selected slot's bit cleared.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E59A4);
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", autoJunctionSlot);
 
 /**
  * @brief Dispatch ability rendering based on slot type, with optional looping.
@@ -110,7 +110,7 @@ s32 renderJunctionSlots(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
         count = g_junctionChars[charIdx].abilityCount[1];
         if (count > 0) {
             do {
-                pos = func_801E59A4(charIdx, abilityList, slotType);
+                pos = autoJunctionSlot(charIdx, abilityList, slotType);
                 count--;
             } while (count > 0);
         }
@@ -118,12 +118,12 @@ s32 renderJunctionSlots(s32 charIdx, s32 abilityList, s32 slotType, s32 pos) {
         count = g_junctionChars[charIdx].abilityCount[0];
         if (count > 0) {
             do {
-                pos = func_801E59A4(charIdx, abilityList, slotType);
+                pos = autoJunctionSlot(charIdx, abilityList, slotType);
                 count--;
             } while (count > 0);
         }
     } else {
-        pos = func_801E59A4(charIdx, abilityList, slotType);
+        pos = autoJunctionSlot(charIdx, abilityList, slotType);
     }
     return pos;
 }
@@ -256,7 +256,7 @@ void restoreCharacterJunctions(s32 charIdx) {
  *
  * @see https://decomp.me/scratch/ZRPWL
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", assignJunctionSlot);
 
 
 /**
@@ -267,7 +267,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E5FCC);
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E61F8(s32 charIdx) {
+void buildAssignedAbilities(s32 charIdx) {
     s32 i;
 
     for (i = 3; i >= 0; i--) {
@@ -300,7 +300,7 @@ void func_801E61F8(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6350(s32 charIdx) {
+void buildAvailableAbilities(s32 charIdx) {
     s32 junctedGfs = g_junctionChars[charIdx].junctedGfs;
     s32 gfIdx;
     s32 one = 1;
@@ -321,14 +321,24 @@ void func_801E6350(s32 charIdx) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E63FC);
+/**
+ * @brief Build command and ability lookup tables from available abilities.
+ *
+ * Scans the ability availability bitfield (D_801EEFD0) for commands
+ * (IDs 0x14-0x26) and abilities (IDs 0x27-0x52). For each available
+ * entry, stores the ID and type (from func_80036978) into D_801EEF10
+ * (commands) or D_801EEF40 (abilities), then updates the counts.
+ *
+ * @param charIdx Character index (0-7).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", buildAbilityTables);
 
 /**
  * @brief Render magic list junction entry.
  * @param renderCtx Render context.
  * @param row Row index (wrapped to JNC_ROWS_PER_PAGE).
  */
-void func_801E6534(s32 renderCtx, s32 row) {
+void renderMagicListEntry(s32 renderCtx, s32 row) {
     func_801F0A34(renderCtx, 0, JNC_W_MAGIC_LIST, (row % JNC_ROWS_PER_PAGE) * JNC_ROW_HEIGHT + JNC_Y_MAGIC_LIST);
 }
 
@@ -341,7 +351,7 @@ void func_801E6534(s32 renderCtx, s32 row) {
  * @param row Row index (0-5).
  * @param widthOffset Width offset to add.
  */
-void func_801E6584(s32 renderCtx, s32 row, s32 widthOffset) {
+void renderStatColumnEntry(s32 renderCtx, s32 row, s32 widthOffset) {
     s32 width;
     s32 y;
     if (row < JNC_LEFT_COL_ROWS) {
@@ -361,7 +371,7 @@ void func_801E6584(s32 renderCtx, s32 row, s32 widthOffset) {
  * @param renderCtx Render context.
  * @param slotIdx Slot index (wrapped to JNC_STAT_ROWS).
  */
-void func_801E65F0(s32 renderCtx, s32 slotIdx) {
+void renderStatListEntry(s32 renderCtx, s32 slotIdx) {
     slotIdx %= JNC_STAT_ROWS;
     func_801F0A34(renderCtx, 0, JNC_W_STAT_LIST, slotIdx * JNC_ROW_HEIGHT + JNC_Y_STAT_LIST);
 }
@@ -378,7 +388,7 @@ void func_801E65F0(s32 renderCtx, s32 slotIdx) {
  * @param slotOffset Ability slot offset into D_801EEAC0.
  * @return Masked flags value, or 0 if type >= 19.
  */
-s32 func_801E6658(s32 charIdx, s32 slotOffset) {
+s32 getJunctionSlotFlags(s32 charIdx, s32 slotOffset) {
     extern u8 D_801EEAC0[];
     u32 flags;
 
@@ -422,7 +432,7 @@ s32 func_801E6658(s32 charIdx, s32 slotOffset) {
  * @param renderCtx Render context.
  * @param index Linear row index.
  */
-void func_801E66F0(s32 renderCtx, s32 index) {
+void renderAbilityEntry(s32 renderCtx, s32 index) {
     s32 width = JNC_W_ABILITY;
     s32 page = index / JNC_ABILITY_PAGES;
     s32 row = index % JNC_ABILITY_PAGES;
@@ -448,7 +458,7 @@ void func_801E66F0(s32 renderCtx, s32 index) {
  * @param slotType Slot type (0, 1, or other).
  * @return Slot count value.
  */
-s32 func_801E676C(s32 charIdx, s32 slotType) {
+s32 getJunctionSlotCount(s32 charIdx, s32 slotType) {
     s32 result;
 
     switch (slotType) {
@@ -486,7 +496,7 @@ s32 func_801E676C(s32 charIdx, s32 slotType) {
  * @param slotOffset Offset into D_801EEAC0 junction type table.
  * @return 32-bit bitmask of available magic slots.
  */
-s32 func_801E67EC(s32 charIdx, s32 slotOffset) {
+s32 buildMagicAvailMask(s32 charIdx, s32 slotOffset) {
     extern u8 D_801EEAC0[];
     u8 *magic = (u8 *)g_gameState.chars[charIdx].magic;
     s32 result = 0;
@@ -516,7 +526,7 @@ s32 func_801E67EC(s32 charIdx, s32 slotOffset) {
  * @param index Linear item index.
  * @return Negative pixel offset for scrolling (0, -160, or -320).
  */
-s32 func_801E68AC(s32 index) {
+s32 getAbilityScrollOffset(s32 index) {
     s32 page = index / 5;
     if (page >= 3) {
         page = 2;
@@ -525,7 +535,7 @@ s32 func_801E68AC(s32 index) {
 }
 
 /** @brief Draw inner panel with section id 0xB and clear flag. */
-s32 func_801E68EC(s32 pos) {
+s32 renderInnerPanel(s32 pos) {
     return func_801F08D4(1, 0xB, pos, 0);
 }
 
@@ -534,7 +544,7 @@ s32 func_801E68EC(s32 pos) {
  * @param pos Panel position parameter
  * @return Result of func_801F08D4
  */
-s32 func_801E6918(s32 pos) {
+s32 renderInnerPanelAlt(s32 pos) {
     return func_801F08D4(1, 0xB, pos, 1);
 }
 
@@ -651,14 +661,14 @@ void validateAbilitySlots(s32 charIdx) {
 /**
  * @brief Full junction menu refresh sequence.
  *
- * Calls func_801E61F8, func_801E6350, validateCommandSlots, and
- * validateAbilitySlots in sequence with the party context.
+ * Calls buildAssignedAbilities, buildAvailableAbilities, validateCommandSlots,
+ * and validateAbilitySlots in sequence with the party context.
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6B88(s32 charIdx) {
-    func_801E61F8(charIdx);
-    func_801E6350(charIdx);
+void refreshJunctionState(s32 charIdx) {
+    buildAssignedAbilities(charIdx);
+    buildAvailableAbilities(charIdx);
     validateCommandSlots(charIdx);
     validateAbilitySlots(charIdx);
 }
@@ -670,7 +680,7 @@ void func_801E6B88(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6BC8(s32 charIdx) {
+void syncCharacterHp(s32 charIdx) {
     u16 hp = g_junctionChars[charIdx].currentHp;
     g_gameState.chars[charIdx].currentHp = hp;
     func_801F5190();
@@ -685,12 +695,12 @@ void func_801E6BC8(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6C24(s32 charIdx) {
+void snapshotJunctionPreview(s32 charIdx) {
     u16 saved = g_gameState.chars[charIdx].junctedGfs;
 
     g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
-    func_801E6350(charIdx);
-    func_801E6BC8(charIdx);
+    buildAvailableAbilities(charIdx);
+    syncCharacterHp(charIdx);
     func_8002A318(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
     g_gameState.chars[charIdx].junctedGfs = saved;
     func_801F1B4C(charIdx);
@@ -703,9 +713,9 @@ void func_801E6C24(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6CCC(s32 charIdx) {
+void applyJunctedGfs(s32 charIdx) {
     g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
-    func_801E6B88(charIdx);
+    refreshJunctionState(charIdx);
 }
 
 /**
@@ -715,7 +725,7 @@ void func_801E6CCC(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6D28(s32 charIdx) {
+void stashJunctedGfs(s32 charIdx) {
     g_junctionChars[charIdx].junctedGfs = g_gameState.chars[charIdx].junctedGfs;
 }
 
@@ -727,7 +737,7 @@ void func_801E6D28(s32 charIdx) {
  * @param charIdx Character index (0-7).
  * @param hp HP value to store.
  */
-void func_801E6D6C(s32 charIdx, s32 hp) {
+void setJunctionHp(s32 charIdx, s32 hp) {
     g_junctionChars[charIdx].currentHp = hp;
 }
 
@@ -740,7 +750,7 @@ void func_801E6D6C(s32 charIdx, s32 hp) {
  * @param charIdx Character index (0-7).
  * @param subSlot Junction sub-slot (0 or 1).
  */
-void func_801E6D8C(s32 charIdx, s32 subSlot) {
+void saveCommandAbilityBackup(s32 charIdx, s32 subSlot) {
     s32 i;
     for (i = 0; i < 4; i++) {
         g_junctionChars[charIdx].commandsBackup[subSlot][i] =
@@ -759,7 +769,7 @@ void func_801E6D8C(s32 charIdx, s32 subSlot) {
  * @param charIdx Character index (0-7).
  * @param subSlot Junction sub-slot (0 or 1).
  */
-void func_801E6E0C(s32 charIdx, s32 subSlot) {
+void restoreCommandAbilityBackup(s32 charIdx, s32 subSlot) {
     s32 i;
     for (i = 0; i < 4; i++) {
         g_gameState.chars[charIdx].commands[i] = g_junctionChars[charIdx].commandsBackup[subSlot][i];
@@ -775,26 +785,26 @@ void func_801E6E0C(s32 charIdx, s32 subSlot) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6E88(s32 charIdx) {
-    func_801E6D28(charIdx);
-    func_801E6E0C(charIdx, 0);
+void revertJunctionState(s32 charIdx) {
+    stashJunctedGfs(charIdx);
+    restoreCommandAbilityBackup(charIdx, 0);
     restoreCharacterJunctions(charIdx);
 }
 
 /**
  * @brief Reset junction slots and copy ability value from character data.
  *
- * Calls func_801E6D8C twice to clear both junction slots, then reads
+ * Calls saveCommandAbilityBackup twice to save both junction slots, then reads
  * the ability value from g_gameState.chars[charIdx].currentHp and stores it
- * to the junction table via func_801E6D6C. Finally refreshes display
+ * to the junction table via setJunctionHp. Finally refreshes display
  * via stashCharacterJunctions.
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E6EC4(s32 charIdx) {
-    func_801E6D8C(charIdx, 0);
-    func_801E6D8C(charIdx, 1);
-    func_801E6D6C(charIdx, g_gameState.chars[charIdx].currentHp);
+void initJunctionBackups(s32 charIdx) {
+    saveCommandAbilityBackup(charIdx, 0);
+    saveCommandAbilityBackup(charIdx, 1);
+    setJunctionHp(charIdx, g_gameState.chars[charIdx].currentHp);
     stashCharacterJunctions(charIdx);
 }
 
@@ -808,7 +818,7 @@ void func_801E6EC4(s32 charIdx) {
  *
  * @param charIdx Character index.
  */
-void func_801E6F30(s32 charIdx) {
+void rebuildJunctionFlags(s32 charIdx) {
     s32 flags = 0;
     u16 junctedGfs = g_junctionChars[charIdx].junctedGfs;
     u8 *maxAblPtr;
@@ -843,7 +853,17 @@ void func_801E6F30(s32 charIdx) {
     g_junctionChars[charIdx].unk0A = maxAbl;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7004);
+/**
+ * @brief Initialize junction character entries from game state.
+ *
+ * Iterates over 8 characters. For each, zeroes the JunctionMenuEntry
+ * fields, counts non-empty magic slot pairs (into gfCompat), and if
+ * the character's bit is set in gfBitmask, copies the HP and juncted
+ * GFs values from g_gameState.
+ *
+ * @param gfBitmask Bitmask indicating which characters are active.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", initJunctionChars);
 
 /**
  * @brief Render stat effectiveness indicator bar.
@@ -855,7 +875,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7004);
  * @param renderCtx Render context parameter.
  * @param ctx Junction menu context.
  */
-void func_801E70C8(s32 renderCtx, JunctionMenuCtx *ctx) {
+void renderStatEffectBar(s32 renderCtx, JunctionMenuCtx *ctx) {
     s8 slot = ctx->statSlot;
     s32 tableIdx;
 
@@ -904,7 +924,7 @@ void func_801E70C8(s32 renderCtx, JunctionMenuCtx *ctx) {
  * @param renderCtx Render context parameter.
  * @param column Column index for rendering.
  */
-void func_801E717C(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
+void renderStatDeltaEntry(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
     s16 buffer1[36];
     s16 buffer2[36];
 
@@ -937,7 +957,7 @@ void func_801E717C(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
  * @param renderCtx Render context parameter.
  * @param column Column index into the decoded stat buffer.
  */
-void func_801E7228(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
+void renderStatValueBar(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
     s16 statBuf[36];
     s32 scale;
     s32 product;
@@ -962,7 +982,7 @@ void func_801E7228(JunctionMenuCtx *ctx, s32 renderCtx, s32 column) {
  * @param gfIdx GF index (0-15).
  * @return 1 if junction was toggled, 0 if already set.
  */
-s32 func_801E72CC(s32 charIdx, s32 gfIdx) {
+s32 junctionGfToChar(s32 charIdx, s32 gfIdx) {
     s32 one = 1;
     u16 flags = g_junctionChars[charIdx].junctedGfs;
     s32 mask = one << gfIdx;
@@ -972,40 +992,83 @@ s32 func_801E72CC(s32 charIdx, s32 gfIdx) {
     }
     g_junctionChars[charIdx].junctedGfs = flags | mask;
     g_junctionGfTable[gfIdx].charIdx = charIdx;
-    func_801E6F30(charIdx);
-    func_801E6E0C(charIdx, 1);
-    func_801E6B88(charIdx);
-    func_801E6C24(charIdx);
+    rebuildJunctionFlags(charIdx);
+    restoreCommandAbilityBackup(charIdx, 1);
+    refreshJunctionState(charIdx);
+    snapshotJunctionPreview(charIdx);
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7370);
-
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7498);
-
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E75C0);
+/**
+ * @brief Compact command name slots, removing gaps.
+ *
+ * Scans the 4 command name bytes at g_gameState offset 0x4F7 for the
+ * given character, collecting non-zero entries into a temp buffer. If
+ * the last non-zero position exceeds the allowed max (from abilityCount[1]),
+ * clears all slots and copies back only up to the max count.
+ *
+ * @param charIdx Character index (0-7).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", compactCommandSlots);
 
 /**
- * @brief Conditionally executes a sequence of calls if func_801E75C0 succeeds
+ * @brief Compact ability name slots, removing gaps.
  *
- * Calls func_801E75C0 and if the result is non-zero, calls func_801E6C24,
- * func_801E6B88, then func_801E6C24 again, all with the same parameter.
+ * Same logic as compactCommandSlots but operates on the 4 ability name
+ * bytes at g_gameState offset 0x4FB and uses abilityCount[0] as the max.
  *
- * @param charIdx Character index passed to the conditional calls
- * @return Result from func_801E75C0
+ * @param charIdx Character index (0-7).
  */
-s32 func_801E76DC(s32 charIdx) {
-    s32 result = func_801E75C0();
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", compactAbilitySlots);
+
+/**
+ * @brief Remove a GF junction from a character.
+ *
+ * Clears the GF's bit from junctedGfs, marks the GF entry as unassigned
+ * (charIdx = 0xFF), recalculates available junction flags, and zeroes
+ * any junction slots that were only provided by the removed GF.
+ *
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (0-15).
+ * @return 1 if the GF was removed, 0 if not junctioned.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", unjunctionGf);
+
+/**
+ * @brief Unjunction a GF and refresh ability tables.
+ *
+ * Calls unjunctionGf and if it succeeds, recalculates the character's
+ * junction and ability state.
+ *
+ * @param charIdx Character index (0-7).
+ * @return 1 if GF was removed, 0 if not junctioned.
+ */
+s32 unjunctionGfAndRefresh(s32 charIdx) {
+    s32 result = unjunctionGf();
 
     if (result != 0) {
-        func_801E6C24(charIdx);
-        func_801E6B88(charIdx);
-        func_801E6C24(charIdx);
+        snapshotJunctionPreview(charIdx);
+        refreshJunctionState(charIdx);
+        snapshotJunctionPreview(charIdx);
     }
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7734);
+/**
+ * @brief Preview a junction configuration change for stat calculation.
+ *
+ * Temporarily modifies the character's junctioned GFs and ability slots
+ * to compute preview stats. Saves current junction state to local stack,
+ * applies the GF/ability change, calls stat recalculation functions,
+ * then restores the original state. Used for what-if stat previews
+ * when hovering over changes in the junction menu.
+ *
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index to toggle, or -1 to skip.
+ * @param slot Junction slot to assign, or -1 to skip.
+ * @param abilityId Ability/magic ID to assign to the slot.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", previewJunctionChange);
 
 /**
  * @brief Look up ability/command name string by type and index.
@@ -1019,7 +1082,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801E7734);
  * @param index Index into the lookup table.
  * @return Name string pointer, or 0 if not found.
  */
-s32 func_801E79A4(s32 type, s32 index) {
+s32 getAbilityNamePtr(s32 type, s32 index) {
     extern u8 D_801EEAC0[];
     extern u8 D_80078E00[];
     s32 result;
@@ -1059,7 +1122,7 @@ s32 func_801E79A4(s32 type, s32 index) {
 /**
  * @brief Calculate junction menu navigation flags.
  *
- * Calls func_801E63FC to update ability lists, then determines a flag
+ * Calls buildAbilityTables to update ability lists, then determines a flag
  * byte based on available abilities (D_801EEF38 + D_801EEF9A counts)
  * and junction table state (g_junctionChars[charIdx].junctedGfs, [+0], [+0xB]).
  *
@@ -1069,7 +1132,7 @@ s32 func_801E79A4(s32 type, s32 index) {
 /**
  * @brief Compute junction menu capability flags for a character.
  *
- * Builds lookup tables via func_801E63FC, then checks what junction
+ * Builds lookup tables via buildAbilityTables, then checks what junction
  * features are available based on command/ability counts, junctioned GFs,
  * available flags, and GF compatibility.
  *
@@ -1077,10 +1140,10 @@ s32 func_801E79A4(s32 type, s32 index) {
  * @return Capability flags: bit 0 = always set, bit 1 = has GFs with abilities,
  *         bit 2 = has GF compatibility, bit 3 = has commands/abilities available.
  */
-s32 func_801E7A80(s32 charIdx) {
+s32 getJunctionCapabilities(s32 charIdx) {
     char flags;
 
-    func_801E63FC(charIdx);
+    buildAbilityTables(charIdx);
 
     if (D_801EEF38 + D_801EEF9A != 0) {
         flags = 9;
@@ -1108,7 +1171,7 @@ s32 func_801E7A80(s32 charIdx) {
  *
  * @param charIdx Character index (0-7).
  */
-void func_801E7B1C(s32 charIdx) {
+void buildMagicLookupTable(s32 charIdx) {
     s32 idx;
     s32 i;
     u8 *magic = (u8 *)g_gameState.chars[charIdx].magic;
@@ -1157,7 +1220,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", junctionMenuUpdate);
  * @param charData Pointer to battle character data.
  * @return Composed ability flags word.
  */
-s32 func_801EA838(BattleCharData *charData) {
+s32 encodeBattleAbilityFlags(BattleCharData *charData) {
     s32 result = charData->abilityValue & 0x7F;
     s32 flags = charData->abilityFlags;
 
@@ -1170,21 +1233,117 @@ s32 func_801EA838(BattleCharData *charData) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EA898);
+/**
+ * @brief Render stat table panel A (primary stats with change indicators).
+ *
+ * Iterates over D_801EEBA8 entries, comparing preview vs current ability
+ * flags to determine stat change direction. Renders icon, color bar,
+ * formatted value, and label for each stat row.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position (offset +0x88 applied).
+ * @param y Base Y position (offset +0x7F applied).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatTableA);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EAB84);
+/**
+ * @brief Render stat table panel B (secondary stats with change indicators).
+ *
+ * Same structure as renderStatTableA but uses D_801EEB40 table entries
+ * and different Y offset (+0x78).
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position.
+ * @param y Base Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatTableB);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EAE3C);
+/**
+ * @brief Render stat table panel C (extended stats with flag comparison).
+ *
+ * Uses D_801EEC10 table with additional D_801EF1A4 and D_800788E4
+ * flag bytes for comparison. Y offset +0x93.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position.
+ * @param y Base Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatTableC);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB118);
+/**
+ * @brief Render stat table panel D (combined stats with numeric values).
+ *
+ * Uses D_801EEC10 table. Renders formatted numeric stat values alongside
+ * change indicators. Y offset +0x93.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position.
+ * @param y Base Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatTableD);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB3F4);
+/**
+ * @brief Render stat value grid in two-column layout.
+ *
+ * Iterates over D_801EEC50 entries (count from D_801EED00), dividing
+ * by 11 for row/column positioning. Renders stat name string and
+ * optional numeric value for each entry.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position.
+ * @param y Base Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatGrid);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB59C);
+/**
+ * @brief Render stat delta bar showing before/after comparison.
+ *
+ * Reads D_801EEB1C stat boundary data, renders the stat value bar
+ * with optional positive/negative delta indicator based on the
+ * junction preview state.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position.
+ * @param y Base Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatDeltaBar);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB740);
+/**
+ * @brief Render extended stat delta bar with negative/positive delta computation.
+ *
+ * Extended version of renderStatDeltaBar with additional scaling math
+ * for computing stat changes from junction previews.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Base X position.
+ * @param y Base Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatDeltaBarExt);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB91C);
+/**
+ * @brief Rendering callback for individual magic list items.
+ *
+ * Loads an item pointer from g_menuDisplayCfg.dataPtr indexed by itemIdx,
+ * decodes the name via func_8002F688, and renders the string at the
+ * computed screen position using func_801F0FEC.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param itemIdx Index into the item data pointer array.
+ * @param columnIdx Column index (unused).
+ * @param xOffset X offset from stack argument.
+ * @return Updated cursor Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderMagicItemCallback);
 
 /**
  * @brief Set up menu display config and render a junction panel with callback.
@@ -1192,7 +1351,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB91C);
  * Configures g_menuDisplayCfg with panel dimensions, icon type 0x55,
  * scroll offset from ctx, and pointer to item data. Clears scroll
  * offset if ctx->unk42 is 4 or 6. Then calls func_801EFBB4 to render
- * the panel using func_801EB91C as the item rendering callback.
+ * the panel using renderMagicItemCallback as the item rendering callback.
  *
  * @param ctx Junction menu context.
  * @param renderCtx Render context parameter.
@@ -1200,7 +1359,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EB91C);
  * @param x Panel x position.
  * @param y Panel y position.
  */
-void func_801EB9CC(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam, s16 x, s16 y) {
+void setupMagicListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam, s16 x, s16 y) {
     g_menuDisplayCfg.iconType = 0x55;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = x;
@@ -1224,14 +1383,57 @@ void func_801EB9CC(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam, s16 x
         g_menuDisplayCfg.scrollOffset = 0;
     }
 
-    func_801EFBB4(renderCtx, callbackParam, func_801EB91C);
+    func_801EFBB4(renderCtx, callbackParam, renderMagicItemCallback);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBA78);
+/**
+ * @brief Render magic junction grid for all 16 GFs.
+ *
+ * Iterates over 16 GF slots. For each GF junctioned to the current
+ * character, computes a 2-column grid position, checks GF health via
+ * func_801F2240, looks up the magic name, and renders it with the
+ * appropriate color. After the loop, sets up g_menuDisplayCfg and
+ * calls func_801EF9AC for the panel border.
+ *
+ * @param ctx Junction menu context (charIdx at +0x43).
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param xBase Base X position.
+ * @param yBase Base Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderGfMagicGrid);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBBF4);
+/**
+ * @brief Render a single GF magic entry from the junction list.
+ *
+ * Checks whether the GF at the given list index is junctioned (charIdx
+ * != 0xFF) and determines the display color. Renders the magic name,
+ * GF level icon (if junctioned), and compatibility indicator.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param itemIdx Index into the GF list (offset by scroll).
+ * @param tableBase Base pointer for column/row computation.
+ * @param yBase Base Y position (on stack).
+ * @return Updated cursor Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderGfMagicEntry);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBD90);
+/**
+ * @brief Set up and render the GF magic list panel.
+ *
+ * Configures g_menuDisplayCfg for a scrollable GF list (icon 0x50,
+ * 4 columns), loads ctx fields for page/scroll state, then calls
+ * func_8002FF34 for the header and func_801EFBB4 with
+ * renderGfMagicEntry as the per-item callback.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param xBase Base X position.
+ * @param yBase Base Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderGfMagicPanel);
 
 /**
  * @brief Check junction ability mask compatibility.
@@ -1245,7 +1447,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBD90);
  * @return 7 if already junctioned, 1 if available, 0 if not.
  *
  */
-s32 func_801EBEBC(s32 currentMask, s32 availMask, s32 abilityBit) {
+s32 checkJunctionCompat(s32 currentMask, s32 availMask, s32 abilityBit) {
     s32 result = 7;
     if (!(currentMask & abilityBit)) {
         result = (availMask & abilityBit) != 0;
@@ -1253,7 +1455,25 @@ s32 func_801EBEBC(s32 currentMask, s32 availMask, s32 abilityBit) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBED8);
+/**
+ * @brief Render junction slot assignments with magic names and compatibility.
+ *
+ * Iterates over junction slots for a stat type, rendering each assigned
+ * magic name with availability coloring, compatibility indicators, and
+ * stat value formatting. Calls checkJunctionCompat to check slot availability
+ * and getMagicNamePtr for spell name lookup.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position.
+ * @param slotType Junction slot type index.
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (-1 for default).
+ * @param showValues Whether to show numeric stat values.
+ * @return Updated cursor Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderJunctionSlotDetail);
 
 /**
  * @brief Render a junction ability slot with availability coloring.
@@ -1269,7 +1489,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EBED8);
  * @param charIdx Character index (0-7).
  * @param gfIdx GF index (-1 for default/none).
  */
-void func_801EC280(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+void renderHpJunctionSlot(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
     JunctionGfEntry *gfEntry;
     s32 available;
 
@@ -1279,7 +1499,7 @@ void func_801EC280(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
         gfEntry = &g_junctionGfTable[gfIdx];
     }
 
-    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x400);
+    available = checkJunctionCompat(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x400);
 
     {
         s32 menuCol = g_menuColor;
@@ -1294,7 +1514,7 @@ void func_801EC280(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 }
 
 /** @brief Render junction ability slot — checks combined ability bits 0x19000. */
-void func_801EC358(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+void renderStatusDefSlot(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
     JunctionGfEntry *gfEntry;
     s32 available;
 
@@ -1304,11 +1524,11 @@ void func_801EC358(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
         gfEntry = &g_junctionGfTable[gfIdx];
     }
 
-    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x19000);
+    available = checkJunctionCompat(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x19000);
 
     {
         s32 menuCol = g_menuColor;
-        /* Regalloc: see func_801EC280 comment. */
+        /* Regalloc: see renderHpJunctionSlot comment. */
         color++;
         color--;
         do { x++; x--; } while (0);
@@ -1318,7 +1538,7 @@ void func_801EC358(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 }
 
 /** @brief Render junction ability slot — checks ability bit 0x200. */
-void func_801EC434(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+void renderElemAtkSlot(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
     JunctionGfEntry *gfEntry;
     s32 available;
 
@@ -1328,11 +1548,11 @@ void func_801EC434(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
         gfEntry = &g_junctionGfTable[gfIdx];
     }
 
-    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x200);
+    available = checkJunctionCompat(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x200);
 
     {
         s32 menuCol = g_menuColor;
-        /* Regalloc: see func_801EC280 comment. */
+        /* Regalloc: see renderHpJunctionSlot comment. */
         color++;
         color--;
         do { x++; x--; } while (0);
@@ -1342,7 +1562,7 @@ void func_801EC434(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
 }
 
 /** @brief Render junction ability slot — checks ability bits 0x6800. */
-void func_801EC50C(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
+void renderElemDefSlot(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfIdx) {
     JunctionGfEntry *gfEntry;
     s32 available;
 
@@ -1352,11 +1572,11 @@ void func_801EC50C(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
         gfEntry = &g_junctionGfTable[gfIdx];
     }
 
-    available = func_801EBEBC(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x6800);
+    available = checkJunctionCompat(g_junctionChars[charIdx].availFlags, gfEntry->abilityFlags, 0x6800);
 
     {
         s32 menuCol = g_menuColor;
-        /* Regalloc: see func_801EC280 comment. */
+        /* Regalloc: see renderHpJunctionSlot comment. */
         color++;
         color--;
         do { x++; x--; } while (0);
@@ -1365,11 +1585,58 @@ void func_801EC50C(s32 renderCtx, s32 x, s32 y, s32 color, s32 charIdx, s32 gfId
     }
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC5E4);
+/**
+ * @brief Render the elemental junction panel (Elem-Atk-J + Elem-Def-J).
+ *
+ * Displays the header for Elem-Atk-J (ability bit 0x200), then iterates
+ * over elemental defense junction slots showing each junctioned spell
+ * name with availability coloring. Uses ability mask 0x6800 to determine
+ * the max slot count from both character and GF entries.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position.
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (-1 for default).
+ * @return Updated cursor Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderElemJunctionPanel);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EC914);
+/**
+ * @brief Render the status junction panel (ST-Atk-J + ST-Def-J).
+ *
+ * Same structure as renderElemJunctionPanel but for status junctions.
+ * Header shows ST-Atk-J (ability bit 0x400), loop covers status defense
+ * slots with ability mask 0x19000.
+ *
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position.
+ * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (-1 for default).
+ * @return Updated cursor Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatusJunctionPanel);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
+/**
+ * @brief Render the main stat junction panel (8 stats + ability slots).
+ *
+ * Reads the current stat slot and GF index from the junction context,
+ * renders the stat header row, 8 stat entries, 4 ability slot types,
+ * and the command/GF ability sections. Dispatches to elem/status/stat
+ * sub-renderers based on the stat slot type.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position.
+ * @param showGf Whether to show GF index info.
+ * @return Updated cursor Y position.
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderJunctionStatPanel);
 
 /**
  * @brief Configure display panel and invoke rendering callback.
@@ -1383,7 +1650,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECC4C);
  * @param y Y position for the display panel.
  * @param renderParam Render parameter passed to func_801EF9AC (on stack).
  */
-void func_801ECE2C(s32 ctx, s32 mode, s32 x, s32 y, s32 renderParam) {
+void setupStatBorderPanel(s32 ctx, s32 mode, s32 x, s32 y, s32 renderParam) {
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = x;
@@ -1393,23 +1660,143 @@ void func_801ECE2C(s32 ctx, s32 mode, s32 x, s32 y, s32 renderParam) {
     func_801EF9AC(ctx, mode, renderParam, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ECE80);
+/**
+ * @brief Render junction header panel with category-based string pair.
+ *
+ * Divides ctx->unk58 by 5 to select a category (0-3), calls renderInnerPanel
+ * to look up two header strings per category, then renders them with
+ * stat icon indicators. Finishes with a bordered panel via func_801EF9AC.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderJunctionHeader);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ED078);
+/**
+ * @brief Render composite junction view (stat panel + optional scroll + border).
+ *
+ * Calls func_801EF8D8 for background, renderJunctionStatPanel for the
+ * stat content, optionally func_801EF800 for scroll indicators, then
+ * setupStatBorderPanel for the outer border.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ * @param scale Scale factor (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderJunctionComposite);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ED150);
+/**
+ * @brief Render a single magic junction entry (name + icon + quantity).
+ *
+ * Looks up magic data from g_gameState for the given character/slot,
+ * renders the spell name, junction icon, and quantity with availability
+ * check against the junction GF table.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param itemIdx Item index in the list.
+ * @param x Panel X position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderMagicJunctionEntry);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ED314);
+/**
+ * @brief Set up and render the magic junction list panel.
+ *
+ * Configures g_menuDisplayCfg (icon 0x4A, width 0x78), loads page/scroll
+ * state from ctx, then calls func_8002FF34 for the header and
+ * func_801EFBB4 with renderMagicJunctionEntry as the callback.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderMagicListPanel);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ED454);
+/**
+ * @brief Render a single ability list entry with flag-based categorization.
+ *
+ * Reads ability data from g_menuDisplayCfg.dataPtr, checks 5 ability
+ * flag categories (commands, character abilities, GF abilities, party
+ * abilities, menu abilities), renders the appropriate icon and name
+ * for the entry.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param itemIdx Item index.
+ * @param x Panel X position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderAbilityListEntry);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ED68C);
+/**
+ * @brief Set up and render the ability list panel.
+ *
+ * Configures g_menuDisplayCfg (icon 0x5E, various widths depending on
+ * ability type), determines the list type from ctx->unk56 (commands vs
+ * abilities), then calls func_801EFBB4 with renderAbilityListEntry
+ * as the callback.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderAbilityListPanel);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801ED7F4);
+/**
+ * @brief Render a 3-row stat grid with command/ability icons.
+ *
+ * Calls func_801F79F8 for initial count, then iterates 3 rows rendering
+ * stat name, icon, and optional highlighting via func_800300F8. Uses
+ * func_801F1CE8 to check each stat entry's assignment state.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatRowGrid);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDAA0);
+/**
+ * @brief Render GF compatibility grid for junctioned GFs.
+ *
+ * Iterates over the character's junctioned GFs (up to 16), rendering
+ * each GF's compatibility rating in a grid layout with name strings
+ * and numeric values.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderGfCompatGrid);
 
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", func_801EDC88);
+/**
+ * @brief Render scaling stat comparison panel with delta visualization.
+ *
+ * Reads unk3E from ctx as a scale factor, looks up values from
+ * D_801FA3C8, and renders dual stat bars comparing current vs preview
+ * values with a bordered panel via func_801EF9AC.
+ *
+ * @param ctx Junction menu context.
+ * @param renderCtx Render context.
+ * @param cursorY Current cursor Y position.
+ * @param x Panel X position.
+ * @param y Panel Y position (on stack).
+ */
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderScalingStatPanel);
 
 /**
  * @brief Render a character name and status bar in the junction menu.
@@ -1493,7 +1880,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", initJunctionGfTable);
  *
  * @param parentCtx Parent menu context with character and parameter info.
  */
-void func_801EE718(MenuParentCtx *parentCtx) {
+void initJunctionMenu(MenuParentCtx *parentCtx) {
     JunctionMenuCtx *ctx;
     s32 i;
 
@@ -1513,17 +1900,17 @@ void func_801EE718(MenuParentCtx *parentCtx) {
         ctx->unk40 = 0;
         ctx->dataPtr = (s32)D_801EEB28;
         ctx->unk63 = 0;
-        func_801E7004(ctx->parentParam);
+        initJunctionChars(ctx->parentParam);
         initJunctionGfTable();
 
         for (i = 0; i < CHARACTER_COUNT; i++) {
-            func_801E6F30(i);
-            func_801E6B88(i);
+            rebuildJunctionFlags(i);
+            refreshJunctionState(i);
         }
 
-        func_801E6C24(ctx->charIdx);
-        func_801E7734(ctx->charIdx, -1, -1, -1);
-        func_801E7B1C(ctx->charIdx);
+        snapshotJunctionPreview(ctx->charIdx);
+        previewJunctionChange(ctx->charIdx, -1, -1, -1);
+        buildMagicLookupTable(ctx->charIdx);
         junctionMenuUpdate((s32)ctx);
     }
     func_801F0948(0x1000);
@@ -1538,25 +1925,25 @@ void func_801EE718(MenuParentCtx *parentCtx) {
  *
  * @param parentCtx Parent menu context.
  */
-void func_801EE82C(MenuParentCtx *parentCtx) {
+void enterJunctionMenu(MenuParentCtx *parentCtx) {
 
     func_801F1DBC(1);
     func_801E2ABC((s32)parentCtx);
     func_801F1210(0x801D1000, 0x801CD000);
     g_junctionMenuActive = 1;
-    func_801EE718(parentCtx);
+    initJunctionMenu(parentCtx);
 }
 
 /**
  * @brief Reset junction menu state and reinitialize.
  *
  * Calls func_801F1DBC(1), clears g_junctionMenuActive, then calls
- * func_801EE718 with the context.
+ * initJunctionMenu with the context.
  *
  * @param charIdx Character index (0-7).
  */
-void func_801EE888(MenuParentCtx *parentCtx) {
+void resetJunctionMenu(MenuParentCtx *parentCtx) {
     func_801F1DBC(1);
     g_junctionMenuActive = 0;
-    func_801EE718(parentCtx);
+    initJunctionMenu(parentCtx);
 }
