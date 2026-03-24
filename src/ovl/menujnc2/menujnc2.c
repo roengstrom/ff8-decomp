@@ -41,6 +41,10 @@ extern s32 func_801F3FB4(u16 statusFlags);
 extern s32 getCharNamePtr(u8 characterId);
 extern s32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
 extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
+extern s32 func_8002FF34(s32 renderCtx, s32 cursorY, s32 stringId, s32 x, s32 y, s32 color);
+extern u8 *func_800209A0(s32 id);
+extern s32 D_801EED00;
+extern u8 D_801EEC50[];
 
 extern MagicJunctionData g_magicJunctionData[];
 extern s32 func_80035A6C(s32 flags);
@@ -1658,7 +1662,45 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatTableD);
  * @param x Base X position.
  * @param y Base Y position.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatGrid);
+void renderStatGrid(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+    s32 i = 0;
+    s32 row, rem;
+    s32 xPos, yPos;
+    s32 xOff;
+    s32 gfInfo;
+    s32 yOff;
+    s32 namePtr;
+    s32 ctx = renderCtx + 0x10;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    u8 *table;
+
+    if (D_801EED00 > 0) {
+        table = D_801EEC50;
+        do {
+            row = i / 11;
+            rem = i - row * 11;
+            xOff = row * 155 + 13;
+            yOff = rem * 13 + 11;
+            xPos = x + xOff;
+            yPos = y + yOff;
+            cursorY = func_8002FF34(ctx, cursorY, table[3] + 0xD8, xPos, yPos - 2, g_menuColor);
+            xPos += 14;
+            namePtr = (s32)func_800209A0(table[0]);
+            gfInfo = 7;
+            table += 8;
+            i++;
+            cursorY = func_801F0FEC(ctx, cursorY, xPos, yPos, namePtr, gfInfo);
+        } while (i < D_801EED00);
+    }
+
+    cfg->iconType = 0x5E;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->w = 0x150;
+    cfg->y = y;
+    cfg->h = 0xA0;
+    func_801EF9AC(ctx, cursorY, 0x1000, g_menuColor);
+}
 
 /**
  * @brief Render stat delta bar showing before/after comparison.
