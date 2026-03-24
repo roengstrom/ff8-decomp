@@ -1363,7 +1363,72 @@ s32 unjunctionGfAndRefresh(s32 charIdx) {
  * @param slot Junction slot to assign, or -1 to skip.
  * @param abilityId Ability/magic ID to assign to the slot.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", previewJunctionChange);
+void previewJunctionChange(s32 charIdx, s32 gfIdx, s32 slot, s32 abilityId) {
+    u8 savedJunctions[JUNCTION_COUNT];
+    u16 savedGfs;
+    u16 previewGfs;
+    s32 availFlags;
+    s32 one;
+    s32 i;
+
+    savedGfs = g_gameState.chars[charIdx].junctedGfs;
+
+    for (i = 0; i < JUNCTION_COUNT; i++) {
+        savedJunctions[i] = g_gameState.chars[charIdx].junctions[i];
+    }
+
+    previewGfs = g_junctionChars[charIdx].junctedGfs;
+
+    if (gfIdx >= 0) {
+        if (g_junctionGfTable[gfIdx].charIdx == 0xFF) {
+            /* GF is unassigned — add it to preview */
+            previewGfs |= (1 << gfIdx);
+        } else if (g_junctionGfTable[gfIdx].charIdx == charIdx) {
+            /* GF is assigned to this character — remove it from preview */
+            previewGfs &= ~(1 << gfIdx);
+        }
+    }
+
+    /* Build combined ability flags from all preview-junctioned GFs */
+    availFlags = 0;
+    for (i = 0; i < GF_COUNT; i++) {
+        if ((previewGfs >> i) & 1) {
+            availFlags |= g_junctionGfTable[i].abilityFlags;
+        }
+    }
+
+    availFlags = func_801F7C20(availFlags);
+
+    /* Clear junction slots that lost their backing GF ability */
+    i = 0;
+    one = 1;
+    for (; i < JUNCTION_COUNT; i++) {
+        if (!(availFlags & (one << i))) {
+            g_gameState.chars[charIdx].junctions[i] = 0;
+        }
+    }
+
+    /* Apply the slot change if requested */
+    if (slot >= 0) {
+        if (func_801F1CE8(charIdx, abilityId)) {
+            func_801F78D8(charIdx, abilityId);
+        }
+        g_gameState.chars[charIdx].junctions[slot] = abilityId;
+    }
+
+    /* Write preview GFs and recalculate stats */
+    g_gameState.chars[charIdx].junctedGfs = previewGfs;
+    syncCharacterHp(charIdx);
+    func_801F5190(charIdx);
+
+    /* Restore original junction slots */
+    for (i = 0; i < JUNCTION_COUNT; i++) {
+        g_gameState.chars[charIdx].junctions[i] = savedJunctions[i];
+    }
+
+    /* Restore original GFs */
+    g_gameState.chars[charIdx].junctedGfs = savedGfs;
+}
 
 /**
  * @brief Look up ability/command name string by type and index.
