@@ -28,6 +28,8 @@ extern u8 g_characterAbilities[];
 extern u8 D_801EEED0[];
 extern s32 func_801F776C(s32 magicId, s32 slotType);
 extern s32 func_80020F2C(s32 arg);
+extern void func_80030D78(s32 soundId);
+extern void func_80030D48(s32 soundId);
 extern s32 func_80020AD4(s32 arg);
 extern u16 D_801FA3C8[];
 extern u8 D_801EEB1C[];
@@ -338,10 +340,76 @@ void restoreCharacterJunctions(s32 charIdx) {
  * @param mode Lookup table selector (1 = commands, 2 = abilities).
  * @param selection Menu selection index into the lookup table.
  * @param doWrite If nonzero, write the new value; if zero, just clear duplicates.
- *
- * @see https://decomp.me/scratch/ZRPWL
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", assignJunctionSlot);
+void assignJunctionSlot(s32 charIdx, s32 slotIndex, s32 mode, s32 selection, s32 doWrite) {
+    s32 id;
+    u8 currentVal;
+    s32 changed = 1;
+    s32 i;
+
+    switch (mode) {
+        case 1:
+            id = D_801EEF10[selection * 2];
+            break;
+        case 2:
+            id = D_801EEF40[selection * 2];
+            break;
+        case 0:
+        default:
+            return;
+    }
+
+    if (slotIndex < 3) {
+        currentVal = g_gameState.chars[charIdx].commands[slotIndex];
+        {
+            s32 word = g_assignedAbilities[id / 32]; /* Scheduling: dead but affects codegen */
+            s32 mask = 1 << (id & 0x1F);
+            if (g_assignedAbilities[id / 32] & mask) {
+                for (i = 0; i < 4; i++) {
+                    if (g_gameState.chars[charIdx].commands[i] == id) {
+                        g_gameState.chars[charIdx].commands[i] = 0;
+                    }
+                }
+            }
+        }
+
+        if (doWrite != 0) {
+            if (currentVal != id) {
+                g_gameState.chars[charIdx].commands[slotIndex] = id;
+            }
+        } else if (currentVal == 0) {
+            changed = 0;
+        }
+    } else {
+        slotIndex -= 3;
+        currentVal = g_gameState.chars[charIdx].abilities[slotIndex];
+        {
+            s32 word = g_assignedAbilities[id / 32]; /* Scheduling: dead but affects codegen */
+            s32 mask = 1 << (id & 0x1F);
+            if (g_assignedAbilities[id / 32] & mask) {
+                for (i = 0; i < 4; i++) {
+                    if (g_gameState.chars[charIdx].abilities[i] == id) {
+                        g_gameState.chars[charIdx].abilities[i] = 0;
+                    }
+                }
+            }
+        }
+
+        if (doWrite != 0) {
+            if (currentVal != id) {
+                g_gameState.chars[charIdx].abilities[slotIndex] = id;
+            }
+        } else if (currentVal == 0) {
+            changed = 0;
+        }
+    }
+
+    if (changed != 0) {
+        func_80030D78(0x11);
+    } else {
+        func_80030D48(0x5);
+    }
+}
 
 
 /**
