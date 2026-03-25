@@ -294,9 +294,9 @@ void autoJunctionAll(s32 charIdx, s32 tableIdx) {
  */
 void updateJunctionSlotCount(JunctionMenuCtx *ctx) {
     if (g_junctionChars[ctx->charIdx].gfCompat != 0) {
-        ctx->slotCount = 3;
+        ctx->statInfo[1] = 3;
     } else {
-        ctx->slotCount = 2;
+        ctx->statInfo[1] = 2;
     }
 }
 
@@ -1746,7 +1746,62 @@ void renderStatGrid(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
  * @param x Base X position.
  * @param y Base Y position (on stack).
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatDeltaBar);
+s32 renderStatDeltaBar(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+    s16 statBuf[36];
+    MenuDisplayConfig *cfg;
+    s32 result;
+    s32 barX;
+    s32 animScale;
+    s32 h;
+
+    if (ctx->dataPtr == 0) {
+        return cursorY;
+    }
+
+    barX = ctx->unk40;
+    if (barX == 0) {
+        return cursorY;
+    }
+
+    animScale = barX;
+    func_801F5984(D_801EEB1C, statBuf, 11);
+
+    {
+        s8 statIdx = ctx->unk4E;
+        s32 delta = statBuf[statIdx + 1] - statBuf[statIdx];
+        s32 remainder = 0x1000 - animScale;
+        s32 interp;
+        h = animScale;
+        cfg = &g_menuDisplayCfg;
+        interp = ((61 * (remainder * 4)) + (delta * h)) / 4096;
+        barX = x + interp;
+        barX = barX + 62;
+    }
+
+    {
+        s32 barY = y + 6;
+        result = func_801EF8D8(renderCtx, cursorY);
+        cursorY = barY;
+    }
+
+    result = func_801F5A38(renderCtx, result, barX, cursorY,
+                           11, ctx->dataPtr, ctx->statInfo[ctx->unk4E]);
+
+    cfg->x = x + 2;
+    h = (cursorY = 18);
+    cfg->y = y;
+    cfg->w = 240;
+    cfg->h = h;
+    result = func_801EF800(renderCtx, result, cfg);
+
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 244;
+    cfg->h = h;
+    return func_801EF9AC(renderCtx, result, 0x1000, g_menuColor);
+}
 
 /**
  * @brief Render extended stat delta bar with negative/positive delta computation.
