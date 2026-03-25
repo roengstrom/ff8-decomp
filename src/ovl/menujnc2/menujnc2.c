@@ -1331,7 +1331,37 @@ void compactAbilitySlots(s32 charIdx) {
  * @param gfIdx GF index (0-15).
  * @return 1 if the GF was removed, 0 if not junctioned.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", unjunctionGf);
+s32 unjunctionGf(s32 charIdx, s32 gfIdx) {
+    s32 one = 1;
+    u32 oldFlags;
+    u32 removed;
+    s32 i;
+
+    if (!(g_junctionChars[charIdx].junctedGfs & (one << gfIdx))) {
+        return 0;
+    }
+
+    g_junctionChars[charIdx].junctedGfs &= ~(one << gfIdx);
+    oldFlags = g_junctionChars[charIdx].availFlags;
+    g_junctionGfTable[gfIdx].charIdx = 0xFF;
+    rebuildJunctionFlags(charIdx);
+    snapshotJunctionPreview(charIdx);
+
+    i = 0;
+    removed = g_junctionChars[charIdx].availFlags;
+    removed = (removed ^ oldFlags) & oldFlags;
+    do {
+        if (removed & (1 << i)) {
+            g_gameState.chars[charIdx].junctions[i] = 0;
+        }
+    } while (++i < 11);
+
+    compactCommandSlots(charIdx);
+    compactAbilitySlots(charIdx);
+    func_801F1B4C(charIdx);
+
+    return 1;
+}
 
 /**
  * @brief Unjunction a GF and refresh ability tables.
@@ -1340,10 +1370,11 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", unjunctionGf);
  * junction and ability state.
  *
  * @param charIdx Character index (0-7).
+ * @param gfIdx GF index (0-15).
  * @return 1 if GF was removed, 0 if not junctioned.
  */
-s32 unjunctionGfAndRefresh(s32 charIdx) {
-    s32 result = unjunctionGf();
+s32 unjunctionGfAndRefresh(s32 charIdx, s32 gfIdx) {
+    s32 result = unjunctionGf(charIdx, gfIdx);
 
     if (result != 0) {
         snapshotJunctionPreview(charIdx);
