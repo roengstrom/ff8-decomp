@@ -175,7 +175,51 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F5B4);
 INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F610);
 
 
-INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F688);
+/**
+ * @brief Decode a control-code-encoded text string into an output buffer.
+ *
+ * Processes an input byte stream containing printable characters (0x19-0xE7)
+ * and embedded control codes. Writes decoded text to the output buffer.
+ *
+ * Control codes:
+ *   0x00, 0x01, 0x02, 0x07 — String terminators
+ *   0x03 + byte — Two-byte name/string reference (type 3: names, locations)
+ *   0x04 + byte — Two-byte numeric value format (type 4: SFX entry values)
+ *   0x05-0x06, 0x08-0x0B + byte — Escape: next byte stored literally
+ *   0x0C + byte — Magic spell name lookup via getMagicNamePtr
+ *   0x0D + byte — GF/item stat name lookup via func_80020CE0
+ *   0x0E + byte — Character name table set 0 (idx * 224 + subByte)
+ *   0x0F + byte — Character name table set 1 (idx * 224 + subByte)
+ *   0x10-0x18   — Direct name lookup via func_8002A3E8 (type 0)
+ *   0xE8-0xFF   — Double-byte character from D_8008369C lookup table
+ *
+ * Types 3, 4, and 0x10-0x18 share a sub-command dispatch based on cmd >> 8:
+ *   hiCmd 0: func_8002A3E8(cmd & 0x1F) — direct name pointer
+ *   hiCmd 3: Name lookup switch (65-entry jump table, 0x20-0x60):
+ *     0x20-0x22 → func_8002A3C8 (character name type A)
+ *     0x30-0x3F → func_8002A3A8 (character name type B)
+ *     0x40 → D_800773A8, 0x5C → D_80077E74, 0x60 → D_800773B4
+ *     default  → D_80052A30
+ *   hiCmd 4: SFX numeric format switch (40-entry jump table, 0x20-0x47):
+ *     0x20-0x27 → Decimal with separator (func_8002F23C + F320 + F4B0)
+ *     0x30-0x37 → Decimal plain (func_8002F23C + F320)
+ *     0x40-0x47 → Hex with D_80083857 char remap (func_8002F488)
+ *
+ * The dispatch is repeated 3 times (for types 3, 4, 0x10-0x18), producing
+ * 6 separate jump tables. Handler code is shared across dispatches via
+ * cross-jumping, except the hex remap handler (contains a loop, 3 copies).
+ *
+ * After dispatch, the result string is copied to writePos via copyString,
+ * and the output pointer advances by the string length.
+ *
+ * Overflow: if output >= end, writes null to *end. If maxLen < 0, prints
+ * "MESSAGE DATA OVER RUN" via printf before returning.
+ *
+ * @param input   Source byte stream with embedded control codes.
+ * @param output  Destination buffer for decoded text.
+ * @param maxLen  Maximum output length, or -1 for default limit (128 bytes).
+ */
+INCLUDE_ASM("asm/nonmatchings/numstr", decodeMessage);
 
 
 INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FD28);
@@ -185,7 +229,7 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FD28);
  * @brief Process and dispatch a rendering command.
  *
  * Calls func_8002F548 on the fourth element of the input array to update it,
- * then dispatches the result along with a1 and -1 via func_8002F688.
+ * then dispatches the result along with a1 and -1 via decodeMessage.
  *
  * @param a0 Pointer to a 4-element s32 array; element [3] is processed in-place.
  * @param a1 Second parameter passed to the dispatch function.
@@ -194,21 +238,21 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FD28);
 void func_8002FD9C(s32 *a0, s32 a1) {
     s32 result = func_8002F548(a0[3]);
     a0[3] = result;
-    func_8002F688(result, a1, -1);
+    decodeMessage(result, a1, -1);
 }
 
 
 /**
  * @brief Dispatch a rendering command without processing.
  *
- * Calls func_8002F688 directly with the fourth element of the array, a1, and -1.
+ * Calls decodeMessage directly with the fourth element of the array, a1, and -1.
  * Unlike func_8002FD9C, does not call func_8002F548 to update element [3] first.
  *
  * @param a0 Pointer to a 4-element s32 array; element [3] is read but not modified.
  * @param a1 Second parameter passed to the dispatch function.
  */
 void func_8002FDE8(s32 *a0, s32 a1) {
-    func_8002F688(a0[3], a1, -1);
+    decodeMessage(a0[3], a1, -1);
 }
 
 

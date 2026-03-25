@@ -12,3 +12,4 @@ func_801E3C9C = 0x801E3C9C; // type:func
 g_gameState = 0x80077378;
 g_menuDisplayCfg = 0x801FAB00;
 g_menuColor = 0x80083848;
+decodeMessage = 0x8002F688;

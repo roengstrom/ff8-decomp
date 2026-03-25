@@ -572,7 +572,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8024);
  * @brief Render an item description text for a specific table entry.
  *
  * Reads a data pointer from g_menuDisplayCfg[0x20] indexed by @p a2. If the pointer
- * is non-null, decodes the string via func_8002F688 into a local buffer, then
+ * is non-null, decodes the string via decodeMessage into a local buffer, then
  * renders it via func_801F0FEC at a position derived from g_menuDisplayCfg fields.
  *
  * @param a0 Rendering context pointer.

@@ -1735,7 +1735,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatDeltaBarExt);
  * @brief Rendering callback for individual magic list items.
  *
  * Loads an item pointer from g_menuDisplayCfg.dataPtr indexed by itemIdx,
- * decodes the name via func_8002F688, and renders the string at the
+ * decodes the name via decodeMessage, and renders the string at the
  * computed screen position using func_801F0FEC.
  *
  * @param renderCtx Render context.

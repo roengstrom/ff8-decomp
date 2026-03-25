@@ -26,3 +26,4 @@ copyString = 0x8002A2A8; // type:func
 g_battleChars = 0x80078720;
 g_menuDisplayCfg = 0x801FAB00;
 g_menuColor = 0x80083848;
+decodeMessage = 0x8002F688;

@@ -98,3 +98,4 @@ encodeBattleAbilityFlags = 0x801EA838; // type:func
 checkJunctionCompat = 0x801EBEBC; // type:func
 g_characterJunctions = 0x80077864;
 g_magicJunctionData = 0x8007901C;
+decodeMessage = 0x8002F688;

@@ -127,7 +127,7 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
  * @brief Render ability list entry callback for scrolling panel.
  *
  * Called by the panel rendering system for each visible entry. Loads
- * a pointer from g_menuDisplayCfg+0x20, decodes it via func_8002F688 into
+ * a pointer from g_menuDisplayCfg+0x20, decodes it via decodeMessage into
  * a text buffer, then draws the text using func_801F0FEC with
  * color code 7.
  *

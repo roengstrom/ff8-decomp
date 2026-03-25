@@ -548,7 +548,7 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB0F4);
  * @brief Render a list item with name lookup and positioned text.
  *
  * Loads the item pointer from g_menuDisplayCfg+0x20 at offset a2*4, decodes
- * a name string via func_8002F688 and renders it via func_801F0FEC.
+ * a name string via decodeMessage and renders it via func_801F0FEC.
  * Position is computed from g_menuDisplayCfg fields + the 5th stack arg + 0xA.
  *
  * @param a0 Render context pointer.

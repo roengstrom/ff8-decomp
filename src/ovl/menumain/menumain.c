@@ -1208,7 +1208,7 @@ s32 func_801F6324(s32 a0) {
 s32 func_801F6358(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
     u8 buf[256];
     s32 ptr = func_801F6324(a4);
-    func_8002F688(ptr, buf, -1);
+    decodeMessage(ptr, buf, -1);
     func_801F0FEC(a0, a1, a2, a3, buf, 7);
 }
 

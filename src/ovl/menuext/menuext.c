@@ -383,7 +383,7 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7C9C);
  * @brief Render text entry from data table at computed position.
  *
  * Looks up a pointer from the g_menuDisplayCfg table at index a2, decodes it
- * with func_8002F688, then renders at position computed from g_menuDisplayCfg
+ * with decodeMessage, then renders at position computed from g_menuDisplayCfg
  * base coordinates plus offsets.
  *
  * @param a0 Render context
