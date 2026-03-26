@@ -21,14 +21,14 @@ void sndStreamCallbackStereoAltLow(void);
  * @param a1 Pointer to the instrument table entry (16 bytes).
  * @param a2 Initial instrument configuration value.
  */
-void sndTrackSetInstrumentParams(u8 *a0, SndInstrument *inst, s32 a2) {
+void sndTrackSetInstrumentParams(SoundSeqTrack *track, SndInstrument *inst, s32 a2) {
     u16 v;
-    ((SoundSeqTrack *)a0)->sampleAddr = a2;
-    ((SoundSeqTrack *)a0)->sampleLoop = inst->loopAddr;
-    ((SoundSeqTrack *)a0)->adsrLow = inst->adsrLow;
+    track->sampleAddr = a2;
+    track->sampleLoop = inst->loopAddr;
+    track->adsrLow = inst->adsrLow;
     v = inst->adsrHigh;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x1FF80;
-    ((SoundSeqTrack *)a0)->adsrHigh = v;
+    track->updateFlags |= 0x1FF80;
+    track->adsrHigh = v;
 }
 
 extern SndInstrument D_80073E68[];
@@ -42,9 +42,9 @@ extern SndInstrument D_80073E68[];
  * @param a0 Pointer to the sequence track structure.
  * @param a1 Instrument table index to apply.
  */
-void sndTrackApplyInstrument(u8 *a0, s32 a1) {
-    *(s16 *)(a0 + 0x66) = a1;
-    sndTrackSetInstrumentParams((s32)a0, (s32)&D_80073E68[a1], D_80073E68[a1].sampleAddr);
+void sndTrackApplyInstrument(SoundSeqTrack *track, s32 a1) {
+    *(s16 *)&track->instrument = a1;
+    sndTrackSetInstrumentParams((s32)track, (s32)&D_80073E68[a1], D_80073E68[a1].sampleAddr);
 }
 
 /**
@@ -57,7 +57,7 @@ void sndTrackApplyInstrument(u8 *a0, s32 a1) {
  * @param a0 Pointer to the sequence track structure.
  * @param a1 Bitmask of SPU voices to clear from all control registers.
  */
-void sndTrackClearVoiceBits(u8 *a0, s32 a1) {
+void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1) {
     s32 mask = ~a1;
     D_80075028[0] &= mask;
     D_80075028[4] &= mask;
@@ -66,8 +66,8 @@ void sndTrackClearVoiceBits(u8 *a0, s32 a1) {
     D_80075028[9] &= mask;
     D_80075028[1] &= mask;
     D_80075028[2] &= mask;
-    ((SoundSeqTrack *)a0)->keyOnMask = 0;
-    ((SoundSeqTrack *)a0)->keyOffMask = 0;
+    track->keyOnMask = 0;
+    track->keyOffMask = 0;
 }
 
 /**
@@ -106,14 +106,14 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C2C8);
  *
  * @param a0 Pointer to stream state (first word is stream cursor).
  */
-void sndTrackReadTempo(u8 *a0) {
+void sndTrackReadTempo(SoundSeqTrack *track) {
     extern s32 *D_80074F08;
-    s32 byte0 = *(u8 *)(*(s32 *)a0) << 16;
+    s32 byte0 = *(u8 *)(*(s32 *)track) << 16;
     s32 *bank = D_80074F08;
     *(s32 *)((u8 *)bank + 0x20) = byte0;
-    byte0 |= *(u8 *)(*(s32 *)a0 + 1) << 24;
+    byte0 |= *(u8 *)(*(s32 *)track + 1) << 24;
     *(s32 *)((u8 *)bank + 0x20) = byte0;
-    *(s32 *)a0 = *(s32 *)a0 + 2;
+    *(s32 *)track = *(s32 *)track + 2;
     *(u16 *)((u8 *)bank + 0x5C) = 0;
 }
 
@@ -126,10 +126,10 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C530);
 /** @brief Reads a signed 16-bit little-endian offset from the stream cursor and advances cursor by that offset.
  *  @param a0 Pointer to stream state (a0[0] = cursor pointer).
  */
-void sndTrackBranch(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackBranch(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 offset = (s16)(ptr[0] | (ptr[1] << 8));
-    *(u8 **)a0 = ptr + offset;
+    *(u8 **)track = ptr + offset;
 }
 
 /**
@@ -147,12 +147,12 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C604);
 /** @brief Reads one byte from stream, advances cursor, ORs 3 into flags, stores byte << 8 as halfword at +0x80.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackReadPitchBend(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadPitchBend(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     u8 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->updateFlags |= 3;
-    ((SoundSeqTrack *)a0)->pitchBend = val << 8;
+    *(u8 **)track = ptr + 1;
+    track->updateFlags |= 3;
+    track->pitchBend = val << 8;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C684);
@@ -162,15 +162,15 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C684);
  *        clears halfwords at +0x86 and +0x88, stores byte << 23 at +0x44.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadPan(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadPan(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *(s8 *)ptr;
-    s32 flags = ((SoundSeqTrack *)a0)->updateFlags | 3;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->panFade = 0;
-    ((SoundSeqTrack *)a0)->updateFlags = flags;
-    ((SoundSeqTrack *)a0)->panFadeTarget = 0;
-    ((SoundSeqTrack *)a0)->panShifted = val << 23;
+    s32 flags = track->updateFlags | 3;
+    *(u8 **)track = ptr + 1;
+    track->panFade = 0;
+    track->updateFlags = flags;
+    track->panFadeTarget = 0;
+    track->panShifted = val << 23;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C738);
@@ -178,13 +178,13 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C738);
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C7C4);
 
 /** @brief Sets bit 6 (0x40) in the flags word at offset 0x30 of a0. */
-void sndTrackSetLegato(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags |= 0x40;
+void sndTrackSetLegato(SoundSeqTrack *track) {
+    track->flags |= 0x40;
 }
 
 /** @brief Clears bit 6 (0x40) in the flags word at offset 0x30 of a0. */
-void sndTrackClearLegato(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x40;
+void sndTrackClearLegato(SoundSeqTrack *track) {
+    track->flags &= ~0x40;
 }
 
 /** @brief Increments the word at a0 by 2. */
@@ -202,16 +202,16 @@ void sndTrackNop1(void) {
  *        into flags at +0xF8.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadExpression(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadExpression(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
     s32 flags30;
-    *(u8 **)a0 = ptr + 1;
-    flags30 = ((SoundSeqTrack *)a0)->flags;
-    ((SoundSeqTrack *)a0)->exprFade = 0;
-    ((SoundSeqTrack *)a0)->expression = (val << 8) & 0xFFFF;
+    *(u8 **)track = ptr + 1;
+    flags30 = track->flags;
+    track->exprFade = 0;
+    track->expression = (val << 8) & 0xFFFF;
     if (flags30 & 0x100) {
-        ((SoundSeqTrack *)a0)->updateFlags = ((SoundSeqTrack *)a0)->updateFlags | 3;
+        track->updateFlags = track->updateFlags | 3;
     }
 }
 
@@ -225,17 +225,17 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C8DC);
  *
  * @param a0 Pointer to the track structure (stream ptr at +0x00).
  */
-void sndTrackReadNotePitch(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadNotePitch(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     u32 val = *ptr;
-    s32 flags = ((SoundSeqTrack *)a0)->updateFlags;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->notePitchFade = 0;
-    ((SoundSeqTrack *)a0)->updateFlags = flags | 3;
+    s32 flags = track->updateFlags;
+    *(u8 **)track = ptr + 1;
+    track->notePitchFade = 0;
+    track->updateFlags = flags | 3;
     val += 0x40;
     val &= 0xFF;
     val <<= 8;
-    ((SoundSeqTrack *)a0)->notePitch = val;
+    track->notePitch = val;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C99C);
@@ -245,21 +245,21 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C99C);
  *        halfword at +0x92.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadPanpot(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadPanpot(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     u16 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->panpot = val;
+    *(u8 **)track = ptr + 1;
+    track->panpot = val;
 }
 
 /** @brief Increments halfword at a0+0x92, wraps modulo 16. */
-void sndTrackIncPanpot(u8 *a0) {
-    ((SoundSeqTrack *)a0)->panpot = (((SoundSeqTrack *)a0)->panpot + 1) & 0xF;
+void sndTrackIncPanpot(SoundSeqTrack *track) {
+    track->panpot = (track->panpot + 1) & 0xF;
 }
 
 /** @brief Decrements halfword at a0+0x92, wraps modulo 16. */
-void sndTrackDecPanpot(u8 *a0) {
-    ((SoundSeqTrack *)a0)->panpot = (((SoundSeqTrack *)a0)->panpot - 1) & 0xF;
+void sndTrackDecPanpot(SoundSeqTrack *track) {
+    track->panpot = (track->panpot - 1) & 0xF;
 }
 
 /**
@@ -273,22 +273,22 @@ void sndTrackDecPanpot(u8 *a0) {
  *
  * @param a0 Pointer to the track structure.
  */
-void sndTrackReadInstrumentTransposed(u8 *a0) {
+void sndTrackReadInstrumentTransposed(SoundSeqTrack *track) {
     extern s32 *D_80074F08;
-    u8 *ptr = *(u8 **)a0;
+    u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
     s32 inst;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
 
-    if (((SoundSeqTrack *)a0)->voiceActive == 0) {
+    if (track->voiceActive == 0) {
         inst = sndAdjustNoteOctave(*D_80074F08, byte);
     } else {
-        inst = sndTrackTransposePercussion(((SoundSeqTrack *)a0)->bankPtr, byte);
+        inst = sndTrackTransposePercussion(track->bankPtr, byte);
     }
-    sndTrackSetInstrumentParams(a0, &D_80073E68[inst], D_80073E68[inst].sampleAddr);
-    ((SoundSeqTrack *)a0)->instrument = inst;
-    ((SoundSeqTrack *)a0)->instOverride = 0;
-    ((SoundSeqTrack *)a0)->flags &= (s32)0xE6FFEFF7;
+    sndTrackSetInstrumentParams(track, &D_80073E68[inst], D_80073E68[inst].sampleAddr);
+    track->instrument = inst;
+    track->instOverride = 0;
+    track->flags &= (s32)0xE6FFEFF7;
 }
 
 /**
@@ -300,18 +300,18 @@ void sndTrackReadInstrumentTransposed(u8 *a0) {
  *
  * @param a0 Pointer to the track structure.
  */
-void sndTrackReadInstrument(u8 *a0) {
+void sndTrackReadInstrument(SoundSeqTrack *track) {
     extern s32 *D_80074F08;
     s32 *bankPtr = D_80074F08;
-    u8 *ptr = *(u8 **)a0;
+    u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
     s32 inst;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     inst = sndAdjustNoteOctave(*bankPtr, byte);
-    sndTrackSetInstrumentParams(a0, &D_80073E68[inst], 0x1010);
-    ((SoundSeqTrack *)a0)->instrument = inst;
-    ((SoundSeqTrack *)a0)->instOverride = 0;
-    ((SoundSeqTrack *)a0)->flags &= (s32)0xE6FFEFF7;
+    sndTrackSetInstrumentParams(track, &D_80073E68[inst], 0x1010);
+    track->instrument = inst;
+    track->instOverride = 0;
+    track->flags &= (s32)0xE6FFEFF7;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CBA4);
@@ -319,32 +319,32 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CBA4);
 /** @brief Looks up D_80073E68 table by a0[0x66] index, copies fields to a0, ORs flags, masks a0[0x30].
  *  @param a0 Pointer to stream state.
  */
-void sndTrackRefreshEnvelope(u8 *a0) {
-    SndInstrument *inst = &D_80073E68[((SoundSeqTrack *)a0)->instrument];
-    ((SoundSeqTrack *)a0)->adsrLow = inst->adsrLow;
-    ((SoundSeqTrack *)a0)->adsrHigh = inst->adsrHigh;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0xFF00;
-    ((SoundSeqTrack *)a0)->flags &= (s32)0xE6FFFFFF;
+void sndTrackRefreshEnvelope(SoundSeqTrack *track) {
+    SndInstrument *inst = &D_80073E68[track->instrument];
+    track->adsrLow = inst->adsrLow;
+    track->adsrHigh = inst->adsrHigh;
+    track->updateFlags |= 0xFF00;
+    track->flags &= (s32)0xE6FFFFFF;
 }
 
 /** @brief Reads one byte from stream, sign-extends to s8, stores as halfword at a0+0xE4.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackReadDetune(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadDetune(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s8 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    *(s16 *)(a0 + 0xE4) = val;
+    *(u8 **)track = ptr + 1;
+    *(s16 *)&track->detune = val;
 }
 
 /** @brief Reads one byte from stream, sign-extends, adds to halfword at a0+0xE4.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackAdjustDetune(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackAdjustDetune(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s8 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->detune = ((SoundSeqTrack *)a0)->detune + val;
+    *(u8 **)track = ptr + 1;
+    track->detune = track->detune + val;
 }
 
 /**
@@ -355,44 +355,44 @@ void sndTrackAdjustDetune(u8 *a0) {
  *
  * @param a0 Pointer to the track structure.
  */
-void sndTrackReadDurationDelta(u8 *a0) {
+void sndTrackReadDurationDelta(SoundSeqTrack *track) {
     u8 *ptr;
     s32 val;
 
-    ptr = *(u8 **)a0;
+    ptr = *(u8 **)track;
     val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->durationDelta = val;
+    *(u8 **)track = ptr + 1;
+    track->durationDelta = val;
     if (val == 0) {
-        ((SoundSeqTrack *)a0)->durationDelta = 0x100;
+        track->durationDelta = 0x100;
     }
-    ptr = *(u8 **)a0;
+    ptr = *(u8 **)track;
     val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     val <<= 24;
     val >>= 24;
-    ((SoundSeqTrack *)a0)->durationDelta2 = val;
+    track->durationDelta2 = val;
 }
 
 /** @brief Reads one byte from stream as duration. If zero, stores 0x100. Clears tempo/timer fields.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackReadDuration(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadDuration(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->duration = val;
+    *(u8 **)track = ptr + 1;
+    track->duration = val;
     if (val != 0) goto skip;
-    ((SoundSeqTrack *)a0)->duration = 0x100;
+    track->duration = 0x100;
 skip:
-    ((SoundSeqTrack *)a0)->ecField = 0;
-    ((SoundSeqTrack *)a0)->durationCounter = 0;
-    ((SoundSeqTrack *)a0)->timerActive = 1;
+    track->ecField = 0;
+    track->durationCounter = 0;
+    track->timerActive = 1;
 }
 
 /** @brief Clears the halfword at offset 0x98 of a0. */
-void sndTrackClearDuration(u8 *a0) {
-    ((SoundSeqTrack *)a0)->duration = 0;
+void sndTrackClearDuration(SoundSeqTrack *track) {
+    track->duration = 0;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CD50);
@@ -406,10 +406,10 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CF0C);
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CF6C);
 
 /** @brief Clears bit 0x1 in a0+0x30, sets bit 0x10 in a0+0xF8, zeroes a0+0xEE. */
-void sndTrackStopPortamento(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x1;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x10;
-    ((SoundSeqTrack *)a0)->portamento = 0;
+void sndTrackStopPortamento(SoundSeqTrack *track) {
+    track->flags &= ~0x1;
+    track->updateFlags |= 0x10;
+    track->portamento = 0;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CFFC);
@@ -417,20 +417,20 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CFFC);
 /** @brief Reads one byte from stream, advances cursor, masks to 7 bits, shifts left 8, stores to halfword at a0+0xBC.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackReadVolumeLfo(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadVolumeLfo(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->volumeLfo = (val & 0x7F) << 8;
+    *(u8 **)track = ptr + 1;
+    track->volumeLfo = (val & 0x7F) << 8;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D0D0);
 
 /** @brief Clears bit 0x2 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF0. */
-void sndTrackStopVolumeLfo(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x2;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x3;
-    ((SoundSeqTrack *)a0)->volumeLfoStop = 0;
+void sndTrackStopVolumeLfo(SoundSeqTrack *track) {
+    track->flags &= ~0x2;
+    track->updateFlags |= 0x3;
+    track->volumeLfoStop = 0;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D164);
@@ -438,20 +438,20 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D164);
 /** @brief Reads one byte from stream, advances cursor, shifts left 7, stores to halfword at a0+0xCA.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackReadPanLfo(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadPanLfo(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->panLfo = val << 7;
+    *(u8 **)track = ptr + 1;
+    track->panLfo = val << 7;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D1F0);
 
 /** @brief Clears bit 0x4 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF2. */
-void sndTrackStopPanLfo(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x4;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x3;
-    ((SoundSeqTrack *)a0)->panLfoStop = 0;
+void sndTrackStopPanLfo(SoundSeqTrack *track) {
+    track->flags &= ~0x4;
+    track->updateFlags |= 0x3;
+    track->panLfoStop = 0;
 }
 
 /**
@@ -559,8 +559,8 @@ void sndTrackEnablePitchMod(s32 *a0, s32 a1) {
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D484);
 
 /** @brief Sets the halfword at offset 0x9A of a0 to 1. */
-void sndTrackSetTimerActive(u8 *a0) {
-    ((SoundSeqTrack *)a0)->timerActive = 1;
+void sndTrackSetTimerActive(SoundSeqTrack *track) {
+    track->timerActive = 1;
 }
 
 /** @brief Empty stub — no operation. */
@@ -583,13 +583,13 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D508);
  *        ORs in byte shifted left 8.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadAdsrAttack(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadAdsrAttack(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x900;
-    ((SoundSeqTrack *)a0)->flags |= 0x1000000;
-    ((SoundSeqTrack *)a0)->adsrLow = (((SoundSeqTrack *)a0)->adsrLow & 0x80FF) | (byte << 8);
+    *(u8 **)track = ptr + 1;
+    track->updateFlags |= 0x900;
+    track->flags |= 0x1000000;
+    track->adsrLow = (track->adsrLow & 0x80FF) | (byte << 8);
 }
 
 /**
@@ -616,12 +616,12 @@ void sndTrackReadAdsrDecay(s32 a0, s32 a1) {
  *        flags at +0xF8.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadAdsrSustainLvl(u8 *a0, s32 a1) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadAdsrSustainLvl(SoundSeqTrack *track, s32 a1) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x8000;
-    ((SoundSeqTrack *)a0)->adsrLow = (((SoundSeqTrack *)a0)->adsrLow & 0xFFF0) | val;
+    *(u8 **)track = ptr + 1;
+    track->updateFlags |= 0x8000;
+    track->adsrLow = (track->adsrLow & 0xFFF0) | val;
 }
 
 /**
@@ -630,13 +630,13 @@ void sndTrackReadAdsrSustainLvl(u8 *a0, s32 a1) {
  *        ORs in byte shifted left 6.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadAdsrSustainRate(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadAdsrSustainRate(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->updateFlags |= 0x2200;
-    ((SoundSeqTrack *)a0)->flags |= 0x8000000;
-    ((SoundSeqTrack *)a0)->adsrHigh = (((SoundSeqTrack *)a0)->adsrHigh & 0xE03F) | (byte << 6);
+    *(u8 **)track = ptr + 1;
+    track->updateFlags |= 0x2200;
+    track->flags |= 0x8000000;
+    track->adsrHigh = (track->adsrHigh & 0xE03F) | (byte << 6);
 }
 
 /**
@@ -645,19 +645,19 @@ void sndTrackReadAdsrSustainRate(u8 *a0) {
  *        bits 5-15, ORs in byte (low 5 bits).
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadAdsrRelease(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
-    s32 flags = ((SoundSeqTrack *)a0)->updateFlags;
+void sndTrackReadAdsrRelease(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
+    s32 flags = track->updateFlags;
     s32 val;
     s32 f30;
     u16 f108;
     val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->updateFlags = flags | 0x4400;
-    f30 = ((SoundSeqTrack *)a0)->flags;
-    f108 = ((SoundSeqTrack *)a0)->adsrHigh;
-    ((SoundSeqTrack *)a0)->flags = f30 | 0x10000000;
-    ((SoundSeqTrack *)a0)->adsrHigh = (f108 & 0xFFE0) | val;
+    *(u8 **)track = ptr + 1;
+    track->updateFlags = flags | 0x4400;
+    f30 = track->flags;
+    f108 = track->adsrHigh;
+    track->flags = f30 | 0x10000000;
+    track->adsrHigh = (f108 & 0xFFE0) | val;
 }
 
 /**
@@ -665,17 +665,17 @@ void sndTrackReadAdsrRelease(u8 *a0) {
  *        If byte == 5, sets bit 15 of +0x106. ORs 0x100 into flags at +0xF8.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadAdsrAttackMode(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
-    u16 f106 = ((SoundSeqTrack *)a0)->adsrLow;
+void sndTrackReadAdsrAttackMode(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
+    u16 f106 = track->adsrLow;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     f106 &= 0x7FFF;
-    ((SoundSeqTrack *)a0)->adsrLow = f106;
+    track->adsrLow = f106;
     if (val == 5) {
-        ((SoundSeqTrack *)a0)->adsrLow = f106 | 0x8000;
+        track->adsrLow = f106 | 0x8000;
     }
-    ((SoundSeqTrack *)a0)->updateFlags = ((SoundSeqTrack *)a0)->updateFlags | 0x100;
+    track->updateFlags = track->updateFlags | 0x100;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D714);
@@ -685,17 +685,17 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D714);
  *        If byte == 7, sets bit 5 of +0x108. ORs 0x400 into flags at +0xF8.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadAdsrReleaseMode(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
-    u16 f108 = ((SoundSeqTrack *)a0)->adsrHigh;
+void sndTrackReadAdsrReleaseMode(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
+    u16 f108 = track->adsrHigh;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     f108 &= 0xFFDF;
-    ((SoundSeqTrack *)a0)->adsrHigh = f108;
+    track->adsrHigh = f108;
     if (val == 7) {
-        ((SoundSeqTrack *)a0)->adsrHigh = f108 | 0x20;
+        track->adsrHigh = f108 | 0x20;
     }
-    ((SoundSeqTrack *)a0)->updateFlags = ((SoundSeqTrack *)a0)->updateFlags | 0x400;
+    track->updateFlags = track->updateFlags | 0x400;
 }
 
 /** @brief Increments the word at a0 by 1. */
@@ -738,14 +738,14 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D9B8);
 /** @brief Reads byte from stream, stores to three halfword fields (0x64, 0x62, 0xD6), clears 0xD8.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackReadVolume(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadVolume(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->volumeAccum = 0;
-    ((SoundSeqTrack *)a0)->volumeBase = val;
-    ((SoundSeqTrack *)a0)->volume = val;
-    ((SoundSeqTrack *)a0)->volumeDelta = val;
+    *(u8 **)track = ptr + 1;
+    track->volumeAccum = 0;
+    track->volumeBase = val;
+    track->volume = val;
+    track->volumeDelta = val;
 }
 
 /**
@@ -757,22 +757,22 @@ void sndTrackReadVolume(u8 *a0) {
  *
  * @param a0 Pointer to the track state structure.
  */
-void sndTrackAdjustVolume(u8 *a0) {
+void sndTrackAdjustVolume(SoundSeqTrack *track) {
     u8 *ptr;
     s32 delta;
 
-    ptr = *(u8 **)a0;
+    ptr = *(u8 **)track;
     delta = *(s8 *)ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     if (delta != 0) {
-        delta += *(s16 *)(a0 + 0xD6);
+        delta += *(s16 *)&track->volumeDelta;
         if (delta <= 0) {
             delta = 1;
         } else if (delta >= 256) {
             delta = 255;
         }
     }
-    ((SoundSeqTrack *)a0)->volumeAccum = delta;
+    track->volumeAccum = delta;
 }
 
 /**
@@ -783,17 +783,17 @@ void sndTrackAdjustVolume(u8 *a0) {
  *
  * @param a0 Pointer to stream state.
  */
-void sndTrackCheckBankFlags(u8 *a0) {
+void sndTrackCheckBankFlags(SoundSeqTrack *track) {
     s32 check = *(s32 *)((u8 *)D_80074F08 + 0x34);
     if (check != 0) {
-        ((SoundSeqTrack *)a0)->flags = (((SoundSeqTrack *)a0)->flags & (s32)0xE6FFEFF7) | 8;
+        track->flags = (track->flags & (s32)0xE6FFEFF7) | 8;
     }
 }
 
 /** @brief Clears bit 0x8 in a0+0x30 and zeroes halfword at a0+0x10A. */
-void sndTrackClearOverride(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x8;
-    ((SoundSeqTrack *)a0)->instOverride = 0;
+void sndTrackClearOverride(SoundSeqTrack *track) {
+    track->flags &= ~0x8;
+    track->instOverride = 0;
 }
 
 /**
@@ -832,29 +832,29 @@ void sndTrackReadAdsrBoth(s32 a0, s32 a1) {
  * @param a0 Pointer to stream state.
  * @param a1 Voice bitmask passed through to sndTrackEnableNoise.
  */
-void sndTrackReadNoiseDuration(u8 *a0, s32 a1) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadNoiseDuration(SoundSeqTrack *track, s32 a1) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     if (val != 0) {
-        ((SoundSeqTrack *)a0)->noiseDuration = val + 1;
+        track->noiseDuration = val + 1;
     } else {
-        ((SoundSeqTrack *)a0)->noiseDuration = 0x101;
+        track->noiseDuration = 0x101;
     }
-    sndTrackEnableNoise((s32 *)a0, a1);
+    sndTrackEnableNoise((s32 *)track, a1);
 }
 
 /** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD0, else stores 0x101.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackSetNoiseDuration(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackSetNoiseDuration(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     if (val != 0) {
-        ((SoundSeqTrack *)a0)->noiseDuration = val + 1;
+        track->noiseDuration = val + 1;
     } else {
-        ((SoundSeqTrack *)a0)->noiseDuration = 0x101;
+        track->noiseDuration = 0x101;
     }
 }
 
@@ -864,29 +864,29 @@ void sndTrackSetNoiseDuration(u8 *a0) {
  * @param a0 Pointer to stream state.
  * @param a1 Voice bitmask passed through to sndTrackEnableReverb.
  */
-void sndTrackReadReverbDuration(u8 *a0, s32 a1) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackReadReverbDuration(SoundSeqTrack *track, s32 a1) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     if (val != 0) {
-        ((SoundSeqTrack *)a0)->reverbDuration = val + 1;
+        track->reverbDuration = val + 1;
     } else {
-        ((SoundSeqTrack *)a0)->reverbDuration = 0x101;
+        track->reverbDuration = 0x101;
     }
-    sndTrackEnableReverb((s32 *)a0, a1);
+    sndTrackEnableReverb((s32 *)track, a1);
 }
 
 /** @brief Reads byte from stream; if non-zero stores byte+1 to a0+0xD2, else stores 0x101.
  *  @param a0 Pointer to stream state.
  */
-void sndTrackSetReverbDuration(u8 *a0) {
-    u8 *ptr = *(u8 **)a0;
+void sndTrackSetReverbDuration(SoundSeqTrack *track) {
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     if (val != 0) {
-        ((SoundSeqTrack *)a0)->reverbDuration = val + 1;
+        track->reverbDuration = val + 1;
     } else {
-        ((SoundSeqTrack *)a0)->reverbDuration = 0x101;
+        track->reverbDuration = 0x101;
     }
 }
 
@@ -897,32 +897,32 @@ void sndTrackSetReverbDuration(u8 *a0) {
  * @param a0 Pointer to stream state.
  * @param a1 Second argument passed to sndTrackDisableReverb and func_8001D484.
  */
-void sndTrackClearEffects(u8 *a0, s32 a1) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x37;
-    sndTrackDisableNoise((s32 *)a0, a1);
-    sndTrackDisableReverb((s32 *)a0, a1);
-    func_8001D484((s32 *)a0, a1);
-    ((SoundSeqTrack *)a0)->timerActive = ((SoundSeqTrack *)a0)->timerActive & 0xFFFA;
+void sndTrackClearEffects(SoundSeqTrack *track, s32 a1) {
+    track->flags &= ~0x37;
+    sndTrackDisableNoise((s32 *)track, a1);
+    sndTrackDisableReverb((s32 *)track, a1);
+    func_8001D484((s32 *)track, a1);
+    track->timerActive = track->timerActive & 0xFFFA;
 }
 
 /** @brief Sets bit 0x10 in word at a0+0x30. */
-void sndTrackSetMonoMode(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags |= 0x10;
+void sndTrackSetMonoMode(SoundSeqTrack *track) {
+    track->flags |= 0x10;
 }
 
 /** @brief Clears bit 0x10 in word at a0+0x30. */
-void sndTrackClearMonoMode(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x10;
+void sndTrackClearMonoMode(SoundSeqTrack *track) {
+    track->flags &= ~0x10;
 }
 
 /** @brief Sets bit 0x20 in word at a0+0x30. */
-void sndTrackSetOverlap(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags |= 0x20;
+void sndTrackSetOverlap(SoundSeqTrack *track) {
+    track->flags |= 0x20;
 }
 
 /** @brief Clears bit 0x20 in word at a0+0x30. */
-void sndTrackClearOverlap(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags &= ~0x20;
+void sndTrackClearOverlap(SoundSeqTrack *track) {
+    track->flags &= ~0x20;
 }
 
 /**
@@ -935,9 +935,9 @@ void sndTrackClearOverlap(u8 *a0) {
  *
  * @param a0 Pointer to the stream/voice state structure.
  */
-void sndTrackReadVolumePanCurve(u8 *a0) {
+void sndTrackReadVolumePanCurve(SoundSeqTrack *track) {
     extern s32 D_80074EE8[];
-    u8 *ptr = *(u8 **)a0;
+    u8 *ptr = *(u8 **)track;
     u16 off;
     s32 a5;
     s32 a6;
@@ -968,11 +968,11 @@ void sndTrackReadVolumePanCurve(u8 *a0) {
 
     D_80074EE8[0] = 0;
     D_80074EE8[1] = 0;
-    D_80074EE8[2] = ((SoundSeqTrack *)a0)->notePitch >> 8;
-    D_80074EE8[3] = ((SoundSeqTrack *)a0)->panShifted >> 23;
+    D_80074EE8[2] = track->notePitch >> 8;
+    D_80074EE8[3] = track->panShifted >> 23;
     func_80017AAC(D_80074EE8, a5, a6, 0);
 
-    *(u8 **)a0 = *(u8 **)a0 + 4;
+    *(u8 **)track = *(u8 **)track + 4;
 }
 
 /**
@@ -980,22 +980,22 @@ void sndTrackReadVolumePanCurve(u8 *a0) {
  *        stores byte<<8 to +0x6A, then calls sndTrackEnablePitchMod.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadPitchModDepth(u8 *a0, s32 a1) {
-    u8 *ptr = *(u8 **)a0;
-    s32 flags = ((SoundSeqTrack *)a0)->flags;
+void sndTrackReadPitchModDepth(SoundSeqTrack *track, s32 a1) {
+    u8 *ptr = *(u8 **)track;
+    s32 flags = track->flags;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
-    ((SoundSeqTrack *)a0)->pitchModCounter = 0;
-    ((SoundSeqTrack *)a0)->flags = flags | 0x800;
-    ((SoundSeqTrack *)a0)->pitchModDepth = val << 8;
-    sndTrackEnablePitchMod((s32 *)a0, a1);
+    *(u8 **)track = ptr + 1;
+    track->pitchModCounter = 0;
+    track->flags = flags | 0x800;
+    track->pitchModDepth = val << 8;
+    sndTrackEnablePitchMod((s32 *)track, a1);
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DE18);
 
 /** @brief Sets bit 0x100000 in word at a0+0x30. */
-void sndTrackSetSustainFlag(u8 *a0) {
-    ((SoundSeqTrack *)a0)->flags |= 0x100000;
+void sndTrackSetSustainFlag(SoundSeqTrack *track) {
+    track->flags |= 0x100000;
 }
 
 /**
@@ -1003,11 +1003,11 @@ void sndTrackSetSustainFlag(u8 *a0) {
  *        to get address, stores into field +0x38 of D_80074F08.
  * @param a0 Pointer to stream state.
  */
-void sndTrackReadBankAddress(u8 *a0) {
+void sndTrackReadBankAddress(SoundSeqTrack *track) {
     extern u8 D_80051824;
-    u8 *ptr = *(u8 **)a0;
+    u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
-    *(u8 **)a0 = ptr + 1;
+    *(u8 **)track = ptr + 1;
     *(s32 *)((u8 *)D_80074F08 + 0x38) = val + (s32)&D_80051824;
 }
 
