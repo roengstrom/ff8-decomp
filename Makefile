@@ -32,6 +32,10 @@ NON_MATCHING_FLAGS := -DNON_MATCHING
 endif
 
 ### Per-toolchain settings ###
+# PsyQ 4.0: gcc 2.7.2-970404 + aspsx 2.56
+PSYQ40_SN_PATH   := $(PSYQ41_DIR)
+PSYQ40_MASPSXFLAGS := --aspsx-version=2.56
+
 # PsyQ 4.1: gcc 2.7.2-970404 + aspsx 2.67
 PSYQ41_SN_PATH   := $(PSYQ41_DIR)
 PSYQ41_MASPSXFLAGS := --aspsx-version=2.67
@@ -105,8 +109,8 @@ $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
 		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
-		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)))) $< -o $(BUILD_DIR)/$(*F).s && \
-		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
+		SN_PATH=$(if $(filter $<,$(O0_SRCS)),$(PSYQ40_SN_PATH),$(PSYQ41_SN_PATH)) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)))) $< -o $(BUILD_DIR)/$(*F).s && \
+		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(if $(filter $<,$(O0_SRCS)),$(PSYQ40_MASPSXFLAGS),$(PSYQ41_MASPSXFLAGS)) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
 $(ELF): $(ALL_OBJS) $(LD_SCRIPT)
