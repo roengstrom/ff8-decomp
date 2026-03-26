@@ -3,6 +3,7 @@
 #include "battle.h"
 #include "gf.h"
 #include "gamestate.h"
+#include "ability.h"
 
 u8 *resolveKernelPtr(u16 a0, s32 a1);
 
@@ -71,8 +72,8 @@ void memcopy(u8 *src, u8 *dst, s32 len) {
 /** @brief Mark a GF as existing (sets exists flag).
  *  @param a0 GF index (0-15).
  */
-void setGfExists(s32 a0) {
-    g_gameState.gfs[a0].exists |= 1;
+void setGfExists(s32 gfId) {
+    g_gameState.gfs[gfId].exists |= 1;
 }
 
 
@@ -88,24 +89,22 @@ u8 *getAngeloName(void) {
 }
 
 
-/** @brief Resolves param from GfData.subTableU[a0] (stride 20) via resolveKernelPtr. */
-s32 getGfSummonData(s32 a0) {
-    /* subTableU (+0x4A6C), ptrSubTableU (+0xD8) */
-    return resolveKernelPtr(g_gfData.subTableU[a0].param0, g_gfData.ptrSubTableU);
+/** @brief Resolves param from GfData.subTableU[gfId] (stride 20) via resolveKernelPtr. */
+s32 getGfSummonData(s32 gfId) {
+    return resolveKernelPtr(g_gfData.subTableU[gfId].param0, g_gfData.ptrSubTableU);
 }
 
 
 /**
- * @brief Resolve GF name pointer from GfData.subTableT[a0] (stride 8).
+ * @brief Resolve GF name pointer from GfData.subTableT[gfId] (stride 8).
  * @param a0 GF index (0 returns default D_800773A8 pointer).
  * @return Pointer from resolveKernelPtr lookup, or &D_800773A8 if a0 is 0.
  */
-u8 *getGfName(s32 a0) {
+u8 *getGfName(s32 gfId) {
     u8 *result;
 
-    if (a0 != 0) {
-        /* subTableT (+0x4A5C), ptrSubTableT (+0xD4) */
-        result = resolveKernelPtr(g_gfData.subTableT[a0].param0, g_gfData.ptrSubTableT);
+    if (gfId != 0) {
+        result = resolveKernelPtr(g_gfData.subTableT[gfId].param0, g_gfData.ptrSubTableT);
     } else {
         result = g_gameState.angeloName;
     }
@@ -113,175 +112,158 @@ u8 *getGfName(s32 a0) {
 }
 
 
-/** @brief Resolves param0 from GfData.subTableS[a0] (stride 32) via resolveKernelPtr. */
-s32 getMagicEffectName(s32 a0) {
-    /* subTableS (+0x48B8), ptrSubTableS (+0xD0) */
-    return resolveKernelPtr(g_gfData.subTableS[a0].param0, g_gfData.ptrSubTableS);
+/** @brief Resolves param0 from GfData.subTableS[entityId] (stride 32) via resolveKernelPtr. */
+s32 getMagicEffectName(s32 entityId) {
+    return resolveKernelPtr(g_gfData.subTableS[entityId].param0, g_gfData.ptrSubTableS);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableS[a0] (stride 32, +2) via resolveKernelPtr. */
-s32 getMagicEffectDesc(s32 a0) {
-    /* subTableS (+0x48BA), ptrSubTableS (+0xD0) */
-    return resolveKernelPtr(g_gfData.subTableS[a0].param1, g_gfData.ptrSubTableS);
+/** @brief Resolves param1 from GfData.subTableS[entityId] (stride 32, +2) via resolveKernelPtr. */
+s32 getMagicEffectDesc(s32 entityId) {
+    return resolveKernelPtr(g_gfData.subTableS[entityId].param1, g_gfData.ptrSubTableS);
 }
 
 
-/** @brief Resolves param0 from GfData.subTableR[a0] (stride 24) via resolveKernelPtr. */
-s32 getStatusEffectName(s32 a0) {
-    /* subTableR (+0x47F8), ptrSubTableR (+0xCC) */
-    return resolveKernelPtr(g_gfData.subTableR[a0].param0, g_gfData.ptrSubTableR);
+/** @brief Resolves param0 from GfData.subTableR[statusId] (stride 24) via resolveKernelPtr. */
+s32 getStatusEffectName(s32 statusId) {
+    return resolveKernelPtr(g_gfData.subTableR[statusId].param0, g_gfData.ptrSubTableR);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableR[a0] (stride 24, +2) via resolveKernelPtr. */
-s32 getStatusEffectDesc(s32 a0) {
-    /* subTableR (+0x47FA), ptrSubTableR (+0xCC) */
-    return resolveKernelPtr(g_gfData.subTableR[a0].param1, g_gfData.ptrSubTableR);
+/** @brief Resolves param1 from GfData.subTableR[statusId] (stride 24, +2) via resolveKernelPtr. */
+s32 getStatusEffectDesc(s32 statusId) {
+    return resolveKernelPtr(g_gfData.subTableR[statusId].param1, g_gfData.ptrSubTableR);
 }
 
 
-/** @brief Resolves param0 from GfData.elementData24[a0] (stride 24) via resolveKernelPtr. */
-s32 getElementName(s32 a0) {
-    /* elementData24 (+0x3744), ptrElementData24 (+0x94) */
-    return resolveKernelPtr(g_gfData.elementData24[a0].param0, g_gfData.ptrElementData24);
+/** @brief Resolves param0 from GfData.elementData24[elemId] (stride 24) via resolveKernelPtr. */
+s32 getElementName(s32 elemId) {
+    return resolveKernelPtr(g_gfData.elementData24[elemId].param0, g_gfData.ptrElementData24);
 }
 
 
-/** @brief Resolves param1 from GfData.elementData24[a0] (stride 24, +2) via resolveKernelPtr. */
-s32 getElementDesc(s32 a0) {
-    /* elementData24 (+0x3746), ptrElementData24 (+0x94) */
-    return resolveKernelPtr(g_gfData.elementData24[a0].param1, g_gfData.ptrElementData24);
+/** @brief Resolves param1 from GfData.elementData24[elemId] (stride 24, +2) via resolveKernelPtr. */
+s32 getElementDesc(s32 elemId) {
+    return resolveKernelPtr(g_gfData.elementData24[elemId].param1, g_gfData.ptrElementData24);
 }
 
 
-/** @brief Resolves param0 from GfData.subTableQ[a0] (stride 16) via resolveKernelPtr. */
-s32 getJuncEffectName(s32 a0) {
-    /* subTableQ (+0x44F8), ptrSubTableQ (+0xC8) */
-    return resolveKernelPtr(g_gfData.subTableQ[a0].param0, g_gfData.ptrSubTableQ);
+/** @brief Resolves param0 from GfData.subTableQ[effectId] (stride 16) via resolveKernelPtr. */
+s32 getJuncEffectName(s32 effectId) {
+    return resolveKernelPtr(g_gfData.subTableQ[effectId].param0, g_gfData.ptrSubTableQ);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableQ[a0] (stride 16, +2) via resolveKernelPtr. */
-s32 getJuncEffectDesc(s32 a0) {
-    /* subTableQ (+0x44FA), ptrSubTableQ (+0xC8) */
-    return resolveKernelPtr(g_gfData.subTableQ[a0].param1, g_gfData.ptrSubTableQ);
+/** @brief Resolves param1 from GfData.subTableQ[effectId] (stride 16, +2) via resolveKernelPtr. */
+s32 getJuncEffectDesc(s32 effectId) {
+    return resolveKernelPtr(g_gfData.subTableQ[effectId].param1, g_gfData.ptrSubTableQ);
 }
 
 
-/** @brief Resolves param0 from GfData.subTableP[a0] (stride 24) via resolveKernelPtr. */
-s32 getJuncCategoryName(s32 a0) {
-    /* subTableP (+0x4480), ptrSubTableP (+0xC4) */
-    return resolveKernelPtr(g_gfData.subTableP[a0].param0, g_gfData.ptrSubTableP);
+/** @brief Resolves param0 from GfData.subTableP[catId] (stride 24) via resolveKernelPtr. */
+s32 getJuncCategoryName(s32 catId) {
+    return resolveKernelPtr(g_gfData.subTableP[catId].param0, g_gfData.ptrSubTableP);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableP[a0] (stride 24, +2) via resolveKernelPtr. */
-s32 getJuncCategoryDesc(s32 a0) {
-    /* subTableP (+0x4482), ptrSubTableP (+0xC4) */
-    return resolveKernelPtr(g_gfData.subTableP[a0].param1, g_gfData.ptrSubTableP);
+/** @brief Resolves param1 from GfData.subTableP[catId] (stride 24, +2) via resolveKernelPtr. */
+s32 getJuncCategoryDesc(s32 catId) {
+    return resolveKernelPtr(g_gfData.subTableP[catId].param1, g_gfData.ptrSubTableP);
 }
 
 
 /**
- * @brief Resolve AbilityEntry.statParam0 from the appropriate ability range table.
- * @param a0 Ability ID that selects the sub-table (see AbilityEntry ranges in gf.h).
- * @return Result of resolveKernelPtr with the entry's statParam0 and the range base pointer.
+ * @brief Look up the name string for a given ability ID.
+ *
+ * Abilities are organized into 7 range tables within the kernel data,
+ * one per ability type (junction, command, character A/B, party, GF, menu).
+ *
+ * @param abilityId Ability ID (0-120, see AbilityId enum).
+ * @return Pointer to the ability's name string.
  */
-u8 *getAbilityName(s32 a0) {
+u8 *getAbilityName(s32 abilityId) {
     u16 param;
-    s32 arg2;
+    s32 base;
 
-    if (a0 < 0x14) {
-        /* abilityRangeI (+0x40E0), AbilityEntry.statParam0 */
-        param = g_gfData.abilityRangeI[a0].statParam0;
-        arg2 = g_gfData.ptrAbilityRangeI;
-    } else if ((u32)(a0 - 0x14) < 0x13) {
-        s32 idx = a0 - 0x14;
-        /* abilityRangeJ (+0x4180) */
+    if (abilityId < ABILITY_MAGIC) {
+        param = g_gfData.abilityRangeI[abilityId].statParam0;
+        base = g_gfData.ptrAbilityRangeI;
+    } else if ((u32)(abilityId - ABILITY_MAGIC) < 19) {
+        s32 idx = abilityId - ABILITY_MAGIC;
         param = g_gfData.abilityRangeJ[idx].statParam0;
-        arg2 = g_gfData.ptrAbilityRangeJ;
-    } else if ((u32)(a0 - 0x27) < 0x13) {
-        s32 idx = a0 - 0x27;
-        /* abilityRangeK (+0x4218) */
+        base = g_gfData.ptrAbilityRangeJ;
+    } else if ((u32)(abilityId - ABILITY_HP_20) < 19) {
+        s32 idx = abilityId - ABILITY_HP_20;
         param = g_gfData.abilityRangeK[idx].statParam0;
-        arg2 = g_gfData.ptrAbilityRangeK;
-    } else if ((u32)(a0 - 0x3A) < 0x14) {
-        s32 idx = a0 - 0x3A;
-        /* abilityRangeL (+0x42B0) */
+        base = g_gfData.ptrAbilityRangeK;
+    } else if ((u32)(abilityId - ABILITY_MUG) < 20) {
+        s32 idx = abilityId - ABILITY_MUG;
         param = g_gfData.abilityRangeL[idx].statParam0;
-        arg2 = g_gfData.ptrAbilityRangeL;
-    } else if ((u32)(a0 - 0x4E) < 0x5) {
-        s32 idx = a0 - 0x4E;
-        /* abilityRangeM (+0x4350) */
+        base = g_gfData.ptrAbilityRangeL;
+    } else if ((u32)(abilityId - ABILITY_ALERT) < 5) {
+        s32 idx = abilityId - ABILITY_ALERT;
         param = g_gfData.abilityRangeM[idx].statParam0;
-        arg2 = g_gfData.ptrAbilityRangeM;
+        base = g_gfData.ptrAbilityRangeM;
     } else {
-        s32 idx = a0 - 0x53;
-        if ((u32)idx >= 0x9) {
-            s32 base = (s32)&g_gfData;
-            s32 idx2 = a0 - 0x5C;
-            /* abilityRangeO (+0x43C0) */
-            param = *(u16 *)(base + 0x43C0 + idx2 * 8);
-            arg2 = g_gfData.ptrAbilityRangeO;
+        s32 idx = abilityId - ABILITY_SUMMAG_10;
+        if ((u32)idx >= 9) {
+            /* Anti-fold: struct access here causes CC1PSX to fold g_gfData+0x43C0
+               into a single lui/addiu, but the original keeps them separate. */
+            s32 gfBase = (s32)&g_gfData;
+            s32 idx2 = abilityId - ABILITY_HAGGLE;
+            param = *(u16 *)(gfBase + 0x43C0 + idx2 * sizeof(AbilityEntry));
+            base = g_gfData.ptrAbilityRangeO;
         } else {
-            /* abilityRangeN (+0x4378) */
             param = g_gfData.abilityRangeN[idx].statParam0;
-            arg2 = g_gfData.ptrAbilityRangeN;
+            base = g_gfData.ptrAbilityRangeN;
         }
     }
-    return resolveKernelPtr(param, arg2);
+    return resolveKernelPtr(param, base);
 }
 
 
 /**
- * @brief Resolve AbilityEntry.statParam1 from the appropriate ability range table.
- * @param a0 Ability ID that selects the sub-table (see AbilityEntry ranges in gf.h).
- * @return Result of resolveKernelPtr with the entry's statParam1 and the range base pointer.
+ * @brief Look up the description string for a given ability ID.
+ * @param abilityId Ability ID (0-120, see AbilityId enum).
+ * @return Pointer to the ability's description string.
  */
-u8 *getAbilityDesc(s32 a0) {
+u8 *getAbilityDesc(s32 abilityId) {
     u16 param;
-    s32 arg2;
+    s32 base;
 
-    if (a0 < 0x14) {
-        /* abilityRangeI (+0x40E2), AbilityEntry.statParam1 */
-        param = g_gfData.abilityRangeI[a0].statParam1;
-        arg2 = g_gfData.ptrAbilityRangeI;
-    } else if ((u32)(a0 - 0x14) < 0x13) {
-        s32 idx = a0 - 0x14;
-        /* abilityRangeJ (+0x4182) */
+    if (abilityId < ABILITY_MAGIC) {
+        param = g_gfData.abilityRangeI[abilityId].statParam1;
+        base = g_gfData.ptrAbilityRangeI;
+    } else if ((u32)(abilityId - ABILITY_MAGIC) < 19) {
+        s32 idx = abilityId - ABILITY_MAGIC;
         param = g_gfData.abilityRangeJ[idx].statParam1;
-        arg2 = g_gfData.ptrAbilityRangeJ;
-    } else if ((u32)(a0 - 0x27) < 0x13) {
-        s32 idx = a0 - 0x27;
-        /* abilityRangeK (+0x421A) */
+        base = g_gfData.ptrAbilityRangeJ;
+    } else if ((u32)(abilityId - ABILITY_HP_20) < 19) {
+        s32 idx = abilityId - ABILITY_HP_20;
         param = g_gfData.abilityRangeK[idx].statParam1;
-        arg2 = g_gfData.ptrAbilityRangeK;
-    } else if ((u32)(a0 - 0x3A) < 0x14) {
-        s32 idx = a0 - 0x3A;
-        /* abilityRangeL (+0x42B2) */
+        base = g_gfData.ptrAbilityRangeK;
+    } else if ((u32)(abilityId - ABILITY_MUG) < 20) {
+        s32 idx = abilityId - ABILITY_MUG;
         param = g_gfData.abilityRangeL[idx].statParam1;
-        arg2 = g_gfData.ptrAbilityRangeL;
-    } else if ((u32)(a0 - 0x4E) < 0x5) {
-        s32 idx = a0 - 0x4E;
-        /* abilityRangeM (+0x4352) */
+        base = g_gfData.ptrAbilityRangeL;
+    } else if ((u32)(abilityId - ABILITY_ALERT) < 5) {
+        s32 idx = abilityId - ABILITY_ALERT;
         param = g_gfData.abilityRangeM[idx].statParam1;
-        arg2 = g_gfData.ptrAbilityRangeM;
+        base = g_gfData.ptrAbilityRangeM;
     } else {
-        s32 idx = a0 - 0x53;
-        if ((u32)idx >= 0x9) {
-            s32 base = (s32)&g_gfData;
-            s32 idx2 = a0 - 0x5C;
-            /* abilityRangeO (+0x43C2) */
-            param = *(u16 *)(base + 0x43C0 + idx2 * 8 + 2);
-            arg2 = g_gfData.ptrAbilityRangeO;
+        s32 idx = abilityId - ABILITY_SUMMAG_10;
+        if ((u32)idx >= 9) {
+            /* Anti-fold: see getAbilityName comment */
+            s32 gfBase = (s32)&g_gfData;
+            s32 idx2 = abilityId - ABILITY_HAGGLE;
+            param = *(u16 *)(gfBase + 0x43C0 + idx2 * sizeof(AbilityEntry) + 2);
+            base = g_gfData.ptrAbilityRangeO;
         } else {
-            /* abilityRangeN (+0x437A) */
             param = g_gfData.abilityRangeN[idx].statParam1;
-            arg2 = g_gfData.ptrAbilityRangeN;
+            base = g_gfData.ptrAbilityRangeN;
         }
     }
-    return resolveKernelPtr(param, arg2);
+    return resolveKernelPtr(param, base);
 }
 
 
@@ -296,87 +278,86 @@ u8 *getAbilityDesc(s32 a0) {
  * @param a0 Magic spell ID.
  * @return Pointer to the spell's encoded name string.
  */
-u8 *getMagicNamePtr(s32 a0) {
+u8 *getMagicNamePtr(s32 magicId) {
     extern u8 D_800762C8[];
 
-    if (a0 < 0x40) {
-        /* junctionData (+0x21C, stride 60), ptrGfSpellData (+0x84) */
-        return (u8 *)resolveKernelPtr(g_gfData.junctionData[a0].nameParam0, g_gfData.ptrGfSpellData);
+    if (magicId < 0x40) {
+        return (u8 *)resolveKernelPtr(g_gfData.junctionData[magicId].nameParam0, g_gfData.ptrGfSpellData);
     }
-    return D_800762C8 + a0 * 68;
+    return D_800762C8 + magicId * 68;
 }
 
 
 /**
- * @brief Resolve a secondary data pointer for a character or GF entity.
- * @param a0 Entity index; < 0x40 uses GfJunctionEntry[a0]+2 in junctionData,
- *           >= 0x40 uses GfAbilityTableEntry[idx] in abilityTable132.
+ * @brief Resolve a secondary data pointer for a spell or GF ability.
+ *
+ * For magic spells (< 64), reads nameParam1 from the junction data table.
+ * For GF abilities (>= 64), reads nameParam0 from the ability table.
+ *
+ * @param spellId Spell/ability index.
  * @return Resolved data pointer via resolveKernelPtr.
  */
-s32 getSpellEntityData(s32 a0) {
-    if (a0 < 0x40) {
+s32 getSpellEntityData(s32 spellId) {
+    if (spellId < 0x40) {
+        /* Anti-fold: struct access causes CC1PSX to fold junctionData offset */
         u8 *gfBase = (u8 *)&g_gfData;
-        /* junctionData (+0x21E, stride 60), ptrGfSpellData (+0x84) */
-        u16 param = *(u16 *)(gfBase + 0x21E + a0 * 60);
-        s32 arg2 = *(s32 *)(gfBase + 0x84);
-        return resolveKernelPtr(param, arg2);
+        u16 param = *(u16 *)(gfBase + 0x21E + spellId * sizeof(GfJunctionEntry));
+        s32 ptr = *(s32 *)(gfBase + 0x84);
+        return resolveKernelPtr(param, ptr);
     }
     {
         u8 *gfBase = (u8 *)&g_gfData;
-        s32 idx = a0 - 0x40;
-        /* abilityTable132 (+0xF7A, stride 132), ptrAbilityTable132 (+0x88) */
-        u16 param = *(u16 *)(gfBase + 0xF7A + idx * 132);
-        s32 arg2 = *(s32 *)(gfBase + 0x88);
-        return resolveKernelPtr(param, arg2);
+        s32 idx = spellId - 0x40;
+        u16 param = *(u16 *)(gfBase + 0xF7A + idx * sizeof(GfAbilityTableEntry));
+        s32 ptr = *(s32 *)(gfBase + 0x88);
+        return resolveKernelPtr(param, ptr);
     }
 }
 
 
 /**
- * @brief Resolve stat param0 from GfData stat tables.
- * @param a0 Stat index; >= 0x21 uses statTable4 (stride 4), otherwise statTable24 (stride 24).
- * @return Result of resolveKernelPtr.
+ * @brief Look up the name string for a stat/command ID.
+ * @param statId Stat index; >= 0x21 uses statTable4, otherwise statTable24.
+ * @return Pointer to the stat's name string.
  */
-s32 getStatName(s32 a0) {
+s32 getStatName(s32 statId) {
     u16 param;
-    s32 arg2;
+    s32 base;
 
-    if (a0 >= 0x21) {
-        s32 base = (s32)&g_gfData;
-        s32 idx = a0 - 0x21;
-        /* statTable4 (+0x3C48), ptrStatTable4 (+0xA0) */
-        param = *(u16 *)(base + 0x3C48 + idx * 4);
-        arg2 = g_gfData.ptrStatTable4;
+    if (statId >= 0x21) {
+        /* Anti-fold: struct access causes CC1PSX to fold statTable4 offset */
+        s32 gfBase = (s32)&g_gfData;
+        s32 idx = statId - 0x21;
+        param = *(u16 *)(gfBase + 0x3C48 + idx * sizeof(StatTable4Entry));
+        base = g_gfData.ptrStatTable4;
     } else {
-        /* statTable24 (+0x3930), ptrStatTable24 (+0x9C) */
-        param = g_gfData.statTable24[a0].param0;
-        arg2 = g_gfData.ptrStatTable24;
+        param = g_gfData.statTable24[statId].param0;
+        base = g_gfData.ptrStatTable24;
     }
-    return resolveKernelPtr(param, arg2);
+    return resolveKernelPtr(param, base);
 }
 
 
 /**
- * @brief Resolve stat param1 from GfData stat tables (+2 offset from func_80020CE0).
- * @param a0 Stat index; >= 0x21 uses statTable4 (stride 4), otherwise statTable24 (stride 24).
- * @return Result of resolveKernelPtr.
+ * @brief Look up the description string for a stat/command ID.
+ * @param statId Stat index; >= 0x21 uses statTable4, otherwise statTable24.
+ * @return Pointer to the stat's description string.
  */
-s32 getStatDesc(s32 a0) {
+s32 getStatDesc(s32 statId) {
     u16 param;
-    s32 arg2;
+    s32 base;
 
-    if (a0 >= 0x21) {
-        s32 base = (s32)&g_gfData;
-        s32 idx = a0 - 0x21;
-        /* statTable4 (+0x3C4A), ptrStatTable4 (+0xA0) */
-        param = *(u16 *)(base + 0x3C48 + idx * 4 + 2);
-        arg2 = g_gfData.ptrStatTable4;
+    if (statId >= 0x21) {
+        /* Anti-fold: struct access causes CC1PSX to fold statTable4 offset */
+        s32 gfBase = (s32)&g_gfData;
+        s32 idx = statId - 0x21;
+        param = *(u16 *)(gfBase + 0x3C48 + idx * sizeof(StatTable4Entry) + 2);
+        base = g_gfData.ptrStatTable4;
     } else {
-        /* statTable24 (+0x3932), ptrStatTable24 (+0x9C) */
-        param = g_gfData.statTable24[a0].param1;
-        arg2 = g_gfData.ptrStatTable24;
+        param = g_gfData.statTable24[statId].param1;
+        base = g_gfData.ptrStatTable24;
     }
-    return resolveKernelPtr(param, arg2);
+    return resolveKernelPtr(param, base);
 }
 
 
@@ -424,24 +405,21 @@ u8 *getCharNamePtr(CharacterId charId) {
 }
 
 
-/** @brief Resolves param from GfData.levelCurve12[a0] (stride 12) via resolveKernelPtr. */
-s32 getLevelCurveData(s32 a0) {
-    /* levelCurve12 (+0x35B8, stride 12), ptrLevelCurve12 (+0x90) */
-    return resolveKernelPtr(g_gfData.levelCurve12[a0].param0, g_gfData.ptrLevelCurve12);
+/** @brief Resolves param from GfData.levelCurve12[curveId] (stride 12) via resolveKernelPtr. */
+s32 getLevelCurveData(s32 curveId) {
+    return resolveKernelPtr(g_gfData.levelCurve12[curveId].param0, g_gfData.ptrLevelCurve12);
 }
 
 
-/** @brief Resolves AbilityEntry.statParam0 from GfData.statTable8[a0] via resolveKernelPtr. */
-s32 getAbilityEntryName(s32 a0) {
-    /* statTable8 (+0xE4, stride 8), ptrStatTable8 (+0x80) */
-    return resolveKernelPtr(g_gfData.statTable8[a0].statParam0, g_gfData.ptrStatTable8);
+/** @brief Resolves AbilityEntry.statParam0 from GfData.statTable8[entryId] via resolveKernelPtr. */
+s32 getAbilityEntryName(s32 entryId) {
+    return resolveKernelPtr(g_gfData.statTable8[entryId].statParam0, g_gfData.ptrStatTable8);
 }
 
 
-/** @brief Resolves AbilityEntry.statParam1 from GfData.statTable8[a0] via resolveKernelPtr. */
-s32 getAbilityEntryDesc(s32 a0) {
-    /* statTable8 (+0xE6, stride 8), ptrStatTable8 (+0x80) */
-    return resolveKernelPtr(g_gfData.statTable8[a0].statParam1, g_gfData.ptrStatTable8);
+/** @brief Resolves AbilityEntry.statParam1 from GfData.statTable8[entryId] via resolveKernelPtr. */
+s32 getAbilityEntryDesc(s32 entryId) {
+    return resolveKernelPtr(g_gfData.statTable8[entryId].statParam1, g_gfData.ptrStatTable8);
 }
 
 
@@ -452,27 +430,26 @@ s32 getDefaultMenuLabel(void) {
 
 
 /**
- * @brief Look up a u16 from GfData.subTableV[a0] (stride 2) and resolve via resolveKernelPtr.
+ * @brief Look up a u16 from GfData.subTableV[stringId] (stride 2) and resolve via resolveKernelPtr.
  * @param a0 Index into subTableV.
  * @return Resolved data pointer.
  */
-s32 getMenuString(s32 a0) {
-    /* subTableV (+0x4D08, stride 2), ptrSubTableV (+0xE0) */
-    return resolveKernelPtr(g_gfData.subTableV[a0].param0, g_gfData.ptrSubTableV);
+s32 getMenuString(s32 stringId) {
+    return resolveKernelPtr(g_gfData.subTableV[stringId].param0, g_gfData.ptrSubTableV);
 }
 
 
 /**
- * @brief Resolve a data pointer for a given entity index.
- * @param a0 Entity index (0xFFFF = no entity, returns default pointer).
- * @param a1 Base offset into the data region.
- * @return Pointer into g_gfData at offset a1+a0, or D_80052898 if a0 is 0xFFFF.
+ * @brief Resolve an offset within the kernel data region to a pointer.
+ * @param offset Byte offset from g_gfData base (0xFFFF = invalid, returns default).
+ * @param tableBase Base offset of the containing table within g_gfData.
+ * @return Pointer to g_gfData + tableBase + offset, or D_80052898 if offset is 0xFFFF.
  */
-u8 *resolveKernelPtr(u16 a0, s32 a1) {
+u8 *resolveKernelPtr(u16 offset, s32 tableBase) {
     extern u8 D_80052898[];
     u8 *result;
-    if (a0 != 0xFFFF) {
-        result = a1 + (a0 + (u8 *)&g_gfData);
+    if (offset != 0xFFFF) {
+        result = tableBase + (offset + (u8 *)&g_gfData);
     } else {
         result = D_80052898;
     }
@@ -610,25 +587,25 @@ s32 giveCharacterMagic(CharacterId charIdx, MagicId magicId) {
 
 
 /**
- * @brief Check if a character's ability list contains a specific ability ID.
- * @param a0 Character index used to look up a slot ID in g_gameState at offset 0xAF4.
- * @param a1 Ability ID to search for; returns 0 immediately if a1 is 0.
- * @return 1 if the ability is found in the character's 20-entry ability list, 0 otherwise.
+ * @brief Check if a character has a specific ability junctioned.
+ * @param partySlot Party slot index (0-2) to look up the character ID.
+ * @param abilityId Ability ID to search for; returns 0 if 0.
+ * @return 1 if the ability is found in the character's junction list, 0 otherwise.
  */
-s32 hasJunctionedAbility(a0, a1)
+s32 hasJunctionedAbility(partySlot, abilityId)
 
-s32 a0;
-s32 a1;
+s32 partySlot;
+s32 abilityId;
 {
     u8 slot_id;
     s32 i;
 
-    if (a1 == 0) return 0;
+    if (abilityId == 0) return 0;
 
-    slot_id = g_gameState.party.party[a0];
+    slot_id = g_gameState.party.party[partySlot];
     i = 0;
     while (i < 20) {
-        if (g_gameState.chars[slot_id].junctions[i] == a1) {
+        if (g_gameState.chars[slot_id].junctions[i] == abilityId) {
             return 1;
         }
         i++;
@@ -723,10 +700,10 @@ default_case:
  * @param a1 Amount to add to the stat.
  * @note The stat at ptr+2 (likely HP or experience) is read as u16, added to a1, then clamped by clampToMaxHp.
  */
-void addCharMaxHp(s32 a0, s32 a1) {
-    u8 idx = g_gameState.party.party[a0];
+void addCharMaxHp(s32 partyIdx, s32 amount) {
+    u8 idx = g_gameState.party.party[partyIdx];
     CharacterData *ch = &g_gameState.chars[idx];
-    ch->maxHp = clampToMaxHp(ch->maxHp + a1);
+    ch->maxHp = clampToMaxHp(ch->maxHp + amount);
 }
 
 
