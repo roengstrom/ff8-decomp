@@ -21,31 +21,30 @@ void sndStreamCallbackStereoAltLow(void);
  * @param a1 Pointer to the instrument table entry (16 bytes).
  * @param a2 Initial instrument configuration value.
  */
-void sndTrackSetInstrumentParams(u8 *a0, u8 *a1, s32 a2) {
+void sndTrackSetInstrumentParams(u8 *a0, SndInstrument *inst, s32 a2) {
     u16 v;
     ((SoundSeqTrack *)a0)->sampleAddr = a2;
-    ((SoundSeqTrack *)a0)->sampleLoop = *(s32 *)(a1 + 0x4);
-    ((SoundSeqTrack *)a0)->adsrLow = *(u16 *)(a1 + 0xC);
-    v = *(u16 *)(a1 + 0xE);
+    ((SoundSeqTrack *)a0)->sampleLoop = inst->loopAddr;
+    ((SoundSeqTrack *)a0)->adsrLow = inst->adsrLow;
+    v = inst->adsrHigh;
     ((SoundSeqTrack *)a0)->updateFlags |= 0x1FF80;
     ((SoundSeqTrack *)a0)->adsrHigh = v;
 }
 
-extern u8 D_80073E68[];
+extern SndInstrument D_80073E68[];
 
 /**
  * @brief Applies an instrument table entry to a sequence track.
  *
  * Stores the instrument index at track offset +0x66, then looks up the
- * instrument in D_80073E68 (stride 16 bytes) and calls sndTrackSetInstrumentParams to
- * copy the instrument parameters into the track structure.
+ * instrument in D_80073E68 and copies its parameters into the track.
  *
  * @param a0 Pointer to the sequence track structure.
  * @param a1 Instrument table index to apply.
  */
 void sndTrackApplyInstrument(u8 *a0, s32 a1) {
     *(s16 *)(a0 + 0x66) = a1;
-    sndTrackSetInstrumentParams((s32)a0, (s32)(D_80073E68 + a1 * 16), *(s32 *)(D_80073E68 + a1 * 16));
+    sndTrackSetInstrumentParams((s32)a0, (s32)&D_80073E68[a1], D_80073E68[a1].sampleAddr);
 }
 
 /**
@@ -276,7 +275,6 @@ void sndTrackDecPanpot(u8 *a0) {
  */
 void sndTrackReadInstrumentTransposed(u8 *a0) {
     extern s32 *D_80074F08;
-    extern u8 D_80073E68[];
     u8 *ptr = *(u8 **)a0;
     s32 byte = *ptr;
     s32 inst;
@@ -287,7 +285,7 @@ void sndTrackReadInstrumentTransposed(u8 *a0) {
     } else {
         inst = sndTrackTransposePercussion(((SoundSeqTrack *)a0)->bankPtr, byte);
     }
-    sndTrackSetInstrumentParams(a0, D_80073E68 + inst * 16, *(s32 *)(D_80073E68 + inst * 16));
+    sndTrackSetInstrumentParams(a0, &D_80073E68[inst], D_80073E68[inst].sampleAddr);
     ((SoundSeqTrack *)a0)->instrument = inst;
     ((SoundSeqTrack *)a0)->instOverride = 0;
     ((SoundSeqTrack *)a0)->flags &= (s32)0xE6FFEFF7;
@@ -304,14 +302,13 @@ void sndTrackReadInstrumentTransposed(u8 *a0) {
  */
 void sndTrackReadInstrument(u8 *a0) {
     extern s32 *D_80074F08;
-    extern u8 D_80073E68[];
     s32 *bankPtr = D_80074F08;
     u8 *ptr = *(u8 **)a0;
     s32 byte = *ptr;
     s32 inst;
     *(u8 **)a0 = ptr + 1;
     inst = sndAdjustNoteOctave(*bankPtr, byte);
-    sndTrackSetInstrumentParams(a0, D_80073E68 + inst * 16, 0x1010);
+    sndTrackSetInstrumentParams(a0, &D_80073E68[inst], 0x1010);
     ((SoundSeqTrack *)a0)->instrument = inst;
     ((SoundSeqTrack *)a0)->instOverride = 0;
     ((SoundSeqTrack *)a0)->flags &= (s32)0xE6FFEFF7;
@@ -323,10 +320,9 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CBA4);
  *  @param a0 Pointer to stream state.
  */
 void sndTrackRefreshEnvelope(u8 *a0) {
-    extern u8 D_80073E68[];
-    u8 *entry = D_80073E68 + ((SoundSeqTrack *)a0)->instrument * 16;
-    ((SoundSeqTrack *)a0)->adsrLow = *(u16 *)(entry + 0xC);
-    ((SoundSeqTrack *)a0)->adsrHigh = *(u16 *)(entry + 0xE);
+    SndInstrument *inst = &D_80073E68[((SoundSeqTrack *)a0)->instrument];
+    ((SoundSeqTrack *)a0)->adsrLow = inst->adsrLow;
+    ((SoundSeqTrack *)a0)->adsrHigh = inst->adsrHigh;
     ((SoundSeqTrack *)a0)->updateFlags |= 0xFF00;
     ((SoundSeqTrack *)a0)->flags &= (s32)0xE6FFFFFF;
 }

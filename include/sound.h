@@ -92,6 +92,20 @@ typedef struct {
 } SoundSeqTrack; /* 0x110 = 272 bytes */
 
 /**
+ * @brief Instrument/sample descriptor (D_80073E68, stride 16 bytes).
+ *
+ * Each entry describes one SPU instrument with sample address,
+ * loop point, and ADSR envelope parameters.
+ */
+typedef struct {
+    /* 0x00 */ s32 sampleAddr;    /**< SPU sample start address. */
+    /* 0x04 */ s32 loopAddr;      /**< SPU sample loop address. */
+    /* 0x08 */ u8 pad08[4];       /**< Unknown. */
+    /* 0x0C */ u16 adsrLow;       /**< ADSR envelope low halfword. */
+    /* 0x0E */ u16 adsrHigh;      /**< ADSR envelope high halfword. */
+} SndInstrument; /* 16 bytes */
+
+/**
  * @brief Sound voice/command structure used by CD sound functions.
  */
 typedef struct {
