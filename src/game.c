@@ -463,8 +463,7 @@ void decrementItemByType(s32 itemId) {
  * @return 0 if added successfully (count < 100), 1 if capped or inventory full.
  */
 s32 addItemToInventory(s32 itemId, s32 amount) {
-    extern u8 D_80077EBC[];
-    u8 *base = D_80077EBC;
+    u8 *base = (u8 *)g_gameState.itemSlots;
     u8 *ptr;
     s32 i;
 
@@ -484,8 +483,8 @@ s32 addItemToInventory(s32 itemId, s32 amount) {
             return 1;
         }
         i++;
-        ptr += 2;
-    } while (i < 0xC6);
+        ptr += sizeof(ItemSlot);
+    } while (i < ITEM_SLOT_COUNT);
 
     ptr = base;
     i = 0;
@@ -502,8 +501,8 @@ s32 addItemToInventory(s32 itemId, s32 amount) {
             return 1;
         }
         i++;
-        ptr += 2;
-    } while (i < 0xC6);
+        ptr += sizeof(ItemSlot);
+    } while (i < ITEM_SLOT_COUNT);
 
     return 1;
 }
