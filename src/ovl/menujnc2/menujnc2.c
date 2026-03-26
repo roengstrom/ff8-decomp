@@ -23,14 +23,13 @@ extern u8 D_801EEF10[];
 extern u8 D_801EEF38;
 extern u8 D_801EEF40[];
 extern u8 D_801EEF9A;
-extern u8 getCardRarity(s32 id);
+extern u8 func_80036978(s32 id);
 extern u8 g_characterAbilities[];
+extern u8 D_80077864[];  /* g_gameState.chars[0].junctions */
 extern u8 D_801EEED0[];
 extern s32 func_801F776C(s32 magicId, s32 slotType);
-extern s32 getAbilityEntryDesc(s32 arg);
-extern void playSoundEffect(s32 soundId);
-extern void sendSpuCommand(s32 soundId);
-extern s32 getAbilityDesc(s32 arg);
+extern s32 func_80020F2C(s32 arg);
+extern s32 func_80020AD4(s32 arg);
 extern u16 D_801FA3C8[];
 extern u8 D_801EEB1C[];
 extern void func_801EFBB4(s32 renderCtx, s32 param, void *callback);
@@ -41,13 +40,9 @@ extern s32 func_801F3FB4(u16 statusFlags);
 extern s32 getCharNamePtr(u8 characterId);
 extern s32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
 extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
-extern s32 func_8002FF34(s32 renderCtx, s32 cursorY, s32 stringId, s32 x, s32 y, s32 color);
-extern u8 *getAbilityName(s32 id);
-extern s32 D_801EED00;
-extern u8 D_801EEC50[];
 
 extern MagicJunctionData g_magicJunctionData[];
-extern s32 popcount(s32 flags);
+extern s32 func_80035A6C(s32 flags);
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -98,7 +93,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", decodeMenuString);
  */
 s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
     s32 charIdx;
-    MagicSlot *magicSlots;
+    u8 *magicSlots;
     s32 slotType;
     s32 flagMask;
 {
@@ -117,20 +112,20 @@ s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
         if (flagMask & mask) {
             s32 score;
 
-            magicId = magicSlots->magicId;
-            quantity = magicSlots->quantity;
+            magicId = magicSlots[0];
+            quantity = magicSlots[1];
             entry = tableBase + magicId;
 
             if (slotType < JUNCTION_ATK_ELEM) {
                 score = entry->statJunction[slotType];
             } else if (slotType == JUNCTION_ATK_ELEM) {
-                score = entry->atkElemBonus * popcount(entry->atkElemFlags);
+                score = entry->atkElemBonus * func_80035A6C(entry->atkElemFlags);
             } else if (slotType == JUNCTION_ATK_STATUS) {
-                score = entry->atkStatusBonus * popcount(entry->atkStatusFlags);
+                score = entry->atkStatusBonus * func_80035A6C(entry->atkStatusFlags);
             } else if (slotType == JUNC_SLOT_DEF_ELEM) {
-                score = entry->defElemBonus * popcount(entry->defElemFlags);
+                score = entry->defElemBonus * func_80035A6C(entry->defElemFlags);
             } else if (slotType == JUNC_SLOT_DEF_STATUS) {
-                score = entry->defStatusBonus * popcount(entry->defStatusFlags);
+                score = entry->defStatusBonus * func_80035A6C(entry->defStatusFlags);
             } else {
                 score = 0;
             }
@@ -143,7 +138,7 @@ s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
             }
         }
         i++;
-        magicSlots++;
+        magicSlots += 2;
     } while (i < MAGIC_SLOT_COUNT);
 
     if (bestBitIdx >= 0) {
@@ -154,7 +149,8 @@ s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
         }
 
         if (slotType == JUNC_SLOT_DEF_ELEM) {
-            u8 *slot = &g_gameState.chars[charIdx].junctions[JUNCTION_DEF_ELEM_0];
+            s32 base = ((s32)D_80077864) + (charIdx * sizeof(CharacterData));
+            u8 *slot = (u8 *)(base + JUNCTION_DEF_ELEM_0);
             s32 j;
             for (j = 0; j < 4; j++) {
                 if (*slot == 0) {
@@ -166,7 +162,8 @@ s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
         }
 
         if (slotType == JUNC_SLOT_DEF_STATUS) {
-            u8 *slot = &g_gameState.chars[charIdx].junctions[JUNCTION_DEF_STATUS_0];
+            s32 base = ((s32)D_80077864) + (charIdx * sizeof(CharacterData));
+            u8 *slot = (u8 *)(base + JUNCTION_DEF_STATUS_0);
             s32 j;
             for (j = 0; j < 4; j++) {
                 if (*slot == 0) {
@@ -294,9 +291,9 @@ void autoJunctionAll(s32 charIdx, s32 tableIdx) {
  */
 void updateJunctionSlotCount(JunctionMenuCtx *ctx) {
     if (g_junctionChars[ctx->charIdx].gfCompat != 0) {
-        ctx->statInfo[1] = 3;
+        ctx->slotCount = 3;
     } else {
-        ctx->statInfo[1] = 2;
+        ctx->slotCount = 2;
     }
 }
 
@@ -344,76 +341,10 @@ void restoreCharacterJunctions(s32 charIdx) {
  * @param mode Lookup table selector (1 = commands, 2 = abilities).
  * @param selection Menu selection index into the lookup table.
  * @param doWrite If nonzero, write the new value; if zero, just clear duplicates.
+ *
+ * @see https://decomp.me/scratch/ZRPWL
  */
-void assignJunctionSlot(s32 charIdx, s32 slotIndex, s32 mode, s32 selection, s32 doWrite) {
-    s32 id;
-    u8 currentVal;
-    s32 changed = 1;
-    s32 i;
-
-    switch (mode) {
-        case 1:
-            id = D_801EEF10[selection * 2];
-            break;
-        case 2:
-            id = D_801EEF40[selection * 2];
-            break;
-        case 0:
-        default:
-            return;
-    }
-
-    if (slotIndex < 3) {
-        currentVal = g_gameState.chars[charIdx].commands[slotIndex];
-        {
-            s32 word = g_assignedAbilities[id / 32]; /* Scheduling: dead but affects codegen */
-            s32 mask = 1 << (id & 0x1F);
-            if (g_assignedAbilities[id / 32] & mask) {
-                for (i = 0; i < 4; i++) {
-                    if (g_gameState.chars[charIdx].commands[i] == id) {
-                        g_gameState.chars[charIdx].commands[i] = 0;
-                    }
-                }
-            }
-        }
-
-        if (doWrite != 0) {
-            if (currentVal != id) {
-                g_gameState.chars[charIdx].commands[slotIndex] = id;
-            }
-        } else if (currentVal == 0) {
-            changed = 0;
-        }
-    } else {
-        slotIndex -= 3;
-        currentVal = g_gameState.chars[charIdx].abilities[slotIndex];
-        {
-            s32 word = g_assignedAbilities[id / 32]; /* Scheduling: dead but affects codegen */
-            s32 mask = 1 << (id & 0x1F);
-            if (g_assignedAbilities[id / 32] & mask) {
-                for (i = 0; i < 4; i++) {
-                    if (g_gameState.chars[charIdx].abilities[i] == id) {
-                        g_gameState.chars[charIdx].abilities[i] = 0;
-                    }
-                }
-            }
-        }
-
-        if (doWrite != 0) {
-            if (currentVal != id) {
-                g_gameState.chars[charIdx].abilities[slotIndex] = id;
-            }
-        } else if (currentVal == 0) {
-            changed = 0;
-        }
-    }
-
-    if (changed != 0) {
-        playSoundEffect(0x11);
-    } else {
-        sendSpuCommand(0x5);
-    }
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", assignJunctionSlot);
 
 
 /**
@@ -481,56 +412,14 @@ void buildAvailableAbilities(s32 charIdx) {
 /**
  * @brief Build command and ability lookup tables from available abilities.
  *
- * Scans the ability availability bitfield (g_availableAbilities) for commands
+ * Scans the ability availability bitfield (D_801EEFD0) for commands
  * (IDs 0x14-0x26) and abilities (IDs 0x27-0x52). For each available
- * entry, stores the ID and type (from getCardRarity) into D_801EEF10
+ * entry, stores the ID and type (from func_80036978) into D_801EEF10
  * (commands) or D_801EEF40 (abilities), then updates the counts.
  *
  * @param charIdx Character index (0-7).
  */
-void buildAbilityTables(s32 charIdx) {
-    s32 id;
-    s32 count;
-    s32 one;
-    s32 *availBits;
-    u8 *table;
-
-    buildAvailableAbilities(charIdx);
-
-    count = 0;
-    availBits = g_availableAbilities;
-    /* Regalloc: boost availBits priority so it gets s3 (lower than one's s4) */
-    availBits++;
-    availBits--;
-    id = 0x14;
-    one = 1;
-    table = D_801EEF10;
-    for (; id < 0x27; id++) {
-        if (availBits[id / 32] & (one << (id & 0x1F))) {
-            table[0] = id;
-            table[1] = getCardRarity(id);
-            table += 2;
-            count++;
-        }
-    }
-    D_801EEF38 = count;
-
-    count = 0;
-    id = 0x27;
-    one = 1;
-    table = D_801EEF40;
-    for (; id < 0x53; id++) {
-        if (availBits[id / 32] & (one << (id & 0x1F))) {
-            table[0] = id;
-            table[1] = getCardRarity(id);
-            table += 2;
-            count++;
-        }
-    }
-    D_801EEF9A = count;
-
-    buildAssignedAbilities(charIdx);
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", buildAbilityTables);
 
 /**
  * @brief Render magic list junction entry.
@@ -900,7 +789,7 @@ void snapshotJunctionPreview(s32 charIdx) {
     g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
     buildAvailableAbilities(charIdx);
     syncCharacterHp(charIdx);
-    btlMemcpyForward(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
+    func_8002A318(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
     g_gameState.chars[charIdx].junctedGfs = saved;
     func_801F1B4C(charIdx);
 }
@@ -1199,126 +1088,26 @@ s32 junctionGfToChar(s32 charIdx, s32 gfIdx) {
 }
 
 /**
- * @brief Compact defense-element junction slots, removing gaps.
+ * @brief Compact command name slots, removing gaps.
  *
- * Scans the 4 defense-element junction slots (JUNCTION_DEF_ELEM_0..3)
- * for the given character, collecting non-zero entries into a temp buffer.
- * If the last occupied slot index exceeds the allowed max count (from
- * g_junctionChars abilityCount[1]), clears all 4 slots and copies back
- * only up to the max count, compacting them to the front.
+ * Scans the 4 command name bytes at g_gameState offset 0x4F7 for the
+ * given character, collecting non-zero entries into a temp buffer. If
+ * the last non-zero position exceeds the allowed max (from abilityCount[1]),
+ * clears all slots and copies back only up to the max count.
  *
  * @param charIdx Character index (0-7).
  */
-void compactCommandSlots(s32 charIdx) {
-    u8 tmp[4];
-    s32 maxCount;
-    s32 i;
-    s32 writeIdx;
-    s32 lastSrcIdx;
-    u8 *p;
-
-    maxCount = g_junctionChars[charIdx].abilityCount[1];
-    writeIdx = 0;
-    lastSrcIdx = writeIdx;
-
-    i = 3;
-    p = &tmp[3];
-    do {
-        *p-- = 0;
-    } while (--i >= 0);
-
-    for (i = 0; i < 4; i++) {
-        u8 val = g_gameState.chars[charIdx].junctions[JUNCTION_DEF_ELEM_0 + i];
-        if (val != 0) {
-            tmp[writeIdx] = val;
-            writeIdx++;
-            lastSrcIdx = i;
-        }
-    }
-
-    if (lastSrcIdx < maxCount) {
-        return;
-    }
-
-    i = 3;
-    {
-        s32 base = (s32)&g_gameState;
-        u8 *q = (u8 *)(base + charIdx * 152 + 3);
-        do {
-            *(u8 *)((s32)q + 0x4F7) = 0;
-            q--;
-        } while (--i >= 0);
-    }
-
-    if (maxCount == 0) {
-        return;
-    }
-
-    i = 0;
-    do {
-        g_gameState.chars[charIdx].junctions[JUNCTION_DEF_ELEM_0 + i] = tmp[i];
-    } while (++i < maxCount);
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", compactCommandSlots);
 
 /**
- * @brief Compact defense-status junction slots, removing gaps.
+ * @brief Compact ability name slots, removing gaps.
  *
- * Same logic as compactCommandSlots but operates on the 4 defense-status
- * junction slots (JUNCTION_DEF_STATUS_0..3) and uses abilityCount[0]
- * as the max.
+ * Same logic as compactCommandSlots but operates on the 4 ability name
+ * bytes at g_gameState offset 0x4FB and uses abilityCount[0] as the max.
  *
  * @param charIdx Character index (0-7).
  */
-void compactAbilitySlots(s32 charIdx) {
-    u8 tmp[4];
-    s32 maxCount;
-    s32 i;
-    s32 writeIdx;
-    s32 lastSrcIdx;
-    u8 *p;
-
-    maxCount = g_junctionChars[charIdx].abilityCount[0];
-    writeIdx = 0;
-    lastSrcIdx = writeIdx;
-
-    i = 3;
-    p = &tmp[3];
-    do {
-        *p-- = 0;
-    } while (--i >= 0);
-
-    for (i = 0; i < 4; i++) {
-        u8 val = g_gameState.chars[charIdx].junctions[JUNCTION_DEF_STATUS_0 + i];
-        if (val != 0) {
-            tmp[writeIdx] = val;
-            writeIdx++;
-            lastSrcIdx = i;
-        }
-    }
-
-    if (lastSrcIdx < maxCount) {
-        return;
-    }
-
-    i = 3;
-    {
-        s32 base = (s32)&g_gameState;
-        u8 *q = (u8 *)(base + charIdx * 152 + 3);
-        do {
-            *(u8 *)((s32)q + 0x4FB) = 0;
-            q--;
-        } while (--i >= 0);
-    }
-
-    if (maxCount == 0) {
-        return;
-    }
-
-    i = 0;
-    do {
-        g_gameState.chars[charIdx].junctions[JUNCTION_DEF_STATUS_0 + i] = tmp[i];
-    } while (++i < maxCount);
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", compactAbilitySlots);
 
 /**
  * @brief Remove a GF junction from a character.
@@ -1331,37 +1120,7 @@ void compactAbilitySlots(s32 charIdx) {
  * @param gfIdx GF index (0-15).
  * @return 1 if the GF was removed, 0 if not junctioned.
  */
-s32 unjunctionGf(s32 charIdx, s32 gfIdx) {
-    s32 one = 1;
-    u32 oldFlags;
-    u32 removed;
-    s32 i;
-
-    if (!(g_junctionChars[charIdx].junctedGfs & (one << gfIdx))) {
-        return 0;
-    }
-
-    g_junctionChars[charIdx].junctedGfs &= ~(one << gfIdx);
-    oldFlags = g_junctionChars[charIdx].availFlags;
-    g_junctionGfTable[gfIdx].charIdx = 0xFF;
-    rebuildJunctionFlags(charIdx);
-    snapshotJunctionPreview(charIdx);
-
-    i = 0;
-    removed = g_junctionChars[charIdx].availFlags;
-    removed = (removed ^ oldFlags) & oldFlags;
-    do {
-        if (removed & (1 << i)) {
-            g_gameState.chars[charIdx].junctions[i] = 0;
-        }
-    } while (++i < 11);
-
-    compactCommandSlots(charIdx);
-    compactAbilitySlots(charIdx);
-    func_801F1B4C(charIdx);
-
-    return 1;
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", unjunctionGf);
 
 /**
  * @brief Unjunction a GF and refresh ability tables.
@@ -1370,11 +1129,10 @@ s32 unjunctionGf(s32 charIdx, s32 gfIdx) {
  * junction and ability state.
  *
  * @param charIdx Character index (0-7).
- * @param gfIdx GF index (0-15).
  * @return 1 if GF was removed, 0 if not junctioned.
  */
-s32 unjunctionGfAndRefresh(s32 charIdx, s32 gfIdx) {
-    s32 result = unjunctionGf(charIdx, gfIdx);
+s32 unjunctionGfAndRefresh(s32 charIdx) {
+    s32 result = unjunctionGf();
 
     if (result != 0) {
         snapshotJunctionPreview(charIdx);
@@ -1398,80 +1156,15 @@ s32 unjunctionGfAndRefresh(s32 charIdx, s32 gfIdx) {
  * @param slot Junction slot to assign, or -1 to skip.
  * @param abilityId Ability/magic ID to assign to the slot.
  */
-void previewJunctionChange(s32 charIdx, s32 gfIdx, s32 slot, s32 abilityId) {
-    u8 savedJunctions[JUNCTION_COUNT];
-    u16 savedGfs;
-    u16 previewGfs;
-    s32 availFlags;
-    s32 one;
-    s32 i;
-
-    savedGfs = g_gameState.chars[charIdx].junctedGfs;
-
-    for (i = 0; i < JUNCTION_COUNT; i++) {
-        savedJunctions[i] = g_gameState.chars[charIdx].junctions[i];
-    }
-
-    previewGfs = g_junctionChars[charIdx].junctedGfs;
-
-    if (gfIdx >= 0) {
-        if (g_junctionGfTable[gfIdx].charIdx == 0xFF) {
-            /* GF is unassigned — add it to preview */
-            previewGfs |= (1 << gfIdx);
-        } else if (g_junctionGfTable[gfIdx].charIdx == charIdx) {
-            /* GF is assigned to this character — remove it from preview */
-            previewGfs &= ~(1 << gfIdx);
-        }
-    }
-
-    /* Build combined ability flags from all preview-junctioned GFs */
-    availFlags = 0;
-    for (i = 0; i < GF_COUNT; i++) {
-        if ((previewGfs >> i) & 1) {
-            availFlags |= g_junctionGfTable[i].abilityFlags;
-        }
-    }
-
-    availFlags = func_801F7C20(availFlags);
-
-    /* Clear junction slots that lost their backing GF ability */
-    i = 0;
-    one = 1;
-    for (; i < JUNCTION_COUNT; i++) {
-        if (!(availFlags & (one << i))) {
-            g_gameState.chars[charIdx].junctions[i] = 0;
-        }
-    }
-
-    /* Apply the slot change if requested */
-    if (slot >= 0) {
-        if (func_801F1CE8(charIdx, abilityId)) {
-            func_801F78D8(charIdx, abilityId);
-        }
-        g_gameState.chars[charIdx].junctions[slot] = abilityId;
-    }
-
-    /* Write preview GFs and recalculate stats */
-    g_gameState.chars[charIdx].junctedGfs = previewGfs;
-    syncCharacterHp(charIdx);
-    func_801F5190(charIdx);
-
-    /* Restore original junction slots */
-    for (i = 0; i < JUNCTION_COUNT; i++) {
-        g_gameState.chars[charIdx].junctions[i] = savedJunctions[i];
-    }
-
-    /* Restore original GFs */
-    g_gameState.chars[charIdx].junctedGfs = savedGfs;
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", previewJunctionChange);
 
 /**
  * @brief Look up ability/command name string by type and index.
  *
  * For type 1 (commands): looks up command ID from D_801EEF10, finds
- * the GF ability index in g_gfData, and returns the name via getAbilityEntryDesc.
+ * the GF ability index in g_gfData, and returns the name via func_80020F2C.
  * For type 2 (abilities): looks up ability ID from D_801EEF40 and
- * returns the name via getAbilityDesc.
+ * returns the name via func_80020AD4.
  *
  * @param type Lookup type (0=none, 1=command, 2=ability).
  * @param index Index into the lookup table.
@@ -1494,7 +1187,7 @@ s32 getAbilityNamePtr(s32 type, s32 index) {
             gfData = D_80078E00;
             stride = 8;
             /* g_gfData ability range J: typeField at offset 0x4180 + 5 = 0x4185 */
-            result = getAbilityEntryDesc(gfData[(cmdId - 0x14) * stride + 0x4185]);
+            result = func_80020F2C(gfData[(cmdId - 0x14) * stride + 0x4185]);
         } else {
             result = 0;
         }
@@ -1502,7 +1195,7 @@ s32 getAbilityNamePtr(s32 type, s32 index) {
     case 2:
         if (index < D_801EEF9A) {
             u8 ablId = D_801EEF40[index * 2];
-            result = getAbilityDesc(ablId);
+            result = func_80020AD4(ablId);
         } else {
             result = 0;
         }
@@ -1693,45 +1386,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatTableD);
  * @param x Base X position.
  * @param y Base Y position.
  */
-void renderStatGrid(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
-    s32 i = 0;
-    s32 row, rem;
-    s32 xPos, yPos;
-    s32 xOff;
-    s32 gfInfo;
-    s32 yOff;
-    s32 namePtr;
-    s32 ctx = renderCtx + 0x10;
-    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
-    u8 *table;
-
-    if (D_801EED00 > 0) {
-        table = D_801EEC50;
-        do {
-            row = i / 11;
-            rem = i - row * 11;
-            xOff = row * 155 + 13;
-            yOff = rem * 13 + 11;
-            xPos = x + xOff;
-            yPos = y + yOff;
-            cursorY = func_8002FF34(ctx, cursorY, table[3] + 0xD8, xPos, yPos - 2, g_menuColor);
-            xPos += 14;
-            namePtr = (s32)getAbilityName(table[0]);
-            gfInfo = 7;
-            table += 8;
-            i++;
-            cursorY = func_801F0FEC(ctx, cursorY, xPos, yPos, namePtr, gfInfo);
-        } while (i < D_801EED00);
-    }
-
-    cfg->iconType = 0x5E;
-    cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->w = 0x150;
-    cfg->y = y;
-    cfg->h = 0xA0;
-    func_801EF9AC(ctx, cursorY, 0x1000, g_menuColor);
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatGrid);
 
 /**
  * @brief Render stat delta bar showing before/after comparison.
@@ -1746,62 +1401,7 @@ void renderStatGrid(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
  * @param x Base X position.
  * @param y Base Y position (on stack).
  */
-s32 renderStatDeltaBar(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
-    s16 statBuf[36];
-    MenuDisplayConfig *cfg;
-    s32 result;
-    s32 barX;
-    s32 animScale;
-    s32 h;
-
-    if (ctx->dataPtr == 0) {
-        return cursorY;
-    }
-
-    barX = ctx->unk40;
-    if (barX == 0) {
-        return cursorY;
-    }
-
-    animScale = barX;
-    func_801F5984(D_801EEB1C, statBuf, 11);
-
-    {
-        s8 statIdx = ctx->unk4E;
-        s32 delta = statBuf[statIdx + 1] - statBuf[statIdx];
-        s32 remainder = 0x1000 - animScale;
-        s32 interp;
-        h = animScale;
-        cfg = &g_menuDisplayCfg;
-        interp = ((61 * (remainder * 4)) + (delta * h)) / 4096;
-        barX = x + interp;
-        barX = barX + 62;
-    }
-
-    {
-        s32 barY = y + 6;
-        result = func_801EF8D8(renderCtx, cursorY);
-        cursorY = barY;
-    }
-
-    result = func_801F5A38(renderCtx, result, barX, cursorY,
-                           11, ctx->dataPtr, ctx->statInfo[ctx->unk4E]);
-
-    cfg->x = x + 2;
-    h = (cursorY = 18);
-    cfg->y = y;
-    cfg->w = 240;
-    cfg->h = h;
-    result = func_801EF800(renderCtx, result, cfg);
-
-    cfg->iconType = 0;
-    cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 244;
-    cfg->h = h;
-    return func_801EF9AC(renderCtx, result, 0x1000, g_menuColor);
-}
+INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatDeltaBar);
 
 /**
  * @brief Render extended stat delta bar with negative/positive delta computation.
@@ -1821,7 +1421,7 @@ INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", renderStatDeltaBarExt);
  * @brief Rendering callback for individual magic list items.
  *
  * Loads an item pointer from g_menuDisplayCfg.dataPtr indexed by itemIdx,
- * decodes the name via decodeMessage, and renders the string at the
+ * decodes the name via func_8002F688, and renders the string at the
  * computed screen position using func_801F0FEC.
  *
  * @param renderCtx Render context.
@@ -2425,8 +2025,8 @@ void initJunctionMenu(MenuParentCtx *parentCtx) {
     if (ctx != NULL) {
         ctx->parentParam = parentCtx->param;
         ctx->charIdx = parentCtx->charIdx;
-        ctx->discId = getGfAvailabilityMask();
-        ctx->discCount = popcount(ctx->discId);
+        ctx->discId = func_80036F60();
+        ctx->discCount = func_80035A6C(ctx->discId);
         ctx->unk64 = 0;
         ctx->unk61 = 0;
         ctx->unk62 = 0;
