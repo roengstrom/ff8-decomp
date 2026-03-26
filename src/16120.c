@@ -33,15 +33,27 @@ typedef struct {
     /* 0x32 */ u16 pad32;
 } PolyGT4; /* 0x34 = 52 bytes */
 
-/** @brief Input mesh data for GTE vertex transformation. */
+/** @brief Mesh render context for GTE transformation and GPU primitive generation. */
 typedef struct {
-    s32 pad00;
-    s32 pad04;
-    s32 *vertices;    /**< +0x08: Vertex position array (stride 8 bytes). */
-    s32 *normals;     /**< +0x0C: Vertex normal array (stride 8 bytes). */
-} GteMeshData;
+    /* 0x00 */ s32 pad00;
+    /* 0x04 */ PolyGT4 *primPtr;    /**< Current primitive write pointer (advances after rendering). */
+    /* 0x08 */ ScreenVert *vertices; /**< Vertex position array (stride 8 bytes). */
+    /* 0x0C */ s32 *normals;        /**< Vertex normal array (stride 8 bytes). */
+    /* 0x10 */ s32 *otBase;         /**< Ordering table base pointer. */
+} MeshRenderCtx;
 
 void RotTransPers(s32 *v0, s32 *v1, s32 *sxy, s32 *p);
+void SetRotMatrix(void *m);
+void SetTransMatrix(void *m);
+
+/** @brief Rotation matrix with translation vector. */
+typedef struct {
+    /* 0x00 */ s16 m[3][3];    /**< 3x3 rotation matrix (fixed point). */
+    /* 0x12 */ s16 pad12;
+    /* 0x14 */ s32 tx;         /**< Translation X. */
+    /* 0x18 */ s32 ty;         /**< Translation Y. */
+    /* 0x1C */ s32 tz;         /**< Translation Z. */
+} RotMatrix;
 
 extern u8 D_80052924[];  /**< Intensity table A (indexed by col, then row). */
 extern u8 D_80052925[];  /**< Intensity table B (indexed by col, then row). */
@@ -57,7 +69,7 @@ void AddPrim(s32 *ot, void *prim);
  * @brief Transform 81 vertex/normal pairs through the GTE.
  * @param mesh Mesh data containing vertex and normal array pointers.
  */
-void func_80025920(GteMeshData *mesh) {
+void func_80025920(MeshRenderCtx *mesh) {
     register s32 *normals = mesh->normals;
     register s32 *vertices = mesh->vertices;
     register s32 i = 0;
@@ -179,7 +191,34 @@ PolyGT4 *func_800259C0(ScreenVert *vertices, PolyGT4 *primBuf, s32 *ot,
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/16120", func_80025D80);
+/**
+ * @brief Set up GTE matrices and render a mesh grid.
+ *
+ * Applies rotation/translation matrix, transforms vertices through
+ * the GTE, then renders an 8x8 textured quad grid via func_800259C0.
+ *
+ * @param mesh    Mesh render context with vertices, primitives, and OT.
+ * @param matrix  Rotation matrix to apply (translation set from tx/ty params).
+ * @param ot      Ordering table for primitive insertion.
+ * @param tx      Translation X (stored to matrix->tx).
+ * @param ty      Translation Y (stored to matrix->ty, from stack).
+ */
+void func_80025D80(MeshRenderCtx *mesh, RotMatrix *matrix, s32 intensity,
+                    s32 tx, s32 ty) {
+    register s32 *otPtr;
+    s32 unused1;
+    s32 unused2;
+    s32 unused3;
+
+    matrix->tx = tx;
+    matrix->ty = ty;
+    SetRotMatrix(matrix);
+    SetTransMatrix(matrix);
+    func_80025920(mesh);
+    otPtr = (s32 *)mesh->otBase;
+    otPtr += 4;
+    mesh->primPtr = func_800259C0(mesh->vertices, mesh->primPtr, otPtr, intensity, 1);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/16120", func_80025E4C);
