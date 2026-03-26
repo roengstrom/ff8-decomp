@@ -33,19 +33,19 @@ void func_800E06D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
 }
 
 /**
- * @brief Call func_80020F84 with a0 + 2.
+ * @brief Call getMenuString with a0 + 2.
  *
  * @param a0 Base value; 2 is added before passing.
  */
 void func_800E071C(s32 a0) {
-    func_80020F84(a0 + 2);
+    getMenuString(a0 + 2);
 }
 
 /**
- * @brief Wrapper for func_80020F84.
+ * @brief Wrapper for getMenuString.
  */
 void func_800E073C(void) {
-    func_80020F84();
+    getMenuString();
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E075C);

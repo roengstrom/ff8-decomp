@@ -96,7 +96,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBEFC);
 
 /**
  * Reads two parameters from the stack using the current index at 0x184,
- * calls func_8002CA58 with them, returns 2.
+ * calls setSfxPitch with them, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -105,7 +105,7 @@ s32 func_800BBFFC(u8 *a0) {
     s8 idx;
 
     idx = *(s8 *)(a0 + 0x184);
-    func_8002CA58(*(s32 *)(a0 + idx * 4 - 4), *(s32 *)(a0 + idx * 4));
+    setSfxPitch(*(s32 *)(a0 + idx * 4 - 4), *(s32 *)(a0 + idx * 4));
     return 2;
 }
 
@@ -130,7 +130,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BC8CC);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BCB14);
 
 /**
- * Pops a parameter and calls func_8002CE68, returns 2.
+ * Pops a parameter and calls setSfxGlobalFlag, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -140,7 +140,7 @@ s32 func_800BCC6C(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    func_8002CE68(*(s32 *)(a0 + (s8)idx * 4));
+    setSfxGlobalFlag(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
@@ -158,7 +158,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BD024);
  * @brief Pop value, clear D_80085398 table entry, call sound handler.
  *
  * Pops the stack to get an index, clears the halfword at D_80085398[idx * 16],
- * then calls func_80031D68 with the popped value.
+ * then calls clearAnimEntryActive with the popped value.
  *
  * @param entity Script entity context.
  * @return 2.
@@ -172,6 +172,6 @@ s32 func_800BD1A4(FieldEntity *entity) {
     entity->stackIdx = idx - 1;
     val = *(s32 *)(a0 + (s8)idx * 4);
     *(u16 *)(D_80085398 + val * 16) = 0;
-    func_80031D68(val);
+    clearAnimEntryActive(val);
     return 2;
 }

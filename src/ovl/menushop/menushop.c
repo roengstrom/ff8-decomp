@@ -33,7 +33,7 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E583C);
  * @brief Look up shop item and get its description string.
  *
  * Calls func_801E583C to validate the item, then if valid, calls
- * func_801E5800 to get item data and func_80020D4C to get its
+ * func_801E5800 to get item data and getStatDesc to get its
  * description string.
  *
  * @param a0 Shop context parameter
@@ -44,7 +44,7 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E583C);
 s32 func_801E58A0(s32 a0, s32 a1, s32 a2) {
     s32 result = func_801E583C(a0, a1, a2);
     if (result != 0) {
-        return func_80020D4C(func_801E5800(a0, a1, a2));
+        return getStatDesc(func_801E5800(a0, a1, a2));
     }
     return 0;
 }

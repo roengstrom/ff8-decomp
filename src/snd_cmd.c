@@ -12,7 +12,7 @@
  * @param a0 Pointer to the voice control structure.
  * @param a1 Note value to play.
  */
-void func_8003BB78(u8 *a0, s32 a1) {
+void sndVoiceCmdPlayNote(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x43;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
     *(u8 *)(a0 + 0x24) = a1;
@@ -28,7 +28,7 @@ void func_8003BB78(u8 *a0, s32 a1) {
  *
  * @param a0 Pointer to the voice control structure.
  */
-void func_8003BB98(u8 *a0) {
+void sndVoiceCmdStop(u8 *a0) {
     *(u8 *)(a0 + 0x37) = 0x45;
     *(s32 *)(a0 + 0x2C) = 0;
     *(u8 *)(a0 + 0x36) = 0;
@@ -44,7 +44,7 @@ void func_8003BB98(u8 *a0) {
  * @param a0 Pointer to the voice control structure.
  * @param a1 Program/instrument number.
  */
-void func_8003BBAC(u8 *a0, s32 a1) {
+void sndVoiceCmdSetProgram(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x4C;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
     *(u8 *)(a0 + 0x24) = a1;
@@ -61,7 +61,7 @@ void func_8003BBAC(u8 *a0, s32 a1) {
  * @param a0 Pointer to the voice control structure.
  * @param a1 Pitch value.
  */
-void func_8003BBCC(u8 *a0, s32 a1) {
+void sndVoiceCmdSetPitch(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x46;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
     *(u8 *)(a0 + 0x24) = a1;
@@ -78,7 +78,7 @@ void func_8003BBCC(u8 *a0, s32 a1) {
  * @param a0 Pointer to the voice control structure.
  * @param a1 Volume level.
  */
-void func_8003BBEC(u8 *a0, s32 a1) {
+void sndVoiceCmdSetVolume(u8 *a0, s32 a1) {
     *(u8 *)(a0 + 0x37) = 0x47;
     *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x24);
     *(u8 *)(a0 + 0x24) = a1;
@@ -106,7 +106,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BDEC);
 
 
 /** @brief Moves byte at offset 0x37 to offset 0x38 and clears 0x37. */
-void func_8003BEE0(u8 *a0) {
+void sndVoiceCmdArchive(u8 *a0) {
     u8 tmp = a0[0x37];
     a0[0x37] = 0;
     a0[0x38] = tmp;

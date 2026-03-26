@@ -49,12 +49,12 @@ void func_801E5890(u8 *a0) {
 }
 
 /**
- * @brief Wrapper that calls func_80020C6C with a0 offset by 0x33.
+ * @brief Wrapper that calls getSpellEntityData with a0 offset by 0x33.
  *
  * @param a0 Base pointer to a menu entry structure.
  */
 void func_801E58B0(u8 *a0) {
-    func_80020C6C(a0 + 0x33);
+    getSpellEntityData(a0 + 0x33);
 }
 
 /** @brief Draw inner panel with section id 0x7 and clear flag. */
@@ -137,11 +137,11 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E750C);
  * @brief Compute centered X position after subtracting rendered width.
  * @param a0 Base X position
  * @param a1 Total available width
- * @param a2 Text or item to measure via func_8002E7A4
+ * @param a2 Text or item to measure via getGlyphStatusU16
  * @return Base X + (available width - rendered width) / 2
  */
 s32 func_801E7644(s32 a0, s32 a1, s32 a2) {
-    s32 rendered = func_8002E7A4(a2);
+    s32 rendered = getGlyphStatusU16(a2);
     return a0 + (a1 - rendered) / 2;
 }
 

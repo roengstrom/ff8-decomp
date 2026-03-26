@@ -17,10 +17,10 @@ void func_800AD4A4(s32);
 void func_800AE6C0(void);
 s32 func_8009AF3C(s32, s32, s32, s32, s32);
 void func_80048BB8(s32);
-void func_80012D5C(void);
+void sndStopAll(void);
 extern u8 D_80082C08[];
 extern u8 g_gameState[];
-void func_800389CC(void);
+void resetCdDrive(void);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AB4A8);
 
@@ -344,14 +344,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AE90C);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEA0C);
 
 extern u8 D_800EE446[];
-s32 func_80020F84(s32);
+s32 getMenuString(s32);
 
 /**
  * @brief Start battle sequence with optional character animation.
  *
  * Sets D_800EE446 to 1, calls func_8009B134(0x70, 0x80, 0) to
  * allocate a message entry, then func_8009AE08(0xA) to set mode.
- * If a0 is not -1, calls func_80020F84 to look up the character,
+ * If a0 is not -1, calls getMenuString to look up the character,
  * then func_8009AF3C with animation parameters derived from
  * D_80077E59 and a stack argument of 0x56.
  *
@@ -363,7 +363,7 @@ void func_800AEACC(s32 a0) {
     func_8009B134(0x70, 0x80, 0);
     func_8009AE08(0xA);
     if (saved != -1) {
-        s32 result = func_80020F84(saved);
+        s32 result = getMenuString(saved);
         s32 idx = *(u8 *)D_80077E59;
         func_8009AF3C(result, idx * 8 + 8, 3, 0x80, 0x56);
     }
@@ -471,15 +471,15 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AED9C);
  * @brief Trigger battle end sequence.
  *
  * Calls func_80048BB8(0) to stop processing, sets D_80082C0F to 5,
- * clears byte at D_800ED148 + 0xC, then calls func_80012D5C and
- * func_800389CC for cleanup.
+ * clears byte at D_800ED148 + 0xC, then calls sndStopAll and
+ * resetCdDrive for cleanup.
  */
 /**
  * @brief Trigger battle end sequence.
  *
  * Calls func_80048BB8(0) to stop processing, sets D_80082C0F to 5,
- * clears byte at D_800ED148 + 0xC, then calls func_80012D5C and
- * func_800389CC for cleanup.
+ * clears byte at D_800ED148 + 0xC, then calls sndStopAll and
+ * resetCdDrive for cleanup.
  */
 void func_800AEE64(void) {
     func_80048BB8(0);
@@ -488,8 +488,8 @@ void func_800AEE64(void) {
         volatile u8 *base = D_800ED148;
         base[0xC] = 0;
     }
-    func_80012D5C();
-    func_800389CC();
+    sndStopAll();
+    resetCdDrive();
 }
 
 extern u8 D_80078DF8[];

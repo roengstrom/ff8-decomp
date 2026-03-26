@@ -1,7 +1,7 @@
 #include "common.h"
 
 /**
- * Pop mask, clear those bits from D_800562C4->0xF3, copy to globals, call func_80023888.
+ * Pop mask, clear those bits from D_800562C4->0xF3, copy to globals, call recalcPartyStats.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -9,7 +9,7 @@
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B085C);
 
 /**
- * Pops a value, calls func_80037C30, and if result is not 0xFF
+ * Pops a value, calls findCharacterSlot, and if result is not 0xFF
  * calls func_80036B90 with the result.
  *
  * @param a0 Pointer to the script/object structure.
@@ -21,7 +21,7 @@ s32 func_800B08CC(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    result = func_80037C30(*(s32 *)(a0 + (s8)idx * 4));
+    result = findCharacterSlot(*(s32 *)(a0 + (s8)idx * 4));
     if (result != 0xFF) {
         func_80036B90(result);
     }
@@ -209,11 +209,11 @@ s32 func_800B0D2C(u8 *a0) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0D94);
 
-/** @brief Pop value from stack, call func_80037C30, store result at 0x140. Returns 2. */
+/** @brief Pop value from stack, call findCharacterSlot, store result at 0x140. Returns 2. */
 s32 func_800B0E68(u8 *a0) {
     u8 idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    *(s32 *)(a0 + 0x140) = func_80037C30(*(s32 *)(a0 + (s8)idx * 4));
+    *(s32 *)(a0 + 0x140) = findCharacterSlot(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
@@ -328,7 +328,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1C7C);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1D40);
 
 /**
- * Pops a parameter and calls func_8001340C, returns 2.
+ * Pops a parameter and calls sndSetEngineFlag, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -338,20 +338,20 @@ s32 func_800B1DF4(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    func_8001340C(*(s32 *)(a0 + (s8)idx * 4));
+    sndSetEngineFlag(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1E34);
 
 /**
- * Calls func_80012E04 with the object pointer, stores result at offset 0x140, returns 2.
+ * Calls sndGetStatus with the object pointer, stores result at offset 0x140, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
  */
 s32 func_800B1ED4(u8 *a0) {
-    *(s32 *)(a0 + 0x140) = func_80012E04(a0);
+    *(s32 *)(a0 + 0x140) = sndGetStatus(a0);
     return 2;
 }
 
@@ -378,14 +378,14 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B1FE0);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B2090);
 
 /**
- * Calls func_80012E40 with argument 1, returns 1 if result is nonzero, else 2.
+ * Calls sndGetMaxVolume with argument 1, returns 1 if result is nonzero, else 2.
  *
  * @param a0 Pointer to the script/object structure (unused).
- * @return 1 if func_80012E40 returns nonzero, 2 otherwise.
+ * @return 1 if sndGetMaxVolume returns nonzero, 2 otherwise.
  */
 s32 func_800B2158(u8 *a0) {
     s32 result;
-    result = func_80012E40(1);
+    result = sndGetMaxVolume(1);
     if (result == 0) {
         return 2;
     }

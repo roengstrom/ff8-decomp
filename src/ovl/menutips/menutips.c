@@ -155,7 +155,7 @@ s32 func_801E5958(s32 a0) {
  * Calls func_801E5958 to get a tips data buffer. Copies the first three
  * halfwords from the buffer header into D_801EC412-D_801EC416, clears
  * D_801EC410, then calls copyString to set up the tips table, measures
- * the text length with func_8002A2F4, and finalizes via func_801E6018.
+ * the text length with btlStrlen, and finalizes via func_801E6018.
  * Stores the result in D_801EC410.
  *
  * @param a0 Tips entry index.
@@ -185,14 +185,14 @@ void func_801E597C(s32 a0) {
     D_801EC416 = ret->unk4;
     buf += 8;
     copyString((s32)D_801E7B10, buf);
-    buf += func_8002A2F4(buf);
+    buf += btlStrlen(buf);
     D_801EC410 = func_801E6018(buf + 1, (s32)D_801E8310, (s32)D_801EC310);
 }
 
 INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E5A10);
 
 /**
- * Number display format parameters, returned by func_80020F84.
+ * Number display format parameters, returned by getMenuString.
  * Controls how numeric values are formatted into strings.
  */
 typedef struct {
@@ -287,7 +287,7 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6018);
 /**
  * @brief Check tutorial availability and save current selection.
  *
- * Calls func_80035E00 to check if the tips system is ready. If not ready
+ * Calls pollCdReadStatus to check if the tips system is ready. If not ready
  * (returns 0), copies D_801ED422 to D_801ED420 (saves current selection)
  * and returns 1. Otherwise returns 0.
  *
@@ -296,7 +296,7 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6018);
 s32 func_801E6474(void) {
     extern u16 D_801ED422;
     extern u16 D_801ED420;
-    if (func_80035E00() == 0) {
+    if (pollCdReadStatus() == 0) {
         D_801ED420 = D_801ED422;
         return 1;
     }
@@ -307,7 +307,7 @@ s32 func_801E6474(void) {
  * @brief Load tips page data if the current selection has changed.
  *
  * Indexes into D_801EC420 to find the entry for the given page index.
- * If the entry's ID differs from D_801ED420, calls func_800360D0 to
+ * If the entry's ID differs from D_801ED420, calls loadSubOverlay to
  * load the new page data from 0x801D1000, then updates D_801ED422 with
  * the new ID.
  *
@@ -324,7 +324,7 @@ void func_801E64B0(s32 a0) {
     entry = (u16 *)(a0 + base);
     id = entry[1];
     if (D_801ED420 != id) {
-        func_800360D0(id + 0x80, 0x801D1000);
+        loadSubOverlay(id + 0x80, 0x801D1000);
         D_801ED422 = entry[1];
     }
 }
@@ -411,11 +411,11 @@ s32 func_801E6668(s32 arg0, s32 arg1) {
     s32 var_s1;
 
     var_s1 = arg1;
-    temp_s0 = func_8002A888();
-    func_8002A8B8(var_s1);
+    temp_s0 = getDisplayListHead();
+    storeGpuPacket(var_s1);
     func_8002EAD0(arg0, 0x22, 0x23, &D_801E8310);
-    var_s1 = func_8002A888();
-    func_8002A8B8(temp_s0);
+    var_s1 = getDisplayListHead();
+    storeGpuPacket(temp_s0);
     g_menuDisplayCfg.unk10 = 0;
     g_menuDisplayCfg.unk11 = 0;
     g_menuDisplayCfg.unk0 = 0x18;
@@ -486,8 +486,8 @@ s32 func_801E67F4(s32 a0, s32 a1, s32 a2) {
 
     if (*(s16 *)(state + 0x2A) != 0) {
         func_801F1AFC();
-        func_8002E7C4(*(s16 *)(state + 0x24));
-        func_80030058(*(s16 *)(state + 0x24));
+        setMenuColorIntensity(*(s16 *)(state + 0x24));
+        buildGrayscaleGpuColor(*(s16 *)(state + 0x24));
         ot = func_801E6768(disp, ot);
         ot = func_801E6668(disp, ot);
         ot = func_801E6514(disp, ot);
@@ -516,9 +516,9 @@ extern TipsEntry D_801E6AC0[];
  *
  * Iterates D_801E6AC0 until an entry with id 0xFF is found. For each entry,
  * checks bit (id - 0x5C) in the flags returned by func_801F72B4(). If set,
- * calls func_800371D0(valueA) and uses valueB as the arg to func_80037198;
- * otherwise calls func_800371D0(valueB) and uses valueA. After the loop,
- * calls func_800372D0() to get a state pointer, and if its flags field has
+ * calls clearFieldFlag(valueA) and uses valueB as the arg to setFieldFlag;
+ * otherwise calls clearFieldFlag(valueB) and uses valueA. After the loop,
+ * calls getChocoboWorldPtr() to get a state pointer, and if its flags field has
  * bit 0 set, returns value2D.
  *
  * @return value2D from the state struct if flags bit 0 is set; undefined otherwise.
@@ -542,17 +542,17 @@ u8 func_801E688C(void) {
             break;
         }
         if (((unsigned long)temp_s4) & (1 << (temp_v0 - 0x5C))) {
-            func_800371D0(temp_s2);
+            clearFieldFlag(temp_s2);
             var_a0 = temp_s1;
         } else {
-            func_800371D0(temp_s1);
+            clearFieldFlag(temp_s1);
             var_a0 = temp_s2;
         }
-        func_80037198(var_a0);
+        setFieldFlag(var_a0);
         var_s3++;
     }
 
-    temp_v0_2 = func_800372D0();
+    temp_v0_2 = getChocoboWorldPtr();
     if (temp_v0_2->flags & 1) {
         return temp_v0_2->value2D;
     }
@@ -571,7 +571,7 @@ typedef struct {
 /**
  * @brief Initialize the tips overlay state and kick off the work loop.
  *
- * Resets the selection trackers, waits for func_80035E00 to clear, sets up
+ * Resets the selection trackers, waits for pollCdReadStatus to clear, sets up
  * audio/display, allocates a WorkStruct via func_801F179C, zeroes the
  * D_801E6B10 name buffer, runs the entry-scan, then initialises all overlay
  * state variables and starts the main work function.
@@ -591,7 +591,7 @@ void func_801E696C(void) {
 
     D_801ED420 = -1;
     D_801ED422 = -1;
-    while (func_80035E00() != 0) {
+    while (pollCdReadStatus() != 0) {
         ;
     }
 
@@ -609,7 +609,7 @@ void func_801E696C(void) {
     }
     D_801E7B10 = 0;
     D_801E8310 = 0;
-    func_800360D0(0x7F, &D_801EC420);
+    loadSubOverlay(0x7F, &D_801EC420);
     work->unk24 = (work->unk28 = 0);
     work->unk26 = 0;
     work->unk2A = 0;

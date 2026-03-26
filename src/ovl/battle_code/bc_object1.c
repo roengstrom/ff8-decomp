@@ -147,13 +147,13 @@ void func_800B25E4(void);
 void func_800B26B8(void);
 s32 func_800B8564(s32, s32);
 s32 func_800CEDA4(void);
-void func_8003023C(s32);
-void func_80030248(s32);
-void func_80013744(s32, s32, s32);
+void setCameraVibrateIntensity(s32);
+void setCameraVibrateState(s32);
+void sndCmdC1(s32, s32, s32);
 void func_80038868(s32, s32, s32, s32);
-void func_8003882C(s32, s32, s32, s32);
-void func_80038920(s32, s32, s32, s32);
-void func_80020644(s32, s32, s32);
+void cdRead(s32, s32, s32, s32);
+void cdReadSync(s32, s32, s32, s32);
+void memcopy(s32, s32, s32);
 void func_800D0F74(void);
 
 /**
@@ -309,13 +309,13 @@ void func_8009A3BC(void) {
 /**
  * @brief Conditionally apply vibration feedback.
  *
- * If bit 2 of D_80082C0A is set, calls func_8003023C(0x1000) and
- * func_80030248(1) to trigger controller vibration.
+ * If bit 2 of D_80082C0A is set, calls setCameraVibrateIntensity(0x1000) and
+ * setCameraVibrateState(1) to trigger controller vibration.
  */
 void func_8009A3F4(void) {
     if (*(u16 *)D_80082C0A & 4) {
-        func_8003023C(0x1000);
-        func_80030248(1);
+        setCameraVibrateIntensity(0x1000);
+        setCameraVibrateState(1);
     }
 }
 
@@ -569,7 +569,7 @@ void func_8009AA2C(void) {
  *
  * Decrements a timer at offset 0x8 in the task entry. When timer
  * reaches zero, plays sound 0x4 at volume 0xF0, and conditionally
- * plays a timed sound via func_80013744 if condition 0x1BD == 3.
+ * plays a timed sound via sndCmdC1 if condition 0x1BD == 3.
  * @param a0 Task queue slot index (multiplied by 0x10).
  */
 void func_8009AAC4(s32 a0) {
@@ -580,7 +580,7 @@ void func_8009AAC4(s32 a0) {
     if (*(u16 *)(entry + 0x8) == 0) {
         func_8009B134(4, 0xF0, 0);
         if (*(u8 *)(base + 0x1BD) == 3) {
-            func_80013744(D_8005F11C, 0x3C, 0);
+            sndCmdC1(D_8005F11C, 0x3C, 0);
         }
         *(u8 *)(entry + 0xF) = 1;
     }
@@ -886,12 +886,12 @@ void func_8009B088(s32 a0, s32 a1, s32 a2, s32 a3) {
  * @brief Conditionally play a timed sound effect.
  *
  * If bit 1 of D_80082C0A is clear, plays a timed sound via
- * func_80013744 using D_8005F11C as the sound ID.
+ * sndCmdC1 using D_8005F11C as the sound ID.
  * @param a0 Duration parameter for the timed sound.
  */
 void func_8009B0F8(s32 a0) {
     if (!(*(u16 *)D_80082C0A & 2)) {
-        func_80013744(D_8005F11C, a0, 0);
+        sndCmdC1(D_8005F11C, a0, 0);
     }
 }
 
@@ -1235,12 +1235,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B59C);
  * @brief Start music/sound playback with callback.
  *
  * Reads source parameters from D_800E19BC, calls either
- * func_8003882C or func_80038868 based on direction flag (a2),
+ * cdRead or func_80038868 based on direction flag (a2),
  * passing func_8009B654 as callback. Stores callback pointer
  * and data pointer into D_800ED148+0x128C/0x12D8.
  * @param a0 Sound table index.
  * @param a1 Sound bank ID.
- * @param a2 Direction flag (0 = func_8003882C, else func_80038868).
+ * @param a2 Direction flag (0 = cdRead, else func_80038868).
  * @param a3 Callback user data.
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B5C4);
@@ -1284,8 +1284,8 @@ void func_8009B6B0(void) {
  * @brief Load and play a sound bank segment.
  *
  * Computes VRAM page from a0 (shifted left 7), reads base pointer
- * from D_800E19B4, calls func_80038920 to load the segment, then
- * calls func_80020644 to start playback.
+ * from D_800E19B4, calls cdReadSync to load the segment, then
+ * calls memcopy to start playback.
  *
  * @param a0 Sound bank index (u16).
  * @param a1 Playback parameters pointer.
@@ -1300,8 +1300,8 @@ void func_8009B6D0(s32 a0, s32 a1) {
     if (new_var < 0) {
         temp = new_var + 0x7FF;
     }
-    func_80038920(*(s32 *)D_800E19B4 + (temp >> 11), 0x800, 0x801C0000, 0);
-    func_80020644((new_var & 0x7FF) | 0x801C0000, a1, 0x80);
+    cdReadSync(*(s32 *)D_800E19B4 + (temp >> 11), 0x800, 0x801C0000, 0);
+    memcopy((new_var & 0x7FF) | 0x801C0000, a1, 0x80);
 }
 
 /**

@@ -33,19 +33,19 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E592C);
 /**
  * @brief Configure GF ability display by looking up base and alternate addresses.
  *
- * Calls func_80020F84(0x79) for a base lookup, passes the result with @p a1
+ * Calls getMenuString(0x79) for a base lookup, passes the result with @p a1
  * to copyString. Then calls getMagicNamePtr on @p a0+0x40 for an alternate
- * lookup, passing that result with @p a1 to func_8002A2C4.
+ * lookup, passing that result with @p a1 to btlStrcat2.
  *
  * @param a0 Pointer to GF ability data (offset +0x40 used for alternate lookup).
  * @param a1 Destination or context pointer for ability storage.
  */
 void func_801E5988(u8 *a0, u8 *a1) {
     s32 val;
-    val = func_80020F84(0x79);
+    val = getMenuString(0x79);
     copyString(a1, val);
     val = getMagicNamePtr(a0 + 0x40);
-    func_8002A2C4(a1, val);
+    btlStrcat2(a1, val);
 }
 
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E59E0);
@@ -95,7 +95,7 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6BB8);
 /**
  * @brief Set up GF summary display with icon and border rendering.
  *
- * Calls func_80036F60 to get a status value, then passes it along with
+ * Calls getGfAvailabilityMask to get a status value, then passes it along with
  * position constants to func_801E69B0 for rendering. Configures g_menuDisplayCfg
  * with icon 0x50, position (0x18, 0x38), dimensions (0x150 x 0xA0), and
  * calls func_801EF9AC for final display.
@@ -111,7 +111,7 @@ void func_801E6C84(s32 a0, s32 a1) {
     s32 result;
     u8 *cfg;
 
-    result = func_80036F60() & 0xFFFF;
+    result = getGfAvailabilityMask() & 0xFFFF;
     result = func_801E69B0(ctx, renderCtx, 0x18, 0x38, result);
     cfg = g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x50;
@@ -193,7 +193,7 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7988);
  * the render callback via func_801F179C. Calls func_801F0948(0) to
  * initialize shared state. If registration succeeds, clears all menu
  * context fields (positions, flags, scroll state), loads the current
- * GF's data via func_80036F60/func_80035A6C, and enters the update
+ * GF's data via getGfAvailabilityMask/popcount, and enters the update
  * callback.
  */
 void func_801E7C20(s32 unused) {
@@ -215,7 +215,7 @@ void func_801E7C20(s32 unused) {
         *(s16 *)(ctx + 0x2A) = 0;
         *(u8 *)(ctx + 0x34) = 0;
         *(s16 *)(ctx + 0x2E) = 0;
-        *(u8 *)(ctx + 0x33) = func_80035A6C(func_80036F60());
+        *(u8 *)(ctx + 0x33) = popcount(getGfAvailabilityMask());
         *(u8 *)(ctx + 0x56) = 0;
         *(u8 *)(ctx + 0x57) = 0xFF;
         func_801E5A60(ctx);

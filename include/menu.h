@@ -99,7 +99,7 @@ typedef struct {
     /* 0x58 */ u8 unk58;               /**< Header panel category index. */
     /* 0x59 */ u8 unk59;               /**< Junction slot count for current type. */
     /* 0x5A */ u8 unk5A;               /**< Stat display type byte. */
-    /* 0x5B */ u8 discCount;           /**< Number of discs (from func_80035A6C). */
+    /* 0x5B */ u8 discCount;           /**< Number of discs (from popcount). */
     /* 0x5C */ s8 unk5C;               /**< GF navigation index. */
     /* 0x5D */ u8 unk5D;               /**< Character index for scaling panel comparison. */
     /* 0x5E */ s8 unk5E;               /**< Column/stat selection index. */

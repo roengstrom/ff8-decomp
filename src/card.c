@@ -10,7 +10,7 @@
  *
  * @param ptr Pointer to the card hand array (256 bytes).
  */
-void func_800366E8(u8 *ptr) {
+void initCardHandSlots(u8 *ptr) {
     s32 i = 0;
     do {
         i++;
@@ -40,7 +40,7 @@ INCLUDE_ASM("asm/nonmatchings/card", func_8003685C);
  * @param a0 Card ID.
  * @return Rarity level (0-6).
  */
-s32 func_80036978(s32 a0) {
+s32 getCardRarity(s32 a0) {
     s32 result;
     if (a0 < 0x14) {
         result = 0;
@@ -77,16 +77,16 @@ INCLUDE_ASM("asm/nonmatchings/card", func_80036D44);
  * @brief Set the active party leader and clear the other two party slots.
  *
  * Writes a0 to g_gameState+0xAF4 (party slot 0), sets slots 1 and 2 to
- * 0xFF (empty), then calls func_80023888 to apply the party change.
+ * 0xFF (empty), then calls recalcPartyStats to apply the party change.
  *
  * @param a0 Character ID for the party leader.
  */
-void func_80036E8C(s32 a0) {
+void setPartyLeader(s32 a0) {
     extern u8 g_gameState[];
-    g_gameState[0xAF4] = a0;
-    g_gameState[0xAF5] = 0xFF;
-    g_gameState[0xAF6] = 0xFF;
-    func_80023888();
+    g_gameState[0xAF4] = a0;      /* party.party[0] = leader */
+    g_gameState[0xAF5] = 0xFF;    /* party.party[1] = empty */
+    g_gameState[0xAF6] = 0xFF;    /* party.party[2] = empty */
+    recalcPartyStats();
 }
 
 
@@ -102,7 +102,7 @@ INCLUDE_ASM("asm/nonmatchings/card", func_80036EC0);
  *
  * @return Bitmask where bit N is set if GF N is available.
  */
-u16 func_80036F60(void) {
+u16 getGfAvailabilityMask(void) {
     extern u8 g_gameState[];
     u16 mask;
     s32 i;
@@ -132,7 +132,7 @@ u16 func_80036F60(void) {
  *
  * @param a0 GF index (0-15).
  */
-void func_80036FA4(s32 a0) {
+void copyGfHpToSave(s32 a0) {
     extern u8 g_gameState[];
     s32 base1 = (s32)g_gameState;
     s32 off1 = a0 * 68;

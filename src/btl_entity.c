@@ -20,10 +20,10 @@ INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BE48);
  * @param a0 Index into the battle entity array (D_80083210, stride 64).
  * @return Address within the table at D_800834C0, offset by 8 + (field_0x37 << 2).
  */
-s32 func_8002BEEC(s32 a0) {
+s32 getEntityTablePtr(s32 a0) {
     extern s32 D_800834C0;
     s32 base = D_800834C0 + 8;
-    s32 result = func_8002ACBC(a0);
+    s32 result = getBattleEntityAnimSpeed(a0);
     return base + (result << 2);
 }
 
@@ -39,7 +39,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BF24);
  *
  * @param a0 Entity index.
  */
-void func_8002C030(s32 a0) {
+void dispatchBattleEntity(s32 a0) {
     extern u8 g_battleEntities[];
     s32 entry = (s32)g_battleEntities + a0 * 64;
     void (*fp)(s32) = (void (*)(s32))*(s32 *)entry;
@@ -52,11 +52,11 @@ void func_8002C030(s32 a0) {
 /** @brief Finds the first available battle entity slot (0-7) and marks it as active.
  *  @return Slot index (0-7), or -1 if none available.
  */
-s32 func_8002C070(void) {
+s32 allocBattleEntitySlot(void) {
     s32 i;
     for (i = 0; i < 8; i++) {
         if (GetActiveFlag(i) == 0) {
-            func_8002AEF8(i, 1);
+            setBattleEntityActive(i, 1);
             return i;
         }
     }
@@ -65,15 +65,15 @@ s32 func_8002C070(void) {
 
 
 /**
- * @brief Initialize all 8 battle entity slots by calling func_8002AFA4 on each.
+ * @brief Initialize all 8 battle entity slots by calling initBattleEntity on each.
  *
  * Iterates slots 0 through 7, resetting each entity's display rects, flags,
  * position fields, and volume to default values.
  */
-void func_8002C0C4(void) {
+void initAllBattleEntities(void) {
     s32 i;
     for (i = 0; i < 8; i++) {
-        func_8002AFA4(i);
+        initBattleEntity(i);
     }
 }
 
@@ -84,13 +84,13 @@ extern s32 D_800834CC;
  * @brief Store a base address into D_800834CC.
  * @param a0 Value to store (typically a memory address such as 0x80090000).
  */
-void func_8002C100(s32 a0) {
+void setBattleEntityBase(s32 a0) {
     D_800834CC = a0;
 }
 
 
 /** @brief Return the maximum number of battle entity slots (always 8). */
-s32 func_8002C10C(void) {
+s32 getMaxBattleEntities(void) {
     return 8;
 }
 
@@ -100,7 +100,7 @@ extern u8 D_80083840;
  * @brief Get the current value of the global flag D_80083840.
  * @return The flag value as an unsigned byte.
  */
-u8 func_8002C114(void) {
+u8 getBattleFlag(void) {
     return D_80083840;
 }
 
@@ -109,7 +109,7 @@ u8 func_8002C114(void) {
  * @brief Set the global flag D_80083840.
  * @param val The new flag value to store.
  */
-void func_8002C124(u8 val) {
+void setBattleFlag(u8 val) {
     D_80083840 = val;
 }
 
@@ -134,7 +134,7 @@ extern SfxEntry g_sfxEntries[];
  * @param a1 Value for field30.
  * @param a2 Value for field32.
  */
-void func_8002C7BC(s32 idx, s32 a1, s32 a2) {
+void setSfxEntryParams(s32 idx, s32 a1, s32 a2) {
     SfxEntry* entry = &g_sfxEntries[idx];
     entry->field30 = a1;
     entry->field32 = a2;
@@ -148,7 +148,7 @@ void func_8002C7BC(s32 idx, s32 a1, s32 a2) {
  * @param a2 Value for field2A.
  * @param a3 Value for field2C.
  */
-void func_8002C7E0(s32 idx, s32 a1, s32 a2, s32 a3) {
+void setSfxEntryTimings(s32 idx, s32 a1, s32 a2, s32 a3) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->field29 = a1;
     entry->field2A = a2;
@@ -161,7 +161,7 @@ void func_8002C7E0(s32 idx, s32 a1, s32 a2, s32 a3) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Value to store.
  */
-void func_8002C808(s32 idx, s32 val) {
+void setSfxEntryField2B(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->field2B = val;
 }
@@ -172,7 +172,7 @@ void func_8002C808(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val 32-bit value to store.
  */
-void func_8002C828(s32 idx, s32 val) {
+void setSfxEntryField34(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->field34 = val;
 }
@@ -183,7 +183,7 @@ void func_8002C828(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val 32-bit value to store.
  */
-void func_8002C848(s32 idx, s32 val) {
+void setSfxEntryField38(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->field38 = val;
 }
@@ -194,10 +194,10 @@ void func_8002C848(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Volume value (0x1000 = default).
  */
-void func_8002C868(s32 idx, s32 val) {
+void setSfxEntryVolume(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->volume = val;
-    func_8002AF70(entry->entityIdx, val);
+    setBattleEntityScale(entry->entityIdx, val);
 }
 
 

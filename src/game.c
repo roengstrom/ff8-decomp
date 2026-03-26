@@ -4,7 +4,7 @@
 #include "gf.h"
 #include "gamestate.h"
 
-u8 *func_80020FBC(u16 a0, s32 a1);
+u8 *resolveKernelPtr(u16 a0, s32 a1);
 
 /** @brief Empty stub at the end of the sound engine region.
  *  Followed by ~4KB of zero padding before the game code resumes.
@@ -12,19 +12,19 @@ u8 *func_80020FBC(u16 a0, s32 a1);
 INCLUDE_ASM("asm/nonmatchings/game", func_8001F5C8);
 
 /**
- * @brief Game code VSync handler. Clears render mode if func_80035148 signals completion.
+ * @brief Game code VSync handler. Clears render mode if getRenderCompleteFlag signals completion.
  *
- * Called from the VSync dispatch (g_renderMode == 4). Invokes func_80035294
- * for per-frame processing, then checks func_80035148's return. If non-zero,
+ * Called from the VSync dispatch (g_renderMode == 4). Invokes dispatchScratchpadThread
+ * for per-frame processing, then checks getRenderCompleteFlag's return. If non-zero,
  * sets g_renderMode to 0 (RENDER_IDLE) to signal the main loop.
  */
-void func_800205D0(void) {
+void vsyncGameHandler(void) {
     extern s16 g_renderMode;
-    void func_80035294(void);
-    s32 func_80035148(void);
+    void dispatchScratchpadThread(void);
+    s32 getRenderCompleteFlag(void);
 
-    func_80035294();
-    if (func_80035148() != 0) {
+    dispatchScratchpadThread();
+    if (getRenderCompleteFlag() != 0) {
         g_renderMode = 0;
     }
 }
@@ -35,7 +35,7 @@ void func_800205D0(void) {
  * @param ptr Pointer to memory to clear.
  * @param count Number of 16-byte iterations.
  */
-void func_80020608(s32 *ptr, s32 count) {
+void memzero16(s32 *ptr, s32 count) {
     s32 i = 0;
     if (count <= 0) return;
     do {
@@ -57,7 +57,7 @@ void func_80020608(s32 *ptr, s32 count) {
  * @param dst Destination byte pointer.
  * @param len Number of bytes to copy.
  */
-void func_80020644(u8 *src, u8 *dst, s32 len) {
+void memcopy(u8 *src, u8 *dst, s32 len) {
     s32 i = 0;
     if (len <= 0) return;
     do {
@@ -71,41 +71,41 @@ void func_80020644(u8 *src, u8 *dst, s32 len) {
 /** @brief Mark a GF as existing (sets exists flag).
  *  @param a0 GF index (0-15).
  */
-void func_80020670(s32 a0) {
+void setGfExists(s32 a0) {
     g_gameState.gfs[a0].exists |= 1;
 }
 
 
 /** @brief Returns a pointer to the Boko name field in the save header. */
-u8 *func_8002069C(void) {
+u8 *getBokoName(void) {
     return g_gameState.bokoName;
 }
 
 
 /** @brief Returns a pointer to the Angelo name field in the save header. */
-u8 *func_800206A8(void) {
+u8 *getAngeloName(void) {
     return g_gameState.angeloName;
 }
 
 
-/** @brief Resolves param from GfData.subTableU[a0] (stride 20) via func_80020FBC. */
-s32 func_800206B4(s32 a0) {
+/** @brief Resolves param from GfData.subTableU[a0] (stride 20) via resolveKernelPtr. */
+s32 getGfSummonData(s32 a0) {
     /* subTableU (+0x4A6C), ptrSubTableU (+0xD8) */
-    return func_80020FBC(g_gfData.subTableU[a0].param0, g_gfData.ptrSubTableU);
+    return resolveKernelPtr(g_gfData.subTableU[a0].param0, g_gfData.ptrSubTableU);
 }
 
 
 /**
  * @brief Resolve GF name pointer from GfData.subTableT[a0] (stride 8).
  * @param a0 GF index (0 returns default D_800773A8 pointer).
- * @return Pointer from func_80020FBC lookup, or &D_800773A8 if a0 is 0.
+ * @return Pointer from resolveKernelPtr lookup, or &D_800773A8 if a0 is 0.
  */
-u8 *func_800206F4(s32 a0) {
+u8 *getGfName(s32 a0) {
     u8 *result;
 
     if (a0 != 0) {
         /* subTableT (+0x4A5C), ptrSubTableT (+0xD4) */
-        result = func_80020FBC(g_gfData.subTableT[a0].param0, g_gfData.ptrSubTableT);
+        result = resolveKernelPtr(g_gfData.subTableT[a0].param0, g_gfData.ptrSubTableT);
     } else {
         result = g_gameState.angeloName;
     }
@@ -113,82 +113,82 @@ u8 *func_800206F4(s32 a0) {
 }
 
 
-/** @brief Resolves param0 from GfData.subTableS[a0] (stride 32) via func_80020FBC. */
-s32 func_80020740(s32 a0) {
+/** @brief Resolves param0 from GfData.subTableS[a0] (stride 32) via resolveKernelPtr. */
+s32 getMagicEffectName(s32 a0) {
     /* subTableS (+0x48B8), ptrSubTableS (+0xD0) */
-    return func_80020FBC(g_gfData.subTableS[a0].param0, g_gfData.ptrSubTableS);
+    return resolveKernelPtr(g_gfData.subTableS[a0].param0, g_gfData.ptrSubTableS);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableS[a0] (stride 32, +2) via func_80020FBC. */
-s32 func_80020778(s32 a0) {
+/** @brief Resolves param1 from GfData.subTableS[a0] (stride 32, +2) via resolveKernelPtr. */
+s32 getMagicEffectDesc(s32 a0) {
     /* subTableS (+0x48BA), ptrSubTableS (+0xD0) */
-    return func_80020FBC(g_gfData.subTableS[a0].param1, g_gfData.ptrSubTableS);
+    return resolveKernelPtr(g_gfData.subTableS[a0].param1, g_gfData.ptrSubTableS);
 }
 
 
-/** @brief Resolves param0 from GfData.subTableR[a0] (stride 24) via func_80020FBC. */
-s32 func_800207B0(s32 a0) {
+/** @brief Resolves param0 from GfData.subTableR[a0] (stride 24) via resolveKernelPtr. */
+s32 getStatusEffectName(s32 a0) {
     /* subTableR (+0x47F8), ptrSubTableR (+0xCC) */
-    return func_80020FBC(g_gfData.subTableR[a0].param0, g_gfData.ptrSubTableR);
+    return resolveKernelPtr(g_gfData.subTableR[a0].param0, g_gfData.ptrSubTableR);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableR[a0] (stride 24, +2) via func_80020FBC. */
-s32 func_800207F0(s32 a0) {
+/** @brief Resolves param1 from GfData.subTableR[a0] (stride 24, +2) via resolveKernelPtr. */
+s32 getStatusEffectDesc(s32 a0) {
     /* subTableR (+0x47FA), ptrSubTableR (+0xCC) */
-    return func_80020FBC(g_gfData.subTableR[a0].param1, g_gfData.ptrSubTableR);
+    return resolveKernelPtr(g_gfData.subTableR[a0].param1, g_gfData.ptrSubTableR);
 }
 
 
-/** @brief Resolves param0 from GfData.elementData24[a0] (stride 24) via func_80020FBC. */
-s32 func_80020830(s32 a0) {
+/** @brief Resolves param0 from GfData.elementData24[a0] (stride 24) via resolveKernelPtr. */
+s32 getElementName(s32 a0) {
     /* elementData24 (+0x3744), ptrElementData24 (+0x94) */
-    return func_80020FBC(g_gfData.elementData24[a0].param0, g_gfData.ptrElementData24);
+    return resolveKernelPtr(g_gfData.elementData24[a0].param0, g_gfData.ptrElementData24);
 }
 
 
-/** @brief Resolves param1 from GfData.elementData24[a0] (stride 24, +2) via func_80020FBC. */
-s32 func_80020870(s32 a0) {
+/** @brief Resolves param1 from GfData.elementData24[a0] (stride 24, +2) via resolveKernelPtr. */
+s32 getElementDesc(s32 a0) {
     /* elementData24 (+0x3746), ptrElementData24 (+0x94) */
-    return func_80020FBC(g_gfData.elementData24[a0].param1, g_gfData.ptrElementData24);
+    return resolveKernelPtr(g_gfData.elementData24[a0].param1, g_gfData.ptrElementData24);
 }
 
 
-/** @brief Resolves param0 from GfData.subTableQ[a0] (stride 16) via func_80020FBC. */
-s32 func_800208B0(s32 a0) {
+/** @brief Resolves param0 from GfData.subTableQ[a0] (stride 16) via resolveKernelPtr. */
+s32 getJuncEffectName(s32 a0) {
     /* subTableQ (+0x44F8), ptrSubTableQ (+0xC8) */
-    return func_80020FBC(g_gfData.subTableQ[a0].param0, g_gfData.ptrSubTableQ);
+    return resolveKernelPtr(g_gfData.subTableQ[a0].param0, g_gfData.ptrSubTableQ);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableQ[a0] (stride 16, +2) via func_80020FBC. */
-s32 func_800208E8(s32 a0) {
+/** @brief Resolves param1 from GfData.subTableQ[a0] (stride 16, +2) via resolveKernelPtr. */
+s32 getJuncEffectDesc(s32 a0) {
     /* subTableQ (+0x44FA), ptrSubTableQ (+0xC8) */
-    return func_80020FBC(g_gfData.subTableQ[a0].param1, g_gfData.ptrSubTableQ);
+    return resolveKernelPtr(g_gfData.subTableQ[a0].param1, g_gfData.ptrSubTableQ);
 }
 
 
-/** @brief Resolves param0 from GfData.subTableP[a0] (stride 24) via func_80020FBC. */
-s32 func_80020920(s32 a0) {
+/** @brief Resolves param0 from GfData.subTableP[a0] (stride 24) via resolveKernelPtr. */
+s32 getJuncCategoryName(s32 a0) {
     /* subTableP (+0x4480), ptrSubTableP (+0xC4) */
-    return func_80020FBC(g_gfData.subTableP[a0].param0, g_gfData.ptrSubTableP);
+    return resolveKernelPtr(g_gfData.subTableP[a0].param0, g_gfData.ptrSubTableP);
 }
 
 
-/** @brief Resolves param1 from GfData.subTableP[a0] (stride 24, +2) via func_80020FBC. */
-s32 func_80020960(s32 a0) {
+/** @brief Resolves param1 from GfData.subTableP[a0] (stride 24, +2) via resolveKernelPtr. */
+s32 getJuncCategoryDesc(s32 a0) {
     /* subTableP (+0x4482), ptrSubTableP (+0xC4) */
-    return func_80020FBC(g_gfData.subTableP[a0].param1, g_gfData.ptrSubTableP);
+    return resolveKernelPtr(g_gfData.subTableP[a0].param1, g_gfData.ptrSubTableP);
 }
 
 
 /**
  * @brief Resolve AbilityEntry.statParam0 from the appropriate ability range table.
  * @param a0 Ability ID that selects the sub-table (see AbilityEntry ranges in gf.h).
- * @return Result of func_80020FBC with the entry's statParam0 and the range base pointer.
+ * @return Result of resolveKernelPtr with the entry's statParam0 and the range base pointer.
  */
-u8 *func_800209A0(s32 a0) {
+u8 *getAbilityName(s32 a0) {
     u16 param;
     s32 arg2;
 
@@ -230,16 +230,16 @@ u8 *func_800209A0(s32 a0) {
             arg2 = g_gfData.ptrAbilityRangeN;
         }
     }
-    return func_80020FBC(param, arg2);
+    return resolveKernelPtr(param, arg2);
 }
 
 
 /**
  * @brief Resolve AbilityEntry.statParam1 from the appropriate ability range table.
  * @param a0 Ability ID that selects the sub-table (see AbilityEntry ranges in gf.h).
- * @return Result of func_80020FBC with the entry's statParam1 and the range base pointer.
+ * @return Result of resolveKernelPtr with the entry's statParam1 and the range base pointer.
  */
-u8 *func_80020AD4(s32 a0) {
+u8 *getAbilityDesc(s32 a0) {
     u16 param;
     s32 arg2;
 
@@ -281,7 +281,7 @@ u8 *func_80020AD4(s32 a0) {
             arg2 = g_gfData.ptrAbilityRangeN;
         }
     }
-    return func_80020FBC(param, arg2);
+    return resolveKernelPtr(param, arg2);
 }
 
 
@@ -289,7 +289,7 @@ u8 *func_80020AD4(s32 a0) {
  * @brief Get a pointer to a magic spell's name string.
  *
  * If @p a0 < 0x40, indexes into GfData.junctionData (stride 60) at offset
- * 0x21C to get a 16-bit index, then resolves it via func_80020FBC against
+ * 0x21C to get a 16-bit index, then resolves it via resolveKernelPtr against
  * GfData.ptrGfSpellData (+0x84). If @p a0 >= 0x40, returns directly from
  * D_800762C8 at stride 68.
  *
@@ -301,7 +301,7 @@ u8 *getMagicNamePtr(s32 a0) {
 
     if (a0 < 0x40) {
         /* junctionData (+0x21C, stride 60), ptrGfSpellData (+0x84) */
-        return (u8 *)func_80020FBC(g_gfData.junctionData[a0].nameParam0, g_gfData.ptrGfSpellData);
+        return (u8 *)resolveKernelPtr(g_gfData.junctionData[a0].nameParam0, g_gfData.ptrGfSpellData);
     }
     return D_800762C8 + a0 * 68;
 }
@@ -311,15 +311,15 @@ u8 *getMagicNamePtr(s32 a0) {
  * @brief Resolve a secondary data pointer for a character or GF entity.
  * @param a0 Entity index; < 0x40 uses GfJunctionEntry[a0]+2 in junctionData,
  *           >= 0x40 uses GfAbilityTableEntry[idx] in abilityTable132.
- * @return Resolved data pointer via func_80020FBC.
+ * @return Resolved data pointer via resolveKernelPtr.
  */
-s32 func_80020C6C(s32 a0) {
+s32 getSpellEntityData(s32 a0) {
     if (a0 < 0x40) {
         u8 *gfBase = (u8 *)&g_gfData;
         /* junctionData (+0x21E, stride 60), ptrGfSpellData (+0x84) */
         u16 param = *(u16 *)(gfBase + 0x21E + a0 * 60);
         s32 arg2 = *(s32 *)(gfBase + 0x84);
-        return func_80020FBC(param, arg2);
+        return resolveKernelPtr(param, arg2);
     }
     {
         u8 *gfBase = (u8 *)&g_gfData;
@@ -327,7 +327,7 @@ s32 func_80020C6C(s32 a0) {
         /* abilityTable132 (+0xF7A, stride 132), ptrAbilityTable132 (+0x88) */
         u16 param = *(u16 *)(gfBase + 0xF7A + idx * 132);
         s32 arg2 = *(s32 *)(gfBase + 0x88);
-        return func_80020FBC(param, arg2);
+        return resolveKernelPtr(param, arg2);
     }
 }
 
@@ -335,9 +335,9 @@ s32 func_80020C6C(s32 a0) {
 /**
  * @brief Resolve stat param0 from GfData stat tables.
  * @param a0 Stat index; >= 0x21 uses statTable4 (stride 4), otherwise statTable24 (stride 24).
- * @return Result of func_80020FBC.
+ * @return Result of resolveKernelPtr.
  */
-s32 func_80020CE0(s32 a0) {
+s32 getStatName(s32 a0) {
     u16 param;
     s32 arg2;
 
@@ -352,16 +352,16 @@ s32 func_80020CE0(s32 a0) {
         param = g_gfData.statTable24[a0].param0;
         arg2 = g_gfData.ptrStatTable24;
     }
-    return func_80020FBC(param, arg2);
+    return resolveKernelPtr(param, arg2);
 }
 
 
 /**
  * @brief Resolve stat param1 from GfData stat tables (+2 offset from func_80020CE0).
  * @param a0 Stat index; >= 0x21 uses statTable4 (stride 4), otherwise statTable24 (stride 24).
- * @return Result of func_80020FBC.
+ * @return Result of resolveKernelPtr.
  */
-s32 func_80020D4C(s32 a0) {
+s32 getStatDesc(s32 a0) {
     u16 param;
     s32 arg2;
 
@@ -376,7 +376,7 @@ s32 func_80020D4C(s32 a0) {
         param = g_gfData.statTable24[a0].param1;
         arg2 = g_gfData.ptrStatTable24;
     }
-    return func_80020FBC(param, arg2);
+    return resolveKernelPtr(param, arg2);
 }
 
 
@@ -389,14 +389,14 @@ s32 func_80020D4C(s32 a0) {
  * @param entityIdx Battle entity index into g_battleChars.
  * @return Pointer to the character's name string.
  */
-u8 *func_80020DB8(s32 entityIdx) {
+u8 *getBattleCharName(s32 entityIdx) {
     if (g_battleChars[entityIdx].characterId == CHAR_SQUALL) {
         return g_gameState.squallName;
     }
     if (g_battleChars[entityIdx].characterId == CHAR_RINOA) {
         return g_gameState.rinoaName;
     }
-    return func_80020FBC(
+    return resolveKernelPtr(
         g_gfData.xpCurves36[g_battleChars[entityIdx].characterId].lookupParam,
         g_gfData.ptrGfCurve36);
 }
@@ -407,7 +407,7 @@ u8 *func_80020DB8(s32 entityIdx) {
  *
  * Special cases: characterId 0 returns g_gameState+0x18, characterId 4
  * returns g_gameState+0x24. All others index into GfData.xpCurves36
- * (stride 36) at offset 0x37A4 and resolve via func_80020FBC against
+ * (stride 36) at offset 0x37A4 and resolve via resolveKernelPtr against
  * GfData.ptrGfCurve36 (+0x98).
  *
  * @param a0 Character ID (see CharacterId).
@@ -420,45 +420,45 @@ u8 *getCharNamePtr(CharacterId charId) {
     if (charId == CHAR_RINOA) {
         return g_gameState.rinoaName;
     }
-    return func_80020FBC(g_gfData.xpCurves36[charId].lookupParam, g_gfData.ptrGfCurve36);
+    return resolveKernelPtr(g_gfData.xpCurves36[charId].lookupParam, g_gfData.ptrGfCurve36);
 }
 
 
-/** @brief Resolves param from GfData.levelCurve12[a0] (stride 12) via func_80020FBC. */
-s32 func_80020EB4(s32 a0) {
+/** @brief Resolves param from GfData.levelCurve12[a0] (stride 12) via resolveKernelPtr. */
+s32 getLevelCurveData(s32 a0) {
     /* levelCurve12 (+0x35B8, stride 12), ptrLevelCurve12 (+0x90) */
-    return func_80020FBC(g_gfData.levelCurve12[a0].param0, g_gfData.ptrLevelCurve12);
+    return resolveKernelPtr(g_gfData.levelCurve12[a0].param0, g_gfData.ptrLevelCurve12);
 }
 
 
-/** @brief Resolves AbilityEntry.statParam0 from GfData.statTable8[a0] via func_80020FBC. */
-s32 func_80020EF4(s32 a0) {
+/** @brief Resolves AbilityEntry.statParam0 from GfData.statTable8[a0] via resolveKernelPtr. */
+s32 getAbilityEntryName(s32 a0) {
     /* statTable8 (+0xE4, stride 8), ptrStatTable8 (+0x80) */
-    return func_80020FBC(g_gfData.statTable8[a0].statParam0, g_gfData.ptrStatTable8);
+    return resolveKernelPtr(g_gfData.statTable8[a0].statParam0, g_gfData.ptrStatTable8);
 }
 
 
-/** @brief Resolves AbilityEntry.statParam1 from GfData.statTable8[a0] via func_80020FBC. */
-s32 func_80020F2C(s32 a0) {
+/** @brief Resolves AbilityEntry.statParam1 from GfData.statTable8[a0] via resolveKernelPtr. */
+s32 getAbilityEntryDesc(s32 a0) {
     /* statTable8 (+0xE6, stride 8), ptrStatTable8 (+0x80) */
-    return func_80020FBC(g_gfData.statTable8[a0].statParam1, g_gfData.ptrStatTable8);
+    return resolveKernelPtr(g_gfData.statTable8[a0].statParam1, g_gfData.ptrStatTable8);
 }
 
 
 /** @brief Wrapper that calls func_80020F84 with argument 3. */
-s32 func_80020F64(void) {
-    return func_80020F84(3);
+s32 getDefaultMenuLabel(void) {
+    return getMenuString(3);
 }
 
 
 /**
- * @brief Look up a u16 from GfData.subTableV[a0] (stride 2) and resolve via func_80020FBC.
+ * @brief Look up a u16 from GfData.subTableV[a0] (stride 2) and resolve via resolveKernelPtr.
  * @param a0 Index into subTableV.
  * @return Resolved data pointer.
  */
-s32 func_80020F84(s32 a0) {
+s32 getMenuString(s32 a0) {
     /* subTableV (+0x4D08, stride 2), ptrSubTableV (+0xE0) */
-    return func_80020FBC(g_gfData.subTableV[a0].param0, g_gfData.ptrSubTableV);
+    return resolveKernelPtr(g_gfData.subTableV[a0].param0, g_gfData.ptrSubTableV);
 }
 
 
@@ -468,7 +468,7 @@ s32 func_80020F84(s32 a0) {
  * @param a1 Base offset into the data region.
  * @return Pointer into g_gfData at offset a1+a0, or D_80052898 if a0 is 0xFFFF.
  */
-u8 *func_80020FBC(u16 a0, s32 a1) {
+u8 *resolveKernelPtr(u16 a0, s32 a1) {
     extern u8 D_80052898[];
     u8 *result;
     if (a0 != 0xFFFF) {
@@ -485,7 +485,7 @@ u8 *func_80020FBC(u16 a0, s32 a1) {
  * status array at g_gameState + 0xB44.
  * @param itemId The ID to match. If 0, the function returns immediately.
  */
-void func_80020FEC(s32 itemId) {
+void decrementItemByType(s32 itemId) {
     s32 i;
 
     if (itemId == 0) {
@@ -508,7 +508,7 @@ void func_80020FEC(s32 itemId) {
  * @param amount Quantity to add.
  * @return 0 if added successfully (count < 100), 1 if capped or inventory full.
  */
-s32 func_80021034(s32 itemId, s32 amount) {
+s32 addItemToInventory(s32 itemId, s32 amount) {
     extern u8 D_80077EBC[];
     u8 *base = D_80077EBC;
     u8 *ptr;
@@ -615,7 +615,7 @@ s32 giveCharacterMagic(CharacterId charIdx, MagicId magicId) {
  * @param a1 Ability ID to search for; returns 0 immediately if a1 is 0.
  * @return 1 if the ability is found in the character's 20-entry ability list, 0 otherwise.
  */
-s32 func_80021290(a0, a1)
+s32 hasJunctionedAbility(a0, a1)
 
 s32 a0;
 s32 a1;
@@ -649,21 +649,21 @@ INCLUDE_ASM("asm/nonmatchings/game", func_80021300);
  * Processes rendering/audio states: 4=render, 3=init+render, 5=transition, 8=alt render.
  * Loops until an unhandled state value is encountered, which sets g_vsyncRate=4 and returns.
  */
-void func_80021358(void) {
+void gameStateLoop(void) {
     extern volatile u16 g_vsyncRate;
     extern volatile s16 g_renderMode;
     extern s32 D_800974C0[2];
     extern s32 D_800974C8[2];
     extern s32 D_800974B8[2];
 
-    void func_80038920(s32, s32, s32, s32);
+    void cdReadSync(s32, s32, s32, s32);
     void func_8001F5C8(void);
     void func_80098238(void);
-    void func_8003023C(s32);
-    void func_80030248(s32);
+    void setCameraVibrateIntensity(s32);
+    void setCameraVibrateState(s32);
     s32 func_80021300(void);
     void func_80023D60(s32);
-    void func_80038994(s32, s32, s32, s32);
+    void cdReadAsyncSync(s32, s32, s32, s32);
     void func_80099D30(void);
     void func_80098304(void);
     void func_80035360(void);
@@ -683,24 +683,24 @@ top:
     goto default_case;
 
 case4:
-    func_80038920(D_800974C0[0], D_800974C0[1], 0x80098000, 0);
+    cdReadSync(D_800974C0[0], D_800974C0[1], 0x80098000, 0);
     func_8001F5C8();
     func_80098238();
     goto top;
 
 case3:
-    func_8003023C(0);
-    func_80030248(0);
+    setCameraVibrateIntensity(0);
+    setCameraVibrateState(0);
     func_80023D60(func_80021300());
-    func_80020608((s32 *)0x80098000, 0xA400);
-    func_80038920(D_800974C8[0], D_800974C8[1], 0x80098000, 0);
+    memzero16((s32 *)0x80098000, 0xA400);
+    cdReadSync(D_800974C8[0], D_800974C8[1], 0x80098000, 0);
     func_8001F5C8();
     func_80099D30();
     goto top;
 
 case8:
     g_renderMode = 0;
-    func_80038994(D_800974B8[0], D_800974B8[1], 0x80098000, 0);
+    cdReadAsyncSync(D_800974B8[0], D_800974B8[1], 0x80098000, 0);
     func_8001F5C8();
     func_80098304();
     goto top;
@@ -721,12 +721,12 @@ default_case:
  * @brief Add a value to a character's stat at offset 0x02, clamping the result to 9999.
  * @param a0 Character index used to resolve a slot ID via g_gameState.
  * @param a1 Amount to add to the stat.
- * @note The stat at ptr+2 (likely HP or experience) is read as u16, added to a1, then clamped by func_800231C8.
+ * @note The stat at ptr+2 (likely HP or experience) is read as u16, added to a1, then clamped by clampToMaxHp.
  */
-void func_800214E0(s32 a0, s32 a1) {
+void addCharMaxHp(s32 a0, s32 a1) {
     u8 idx = g_gameState.party.party[a0];
     CharacterData *ch = &g_gameState.chars[idx];
-    ch->maxHp = func_800231C8(ch->maxHp + a1);
+    ch->maxHp = clampToMaxHp(ch->maxHp + a1);
 }
 
 

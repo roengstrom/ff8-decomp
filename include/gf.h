@@ -49,7 +49,7 @@ typedef struct {
  */
 typedef struct {
     u16 nameParam0;   /**< +0x00: Lookup param (getMagicNamePtr). */
-    u16 nameParam1;   /**< +0x02: Secondary lookup param (func_80020C6C). */
+    u16 nameParam1;   /**< +0x02: Secondary lookup param (getSpellEntityData). */
     u8 pad04;         /**< +0x04: Unknown. */
     u8 spiritMult;    /**< +0x05: Spirit/magic junction multiplier. */
     u8 magicBase;     /**< +0x06: Magic power base value. */
@@ -82,7 +82,7 @@ typedef struct {
  * Holds experience curve coefficients used by func_80021A64.
  */
 typedef struct {
-    u16 lookupParam;  /**< +0x00: Lookup param (func_80020DB8/getCharNamePtr). */
+    u16 lookupParam;  /**< +0x00: Lookup param (getBattleCharName/getCharNamePtr). */
     u8 pad02[4];      /**< +0x02..+0x05: Unknown fields. */
     u8 linearCoeff;   /**< +0x06: XP curve linear coefficient. */
     u8 quadDivisor;   /**< +0x07: XP curve quadratic divisor. */
@@ -107,7 +107,7 @@ typedef struct {
  * Ability slots begin at +0x1C with stride 4, up to 21 slots.
  */
 typedef struct {
-    u16 nameParam0;        /**< +0x00: Lookup param (func_80020C6C). */
+    u16 nameParam0;        /**< +0x00: Lookup param (getSpellEntityData). */
     u8 preamble02[16];     /**< +0x02..+0x11: Preamble (unknown). */
     u8 xpLinear;           /**< +0x12: Linear coefficient (at ptrAbilityTable132+0). */
     u8 xpQuadDiv;          /**< +0x13: Quadratic divisor (at ptrAbilityTable132+1). */
@@ -122,7 +122,7 @@ typedef struct {
 
 /** @brief LevelCurve12Entry (stride 12, +0x35B8 in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_80020EB4). */
+    u16 param0;    /**< +0x00: Lookup param (getLevelCurveData). */
     u8 pad02[5];   /**< +0x02..+0x06: Unknown. */
     u8 field07;    /**< +0x07: Used in func_80022028. */
     u8 pad08[4];   /**< +0x08..+0x0B: Unknown. */
@@ -130,42 +130,42 @@ typedef struct {
 
 /** @brief StatTable24Entry (stride 24, +0x3930 in GfData, ability id < 0x21) */
 typedef struct {
-    u16 param0;    /**< +0x00: Stat param (func_80020CE0). */
-    u16 param1;    /**< +0x02: Stat param (func_80020D4C). */
+    u16 param0;    /**< +0x00: Stat param (getStatName). */
+    u16 param1;    /**< +0x02: Stat param (getStatDesc). */
     u8 pad04[20];  /**< +0x04..+0x17: Unknown. */
 } StatTable24Entry; /* 24 bytes */
 
 /** @brief StatTable4Entry (stride 4, +0x3C48 in GfData, ability id >= 0x21) */
 typedef struct {
-    u16 param0;    /**< +0x00: Stat param (func_80020CE0). */
-    u16 param1;    /**< +0x02: Stat param (func_80020D4C). */
+    u16 param0;    /**< +0x00: Stat param (getStatName). */
+    u16 param1;    /**< +0x02: Stat param (getStatDesc). */
 } StatTable4Entry; /* 4 bytes */
 
 /** @brief ElementData24Entry (stride 24, +0x3744 in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Element param (func_80020830). */
-    u16 param1;    /**< +0x02: Element param (func_80020870). */
+    u16 param0;    /**< +0x00: Element param (getElementName). */
+    u16 param1;    /**< +0x02: Element param (getElementDesc). */
     u8 pad04[20];  /**< +0x04..+0x17: Unknown. */
 } ElementData24Entry; /* 24 bytes */
 
 /** @brief GfSubTablePEntry (stride 24, +0x4480 in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_80020920). */
-    u16 param1;    /**< +0x02: Lookup param (func_80020960). */
+    u16 param0;    /**< +0x00: Lookup param (getJuncCategoryName). */
+    u16 param1;    /**< +0x02: Lookup param (getJuncCategoryDesc). */
     u8 pad04[20];  /**< +0x04..+0x17: Unknown. */
 } GfSubTablePEntry; /* 24 bytes */
 
 /** @brief GfSubTableQEntry (stride 16, +0x44F8 in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_800208B0). */
-    u16 param1;    /**< +0x02: Lookup param (func_800208E8). */
+    u16 param0;    /**< +0x00: Lookup param (getJuncEffectName). */
+    u16 param1;    /**< +0x02: Lookup param (getJuncEffectDesc). */
     u8 pad04[12];  /**< +0x04..+0x0F: Unknown. */
 } GfSubTableQEntry; /* 16 bytes */
 
 /** @brief GfSubTableREntry (stride 24, +0x47F8 in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_800207B0). */
-    u16 param1;    /**< +0x02: Lookup param (func_800207F0). */
+    u16 param0;    /**< +0x00: Lookup param (getStatusEffectName). */
+    u16 param1;    /**< +0x02: Lookup param (getStatusEffectDesc). */
     u8 pad04[20];  /**< +0x04..+0x17: Unknown. */
 } GfSubTableREntry; /* 24 bytes */
 
@@ -175,8 +175,8 @@ typedef struct {
  * Per-entity ability/status data.
  */
 typedef struct {
-    u16 param0;        /**< +0x00: Lookup param (func_80020740). */
-    u16 param1;        /**< +0x02: Lookup param (func_80020778). */
+    u16 param0;        /**< +0x00: Lookup param (getMagicEffectName). */
+    u16 param1;        /**< +0x02: Lookup param (getMagicEffectDesc). */
     u8 pad04[6];       /**< +0x04..+0x09: Unknown. */
     u8 abilityFlags;   /**< +0x0A: Ability flags byte (func_8009BA5C). */
     u8 pad0B[0x15];    /**< +0x0B..+0x1F: Remaining fields (unknown). */
@@ -184,19 +184,19 @@ typedef struct {
 
 /** @brief GfSubTableTEntry (stride 8, +0x4A5C in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_800206F4). */
+    u16 param0;    /**< +0x00: Lookup param (getGfName). */
     u8 pad02[6];   /**< +0x02..+0x07: Unknown. */
 } GfSubTableTEntry; /* 8 bytes */
 
 /** @brief GfSubTableUEntry (stride 20, +0x4A6C in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_800206B4). */
+    u16 param0;    /**< +0x00: Lookup param (getGfSummonData). */
     u8 pad02[18];  /**< +0x02..+0x13: Unknown. */
 } GfSubTableUEntry; /* 20 bytes */
 
 /** @brief GfSubTableVEntry (stride 2, +0x4D08 in GfData) */
 typedef struct {
-    u16 param0;    /**< +0x00: Lookup param (func_80020F84). */
+    u16 param0;    /**< +0x00: Lookup param (getMenuString). */
 } GfSubTableVEntry; /* 2 bytes */
 
 /**

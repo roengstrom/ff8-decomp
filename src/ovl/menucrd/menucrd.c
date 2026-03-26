@@ -7,9 +7,9 @@ extern s16 D_801E7D66;
 extern MenuDisplayConfig g_menuDisplayCfg;
 extern u8 D_801E7870;
 
-extern s32 func_80035E00(void);
-extern s16 func_80035E50(void);
-extern void func_800361F8(s16 id, void *addr);
+extern s32 pollCdReadStatus(void);
+extern s16 getGameStateS16(void);
+extern void loadOverlayWithTimCallback(s16 id, void *addr);
 
 void func_801E582C(s32 a0);
 void func_801E5ABC(s32 a0);
@@ -29,8 +29,8 @@ s32 func_801E5800(s32 a0) {
 /**
  * @brief Update card display position after a transition completes.
  *
- * Checks if the card transition animation is done via func_80035E00.
- * If not done, gets the new position via func_80035E50. If the
+ * Checks if the card transition animation is done via pollCdReadStatus.
+ * If not done, gets the new position via getGameStateS16. If the
  * target position (D_801E7D66) is valid and differs from the new
  * position, triggers a card load at 0x801CD000 and resets both
  * position trackers to -1.
@@ -38,12 +38,12 @@ s32 func_801E5800(s32 a0) {
 void func_801E582C(s32 a0) {
     int new_var;
     s16 value;
-    if (func_80035E00() == 0) {
-        value = func_80035E50();
+    if (pollCdReadStatus() == 0) {
+        value = getGameStateS16();
         new_var = -1;
         D_801E7D64 = value;
         if (((D_801E7D66 >= 0) && (D_801E7D66 != value)) && (D_801E7D66 >= 0)) {
-            func_800361F8(D_801E7D66, (void *) 0x801CD000);
+            loadOverlayWithTimCallback(D_801E7D66, (void *) 0x801CD000);
             D_801E7D66 = new_var;
             D_801E7D64 = -1;
         }
@@ -321,9 +321,9 @@ s32 func_801E69AC(s32 a0, s32 a1, s32 a2) {
     s32 saved;
     s32 v1;
 
-    saved = func_8002A888();
+    saved = getDisplayListHead();
     func_801F1AFC();
-    func_8002E7C4(*(s16 *)(a0 + 0x30));
+    setMenuColorIntensity(*(s16 *)(a0 + 0x30));
     v1 = 0x1E;
     result = func_801E645C(a0, a1, a2, 0xC0, v1);
     v1 = 0x6A;
@@ -334,7 +334,7 @@ s32 func_801E69AC(s32 a0, s32 a1, s32 a2) {
     result = func_801E6058(a0, a1, result, 0x18, v1);
     result = func_801E634C(a0, a1, result, 0x1E, 0x1E);
     func_801F1B10();
-    func_8002A8B8(saved);
+    storeGpuPacket(saved);
     return result;
 }
 
@@ -349,7 +349,7 @@ void func_801E6AA8(void) {
     D_801E7D64 = -1;
     D_801E7D66 = -1;
     do {
-    } while (func_80035E00() != 0);
+    } while (pollCdReadStatus() != 0);
     func_801F0948(0);
     if (result != 0) {
         *(u8 *)(result + 0x42) = 1;

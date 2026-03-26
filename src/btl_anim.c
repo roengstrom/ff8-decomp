@@ -4,16 +4,16 @@
 
 extern BattleAnimEntity g_battleAnims[];
 
-void func_800286FC(void);
-void func_8002A090(void);
-void func_8002A128(void);
+void callCdTick(void);
+void shutdownCardSubsystem(void);
+void initBattleSubsystems(void);
 
 /**
  * @brief Set or clear opacity of a battle animation entity.
  * @param idx Entity index (masked to 0 or 1).
  * @param val If nonzero, set to 0xFF (visible); otherwise 0 (hidden).
  */
-void func_80027EF8(s32 idx, s32 val) {
+void setAnimEntityOpacity(s32 idx, s32 val) {
     BattleAnimEntity *entry = &g_battleAnims[idx & 1];
     if (val != 0) {
         entry->opacity = 0xFF;
@@ -34,7 +34,7 @@ void func_80027EF8(s32 idx, s32 val) {
  * @param a1 Value for field 7 (-1 to skip).
  * @param a2 Value for field 6 (-1 to skip).
  */
-void func_80027F38(s32 a0, s32 a1, s32 a2) {
+void setAnimEntityParams(s32 a0, s32 a1, s32 a2) {
     u8 *entry = (u8 *)g_battleAnims + (a0 & 1) * 196;
     if (a1 >= 0) {
         entry[7] = a1;
@@ -56,7 +56,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027F78);
  * @param a2 Value stored at offset 0x1D2.
  * @note Offsets 0x1D0+ are global state beyond the 2 BattleAnimEntity entries.
  */
-void func_80027FBC(s32 idx, s16 a1, s16 a2) {
+void setAnimGlobalCoords(s32 idx, s16 a1, s16 a2) {
     s32 base;
     idx &= 1;
     base = (s32)g_battleAnims;
@@ -72,7 +72,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027FDC);
  * @brief Checks if all battle animation entities are inactive.
  * @return 1 if all inactive (func_800280C0(0, 0) returns -1), 0 otherwise.
  */
-s32 func_80028098(void) {
+s32 areAllAnimsInactive(void) {
     return (u32)~func_800280C0(0, 0) >> 31;
 }
 
@@ -89,7 +89,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800280C0);
  * @param index Index into the unk10 array (0-3).
  * @param value Value to store.
  */
-void func_800281A4(s32 unused, s32 index, s16 value) {
+void setAnimUnk10Both(s32 unused, s32 index, s16 value) {
     int new_var;
     new_var = 1;
     g_battleAnims[0].unk10[index] = value;
@@ -109,7 +109,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281C4);
  *
  * @param a0 Entity index (stride 196 into g_battleAnims).
  */
-void func_8002828C(s32 a0) {
+void initAnimEntityColor(s32 a0) {
     s32 off = a0 * 196;
     s32 base = (s32)g_battleAnims;
     u8 *entry = (u8 *)(off + base);
@@ -128,7 +128,7 @@ void func_8002828C(s32 a0) {
  * triggers a fade via func_80039764(3), then polls func_80027360 up to 24
  * frames. Finishes with VSync(2).
  */
-void func_800282F4(void) {
+void initAnimStateAndWait(void) {
     extern u8 D_80082FB2;
     s32 i;
 
@@ -151,7 +151,7 @@ extern u16 D_80083794;
 // get D_80083794 (u16)
 
 /** @brief Initializes D_80082FB2 to 0, calls func_80039764(0), then loops twice calling func_800281C4(i, 0). */
-void func_8002837C(void) {
+void resetAnimState(void) {
     extern u8 D_80082FB2;
     s32 i;
     D_80082FB2 = 0;
@@ -163,7 +163,7 @@ void func_8002837C(void) {
 
 
 /** @brief Get the current value of D_80083794 (global u16 state variable). */
-u16 func_800283CC(void) {
+u16 getAnimGlobalState(void) {
     return D_80083794;
 }
 
@@ -175,7 +175,7 @@ extern u8 D_80082FB3;
  * @param a0 Value to store.
  * @return The value that was set.
  */
-s32 func_800283DC(s32 a0) {
+s32 setAnimGlobalState(s32 a0) {
     D_80083794 = a0;
     return a0;
 }
@@ -185,7 +185,7 @@ s32 func_800283DC(s32 a0) {
  * @brief Set the global flag D_80082FB3.
  * @param a0 Value to store in D_80082FB3.
  */
-void func_800283EC(s32 a0) {
+void setAnimFlag(s32 a0) {
     D_80082FB3 = a0;
 }
 
@@ -195,12 +195,12 @@ void func_800283EC(s32 a0) {
  * @note Calls several initialization functions and resets a counter at g_battleAnims + 0x9C4 to 0.
  *       Passes two g_battleAnims buffer pointers (offsets 0x188 and 0x1AC) to func_8003BC24.
  */
-void func_800283F8(void) {
+void initCdAnimSubsystem(void) {
     u8 *base = (u8 *)g_battleAnims;
     func_800982B8();
     func_8003BC24(base + 0x188, base + 0x1AC);
-    func_8003AB84();
-    func_800282F4();
+    cdInitHandlerWrapper();
+    initAnimStateAndWait();
     *(s16 *)(base + 0x9C4) = 0;
 }
 
@@ -209,7 +209,7 @@ void func_800283F8(void) {
  * @brief Initialize GPU display and clear battle animation state fields.
  *
  * Calls GsInitGraph (func_800982D8), GsDefDispBuff (func_800980D0), and
- * func_800283F8. Then clears g_battleAnims fields at +0x6FC, +0x9C8,
+ * initCdAnimSubsystem. Then clears g_battleAnims fields at +0x6FC, +0x9C8,
  * +0x9CC to zero and sets +0x9C2 to 0x4611.
  *
  * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
@@ -218,11 +218,11 @@ void func_800283F8(void) {
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028444);
 
 
-/** @brief Calls func_8002A128, func_800286FC, and func_8002A090 in sequence. */
-void func_8002848C(void) {
-    func_8002A128();
-    func_800286FC();
-    func_8002A090();
+/** @brief Calls initBattleSubsystems, callCdTick, and shutdownCardSubsystem in sequence. */
+void shutdownAnimSubsystem(void) {
+    initBattleSubsystems();
+    callCdTick();
+    shutdownCardSubsystem();
 }
 
 
@@ -233,19 +233,19 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028564);
 
 
 /** @brief Wrapper that calls func_80050BC4. */
-void func_800286BC(void) {
+void callSfxInit(void) {
     func_80050BC4();
 }
 
 
 /** @brief Wrapper that calls func_8004E720. */
-void func_800286DC(void) {
+void callSfxUpdate(void) {
     func_8004E720();
 }
 
 
 /** @brief Wrapper that calls func_8004DFF4 (likely a CD subsystem tick or finalization). */
-void func_800286FC(void) { func_8004DFF4(); }
+void callCdTick(void) { func_8004DFF4(); }
 
 
 /**
@@ -253,7 +253,7 @@ void func_800286FC(void) { func_8004DFF4(); }
  * @param dst Destination buffer.
  * @param src Source null-terminated string.
  */
-void func_8002871C(u8 *dst, u8 *src) {
+void btlStrcpy(u8 *dst, u8 *src) {
     s32 c;
     do {
         c = *src++;
@@ -267,9 +267,9 @@ void func_8002871C(u8 *dst, u8 *src) {
  * @param dst Destination buffer containing an existing null-terminated string.
  * @param src Source null-terminated string to append.
  */
-void func_80028738(u8 *dst, u8 *src) {
+void btlStrcat(u8 *dst, u8 *src) {
     do { } while (*dst++);
-    func_8002871C(dst - 1, src);
+    btlStrcpy(dst - 1, src);
 }
 
 
@@ -279,7 +279,7 @@ void func_80028738(u8 *dst, u8 *src) {
  * @param dst Destination buffer.
  * @param numBytes Number of bytes to copy.
  */
-void func_80028768(u8 *src, u8 *dst, s32 numBytes) {
+void btlMemcpy(u8 *src, u8 *dst, s32 numBytes) {
     while (numBytes > 0) {
         *dst++ = *src++;
         numBytes--;
@@ -291,7 +291,7 @@ void func_80028768(u8 *src, u8 *dst, s32 numBytes) {
  * @brief Wait for vertical sync (VSync wrapper).
  * @param a0 Unused parameter.
  */
-void func_80028790(s32 a0) { VSync(); }
+void waitVSync(s32 a0) { VSync(); }
 
 
 extern s8 D_80082FD4;
@@ -299,7 +299,7 @@ extern s8 D_80082FD4;
  * @brief Set the global flag D_80082FD4.
  * @param val Value to store in D_80082FD4.
  */
-void func_800287B0(s8 val) {
+void setCardFlag(s8 val) {
     D_80082FD4 = val;
 }
 
@@ -310,7 +310,7 @@ void func_800287B0(s8 val) {
  * @param a1 Memory card slot number (reduced mod 4: 0-3).
  * @return Packed value: (port << 4) | slot.
  */
-s32 func_800287BC(s32 a0, s32 a1) {
+s32 packCardId(s32 a0, s32 a1) {
     a1 %= 4;
     a0 %= 2;
     return (a0 << 4) | a1;
@@ -322,7 +322,7 @@ s32 func_800287BC(s32 a0, s32 a1) {
  * @param a0 Packed card identifier (port in bit 4).
  * @return Port number (0 or 1).
  */
-s32 func_800287F4(s32 a0) {
+s32 getCardPort(s32 a0) {
     return (a0 >> 4) % 2;
 }
 
@@ -332,17 +332,17 @@ s32 func_800287F4(s32 a0) {
  * @param a0 Packed card identifier (slot in lower 2 bits).
  * @return Slot number (0-3).
  */
-s32 func_80028810(s32 a0) {
+s32 getCardSlot(s32 a0) {
     return a0 % 4;
 }
 
 
 /**
  * @brief Wait for a memory card operation to complete on the specified port.
- * @param a0 Packed card identifier; port is extracted via func_800287F4.
+ * @param a0 Packed card identifier; port is extracted via getCardPort.
  */
-void func_8002882C(s32 a0) {
-    _card_wait(func_800287F4(a0));
+void waitCardReady(s32 a0) {
+    _card_wait(getCardPort(a0));
 }
 
 
@@ -351,7 +351,7 @@ void func_8002882C(s32 a0) {
  * @param a0 Event descriptor to test.
  * @return Nonzero if the event has been delivered.
  */
-s32 func_80028854(s32 a0) { TestEvent(a0); }
+s32 testCardEvent(s32 a0) { TestEvent(a0); }
 
 
 /**
@@ -359,13 +359,13 @@ s32 func_80028854(s32 a0) { TestEvent(a0); }
  * @return Event index 0-3 if an event was delivered, or -1 if none fired.
  * @note Tests events from D_80082FB4 array entries [0..3] in order.
  */
-s32 func_80028874(void) {
+s32 pollCardEvents(void) {
     extern u8 D_80082FB4[];
     s32 *s0 = (s32 *)((s32)D_80082FB4);
-    if (func_80028854(s0[0])) return 0;
-    if (func_80028854(s0[1])) return 1;
-    if (func_80028854(s0[2])) return 2;
-    if (func_80028854(s0[3])) return 3;
+    if (testCardEvent(s0[0])) return 0;
+    if (testCardEvent(s0[1])) return 1;
+    if (testCardEvent(s0[2])) return 2;
+    if (testCardEvent(s0[3])) return 3;
     return -1;
 }
 
@@ -374,20 +374,20 @@ s32 func_80028874(void) {
  * @brief Wait up to 180 frames (0xB4) for a memory card event, polling each VSync.
  * @return Event index 0-3 if an event fires, or 2 (timeout) if none fires within the limit.
  */
-s32 func_800288F8(void) {
+s32 waitCardEvent(void) {
     s32 i;
     s32 result;
     for (i = 0; i < 0xB4; i++) {
-        result = func_80028874();
+        result = pollCardEvents();
         if (result != -1) return result;
-        func_80028790(0);
+        waitVSync(0);
     }
     return 2;
 }
 
 
 /** @brief Poll memory card events once (discards result). */
-void func_80028950(void) { func_80028874(); }
+void pollCardEventsDiscard(void) { pollCardEvents(); }
 
 
 /**
@@ -395,7 +395,7 @@ void func_80028950(void) { func_80028874(); }
  * @return Event index 0-3 if an event was delivered, or -1 if none fired.
  * @note Tests events from D_80082FB4 array entries [4..7] in order.
  */
-s32 func_80028970(void) {
+s32 pollCardEventsSecondary(void) {
     extern u8 D_80082FB4[];
     s32 *s0 = (s32 *)((s32)D_80082FB4);
     if (TestEvent(s0[4])) return 0;
@@ -409,13 +409,13 @@ s32 func_80028970(void) {
 /**
  * @brief Busy-wait up to 16384 iterations for a secondary memory card event.
  * @return Event index 0-3 if an event fires, or 2 (timeout) if none fires within the limit.
- * @note Unlike func_800288F8, this does not VSync between polls (tight busy-wait).
+ * @note Unlike waitCardEvent, this does not VSync between polls (tight busy-wait).
  */
-s32 func_800289F8(void) {
+s32 busyWaitCardEvent(void) {
     s32 i;
     s32 result;
     for (i = 0; i < 0x4000; i++) {
-        result = func_80028970();
+        result = pollCardEventsSecondary();
         if (result != -1) return result;
     }
     return 2;
@@ -427,14 +427,14 @@ s32 func_800289F8(void) {
  * @param a0 Packed card identifier (port in bit 4, slot in lower bits).
  * @return Status byte from D_80082FB4 at offset 0x2C + port*4 + slot.
  */
-u8 func_80028A44(a0)
+u8 getCardStatus(a0)
 
 s32 a0;
 {
     extern u8 D_80082FB4[];
     s32 base = (s32)D_80082FB4;
-    s32 r1 = func_800287F4(a0);
-    s32 r2 = func_80028810(a0);
+    s32 r1 = getCardPort(a0);
+    s32 r2 = getCardSlot(a0);
     return *(u8 *)(r1 * 4 + base + r2 + 0x2C);
 }
 
@@ -444,11 +444,11 @@ s32 a0;
  * @param a0 Packed card identifier (port in bit 4, slot in lower bits).
  * @param a1 Status value to write.
  */
-void func_80028A98(s32 a0, u8 a1) {
+void setCardStatus(s32 a0, u8 a1) {
     extern u8 D_80082FB4[];
     s32 base = (s32)D_80082FB4;
-    s32 r1 = func_800287F4(a0);
-    s32 r2 = func_80028810(a0);
+    s32 r1 = getCardPort(a0);
+    s32 r2 = getCardSlot(a0);
     *(u8 *)(r1 * 4 + base + r2 + 0x2C) = a1;
 }
 
@@ -458,21 +458,21 @@ void func_80028A98(s32 a0, u8 a1) {
  * @param a0 Packed card identifier (port in bit 4, slot in lower bits).
  * @param a1 Status value to write at offset 0x34 (secondary status table).
  */
-void func_80028AF8(s32 a0, u8 a1) {
+void setCardStatusSecondary(s32 a0, u8 a1) {
     extern u8 D_80082FB4[];
     s32 base = (s32)D_80082FB4;
-    s32 r1 = func_800287F4(a0);
-    s32 r2 = func_80028810(a0);
+    s32 r1 = getCardPort(a0);
+    s32 r2 = getCardSlot(a0);
     *(u8 *)(r1 * 4 + base + r2 + 0x34) = a1;
 }
 
 
 /** @brief Mark a memory card slot as busy/active (set status byte to 1). */
-void func_80028B58(s32 a0) { func_80028A98(a0, 1); }
+void markCardBusy(s32 a0) { setCardStatus(a0, 1); }
 
 
 /** @brief Read memory card status (wrapper, discards result). */
-void func_80028B78(void) { func_80028A44(); }
+void readCardStatusDiscard(void) { getCardStatus(); }
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028B98);
@@ -481,19 +481,19 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028B98);
 /**
  * @brief Initialize all memory card event handlers.
  *
- * Iterates over 2 ports and 4 events per port, calling func_800287BC
- * to get an event handle and func_8002882C to configure it. Then calls
- * func_80028950 to finalize.
+ * Iterates over 2 ports and 4 events per port, calling packCardId
+ * to get an event handle and waitCardReady to configure it. Then calls
+ * pollCardEventsDiscard to finalize.
  */
-void func_80028CB4(void) {
+void initCardEventHandlers(void) {
     s32 j;
     s32 i;
     for (i = 0; i < 2; i++) {
         for (j = 0; j < 4; j++) {
-            func_8002882C(func_800287BC(i, j));
+            waitCardReady(packCardId(i, j));
         }
     }
-    func_80028950();
+    pollCardEventsDiscard();
 }
 
 
@@ -501,23 +501,23 @@ void func_80028CB4(void) {
  * @brief Initialize the memory card data block at D_80082FB4.
  *
  * Clears byte at +0x21, fills 2 sets of 4 consecutive bytes starting at
- * +0x27 (then +0x2B) with the value 2, then calls func_80028CB4.
+ * +0x27 (then +0x2B) with the value 2, then calls initCardEventHandlers.
  */
 /**
  * @brief Initialize SFX entry command bytes and reset state.
  *
  * Clears the status byte at D_80082FB4+0x21 to zero, then fills
  * 8 bytes (2 groups of 4) starting at D_80082FB4+0x24 with value 2.
- * Finally calls func_80028CB4 to complete initialization.
+ * Finally calls initCardEventHandlers to complete initialization.
  */
 /**
  * @brief Initialize card data slots and reset card state.
  *
  * Clears the status byte at D_80082FB4+0x21 to zero, fills 8 bytes
  * (2 groups of 4) starting at D_80082FB4+0x24 with value 2, then
- * calls func_80028CB4 to complete initialization.
+ * calls initCardEventHandlers to complete initialization.
  */
-void func_80028D20(void) {
+void initCardDataBlock(void) {
     extern u8 D_80082FB4[];
     register u8 *base asm("$2") = D_80082FB4;
     s32 i;
@@ -542,7 +542,7 @@ void func_80028D20(void) {
     i++;
     ptr += 4;
     if (i < 2) goto top;
-    func_80028CB4();
+    initCardEventHandlers();
 }
 
 
@@ -556,28 +556,28 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028D80);
  * @note Waits for the card, issues _card_load, then polls events. Updates card status
  *       bytes based on the result.
  */
-s32 func_80028F3C(s32 a0) {
+s32 loadCardSave(s32 a0) {
     s32 counter;
 
     counter = 0;
     do {
-        func_8002882C(a0);
+        waitCardReady(a0);
         if (_card_load(a0) != 0) {
-            s32 result = func_800288F8();
+            s32 result = waitCardEvent();
             switch (result) {
             case 0:
-                func_80028AF8(a0, 0);
-                func_80028A98(a0, 0);
+                setCardStatusSecondary(a0, 0);
+                setCardStatus(a0, 0);
                 return 0;
             case 3:
-                func_80028AF8(a0, 1);
-                func_80028B58(a0);
+                setCardStatusSecondary(a0, 1);
+                markCardBusy(a0);
                 return 2;
             case 2:
-                func_80028B58(a0);
+                markCardBusy(a0);
                 return 3;
             default:
-                func_80028B58(a0);
+                markCardBusy(a0);
                 return 4;
             }
         }
@@ -606,7 +606,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029360);
 
 
 /** @brief Returns the signed byte value at D_80082FD4. */
-s32 func_800293F0(void) {
+s32 getCardFlagValue(void) {
     extern s8 D_80082FD4;
     return D_80082FD4;
 }
@@ -616,7 +616,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029400);
 
 
 /** @brief Wrapper that calls func_80029400. */
-void func_8002947C(void) {
+void callCardInit(void) {
     func_80029400();
 }
 
@@ -625,16 +625,16 @@ void func_8002947C(void) {
  * @brief Close a file descriptor if it is valid (not -1).
  * @param a0 File descriptor to close.
  */
-void func_8002949C(s32 a0) {
+void closeFileDescriptor(s32 a0) {
     if (a0 != -1) {
         close(a0);
     }
 }
 
 
-/** @brief Wrapper for func_8002949C (close a file descriptor if valid). */
-void func_800294C4(s32 a0) {
-    func_8002949C(a0);
+/** @brief Wrapper for closeFileDescriptor (close a file descriptor if valid). */
+void closeFileDescriptorWrapper(s32 a0) {
+    closeFileDescriptor(a0);
 }
 
 
@@ -644,12 +644,12 @@ void func_800294C4(s32 a0) {
  * @param a1 File index or name parameter.
  * @param a2 Directory entry buffer for firstfile result.
  * @return 0 if card initialization failed, otherwise the result of firstfile.
- * @note Calls func_80028CB4 for setup, checks card status via func_80029150, builds
+ * @note Calls initCardEventHandlers for setup, checks card status via func_80029150, builds
  *       the filename via func_80029360, then calls PsyQ firstfile.
  */
-s32 func_800294E4(s32 a0, s32 a1, s32 a2) {
+s32 openCardFirstFile(s32 a0, s32 a1, s32 a2) {
     s32 buf[8];
-    func_80028CB4();
+    initCardEventHandlers();
     if (func_80029150(a0) != 0) return 0;
     func_80029360(a0, a1, (s32)buf);
     firstfile((s32)buf, a2);
@@ -660,7 +660,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029550);
 
 
 /** @brief Advance to the next file in the memory card directory listing (PsyQ nextfile wrapper). */
-void func_800295D0(void) { nextfile(); }
+void cardNextFile(void) { nextfile(); }
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800295F0);
@@ -676,7 +676,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800295F0);
  * @param a1 Second parameter passed through.
  * @return Boolean: 1 if func_80029550 returned nonzero.
  */
-s32 func_80029660(s32 a0, s32 a1) {
+s32 checkCardFileExists(s32 a0, s32 a1) {
     s32 buf[10];
     return func_80029550(a0, a1, buf) != 0;
 }
@@ -693,7 +693,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029680);
  * @param a3 File offset to seek to before writing.
  * @return Number of bytes written on success, -1 if the seek failed.
  */
-s32 func_80029778(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 seekAndWrite(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 result = lseek(a0, a3, 0);
     if (result == -1) return -1;
     return write(a0, a1, a2);
@@ -708,7 +708,7 @@ s32 func_80029778(s32 a0, s32 a1, s32 a2, s32 a3) {
  * @param a3 File offset to seek to before reading.
  * @return Number of bytes read on success, -1 if the seek failed.
  */
-s32 func_800297E4(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 seekAndRead(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 result = lseek(a0, a3, 0);
     if (result == -1) return -1;
     return read(a0, a1, a2);
@@ -732,7 +732,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029BA0);
  * @param a3 File offset to seek to before writing.
  * @return File descriptor on success, -1 on failure.
  */
-s32 func_80029C44(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 seekWriteReturnFd(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 result;
     if (lseek(a0, a3, 0) < 0) {
         return -1;
@@ -756,7 +756,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029CB8);
  * @param a3 File offset to seek to before reading.
  * @return File descriptor on success, -1 on failure.
  */
-s32 func_80029D38(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 seekReadReturnFd(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 result;
     if (lseek(a0, a3, 0) < 0) {
         return -1;
@@ -778,7 +778,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029E40);
 /**
  * @brief Erase a memory card file.
  *
- * Sets up the card subsystem, checks if the file exists via func_80029660,
+ * Sets up the card subsystem, checks if the file exists via checkCardFileExists,
  * builds the filename via func_80029360, and calls erase. If erase succeeds
  * (returns non-zero), returns 1. Otherwise calls cleanup and returns -1.
  *
@@ -786,17 +786,17 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029E40);
  * @param a1 File index or name parameter.
  * @return 1 if erase succeeded, -1 on failure.
  */
-s32 func_80029EE4(s32 a0, s32 a1) {
+s32 eraseCardFile(s32 a0, s32 a1) {
     s32 buf[8];
-    func_80028CB4();
-    if (func_80029660(a0, a1) == 0) {
+    initCardEventHandlers();
+    if (checkCardFileExists(a0, a1) == 0) {
         return -1;
     }
     func_80029360(a0, a1, (s32)buf);
     if (erase((s32)buf) != 0) {
         return 1;
     }
-    func_80028B58(a0);
+    markCardBusy(a0);
     return -1;
 }
 
@@ -812,7 +812,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029FDC);
  * @note Disables interrupts via func_800472E4, closes all events in D_80082FB4[0..7],
  *       re-enables interrupts, then calls func_8004D968 for final cleanup.
  */
-void func_8002A090(void) {
+void shutdownCardSubsystem(void) {
     extern s32 D_80082FB4[];
     func_800472E4();
     CloseEvent(D_80082FB4[0]);
@@ -828,10 +828,10 @@ void func_8002A090(void) {
 }
 
 
-/** @brief Calls func_80027448 and func_8003ABA4 in sequence. */
-void func_8002A128(void) {
+/** @brief Calls func_80027448 and cdDisableInterruptWrapper in sequence. */
+void initBattleSubsystems(void) {
     func_80027448();
-    func_8003ABA4();
+    cdDisableInterruptWrapper();
 }
 
 
@@ -846,7 +846,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A150);
  * @note When active, calls func_8002E8DC with parameters from D_800837A0/AC/AE globals,
  *       then applies func_8002A45C to the result.
  */
-s32 func_8002A238(s32 a0, s32 a1) {
+s32 transformValueIfActive(s32 a0, s32 a1) {
     extern u8 D_80052958;
     extern u8 D_800837A0[];
     extern s16 D_800837AC;
@@ -863,7 +863,7 @@ s32 func_8002A238(s32 a0, s32 a1) {
  * @brief Copy a null-terminated string from src to dst (strcpy implementation, duplicate).
  * @param dst Destination buffer.
  * @param src Source null-terminated string.
- * @note This is a second copy of the strcpy function (see also func_8002871C).
+ * @note This is a second copy of the strcpy function (see also btlStrcpy).
  */
 void copyString(u8 *dst, u8 *src) {
     s32 c;
@@ -878,9 +878,9 @@ void copyString(u8 *dst, u8 *src) {
  * @brief Append a null-terminated string to dst (strcat implementation, duplicate).
  * @param dst Destination buffer containing an existing null-terminated string.
  * @param src Source null-terminated string to append.
- * @note This is a second copy of the strcat function (see also func_80028738).
+ * @note This is a second copy of the strcat function (see also btlStrcat).
  */
-void func_8002A2C4(u8 *dst, u8 *src) {
+void btlStrcat2(u8 *dst, u8 *src) {
     do { } while (*dst++);
     copyString(dst - 1, src);
 }
@@ -891,7 +891,7 @@ void func_8002A2C4(u8 *dst, u8 *src) {
  * @param a0 Pointer to null-terminated byte string.
  * @return Number of bytes before the null terminator (string length).
  */
-s32 func_8002A2F4(u8 *a0) {
+s32 btlStrlen(u8 *a0) {
     s32 count = 0;
     goto test;
 inc:
@@ -908,7 +908,7 @@ test:
  * @param dst Destination address.
  * @param n Number of bytes to copy.
  */
-void func_8002A318(u8 *src, u8 *dst, s32 n) {
+void btlMemcpyForward(u8 *src, u8 *dst, s32 n) {
     while (n > 0) {
         *dst++ = *src++;
         n--;
@@ -922,7 +922,7 @@ void func_8002A318(u8 *src, u8 *dst, s32 n) {
  * @param dst Destination address.
  * @param n Number of bytes to copy.
  */
-void func_8002A340(u8 *src, u8 *dst, s32 n) {
+void btlMemcpyBackward(u8 *src, u8 *dst, s32 n) {
     src += n;
     dst += n;
     while (n > 0) {
@@ -946,15 +946,15 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A36C);
 
 
 /** @brief Wrapper for getCharNamePtr. */
-void func_8002A3A8(void) { getCharNamePtr(); }
+void getCharNamePtrWrapper(void) { getCharNamePtr(); }
 
 
-/** @brief Wrapper for getCharNamePtr (duplicate of func_8002A3A8). */
-void func_8002A3C8(void) { getCharNamePtr(); }
+/** @brief Wrapper for getCharNamePtr (duplicate of getCharNamePtrWrapper). */
+void getCharNamePtrWrapper2(void) { getCharNamePtr(); }
 
 
-/** @brief Wrapper for func_80020DB8. */
-void func_8002A3E8(void) { func_80020DB8(); }
+/** @brief Wrapper for getBattleCharName. */
+void getBattleCharNameWrapper(void) { getBattleCharName(); }
 
 
 /**
@@ -962,7 +962,7 @@ void func_8002A3E8(void) { func_80020DB8(); }
  *
  * @param dst Destination for the 8-byte unaligned copy (RECT-sized).
  */
-void func_8002A408(RECT *dst) {
+void copyDisplayRect(RECT *dst) {
     extern u8 *D_8005F134;
     RECT *src = (RECT *)D_8005F134;
     *dst = *src;
@@ -974,7 +974,7 @@ extern u8 *D_8005F134;
  * @brief Copy display coordinates (x, y) from the global display struct D_8005F134.
  * @param a0 Destination buffer; receives x at offset 0 and y at offset 2 (both u16).
  */
-void func_8002A438(u8 *a0) {
+void copyDisplayCoords(u8 *a0) {
     u8 *p = D_8005F134;
     *(u16 *)(a0 + 0) = *(u16 *)(p + 8);
     *(u16 *)(a0 + 2) = *(u16 *)(p + 0xA);
@@ -992,7 +992,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A45C);
  * its ordering table (18 entries), and copies the GPU packet pointer
  * from offset +0x54 to offset +0x00.
  */
-void func_8002A528(void) {
+void swapDisplayList(void) {
     s32 base = (s32)g_battleAnims;
     s32 cur = *(s32 *)(base + 0x6F0);
     s32 newBuf = base + 0x640;
@@ -1009,10 +1009,10 @@ void func_8002A528(void) {
 /**
  * @brief Swap the active display list buffer and clear the new OT (duplicate).
  *
- * Identical logic to func_8002A528 — toggles display list buffers,
+ * Identical logic to swapDisplayList — toggles display list buffers,
  * clears OT, copies GPU packet pointer.
  */
-void func_8002A588(void) {
+void swapDisplayList2(void) {
     s32 base = (s32)g_battleAnims;
     s32 cur = *(s32 *)(base + 0x6F0);
     s32 newBuf = base + 0x640;
@@ -1032,19 +1032,19 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A5E8);
 
 extern s32 D_800834C0;
 
-/** @brief Calls func_8002A5E8(a0, 0) then func_80030CB0(a0).
+/** @brief Calls func_8002A5E8(a0, 0) then advanceBattleTimer(a0).
  *  @param a0 Parameter passed to both calls.
  */
-void func_8002A834(s32 a0) {
+void renderAndUpdateDisplay(s32 a0) {
     func_8002A5E8(a0, 0);
-    func_80030CB0(a0);
+    advanceBattleTimer(a0);
 }
 
 
 /** @brief Calls func_8002A5E8(a0, 1).
  *  @param a0 First parameter.
  */
-void func_8002A868(s32 a0) {
+void renderDisplay(s32 a0) {
     func_8002A5E8(a0, 1);
 }
 
@@ -1053,7 +1053,7 @@ void func_8002A868(s32 a0) {
  * @brief Read the first s32 word from the structure pointed to by D_800834C0.
  * @return Value at *D_800834C0.
  */
-s32 func_8002A888(void) {
+s32 getDisplayListHead(void) {
     return *(s32 *)D_800834C0;
 }
 
@@ -1062,7 +1062,7 @@ s32 func_8002A888(void) {
  * @brief Read an s32 value at offset 0x54 from the structure pointed to by D_800834C0.
  * @return Value at D_800834C0 + 0x54.
  */
-s32 func_8002A8A0(void) {
+s32 getDisplayListPacketPtr(void) {
     return *(s32 *)(D_800834C0 + 0x54);
 }
 
@@ -1077,7 +1077,7 @@ s32 func_8002A8A0(void) {
  *
  * @param pkt GPU packet pointer to store.
  */
-void func_8002A8B8(s32 pkt) {
+void storeGpuPacket(s32 pkt) {
     extern u8 D_800101D0[];
     s32 base = (s32)g_battleAnims;
     s32 limit;
@@ -1093,7 +1093,7 @@ void func_8002A8B8(s32 pkt) {
 
 
 /** @brief Returns the value of D_800834C0 plus 8. */
-s32 func_8002A91C(void) {
+s32 getDisplayListOtBase(void) {
     extern s32 D_800834C0;
     return D_800834C0 + 8;
 }
@@ -1118,7 +1118,7 @@ extern BattleDisplayEntity g_battleEntities[];
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @return Pointer to the entity.
  */
-BattleDisplayEntity *func_8002AC74(s32 idx) {
+BattleDisplayEntity *getBattleEntity(s32 idx) {
     return &g_battleEntities[idx];
 }
 
@@ -1127,7 +1127,7 @@ BattleDisplayEntity *func_8002AC74(s32 idx) {
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @param val Value to set; clamped to minimum 3 and maximum 11.
  */
-void func_8002AC88(s32 idx, s32 val) {
+void setBattleEntityAnimSpeed(s32 idx, s32 val) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     s32 v;
     if (val >= 3) {
@@ -1148,7 +1148,7 @@ void func_8002AC88(s32 idx, s32 val) {
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @return Animation speed value for the entity.
  */
-s32 func_8002ACBC(s32 idx) {
+s32 getBattleEntityAnimSpeed(s32 idx) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     return entity->animSpeed;
 }
@@ -1160,7 +1160,7 @@ s32 func_8002ACBC(s32 idx) {
  * @param offset Index into the subFields array (0 or 1).
  * @param val Byte value to store.
  */
-void func_8002ACD8(s32 idx, s32 offset, s32 val) {
+void setBattleEntitySubField(s32 idx, s32 offset, s32 val) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     entity->subFields[offset] = val;
 }
@@ -1174,7 +1174,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002ACF4);
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @param src Source RECT to copy.
  */
-void func_8002AD04(s32 idx, RECT *src) {
+void setBattleEntityBoundRect(s32 idx, RECT *src) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     entity->boundRect = *src;
 }
@@ -1190,7 +1190,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AD3C);
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @param dst Destination RECT to copy into.
  */
-void func_8002ADA4(s32 idx, RECT *dst) {
+void getBattleEntityBoundRect(s32 idx, RECT *dst) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     *dst = entity->boundRect;
 }
@@ -1201,7 +1201,7 @@ void func_8002ADA4(s32 idx, RECT *dst) {
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @param dst Destination RECT to copy into.
  */
-void func_8002ADDC(s32 idx, RECT *dst) {
+void getBattleEntityDispRect(s32 idx, RECT *dst) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     *dst = entity->dispRect;
 }
@@ -1212,7 +1212,7 @@ void func_8002ADDC(s32 idx, RECT *dst) {
  * @param idx Entity index into g_battleEntities (stride 64 bytes).
  * @return Entity type value.
  */
-s32 func_8002AE14(s32 idx) {
+s32 getBattleEntityType(s32 idx) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
     return entity->entityType;
 }

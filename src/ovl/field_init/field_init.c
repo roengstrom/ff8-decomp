@@ -37,8 +37,8 @@ void func_80098028(void) {
         ptr--;
     } while (i >= 0);
 
-    func_80038920(D_80097800.sector, D_80097800.size, 0x801A0000, 0);
-    func_80020644((u8 *)0x801A0000, D_80078E00, D_80097800.size);
+    cdReadSync(D_80097800.sector, D_80097800.size, 0x801A0000, 0);
+    memcopy((u8 *)0x801A0000, D_80078E00, D_80097800.size);
 }
 
 /**
@@ -62,7 +62,7 @@ void func_800980D0(void) {
     s32 i;
     s32 j;
 
-    func_800287B0(-1);
+    setCardFlag(-1);
     func_8004D8C4(0);
     func_8004D930();
     events = D_80082FB4;
@@ -94,9 +94,9 @@ void func_800980D0(void) {
     do {
         i = 0;
         do {
-            s32 entity = func_800287BC(i, j);
-            func_80028B58(entity);
-            func_80028AF8(entity, 0);
+            s32 entity = packCardId(i, j);
+            markCardBusy(entity);
+            setCardStatusSecondary(entity, 0);
         } while (++i < 2);
         i = 0;
     } while (++j < 4);
@@ -183,10 +183,10 @@ void func_80098390(void) {
  *   - D_80082DD0[0x1E1] = 5 (blend mode)
  *   - D_80082DD0[0x1E3] = 0
  *
- * Calls func_80027558 with a full-screen RECT(0, 0, 320, 224) to set display
+ * Calls setBattleAnimClipRect with a full-screen RECT(0, 0, 320, 224) to set display
  * bounds, then loops twice (i = 0..1) to initialize each of the two 0xC4-byte
  * BattleAnimEntity structs:
- *   1. Calls func_8002828C(i) to copy default color into entity RGBX fields
+ *   1. Calls initAnimEntityColor(i) to copy default color into entity RGBX fields
  *   2. Sets field19 (active flag) to 1
  *   3. Sets unk10[0..3] to {0xFFF, 0x5000, 0xA000, 0x900}
  *   4. Clears frame data bytes (entry[1..7] offset +6) with a fill loop
@@ -194,7 +194,7 @@ void func_80098390(void) {
  *   6. Runs a delay spin loop (5 iterations)
  *   7. Fills padBC[0..5] with 0xFF (opacity region)
  *   8. Clears opacity (0x1B) and field0B (0x0B)
- *   9. Calls func_80027FBC(i, 0, 0) to reset display coordinates
+ *   9. Calls setAnimGlobalCoords(i, 0, 0) to reset display coordinates
  *  10. Sets fieldC3 to 0x31 and linkedIdx to i
  *  11. Clears field0C..field0F (color fields)
  */

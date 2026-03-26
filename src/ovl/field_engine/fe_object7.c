@@ -1,7 +1,7 @@
 #include "common.h"
 
 /**
- * Pops a parameter, calls func_80023C08, stores result at offset 0x140.
+ * Pops a parameter, calls getKeyItemValue, stores result at offset 0x140.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -11,7 +11,7 @@ s32 func_800B542C(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    *(s32 *)(a0 + 0x140) = func_80023C08(*(s32 *)(a0 + (s8)idx * 4));
+    *(s32 *)(a0 + 0x140) = getKeyItemValue(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 

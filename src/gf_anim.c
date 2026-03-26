@@ -17,7 +17,7 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
  * @param a1 Entry index (stride 4).
  * @param a2 Animation index to set.
  */
-void func_80022B04(u8 *a0, s32 a1, s32 a2) {
+void initGfAnimEntry(u8 *a0, s32 a1, s32 a2) {
     u8 *entry = a0 + a1 * 4;
     s32 idx;
     *(volatile u8 *)(entry + 0x1E) = a2;
@@ -36,7 +36,7 @@ void func_80022B04(u8 *a0, s32 a1, s32 a2) {
  * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x3A..0x4D are looked up
  *       in g_gfData (stride 8, offsets 0x42B5/B6/B7 for R/G/B status immunity bytes).
  */
-s32 func_80022B48(s32 a0) {
+s32 getStatusImmunityFlags(s32 a0) {
     extern u8 g_gameState[];
     s32 result = 0;
     s32 i = 0;
@@ -62,7 +62,7 @@ s32 func_80022B48(s32 a0) {
  * @param a0 Pointer to an array of command entries (4 bytes each, type field at offset 0x1E).
  * @return 1 if any slot has type == 6, 0 otherwise.
  */
-s32 func_80022BD0(u8 *a0) {
+s32 hasCommandType6(u8 *a0) {
     s32 i;
     for (i = 0; i < 4; i++) {
         if (a0[0x1E] == 6) return 1;
@@ -78,12 +78,12 @@ s32 func_80022BD0(u8 *a0) {
  * @return Flags: bit 0 set if status bit 0x20000 is active; bit 1 set if magic commands present
  *         (unless D_80082C10 bit 3 is set, which suppresses the magic flag).
  */
-s32 func_80022C04(s32 a0) {
+s32 getMagicAvailFlags(s32 a0) {
     extern u8 D_80082C10;
     s32 val = *(s32 *)(a0 + 0x190);
     s32 masked = val & 0x20000;
     s32 flag = masked != 0;
-    if (func_80022BD0(a0)) {
+    if (hasCommandType6(a0)) {
         if (D_80082C10 & 8) {
             return flag;
         }
@@ -100,7 +100,7 @@ s32 func_80022C04(s32 a0) {
  *       in g_gfData (stride 8, offset 0x4355) and OR'd into g_battleChars offset 0x6D8.
  *       Likely enables field/world abilities (e.g., encounter-none, rare-item).
  */
-void func_80022C5C(s32 a0) {
+void applyPartyAbilityFlags(s32 a0) {
     extern u8 g_gameState[];
     s32 i = 0;
     s32 base1 = (s32)g_gameState;
@@ -128,7 +128,7 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022CDC);
  *       16 entries of 5 bytes at offset 0x122 (item inventory), 4 entries of 4 bytes at
  *       offset 0x1E (command slots), plus fields at 0x1C, 0x1D, and a u16 at 0x14.
  */
-void func_80022D78(s32 a0) {
+void clearCharSlotData(s32 a0) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
@@ -169,7 +169,7 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022E08);
  * @param a1 Command type to search for.
  * @return Index (0-3) of the matching slot, or 0xFF if not found.
  */
-s32 func_80023180(u8 *a0, s32 a1) {
+s32 findCommandSlot(u8 *a0, s32 a1) {
     s32 i;
     for (i = 0; i < 4; i++) {
         if (a0[0x1E] == a1) return i;
@@ -184,7 +184,7 @@ s32 func_80023180(u8 *a0, s32 a1) {
  * @param a0 Value to clamp.
  * @return a0 if < 256, otherwise 255.
  */
-s32 func_800231B0(s32 a0) {
+s32 clampToByte(s32 a0) {
     if (a0 >= 0x100) {
         return 0xFF;
     }
@@ -198,7 +198,7 @@ s32 func_800231B0(s32 a0) {
  * @return a0 as u16 if < 10000, otherwise 9999.
  * @note Commonly used to cap HP or similar stats at the FF8 maximum of 9999.
  */
-s32 func_800231C8(s32 a0) {
+s32 clampToMaxHp(s32 a0) {
     if (a0 >= 0x2710) {
         return 0x270F;
     }
@@ -217,7 +217,7 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_8002363C);
  * @note Checks g_gameState entries (stride 0x44) for bit 0 of field 0x61 (active flag).
  *       Calls func_8002363C for each active GF to recalculate its derived stats.
  */
-void func_80023828(void) {
+void recalcAllGfStats(void) {
     extern u8 g_gameState[];
     s32 i = 0;
     u8 *ptr = g_gameState;
@@ -234,9 +234,9 @@ void func_80023828(void) {
 /**
  * @brief Recalculate stats for all 3 party members and their GFs.
  * @note Resets D_80078DF8, then for each of the 3 party slots calls func_80022E08 and
- *       func_800231E0 to recalculate character stats. Finally calls func_80023828 for GFs.
+ *       func_800231E0 to recalculate character stats. Finally calls recalcAllGfStats for GFs.
  */
-void func_80023888(void) {
+void recalcPartyStats(void) {
     extern u8 D_80078DF8;
     extern u8 g_gameState[];
     s32 i;
@@ -252,7 +252,7 @@ void func_80023888(void) {
         func_800231E0(*(u8 *)(ptr + 0xAF4), i);
         i++;
     } while (i < 3);
-    func_80023828();
+    recalcAllGfStats();
 }
 
 

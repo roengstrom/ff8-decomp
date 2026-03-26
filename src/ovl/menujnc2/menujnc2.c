@@ -23,14 +23,14 @@ extern u8 D_801EEF10[];
 extern u8 D_801EEF38;
 extern u8 D_801EEF40[];
 extern u8 D_801EEF9A;
-extern u8 func_80036978(s32 id);
+extern u8 getCardRarity(s32 id);
 extern u8 g_characterAbilities[];
 extern u8 D_801EEED0[];
 extern s32 func_801F776C(s32 magicId, s32 slotType);
-extern s32 func_80020F2C(s32 arg);
-extern void func_80030D78(s32 soundId);
-extern void func_80030D48(s32 soundId);
-extern s32 func_80020AD4(s32 arg);
+extern s32 getAbilityEntryDesc(s32 arg);
+extern void playSoundEffect(s32 soundId);
+extern void sendSpuCommand(s32 soundId);
+extern s32 getAbilityDesc(s32 arg);
 extern u16 D_801FA3C8[];
 extern u8 D_801EEB1C[];
 extern void func_801EFBB4(s32 renderCtx, s32 param, void *callback);
@@ -42,12 +42,12 @@ extern s32 getCharNamePtr(u8 characterId);
 extern s32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
 extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
 extern s32 func_8002FF34(s32 renderCtx, s32 cursorY, s32 stringId, s32 x, s32 y, s32 color);
-extern u8 *func_800209A0(s32 id);
+extern u8 *getAbilityName(s32 id);
 extern s32 D_801EED00;
 extern u8 D_801EEC50[];
 
 extern MagicJunctionData g_magicJunctionData[];
-extern s32 func_80035A6C(s32 flags);
+extern s32 popcount(s32 flags);
 
 /** @brief Junction menu layout constants (pixel positions). */
 #define JNC_ROW_HEIGHT      13   /**< Row height in pixels. */
@@ -124,13 +124,13 @@ s32 autoJunctionSlot(charIdx, magicSlots, slotType, flagMask)
             if (slotType < JUNCTION_ATK_ELEM) {
                 score = entry->statJunction[slotType];
             } else if (slotType == JUNCTION_ATK_ELEM) {
-                score = entry->atkElemBonus * func_80035A6C(entry->atkElemFlags);
+                score = entry->atkElemBonus * popcount(entry->atkElemFlags);
             } else if (slotType == JUNCTION_ATK_STATUS) {
-                score = entry->atkStatusBonus * func_80035A6C(entry->atkStatusFlags);
+                score = entry->atkStatusBonus * popcount(entry->atkStatusFlags);
             } else if (slotType == JUNC_SLOT_DEF_ELEM) {
-                score = entry->defElemBonus * func_80035A6C(entry->defElemFlags);
+                score = entry->defElemBonus * popcount(entry->defElemFlags);
             } else if (slotType == JUNC_SLOT_DEF_STATUS) {
-                score = entry->defStatusBonus * func_80035A6C(entry->defStatusFlags);
+                score = entry->defStatusBonus * popcount(entry->defStatusFlags);
             } else {
                 score = 0;
             }
@@ -409,9 +409,9 @@ void assignJunctionSlot(s32 charIdx, s32 slotIndex, s32 mode, s32 selection, s32
     }
 
     if (changed != 0) {
-        func_80030D78(0x11);
+        playSoundEffect(0x11);
     } else {
-        func_80030D48(0x5);
+        sendSpuCommand(0x5);
     }
 }
 
@@ -483,7 +483,7 @@ void buildAvailableAbilities(s32 charIdx) {
  *
  * Scans the ability availability bitfield (g_availableAbilities) for commands
  * (IDs 0x14-0x26) and abilities (IDs 0x27-0x52). For each available
- * entry, stores the ID and type (from func_80036978) into D_801EEF10
+ * entry, stores the ID and type (from getCardRarity) into D_801EEF10
  * (commands) or D_801EEF40 (abilities), then updates the counts.
  *
  * @param charIdx Character index (0-7).
@@ -508,7 +508,7 @@ void buildAbilityTables(s32 charIdx) {
     for (; id < 0x27; id++) {
         if (availBits[id / 32] & (one << (id & 0x1F))) {
             table[0] = id;
-            table[1] = func_80036978(id);
+            table[1] = getCardRarity(id);
             table += 2;
             count++;
         }
@@ -522,7 +522,7 @@ void buildAbilityTables(s32 charIdx) {
     for (; id < 0x53; id++) {
         if (availBits[id / 32] & (one << (id & 0x1F))) {
             table[0] = id;
-            table[1] = func_80036978(id);
+            table[1] = getCardRarity(id);
             table += 2;
             count++;
         }
@@ -900,7 +900,7 @@ void snapshotJunctionPreview(s32 charIdx) {
     g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
     buildAvailableAbilities(charIdx);
     syncCharacterHp(charIdx);
-    func_8002A318(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
+    btlMemcpyForward(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
     g_gameState.chars[charIdx].junctedGfs = saved;
     func_801F1B4C(charIdx);
 }
@@ -1469,9 +1469,9 @@ void previewJunctionChange(s32 charIdx, s32 gfIdx, s32 slot, s32 abilityId) {
  * @brief Look up ability/command name string by type and index.
  *
  * For type 1 (commands): looks up command ID from D_801EEF10, finds
- * the GF ability index in g_gfData, and returns the name via func_80020F2C.
+ * the GF ability index in g_gfData, and returns the name via getAbilityEntryDesc.
  * For type 2 (abilities): looks up ability ID from D_801EEF40 and
- * returns the name via func_80020AD4.
+ * returns the name via getAbilityDesc.
  *
  * @param type Lookup type (0=none, 1=command, 2=ability).
  * @param index Index into the lookup table.
@@ -1494,7 +1494,7 @@ s32 getAbilityNamePtr(s32 type, s32 index) {
             gfData = D_80078E00;
             stride = 8;
             /* g_gfData ability range J: typeField at offset 0x4180 + 5 = 0x4185 */
-            result = func_80020F2C(gfData[(cmdId - 0x14) * stride + 0x4185]);
+            result = getAbilityEntryDesc(gfData[(cmdId - 0x14) * stride + 0x4185]);
         } else {
             result = 0;
         }
@@ -1502,7 +1502,7 @@ s32 getAbilityNamePtr(s32 type, s32 index) {
     case 2:
         if (index < D_801EEF9A) {
             u8 ablId = D_801EEF40[index * 2];
-            result = func_80020AD4(ablId);
+            result = getAbilityDesc(ablId);
         } else {
             result = 0;
         }
@@ -1716,7 +1716,7 @@ void renderStatGrid(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
             yPos = y + yOff;
             cursorY = func_8002FF34(ctx, cursorY, table[3] + 0xD8, xPos, yPos - 2, g_menuColor);
             xPos += 14;
-            namePtr = (s32)func_800209A0(table[0]);
+            namePtr = (s32)getAbilityName(table[0]);
             gfInfo = 7;
             table += 8;
             i++;
@@ -2425,8 +2425,8 @@ void initJunctionMenu(MenuParentCtx *parentCtx) {
     if (ctx != NULL) {
         ctx->parentParam = parentCtx->param;
         ctx->charIdx = parentCtx->charIdx;
-        ctx->discId = func_80036F60();
-        ctx->discCount = func_80035A6C(ctx->discId);
+        ctx->discId = getGfAvailabilityMask();
+        ctx->discCount = popcount(ctx->discId);
         ctx->unk64 = 0;
         ctx->unk61 = 0;
         ctx->unk62 = 0;

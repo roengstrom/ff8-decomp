@@ -3,7 +3,7 @@
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2348);
 
 /**
- * Pops a parameter and calls func_8001344C, returns 2.
+ * Pops a parameter and calls sndSetMasterVolume, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -13,13 +13,13 @@ s32 func_800B23F4(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    func_8001344C(*(s32 *)(a0 + (s8)idx * 4));
+    sndSetMasterVolume(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
 /**
  * Pops two parameters from the stack, shifts the first left by 1,
- * and calls func_80013478 with them.
+ * and calls sndSetChannelVolume with them.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -33,12 +33,12 @@ s32 func_800B2434(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    func_80013478(val2, val1 << 1);
+    sndSetChannelVolume(val2, val1 << 1);
     return 2;
 }
 
 /**
- * Pops a parameter and calls func_80013538, returns 2.
+ * Pops a parameter and calls sndSeqSetTempo, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -48,13 +48,13 @@ s32 func_800B248C(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    func_80013538(*(s32 *)(a0 + (s8)idx * 4));
+    sndSeqSetTempo(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
 /**
  * Pops two parameters from the stack, shifts the first left by 1,
- * and calls func_80013564.
+ * and calls sndSeqSetChannelTempo.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -68,12 +68,12 @@ s32 func_800B24CC(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    func_80013564(val2, val1 << 1);
+    sndSeqSetChannelTempo(val2, val1 << 1);
     return 2;
 }
 
 /**
- * Pops two parameters from the stack and calls func_800134AC(0, val2, val1).
+ * Pops two parameters from the stack and calls sndSeqPlay7bit(0, val2, val1).
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -87,13 +87,13 @@ s32 func_800B2524(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    func_800134AC(0, val2, val1);
+    sndSeqPlay7bit(0, val2, val1);
     return 2;
 }
 
 /**
  * Pops three parameters from the stack and calls
- * func_800134F0(0, val3, val2 << 1, val1).
+ * sndSeqPlayPan7bit(0, val3, val2 << 1, val1).
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -109,12 +109,12 @@ s32 func_800B257C(u8 *a0) {
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
     *(u8 *)(a0 + 0x184) = idx - 3;
     val3 = *(s32 *)(a0 + (s8)(idx - 2) * 4);
-    func_800134F0(0, val3, val2 << 1, val1);
+    sndSeqPlayPan7bit(0, val3, val2 << 1, val1);
     return 2;
 }
 
 /**
- * Pops two parameters from the stack and calls func_80013598(0, val2, val1).
+ * Pops two parameters from the stack and calls sndSeqPlay8bit(0, val2, val1).
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -128,13 +128,13 @@ s32 func_800B25F0(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    func_80013598(0, val2, val1);
+    sndSeqPlay8bit(0, val2, val1);
     return 2;
 }
 
 /**
  * Pops three parameters from the stack and calls
- * func_800135DC(0, val3, val2 << 1, val1).
+ * sndSeqPlayPan8bit(0, val3, val2 << 1, val1).
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -150,7 +150,7 @@ s32 func_800B2648(u8 *a0) {
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
     *(u8 *)(a0 + 0x184) = idx - 3;
     val3 = *(s32 *)(a0 + (s8)(idx - 2) * 4);
-    func_800135DC(0, val3, val2 << 1, val1);
+    sndSeqPlayPan8bit(0, val3, val2 << 1, val1);
     return 2;
 }
 
@@ -446,7 +446,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B41CC);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4288);
 
 /**
- * Pops a parameter and calls func_8003023C, returns 2.
+ * Pops a parameter and calls setCameraVibrateIntensity, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -456,7 +456,7 @@ s32 func_800B42E0(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    func_8003023C(*(s32 *)(a0 + (s8)idx * 4));
+    setCameraVibrateIntensity(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
@@ -619,7 +619,7 @@ s32 func_800B4D0C(u8 *a0) {
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4D34);
 
 /**
- * Pops a parameter, masks it with 0x7F, and calls func_80037198, returns 2.
+ * Pops a parameter, masks it with 0x7F, and calls setFieldFlag, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -629,7 +629,7 @@ s32 func_800B4D7C(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    func_80037198(*(s32 *)(a0 + (s8)idx * 4) & 0x7F);
+    setFieldFlag(*(s32 *)(a0 + (s8)idx * 4) & 0x7F);
     return 2;
 }
 
@@ -738,7 +738,7 @@ s32 func_800B5134(u8 *a0) {
 }
 
 /**
- * Pops two parameters from the stack and calls func_80021034(val1, val2).
+ * Pops two parameters from the stack and calls addItemToInventory(val1, val2).
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -752,7 +752,7 @@ s32 func_800B5188(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    func_80021034(val1, val2);
+    addItemToInventory(val1, val2);
     return 2;
 }
 
@@ -763,7 +763,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B5248);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B52B0);
 
 /**
- * Pops a parameter, calls func_800239A8, stores result at offset 0x140.
+ * Pops a parameter, calls markItemPresent, stores result at offset 0x140.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -773,12 +773,12 @@ s32 func_800B5318(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    *(s32 *)(a0 + 0x140) = func_800239A8(*(s32 *)(a0 + (s8)idx * 4));
+    *(s32 *)(a0 + 0x140) = markItemPresent(*(s32 *)(a0 + (s8)idx * 4));
     return 2;
 }
 
 /**
- * Pops two values, calls func_8002390C(val1, val2), stores result at 0x140.
+ * Pops two values, calls modifyItemQuantity(val1, val2), stores result at 0x140.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
@@ -792,7 +792,7 @@ s32 func_800B536C(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    *(s32 *)(a0 + 0x140) = func_8002390C(val1, val2);
+    *(s32 *)(a0 + 0x140) = modifyItemQuantity(val1, val2);
     return 2;
 }
 

@@ -115,22 +115,22 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFB5C);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFD0C);
 
 /**
- * @brief Look up entity field and call func_80020FBC.
+ * @brief Look up entity field and call resolveKernelPtr.
  *
  * Computes D_80078E00 + a0 * 20 to find the entity entry, reads
  * the halfword at offset 0x3EE0 and the word at D_80078E00 + 0xA4,
- * then calls func_80020FBC with them.
+ * then calls resolveKernelPtr with them.
  *
  * @param a0 Entity index (stride 20).
  */
 void func_800AFF30(s32 a0) {
     s32 base = (s32)D_80078E00;
     u8 *entry = (u8 *)(base + a0 * 20);
-    func_80020FBC(*(u16 *)(entry + 0x3EE0), *(s32 *)(base + 0xA4));
+    resolveKernelPtr(*(u16 *)(entry + 0x3EE0), *(s32 *)(base + 0xA4));
 }
 
 /**
- * @brief Look up entity field and call func_80020FBC (stride 132).
+ * @brief Look up entity field and call resolveKernelPtr (stride 132).
  *
  * Subtracts 0x40 from a0, computes D_80078E00 + adjusted * 132,
  * reads halfword at offset 0xF78 and word at D_80078E00 + 0x88.
@@ -142,11 +142,11 @@ void func_800AFF70(s32 a0) {
     u8 *entry;
     a0 -= 0x40;
     entry = (u8 *)(base + a0 * 132);
-    func_80020FBC(*(u16 *)(entry + 0xF78), *(s32 *)(base + 0x88));
+    resolveKernelPtr(*(u16 *)(entry + 0xF78), *(s32 *)(base + 0x88));
 }
 
 /**
- * @brief Look up entity field and call func_80020FBC (alternate offsets).
+ * @brief Look up entity field and call resolveKernelPtr (alternate offsets).
  *
  * Same pattern as func_800AFF30 but reads halfword at offset 0x17B8
  * and word at D_80078E00 + 0x8C.
@@ -156,35 +156,35 @@ void func_800AFF70(s32 a0) {
 void func_800AFFB4(s32 a0) {
     s32 base = (s32)D_80078E00;
     u8 *entry = (u8 *)(base + a0 * 20);
-    func_80020FBC(*(u16 *)(entry + 0x17B8), *(s32 *)(base + 0x8C));
+    resolveKernelPtr(*(u16 *)(entry + 0x17B8), *(s32 *)(base + 0x8C));
 }
 
 /**
- * @brief Call func_80020F84 with argument 0xA.
+ * @brief Call getMenuString with argument 0xA.
  */
 void func_800AFFF4(void) {
-    func_80020F84(0xA);
+    getMenuString(0xA);
 }
 
 /**
- * @brief Call func_80020F84 with argument 0xC.
+ * @brief Call getMenuString with argument 0xC.
  */
 void func_800B0014(void) {
-    func_80020F84(0xC);
+    getMenuString(0xC);
 }
 
 /**
- * @brief Call func_80020F84 with argument 0xD.
+ * @brief Call getMenuString with argument 0xD.
  */
 void func_800B0034(void) {
-    func_80020F84(0xD);
+    getMenuString(0xD);
 }
 
 /**
- * @brief Call func_80020F84 with argument 0xE.
+ * @brief Call getMenuString with argument 0xE.
  */
 void func_800B0054(void) {
-    func_80020F84(0xE);
+    getMenuString(0xE);
 }
 
 /**
@@ -202,17 +202,17 @@ s32 func_800B0074(s32 idx) {
 }
 
 /**
- * @brief Call func_80020F84 with argument 0xF.
+ * @brief Call getMenuString with argument 0xF.
  */
 void func_800B00A8(void) {
-    func_80020F84(0xF);
+    getMenuString(0xF);
 }
 
 /**
- * @brief Call func_80020F84 with argument 0x10.
+ * @brief Call getMenuString with argument 0x10.
  */
 void func_800B00C8(void) {
-    func_80020F84(0x10);
+    getMenuString(0x10);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B00E8);
@@ -297,7 +297,7 @@ u8 *func_800B0328(u8 *src) {
 }
 
 /**
- * @brief Look up a halfword from entity table and call func_80020FBC.
+ * @brief Look up a halfword from entity table and call resolveKernelPtr.
  *
  * @param a0 Entity index (stride 8 in table).
  */
@@ -305,7 +305,7 @@ void func_800B0360(s32 a0) {
     u8 *base = D_80078E00;
     u16 val = *(u16 *)(base + a0 * 8 + 0x4A5E);
     s32 arg = *(s32 *)(base + 0xD4);
-    func_80020FBC(val, arg);
+    resolveKernelPtr(val, arg);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0398);

@@ -8,25 +8,25 @@ extern u8 D_801032F8[];
 extern u8 D_80103420[];
 extern u8 D_80077E5C[];
 s32 func_800D134C(void);
-void func_8002F294(s32, u8 *, s32);
-void func_8002F2EC(u8 *, s32, s32, s32);
+void intToDecStringShort(s32, u8 *, s32);
+void replaceLeadingZeros(u8 *, s32, s32, s32);
 
 /**
- * @brief Call func_8002795C with a1=0, pass result to func_80030F10.
+ * @brief Call getAnimFrameParam with a1=0, pass result to func_80030F10.
  *
- * @param a0 First argument passed through to func_8002795C.
+ * @param a0 First argument passed through to getAnimFrameParam.
  */
 void func_800CFF2C(s32 a0) {
-    func_80030F10(func_8002795C(a0, 0));
+    func_80030F10(getAnimFrameParam(a0, 0));
 }
 
 /**
- * @brief Call func_800279CC with a1=0, pass result to func_80030F10.
+ * @brief Call getAnimFrameStatusFlags with a1=0, pass result to func_80030F10.
  *
- * @param a0 First argument passed through to func_800279CC.
+ * @param a0 First argument passed through to getAnimFrameStatusFlags.
  */
 void func_800CFF54(s32 a0) {
-    func_80030F10(func_800279CC(a0, 0));
+    func_80030F10(getAnimFrameStatusFlags(a0, 0));
 }
 
 /**
@@ -126,17 +126,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0844);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0868);
 
 /**
- * @brief Wrapper for func_8002CE68.
+ * @brief Wrapper for setSfxGlobalFlag.
  */
 void func_800D08C4(void) {
-    func_8002CE68();
+    setSfxGlobalFlag();
 }
 
 /**
- * @brief Wrapper for func_8002A868.
+ * @brief Wrapper for renderDisplay.
  */
 void func_800D08E4(void) {
-    func_8002A868();
+    renderDisplay();
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0904);
@@ -178,15 +178,15 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0FB0);
  * @brief Disable display, check condition, optionally call handler, re-enable display.
  *
  * Calls func_800472E4 to disable display, then checks func_800CEDA4.
- * If it returns 0, calls func_80030D48 with a0. Finally re-enables display
+ * If it returns 0, calls sendSpuCommand with a0. Finally re-enables display
  * via func_800472F4.
  *
- * @param a0 Parameter passed to func_80030D48 if condition met.
+ * @param a0 Parameter passed to sendSpuCommand if condition met.
  */
 void func_800D11D4(s32 a0) {
     func_800472E4();
     if (func_800CEDA4() == 0) {
-        func_80030D48(a0);
+        sendSpuCommand(a0);
     }
     func_800472F4();
 }
@@ -365,9 +365,9 @@ void func_800D18C4(s32 a0, u8 *a1) {
         a0 += 0xFFF;
     }
     a0 >>= 12;
-    func_8002F294(a0, buf, 0x60);
+    intToDecStringShort(a0, buf, 0x60);
     p = &buf[1];
-    func_8002F2EC(p, 3, 0x60, 0x6B);
+    replaceLeadingZeros(p, 3, 0x60, 0x6B);
     b0 = buf[1];
     b1 = p[1];
     a1[0] = b0;

@@ -60,7 +60,7 @@ extern u8 D_801F7F74[];
 extern u8 D_80078D38[];
 
 u8 *func_801F08AC(u8 *, s32);
-s32 func_8002E744(s32);
+s32 getGlyphWidthA(s32);
 s32 func_801F1A40(s32);
 s32 func_801F179C(void *, void *);
 s32 func_801F42A4();
@@ -77,7 +77,7 @@ s32 func_801F3DE4(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801F6234(s32, s32, s32, s32, s32);
 void func_801F605C(s32, s32, s32, s32, s32);
 s32 func_801F776C(s32, s32);
-void func_80027F38(s32, s32, s32);
+void setAnimEntityParams(s32, s32, s32);
 
 extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
@@ -232,7 +232,7 @@ void func_801F0224(void) {
     base = (s32)D_801FA280;
     *(s32 *)(base + 0x98) = (s32)0x801B2000;
     *(s32 *)(base + 0x138) = (s32)0x801B8800;
-    func_80027F38(0, 0, 0);
+    setAnimEntityParams(0, 0, 0);
 }
 
 /* ======================================================================== */
@@ -387,8 +387,8 @@ void func_801F0BF8(s32 a0) {
     s32 val = *(s32 *)(entry + 4);
     if (val == 0xFF) return;
     if (val <= 0) return;
-    if (func_80035E40() == val) return;
-    func_80036104(val, 0, 0);
+    if (getOverlayLoadStatus() == val) return;
+    loadOverlay(val, 0, 0);
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F0C5C);
@@ -517,7 +517,7 @@ s32 func_801F1A40(s32 a0) {
         if (func_801F0D84() != 0) {
             break;
         }
-        func_80035C54(1);
+        setRenderFlag(1);
         break;
     default:
         break;
@@ -556,8 +556,8 @@ void func_801F1AFC(void) {
 
 /** @brief Restore saved controller input state for menu processing. */
 void func_801F1B10(void) {
-    func_8002E7C4(D_801FAB78);
-    func_80030058(D_801FAB78);
+    setMenuColorIntensity(D_801FAB78);
+    buildGrayscaleGpuColor(D_801FAB78);
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F1B4C);
@@ -1032,7 +1032,7 @@ void func_801F537C(s32 a0, CopyBlock16 *a1) {
     } while (src != end);
 
     func_801F5340();
-    func_80023888();
+    recalcPartyStats();
 }
 
 /** @brief Recalculate stats for a single party slot after swap. */
@@ -1040,7 +1040,7 @@ void func_801F5400(s32 a0) {
     func_801F5300();
     func_801F5190(a0);
     func_801F5340();
-    func_80023888();
+    recalcPartyStats();
 }
 
 /** @brief Recalculate stats for all 8 party slots. */
@@ -1051,7 +1051,7 @@ void func_801F5440(void) {
         func_801F5190(i);
     }
     func_801F5340();
-    func_80023888();
+    recalcPartyStats();
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F5490);
@@ -1138,7 +1138,7 @@ s32 func_801F5938(s32 a0) {
  * @brief Build cumulative pixel-width table for menu item strings.
  *
  * Iterates a -1-terminated u16 source list, measures each string's
- * pixel width via func_8002E744, and accumulates offsets into dst.
+ * pixel width via getGlyphWidthA, and accumulates offsets into dst.
  * Returns the item count.
  */
 s32 func_801F5984(u16 *src, u16 *dst, s32 a2) {
@@ -1151,7 +1151,7 @@ s32 func_801F5984(u16 *src, u16 *dst, s32 a2) {
         val = (s16)*src++;
         if (val == -1) break;
         ret = func_801F08D4(1, a2, val, 0);
-        ret = func_8002E744(ret) + 12;
+        ret = getGlyphWidthA(ret) + 12;
         accum += ret;
         *dst++ = accum;
         count++;
@@ -1412,7 +1412,7 @@ s32 func_801F76E0(s32 flags, s32 a1, s32 a2) {
         result = func_80035B70(a1, orig);
     }
     if (result != orig) {
-        func_80030D48(1);
+        sendSpuCommand(1);
     }
     return result;
 }
@@ -1467,7 +1467,7 @@ void func_801F78D8(s32 a0, s32 a1) {
 /** @brief Apply vibration config setting from g_configFlags bit 1. */
 void func_801F7928(void) {
     s32 val = g_configFlags & 2;
-    func_8001327C(val != 0);
+    sndSelectMode(val != 0);
 }
 
 /** @brief Apply ATB/screen brightness setting from g_configFlags bit 6. */
@@ -1476,7 +1476,7 @@ void func_801F7954(void) {
     if (g_configFlags & 0x40) {
         a1 = 0xFF;
     }
-    func_80027EF8(0, a1);
+    setAnimEntityOpacity(0, a1);
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F798C);
@@ -1488,7 +1488,7 @@ s32 func_801F79F8(s32 a0) {
 
 /** @brief Update config vibration flag based on slot 0 status. */
 void func_801F7A08(void) {
-    if (func_80027EC8(0) == 0xFF) {
+    if (getBattleAnimOpacity(0) == 0xFF) {
         g_gameState.config.flags |= CONFIG_VIBRATION;
     } else {
         g_gameState.config.flags &= ~CONFIG_VIBRATION;
@@ -1556,9 +1556,9 @@ s32 func_801F7BE4(s32 a0) {
 /** @brief Play toggle sound effect (sound 2 if bit 6 set, else sound 3). */
 void func_801F7BEC(s32 a0) {
     if (a0 & 0x40) {
-        func_80030D48(2);
+        sendSpuCommand(2);
     } else {
-        func_80030D48(3);
+        sendSpuCommand(3);
     }
 }
 
@@ -1588,7 +1588,7 @@ s32 func_801F7C20(s32 a0) {
 /** @brief Render save/card-related text (convert value to string, draw at position). */
 void func_801F7C98(s32 a0, s32 a1) {
     u8 buf[16];
-    func_8002F294(a0, buf, 0x30);
+    intToDecStringShort(a0, buf, 0x30);
     copyString(a1, D_80056290);
-    func_8002A2C4(a1, &buf[3]);
+    btlStrcat2(a1, &buf[3]);
 }

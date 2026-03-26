@@ -4,21 +4,21 @@
 
 
 /** @brief Empty stub (no-op). */
-void func_80035CE0(void) {
+void ovlStubA(void) {
 }
 
 
 /** @brief Empty stub (no-op). */
-void func_80035CE8(void) {
+void ovlStubB(void) {
 }
 
 
-/** @brief Wrapper that initiates a CD-ROM read via func_8003882C. */
-void func_80035CF0(void) { func_8003882C(); }
+/** @brief Wrapper that initiates a CD-ROM read via cdRead. */
+void startCdRead(void) { cdRead(); }
 
 
 /** @brief Wrapper that initiates an async CD-ROM read via func_80038868. */
-void func_80035D10(void) { func_80038868(); }
+void startCdReadAsync(void) { func_80038868(); }
 
 
 INCLUDE_ASM("asm/nonmatchings/overlay", func_80035D30);
@@ -28,14 +28,14 @@ extern s32 D_8008514C;
 extern volatile u16 D_80085208;
 
 /** @brief Wrapper that polls CD-ROM read completion via func_800393C8. */
-void func_80035E00(void) {
+void pollCdReadStatus(void) {
     func_800393C8();
 }
 
 
-/** @brief Wrapper that calls func_800389CC (CD-ROM related). */
-void func_80035E20(void) {
-    func_800389CC();
+/** @brief Wrapper that calls resetCdDrive (CD-ROM related). */
+void resetCdState(void) {
+    resetCdDrive();
 }
 
 
@@ -43,7 +43,7 @@ void func_80035E20(void) {
  * @brief Get overlay load status.
  * @return Current value of D_8008514C (overlay load result code).
  */
-s32 func_80035E40(void) {
+s32 getOverlayLoadStatus(void) {
     return D_8008514C;
 }
 
@@ -52,7 +52,7 @@ s32 func_80035E40(void) {
  * @brief Get a signed 16-bit game state value.
  * @return D_80085208 sign-extended to s32.
  */
-s32 func_80035E50(void) {
+s32 getGameStateS16(void) {
     return (s16)D_80085208;
 }
 
@@ -60,7 +60,7 @@ s32 func_80035E50(void) {
 /**
  * @brief Reset overlay queue state — clears read/write indices and sets result to -1.
  */
-void func_80035E68(void) {
+void resetOverlayQueue(void) {
     extern s32 D_80085140;
     extern s32 D_80085144;
     extern volatile s32 D_8008514C;
@@ -82,7 +82,7 @@ INCLUDE_ASM("asm/nonmatchings/overlay", func_80035E8C);
  *
  * @param a0 Pointer to the TIM packet header.
  */
-void func_80035F70(u8 *a0) {
+void loadTimImage(u8 *a0) {
     u8 *base = a0;
     u8 *ptr;
     u8 *extra;
@@ -119,7 +119,7 @@ void func_80035F70(u8 *a0) {
  * @param callback1 First callback address (or 0).
  * @param callback2 Second callback address (or 0).
  */
-void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
+void enqueueOverlayCmd(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
     extern s32 D_80085140;
     extern s32 D_80085144;
     extern OvlCmdEntry g_ovlCmdQueue[];
@@ -151,8 +151,8 @@ void func_80035FF4(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callba
  * @param a0 Parameter passed as the command param.
  * @param a1 Destination load address.
  */
-void func_800360D0(s32 a0, s32 a1) {
-    func_80035FF4(0, 0x11, a0, a1, 0, 0);
+void loadSubOverlay(s32 a0, s32 a1) {
+    enqueueOverlayCmd(0, 0x11, a0, a1, 0, 0);
 }
 
 
@@ -168,7 +168,7 @@ void func_800360D0(s32 a0, s32 a1) {
  * @param a1         Callback address invoked on load completion (or 0).
  * @param a2         Second callback address (or 0).
  */
-void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
+void loadOverlay(s32 overlay_id, s32 a1, s32 a2) {
     extern u32 load_table[]; // D_80053C58
     extern s32 D_8008514C;
     extern u8 D_8008520A;
@@ -183,11 +183,11 @@ void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
     descriptor &= 0xFFFFFF00;
     if (dep != D_8008520A) {
         if (dep != 0) {
-            func_800360D0(dep, 0x801E0000);
+            loadSubOverlay(dep, 0x801E0000);
             D_8008520A = dep;
         }
     }
-    func_80035FF4(0, overlay_id, -1, descriptor, a1, a2);
+    enqueueOverlayCmd(0, overlay_id, -1, descriptor, a1, a2);
 }
 
 
@@ -196,8 +196,8 @@ void func_80036104(s32 overlay_id, s32 a1, s32 a2) {
  * @param a0 Overlay identifier.
  * @param a1 Destination load address.
  */
-void func_800361C0(s32 a0, s32 a1) {
-    func_80035FF4(0, a0, -1, a1, 0, 0);
+void loadOverlayDirect(s32 a0, s32 a1) {
+    enqueueOverlayCmd(0, a0, -1, a1, 0, 0);
 }
 
 
@@ -214,8 +214,8 @@ extern s32 D_80085144;
  * @param a0 Parameter passed as the command param.
  * @param a1 Destination load address (also used as callback2).
  */
-void func_800361F8(s32 a0, s32 a1) {
-    func_80035FF4(0, 0x11, a0, a1, (s32)D_80035F70, a1);
+void loadOverlayWithTimCallback(s32 a0, s32 a1) {
+    enqueueOverlayCmd(0, 0x11, a0, a1, (s32)D_80035F70, a1);
 }
 
 
@@ -223,7 +223,7 @@ void func_800361F8(s32 a0, s32 a1) {
  * @brief Check if the overlay command queue is empty.
  * @return 1 if the write index equals the read index (queue empty), 0 otherwise.
  */
-s32 func_80036234(void) {
+s32 isOverlayQueueEmpty(void) {
     return D_80085140 == D_80085144;
 }
 
@@ -237,7 +237,7 @@ s32 func_80036234(void) {
  *
  * @param a0 If negative, performs the VRAM region move.
  */
-void func_80036254(s32 a0) {
+void saveAndClearFramebuffer(s32 a0) {
     extern u8 D_80053CF0[];
     DrawSync(0);
     VSync(0);
@@ -264,8 +264,8 @@ INCLUDE_ASM("asm/nonmatchings/overlay", func_8003631C);
 
 
 /** @brief Load overlay 0 (default/main module) with no callbacks. */
-void func_80036444(void) {
-    func_80036104(0, 0, 0);
+void loadDefaultOverlay(void) {
+    loadOverlay(0, 0, 0);
 }
 
 
@@ -280,7 +280,7 @@ INCLUDE_ASM("asm/nonmatchings/overlay", func_8003646C);
  *
  *  @param a0 Non-zero to set single slot, zero to reset all 8 slots.
  */
-void func_80036690(s32 a0) {
+void resetCardSlots(s32 a0) {
     extern u8 g_gameState[];
 
     if (a0 != 0) {

@@ -58,7 +58,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD64C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD6EC);
 
-void func_800BD794(void) { s32 i = 0; do { s32 status = func_8003837C(i) - 1; if ((u32)status < 2) { if (func_80038464() & 1) { func_800383B8(i, status); } } i++; } while (i < 0x100); }
+void func_800BD794(void) { s32 i = 0; do { s32 status = getPackedField2Bit(i) - 1; if ((u32)status < 2) { if (fieldRandom() & 1) { func_800383B8(i, status); } } i++; } while (i < 0x100); }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD804);
 

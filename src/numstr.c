@@ -13,7 +13,7 @@
  * @param a1 Destination buffer for the digit string (null-terminated on output).
  * @param a2 Base character code added to each digit (e.g. tile index for '0').
  */
-void func_8002F23C(u32 a0, u8 *a1, s32 a2) {
+void intToDecString(u32 a0, u8 *a1, s32 a2) {
     extern u32 D_800529F4[];
     u32 *t = D_800529F4;
     u32 d = *t++;
@@ -35,14 +35,14 @@ void func_8002F23C(u32 a0, u8 *a1, s32 a2) {
 /**
  * @brief Convert an unsigned integer to a decimal digit string using divisor table D_80052A08.
  *
- * Same algorithm as func_8002F23C but uses a different (likely shorter) divisor table,
+ * Same algorithm as intToDecString but uses a different (likely shorter) divisor table,
  * producing fewer digits. Used for smaller number ranges.
  *
  * @param a0 The unsigned integer value to convert.
  * @param a1 Destination buffer for the digit string (null-terminated on output).
  * @param a2 Base character code added to each digit.
  */
-void func_8002F294(u32 a0, u8 *a1, s32 a2) {
+void intToDecStringShort(u32 a0, u8 *a1, s32 a2) {
     extern u32 D_80052A08[];
     u32 *t = D_80052A08;
     u32 d = *t++;
@@ -73,7 +73,7 @@ void func_8002F294(u32 a0, u8 *a1, s32 a2) {
  * @param a2 Character code to match (typically the '0' tile index).
  * @param a3 Replacement character code (typically a space/blank tile index).
  */
-void func_8002F2EC(u8 *a0, s32 a1, s32 a2, s32 a3) {
+void replaceLeadingZeros(u8 *a0, s32 a1, s32 a2, s32 a3) {
     s32 i;
     for (i = 0; i < a1; i++) {
         if (*a0 != a2) return;
@@ -91,7 +91,7 @@ extern u8 D_80052A20[];
  * @param idx Value 0-15 selecting the hex digit (masked to low nibble).
  * @param dst Pointer where the resulting ASCII character is stored.
  */
-void func_8002F384(s32 idx, u8 *dst) {
+void lookupHexChar(s32 idx, u8 *dst) {
     u8 *base = D_80052A20;
     *dst = base[idx & 0xF];
 }
@@ -102,15 +102,15 @@ void func_8002F384(s32 idx, u8 *dst) {
  * @param byte The byte value to convert (high nibble first, then low nibble).
  * @param buf Destination buffer (must hold at least 3 bytes).
  */
-void func_8002F3A0(s32 byte, u8 *buf) {
-    func_8002F384(byte >> 4, buf++);
-    func_8002F384(byte & 0xF, buf++);
+void byteToHexString(s32 byte, u8 *buf) {
+    lookupHexChar(byte >> 4, buf++);
+    lookupHexChar(byte & 0xF, buf++);
     *buf = 0;
 }
 
 
 /**
- * @brief Convert a 16-bit value to a 2-character hex string via func_8002F3A0.
+ * @brief Convert a 16-bit value to a 2-character hex string via byteToHexString.
  *
  * Splits the 16-bit value into high and low bytes, converts each to a
  * 2-character hex string, and null-terminates the result.
@@ -118,16 +118,16 @@ void func_8002F3A0(s32 byte, u8 *buf) {
  * @param a0 16-bit value to convert.
  * @param a1 Output buffer (at least 5 bytes).
  */
-void func_8002F3F0(s32 a0, u8 *a1) {
-    func_8002F3A0(a0 >> 8, a1);
+void u16ToHexString(s32 a0, u8 *a1) {
+    byteToHexString(a0 >> 8, a1);
     a1 += 2;
-    func_8002F3A0(a0 & 0xFF, a1);
+    byteToHexString(a0 & 0xFF, a1);
     a1[2] = 0;
 }
 
 
 /**
- * @brief Convert a 32-bit value to a 4-character hex string via func_8002F3F0.
+ * @brief Convert a 32-bit value to a 4-character hex string via u16ToHexString.
  *
  * Splits the 32-bit value into high and low 16-bit halves, converts each
  * to a 4-character hex string, and null-terminates the result.
@@ -135,10 +135,10 @@ void func_8002F3F0(s32 a0, u8 *a1) {
  * @param a0 32-bit value to convert.
  * @param a1 Output buffer (at least 9 bytes).
  */
-void func_8002F43C(s32 a0, u8 *a1) {
-    func_8002F3F0(a0 >> 16, a1);
+void u32ToHexString(s32 a0, u8 *a1) {
+    u16ToHexString(a0 >> 16, a1);
     a1 += 4;
-    func_8002F3F0(a0 & 0xFFFF, a1);
+    u16ToHexString(a0 & 0xFFFF, a1);
     a1[4] = 0;
 }
 
@@ -153,7 +153,7 @@ void func_8002F43C(s32 a0, u8 *a1) {
  * @param dst Destination buffer (must hold at least 9 bytes for 8 chars + null).
  * @param base_char Character code for digit '0' (each nibble is added to this).
  */
-void func_8002F488(u32 val, u8 *dst, s32 base_char) {
+void u32ToHexTiles(u32 val, u8 *dst, s32 base_char) {
     s32 shift = 28;
     do {
         *dst++ = ((val >> shift) & 0xF) + base_char;
@@ -187,23 +187,23 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F610);
  *   0x04 + byte — Two-byte numeric value format (type 4: SFX entry values)
  *   0x05-0x06, 0x08-0x0B + byte — Escape: next byte stored literally
  *   0x0C + byte — Magic spell name lookup via getMagicNamePtr
- *   0x0D + byte — GF/item stat name lookup via func_80020CE0
+ *   0x0D + byte — GF/item stat name lookup via getStatName
  *   0x0E + byte — Character name table set 0 (idx * 224 + subByte)
  *   0x0F + byte — Character name table set 1 (idx * 224 + subByte)
- *   0x10-0x18   — Direct name lookup via func_8002A3E8 (type 0)
+ *   0x10-0x18   — Direct name lookup via getBattleCharNameWrapper (type 0)
  *   0xE8-0xFF   — Double-byte character from D_8008369C lookup table
  *
  * Types 3, 4, and 0x10-0x18 share a sub-command dispatch based on cmd >> 8:
- *   hiCmd 0: func_8002A3E8(cmd & 0x1F) — direct name pointer
+ *   hiCmd 0: getBattleCharNameWrapper(cmd & 0x1F) — direct name pointer
  *   hiCmd 3: Name lookup switch (65-entry jump table, 0x20-0x60):
- *     0x20-0x22 → func_8002A3C8 (character name type A)
- *     0x30-0x3F → func_8002A3A8 (character name type B)
+ *     0x20-0x22 → getCharNamePtrWrapper2 (character name type A)
+ *     0x30-0x3F → getCharNamePtrWrapper (character name type B)
  *     0x40 → D_800773A8, 0x5C → D_80077E74, 0x60 → D_800773B4
  *     default  → D_80052A30
  *   hiCmd 4: SFX numeric format switch (40-entry jump table, 0x20-0x47):
- *     0x20-0x27 → Decimal with separator (func_8002F23C + F320 + F4B0)
- *     0x30-0x37 → Decimal plain (func_8002F23C + F320)
- *     0x40-0x47 → Hex with D_80083857 char remap (func_8002F488)
+ *     0x20-0x27 → Decimal with separator (intToDecString + F320 + F4B0)
+ *     0x30-0x37 → Decimal plain (intToDecString + F320)
+ *     0x40-0x47 → Hex with D_80083857 char remap (u32ToHexTiles)
  *
  * The dispatch is repeated 3 times (for types 3, 4, 0x10-0x18), producing
  * 6 separate jump tables. Handler code is shared across dispatches via
@@ -235,7 +235,7 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FD28);
  * @param a1 Second parameter passed to the dispatch function.
  * @note Purpose uncertain -- appears to advance and render a display list primitive.
  */
-void func_8002FD9C(s32 *a0, s32 a1) {
+void advanceAndDecodeMessage(s32 *a0, s32 a1) {
     s32 result = func_8002F548(a0[3]);
     a0[3] = result;
     decodeMessage(result, a1, -1);
@@ -246,12 +246,12 @@ void func_8002FD9C(s32 *a0, s32 a1) {
  * @brief Dispatch a rendering command without processing.
  *
  * Calls decodeMessage directly with the fourth element of the array, a1, and -1.
- * Unlike func_8002FD9C, does not call func_8002F548 to update element [3] first.
+ * Unlike advanceAndDecodeMessage, does not call func_8002F548 to update element [3] first.
  *
  * @param a0 Pointer to a 4-element s32 array; element [3] is read but not modified.
  * @param a1 Second parameter passed to the dispatch function.
  */
-void func_8002FDE8(s32 *a0, s32 a1) {
+void decodeMessageDirect(s32 *a0, s32 a1) {
     decodeMessage(a0[3], a1, -1);
 }
 

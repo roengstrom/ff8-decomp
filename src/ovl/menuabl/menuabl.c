@@ -66,7 +66,7 @@ s32 func_801E2934(void) {
  * @brief Look up an ability name string by index.
  *
  * If @p a0 is within bounds (less than D_801E3D9C), uses it to index
- * into D_801E3D84 to get an ability ID, then calls func_80020AD4
+ * into D_801E3D84 to get an ability ID, then calls getAbilityDesc
  * to get the corresponding string. Returns NULL if out of bounds.
  *
  * @param a0 Ability list index.
@@ -181,7 +181,7 @@ void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
  * index is within bounds (D_801E3D9C), looks up the ability from D_801E3D84,
  * checks its type (0xFF = disabled, 0x80 = conditional, 0x81 = flag-based),
  * and determines the color code. Draws the entry via func_801F0FEC with
- * the ability name from func_800209A0.
+ * the ability name from getAbilityName.
  *
  * @param a0 Display context pointer.
  * @param a1 OT pointer.

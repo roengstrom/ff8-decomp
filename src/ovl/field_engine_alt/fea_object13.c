@@ -71,8 +71,8 @@ INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C49CC)
 
 INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4A58);
 
-extern s32 func_8003837C(s32);
-extern s32 func_80038464(void);
+extern s32 getPackedField2Bit(s32);
+extern s32 fieldRandom(void);
 extern void func_800383B8(s32, s32);
 
 /** Scans all 256 entries and processes active ones. */
@@ -80,9 +80,9 @@ void func_800C4A74(void) {
     s32 i;
     s32 result;
     for (i = 0; i < 256; i++) {
-        result = func_8003837C(i) - 1;
+        result = getPackedField2Bit(i) - 1;
         if ((u32)result < 2) {
-            if (func_80038464() & 1) {
+            if (fieldRandom() & 1) {
                 func_800383B8(i, result);
             }
         }

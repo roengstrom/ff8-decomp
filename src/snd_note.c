@@ -8,7 +8,7 @@ extern s16 D_8007507A;
  * (0x1F801DB0) and right (0x1F801DB2) CD audio volume registers, producing
  * equal stereo volume.
  */
-void func_8001A55C(void) {
+void sndSetCdVolume(void) {
     s32 val = D_8007507A;
     *(s16 *)0x1F801DB0 = val;
     *(s16 *)0x1F801DB2 = val;
@@ -38,7 +38,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B1F4);
  * @param a1 Note or instrument index to potentially adjust.
  * @return Adjusted value, or @p a1 unchanged if conditions are not met.
  */
-s32 func_8001B400(s32 a0, s32 a1) {
+s32 sndAdjustNoteOctave(s32 a0, s32 a1) {
     if ((a0 & 0x400) && (u32)a1 >= 0x40 && (u32)a1 < 0x80) {
         return a1 + 0x20;
     }

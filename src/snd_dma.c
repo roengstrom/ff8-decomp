@@ -1,16 +1,16 @@
 #include "common.h"
 
-void func_80014DE0(u32 val);
+void spuSetIrqAddr(u32 val);
 
 INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800146F0);
 
 /** @brief Adds magic constant 0xB0BEB4BF to value at pointer. */
-u32 func_80014740(u32 *a0) {
+u32 sndValidateBank(u32 *a0) {
     return *a0 + 0xB0BEB4BF;
 }
 
 /** @brief Calls func_8003E494(0) and clears D_80074ED4. */
-void func_80014754(void) {
+void sndDmaCompleteCallback(void) {
     extern s32 D_80074ED4;
     func_8003E494(0);
     D_80074ED4 = 0;
@@ -19,43 +19,43 @@ void func_80014754(void) {
 /**
  * @brief Sets the SPU DMA active flag and registers the completion callback.
  *
- * Sets D_80074ED4 to 1 (DMA active), then registers func_80014754 as
+ * Sets D_80074ED4 to 1 (DMA active), then registers sndDmaCompleteCallback as
  * the transfer completion callback via func_8003E494.
  */
 /**
  * @brief Sets the SPU DMA active flag and registers the completion callback.
  *
- * Sets D_80074ED4 to 1 (DMA active), then registers func_80014754 as
+ * Sets D_80074ED4 to 1 (DMA active), then registers sndDmaCompleteCallback as
  * the transfer completion callback via func_8003E494.
  */
-void func_80014778(void) {
+void sndDmaSetActive(void) {
     extern volatile s32 D_80074ED4;
     D_80074ED4 = 1;
-    func_8003E494((s32)func_80014754);
+    func_8003E494((s32)sndDmaCompleteCallback);
 }
 
 /**
  * @brief Sets the SPU DMA active flag, registers callback, and initiates SPU write.
  *
- * Sets D_80074ED4 to 1, registers func_80014754 as the completion callback,
+ * Sets D_80074ED4 to 1, registers sndDmaCompleteCallback as the completion callback,
  * then calls func_8003E3A4 to begin the SPU write with the given address and size.
  *
  * @param a0 SPU destination address.
  * @param a1 Transfer size in bytes.
  */
-void func_800147A8(s32 a0, s32 a1) {
+void sndDmaWriteSpu(s32 a0, s32 a1) {
     extern volatile s32 D_80074ED4;
     D_80074ED4 = 1;
-    func_8003E494((s32)func_80014754);
+    func_8003E494((s32)sndDmaCompleteCallback);
     func_8003E3A4(a0, a1);
 }
 
-/** @brief Calls func_80014778, then SpuRead with a0/a1 as arguments.
+/** @brief Calls sndDmaSetActive, then SpuRead with a0/a1 as arguments.
  *  @param a0 SPU read address.
  *  @param a1 SPU read size.
  */
-void func_800147F8(s32 a0, s32 a1) {
-    func_80014778();
+void sndDmaReadSpu(s32 a0, s32 a1) {
+    sndDmaSetActive();
     SpuRead(a0, a1);
 }
 
@@ -65,7 +65,7 @@ void func_800147F8(s32 a0, s32 a1) {
  * Spins on volatile flag D_80074ED4 until it is no longer 1, indicating
  * the active SPU transfer has finished.
  */
-void func_80014834(void) {
+void sndDmaWait(void) {
     extern volatile s32 D_80074ED4;
     while (D_80074ED4 == 1) {}
 }
@@ -73,7 +73,7 @@ void func_80014834(void) {
 /**
  * @brief Initiates a single SPU sample upload step.
  *
- * Validates @p a0 via func_80014740, then reads the sample's transfer
+ * Validates @p a0 via sndValidateBank, then reads the sample's transfer
  * size (offset 0x18) and start address (offset 0x10) to call func_800148B0,
  * which performs the actual DMA transfer.
  *
@@ -81,8 +81,8 @@ void func_80014834(void) {
  * @param a1 Transfer mode or bank index.
  * @return 0 on success, -1 if validation of @p a0 fails.
  */
-s32 func_80014860(s32 a0, s32 a1) {
-    if (func_80014740(a0) != 0) {
+s32 sndUploadSample(s32 a0, s32 a1) {
+    if (sndValidateBank(a0) != 0) {
         return -1;
     }
     func_800148B0(a0, a1, *(s32 *)(a0 + 0x18), *(s32 *)(a0 + 0x10));
@@ -107,7 +107,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_dma", func_80014974);
  *  8. Opens and enables an event on the root counter for the sound engine tick
  *     callback (D_8001AD60).
  */
-void func_80014C30(void) {
+void sndSpuInit(void) {
     extern s32 D_80074E88;
     extern u8 D_800516B8[];
     extern s32 D_8001AD60;
@@ -117,8 +117,8 @@ void func_80014C30(void) {
     SpuInitMalloc(4, (s32)&D_80074E88);
     SpuSetTransferMode(0);
     SpuSetTransferStartAddr(0x1010);
-    func_800147A8((s32)D_800516B8, 0x40);
-    func_80014834();
+    sndDmaWriteSpu((s32)D_800516B8, 0x40);
+    sndDmaWait();
     func_80014974();
     SpuSetIRQ(0);
     SpuSetIRQCallback(0);
@@ -145,14 +145,14 @@ void func_80014C30(void) {
  * the associated event, resets all voice IRQ addresses, and calls
  * func_8003DE44 (SpuQuit) for final SPU cleanup.
  */
-void func_80014D20(void) {
+void sndSpuShutdown(void) {
     extern s32 D_80074ED4;
     extern u8 D_800516B8[];
     extern s32 D_8005169C;
 
     if (D_80074ED4 == 1) {
-        func_800147A8((s32)D_800516B8, 0x40);
-        func_80014834();
+        sndDmaWriteSpu((s32)D_800516B8, 0x40);
+        sndDmaWait();
     }
 
     do {
@@ -166,7 +166,7 @@ void func_80014D20(void) {
     do {
     } while (CloseEvent(D_8005169C) == 0);
 
-    func_80014DE0(0xFFFFFF);
+    spuSetIrqAddr(0xFFFFFF);
     func_8003DE44();
 }
 
@@ -178,7 +178,7 @@ void func_80014D20(void) {
  *
  * @param val 32-bit reverb work area start address.
  */
-void func_80014DC4(u32 val) {
+void spuSetReverbWorkAddr(u32 val) {
     *(s16 *)0x1F801D88 = val;
     *(s16 *)0x1F801D8A = val >> 16;
 }
@@ -191,7 +191,7 @@ void func_80014DC4(u32 val) {
  *
  * @param val 32-bit SPU IRQ address.
  */
-void func_80014DE0(u32 val) {
+void spuSetIrqAddr(u32 val) {
     *(s16 *)0x1F801D8C = val;
     *(s16 *)0x1F801D8E = val >> 16;
 }
@@ -204,7 +204,7 @@ void func_80014DE0(u32 val) {
  *
  * @param val 32-bit transfer control value.
  */
-void func_80014DFC(u32 val) {
+void spuSetTransferControl(u32 val) {
     *(s16 *)0x1F801D98 = val;
     *(s16 *)0x1F801D9A = val >> 16;
 }
@@ -217,7 +217,7 @@ void func_80014DFC(u32 val) {
  *
  * @param val 32-bit value to push into the SPU data FIFO.
  */
-void func_80014E18(u32 val) {
+void spuSetDataFifo(u32 val) {
     *(s16 *)0x1F801D94 = val;
     *(s16 *)0x1F801D96 = val >> 16;
 }
@@ -230,7 +230,7 @@ void func_80014E18(u32 val) {
  *
  * @param val 32-bit SPU RAM transfer start address.
  */
-void func_80014E34(u32 val) {
+void spuSetTransferAddr(u32 val) {
     *(s16 *)0x1F801D90 = val;
     *(s16 *)0x1F801D92 = val >> 16;
 }
@@ -247,7 +247,7 @@ void func_80014E34(u32 val) {
  * @param vol_r Right volume (0-0x7FFF).
  * @param scale Volume scale factor (0 = no scaling, otherwise vol * scale / 128).
  */
-void func_80014E50(s32 voice, s32 vol_l, s32 vol_r, s32 scale) {
+void spuSetVoiceVolume(s32 voice, s32 vol_l, s32 vol_r, s32 scale) {
     s16 *p;
     if (scale != 0) {
         vol_l *= scale;
@@ -268,7 +268,7 @@ void func_80014E50(s32 voice, s32 vol_l, s32 vol_r, s32 scale) {
  * @param voice SPU voice index (0-23).
  * @param val Sample rate value (0x1000 = 44100 Hz).
  */
-void func_80014E98(s32 voice, s32 val) {
+void spuSetVoicePitch(s32 voice, s32 val) {
     *(s16 *)(0x1F801C04 + voice * 16) = val;
 }
 
@@ -281,7 +281,7 @@ void func_80014E98(s32 voice, s32 val) {
  * @param voice SPU voice index (0-23).
  * @param val SPU RAM byte address of the ADPCM sample start.
  */
-void func_80014EB0(s32 voice, u32 val) {
+void spuSetVoiceStartAddr(s32 voice, u32 val) {
     *(s16 *)(0x1F801C06 + voice * 16) = val >> 3;
 }
 
@@ -294,7 +294,7 @@ void func_80014EB0(s32 voice, u32 val) {
  * @param voice SPU voice index (0-23).
  * @param val SPU RAM byte address of the ADPCM loop point.
  */
-void func_80014ECC(s32 voice, u32 val) {
+void spuSetVoiceRepeatAddr(s32 voice, u32 val) {
     *(s16 *)(0x1F801C0E + voice * 16) = val >> 3;
 }
 
@@ -308,7 +308,7 @@ void func_80014ECC(s32 voice, u32 val) {
  * @param voice SPU voice index (0-23).
  * @param val 16-bit ADSR low value.
  */
-void func_80014EE8(s32 voice, s32 val) {
+void spuSetVoiceAdsrLow(s32 voice, s32 val) {
     *(s16 *)(0x1F801C08 + voice * 16) = val;
 }
 
@@ -321,7 +321,7 @@ void func_80014EE8(s32 voice, s32 val) {
  * @param voice SPU voice index (0-23).
  * @param val 16-bit ADSR high value.
  */
-void func_80014F00(s32 voice, s32 val) {
+void spuSetVoiceAdsrHigh(s32 voice, s32 val) {
     *(s16 *)(0x1F801C0A + voice * 16) = val;
 }
 
@@ -336,7 +336,7 @@ void func_80014F00(s32 voice, s32 val) {
  * @param a1 Attack shift value (written to bits [12:8]).
  * @param a2 Attack mode (bit 2 selects exponential mode in bit 15).
  */
-void func_80014F18(s32 voice, u32 a1, u32 a2) {
+void spuSetVoiceAttack(s32 voice, u32 a1, u32 a2) {
     u8 *addr = (u8 *)(0x1F801C08 + voice * 16);
     s32 val = *addr;
     val |= ((a2 >> 2) << 15) | (a1 << 8);
@@ -352,7 +352,7 @@ void func_80014F18(s32 voice, u32 a1, u32 a2) {
  * @param voice SPU voice index (0-23).
  * @param a1 Decay shift value (4 bits, written to bits [7:4]).
  */
-void func_80014F48(s32 voice, u32 a1) {
+void spuSetVoiceDecayShift(s32 voice, u32 a1) {
     s16 *addr = (s16 *)(0x1F801C08 + voice * 16);
     s32 val = *(u16 *)addr;
     val = (val & 0xFF0F) | (a1 << 4);
@@ -368,7 +368,7 @@ void func_80014F48(s32 voice, u32 a1) {
  * @param voice SPU voice index (0-23).
  * @param a1 Sustain level value (4 bits, written to bits [3:0]).
  */
-void func_80014F70(s32 voice, u32 a1) {
+void spuSetVoiceSustainLevel(s32 voice, u32 a1) {
     s16 *addr = (s16 *)(0x1F801C08 + voice * 16);
     s32 val = *(u16 *)addr;
     val = (val & 0xFFF0) | a1;
@@ -386,7 +386,7 @@ void func_80014F70(s32 voice, u32 a1) {
  * @param a1 Sustain shift value (written to bits [12:6]).
  * @param a2 Sustain direction (bit 1 selects decrease mode in bit 14).
  */
-void func_80014F98(s32 voice, u32 a1, u32 a2) {
+void spuSetVoiceSustainMode(s32 voice, u32 a1, u32 a2) {
     s16 *addr = (s16 *)(0x1F801C0A + voice * 16);
     u32 packed = ((a2 >> 1) << 14) | (a1 << 6);
     s32 val = *(u16 *)addr;
@@ -405,7 +405,7 @@ void func_80014F98(s32 voice, u32 a1, u32 a2) {
  * @param a1 Release shift value (5 bits, written to bits [4:0]).
  * @param a2 Release mode (bit 2 selects exponential mode in bit 5).
  */
-void func_80014FCC(s32 voice, u32 a1, u32 a2) {
+void spuSetVoiceReleaseMode(s32 voice, u32 a1, u32 a2) {
     s16 *addr = (s16 *)(0x1F801C0A + voice * 16);
     u32 packed = ((a2 >> 2) << 5) | a1;
     s32 val = *(u16 *)addr;

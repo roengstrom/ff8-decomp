@@ -5,7 +5,7 @@
 extern u8 g_tripleTriad;
 
 /** @brief Return a pointer to the global item/key item inventory array g_tripleTriad. */
-u8 *func_80023900(void) {
+u8 *getInventoryPtr(void) {
     return &g_tripleTriad;
 }
 
@@ -17,12 +17,12 @@ u8 *func_80023900(void) {
  * @return 0 on success, -1 if increment/decrement would overflow (max 100) or underflow (min 0).
  * @note Item quantities stored in lower 7 bits (0x7F mask). Upper bit may be a flag.
  */
-s32 func_8002390C(a0, a1)
+s32 modifyItemQuantity(a0, a1)
 
 s32 a0;
 s32 a1;
 {
-    u8 *base = func_80023900();
+    u8 *base = getInventoryPtr();
     u8 *ptr;
     u8 val;
 
@@ -55,12 +55,12 @@ s32 a1;
  *
  * For item slots < 0x4D: sets the high bit (0x80) of the item byte.
  * For key item slots >= 0x4D: sets the corresponding bit in the key item
- * bitfield (starting at offset 0x6E). Then calls func_8002390C(a0, 0xF0).
+ * bitfield (starting at offset 0x6E). Then calls modifyItemQuantity(a0, 0xF0).
  *
  * @param a0 Inventory slot index.
  */
-void func_800239A8(s32 a0) {
-    u8 *base = func_80023900();
+void markItemPresent(s32 a0) {
+    u8 *base = getInventoryPtr();
     if (a0 < 0x4D) {
         base[a0] |= 0x80;
     } else {
@@ -68,13 +68,13 @@ void func_800239A8(s32 a0) {
         s32 byte_idx = idx / 8;
         (base + byte_idx)[0x6E] |= 1 << (idx - byte_idx * 8);
     }
-    func_8002390C(a0, 0xF0);
+    modifyItemQuantity(a0, 0xF0);
 }
 
 
-/** @brief Wrapper that calls func_8002390C with a1=0. */
-s32 func_80023A34(s32 a0) {
-    return func_8002390C(a0, 0);
+/** @brief Wrapper that calls modifyItemQuantity with a1=0. */
+s32 decrementItem(s32 a0) {
+    return modifyItemQuantity(a0, 0);
 }
 
 
@@ -91,8 +91,8 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80023A54);
  * @param a0 Inventory slot index.
  * @return 1 if the item/key item is flagged, 0 otherwise.
  */
-s32 func_80023A88(s32 a0) {
-    u8 *base = func_80023900();
+s32 isItemPresent(s32 a0) {
+    u8 *base = getInventoryPtr();
     s32 byte_idx;
     if (a0 < 0x4D) {
         if (base[a0] & 0x80) {
@@ -120,7 +120,7 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80023B14);
  *
  * @return Sum of all positive func_80023B14 results.
  */
-s32 func_80023BB4(void) {
+s32 sumItemQuantities(void) {
     s32 sum = 0;
     s32 i = sum;
     for (; i < 0x6E; i++) {
@@ -134,16 +134,16 @@ s32 func_80023BB4(void) {
 
 
 /**
- * @brief Look up a byte from func_80023900 result table.
+ * @brief Look up a byte from getInventoryPtr result table.
  *
- * Calls func_80023900(a0) to get a base pointer. If a0 >= 0x4D,
+ * Calls getInventoryPtr(a0) to get a base pointer. If a0 >= 0x4D,
  * returns the byte at base[a0]; otherwise returns 0.
  *
- * @param a0 Index value (also passed through to func_80023900).
+ * @param a0 Index value (also passed through to getInventoryPtr).
  * @return Byte at base[a0] if a0 >= 0x4D, else 0.
  */
-s32 func_80023C08(s32 a0) {
-    u8 *base = func_80023900();
+s32 getKeyItemValue(s32 a0) {
+    u8 *base = getInventoryPtr();
     if (a0 >= 0x4D) {
         return base[a0];
     }
@@ -159,7 +159,7 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80023C48);
  *
  * Uses a Linear Congruential Generator with multiplier 69069 and
  * increment 1. The state is stored at offset +0x7C of the structure
- * returned by func_80023900. Returns the upper 15 bits of the
+ * returned by getInventoryPtr. Returns the upper 15 bits of the
  * updated state.
  *
  * @return Pseudo-random value in [0, 32767].

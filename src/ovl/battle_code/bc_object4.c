@@ -10,7 +10,7 @@ extern u8 g_gameState[];
 s32 func_8009B15C(void);
 s32 func_8009B74C(s32, s32);
 void func_800B0754(s32, s32, s32, s32);
-void func_80020FEC(s32);
+void decrementItemByType(s32);
 void func_8009AF14(s32);
 s32 func_800AA4E8(void);
 void func_8009AE08(s32);
@@ -187,7 +187,7 @@ void func_800A64E4(s32 a0, s32 a1) {
     if (a0 == 0) {
         u8 *base = D_800ED148;
         func_800B0754(base[0xF], 0xED, base[0x1324], (u16)a1);
-        func_80020FEC(base[0x1324] + 0x65);
+        decrementItemByType(base[0x1324] + 0x65);
         func_8009AF14((s32)func_800E1850);
     } else {
         s32 result = func_800AA4E8();

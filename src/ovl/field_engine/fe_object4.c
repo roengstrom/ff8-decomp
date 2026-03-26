@@ -479,14 +479,14 @@ s32 func_800AF070(u8 *a0) {
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF0B4);
 
 /**
- * Calls func_80038464 with the object pointer, masks result to byte,
+ * Calls fieldRandom with the object pointer, masks result to byte,
  * stores at offset 0x140, returns 2.
  *
  * @param a0 Pointer to the script/object structure.
  * @return 2 (continue processing).
  */
 s32 func_800AF0E0(u8 *a0) {
-    *(s32 *)(a0 + 0x140) = func_80038464(a0) & 0xFF;
+    *(s32 *)(a0 + 0x140) = fieldRandom(a0) & 0xFF;
     return 2;
 }
 
@@ -505,7 +505,7 @@ s32 func_800AF114(u8 *a0, s32 a1) {
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800AF120);
 
 /**
- * Pops a value, calls func_80037C30 to look up an index, then loads
+ * Pops a value, calls findCharacterSlot to look up an index, then loads
  * the byte at g_gameState + index * 152 + 0x4EB into result slot 0x140.
  *
  * @param a0 Pointer to the script/object structure.
@@ -518,7 +518,7 @@ s32 func_800AF1AC(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    result = func_80037C30(*(s32 *)(a0 + (s8)idx * 4));
+    result = findCharacterSlot(*(s32 *)(a0 + (s8)idx * 4));
     {
         u8 *base = g_gameState;
         *(s32 *)(a0 + 0x140) = *(u8 *)(base + result * 152 + 0x4EB);
@@ -595,7 +595,7 @@ s32 func_800AF3B4(u8 *a0) {
 
 /**
  * Sets bits 0x18 in entity flags at D_800562C4+0x68, then calls
- * func_800318E0 with the inverted bit 3 value.
+ * setTransitionFlag with the inverted bit 3 value.
  *
  * @param a0 Unused.
  * @return 2 (continue processing).
@@ -607,7 +607,7 @@ s32 func_800AF404(u8 *a0) {
     flags = *(s32 *)(D_800562C4 + 0x68);
     flags = flags | 0x18;
     *(s32 *)(D_800562C4 + 0x68) = flags;
-    func_800318E0(((u32)flags >> 3 ^ 1) & 1);
+    setTransitionFlag(((u32)flags >> 3 ^ 1) & 1);
     return 2;
 }
 
@@ -723,7 +723,7 @@ s32 func_800B0280(u8 *a0) {
 }
 
 /**
- * Pops a value, calls func_80037BB0, stores result at 0x140
+ * Pops a value, calls findBattlePartySlot, stores result at 0x140
  * (or -1 if result is 0xFF).
  *
  * @param a0 Pointer to the script/object structure.
@@ -735,7 +735,7 @@ s32 func_800B02A0(u8 *a0) {
 
     idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
-    result = func_80037BB0(*(s32 *)(a0 + (s8)idx * 4));
+    result = findBattlePartySlot(*(s32 *)(a0 + (s8)idx * 4));
     *(s32 *)(a0 + 0x140) = result;
     if (result == 0xFF) {
         *(s32 *)(a0 + 0x140) = -1;
@@ -759,7 +759,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800B0784);
 
 /**
  * Clears bit 0x800 in entity flags at D_800562C4+0x68, clears
- * D_80082C10 and D_80077E5F, then calls func_80023888.
+ * D_80082C10 and D_80077E5F, then calls recalcPartyStats.
  *
  * @param a0 Unused.
  * @return 2 (continue processing).
@@ -773,6 +773,6 @@ s32 func_800B0818(u8 *a0) {
     *(s32 *)(entity + 0x68) = *(s32 *)(entity + 0x68) & ~0x800;
     D_80082C10 = 0;
     D_80077E5F = 0;
-    func_80023888();
+    recalcPartyStats();
     return 2;
 }

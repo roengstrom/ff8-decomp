@@ -90,7 +90,7 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2EF0);
  * @brief Scan tutorial entry table and build list of available entries.
  *
  * Iterates over 9 entries in D_801E4E3C (12-byte stride), calls
- * func_8003720C to check if each entry's item (byte at offset 8) is
+ * testFieldFlag to check if each entry's item (byte at offset 8) is
  * available. Available entries' indices are stored sequentially at
  * a0+0x39, and the total count is stored at a0+0x36.
  *
@@ -103,7 +103,7 @@ void func_801E30C4(u8 *a0) {
     u8 *table = D_801E4E3C;
 
     do {
-        if (func_8003720C(table[8]) != 0) {
+        if (testFieldFlag(table[8]) != 0) {
             *(u8 *)(a0 + count + 0x39) = i;
             count++;
         }

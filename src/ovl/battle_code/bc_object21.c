@@ -190,35 +190,35 @@ void func_800DF794(void) {
 /**
  * @brief Call three animation functions in sequence.
  *
- * Calls func_8002A8B8 with a1, func_8002AA18 with a0, then func_8002A888.
+ * Calls storeGpuPacket with a1, func_8002AA18 with a0, then getDisplayListHead.
  *
  * @param a0 Second animation parameter.
  * @param a1 First animation parameter.
  */
 void func_800DF7C8(s32 a0, s32 a1) {
-    func_8002A8B8(a1);
+    storeGpuPacket(a1);
     func_8002AA18(a0);
-    func_8002A888();
+    getDisplayListHead();
 }
 
-/** @brief Wrapper for func_8002C7BC. */
+/** @brief Wrapper for setSfxEntryParams. */
 void func_800DF804(void) {
-    func_8002C7BC();
+    setSfxEntryParams();
 }
 
-/** @brief Wrapper for func_8002D6AC. */
+/** @brief Wrapper for initSfxPlayback. */
 void func_800DF824(void) {
-    func_8002D6AC();
+    initSfxPlayback();
 }
 
-/** @brief Wrapper for func_8002DD58. */
+/** @brief Wrapper for fadeOutSfxFast. */
 void func_800DF844(void) {
-    func_8002DD58();
+    fadeOutSfxFast();
 }
 
-/** @brief Wrapper for func_8002DCF4. */
+/** @brief Wrapper for startSfxNormal. */
 void func_800DF864(void) {
-    func_8002DCF4();
+    startSfxNormal();
 }
 
 /** @brief Wrapper for func_8002E064. */
@@ -226,24 +226,24 @@ void func_800DF884(void) {
     func_8002E064();
 }
 
-/** @brief Wrapper for func_8002CA58. */
+/** @brief Wrapper for setSfxPitch. */
 void func_800DF8A4(void) {
-    func_8002CA58();
+    setSfxPitch();
 }
 
-/** @brief Wrapper for func_8002DD78. */
+/** @brief Wrapper for setSfxReverbMode. */
 void func_800DF8C4(void) {
-    func_8002DD78();
+    setSfxReverbMode();
 }
 
-/** @brief Wrapper for func_8002DE74. */
+/** @brief Wrapper for setSfxField2F. */
 void func_800DF8E4(void) {
-    func_8002DE74();
+    setSfxField2F();
 }
 
-/** @brief Wrapper for func_8002E1E8. */
+/** @brief Wrapper for resetAllSfx. */
 void func_800DF904(void) {
-    func_8002E1E8();
+    resetAllSfx();
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object21", func_800DF924);

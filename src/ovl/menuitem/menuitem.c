@@ -105,7 +105,7 @@ s32 func_801E2C44(u8 *a0, s32 a1, s32 a2) {
  * @brief Look up an item name string by index.
  *
  * If @p a0 is within bounds (less than D_801ECC10), uses it to index
- * into D_801ECB60 to get an item ID, then calls func_80020AD4
+ * into D_801ECB60 to get an item ID, then calls getAbilityDesc
  * to get the corresponding string. Returns NULL if out of bounds.
  *
  * @param a0 Item list index.
@@ -115,7 +115,7 @@ s32 func_801E2C80(s32 a0) {
     extern s32 D_801ECC10;
     extern u8 D_801ECB60[];
     if (a0 < D_801ECC10) {
-        return func_80020AD4(D_801ECB60[a0 * 8]);
+        return getAbilityDesc(D_801ECB60[a0 * 8]);
     }
     return 0;
 }
@@ -539,7 +539,7 @@ void func_801E4B80(s32 a0, s32 a1) {
  * Reads the current list index from @p a0[0x54], uses it to look up
  * a byte pair from the item table at @p a0[0x20]. Stores the first
  * byte (item ID) at @p a0[0x65]. If both bytes are nonzero, calls
- * func_80020D4C to get the item description and stores it at @p a0[0x28].
+ * getStatDesc to get the item description and stores it at @p a0[0x28].
  *
  * @param a0 Pointer to item menu context.
  */
@@ -775,7 +775,7 @@ void func_801E9B98(void) {
     func_801E3E94();
     if (ctx != 0) {
         func_801E9AAC(ctx);
-        func_800361F8(0xC, 0x801D5000);
+        loadOverlayWithTimCallback(0xC, 0x801D5000);
         *(s16 *)(ctx + 0x40) = 0;
         func_801E4EA4(ctx);
         *(s16 *)(ctx + 0x3C) = 0;
@@ -828,9 +828,9 @@ void func_801E9DE4(u8 *a0) {
 /**
  * @brief Check if all bytes in string match the first byte of entry 0xB.
  *
- * Calls func_8002A2F4 first as a precondition. If it returns 0, returns 0.
+ * Calls btlStrlen first as a precondition. If it returns 0, returns 0.
  * Otherwise iterates through each byte at a0 until a zero terminator,
- * comparing against the first byte of the entry returned by func_80020F84(0xB).
+ * comparing against the first byte of the entry returned by getMenuString(0xB).
  * Returns 1 as soon as a mismatch is found, 0 if all match or string is empty.
  *
  * @param a0 Pointer to a null-terminated byte string.
@@ -907,7 +907,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAB8C);
 /**
  * @brief Render item detail sub-menu with multiple panel sections.
  *
- * Saves and restores a global state via func_8002E7C4. If the display mode
+ * Saves and restores a global state via setMenuColorIntensity. If the display mode
  * returned by func_801F0D84 is 0xF, renders several sub-panels: item name
  * (func_801EA500), description (func_801EA538), icon (func_801EA714),
  * stats (func_801EA7E0), info (func_801EAB00), and list (func_801EAB8C).
@@ -927,7 +927,7 @@ s32 func_801EAC54(s32 a0, s32 a1, s32 a2) {
     s32 result;
     s32 qty;
 
-    func_8002E7C4(*(s32 *)(ctx + 0x28));
+    setMenuColorIntensity(*(s32 *)(ctx + 0x28));
     if (func_801F0D84() != 0xF) {
         return state;
     }
@@ -941,7 +941,7 @@ s32 func_801EAC54(s32 a0, s32 a1, s32 a2) {
     result = func_801EAB00(ctx, render, result, 0x6A, state);
     result = func_801EAB8C(render, result, 0x10E, 0x6);
     state = result;
-    func_8002E7C4(saved);
+    setMenuColorIntensity(saved);
     return state;
 }
 

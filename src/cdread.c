@@ -8,7 +8,7 @@
  * Clears the status byte at D_8008A3D8+1, then calls the function pointer
  * stored at D_8008A3D8+0x20 if it is non-NULL.
  */
-void func_80038D3C(void) {
+void cdClearStatusAndCallback(void) {
     extern u8 D_8008A3D8[];
     s32 base = (s32)D_8008A3D8;
     void (*callback)(void) = *(void (**)(void))(base + 0x20);
@@ -20,7 +20,7 @@ void func_80038D3C(void) {
 
 
 /** @brief Empty stub (no-op), placeholder in CD-ROM subsystem. */
-void func_80038D74(void) {
+void cdStubNoop(void) {
 }
 
 
@@ -30,9 +30,9 @@ void func_80038D74(void) {
  * Calls CdSync(1, 0) to wait for the previous operation to finish.
  * If the result is 2 (ready), issues a CdControl read command (type 2)
  * with parameters from D_8008A3DC, sets state byte D_8008A3D9 to 1,
- * and calls func_80038D3C to continue processing.
+ * and calls cdClearStatusAndCallback to continue processing.
  */
-void func_80038D7C(void) {
+void cdStartSyncRead(void) {
     extern u8 D_8008A3DC[];
     u8 *p;
     if (CdSync(1, 0) != 2) {
@@ -41,7 +41,7 @@ void func_80038D7C(void) {
     p = D_8008A3DC;
     CdControl(2, p, 0);
     *(p - 3) = 1;
-    func_80038D3C();
+    cdClearStatusAndCallback();
 }
 
 
@@ -50,9 +50,9 @@ void func_80038D7C(void) {
  *
  * Calls CdSync(1, 0) to wait for the previous operation. If the result
  * is 2 (ready), issues CdControlF(2, D_8008A3DC), sets state byte
- * D_8008A3D9 to 4, and calls func_80038E28 to poll for completion.
+ * D_8008A3D9 to 4, and calls cdPollReadState to poll for completion.
  */
-void func_80038DD4(void) {
+void cdStartAsyncRead(void) {
     extern u8 D_8008A3DC[];
     u8 *p;
     if (CdSync(1, 0) != 2) {
@@ -61,7 +61,7 @@ void func_80038DD4(void) {
     p = D_8008A3DC;
     CdControlF(2, p);
     *(p - 3) = 4;
-    func_80038E28();
+    cdPollReadState();
 }
 
 
@@ -70,12 +70,12 @@ void func_80038DD4(void) {
  *
  * Checks CdSync(1, 0) for asynchronous read status:
  * - Case 2 (complete): resets timeout counter, advances to state 5,
- *   calls func_80038ED4 for post-read processing.
+ *   calls cdReadSectors for post-read processing.
  * - Case 5 (error/retry): increments timeout counter; if >= 0x708 (1800)
- *   frames, resets counter and plays an error sound via func_8001313C.
+ *   frames, resets counter and plays an error sound via sndKeyOn.
  *   Calls VSync(0) and returns to state 3 to retry.
  */
-void func_80038E28(void) {
+void cdPollReadState(void) {
     extern u32 D_8008A3C8;
     extern u8 D_8008A3D9;
 
@@ -83,13 +83,13 @@ void func_80038E28(void) {
     case 2:
         D_8008A3C8 = 0;
         D_8008A3D9 = 5;
-        func_80038ED4();
+        cdReadSectors();
         break;
     case 5:
         D_8008A3C8++;
         if (D_8008A3C8 >= 0x708) {
             D_8008A3C8 = 0;
-            func_8001313C(0x10, 0, 0x80, 0x7F, 0);
+            sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
         D_8008A3D9 = 3;
@@ -103,12 +103,12 @@ void func_80038E28(void) {
  *
  * Reads sectors using CdRead with parameters from D_8008A3D8. On success
  * (non-zero return), resets the timeout counter D_8008A3C8, sets state to 6,
- * and calls func_80038F88. On failure, increments the timeout counter;
+ * and calls cdHandleReadSync. On failure, increments the timeout counter;
  * if it reaches 0x708 (1800 frames), resets it and plays an error sound.
  * Then waits for VSync, sets state to 3, flushes the CD, and issues
  * a CdControl pause command (type 9).
  */
-void func_80038ED4(void) {
+void cdReadSectors(void) {
     extern u8 D_8008A3D8[];
     extern u32 D_8008A3C8;
     u8 *p = D_8008A3D8;
@@ -117,7 +117,7 @@ void func_80038ED4(void) {
         D_8008A3C8++;
         if (D_8008A3C8 >= 0x708) {
             D_8008A3C8 = 0;
-            func_8001313C(0x10, 0, 0x80, 0x7F, 0);
+            sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
         *(p + 1) = 3;
@@ -126,7 +126,7 @@ void func_80038ED4(void) {
     } else {
         D_8008A3C8 = 0;
         *(p + 1) = 6;
-        func_80038F88();
+        cdHandleReadSync();
     }
 }
 
@@ -135,12 +135,12 @@ void func_80038ED4(void) {
  * @brief Handle CD-ROM read synchronization result.
  *
  * Calls CdReadSync(1, 0) to check read completion status:
- * - On success (0): resets error counter, sets state to 1, calls func_80038D3C.
+ * - On success (0): resets error counter, sets state to 1, calls cdClearStatusAndCallback.
  * - On error (-1): increments error counter, plays error sound if threshold
  *   (0x708) reached, waits for VSync, sets state to 3, flushes and re-seeks.
  * - Otherwise: returns without action (read still in progress).
  */
-void func_80038F88(void) {
+void cdHandleReadSync(void) {
     extern u32 D_8008A3C8;
     extern u8 D_8008A3D9;
     s32 result = CdReadSync(1, 0);
@@ -148,13 +148,13 @@ void func_80038F88(void) {
         if (result == 0) {
             D_8008A3C8 = 0;
             D_8008A3D9 = 1;
-            func_80038D3C();
+            cdClearStatusAndCallback();
         }
     } else {
         D_8008A3C8++;
         if (D_8008A3C8 >= 0x708) {
             D_8008A3C8 = 0;
-            func_8001313C(0x10, 0, 0x80, 0x7F, 0);
+            sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
         D_8008A3D9 = 3;
@@ -170,9 +170,9 @@ void func_80038F88(void) {
  * Calls CdSync(1, 0) to wait for the previous operation to finish.
  * If the result is 2 (ready), issues a CdControlF seek command (type 2)
  * with parameters from D_8008A3DC, sets state byte D_8008A3D9 to 8,
- * and calls func_80039094 to continue processing.
+ * and calls cdPollSeekState to continue processing.
  */
-void func_80039040(void) {
+void cdStartAsyncSeek(void) {
     extern u8 D_8008A3DC[];
     u8 *p;
     if (CdSync(1, 0) != 2) {
@@ -181,20 +181,20 @@ void func_80039040(void) {
     p = D_8008A3DC;
     CdControlF(2, p);
     *(p - 3) = 8;
-    func_80039094();
+    cdPollSeekState();
 }
 
 
 /**
  * @brief Poll CD-ROM seek/read state and handle completion or timeout.
  *
- * Similar to func_80038E28 but for a different CD operation phase:
+ * Similar to cdPollReadState but for a different CD operation phase:
  * - Case 2 (complete): resets timeout counter, advances to state 9,
  *   calls func_80039140 for post-seek processing.
  * - Case 5 (error/retry): increments timeout counter; if >= 0x708 (1800)
  *   frames, resets and plays error sound. Returns to state 7 to retry.
  */
-void func_80039094(void) {
+void cdPollSeekState(void) {
     extern u32 D_8008A3C8;
     extern u8 D_8008A3D9;
 
@@ -208,7 +208,7 @@ void func_80039094(void) {
         D_8008A3C8++;
         if (D_8008A3C8 >= 0x708) {
             D_8008A3C8 = 0;
-            func_8001313C(0x10, 0, 0x80, 0x7F, 0);
+            sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
         D_8008A3D9 = 7;
@@ -229,7 +229,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039218);
  * Issues CdControl(1) (CdlNop/GetStat), checks if bit 4 (shell open)
  * is set in the result. If not set, calls func_80038A60 to handle it.
  */
-void func_80039344(void) {
+void cdCheckDriveStatus(void) {
     u8 buf[8];
     CdControl(1, 0, buf);
     if ((buf[0] & 0x10) == 0) {
@@ -244,7 +244,7 @@ void func_80039344(void) {
  * Polls CdSync(1, 0); if the result is 2 (complete), calls CdReadBreak
  * to abort the read and resets the CD state machine to state 0 (idle).
  */
-void func_80039388(void) {
+void cdBreakRead(void) {
     extern u8 D_8008A3D9;
     if (CdSync(1, 0) == 2) {
         CdReadBreak();
@@ -392,16 +392,16 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A700);
 INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A7C4);
 
 
-/** @brief Wrapper that calls func_80039AA0. */
-void func_8003AB64(void) { func_80039AA0(); }
+/** @brief Wrapper that calls func_80039AA0 (read and clear CD status). */
+void cdReadStatusWrapper(void) { func_80039AA0(); }
 
 
-/** @brief Wrapper that calls func_80039AB4. */
-void func_8003AB84(void) { func_80039AB4(); }
+/** @brief Wrapper that calls func_80039AB4 (initialize CD handler). */
+void cdInitHandlerWrapper(void) { func_80039AB4(); }
 
 
-/** @brief Calls func_80039B80. */
-void func_8003ABA4(void) {
+/** @brief Wrapper that calls func_80039B80 (disable CD interrupt handler). */
+void cdDisableInterruptWrapper(void) {
     func_80039B80();
 }
 
@@ -451,10 +451,10 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF50);
 INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF88);
 
 /**
- * @brief Calls a function pointer from D_80056568, then passes result to func_8003B024.
+ * @brief Calls a function pointer from D_80056568, then passes result to sndSetVoiceData.
  *
  * Loads a function pointer from D_80056568 and calls it with @p a0.
- * Passes the return value, a1, and a2 to func_8003B024.
+ * Passes the return value, a1, and a2 to sndSetVoiceData.
  *
  * @param a0 Parameter passed to the indirect call.
  * @param a1 Data pointer value.
@@ -472,7 +472,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AFD0);
  * @param a1 Value to store at offset +0x28 (data pointer/address).
  * @param a2 Value to store at offset +0x34 (parameter byte).
  */
-void func_8003B024(u8 *a0, s32 a1, s32 a2) {
+void sndSetVoiceData(u8 *a0, s32 a1, s32 a2) {
     *(s32 *)(a0 + 0x28) = a1;
     a0[0x34] = a2;
 }
@@ -485,7 +485,7 @@ void func_8003B024(u8 *a0, s32 a1, s32 a2) {
  * @param a2 Data pointer to store at offset +0x2C.
  * @param a3 Payload size byte to store at offset +0x36.
  */
-void func_8003B030(u8 *a0, s32 a1, s32 a2, s32 a3) {
+void sndSetVoiceCommand(u8 *a0, s32 a1, s32 a2, s32 a3) {
     a0[0x37] = a1;
     *(s32 *)(a0 + 0x2C) = a2;
     a0[0x36] = a3;
@@ -496,22 +496,22 @@ void func_8003B030(u8 *a0, s32 a1, s32 a2, s32 a3) {
  * @brief Dispatch a sound voice action based on the command type at offset +0x46.
  *
  * Reads the command type from a0[0x46] and dispatches:
- * - 2: stop voice (func_8003BB98)
- * - 3: set program from a0[0xE4] (func_8003BBAC)
- * - 4: set volume from a0[0x47] (func_8003BBEC)
+ * - 2: stop voice (sndVoiceCmdStop)
+ * - 3: set program from a0[0xE4] (sndVoiceCmdSetProgram)
+ * - 4: set volume from a0[0x47] (sndVoiceCmdSetVolume)
  *
  * @param a0 Pointer to the voice control structure.
  */
-void func_8003B040(u8 *a0) {
+void sndDispatchVoiceAction(u8 *a0) {
     switch (a0[0x46]) {
         case 2:
-            func_8003BB98(a0);
+            sndVoiceCmdStop(a0);
             break;
         case 3:
-            func_8003BBAC(a0, a0[0xE4]);
+            sndVoiceCmdSetProgram(a0, a0[0xE4]);
             break;
         case 4:
-            func_8003BBEC(a0, a0[0x47]);
+            sndVoiceCmdSetVolume(a0, a0[0x47]);
             break;
     }
 }
@@ -530,7 +530,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B0C4);
  * @param a0 Pointer to the voice control structure.
  * @return Total computed data size in bytes.
  */
-s32 func_8003B334(u8 *a0) {
+s32 sndCalcSequenceSize(u8 *a0) {
     s32 v0 = a0[0xE3];
     s32 a1val = a0[0xE9];
     u16 ecval = *(u16 *)(a0 + 0xEC);
@@ -548,18 +548,18 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B36C);
  *
  * @param a0 Pointer to CD command structure.
  */
-void func_8003B440(u8 *a0) {
+void sndDispatchCommand(u8 *a0) {
     u8 cmd = a0[0x46];
     switch (cmd) {
     case 2:
-        func_8003BBAC(a0, a0[0x47]);
+        sndVoiceCmdSetProgram(a0, a0[0x47]);
         break;
     case 3:
-        func_8003BBCC(a0, a0[0x47]);
+        sndVoiceCmdSetPitch(a0, a0[0x47]);
         break;
     case 4:
         if (a0[0x48] == 0) {
-            func_8003BBEC(a0, a0[0x47]);
+            sndVoiceCmdSetVolume(a0, a0[0x47]);
         } else {
             func_8003BC0C(a0);
         }
@@ -577,7 +577,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B8E0);
 /** @brief Sets command byte 0x4D, state byte 6, and copies field 0x20 to 0x2C.
  *  @param a0 Pointer to entity structure.
  */
-void func_8003B948(u8 *a0) {
+void sndSetTransferCommand(u8 *a0) {
     s32 val = *(s32 *)(a0 + 0x20);
     *(u8 *)(a0 + 0x37) = 0x4D;
     *(u8 *)(a0 + 0x36) = 6;
@@ -602,7 +602,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003BA2C);
  *
  * @param a0 Pointer to the CD command struct.
  */
-void func_8003BAC4(u8 *a0) {
+void sndConfigureCommand(u8 *a0) {
     s32 cmd = a0[0x46];
     switch (cmd) {
     case 2:
@@ -630,7 +630,7 @@ void func_8003BAC4(u8 *a0) {
  * @param a0 Pointer to the CD command struct.
  * @return 1 if command complete, 0 otherwise.
  */
-s32 func_8003BB18(u8 *a0) {
+s32 sndCheckCompletion(u8 *a0) {
     extern s32 D_80056558;
     if (a0[0x53] != 0) {
         if (a0[0x46] == 2) {

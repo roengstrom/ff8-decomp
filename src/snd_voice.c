@@ -1,6 +1,6 @@
 #include "common.h"
 
-void func_80016280(s32 a0);
+void sndReleaseVoice(s32 a0);
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80014FFC);
 
@@ -17,11 +17,11 @@ INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015AC8);
  *
  * Scans all 24 voice entries in the D_80073CB0 array (stride 8, priority
  * at offset +4) to find the voice with the lowest priority value. If found,
- * calls func_80016280 to release it from all active sequences.
+ * calls sndReleaseVoice to release it from all active sequences.
  *
  * @return The index of the freed voice, or 0x18 (24) if no voice is available.
  */
-s32 func_80015F4C(void) {
+s32 sndAllocVoice(void) {
     extern u8 D_80073CB0[];
     u32 i;
     u16 min_val;
@@ -46,7 +46,7 @@ s32 func_80015F4C(void) {
         return 0x18;
     }
     if (min_idx < 0x18) {
-        func_80016280(min_idx);
+        sndReleaseVoice(min_idx);
     }
     return min_idx;
 }
@@ -67,7 +67,7 @@ extern u8 *D_80073C34;
  *
  * @param a0 SPU voice index to release (0-23).
  */
-void func_80016280(s32 a0) {
+void sndReleaseVoice(s32 a0) {
     s32 base = (s32)D_80070D60;
     s32 i = 32;
     s32 replacement = 24;
@@ -106,7 +106,7 @@ void func_80016280(s32 a0) {
  * @param a2 SPU voice index to search for.
  * @return 1 if any matching track has its bit set in @p a1, 0 otherwise.
  */
-s32 func_80016300(u8 *a0, s32 a1, s32 a2) {
+s32 sndCheckVoiceInMask(u8 *a0, s32 a1, s32 a2) {
     u32 i = 0;
     s32 bit = 1;
     do {
@@ -134,7 +134,7 @@ extern s32 D_80074F1C;
  *
  * @param a0 Pointer to a sequence track structure.
  */
-void func_800164C8(u8 *a0) {
+void sndStoreTrackTiming(u8 *a0) {
     *(s32 *)(a0 + 0x50) = D_80074F1C;
 }
 

@@ -432,12 +432,12 @@ void func_800A4320(s32 value) {
 }
 
 /**
- * @brief Call func_80020F84 and store the result to D_800EE424.
+ * @brief Call getMenuString and store the result to D_800EE424.
  *
- * @param a0 Argument passed to func_80020F84.
+ * @param a0 Argument passed to getMenuString.
  */
 void func_800A432C(s32 a0) {
-    *(s32 *)D_800EE424 = func_80020F84(a0);
+    *(s32 *)D_800EE424 = getMenuString(a0);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A4350);

@@ -24,16 +24,16 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009895C);
 void func_80099124(void) {
 }
 
-/** @brief Call func_8002DD58 for sound channels 0-7, then func_8002A834(1). */
+/** @brief Call fadeOutSfxFast for sound channels 0-7, then renderAndUpdateDisplay(1). */
 void func_8009912C(void) {
     s16 i = 0;
 
     do {
-        func_8002DD58(i);
+        fadeOutSfxFast(i);
         i++;
     } while (i < 8);
 
-    func_8002A834(1);
+    renderAndUpdateDisplay(1);
 }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80099180);
@@ -372,7 +372,7 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5788);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5898);
 
 /**
- * If D_8005F14A equals 1, calls func_800389CC. Then clears D_8005F100 and D_8005F14A.
+ * If D_8005F14A equals 1, calls resetCdDrive. Then clears D_8005F100 and D_8005F14A.
  *
  * @param a0 Pointer to the script/object structure (unused).
  */
@@ -381,7 +381,7 @@ void func_800A59D0(u8 *a0) {
     extern s16 D_8005F100;
 
     if (D_8005F14A == 1) {
-        func_800389CC();
+        resetCdDrive();
     }
     D_8005F100 = 0;
     D_8005F14A = 0;

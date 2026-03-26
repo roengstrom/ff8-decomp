@@ -20,8 +20,8 @@ void func_800408E4(s32);
 void func_800C5338(s32);
 void func_800472E4(void);
 void func_800472F4(void);
-void func_80013300(s32);
-void func_8001336C(s32);
+void sndEnableReverb(s32);
+void sndDisableReverb(s32);
 void func_8009B6B0(void);
 void func_80049A14(s32);
 void func_8004D584(s32, s32);
@@ -82,9 +82,9 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5338);
  * @brief Wait for a sound request to complete, disabling/re-enabling channels.
  *
  * If D_800F1B90 is negative (request pending), disables sound channels 2 and 3
- * via func_80013300 (within a critical section), then polls func_8009B6B0 in a
+ * via sndEnableReverb (within a critical section), then polls func_8009B6B0 in a
  * loop until D_800F1B90 becomes non-negative. Finally re-enables channels 2
- * and 3 via func_8001336C (also within a critical section).
+ * and 3 via sndDisableReverb (also within a critical section).
  *
  * @return Current value of D_800F1B90 after completion.
  */
@@ -101,15 +101,15 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5338);
 s32 func_800C53F0(void) {
     if (*(s32 *)D_800F1B90 < 0) {
         func_800472E4();
-        func_80013300(2);
-        func_80013300(3);
+        sndEnableReverb(2);
+        sndEnableReverb(3);
         func_800472F4();
         while (*(s32 *)D_800F1B90 < 0) {
             func_8009B6B0();
         }
         func_800472E4();
-        func_8001336C(2);
-        func_8001336C(3);
+        sndDisableReverb(2);
+        sndDisableReverb(3);
         func_800472F4();
     }
     return *(s32 *)D_800F1B90;

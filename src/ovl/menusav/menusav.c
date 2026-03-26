@@ -66,14 +66,14 @@ void func_801E2860(void) {
     s32 idx = 0x12;
 
     func_801E283C();
-    func_800361C0(idx, 0x801D1000);
+    loadOverlayDirect(idx, 0x801D1000);
     do {
-        v0 = func_80035E00();
+        v0 = pollCdReadStatus();
     } while (v0 != 0);
     {
         s32 base = D_80097424;
         s32 entry = *(s32 *)(base + idx * 8);
-        func_8002A318(0x801D1000, D_800773C8, entry);
+        btlMemcpyForward(0x801D1000, D_800773C8, entry);
     }
 }
 
@@ -491,10 +491,10 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7190);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268);
 
-/** @brief Call func_80020608 with g_gameState and 0x13A. */
+/** @brief Call memzero16 with g_gameState and 0x13A. */
 void func_801E73C0(void) {
     extern u8 g_gameState[];
-    func_80020608(g_gameState, 0x13A);
+    memzero16(g_gameState, 0x13A);
 }
 
 /**
@@ -505,10 +505,10 @@ void func_801E73E8(void) {
 }
 
 /**
- * @brief Wrapper that calls func_80023888 (save menu input handler).
+ * @brief Wrapper that calls recalcPartyStats (save menu input handler).
  */
 void func_801E7408(void) {
-    func_80023888();
+    recalcPartyStats();
 }
 
 /**
@@ -517,11 +517,11 @@ void func_801E7408(void) {
  * Gets the save handler context, clears the first 0x6E bytes and bytes
  * 0x6E-0x72, clears bit 24 of the flags word at offset 0x70, sets
  * the word at 0x7C to 1, then registers 0x21 menu items via
- * func_8002390C.
+ * modifyItemQuantity.
  */
 void func_801E7428(void) {
     s32 s0;
-    u8 *a1 = (u8 *)func_80023900();
+    u8 *a1 = (u8 *)getInventoryPtr();
     s32 v0;
 
     s0 = 0x6D;
@@ -545,7 +545,7 @@ void func_801E7428(void) {
 
     s0 = 0;
     do {
-        func_8002390C(s0 + 0x4D, s0 + 0xC8);
+        modifyItemQuantity(s0 + 0x4D, s0 + 0xC8);
         s0++;
     } while (s0 < 0x21);
 }
@@ -618,7 +618,7 @@ s32 func_801E7550(void) {
  */
 void func_801E7598(void) {
     s32 s0;
-    u8 *s1 = (u8 *)func_800372D0();
+    u8 *s1 = (u8 *)getChocoboWorldPtr();
     if ((*(u16 *)(s1 + 0xC) & 0x8000) == 0) {
         func_801EB928();
         func_801EB890();
@@ -662,12 +662,12 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7830);
 /**
  * @brief Initialize save data structure with checksum and set active flag.
  *
- * Calls func_800372D0 to get the save data pointer, then func_801E74BC to
+ * Calls getChocoboWorldPtr to get the save data pointer, then func_801E74BC to
  * compute a checksum/value which is stored at offset 0x14. Sets bit 0x2
  * in the flags byte at offset 0x0.
  */
 void func_801E78FC(void) {
-    u8 *s0 = (u8 *)func_800372D0();
+    u8 *s0 = (u8 *)getChocoboWorldPtr();
     s32 v0 = func_801E74BC();
     *(s32 *)(s0 + 0x14) = v0;
     s0[0] |= 2;
@@ -707,9 +707,9 @@ s32 func_801E7A84(u8 *a0, s32 a1) {
     return result;
 }
 
-/** @brief Call func_800360D0 with a0 + 0xB4 and 0x801D3000. */
+/** @brief Call loadSubOverlay with a0 + 0xB4 and 0x801D3000. */
 void func_801E7B18(u8 *a0) {
-    func_800360D0(a0 + 0xB4, 0x801D3000);
+    loadSubOverlay(a0 + 0xB4, 0x801D3000);
 }
 
 /**
@@ -727,10 +727,10 @@ s32 func_801E7B40(s32 a0) {
 /**
  * @brief Advance save data loading state machine.
  *
- * Polls func_80035E00 for DMA completion. When complete, advances
+ * Polls pollCdReadStatus for DMA completion. When complete, advances
  * the state byte at a0[0x44]:
  * - State 0: transition to 1
- * - State 1: initiate read via func_800360D0, transition to 2
+ * - State 1: initiate read via loadSubOverlay, transition to 2
  * - State 2: transition to 3
  * - State 3+: no-op
  *
@@ -739,10 +739,10 @@ s32 func_801E7B40(s32 a0) {
 /**
  * @brief Advance save data loading state machine.
  *
- * Polls func_80035E00 for DMA completion. When complete, advances
+ * Polls pollCdReadStatus for DMA completion. When complete, advances
  * the state byte at a0[0x44]:
  * - State 0: transition to 1
- * - State 1: initiate read via func_800360D0, transition to 2
+ * - State 1: initiate read via loadSubOverlay, transition to 2
  * - State 2: transition to 3
  * - State 3+: no-op
  *
@@ -1161,11 +1161,11 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB768);
 /**
  * @brief Update save data byte at offset 3 based on bytes at offsets 1 and 6.
  *
- * Gets save data pointer via func_800372D0, refreshes via func_801EB6B4,
+ * Gets save data pointer via getChocoboWorldPtr, refreshes via func_801EB6B4,
  * then computes a new value from bytes at offsets 1 and 6 using func_801EB408.
  */
 void func_801EB850(void) {
-    u8 *s0 = (u8 *)func_800372D0();
+    u8 *s0 = (u8 *)getChocoboWorldPtr();
     func_801EB6B4();
     s0[3] = func_801EB408(s0[1], s0[6]);
 }
@@ -1189,7 +1189,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB890);
  */
 void func_801EB928(void) {
     s32 s0 = 1;
-    u8 *s1 = (u8 *)func_800372D0();
+    u8 *s1 = (u8 *)getChocoboWorldPtr();
     s32 v0;
     s32 a0;
 

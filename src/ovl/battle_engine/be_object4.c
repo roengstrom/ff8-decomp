@@ -10,7 +10,7 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1D68);
  * @brief Start or stop a battle object based on its type flag.
  *
  * Looks up the entry at D_80182E70[a0 * 12], checks bit 0 of byte 0.
- * If set, calls func_8002DD58 (stop). Otherwise calls func_8002DD38 (start).
+ * If set, calls fadeOutSfxFast (stop). Otherwise calls fadeOutSfxSlow (start).
  *
  * @param a0 Object index.
  */
@@ -21,22 +21,22 @@ void func_800A2054(s32 a0) {
 
     entry = base + a0 * 12;
     if (entry[0] & 1) {
-        func_8002DD58();
+        fadeOutSfxFast();
     } else {
-        func_8002DD38();
+        fadeOutSfxSlow();
     }
 }
 
 /**
  * @brief Reset all 7 battle objects and finalize.
  *
- * Calls func_8002DD58 for each of the 7 objects (indices 0-6),
+ * Calls fadeOutSfxFast for each of the 7 objects (indices 0-6),
  * then calls func_800A44BC to set D_801D49E2.
  */
 void func_800A20B0(void) {
     s32 i = 0;
     do {
-        func_8002DD58(i);
+        fadeOutSfxFast(i);
         i++;
     } while (i < 7);
     func_800A44BC();
@@ -52,14 +52,14 @@ void func_800A20F4(void) {
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2114);
 
 /**
- * @brief Clear all 7 battle objects by calling func_8002C7BC with zero params.
+ * @brief Clear all 7 battle objects by calling setSfxEntryParams with zero params.
  *
- * Iterates indices 0-6, calling func_8002C7BC(i, 0, 0) for each.
+ * Iterates indices 0-6, calling setSfxEntryParams(i, 0, 0) for each.
  */
 void func_800A21C4(void) {
     s32 i = 0;
     do {
-        func_8002C7BC(i, 0, 0);
+        setSfxEntryParams(i, 0, 0);
         i++;
     } while (i < 7);
 }
@@ -117,7 +117,7 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A238C);
 /**
  * @brief Initialize animation handler and attach to D_801D3C58 list.
  *
- * Loads animation data from D_80182EC8 via func_80013EE4, then
+ * Loads animation data from D_80182EC8 via sndProcessAudio, then
  * allocates a node in D_801D3C58 with func_800A238C as callback.
  * Clears the node's fields at offsets 0xC and 0xE.
  */
@@ -125,7 +125,7 @@ void func_800A247C(void) {
     extern u8 D_80182EC8[];
     extern s32 func_800A238C();
     u8 *node;
-    func_80013EE4(D_80182EC8, 0);
+    sndProcessAudio(D_80182EC8, 0);
     node = (u8 *)func_8009E248((s32)func_800A238C);
     *(s16 *)(node + 0xC) = 0;
     *(s16 *)(node + 0xE) = 0;
@@ -337,13 +337,13 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A42D0);
  * @brief Apply func_800A42D0 with VSync lock/unlock.
  *
  * @param a0 Parameter passed through to func_800A42D0.
- * @return Result of func_8002A8B8 (VSync unlock).
+ * @return Result of storeGpuPacket (VSync unlock).
  */
 s32 func_800A443C(s32 a0) {
     s32 saved = a0;
-    s32 lock = func_8002A888();
+    s32 lock = getDisplayListHead();
     s32 result = func_800A42D0(saved, lock);
-    return func_8002A8B8(result);
+    return storeGpuPacket(result);
 }
 
 /**

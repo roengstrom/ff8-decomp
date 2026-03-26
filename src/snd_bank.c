@@ -20,7 +20,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016E5C);
  * @param a0 Sound bank or instrument identifier to look up.
  * @return 1 if in group 1, 2 if in group 2, 0 if not found or @p a0 is 0.
  */
-s32 func_80016F3C(s32 a0) {
+s32 sndGetBankGroup(s32 a0) {
     s32 ret = 0;
     if (a0 == 0) return ret;
     if (a0 == D_80074EB8[1] || a0 == D_80074EB8[4]) {
@@ -38,12 +38,12 @@ s32 func_80016F3C(s32 a0) {
  * default pitch bend (0x6E00 at +0x80), default tempo (0x32000000 at +0x44),
  * sentinel voice value (0xFFFF at +0x6E), and zeroes all modulation,
  * panning, volume, and effect fields. Finally applies instrument table
- * entry 0 via func_8001C1DC.
+ * entry 0 via sndTrackApplyInstrument.
  *
  * @param a0 Pointer to the track structure (stride 0x110).
  * @param a1 Instrument bank ID to assign to this track.
  */
-void func_80016FA8(void *a0, s32 a1) {
+void sndInitTrack(void *a0, s32 a1) {
     *(s16*)((u8*)a0 + 0x80) = 0x6E00;
     *(s32*)((u8*)a0 + 0x44) = 0x32000000;
     *(s32*)a0 = a1;
@@ -71,7 +71,7 @@ void func_80016FA8(void *a0, s32 a1) {
     *(s16*)((u8*)a0 + 0xAC) = 0;
     *(s16*)((u8*)a0 + 0xD2) = 0;
     *(s16*)((u8*)a0 + 0xD0) = 0;
-    func_8001C1DC(a0, 0);
+    sndTrackApplyInstrument(a0, 0);
 }
 
 /**
@@ -85,7 +85,7 @@ void func_80016FA8(void *a0, s32 a1) {
  * @param a1 Bitmask of tracks to include (bit N = track N).
  * @return Bitmask of SPU voices used by the selected tracks.
  */
-s32 func_80017040(u8 *a0, s32 a1) {
+s32 sndBuildVoiceMask(u8 *a0, s32 a1) {
     u32 i = 0;
     s32 result = 0;
     s32 bit = 1;
@@ -111,7 +111,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800174E4);
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017880);
 
 /**
- * @brief Releases a voice from all active sequence tracks (duplicate of func_80016280).
+ * @brief Releases a voice from all active sequence tracks (duplicate of sndReleaseVoice).
  *
  * Iterates over 32 track entries in D_80070D60 (stride 0x110, voice at +0xF4).
  * Any track assigned to voice @p a0 is reassigned to 24 (none). Also checks
@@ -119,7 +119,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017880);
  *
  * @param a0 SPU voice index to release (0-23).
  */
-void func_80017A2C(s32 a0) {
+void sndReleaseVoiceFromTracks(s32 a0) {
     s32 base = (s32)D_80070D60;
     s32 i = 32;
     s32 replacement = 24;
@@ -177,7 +177,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018158);
  *
  * @param a0 Pointer to audio config struct.
  */
-void func_800181D4(s32 *a0) {
+void sndConfigureTrackPlayback(s32 *a0) {
     extern s32 *D_80074F08;
     extern s32 D_80074EB0;
     register s32 result asm("$4");
@@ -207,7 +207,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018438);
  *
  * @param a0 Pointer to the sound voice structure.
  */
-void func_80018610(u8 *a0) {
+void sndPlayVoiceWithCount(u8 *a0) {
     extern s32 D_80074EB0;
     s32 val, result;
     func_80018158(a0);
@@ -228,7 +228,7 @@ void func_80018610(u8 *a0) {
  *
  * @param a0 Pointer to a sound parameter structure (5 words).
  */
-void func_80018650(s32 *a0) {
+void sndPlayWithDefaults(s32 *a0) {
     s32 a1 = a0[0];
     s32 a2 = a0[1];
     a0[0] = 0x400;
@@ -248,7 +248,7 @@ void func_80018650(s32 *a0) {
  *
  * @param a0 Pointer to the sound parameter structure.
  */
-void func_8001869C(s32 *a0) {
+void sndPlaySoundEffect(s32 *a0) {
     extern u8 *D_80074ED8;
     s32 local10, local14;
 
@@ -256,7 +256,7 @@ void func_8001869C(s32 *a0) {
     a0[1] = 0x2000000;
     a0[2] = 0x80;
     a0[3] = 0x7F;
-    a0[4] = func_80016F3C(*(u16 *)(D_80074ED8 + a0[0] * 2));
+    a0[4] = sndGetBankGroup(*(u16 *)(D_80074ED8 + a0[0] * 2));
     func_80017AAC(a0, local10, local14, 0);
 }
 
@@ -264,24 +264,24 @@ void func_8001869C(s32 *a0) {
  * @brief Look up and play a sound voice by index.
  *
  * Resolves the SPU voice address via func_80017C9C, reads the sample pitch
- * from D_80074ED8 table, processes it with func_80016F3C, stores the result
+ * from D_80074ED8 table, processes it with sndGetBankGroup, stores the result
  * at offset +0x10 of the parameter structure, and plays via func_80017AAC.
  *
  * @param a0 Pointer to the sound parameter structure.
  */
-void func_8001871C(s32 *a0) {
+void sndPlaySoundByIndex(s32 *a0) {
     extern u8 *D_80074ED8;
     s32 local10, local14;
 
     func_80017C9C(&local10, &local14, a0[0]);
-    a0[4] = func_80016F3C(*(u16 *)(D_80074ED8 + a0[0] * 2));
+    a0[4] = sndGetBankGroup(*(u16 *)(D_80074ED8 + a0[0] * 2));
     func_80017AAC(a0, local10, local14, 0);
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018784);
 
 /** @brief Calls func_800174E4 with two words loaded from the input pointer. */
-void func_800188B4(s32 *a0) {
+void sndStopTrack(s32 *a0) {
     func_800174E4(a0[0], a0[1]);
 }
 
@@ -289,7 +289,7 @@ void func_800188B4(s32 *a0) {
  * @brief Clears 12 entries (stride 16) in the D_80074F20 array.
  * Writes zero to offset 0 of each entry, iterating backward.
  */
-void func_800188E0(void) {
+void sndClearVoicePool(void) {
     extern u8 D_80074F20;
     s32 i = 12;
     s32 base = (s32)&D_80074F20;
@@ -311,16 +311,16 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018C48);
  * @brief Clears the sound fade counter and sets SPU transfer address.
  *
  * Sets D_80074FE4 to 0, loads the halfword at @p a0, shifts it left 16,
- * stores to D_80075078, and calls func_8001A55C.
+ * stores to D_80075078, and calls sndSetCdVolume.
  *
  * @param a0 Pointer to a halfword containing the SPU address high bits.
  */
-void func_80018D40(u16 *a0) {
+void sndSetFadeAndTransfer(u16 *a0) {
     extern u16 D_80074FE4;
     extern s32 D_80075078;
     D_80074FE4 = 0;
     D_80075078 = *a0 << 16;
-    func_8001A55C();
+    sndSetCdVolume();
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018D74);

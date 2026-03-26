@@ -122,7 +122,7 @@ void func_801E6290(void) {
         *(s32 *)(ctx + 0x28) = entryIdx;
         *(s32 *)(ctx + 0x2C) = entryIdx;
         entry = D_801E63F8 + entryIdx * 68;
-        func_800360D0(*(u8 *)(entry + 0x15) + 0x57, D_801E764C);
+        loadSubOverlay(*(u8 *)(entry + 0x15) + 0x57, D_801E764C);
         func_801E2820(*(u8 *)(entry + 0x16), *(u8 *)(entry + 0x17));
         func_801E5800(ctx);
     }

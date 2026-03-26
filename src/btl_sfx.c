@@ -14,7 +14,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002C8A4);
  * at field offset 0x03 of that entry. After decrementing, calls func_8002C8A4
  * to process the change.
  */
-void func_8002C920(void) {
+void decrementSfxCounter(void) {
     s32 base = (s32)g_sfxEntries;
     (*(u8 *)(base + 0x1E3))--;
     func_8002C8A4();
@@ -31,7 +31,7 @@ void func_8002C920(void) {
  *
  * @param a0 Scalar intensity value (divided by 32, clamped to 0-255).
  */
-void func_8002C954(s32 a0) {
+void setFlashColor(s32 a0) {
     extern s32 g_flashColor;
     a0 /= 32;
     a0 &= 0xFF;
@@ -46,11 +46,11 @@ void func_8002C954(s32 a0) {
  * @brief Read volume from an SFX entry and dispatch to color/effect updates.
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002C9A4(s32 idx) {
+void dispatchSfxColorUpdate(s32 idx) {
     SfxEntry *entry = &g_sfxEntries[idx];
     s32 val = entry->volume;
-    func_8002C954(val);
-    func_80030058(val);
+    setFlashColor(val);
+    buildGrayscaleGpuColor(val);
 }
 
 
@@ -61,7 +61,7 @@ void func_8002C9A4(s32 idx) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Battle entity index.
  */
-void func_8002C9F0(s32 idx, s32 val) {
+void setSfxEntityIndex(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->entityIdx = val;
 }
@@ -73,7 +73,7 @@ void func_8002C9F0(s32 idx, s32 val) {
  * @param val New state value.
  * @return Previous state value.
  */
-s32 func_8002CA10(s32 idx, s32 val) {
+s32 swapSfxState(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     s32 old = entry->state;
     entry->state = val;
@@ -86,7 +86,7 @@ s32 func_8002CA10(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @return State value (0 = inactive, 1 = active).
  */
-s32 func_8002CA34(s32 idx) {
+s32 getSfxState(s32 idx) {
     SfxEntry *entry = &g_sfxEntries[idx];
     return entry->state;
 }
@@ -97,7 +97,7 @@ s32 func_8002CA34(s32 idx) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Pitch value.
  */
-void func_8002CA58(s32 idx, s32 val) {
+void setSfxPitch(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->pitch = val;
     entry->field14 = 0;
@@ -109,7 +109,7 @@ void func_8002CA58(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Value to store.
  */
-void func_8002CA7C(s32 idx, s32 val) {
+void setSfxField1C(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->field1C = val;
 }
@@ -120,7 +120,7 @@ void func_8002CA7C(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Rate delta value (negative = fade out).
  */
-void func_8002CA9C(s32 idx, s32 val) {
+void setSfxRateDelta(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->rateDelta = val;
 }
@@ -131,7 +131,7 @@ void func_8002CA9C(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @return Signed 16-bit value.
  */
-s32 func_8002CABC(s32 idx) {
+s32 getSfxField1C(s32 idx) {
     SfxEntry *entry = &g_sfxEntries[idx];
     return entry->field1C;
 }
@@ -147,14 +147,14 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CDE4);
 
 
 /** @brief Stores a byte to global D_800831DC. */
-void func_8002CE68(s32 a0) {
+void setSfxGlobalFlag(s32 a0) {
     extern s8 D_800831DC;
     D_800831DC = a0;
 }
 
 
 /** @brief Returns the signed byte value of global D_800831DC. */
-s32 func_8002CE74(void) {
+s32 getSfxGlobalFlag(void) {
     extern s8 D_800831DC;
     return D_800831DC;
 }
@@ -188,12 +188,12 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D040);
  * Computes the entry address as g_sfxEntries + a0 * 60, clears various
  * fields, stores the data pointer (a1) at offsets +0x08 and +0x0C,
  * modifies the status word at +0x14 (sets nibble to 0x7, rotates top nibble
- * down), calls func_8002FF24, and sets default volume bytes.
+ * down), calls clearEntityColor, and sets default volume bytes.
  *
  * @param a0 Sound effect index.
  * @param a1 Data pointer to store.
  */
-void func_8002D6AC(s32 a0, s32 a1) {
+void initSfxPlayback(s32 a0, s32 a1) {
     s32 mask1 = 0x0FFFFFFF;
     s32 mask2 = (s32)0xF0FFFFFF;
     u8 *entry = (u8 *)g_sfxEntries + a0 * 60;
@@ -208,7 +208,7 @@ void func_8002D6AC(s32 a0, s32 a1) {
     mask2 &= status;
     mask2 |= (u32)status >> 28 << 24;
     *(s32 *)(entry + 0x14) = mask2;
-    func_8002FF24(entry);
+    clearEntityColor(entry);
     *(u8 *)(entry + 0x29) = 0xFF;
     *(u8 *)(entry + 0x2A) = 0xFF;
     *(u8 *)(entry + 0x19) = 0;
@@ -216,23 +216,23 @@ void func_8002D6AC(s32 a0, s32 a1) {
 
 
 /**
- * @brief Skips past a given number of null-terminated strings, then calls func_8002D6AC.
+ * @brief Skips past a given number of null-terminated strings, then calls initSfxPlayback.
  *
  * Advances @p a1 past @p a2 null-terminated strings by scanning bytes until
- * null is found for each string. After skipping, calls func_8002D6AC with
+ * null is found for each string. After skipping, calls initSfxPlayback with
  * the original @p a0 and @p a1.
  *
- * @param a0 First parameter passed through to func_8002D6AC.
+ * @param a0 First parameter passed through to initSfxPlayback.
  * @param a1 Pointer to the start of the string data.
  * @param a2 Number of strings to skip.
  */
-void func_8002D744(s32 a0, u8 *a1, s32 a2) {
+void initSfxPlaybackAfterStrings(s32 a0, u8 *a1, s32 a2) {
     while (a2 > 0) {
         while (*a1++ != 0) {
         }
         a2--;
     }
-    func_8002D6AC(a0, a1);
+    initSfxPlayback(a0, a1);
 }
 
 
@@ -259,7 +259,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DBF8);
  * @param rate Playback rate value (e.g. 0x200, 0x1000).
  * @param mode Playback mode byte.
  */
-void func_8002DCA4(s32 idx, s32 rate, s32 mode) {
+void configureSfxPlayback(s32 idx, s32 rate, s32 mode) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->state = 1;
     entry->rateDelta = rate;
@@ -268,14 +268,14 @@ void func_8002DCA4(s32 idx, s32 rate, s32 mode) {
 
 
 /** @brief Start SFX entry playback at slow rate (0x200). */
-void func_8002DCD0(s32 idx) {
-    func_8002DCA4(idx, 0x200, 0);
+void startSfxSlow(s32 idx) {
+    configureSfxPlayback(idx, 0x200, 0);
 }
 
 
 /** @brief Start SFX entry playback at normal rate (0x1000). */
-void func_8002DCF4(s32 idx) {
-    func_8002DCA4(idx, 0x1000, 0);
+void startSfxNormal(s32 idx) {
+    configureSfxPlayback(idx, 0x1000, 0);
 }
 
 
@@ -284,33 +284,33 @@ void func_8002DCF4(s32 idx) {
  * @param idx Index into the SFX entry array.
  * @param val Rate delta value (negative values = fade out).
  */
-void func_8002DD18(s32 idx, s32 val) {
-    func_8002CA9C(idx, val);
+void setSfxFadeRate(s32 idx, s32 val) {
+    setSfxRateDelta(idx, val);
 }
 
 
 /** @brief Set SFX entry to fade out at slow rate (-0x200). */
-void func_8002DD38(s32 idx) {
-    func_8002DD18(idx, -0x200);
+void fadeOutSfxSlow(s32 idx) {
+    setSfxFadeRate(idx, -0x200);
 }
 
 
 /** @brief Set SFX entry to fade out at fast rate (-0x1000). */
-void func_8002DD58(s32 idx) {
-    func_8002DD18(idx, -0x1000);
+void fadeOutSfxFast(s32 idx) {
+    setSfxFadeRate(idx, -0x1000);
 }
 
 
 /**
  * @brief Set reverb mode on the SFX entry's linked entity, clamped to [3, 11].
  *
- * Adds 3 to @p val, clamps to [3, 11], then calls func_8002AC88 with
+ * Adds 3 to @p val, clamps to [3, 11], then calls setBattleEntityAnimSpeed with
  * the entry's entityIdx and the clamped value.
  *
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Base reverb mode value.
  */
-void func_8002DD78(s32 idx, s32 val) {
+void setSfxReverbMode(s32 idx, s32 val) {
     s32 off;
     s32 base;
     s32 clamped;
@@ -325,7 +325,7 @@ void func_8002DD78(s32 idx, s32 val) {
     }
     off = idx * 60;
     base = (s32)g_sfxEntries;
-    func_8002AC88(*(u8 *)(off + base + 0x18), clamped);
+    setBattleEntityAnimSpeed(*(u8 *)(off + base + 0x18), clamped);
 }
 
 
@@ -334,7 +334,7 @@ void func_8002DD78(s32 idx, s32 val) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @return Value of field28.
  */
-s32 func_8002DDD8(s32 idx) {
+s32 getSfxField28(s32 idx) {
     SfxEntry *entry = &g_sfxEntries[idx];
     return entry->field28;
 }
@@ -349,9 +349,9 @@ s32 func_8002DDD8(s32 idx) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Flag value to OR with 8 before storing.
  */
-void func_8002DDFC(s32 idx, s32 val) {
+void setSfxEntityType(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
-    func_8002AE30(entry->entityIdx, val | 8);
+    setBattleEntityType(entry->entityIdx, val | 8);
 }
 
 
@@ -359,9 +359,9 @@ void func_8002DDFC(s32 idx, s32 val) {
  * @brief Read the entity type of the battle entity linked to an SFX entry.
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002DE38(s32 idx) {
+void readSfxEntityType(s32 idx) {
     SfxEntry *entry = &g_sfxEntries[idx];
-    func_8002AE14(entry->entityIdx);
+    getBattleEntityType(entry->entityIdx);
 }
 
 
@@ -370,7 +370,7 @@ void func_8002DE38(s32 idx) {
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param val Value to store.
  */
-void func_8002DE74(s32 idx, s32 val) {
+void setSfxField2F(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries[idx];
     entry->field2F = val;
 }
@@ -385,7 +385,7 @@ void func_8002DE74(s32 idx, s32 val) {
  *
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002DE94(idx)
+void initSfxSlot(idx)
 
 s32 idx;
 {
@@ -394,13 +394,13 @@ s32 idx;
     entry->field14 = 0;
     entry->field19 = 0;
     entry->field2F = 0;
-    func_8002D6AC(idx, a1);
-    func_8002CA58(idx, 0x1000);
-    func_8002CA10(idx, 0);
-    func_8002DD78(idx, 3);
-    func_8002CA7C(idx, 0);
-    func_8002CA9C(idx, 0);
-    func_8002DDFC(idx, 6);
+    initSfxPlayback(idx, a1);
+    setSfxPitch(idx, 0x1000);
+    swapSfxState(idx, 0);
+    setSfxReverbMode(idx, 3);
+    setSfxField1C(idx, 0);
+    setSfxRateDelta(idx, 0);
+    setSfxEntityType(idx, 6);
     {
         s16 buf[4];
         buf[0] = 0x40;
@@ -409,7 +409,7 @@ s32 idx;
         buf[3] = 0x80;
         func_8002E064(idx, buf);
     }
-    func_8002C868(idx, 0x1000);
+    setSfxEntryVolume(idx, 0x1000);
 }
 
 
@@ -421,7 +421,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DF5C);
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  * @param dst Destination RECT.
  */
-void func_8002E028(s32 idx, RECT *dst) {
+void getSfxRect(s32 idx, RECT *dst) {
     SfxEntry *entry = &g_sfxEntries[idx];
     *dst = entry->rect;
 }
@@ -440,7 +440,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E1B4);
  * SFX slots, clears D_800831D3 and several fields in g_sfxEntries, then
  * calls func_8002C130 to finalize.
  */
-void func_8002E1E8(void) {
+void resetAllSfx(void) {
     extern u8 D_800831D3;
     s32 i;
     s32 base = (s32)g_sfxEntries;
@@ -461,14 +461,14 @@ void func_8002E1E8(void) {
  * @brief Look up linked entity's animation speed and dispatch.
  *
  * Reads the entity index from the SFX entry, gets its animation speed,
- * then passes the result to func_8002BEEC.
+ * then passes the result to getEntityTablePtr.
  *
  * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
  */
-void func_8002E254(s32 idx) {
+void dispatchSfxAnimSpeed(s32 idx) {
     SfxEntry *entry = &g_sfxEntries[idx];
-    s32 val = func_8002ACBC(entry->entityIdx);
-    func_8002BEEC(val);
+    s32 val = getBattleEntityAnimSpeed(entry->entityIdx);
+    getEntityTablePtr(val);
 }
 
 
@@ -483,7 +483,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E3A4);
  *  @param a0 Nibble index.
  *  @return The 4-bit value (0-15).
  */
-s32 func_8002E428(s32 a0) {
+s32 getNibbleValue(s32 a0) {
     extern u8 D_800834D8[];
     s32 base = (s32)D_800834D8;
     u32 val = *(u8 *)(base + (a0 >> 1));
@@ -504,19 +504,19 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E680);
 
 
 /** @brief Calls func_8002E4AC with a1=1. */
-void func_8002E744(s32 a0) {
+void getGlyphWidthA(s32 a0) {
     func_8002E4AC(a0, 1);
 }
 
 
 /** @brief Calls func_8002E4AC with a1=1. */
-void func_8002E764(s32 a0) {
+void getGlyphWidthB(s32 a0) {
     func_8002E4AC(a0, 1);
 }
 
 
 /** @brief Calls func_8002E4AC(a0, 1) and returns the result as u16. */
-u16 func_8002E784(s32 a0) {
+u16 getGlyphWidthU16(s32 a0) {
     return (u16)func_8002E4AC(a0, 1);
 }
 
@@ -527,7 +527,7 @@ u16 func_8002E784(s32 a0) {
  * @return Result of func_8002E4AC truncated to 16 bits.
  * @note Purpose uncertain -- appears to query a 16-bit status value.
  */
-u16 func_8002E7A4(s32 a0) {
+u16 getGlyphStatusU16(s32 a0) {
     return (u16)func_8002E4AC(a0, 0);
 }
 
@@ -541,7 +541,7 @@ u16 func_8002E7A4(s32 a0) {
  *
  * @param a0 Scalar intensity value.
  */
-void func_8002E7C4(s32 a0) {
+void setMenuColorIntensity(s32 a0) {
     extern s32 D_80083850;
     extern s32 g_menuColor;
     D_80083850 = a0;

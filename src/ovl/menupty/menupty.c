@@ -90,10 +90,10 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6B6C);
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E6C68);
 
 /**
- * @brief Render a text label with color and position using func_800332C4.
+ * @brief Render a text label with color and position using drawColorByMenuPalette.
  *
  * Calls func_801F6AFC(0x12) for font, func_801F0FEC to render text,
- * then func_800332C4 to combine color/position.
+ * then drawColorByMenuPalette to combine color/position.
  *
  * @param a0 Color/attribute value.
  * @param a1 Render context pointer.
@@ -193,7 +193,7 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7584);
  * @brief Initialize party menu and conditionally reset cursor.
  *
  * Clears D_801E9540 flag, calls func_801EFFB8. If result is 1,
- * calls func_80036690(0) to reset cursor position. Then calls
+ * calls resetCardSlots(0) to reset cursor position. Then calls
  * func_801E7584 with the party context.
  *
  * @param a0 Party context pointer.
@@ -204,7 +204,7 @@ void func_801E77AC(u8 *a0) {
     D_801E9540 = 0;
     result = func_801EFFB8();
     if (result == 1) {
-        func_80036690(0);
+        resetCardSlots(0);
     }
     func_801E7584(a0);
 }
@@ -238,7 +238,7 @@ void func_801E7854(s32 a0, s32 a1) {
     s32 ctx = a0;
     s32 slot = a1;
     s32 v0 = func_801F0028();
-    v0 = func_80035AE4(v0, slot);
+    v0 = getBitRank(v0, slot);
     func_801F0A34(ctx, 0, 0x36, v0 * 50 + 0x4C);
 }
 

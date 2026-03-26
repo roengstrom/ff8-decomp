@@ -14,14 +14,14 @@ INCLUDE_ASM("asm/ovl/display_init/nonmatchings/display_init", func_80098440);
  * @brief Load and play a specific music track for the display init overlay.
  *
  * Reads CD file entry at offset 0x110 (entry 34) from D_800990B8 and
- * calls func_80038994 to load it to address 0x8017D000.
+ * calls cdReadAsyncSync to load it to address 0x8017D000.
  */
 void func_800985B4(void) {
     extern u32 D_800990B8[];
 
     u32 *base = D_800990B8;
 
-    func_80038994(*(u32 *)((u8 *)base + 0x110),
+    cdReadAsyncSync(*(u32 *)((u8 *)base + 0x110),
                   *(u32 *)((u8 *)base + 0x114),
                   (s32)0x8017D000, 0);
 }

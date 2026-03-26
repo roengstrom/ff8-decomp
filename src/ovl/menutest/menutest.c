@@ -62,7 +62,7 @@ void func_801E582C(s32 a0, s32 a1) {
 }
 
 /**
- * Decodes a string using func_801F7A54 key and func_8002F294/func_8002F2EC,
+ * Decodes a string using func_801F7A54 key and intToDecStringShort/replaceLeadingZeros,
  * then copies it to D_801E7ADC via copyString.
  */
 void func_801E58B8(void) {
@@ -77,8 +77,8 @@ void func_801E58B8(void) {
         return;
     }
     v0 = func_801F7A54();
-    func_8002F294(v0, (s32)p, 1);
-    func_8002F2EC((s32)p, 4, 1, 0x10);
+    intToDecStringShort(v0, (s32)p, 1);
+    replaceLeadingZeros((s32)p, 4, 1, 0x10);
     if (*p == 0x10) {
         s32 c = 0x10;
         do {
@@ -89,7 +89,7 @@ void func_801E58B8(void) {
         u8 *q = p;
         if (*p != 0) {
             do {
-                v0 = func_80020F84(0xB);
+                v0 = getMenuString(0xB);
                 v0 = *(u8 *)(v0 + 1) + 0xFF;
                 *q += v0;
                 q++;
@@ -104,7 +104,7 @@ void func_801E58B8(void) {
  * Redirects GP to PS1 scratchpad (0x1F800300) for fast temporary storage,
  * then iterates over encoded input, handling control codes (0x00=end, 0x01=end,
  * 0x02=reset, 0x07=end, 0x0A=special decode, 0x0B=new line), character decoding
- * via func_8002F294/func_8002F2EC, and glyph width accumulation via func_8002E428.
+ * via intToDecStringShort/replaceLeadingZeros, and glyph width accumulation via getNibbleValue.
  * @param a0 Pointer to encoded input string
  * @param a1 Output text buffer
  * @param a2 Output glyph position buffer (8 bytes per entry)
@@ -136,7 +136,7 @@ void func_801E5D18(s32 a0, s32 a1) {
  * resource allocation (3,6), fade-in animation (4,7,10,15), input polling (5,8,11),
  * text decode (9), scroll animation (13,14,19,20,25,26), page navigation (16,17),
  * confirmation (21,22), and cleanup/exit (27).
- * Reads input via func_801F0948/func_80035E00, updates scroll position at +0x24,
+ * Reads input via func_801F0948/pollCdReadStatus, updates scroll position at +0x24,
  * manages page index at +0x2D and +0x2E, and dispatches rendering via func_801E582C,
  * func_801E5D18, func_801E58B8, func_801F6800.
  * @param a0 Menu state structure pointer (s1=a0, s2=a0+0x10, s3/s0 from g_menuDisplayCfg)
@@ -265,8 +265,8 @@ s32 func_801E6760(s32 a0, s32 a1, s32 a2) {
     s32 v0;
 
     func_801F1AFC();
-    func_8002E7C4(*(s16 *)(a0 + 0x24));
-    func_80030058(*(s16 *)(a0 + 0x24));
+    setMenuColorIntensity(*(s16 *)(a0 + 0x24));
+    buildGrayscaleGpuColor(*(s16 *)(a0 + 0x24));
     v0 = func_801E64B4(a1, a2);
     v0 = func_801E6570(a0, a1, v0);
     v0 = func_801E66A8(a0, a1, v0);
@@ -286,7 +286,7 @@ void func_801E67F0(void) {
     func_801F0948(0);
     func_801F5440();
     do {
-        v0 = func_80035E00();
+        v0 = pollCdReadStatus();
     } while (v0 != 0);
     if (s0 == 0) {
         return;
@@ -316,7 +316,7 @@ void func_801E67F0(void) {
     *(s16 *)(s0 + 0x26) = 0;
     *(u8 *)&D_801E69BC = 0;
     if (*(u8 *)(s0 + 0x2D) < 0x1E) {
-        func_800360D0(*(u8 *)(s0 + 0x2D) + 0x60, 0x801D1000);
+        loadSubOverlay(*(u8 *)(s0 + 0x2D) + 0x60, 0x801D1000);
     }
     *(s16 *)(s0 + 0x2A) = 0;
     func_801E5D74(s0);

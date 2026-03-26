@@ -47,14 +47,14 @@ void func_800C03F4(void) {
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0410);
 
 /**
- * Copies 0x40 bytes from D_80077BA8 - 0x98 to D_80077BA8 using func_80020644,
- * then calls func_80020608 with D_80077BA8 and mode 4.
+ * Copies 0x40 bytes from D_80077BA8 - 0x98 to D_80077BA8 using memcopy,
+ * then calls memzero16 with D_80077BA8 and mode 4.
  */
 void func_800C0448(void) {
     extern u8 D_80077BA8[];
 
-    func_80020644(D_80077BA8, D_80077BA8 - 0x98, 0x40);
-    func_80020608(D_80077BA8, 4);
+    memcopy(D_80077BA8, D_80077BA8 - 0x98, 0x40);
+    memzero16(D_80077BA8, 4);
 }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C048C);

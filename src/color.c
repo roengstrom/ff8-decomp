@@ -6,7 +6,7 @@ INCLUDE_ASM("asm/nonmatchings/color", func_800330F4);
 
 
 /**
- * Wrapper for func_800330F4 with fixed 6th argument of 7.
+ * Wrapper for func_800330F4 with fixed 6th argument (mode) of 7.
  *
  * @param a0 First argument passed through
  * @param a1 Second argument passed through
@@ -14,7 +14,7 @@ INCLUDE_ASM("asm/nonmatchings/color", func_800330F4);
  * @param a3 Fourth argument passed through
  * @param arg4 Fifth argument passed through from caller's stack
  */
-void func_80033298(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+void drawColorDefault(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
     func_800330F4(a0, a1, a2, a3, arg4, 7);
 }
 
@@ -32,7 +32,7 @@ void func_80033298(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
  * @param a3 Fourth argument passed through.
  * @param arg4 Mode index; values >= 8 select the alternate color table.
  */
-void func_800332C4(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
+void drawColorByMenuPalette(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
     extern s32 g_menuColor[];
     s32 idx;
     if (arg4 >= 8) {
@@ -46,14 +46,14 @@ void func_800332C4(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
 
 
 /**
- * Calls func_800330F4 with g_menuColor as the 5th arg and 7 as the 6th.
+ * Calls func_800330F4 with g_menuColor as the 5th arg and 7 as the 6th (mode).
  *
  * @param a0 First argument passed through
  * @param a1 Second argument passed through
  * @param a2 Third argument passed through
  * @param a3 Fourth argument passed through
  */
-void func_8003331C(s32 a0, s32 a1, s32 a2, s32 a3) {
+void drawMenuColorDefault(s32 a0, s32 a1, s32 a2, s32 a3) {
     extern s32 g_menuColor;
     func_800330F4(a0, a1, a2, a3, g_menuColor, 7);
 }
@@ -79,7 +79,7 @@ INCLUDE_ASM("asm/nonmatchings/color", func_8003346C);
  * @param a1 Second rendering parameter passed to func_8003346C.
  * @param a2 Pointer to a 4-element u16 rectangle {x, y, w, h} (modified temporarily).
  */
-void func_80033534(s32 a0, s32 a1, u16 *a2) {
+void drawInsetRect(s32 a0, s32 a1, u16 *a2) {
     s32 save0 = *(s32*)a2;
     s32 save1 = *(s32*)(a2 + 2);
     a2[0] += 1;
@@ -143,11 +143,10 @@ INCLUDE_ASM("asm/nonmatchings/color", func_80034DBC);
 /**
  * @brief Enable the display and execute a full rendering pass.
  *
- * Calls SetDispMask(1) to make the framebuffer visible, then calls the
- * main rendering function (func_80034DBC) followed by the scene submission
- * function (func_8003283C).
+ * Calls SetDispMask(1) to make the framebuffer visible, then calls
+ * func_80034DBC (main rendering) followed by func_8003283C (scene submission).
  */
-void func_80035118(void) {
+void enableDisplayAndRender(void) {
     SetDispMask(1);
     func_80034DBC();
     func_8003283C();
@@ -159,7 +158,7 @@ extern u8 D_80083928;
  * @brief Get the current value of the global flag D_80083928.
  * @return The flag value as an unsigned byte.
  */
-u8 func_80035148(void) {
+u8 getRenderCompleteFlag(void) {
     return D_80083928;
 }
 

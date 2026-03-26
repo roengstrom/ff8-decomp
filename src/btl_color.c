@@ -11,7 +11,7 @@ typedef struct {
  * @brief Clear the RGB color bytes at offsets 0x20, 0x21, and 0x22 of a structure.
  * @param a0 Pointer to the base of the structure whose color fields are zeroed.
  */
-void func_8002FF24(u8 *a0) {
+void clearEntityColor(u8 *a0) {
     a0[0x20] = 0;
     a0[0x22] = 0;
     a0[0x21] = 0;
@@ -37,7 +37,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_8002FF34);
  *
  * @param a0 Intensity value (same for all channels).
  */
-void func_80030058(s32 a0) {
+void buildGrayscaleGpuColor(s32 a0) {
     extern s32 D_800834C8;
     a0 /= 32;
     a0 &= 0xFF;
@@ -55,7 +55,7 @@ void func_80030058(s32 a0) {
  * @param a1 Green intensity.
  * @param a2 Blue intensity.
  */
-void func_80030094(s32 a0, s32 a1, s32 a2) {
+void buildRgbGpuColor(s32 a0, s32 a1, s32 a2) {
     extern s32 D_800834C8;
     a0 /= 32;
     a1 /= 32;
@@ -70,12 +70,12 @@ void func_80030094(s32 a0, s32 a1, s32 a2) {
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800300F8);
 
 
-/** @brief Call func_80030058 with the default parameter value 0x1000. */
-void func_80030214(void) { func_80030058(0x1000); }
+/** @brief Call buildGrayscaleGpuColor with the default parameter value 0x1000. */
+void setDefaultGpuColor(void) { buildGrayscaleGpuColor(0x1000); }
 
 
 /** @brief Empty stub -- no operation. */
-void func_80030234(void) {
+void btlColorStub0234(void) {
 }
 
 
@@ -84,7 +84,7 @@ extern s16 D_800834D4;
  * @brief Set the global 16-bit value D_800834D4.
  * @param val Value to store.
  */
-void func_8003023C(s32 val) {
+void setCameraVibrateIntensity(s32 val) {
     D_800834D4 = val;
 }
 
@@ -118,7 +118,7 @@ extern BattleCameraState D_800834D0;
  *
  * @param arg0 Vibration enable flag and intensity.
  */
-void func_80030248(unsigned int arg0) {
+void setCameraVibrateState(unsigned int arg0) {
     extern volatile GameState g_gameState;
 
     D_800834D0.f3 = arg0;
@@ -133,7 +133,7 @@ void func_80030248(unsigned int arg0) {
  *  @param a0 Value stored as u16.
  *  @param a1 Value stored as u8 at offset 2.
  */
-void func_80030274(s32 a0, s32 a1) {
+void setCameraShakeParams(s32 a0, s32 a1) {
     *(u16 *)&D_800834D0 = a0;
     *((u8 *)&D_800834D0 + 2) = a1;
 }
@@ -154,7 +154,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030518);
  *
  * Clears all fields to zero except f4, which is set to 0x1000 (default zoom/distance).
  */
-void func_80030720(void) {
+void resetBattleCameraState(void) {
     D_800834D0.f3 = 0;
     D_800834D0.f4 = 0x1000;
     D_800834D0.f0 = 0;
@@ -170,7 +170,7 @@ extern u8 D_80083878;
  * @brief Get a pointer to the global byte D_80083878.
  * @return Address of D_80083878.
  */
-u8 *func_80030748(void) {
+u8 *getBattleCmdTable(void) {
     return &D_80083878;
 }
 
@@ -180,7 +180,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030754);
 /**
  * @brief Check if any of 4 sequential entries have a non-zero byte at offset +0x22.
  *
- * Calls func_80030748 to get the base pointer, then iterates over 4 entries
+ * Calls getBattleCmdTable to get the base pointer, then iterates over 4 entries
  * (stride 0x24). Returns 1 immediately if any entry's byte at +0x22 is non-zero,
  * or 0 if all are zero.
  *
@@ -193,20 +193,20 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_800307F8);
  * @brief Check if a battle command matches the expected source entity.
  *
  * Returns 0 if a0 is zero. Otherwise, looks up the entry at
- * func_80030748()[(a0 & 3) * 36], checks if byte 0x22 is nonzero,
+ * getBattleCmdTable()[(a0 & 3) * 36], checks if byte 0x22 is nonzero,
  * then compares halfword 0x20 against (a0 >> 4).
  *
  * @param a0 Packed command: bits [1:0] = entry index, bits [15:4] = source ID.
  * @return 1 if valid and source matches, 0 otherwise.
  */
-s32 func_80030848(s32 a0) {
+s32 checkBattleCmdSource(s32 a0) {
     u8 *base;
     s32 idx;
 
     if (a0 == 0) {
         return 0;
     }
-    base = func_80030748();
+    base = getBattleCmdTable();
     idx = (a0 & 3) * 36;
     if (*(s8 *)(base + idx + 0x22) != 0) {
         if (*(u16 *)(base + idx + 0x20) == (a0 >> 4)) {
@@ -237,7 +237,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030B2C);
  *
  * @param a0 Amount to add to the timer.
  */
-void func_80030CB0(s32 a0) {
+void advanceBattleTimer(s32 a0) {
     extern s32 D_80083750;
     s32 counter = D_80083750;
     counter += a0;
@@ -254,14 +254,14 @@ top:
 /**
  * @brief Initialize 4 battle command entries and clear D_80083750.
  *
- * Calls func_80030748() to get the entry table base, then for each of
+ * Calls getBattleCmdTable() to get the entry table base, then for each of
  * the 4 entries (stride 0x24, starting at offset 0x20): sets the index
  * at byte +3, clears byte +2, and sets halfword +0 to 1.
  * Finally zeroes D_80083750.
  */
-void func_80030CFC(void) {
+void initBattleCmdEntries(void) {
     extern s32 D_80083750;
-    u8 *base = func_80030748();
+    u8 *base = getBattleCmdTable();
     s32 i = 0;
     s32 one = 1;
     u8 *ptr = base + 0x20;
@@ -280,29 +280,29 @@ top:
  * @brief Send an SPU command looked up from table D_80052A34.
  *
  * Uses the input as an index into D_80052A34 to retrieve a command byte,
- * then passes it to func_8001313C which writes it to the SPU command buffer
+ * then passes it to sndKeyOn which writes it to the SPU command buffer
  * (D_80075058) and triggers SPU processing.
  *
  * @param a0 Index into the D_80052A34 lookup table.
  */
-void func_80030D48(s32 a0) {
+void sendSpuCommand(s32 a0) {
     extern u8 D_80052A34[];
-    func_8001313C(D_80052A34[a0]);
+    sndKeyOn(D_80052A34[a0]);
 }
 
 
 /**
  * @brief Play sound effect from D_80052A34 table.
  *
- * Loads a byte from D_80052A34[a0] and calls func_8001302C
+ * Loads a byte from D_80052A34[a0] and calls sndPlaySfx
  * with default volume/pan parameters (0, 0x80, 0x7F).
  *
  * @param a0 Index into D_80052A34 sound table.
  */
-void func_80030D78(s32 a0) {
+void playSoundEffect(s32 a0) {
     extern u8 D_80052A34[];
     u8 *ptr = D_80052A34 + a0;
-    func_8001302C(*ptr, 0, 0x80, 0x7F);
+    sndPlaySfx(*ptr, 0, 0x80, 0x7F);
 }
 
 
@@ -325,7 +325,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030F10);
  * @param a0 Palette index to remap.
  * @return Remapped index or the original index if remapping is inactive.
  */
-s32 func_80030FA0(s32 a0) {
+s32 remapBattlePalette(s32 a0) {
     extern u8 g_gameState[];
     s32 base = (s32)g_gameState;
     u16 flags = *(u16 *)(base + 0xAE4);
@@ -347,7 +347,7 @@ s32 func_80030FA0(s32 a0) {
  * @param a0 Remapped palette index to look up.
  * @return Original slot index, -1 if not found, or a0 if remapping inactive.
  */
-s32 func_80030FDC(s32 a0) {
+s32 reversePaletteRemap(s32 a0) {
     extern u8 g_gameState[];
     s32 base = (s32)g_gameState;
     u16 flags = *(u16 *)(base + 0xAE4);
@@ -377,7 +377,7 @@ search:
 
 
 /** @brief Empty stub -- no operation. */
-void func_80031044(void) {
+void btlColorStub1044(void) {
 }
 
 
@@ -405,7 +405,7 @@ extern Struct3754 D_80083754;
 // init_battle_transition - initializes D_80083754 (Struct3754)
 
 /** @brief Sets D_80083754.f0 to 7. */
-void func_800316C4(void) {
+void setTransitionPhase7(void) {
     D_80083754.f0 = 7;
 }
 
@@ -414,7 +414,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_800316D4);
 
 
 /** @brief Stores a byte to global D_80083756. */
-void func_800318E0(s32 a0) {
+void setTransitionFlag(s32 a0) {
     extern u8 D_80083756;
     D_80083756 = a0;
 }
@@ -426,7 +426,7 @@ void func_800318E0(s32 a0) {
  * Sets the transition phase to 9, clears the timer fields (f4, f6), and resets
  * the flag bytes (f8, f9) to zero.
  */
-void func_800318EC(void) {
+void initBattleTransition(void) {
     D_80083754.f0 = 9;
     D_80083754.f4 = 0;
     D_80083754.f6 = 0;
@@ -447,7 +447,7 @@ void func_800318EC(void) {
  * @param a3 Maximum output value (returned when a2 >= a1).
  * @return Interpolated value in [0, a3].
  */
-s32 func_80031910(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 lerpRange(s32 a0, s32 a1, s32 a2, s32 a3) {
     if (a2 < a0) {
         return 0;
     }
@@ -477,7 +477,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031CDC);
  *
  * @param a0 Entry index into D_80083772.
  */
-void func_80031D68(s32 a0) {
+void clearAnimEntryActive(s32 a0) {
     extern u8 D_80083772[];
     s32 base = (s32)D_80083772;
     base = a0 * 16 + base;
@@ -488,20 +488,20 @@ void func_80031D68(s32 a0) {
 /**
  * @brief Update a D_80083772 entry with position and optionally store result.
  *
- * Calls func_80031910 with fields from the entry at index a0 (stride 16).
+ * Calls lerpRange with fields from the entry at index a0 (stride 16).
  * Always stores a1 to entry offset 0x8. If bit 1 of entry byte 0xE is set,
  * also stores the return value to entry offset 0xC.
  *
  * @param a0 Entry index into D_80083772 (stride 16 bytes).
  * @param a1 Value to store at entry offset 0x8.
  */
-void func_80031D8C(s32 a0, s32 a1) {
+void updateAnimEntry(s32 a0, s32 a1) {
     extern u8 D_80083772;
     s32 base = (s32)&D_80083772;
     s16 result;
 
     base = a0 * 16 + base;
-    result = func_80031910(*(s16 *)(base + 4), *(s16 *)(base + 6), a1, *(s16 *)(base + 0xA));
+    result = lerpRange(*(s16 *)(base + 4), *(s16 *)(base + 6), a1, *(s16 *)(base + 0xA));
     *(s16 *)(base + 8) = a1;
     if (*(u8 *)(base + 0xE) & 2) {
         *(s16 *)(base + 0xC) = result;
@@ -515,7 +515,7 @@ void func_80031D8C(s32 a0, s32 a1) {
  * @param a0 Entry index into D_80083772 (stride 16 bytes).
  * @param src Source for the 4-byte unaligned copy.
  */
-void func_80031DF4(s32 a0, void *src) {
+void copyAnimEntryField(s32 a0, void *src) {
     typedef struct { s16 a, b; } S16Pair;
     extern u8 D_80083772[];
     s32 base = (s32)D_80083772;
@@ -536,7 +536,7 @@ extern u8 D_80083772[];
  * Passes through all 6 caller args, truncates a1 to u8,
  * and appends 0x60 as the 7th argument.
  */
-void func_80031EBC(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
+void setupAnimEntry(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
     func_80031E1C(a0, a1, a2, a3, arg4, arg5, 0x60);
 }
 
@@ -547,7 +547,7 @@ void func_80031EBC(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
  * Truncates a1 to u8 and passes all caller arguments
  * through to func_80031E1C.
  */
-void func_80031EF4(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
+void setupAnimEntryFull(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
     func_80031E1C(a0, a1, a2, a3, arg4, arg5, arg6);
 }
 
@@ -558,7 +558,7 @@ void func_80031EF4(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) 
  * Iterates over 2 entries in D_80083772 (stride 0x10) and sets the byte at
  * offset 0x0E to zero for each, marking them as inactive.
  */
-void func_80031F2C(void) {
+void clearAnimEntries(void) {
     s32 i;
     u8 *ptr = D_80083772;
     for (i = 1; i >= 0; i--) {
@@ -575,7 +575,7 @@ extern u8 D_80083938[];
  * @brief Get a pointer to the global buffer D_80085134.
  * @return Address of D_80085134.
  */
-u8 *func_80031F50(void) {
+u8 *getBattleBuffer1(void) {
     return D_80085134;
 }
 
@@ -583,7 +583,7 @@ u8 *func_80031F50(void) {
  * @brief Get a pointer to the global buffer D_80083938.
  * @return Address of D_80083938.
  */
-u8 *func_80031F5C(void) {
+u8 *getBattleBuffer2(void) {
     return D_80083938;
 }
 
@@ -593,7 +593,7 @@ u8 *func_80031F5C(void) {
  * Polls func_8004D208 (VSync) with argument 1 in a busy loop until it
  * returns a value other than -1, indicating the vertical blank has occurred.
  */
-void func_80031F68(void) {
+void waitBattleVSync(void) {
     do {
     } while (func_8004D208(1) == -1);
 }
@@ -603,7 +603,7 @@ void func_80031F68(void) {
  * @brief Return the base address of the battle allocation region.
  * @return 0x801F4000 (fixed address in PS1 RAM).
  */
-u32 func_80031F9C(void) {
+u32 getBattleAllocBase(void) {
     return 0x801F4000;
 }
 
@@ -612,7 +612,7 @@ u32 func_80031F9C(void) {
  * @brief Return the size of the battle allocation region.
  * @return 0x4000 (16384 bytes / 16 KB).
  */
-s32 func_80031FA8(void) {
+s32 getBattleAllocSize(void) {
     return 0x4000;
 }
 
@@ -625,7 +625,7 @@ s32 func_80031FA8(void) {
  * at offset 0x70 via ClearOTag, and initializes the primitive allocation pointer
  * at offset 0x78 to point to offset 0x7C (start of free space).
  */
-void func_80031FB0(void) {
+void flipBattleOtBuffer(void) {
     extern s32 D_80083918;
     extern s32 D_80083920[];
     s32 buf;

@@ -396,14 +396,14 @@ s32 func_800C42FC(void) {
 /**
  * @brief Check callback completion and set done flag.
  *
- * Calls func_80013CA4 with the entity. If it returns non-zero (still busy),
+ * Calls sndGetEngineState with the entity. If it returns non-zero (still busy),
  * returns 0. Otherwise, sets the byte at entity->0x14 to 1 and returns 2.
  *
  * @param a0 Entity pointer.
  * @return 0 if busy, 2 if done.
  */
 s32 func_800C430C(s32 a0) {
-    if (func_80013CA4(a0) != 0) {
+    if (sndGetEngineState(a0) != 0) {
         return 0;
     }
     *(u8 *)(*(s32 *)(a0 + 0x14)) = 1;
@@ -413,7 +413,7 @@ s32 func_800C430C(s32 a0) {
 /**
  * @brief Initialize sound request and register completion callback.
  *
- * Clears the byte at a1, calls func_80014034 to start sound with a1=0,
+ * Clears the byte at a1, calls sndSetPlaybackAddr to start sound with a1=0,
  * then allocates a handler via func_800B2C58 with func_800C430C as callback,
  * storing a1 pointer at handler offset 0x14.
  *
@@ -423,7 +423,7 @@ s32 func_800C430C(s32 a0) {
 void func_800C434C(s32 a0, u8 *a1) {
     s32 result;
     *a1 = 0;
-    func_80014034(a0, 0);
+    sndSetPlaybackAddr(a0, 0);
     result = func_800B2C58(func_800C430C);
     *(s32 *)(result + 0x14) = (s32)a1;
 }
@@ -611,14 +611,14 @@ void func_800C4920(s32 a0, s32 a1, s32 a2) {
 /**
  * @brief Check callback completion and set done flag (duplicate).
  *
- * Same logic as func_800C430C: calls func_80013CA4, returns 0 if busy,
+ * Same logic as func_800C430C: calls sndGetEngineState, returns 0 if busy,
  * otherwise sets the byte at entity->0x14 to 1 and returns 2.
  *
  * @param a0 Entity pointer.
  * @return 0 if busy, 2 if done.
  */
 s32 func_800C4968(s32 a0) {
-    if (func_80013CA4(a0) != 0) {
+    if (sndGetEngineState(a0) != 0) {
         return 0;
     }
     *(u8 *)(*(s32 *)(a0 + 0x14)) = 1;
@@ -628,7 +628,7 @@ s32 func_800C4968(s32 a0) {
 /**
  * @brief Start sound effect and register completion callback.
  *
- * Calls func_80014348 to set up the request, func_80014400 to start
+ * Calls sndCmdE2 to set up the request, func_80014400 to start
  * the sound with D_800F1B7C as volume, then allocates a handler via
  * func_800B2C58 with func_800C4968 as callback, storing the completion
  * flag pointer.
@@ -638,7 +638,7 @@ s32 func_800C4968(s32 a0) {
  */
 void func_800C49A8(s32 a0, u8 *a1) {
     s32 result;
-    func_80014348(a0);
+    sndCmdE2(a0);
     func_80014400(a0, *(u8 *)D_800F1B7C);
     result = func_800B2C58(func_800C4968);
     *(s32 *)(result + 0x14) = (s32)a1;

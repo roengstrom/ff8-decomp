@@ -30,7 +30,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80026E70);
  * @return Thread handle from OpenTh.
  * @note Wraps PsyQ OpenTh with func_800472E4/func_800472F4 (likely interrupt disable/enable).
  */
-s32 func_80026EC4(s32 a0, s32 a1) {
+s32 openThreadSafe(s32 a0, s32 a1) {
     s32 result;
     func_800472E4(a0);
     result = OpenTh(a0, a1, 0);
@@ -44,7 +44,7 @@ s32 func_80026EC4(s32 a0, s32 a1) {
  * @param a0 Thread handle to close.
  * @note Wraps PsyQ CloseTh with func_800472E4/func_800472F4 (likely interrupt disable/enable).
  */
-void func_80026F14(s32 a0) {
+void closeThreadSafe(s32 a0) {
     func_800472E4(a0);
     CloseTh(a0);
     func_800472F4();
@@ -63,15 +63,15 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80026F4C);
  * @param a0 Input value (only lower 24 bits used).
  * @return Base address + masked input * 192.
  */
-s32 func_80026F90(s32 a0) {
+s32 getThreadControlBlock(s32 a0) {
     s32 base = *(s32 *)0x110;
     a0 &= 0xFFFFFF;
     return base + a0 * 192;
 }
 
 
-/** @brief Wrapper that calls func_80047384 (likely returns interrupt/thread status). */
-void func_80026FB4(void) { func_80047384(); }
+/** @brief Wrapper that calls func_80047384 (returns interrupt/thread status). */
+void getInterruptStatus(void) { func_80047384(); }
 
 
 INCLUDE_ASM("asm/nonmatchings/thread", func_80026FD4);
@@ -82,7 +82,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80026FD4);
  * @param a0 Thread handle to switch to; 0 defaults to 0xFF000000.
  * @note If func_80047384 returns bit 2 set, uses func_80026F4C instead of PsyQ ChangeTh.
  */
-void func_80026FE0(s32 a0) {
+void switchThread(s32 a0) {
     if (a0 == 0) {
         a0 = (s32)0xFF000000;
     }
@@ -112,7 +112,7 @@ extern BattleAnimEntity g_battleAnims[];
  * @brief Mark a battle animation entity as active.
  * @param idx Index into g_battleAnims array.
  */
-void func_800273D8(s32 idx) {
+void activateBattleAnim(s32 idx) {
     BattleAnimEntity *entry = &g_battleAnims[idx];
     entry->field19 = 1;
     entry->field0A = 1;
@@ -124,7 +124,7 @@ void func_800273D8(s32 idx) {
  * @param a0 Base address of the first entry.
  * @note Initializes the first entry with mode 0, and the second (at +0xC4) with mode 0x10.
  */
-void func_80027408(s32 a0) {
+void initBattleAnimPair(s32 a0) {
     func_80027220(a0, a0, 0);
     func_80027220(a0, a0 + 0xC4, 0x10);
 }
@@ -141,7 +141,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027448);
  *
  * @param a0 Pointer to a RECT (x, y, w, h as u16).
  */
-void func_80027558(u8 *a0) {
+void setBattleAnimClipRect(u8 *a0) {
     s32 dst = (s32)g_battleAnims;
     *(u16 *)(dst + 0x1D8) = *(u16 *)a0;
     *(u16 *)(dst + 0x1DA) = *(u16 *)(a0 + 2);
@@ -154,7 +154,7 @@ void func_80027558(u8 *a0) {
  * @brief Read field0B from a battle animation entity.
  * @param idx Entity index.
  */
-s32 func_800275A8(s32 idx) {
+s32 getBattleAnimField0B(s32 idx) {
     BattleAnimEntity *entry = &g_battleAnims[idx];
     return entry->field0B;
 }
@@ -171,7 +171,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_800275D4);
  * @note Resolves a secondary entry via linkedIdx, then indexes into its
  *       frames[] circular buffer using (frameCounter - offset) & 7.
  */
-u16 func_8002795C(s32 idx, s32 offset) {
+u16 getAnimFrameParam(s32 idx, s32 offset) {
     BattleAnimEntity *base;
     BattleAnimEntity *entry;
     BattleAnimEntity *linked;
@@ -190,9 +190,9 @@ u16 func_8002795C(s32 idx, s32 offset) {
  * @param idx Entity index (masked to 0 or 1).
  * @param offset Frame offset subtracted from the current frame counter.
  * @return Bitwise OR of field08, field0A, field0C, field0E in the resolved AnimFrame.
- * @note Same lookup as func_8002795C but ORs 4 adjacent u16 values.
+ * @note Same lookup as getAnimFrameParam but ORs 4 adjacent u16 values.
  */
-u16 func_800279CC(s32 idx, s32 offset) {
+u16 getAnimFrameStatusFlags(s32 idx, s32 offset) {
     BattleAnimEntity *base;
     BattleAnimEntity *entry;
     BattleAnimEntity *linked;
@@ -230,7 +230,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027AC8);
  * @param a1 Y component (vertical).
  * @return Angle in fixed-point (0x1000 = 360 degrees).
  */
-s32 func_80027B38(s32 a0, s32 a1) {
+s32 computeAngle(s32 a0, s32 a1) {
     s32 v0;
     if (a0 != 0) goto a0_nonzero;
     v0 = 0xC00;
@@ -261,7 +261,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027B7C);
  * @param a0 Slot selector (only bit 0 used).
  * @return (g_battleAnims[slot].byte_C3 & 0x7F) << 8.
  */
-s32 func_80027BA8(s32 a0) {
+s32 getBattleAnimLinkedValue(s32 a0) {
     s32 slot;
     a0 &= 1;
     slot = g_battleAnims[a0].linkedIdx;
@@ -286,7 +286,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027DB4);
  * @param idx Entity index (masked to 0 or 1).
  * @return Opacity value (0xFF = visible, 0 = hidden).
  */
-s32 func_80027EC8(s32 idx) {
+s32 getBattleAnimOpacity(s32 idx) {
     BattleAnimEntity *entry = &g_battleAnims[idx & 1];
     return entry->opacity;
 }

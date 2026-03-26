@@ -2,8 +2,8 @@
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
 
-void func_800389CC(void);
-void func_80038CF0(s32 a0);
+void resetCdDrive(void);
+void setDiscNumber(s32 a0);
 
 /**
  * @brief Detect the disc number by searching for disc-specific files.
@@ -14,7 +14,7 @@ void func_80038CF0(s32 a0);
  *
  * @return Disc number (1–4), or -1 on failure.
  */
-s32 func_800385B0(void) {
+s32 detectDiscNumber(void) {
     extern u8 D_8001092C[];
     extern u8 D_8001093C[];
     extern u8 D_8001094C[];
@@ -37,11 +37,11 @@ s32 func_800385B0(void) {
 }
 
 
-/** @brief Calls func_8001313C with a0 passed through and fixed constants.
+/** @brief Calls sndKeyOn with a0 passed through and fixed constants.
  *  @param a0 First parameter passed through.
  */
-void func_8003863C(s32 a0) {
-    func_8001313C(a0, 0, 0x80, 0x7F, 0);
+void setAudioVolume(s32 a0) {
+    sndKeyOn(a0, 0, 0x80, 0x7F, 0);
 }
 
 
@@ -51,11 +51,11 @@ void func_8003863C(s32 a0) {
  * Clears CD state variables (D_8008A3D8, D_8008A3D0). If a0 is nonzero,
  * spins until CdInit succeeds, disables CD debug output, sends a
  * CdControlB command (0xE = SetMode, double-speed 0x80), waits 3 vsyncs,
- * then reads the disc ID via func_800385B0 and stores it.
+ * then reads the disc ID via detectDiscNumber and stores it.
  *
  * @param a0 If nonzero, perform full CD hardware initialization.
  */
-void func_80038668(s32 a0) {
+void initCdSubsystem(s32 a0) {
     extern u8 D_8008A3D8;
     extern s16 D_8008A3D0;
     extern u8 D_8008A3DA;
@@ -72,22 +72,22 @@ void func_80038668(s32 a0) {
         buf = 0x80;
         CdControlB(0xE, &buf, 0);
         VSync(3);
-        result = func_800385B0();
+        result = detectDiscNumber();
         D_8008A3DA = result;
-        func_80038CF0((s8)result);
+        setDiscNumber((s8)result);
     }
 }
 
 
 /** @brief Clears bit 1 in global D_8008A3D8. */
-void func_800386F0(void) {
+void clearCdBusyFlag(void) {
     extern u8 D_8008A3D8;
     D_8008A3D8 &= 0xFD;
 }
 
 
 /** @brief Sets bit 1 in global D_8008A3D8. */
-void func_80038708(void) {
+void setCdBusyFlag(void) {
     extern u8 D_8008A3D8;
     D_8008A3D8 |= 0x02;
 }
@@ -99,10 +99,10 @@ void func_80038708(void) {
  * Calls the CD clear, flush, and init routines, then polls until
  * the CD subsystem reports ready.
  */
-void func_80038720(void) {
-    func_800386F0();
+void flushCdAndWait(void) {
+    clearCdBusyFlag();
     CdFlush();
-    func_800389CC();
+    resetCdDrive();
     do {
     } while (func_800393C8() != 0);
 }
@@ -126,7 +126,7 @@ INCLUDE_ASM("asm/nonmatchings/cdrom", func_800387F8);
  * @param a3 Fourth CD read parameter.
  * @return Always 0.
  */
-s32 func_8003882C(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 cdRead(s32 a0, s32 a1, s32 a2, s32 a3) {
     func_80038760(3, a0, a1, a2, a3);
     return 0;
 }
@@ -145,7 +145,7 @@ INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038868);
  * @param a1 Second CD read parameter.
  * @return Always 0.
  */
-s32 func_800388CC(s32 a0, s32 a1) {
+s32 cdReadRetry(s32 a0, s32 a1) {
     do {
     } while (func_800387F8(a0, a1) != 0);
     do {
@@ -157,7 +157,7 @@ s32 func_800388CC(s32 a0, s32 a1) {
 /**
  * @brief Perform a synchronous (blocking) CD-ROM read.
  *
- * Initiates a CD read via func_8003882C, then busy-waits on func_800393C8
+ * Initiates a CD read via cdRead, then busy-waits on func_800393C8
  * until the read is complete.
  *
  * @param a0 First CD read parameter.
@@ -166,9 +166,9 @@ s32 func_800388CC(s32 a0, s32 a1) {
  * @param a3 Fourth CD read parameter.
  * @return Always 0.
  */
-s32 func_80038920(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 cdReadSync(s32 a0, s32 a1, s32 a2, s32 a3) {
     do {
-    } while (func_8003882C(a0, a1, a2, a3) != 0);
+    } while (cdRead(a0, a1, a2, a3) != 0);
     do {
     } while (func_800393C8() != 0);
     return 0;
@@ -183,7 +183,7 @@ s32 func_80038920(s32 a0, s32 a1, s32 a2, s32 a3) {
  *
  * @return The value returned by func_80038868 (async read handle/status).
  */
-s32 func_80038994(void) {
+s32 cdReadAsyncSync(void) {
     s32 saved = func_80038868();
     do {
     } while (func_800393C8() != 0);
@@ -196,9 +196,9 @@ s32 func_80038994(void) {
  *
  * Checks state byte at D_8008A3D8+1. If it's 0 or 0xB, returns immediately.
  * Otherwise clears three control fields and sets state to 0xC, then calls
- * func_80039388 to finalize.
+ * cdBreakRead to finalize.
  */
-void func_800389CC(void) {
+void resetCdDrive(void) {
     extern u8 D_8008A3D8;
     s32 base = (s32)&D_8008A3D8;
     u8 state = *(u8 *)(base + 1);
@@ -209,7 +209,7 @@ void func_800389CC(void) {
     *(s32 *)(base + 0x08) = 0;
     *(s32 *)(base + 0x20) = 0;
     *(u8 *)(base + 1) = 0xC;
-    func_80039388();
+    cdBreakRead();
 }
 
 
@@ -220,7 +220,7 @@ void func_800389CC(void) {
  * 3 VSync periods, sends command 0x8 (Pause), then marks the CD state
  * byte D_8008A3D9 as 0xB (complete).
  */
-void func_80038A18(void) {
+void resetCdDriveMode(void) {
     extern s8 D_8008A3D9;
     CdControlB(0xE, 0, 0);
     VSync(3);
@@ -237,7 +237,7 @@ extern s8 D_8008A3DA;
  * @brief Get the current disc ID.
  * @return Disc identifier as a signed byte (D_8008A3DA).
  */
-s8 func_80038CE0(void) {
+s8 getDiscId(void) {
     return D_8008A3DA;
 }
 
@@ -249,7 +249,7 @@ extern u8 D_8008A3D9;
  * @brief Set the current disc number.
  * @param a0 Disc number to store in D_8008A3D2.
  */
-void func_80038CF0(s32 a0) {
+void setDiscNumber(s32 a0) {
     D_8008A3D2 = a0;
 }
 
@@ -258,7 +258,7 @@ void func_80038CF0(s32 a0) {
  * @brief Get the current CD-ROM subsystem state.
  * @return CD state machine phase (D_8008A3D9).
  */
-u32 func_80038CFC(void) {
+u32 getCdState(void) {
     return D_8008A3D9;
 }
 
@@ -269,7 +269,7 @@ u32 func_80038CFC(void) {
  * Calls CdFlush to clear the CD command queue, then issues CdControl(9)
  * which is the CdlPause command to halt disc spinning.
  */
-void func_80038D0C(void) {
+void stopCdDrive(void) {
     CdFlush();
     CdControl(9, 0, 0);
 }
