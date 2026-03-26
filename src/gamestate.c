@@ -9,11 +9,11 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800370AC);
  * @brief Set a bit in the global bitfield array D_8007809B.
  * @param a0 Bit index to set.
  */
-void setFieldFlag(s32 a0) {
+void setFieldFlag(s32 bitIdx) {
     extern u8 D_8007809B[];
     u8 *base = D_8007809B;
-    s32 byteIdx = a0 / 8;
-    base[byteIdx] |= (1 << (a0 & 7));
+    s32 byteIdx = bitIdx / 8;
+    base[byteIdx] |= (1 << (bitIdx & 7));
 }
 
 
@@ -21,11 +21,11 @@ void setFieldFlag(s32 a0) {
  * @brief Clear a bit in the global bitfield array D_8007809B.
  * @param a0 Bit index to clear.
  */
-void clearFieldFlag(s32 a0) {
+void clearFieldFlag(s32 bitIdx) {
     extern u8 D_8007809B[];
     u8 *base = D_8007809B;
-    s32 byteIdx = a0 / 8;
-    base[byteIdx] &= ~(1 << (a0 & 7));
+    s32 byteIdx = bitIdx / 8;
+    base[byteIdx] &= ~(1 << (bitIdx & 7));
 }
 
 
@@ -34,11 +34,11 @@ void clearFieldFlag(s32 a0) {
  * @param a0 Bit index to test.
  * @return Non-zero if bit is set, zero otherwise.
  */
-s32 testFieldFlag(s32 a0) {
+s32 testFieldFlag(s32 bitIdx) {
     extern u8 D_8007809B[];
     u8 *base = D_8007809B;
-    s32 byteIdx = a0 / 8;
-    return base[byteIdx] & (1 << (a0 & 7));
+    s32 byteIdx = bitIdx / 8;
+    return base[byteIdx] & (1 << (bitIdx & 7));
 }
 
 
@@ -107,11 +107,11 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800377B4);
  * @param a0 Pointer to the 128-byte memory card frame.
  * @return XOR checksum (0-255).
  */
-u32 mcXorChecksum(u8 *a0) {
+u32 mcXorChecksum(u8 *frame) {
     u32 acc = 0;
     s32 i = 0;
     do {
-        acc ^= *a0++;
+        acc ^= *frame++;
         i++;
     } while ((u32)i < 0x7F);
     return acc & 0xFF;
@@ -138,11 +138,11 @@ void mcZeroFrame(u8 *ptr) {
  *
  * @param a0 Pointer to the 128-byte frame buffer.
  */
-void mcInitHeader(u8 *a0) {
-    mcZeroFrame(a0);
-    a0[0] = 0x4D;
-    a0[1] = 0x43;
-    a0[0x7F] = mcXorChecksum(a0);
+void mcInitHeader(u8 *frame) {
+    mcZeroFrame(frame);
+    frame[0] = 0x4D;
+    frame[1] = 0x43;
+    frame[0x7F] = mcXorChecksum(frame);
 }
 
 
@@ -154,12 +154,12 @@ void mcInitHeader(u8 *a0) {
  *
  * @param a0 Pointer to the 128-byte frame buffer.
  */
-void mcInitDirUsed(u8 *a0) {
-    mcZeroFrame(a0);
-    a0[0] = 0xA0;
-    a0[8] = 0xFF;
-    a0[9] = 0xFF;
-    a0[0x7F] = mcXorChecksum(a0);
+void mcInitDirUsed(u8 *frame) {
+    mcZeroFrame(frame);
+    frame[0] = 0xA0;
+    frame[8] = 0xFF;
+    frame[9] = 0xFF;
+    frame[0x7F] = mcXorChecksum(frame);
 }
 
 
@@ -172,25 +172,25 @@ void mcInitDirUsed(u8 *a0) {
  *
  * @param a0 Pointer to the 128-byte frame buffer.
  */
-void mcInitDirFree(u8 *a0) {
-    mcZeroFrame(a0);
-    a0[0] = 0xFF;
-    a0[1] = 0xFF;
-    a0[2] = 0xFF;
-    a0[3] = 0xFF;
-    a0[8] = 0xFF;
-    a0[9] = 0xFF;
-    a0[0x7F] = mcXorChecksum(a0);
+void mcInitDirFree(u8 *frame) {
+    mcZeroFrame(frame);
+    frame[0] = 0xFF;
+    frame[1] = 0xFF;
+    frame[2] = 0xFF;
+    frame[3] = 0xFF;
+    frame[8] = 0xFF;
+    frame[9] = 0xFF;
+    frame[0x7F] = mcXorChecksum(frame);
 }
 
 
 /** @brief Fills 128 bytes at a0 with 0xFF.
  *  @param a0 Pointer to buffer.
  */
-void mcFillFF(u8 *a0) {
+void mcFillFF(u8 *buf) {
     s32 i = 128;
     do {
-        *a0++ = 0xFF;
+        *buf++ = 0xFF;
     } while (--i > 0);
 }
 
@@ -228,13 +228,13 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B7C);
  * @param a0 Value to search for (low 8 bits used).
  * @return Slot index (0-2) if found, 0xFF if not found.
  */
-s32 findBattlePartySlot(s32 a0) {
+s32 findBattlePartySlot(s32 charId) {
     extern u8 g_gameState[];
     s32 i = 0;
     s32 base = (s32)g_gameState;
-    a0 &= 0xFF;
+    charId &= 0xFF;
     do {
-        if (*(u8 *)(i + base + 0xD38) == a0) {
+        if (*(u8 *)(i + base + 0xD38) == charId) { /* battleParty[i] */
             return (u8)i;
         }
         i++;
@@ -252,13 +252,13 @@ s32 findBattlePartySlot(s32 a0) {
  * @param a0 Value to search for (low 8 bits used).
  * @return Slot index (0-2) if found, 0xFF if not found.
  */
-s32 findPartySlot(s32 a0) {
+s32 findPartySlot(s32 charId) {
     extern u8 g_gameState[];
     s32 i = 0;
     s32 base = (s32)g_gameState;
-    a0 &= 0xFF;
+    charId &= 0xFF;
     do {
-        if (*(u8 *)(i + base + 0xAF4) == a0) {
+        if (*(u8 *)(i + base + 0xAF4) == charId) { /* party.party[i] */
             return (u8)i;
         }
         i++;
@@ -276,14 +276,14 @@ s32 findPartySlot(s32 a0) {
  * @param a0 Card value to search for (low 8 bits used).
  * @return Slot index (0-7) if found, 0xFF if not found.
  */
-s32 findCharacterSlot(s32 a0) {
+s32 findCharacterSlot(s32 charId) {
     extern u8 g_gameState[];
     s32 i = 0;
     s32 base;
-    a0 &= 0xFF;
+    charId &= 0xFF;
     base = (s32)g_gameState;
     do {
-        if (*(u8 *)(base + 0x498) == a0) {
+        if (*(u8 *)(base + 0x498) == charId) { /* chars[i].characterId */
             return (u8)i;
         }
         i++;
@@ -457,14 +457,14 @@ s32 getFieldStateFlags(void) {
  * @param a0 Entry index (low 8 bits used).
  * @return The 2-bit value (0-3) at the given index.
  */
-s32 getPackedField2Bit(s32 a0) {
+s32 getPackedField2Bit(s32 entryIdx) {
     extern u8 *D_800562C4;
     u8 *ptr = D_800562C4;
     s32 idx;
 
-    a0 &= 0xFF;
-    idx = a0 / 4;
-    return (*(u8 *)(ptr + idx + 0x74) >> ((a0 - idx * 4) * 2)) & 3;
+    entryIdx &= 0xFF;
+    idx = entryIdx / 4;
+    return (*(u8 *)(ptr + idx + 0x74) >> ((entryIdx - idx * 4) * 2)) & 3;
 }
 
 
@@ -475,9 +475,9 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800383B8);
  *  @param a0 Table index (only low 8 bits used).
  *  @return The byte value at D_8005644B[a0 & 0xFF].
  */
-u8 lookupFieldTable(s32 a0) {
+u8 lookupFieldTable(s32 tableIdx) {
     extern u8 D_8005644B[];
-    return D_8005644B[a0 & 0xFF];
+    return D_8005644B[tableIdx & 0xFF];
 }
 
 
