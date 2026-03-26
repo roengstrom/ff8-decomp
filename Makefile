@@ -49,6 +49,9 @@ NO_G0_SRCS := src/main.c
 # Source files compiled with -G4 (globals ≤4 bytes use assembler pseudo expansion)
 G4_SRCS := src/game.c
 
+# Source files compiled with -O0 (unoptimized, uses frame pointer)
+O0_SRCS := src/16120.c
+
 ### Assembler flags ###
 # -march=r3000  : MIPS I (the PS1 CPU)
 # -mabi=32      : 32-bit ABI
@@ -102,7 +105,7 @@ $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
 		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
-		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS))) $< -o $(BUILD_DIR)/$(*F).s && \
+		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)))) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
