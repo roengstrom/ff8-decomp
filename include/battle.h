@@ -4,181 +4,230 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 
-/**
- * @brief Animation frame sub-entry within BattleAnimEntity (stride 20 bytes).
- *
- * Each BattleAnimEntity has a circular buffer of 8 frames, indexed by
- * (frameCounter - offset) & 7.
- */
 typedef struct {
-    u8 field00;      /**< 0x00: Active flag (nonzero = occupied). */
-    u8 field01;      /**< 0x01: Type/flags (upper 4 bits = animation type). */
-    u16 field02;     /**< 0x02: Parameter value. */
-    u8 field04;      /**< 0x04: Direction value. */
-    u8 field05;      /**< 0x05: Unknown byte. */
-    u8 field06;      /**< 0x06: Unknown byte. */
-    u8 field07;      /**< 0x07: Unknown byte. */
-    u16 field08;     /**< 0x08: Unknown u16. */
-    u16 field0A;     /**< 0x0A: Unknown u16. */
-    u16 field0C;     /**< 0x0C: Unknown u16. */
-    u16 field0E;     /**< 0x0E: Unknown u16. */
-    u16 field10;     /**< 0x10: Unknown u16. */
-    u16 field12;     /**< 0x12: Unknown u16. */
-} AnimFrame;         /* 0x14 = 20 bytes */
+    u8 field00;
+    u8 field01;
+    u16 field02;
+    u8 field04;
+    u8 field05;
+    u8 field06;
+    u8 field07;
+    u16 field08;
+    u16 field0A;
+    u16 field0C;
+    u16 field0E;
+    u16 field10;
+    u16 field12;
+} AnimFrame;
 
-/**
- * @brief Battle animation entity (g_battleAnims, stride 196 bytes).
- *
- * Controls animation state for a battle participant. Contains a circular
- * buffer of 8 AnimFrame sub-entries and links to a secondary entity via
- * linkedIdx. The array at g_battleAnims holds 2 active entities (indexed
- * with a0 & 1) plus extra global state beyond offset 0x188.
- */
 typedef struct {
-    u8 pad00[6];          /**< 0x00..0x05: Unknown fields. */
-    u8 field06;           /**< 0x06: Unknown byte. */
-    u8 field07;           /**< 0x07: Unknown byte. */
-    u8 pad08[2];          /**< 0x08..0x09: Unknown fields. */
-    u8 field0A;           /**< 0x0A: Active flag (1 = active). */
-    u8 field0B;           /**< 0x0B: Unknown byte. */
-    u8 field0C;           /**< 0x0C: Default color value. */
-    u8 field0D;           /**< 0x0D: Default color value. */
-    u8 field0E;           /**< 0x0E: Default color value. */
-    u8 field0F;           /**< 0x0F: Default color value. */
-    s16 unk10[4];         /**< 0x10..0x17: s16 array (set via func_800281A4). */
-    u8 frameCounter;      /**< 0x18: Frame counter (circular, & 7). */
-    u8 field19;           /**< 0x19: Active flag (1 = active). */
-    s8 field1A;           /**< 0x1A: State indicator (0, 2, 6 tested). */
-    u8 opacity;           /**< 0x1B: Opacity (0xFF = visible, 0 = hidden). */
-    AnimFrame frames[8];  /**< 0x1C..0xBB: 8 animation frame sub-entries. */
-    u8 padBC[6];          /**< 0xBC..0xC1: Unknown fields. */
-    u8 linkedIdx;         /**< 0xC2: Index into same array (linked entity). */
-    u8 fieldC3;           /**< 0xC3: Control (bit 7 = mirror, low 7 = intensity). */
-} BattleAnimEntity;       /* 0xC4 = 196 bytes */
+    u8 pad00[6];
+    u8 field06;
+    u8 field07;
+    u8 pad08[2];
+    u8 field0A;
+    u8 field0B;
+    u8 field0C;
+    u8 field0D;
+    u8 field0E;
+    u8 field0F;
+    s16 unk10[4];
+    u8 frameCounter;
+    u8 field19;
+    s8 field1A;
+    u8 opacity;
+    AnimFrame frames[8];
+    u8 padBC[6];
+    u8 linkedIdx;
+    u8 fieldC3;
+} BattleAnimEntity;
 
-/**
- * @brief Battle display entity (D_80083210, stride 64 bytes).
- *
- * Each entity represents a visual element in the battle scene (characters,
- * enemies, effects). The array at D_80083210 holds all active entities.
- */
 typedef struct {
-    s32 field00;        /**< 0x00: Pointer or ID (first word). */
-    s32 field04;        /**< 0x04: Pointer or ID (second word). */
-    RECT boundRect;     /**< 0x08: Bounding rectangle. */
-    RECT dispRect;      /**< 0x10: Display rectangle. */
-    u8 pad18[0x18];     /**< 0x18..0x2F: Unknown fields. */
-    s32 drawMode;       /**< 0x30: Draw mode (0x38000000 or 0x3A000000). */
-    u8 activeFlag;      /**< 0x34: Active/type indicator (0 = inactive). */
-    u8 field35;         /**< 0x35: Unknown byte. */
-    u8 field36;         /**< 0x36: Unknown byte. */
-    u8 animSpeed;       /**< 0x37: Animation speed/priority (clamped 3..11). */
-    u8 entityType;      /**< 0x38: Entity type; bit 0 selects drawMode. */
-    u8 pad39;           /**< 0x39: Padding. */
-    u8 subFields[2];    /**< 0x3A: Sub-fields indexed by offset param. */
-    s16 scale;          /**< 0x3C: Scale factor (0x1000 = 1.0). */
-    s16 pad3E;          /**< 0x3E: Padding / unused. */
-} BattleDisplayEntity;  /* 0x40 = 64 bytes */
+    s32 field00;
+    s32 field04;
+    RECT boundRect;
+    RECT dispRect;
+    u8 pad18[0x18];
+    s32 drawMode;
+    u8 activeFlag;
+    u8 field35;
+    u8 field36;
+    u8 animSpeed;
+    u8 entityType;
+    u8 pad39;
+    u8 subFields[2];
+    s16 scale;
+    s16 pad3E;
+} BattleDisplayEntity;
 
-/**
- * @brief SFX/visual effect entry (D_80082FF0, stride 60 bytes).
- *
- * Each entry controls a visual effect (animation, sprite, particle) linked
- * to a BattleDisplayEntity via the entityIdx field.
- */
 typedef struct {
-    RECT rect;       /**< 0x00: Source rectangle for the effect. */
-    u8 pad08[8];     /**< 0x08..0x0F: Unknown fields. */
-    s16 pitch;       /**< 0x10: Pitch / playback rate. */
-    u8 pad12[2];     /**< 0x12..0x13: Padding. */
-    s16 field14;     /**< 0x14: Unknown s16 (cleared on init). */
-    u8 state;        /**< 0x16: State (0 = inactive, 1 = active). */
-    u8 pad17;        /**< 0x17: Padding. */
-    u8 entityIdx;    /**< 0x18: Index into BattleDisplayEntity array. */
-    u8 field19;      /**< 0x19: Unknown byte (cleared on init). */
-    s16 volume;      /**< 0x1A: Volume / intensity (0x1000 = default). */
-    s16 field1C;     /**< 0x1C: Unknown s16. */
-    s16 rateDelta;   /**< 0x1E: Rate of change (negative = fade out). */
-    u8 field20;      /**< 0x20: Data stream position index. */
-    u8 field21;      /**< 0x21: Repeat / loop counter. */
-    u8 field22;      /**< 0x22: Frame tick counter. */
-    u8 field23;      /**< 0x23: Loop count limit (compared against field21). */
-    s32 seqState;    /**< 0x24: Sequence interpreter state (0..0x11). */
-    u8 field28;      /**< 0x28: Unknown byte. */
-    u8 field29;      /**< 0x29: Unknown byte. */
-    u8 field2A;      /**< 0x2A: Unknown byte. */
-    u8 field2B;      /**< 0x2B: Unknown byte. */
-    u8 field2C;      /**< 0x2C: Unknown byte. */
-    u8 mode;         /**< 0x2D: Playback mode. */
-    u8 pad2E;        /**< 0x2E: Padding. */
-    u8 field2F;      /**< 0x2F: Unknown byte (cleared on init). */
-    u16 field30;     /**< 0x30: Unknown u16. */
-    u8 field32;      /**< 0x32: Unknown byte. */
-    u8 pad33;        /**< 0x33: Padding. */
-    s32 field34;     /**< 0x34: Unknown s32. */
-    s32 field38;     /**< 0x38: Unknown s32. */
-} SfxEntry;          /* 0x3C = 60 bytes */
+    RECT rect;
+    s32 dataPtr;
+    s32 dataPtrCopy;
+    s16 pitch;
+    u16 field12;
+    s16 field14;
+    u8 state;
+    u8 pad17;
+    u8 entityIdx;
+    u8 field19;
+    s16 volume;
+    s16 field1C;
+    s16 rateDelta;
+    u8 field20;
+    u8 field21;
+    u8 field22;
+    u8 field23;
+    s32 seqState;
+    u8 field28;
+    u8 field29;
+    u8 field2A;
+    u8 field2B;
+    u8 field2C;
+    u8 mode;
+    u8 pad2E;
+    u8 field2F;
+    u16 field30;
+    u8 field32;
+    u8 pad33;
+    s32 field34;
+    s32 field38;
+} SfxEntry;
 
-/** @brief Bit flags for BattleEntity::controlFlags. */
+typedef struct {
+    u8 pad00[3];
+    u8 counter;
+    u8 pad04[8];
+    s8 activeFlag;
+    u8 pad0D[7];
+    u8 field14;
+    u8 field15;
+    u8 pad16[2];
+    u16 field18;
+    u16 field1A;
+} SfxGlobalState;
+
 typedef enum {
-    CTRL_ACTIVE     = 0x01,  /**< Entity is active. */
-    CTRL_FLAG_02    = 0x02,  /**< Unknown. */
-    CTRL_FLAG_10    = 0x10,  /**< Unknown. */
-    CTRL_FLAG_40    = 0x40,  /**< Unknown. */
-    CTRL_FLAG_80    = 0x80,  /**< Unknown. */
-    CTRL_FLAG_100   = 0x100  /**< Unknown. */
+    CTRL_ACTIVE     = 0x01,
+    CTRL_FLAG_02    = 0x02,
+    CTRL_FLAG_10    = 0x10,
+    CTRL_FLAG_40    = 0x40,
+    CTRL_FLAG_80    = 0x80,
+    CTRL_FLAG_100   = 0x100
 } ControlFlags;
 
-/**
- * @brief Battle entity (D_800ED148 array, stride 0xD0 = 208 bytes).
- *
- * Up to 7 entities in the battle scene. Each entity tracks state,
- * flags, status effects, animation params, and linked references.
- */
 typedef struct {
-    u8 pad00[0x04];    /**< 0x00..0x03: Unknown. */
-    s32 state;         /**< 0x04: Entity state. */
-    u8 pad08[0x04];    /**< 0x08..0x0B: Unknown. */
-    u8 timer;          /**< 0x0C: Timer. */
-    u8 control;        /**< 0x0D: Control byte. */
-    u8 pad0E;          /**< 0x0E: Unknown. */
-    u8 entityRef;      /**< 0x0F: Entity index reference. */
-    s32 linkedPtr;     /**< 0x10: Linked entity pointer. */
-    u8 pad14[0x04];    /**< 0x14..0x17: Unknown. */
-    s32 flags;         /**< 0x18: Feature flags (bitmask). */
-    s32 flagsBackup;   /**< 0x1C: Flags backup. */
-    u8 pad20[0x08];    /**< 0x20..0x27: Unknown. */
-    s32 field28;       /**< 0x28: Unknown (checked for zero). */
-    u8 pad2C[0x58];    /**< 0x2C..0x83: Unknown. */
-    u16 animParam1;    /**< 0x84: Animation parameter 1. */
-    u16 animParam2;    /**< 0x86: Animation parameter 2. */
-    u16 animParam3;    /**< 0x88: Animation parameter 3. */
-    u8 pad8A[0x02];    /**< 0x8A..0x8B: Unknown. */
-    ControlFlags controlFlags;  /**< 0x8C: Control flags (see ControlFlags enum). */
-    u16 status;        /**< 0x90: Status effects (bitmask). */
-    u16 statusBackup;  /**< 0x92: Status effects backup. */
-    u8 pad94[0x27];    /**< 0x94..0xBA: Unknown. */
-    u8 linkedIdx2;     /**< 0xBB: Linked entity index. */
-    u8 padBC[0x0F];    /**< 0xBC..0xCA: Unknown. */
-    u8 linkedIdx;      /**< 0xCB: Linked index (0xFF = none). */
-    u8 padCC[0x04];    /**< 0xCC..0xCF: Unknown. */
-} BattleEntity;        /* 0xD0 = 208 bytes */
+    u8 pad00[0x04];
+    s32 state;
+    u8 pad08[0x04];
+    u8 timer;
+    u8 control;
+    u8 pad0E;
+    u8 entityRef;
+    s32 linkedPtr;
+    u8 pad14[0x04];
+    s32 flags;
+    s32 flagsBackup;
+    u8 pad20[0x08];
+    s32 field28;
+    u8 pad2C[0x58];
+    u16 animParam1;
+    u16 animParam2;
+    u16 animParam3;
+    u8 pad8A[0x02];
+    ControlFlags controlFlags;
+    u16 status;
+    u16 statusBackup;
+    u8 pad94[0x27];
+    u8 linkedIdx2;
+    u8 padBC[0x0F];
+    u8 linkedIdx;
+    u8 padCC[0x04];
+} BattleEntity;
 
-/**
- * @brief Battle character render data (g_battleChars, stride 0x1D0 = 464 bytes).
- *
- * Contains display/render state for each battle participant.
- * Linked to BattleEntity (D_800ED148) for core battle logic.
- */
+/** @brief Battle magic slot entry (5 bytes). */
 typedef struct {
-    /* 0x000 */ u8 pad000[0x18C];      /**< Render state, animation, etc. */
-    /* 0x18C */ s32 abilityFlags;       /**< Ability/status flag bits. */
-    /* 0x190 */ u8 pad190[0x24];       /**< Unknown. */
-    /* 0x1B4 */ u16 abilityValue;      /**< Base ability value (lower 7 bits used). */
-    /* 0x1B6 */ u8 pad1B6[0x0D];      /**< Unknown. */
-    /* 0x1C3 */ u8 characterId;        /**< Character ID (see CharacterId). */
-    /* 0x1C4 */ u8 pad1C4[0x0C];      /**< Unknown. */
-} BattleCharData;          /* 0x1D0 = 464 bytes */
+    u8 field0;
+    u8 field1;
+    u8 field2;
+    u8 field3;
+    u8 field4;
+} BattleMagicSlot;
+
+/** @brief Battle item slot entry (5 bytes). */
+typedef struct {
+    u8 field0;
+    u8 field1;
+    u8 field2;
+    u8 field3;
+    u8 field4;
+} BattleItemSlot;
+
+/** @brief Battle command slot entry (4 bytes). */
+typedef struct {
+    u8 field0;
+    u8 field1;
+    u8 field2;
+    u8 field3;
+} BattleCmdSlot;
+
+/** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
+typedef struct {
+    s32 pktAlloc;
+    s32 pktLimit;
+    u32 ot[18];
+    u8 pad50[4];
+    s32 pktBase;
+} DisplayListBuf;
+
+/** @brief Battle command table entry (D_80083878, stride 0x24 = 36 bytes). */
+typedef struct {
+    u8 data[0x20];
+    u16 sourceId;
+    s8 active;
+    u8 index;
+} BattleCmdEntry;
+
+/** @brief Memory card subsystem data block (D_80082FB4). */
+typedef struct {
+    s32 events[8];
+    u8 pad20;
+    u8 statusByte;
+    u8 pad22[2];
+    u8 cmdBytes[8];
+    u8 status[2][4];
+    u8 statusAlt[2][4];
+} CardDataBlock;
+
+/** @brief Battle OT buffer state. */
+typedef struct {
+    s32 pktAlloc;
+    u8 pad04[0x6C];
+    u32 ot[2];
+    s32 pktPtr;
+    u8 freeSpace[4];
+} BattleOtBuf;
+
+/** @brief Battle character render data (g_battleChars, stride 0x1D0 = 464 bytes). */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x14];
+    /* 0x014 */ u16 field014;
+    /* 0x016 */ u8 pad016[6];
+    /* 0x01C */ u8 field01C;
+    /* 0x01D */ u8 field01D;
+    /* 0x01E */ BattleCmdSlot cmdSlots[4];
+    /* 0x02E */ u8 pad02E[0x54];
+    /* 0x082 */ BattleMagicSlot magicSlots[32];
+    /* 0x122 */ BattleItemSlot itemSlots[16];
+    /* 0x172 */ u8 pad172[0x1A];
+    /* 0x18C */ s32 abilityFlags;
+    /* 0x190 */ s32 statusFlags;
+    /* 0x194 */ u8 pad194[0x20];
+    /* 0x1B4 */ u16 abilityValue;
+    /* 0x1B6 */ u8 pad1B6[0x0D];
+    /* 0x1C3 */ u8 characterId;
+    /* 0x1C4 */ u8 pad1C4[0x0C];
+} BattleCharData;
 
 extern BattleCharData g_battleChars[];
 

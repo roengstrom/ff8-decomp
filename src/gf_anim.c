@@ -78,12 +78,12 @@ s32 hasCommandType6(u8 *a0) {
  * @return Flags: bit 0 set if status bit 0x20000 is active; bit 1 set if magic commands present
  *         (unless D_80082C10 bit 3 is set, which suppresses the magic flag).
  */
-s32 getMagicAvailFlags(s32 a0) {
+s32 getMagicAvailFlags(BattleCharData *charData) {
     extern u8 D_80082C10;
-    s32 val = *(s32 *)(a0 + 0x190);
+    s32 val = charData->statusFlags;
     s32 masked = val & 0x20000;
     s32 flag = masked != 0;
-    if (hasCommandType6(a0)) {
+    if (hasCommandType6((u8 *)charData)) {
         if (D_80082C10 & 8) {
             return flag;
         }
@@ -128,35 +128,35 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022CDC);
  *       16 entries of 5 bytes at offset 0x122 (item inventory), 4 entries of 4 bytes at
  *       offset 0x1E (command slots), plus fields at 0x1C, 0x1D, and a u16 at 0x14.
  */
-void clearCharSlotData(s32 a0) {
+void clearCharSlotData(BattleCharData *charData) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        *(u8 *)(a0 + i * 5 + 0x84) = 0;
-        *(u8 *)(a0 + i * 5 + 0x85) = 0;
-        *(u8 *)(a0 + i * 5 + 0x86) = 0;
-        *(u8 *)(a0 + i * 5 + 0x83) = 0;
-        *(u8 *)(a0 + i * 5 + 0x82) = 0;
+        charData->magicSlots[i].field2 = 0;
+        charData->magicSlots[i].field3 = 0;
+        charData->magicSlots[i].field4 = 0;
+        charData->magicSlots[i].field1 = 0;
+        charData->magicSlots[i].field0 = 0;
     }
 
     for (i = 0; i < 0x10; i++) {
-        *(u8 *)(a0 + i * 5 + 0x124) = 0;
-        *(u8 *)(a0 + i * 5 + 0x125) = 0;
-        *(u8 *)(a0 + i * 5 + 0x126) = 0;
-        *(u8 *)(a0 + i * 5 + 0x123) = 0;
-        *(u8 *)(a0 + i * 5 + 0x122) = 0;
+        charData->itemSlots[i].field2 = 0;
+        charData->itemSlots[i].field3 = 0;
+        charData->itemSlots[i].field4 = 0;
+        charData->itemSlots[i].field1 = 0;
+        charData->itemSlots[i].field0 = 0;
     }
 
     for (i = 0; i < 4; i++) {
-        *(u8 *)(a0 + i * 4 + 0x20) = 0;
-        *(u8 *)(a0 + i * 4 + 0x21) = 0;
-        *(u8 *)(a0 + i * 4 + 0x1F) = 0;
-        *(u8 *)(a0 + i * 4 + 0x1E) = 0;
+        charData->cmdSlots[i].field2 = 0;
+        charData->cmdSlots[i].field3 = 0;
+        charData->cmdSlots[i].field1 = 0;
+        charData->cmdSlots[i].field0 = 0;
     }
 
-    *(u8 *)(a0 + 0x1C) = 0;
-    *(u8 *)(a0 + 0x1D) = 0;
-    *(u16 *)(a0 + 0x14) = 0;
+    charData->field01C = 0;
+    charData->field01D = 0;
+    charData->field014 = 0;
 }
 
 

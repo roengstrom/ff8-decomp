@@ -1,6 +1,8 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
+#include "sound.h"
+#include "cd.h"
 
 /**
  * @brief Clear CD status flag and invoke pending callback if set.
@@ -113,7 +115,7 @@ void cdReadSectors(void) {
     extern u32 D_8008A3C8;
     u8 *p = D_8008A3D8;
 
-    if (CdRead(*(s32 *)(p + 8), *(s32 *)(p + 0x1C), 0x80) == 0) {
+    if (CdRead(*(s32 *)(p + 8), *(s32 *)(p + 0x1C), 0x80) == 0) { /* sectorCount, destBuffer */
         D_8008A3C8++;
         if (D_8008A3C8 >= 0x708) {
             D_8008A3C8 = 0;
@@ -472,9 +474,9 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AFD0);
  * @param a1 Value to store at offset +0x28 (data pointer/address).
  * @param a2 Value to store at offset +0x34 (parameter byte).
  */
-void sndSetVoiceData(u8 *a0, s32 a1, s32 a2) {
-    *(s32 *)(a0 + 0x28) = a1;
-    a0[0x34] = a2;
+void sndSetVoiceData(SndVoice *voice, s32 dataPtr, s32 param) {
+    voice->voiceDataPtr = dataPtr;
+    voice->paramByte = param;
 }
 
 
@@ -485,10 +487,10 @@ void sndSetVoiceData(u8 *a0, s32 a1, s32 a2) {
  * @param a2 Data pointer to store at offset +0x2C.
  * @param a3 Payload size byte to store at offset +0x36.
  */
-void sndSetVoiceCommand(u8 *a0, s32 a1, s32 a2, s32 a3) {
-    a0[0x37] = a1;
-    *(s32 *)(a0 + 0x2C) = a2;
-    a0[0x36] = a3;
+void sndSetVoiceCommand(SndVoice *voice, s32 cmdType, s32 dataPtr, s32 cmdSize) {
+    voice->cmdType = cmdType;
+    voice->cmdDataPtr = dataPtr;
+    voice->cmdSize = cmdSize;
 }
 
 
@@ -502,16 +504,16 @@ void sndSetVoiceCommand(u8 *a0, s32 a1, s32 a2, s32 a3) {
  *
  * @param a0 Pointer to the voice control structure.
  */
-void sndDispatchVoiceAction(u8 *a0) {
-    switch (a0[0x46]) {
+void sndDispatchVoiceAction(SndVoice *voice) {
+    switch (voice->actionType) {
         case 2:
-            sndVoiceCmdStop(a0);
+            sndVoiceCmdStop(voice);
             break;
         case 3:
-            sndVoiceCmdSetProgram(a0, a0[0xE4]);
+            sndVoiceCmdSetProgram(voice, voice->program);
             break;
         case 4:
-            sndVoiceCmdSetVolume(a0, a0[0x47]);
+            sndVoiceCmdSetVolume(voice, voice->actionParam);
             break;
     }
 }
@@ -530,10 +532,10 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B0C4);
  * @param a0 Pointer to the voice control structure.
  * @return Total computed data size in bytes.
  */
-s32 sndCalcSequenceSize(u8 *a0) {
-    s32 v0 = a0[0xE3];
-    s32 a1val = a0[0xE9];
-    u16 ecval = *(u16 *)(a0 + 0xEC);
+s32 sndCalcSequenceSize(SndVoice *voice) {
+    s32 v0 = voice->seqPartCount;
+    s32 a1val = voice->seqEntryCount;
+    u16 ecval = voice->seqDataSize;
     s32 part1 = ((v0 + 1) >> 1) << 2;
     s32 part2 = ((a1val * 5 + 3) & 0xFFC) + 4;
     return part1 + part2 + ecval;
@@ -548,20 +550,20 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B36C);
  *
  * @param a0 Pointer to CD command structure.
  */
-void sndDispatchCommand(u8 *a0) {
-    u8 cmd = a0[0x46];
+void sndDispatchCommand(SndVoice *voice) {
+    u8 cmd = voice->actionType;
     switch (cmd) {
     case 2:
-        sndVoiceCmdSetProgram(a0, a0[0x47]);
+        sndVoiceCmdSetProgram(voice, voice->actionParam);
         break;
     case 3:
-        sndVoiceCmdSetPitch(a0, a0[0x47]);
+        sndVoiceCmdSetPitch(voice, voice->actionParam);
         break;
     case 4:
-        if (a0[0x48] == 0) {
-            sndVoiceCmdSetVolume(a0, a0[0x47]);
+        if (voice->actionMode == 0) {
+            sndVoiceCmdSetVolume(voice, voice->actionParam);
         } else {
-            func_8003BC0C(a0);
+            func_8003BC0C(voice);
         }
         break;
     }
@@ -577,11 +579,11 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B8E0);
 /** @brief Sets command byte 0x4D, state byte 6, and copies field 0x20 to 0x2C.
  *  @param a0 Pointer to entity structure.
  */
-void sndSetTransferCommand(u8 *a0) {
-    s32 val = *(s32 *)(a0 + 0x20);
-    *(u8 *)(a0 + 0x37) = 0x4D;
-    *(u8 *)(a0 + 0x36) = 6;
-    *(s32 *)(a0 + 0x2C) = val;
+void sndSetTransferCommand(SndVoice *voice) {
+    s32 val = voice->dataAddr;
+    voice->cmdType = 0x4D;
+    voice->cmdSize = 6;
+    voice->cmdDataPtr = val;
 }
 
 
@@ -602,18 +604,18 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003BA2C);
  *
  * @param a0 Pointer to the CD command struct.
  */
-void sndConfigureCommand(u8 *a0) {
-    s32 cmd = a0[0x46];
+void sndConfigureCommand(SndVoice *voice) {
+    s32 cmd = voice->actionType;
     switch (cmd) {
     case 2:
-        a0[0x37] = 0x44;
-        *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x51);
-        a0[0x36] = cmd;
+        voice->cmdType = 0x44;
+        voice->cmdDataPtr = (s32)&voice->waveData;
+        voice->cmdSize = cmd;
         break;
     case 3:
-        a0[0x37] = 0x4D;
-        *(s32 *)(a0 + 0x2C) = (s32)(a0 + 0x5D);
-        a0[0x36] = 6;
+        voice->cmdType = 0x4D;
+        voice->cmdDataPtr = (s32)&voice->transferData;
+        voice->cmdSize = 6;
         break;
     }
 }
@@ -630,13 +632,13 @@ void sndConfigureCommand(u8 *a0) {
  * @param a0 Pointer to the CD command struct.
  * @return 1 if command complete, 0 otherwise.
  */
-s32 sndCheckCompletion(u8 *a0) {
+s32 sndCheckCompletion(SndVoice *voice) {
     extern s32 D_80056558;
-    if (a0[0x53] != 0) {
-        if (a0[0x46] == 2) {
+    if (voice->completionFlag != 0) {
+        if (voice->actionType == 2) {
             return 1;
         }
-        a0[0x46] = 0xFE;
+        voice->actionType = 0xFE;
         return 0;
     }
     ((void (*)(void))D_80056558)();

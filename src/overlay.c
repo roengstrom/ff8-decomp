@@ -285,8 +285,8 @@ void resetCardSlots(s32 a0) {
 
     if (a0 != 0) {
         s32 base = (s32)g_gameState;
-        u8 flags = *(u8 *)(base + 0xD22);
-        *(u8 *)(base + 0x498) = 8;
+        u8 flags = *(u8 *)(base + 0xD22); /* misc2 card flags */
+        *(u8 *)(base + 0x498) = 8;        /* chars[0].characterId */
         *(u8 *)(base + 0xD22) = flags | 1;
     } else {
         s32 base;
@@ -296,9 +296,9 @@ void resetCardSlots(s32 a0) {
         *(u8 *)(base + 0xD22) = *(u8 *)(base + 0xD22) & 0xFE;
         ptr = base + 0x428;
         do {
-            *(u8 *)(ptr + 0x498) = a0;
+            *(u8 *)(ptr + 0x498) = a0; /* chars[i].characterId */
             a0--;
-            ptr -= 0x98;
+            ptr -= 0x98; /* sizeof(CharacterData) */
         } while (a0 >= 0);
     }
 }

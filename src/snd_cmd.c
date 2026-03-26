@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
 

@@ -143,10 +143,10 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027448);
  */
 void setBattleAnimClipRect(u8 *a0) {
     s32 dst = (s32)g_battleAnims;
-    *(u16 *)(dst + 0x1D8) = *(u16 *)a0;
-    *(u16 *)(dst + 0x1DA) = *(u16 *)(a0 + 2);
-    *(u16 *)(dst + 0x1DC) = *(u16 *)a0 + *(u16 *)(a0 + 4) - 1;
-    *(u16 *)(dst + 0x1DE) = *(u16 *)(a0 + 2) + *(u16 *)(a0 + 6) - 1;
+    *(u16 *)(dst + 0x1D8) = *(u16 *)a0;                              /* RECT.x -> clip left */
+    *(u16 *)(dst + 0x1DA) = *(u16 *)(a0 + 2);                       /* RECT.y -> clip top */
+    *(u16 *)(dst + 0x1DC) = *(u16 *)a0 + *(u16 *)(a0 + 4) - 1;     /* x + w - 1 -> clip right */
+    *(u16 *)(dst + 0x1DE) = *(u16 *)(a0 + 2) + *(u16 *)(a0 + 6) - 1; /* y + h - 1 -> clip bottom */
 }
 
 
@@ -181,7 +181,7 @@ u16 getAnimFrameParam(s32 idx, s32 offset) {
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
-    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x1E);
+    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x1E); /* frames[sub_idx].field02 */
 }
 
 

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 
 void sndReleaseVoice(s32 a0);
 
@@ -110,7 +111,7 @@ s32 sndCheckVoiceInMask(u8 *a0, s32 a1, s32 a2) {
     u32 i = 0;
     s32 bit = 1;
     do {
-        if (a2 == *(s32 *)(a0 + 0xF4)) {
+        if (a2 == ((SoundSeqTrack *)a0)->voiceMask) {
             if (a1 & (bit << i)) {
                 return 1;
             }
@@ -135,7 +136,7 @@ extern s32 D_80074F1C;
  * @param a0 Pointer to a sequence track structure.
  */
 void sndStoreTrackTiming(u8 *a0) {
-    *(s32 *)(a0 + 0x50) = D_80074F1C;
+    ((SoundSeqTrack *)a0)->timing = D_80074F1C;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);

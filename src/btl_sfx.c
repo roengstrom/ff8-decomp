@@ -16,7 +16,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002C8A4);
  */
 void decrementSfxCounter(void) {
     s32 base = (s32)g_sfxEntries;
-    (*(u8 *)(base + 0x1E3))--;
+    ((SfxGlobalState *)(base + 0x1E0))->counter--;
     func_8002C8A4();
 }
 
@@ -198,20 +198,21 @@ void initSfxPlayback(s32 a0, s32 a1) {
     s32 mask2 = (s32)0xF0FFFFFF;
     u8 *entry = (u8 *)g_sfxEntries + a0 * 60;
     s32 status = *(s32 *)(entry + 0x14);
-    *(u8 *)(entry + 0x28) = 0;
-    *(s32 *)(entry + 0x08) = a1;
-    *(s32 *)(entry + 0x0C) = a1;
-    *(u16 *)(entry + 0x12) = 0;
-    *(s32 *)(entry + 0x24) = 0;
+    SfxEntry *ep = (SfxEntry *)entry;
+    ep->field28 = 0;
+    ep->dataPtr = a1;
+    ep->dataPtrCopy = a1;
+    ep->field12 = 0;
+    ep->seqState = 0;
     status &= mask1;
     status |= 0x70000000;
     mask2 &= status;
     mask2 |= (u32)status >> 28 << 24;
     *(s32 *)(entry + 0x14) = mask2;
     clearEntityColor(entry);
-    *(u8 *)(entry + 0x29) = 0xFF;
-    *(u8 *)(entry + 0x2A) = 0xFF;
-    *(u8 *)(entry + 0x19) = 0;
+    ep->field29 = 0xFF;
+    ep->field2A = 0xFF;
+    ep->field19 = 0;
 }
 
 
@@ -325,7 +326,7 @@ void setSfxReverbMode(s32 idx, s32 val) {
     }
     off = idx * 60;
     base = (s32)g_sfxEntries;
-    setBattleEntityAnimSpeed(*(u8 *)(off + base + 0x18), clamped);
+    setBattleEntityAnimSpeed(((SfxEntry *)(off + base))->entityIdx, clamped);
 }
 
 
@@ -444,15 +445,15 @@ void resetAllSfx(void) {
     extern u8 D_800831D3;
     s32 i;
     s32 base = (s32)g_sfxEntries;
-    *(s8 *)(base + 0x1EC) = -1;
+    ((SfxGlobalState *)(base + 0x1E0))->activeFlag = -1;
     for (i = 0; i < 8; i++) {
         func_8002DF5C(i);
     }
     D_800831D3 = 0;
-    *(u16 *)(base + 0x1F8) = 0;
-    *(u16 *)(base + 0x1FA) = 0;
-    *(u8 *)(base + 0x1F4) = 0;
-    *(u8 *)(base + 0x1F5) = 0;
+    ((SfxGlobalState *)(base + 0x1E0))->field18 = 0;
+    ((SfxGlobalState *)(base + 0x1E0))->field1A = 0;
+    ((SfxGlobalState *)(base + 0x1E0))->field14 = 0;
+    ((SfxGlobalState *)(base + 0x1E0))->field15 = 0;
     func_8002C130();
 }
 

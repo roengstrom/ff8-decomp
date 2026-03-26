@@ -132,12 +132,12 @@ u16 getGfAvailabilityMask(void) {
  *
  * @param a0 GF index (0-15).
  */
-void copyGfHpToSave(s32 a0) {
+void copyGfHpToSave(s32 gfIdx) {
     extern u8 g_gameState[];
     s32 base1 = (s32)g_gameState;
-    s32 off1 = a0 * 68;
+    s32 off1 = gfIdx * 68; /* sizeof(GfSaveData) */
     s32 base2 = (s32)g_battleChars;
-    *(s16 *)(base1 + off1 + 0x62) = *(u16 *)(base2 + a0 * 12 + 0x61A);
+    *(s16 *)(base1 + off1 + 0x62) = *(u16 *)(base2 + gfIdx * 12 + 0x61A); /* gfs[gfIdx].hp = battleGfHp[gfIdx] */
 }
 
 

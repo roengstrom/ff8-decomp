@@ -58,11 +58,9 @@ s32 findAbilityLevel(s32 a0, s32 a1) {
  * @note Uses GfAbilityTableEntry fields xpLinear (+0x12), xpQuadDiv (+0x13), xpConst (+0x14).
  */
 s32 evalStatCurve(s32 a0, s32 a1) {
-    s32 base = (s32)&g_gfData;
-    s32 entry = base + a1 * 132;
-    u8 field1 = *(u8 *)(entry + 0xF8D);
-    u8 field0 = *(u8 *)(entry + 0xF8C);
-    u8 field2 = *(u8 *)(entry + 0xF8E);
+    u8 field1 = g_gfData.abilityTable132[a1].xpQuadDiv;
+    u8 field0 = g_gfData.abilityTable132[a1].xpLinear;
+    u8 field2 = g_gfData.abilityTable132[a1].xpConst;
     return (s16)(a0 * field0 + a0 * a0 * 10 / field1 + field2);
 }
 

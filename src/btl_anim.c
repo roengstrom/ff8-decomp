@@ -59,9 +59,9 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027F78);
 void setAnimGlobalCoords(s32 idx, s16 a1, s16 a2) {
     s32 base;
     idx &= 1;
-    base = (s32)g_battleAnims;
-    *(u16 *)(base + idx * 4 + 0x1D0) = a1;
-    *(u16 *)(base + idx * 4 + 0x1D2) = a2;
+    base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
+    *(u16 *)(base + idx * 4 + 0x1D0) = a1; /* global coord X for slot idx */
+    *(u16 *)(base + idx * 4 + 0x1D2) = a2; /* global coord Y for slot idx */
 }
 
 
@@ -113,7 +113,7 @@ void initAnimEntityColor(s32 a0) {
     s32 off = a0 * 196;
     s32 base = (s32)g_battleAnims;
     u8 *entry = (u8 *)(off + base);
-    entry[0xC] = *(u8 *)(base + 0x1E0);
+    entry[0xC] = *(u8 *)(base + 0x1E0); /* global default color */
     entry[0xD] = *(u8 *)(base + 0x1E0);
     entry[0xE] = *(u8 *)(base + 0x1E0);
     entry[0xF] = *(u8 *)(base + 0x1E0);
@@ -198,10 +198,10 @@ void setAnimFlag(s32 a0) {
 void initCdAnimSubsystem(void) {
     u8 *base = (u8 *)g_battleAnims;
     func_800982B8();
-    func_8003BC24(base + 0x188, base + 0x1AC);
+    func_8003BC24(base + 0x188, base + 0x1AC); /* CD audio buffers A and B */
     cdInitHandlerWrapper();
     initAnimStateAndWait();
-    *(s16 *)(base + 0x9C4) = 0;
+    *(s16 *)(base + 0x9C4) = 0; /* reset CD stream counter */
 }
 
 
@@ -432,10 +432,10 @@ u8 getCardStatus(a0)
 s32 a0;
 {
     extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4;
-    s32 r1 = getCardPort(a0);
+    s32 base = (s32)D_80082FB4; /* (s32) cast prevents symbol+constant folding */
+    s32 port = getCardPort(a0);
     s32 r2 = getCardSlot(a0);
-    return *(u8 *)(r1 * 4 + base + r2 + 0x2C);
+    return *(u8 *)(port * 4 + base + r2 + 0x2C);
 }
 
 
@@ -446,10 +446,10 @@ s32 a0;
  */
 void setCardStatus(s32 a0, u8 a1) {
     extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4;
-    s32 r1 = getCardPort(a0);
+    s32 base = (s32)D_80082FB4; /* (s32) cast prevents symbol+constant folding */
+    s32 port = getCardPort(a0);
     s32 r2 = getCardSlot(a0);
-    *(u8 *)(r1 * 4 + base + r2 + 0x2C) = a1;
+    *(u8 *)(port * 4 + base + r2 + 0x2C) = a1;
 }
 
 
@@ -460,10 +460,10 @@ void setCardStatus(s32 a0, u8 a1) {
  */
 void setCardStatusSecondary(s32 a0, u8 a1) {
     extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4;
-    s32 r1 = getCardPort(a0);
+    s32 base = (s32)D_80082FB4; /* (s32) cast prevents symbol+constant folding */
+    s32 port = getCardPort(a0);
     s32 r2 = getCardSlot(a0);
-    *(u8 *)(r1 * 4 + base + r2 + 0x34) = a1;
+    *(u8 *)(port * 4 + base + r2 + 0x34) = a1;
 }
 
 
@@ -993,17 +993,17 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A45C);
  * from offset +0x54 to offset +0x00.
  */
 void swapDisplayList(void) {
-    s32 base = (s32)g_battleAnims;
-    s32 cur = *(s32 *)(base + 0x6F0);
-    s32 newBuf = base + 0x640;
+    s32 base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
+    s32 cur = *(s32 *)(base + 0x6F0); /* active DisplayListBuf pointer */
+    s32 newBuf = base + 0x640; /* DisplayListBuf A */
     s32 v1;
     if (cur == newBuf) {
-        newBuf = base + 0x698;
+        newBuf = base + 0x698; /* DisplayListBuf B */
     }
     *(s32 *)(base + 0x6F0) = newBuf;
-    ClearOTag((u32 *)(newBuf + 8), 0x12);
+    ClearOTag((u32 *)(newBuf + 8), 0x12); /* clear OT (18 entries) */
     v1 = *(s32 *)(base + 0x6F0);
-    *(s32 *)v1 = *(s32 *)(v1 + 0x54);
+    *(s32 *)v1 = *(s32 *)(v1 + 0x54); /* pktAlloc = pktBase */
 }
 
 /**
@@ -1013,17 +1013,17 @@ void swapDisplayList(void) {
  * clears OT, copies GPU packet pointer.
  */
 void swapDisplayList2(void) {
-    s32 base = (s32)g_battleAnims;
-    s32 cur = *(s32 *)(base + 0x6F0);
-    s32 newBuf = base + 0x640;
+    s32 base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
+    s32 cur = *(s32 *)(base + 0x6F0); /* active DisplayListBuf pointer */
+    s32 newBuf = base + 0x640; /* DisplayListBuf A */
     s32 v1;
     if (cur == newBuf) {
-        newBuf = base + 0x698;
+        newBuf = base + 0x698; /* DisplayListBuf B */
     }
     *(s32 *)(base + 0x6F0) = newBuf;
-    ClearOTag((u32 *)(newBuf + 8), 0x12);
+    ClearOTag((u32 *)(newBuf + 8), 0x12); /* clear OT (18 entries) */
     v1 = *(s32 *)(base + 0x6F0);
-    *(s32 *)v1 = *(s32 *)(v1 + 0x54);
+    *(s32 *)v1 = *(s32 *)(v1 + 0x54); /* pktAlloc = pktBase */
 }
 
 
@@ -1050,20 +1050,20 @@ void renderDisplay(s32 a0) {
 
 
 /**
- * @brief Read the first s32 word from the structure pointed to by D_800834C0.
- * @return Value at *D_800834C0.
+ * @brief Read the current packet allocation pointer from the active display list buffer.
+ * @return The pktAlloc field of the DisplayListBuf pointed to by D_800834C0.
  */
 s32 getDisplayListHead(void) {
-    return *(s32 *)D_800834C0;
+    return ((DisplayListBuf *)D_800834C0)->pktAlloc;
 }
 
 
 /**
- * @brief Read an s32 value at offset 0x54 from the structure pointed to by D_800834C0.
- * @return Value at D_800834C0 + 0x54.
+ * @brief Read the base packet pointer from the active display list buffer.
+ * @return The pktBase field of the DisplayListBuf pointed to by D_800834C0.
  */
 s32 getDisplayListPacketPtr(void) {
-    return *(s32 *)(D_800834C0 + 0x54);
+    return ((DisplayListBuf *)D_800834C0)->pktBase;
 }
 
 
@@ -1079,11 +1079,11 @@ s32 getDisplayListPacketPtr(void) {
  */
 void storeGpuPacket(s32 pkt) {
     extern u8 D_800101D0[];
-    s32 base = (s32)g_battleAnims;
+    s32 base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
     s32 limit;
-    *(s32 *)*(s32 *)(base + 0x6F0) = pkt;
-    base = *(s32 *)(base + 0x6F0);
-    limit = *(s32 *)(base + 4);
+    *(s32 *)*(s32 *)(base + 0x6F0) = pkt; /* store pkt to active DisplayListBuf.pktAlloc */
+    base = *(s32 *)(base + 0x6F0); /* reload active DisplayListBuf pointer */
+    limit = *(s32 *)(base + 4); /* DisplayListBuf.pktLimit */
     if ((u32)limit < (u32)pkt) {
         if ((u32)pkt <= 0x801AFFFFU) {
             printf((char *)D_800101D0, (u32)pkt - (u32)limit);
@@ -1092,10 +1092,10 @@ void storeGpuPacket(s32 pkt) {
 }
 
 
-/** @brief Returns the value of D_800834C0 plus 8. */
+/** @brief Returns the address of the ordering table (DisplayListBuf.ot) in the active buffer. */
 s32 getDisplayListOtBase(void) {
     extern s32 D_800834C0;
-    return D_800834C0 + 8;
+    return D_800834C0 + 8; /* offset of ot[] in DisplayListBuf */
 }
 
 

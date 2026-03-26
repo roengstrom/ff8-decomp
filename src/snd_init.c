@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 
 /** @brief Initializes the SPU (Sound Processing Unit).
  *
@@ -124,7 +125,7 @@ s32 sndGetMaxVolume(s32 a0) {
     extern s16 D_80073E60;
     s32 vol = 0;
     if (a0 & 1) {
-        vol = *(s16 *)((u8 *)D_80074F08 + 0x58);
+        vol = (s16)((SoundSeqTrack *)D_80074F08)->pitchValue;
     }
     if (a0 & 2) {
         s32 v = D_80073E62;

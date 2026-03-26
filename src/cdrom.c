@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
+#include "cd.h"
 
 void resetCdDrive(void);
 void setDiscNumber(s32 a0);
@@ -205,10 +206,10 @@ void resetCdDrive(void) {
 
     if (state == 0xB || state == 0) return;
 
-    *(s32 *)(base + 0x1C) = 0;
-    *(s32 *)(base + 0x08) = 0;
-    *(s32 *)(base + 0x20) = 0;
-    *(u8 *)(base + 1) = 0xC;
+    *(s32 *)(base + 0x1C) = 0; /* CdReadState.destBuffer */
+    *(s32 *)(base + 0x08) = 0; /* CdReadState.sectorCount */
+    *(s32 *)(base + 0x20) = 0; /* CdReadState.callback */
+    *(u8 *)(base + 1) = 0xC;  /* CdReadState.state */
     cdBreakRead();
 }
 

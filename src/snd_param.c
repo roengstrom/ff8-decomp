@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 
 extern s32 *D_80074F08;
 
@@ -132,7 +133,7 @@ void sndSetTempoAllTracks(s32 *a0) {
 
 /** @brief Copies halfword from a0 to offset 0x60 in struct pointed to by D_80074F08. */
 void sndSetSequenceOffset(u16 *a0) {
-    *(u16 *)((u8 *)D_80074F08 + 0x60) = *a0;
+    ((SoundSeqTrack *)D_80074F08)->voiceActive = *a0;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019DB0);

@@ -7,22 +7,121 @@
  * @brief Sound sequence track (D_80070D60, stride 272 bytes).
  *
  * Each track controls one voice/channel of a sound sequence. The array
- * at D_80070D60 holds all active tracks. This struct is defined for
- * documentation purposes; it is NOT used in source code yet because
- * the complex PsyQ 4.3 scheduling in 34C8.c makes struct access risky
- * for byte-matching.
- *
- * @note Field names are provisional — derived from usage patterns in
- *       34C8.c accessor functions. Many fields are still unknown.
+ * at D_80070D60 holds all active tracks.
  */
 typedef struct {
-    u8 field00;         /**< 0x00: Unknown byte. */
-    u8 field01;         /**< 0x01: Unknown byte. */
-    u8 field02;         /**< 0x02: Unknown byte. */
-    u8 field03;         /**< 0x03: Unknown byte. */
-    u8 pad04[0x0C];     /**< 0x04..0x0F: Unknown. */
-    /* 0x10..0x10F: Large block of track data (256 bytes). */
-    u8 trackData[0x100]; /**< 0x10..0x10F: Track control/sequence data. */
-} SoundSeqTrack;        /* 0x110 = 272 bytes */
+    /* 0x00 */ u8 field00;
+    /* 0x01 */ u8 field01;
+    /* 0x02 */ u8 field02;
+    /* 0x03 */ u8 field03;
+    /* 0x04 */ s32 instParams;
+    /* 0x08 */ u8 pad08[4];
+    /* 0x0C */ u16 field0C;
+    /* 0x0E */ u16 field0E;
+    /* 0x10 */ s32 voiceIdx;
+    /* 0x14 */ u8 pad14[12];
+    /* 0x20 */ s32 tempoRaw;
+    /* 0x24 */ s32 keyOnMask;
+    /* 0x28 */ s32 loopCounter;
+    /* 0x2C */ s32 cmdDataPtr;
+    /* 0x30 */ s32 flags;
+    /* 0x34 */ s32 bankPtr;
+    /* 0x38 */ s32 keyOffMask;
+    /* 0x3C */ s32 loopLimit;
+    /* 0x40 */ s32 panRaw;
+    /* 0x44 */ s32 panShifted;
+    /* 0x48 */ s32 panTarget;
+    /* 0x4C */ u8 pad4C[4];
+    /* 0x50 */ s32 timing;
+    /* 0x54 */ u8 pad54[4];
+    /* 0x58 */ s32 pitchValue;
+    /* 0x5C */ u16 field5C;
+    /* 0x5E */ u16 field5E;
+    /* 0x60 */ u16 voiceActive;
+    /* 0x62 */ u16 volume;
+    /* 0x64 */ u16 volumeBase;
+    /* 0x66 */ u16 instrument;
+    /* 0x68 */ u16 pad68;
+    /* 0x6A */ u16 pitchModDepth;
+    /* 0x6C */ u16 pitchModCounter;
+    /* 0x6E */ u16 pad6E;
+    /* 0x70 */ u8 pad70[16];
+    /* 0x80 */ u16 pitchBend;
+    /* 0x82 */ u8 pad82[4];
+    /* 0x86 */ u16 panFade;
+    /* 0x88 */ u16 panFadeTarget;
+    /* 0x8A */ u16 exprFade;
+    /* 0x8C */ u16 notePitch;
+    /* 0x8E */ u16 notePitchFade;
+    /* 0x90 */ u16 pad90;
+    /* 0x92 */ u16 panpot;
+    /* 0x94 */ u16 durationDelta;
+    /* 0x96 */ u16 durationCounter;
+    /* 0x98 */ u16 duration;
+    /* 0x9A */ u16 timerActive;
+    /* 0x9C */ u8 pad9C[32];
+    /* 0xBC */ u16 volumeLfo;
+    /* 0xBE */ u16 padBE;
+    /* 0xC0 */ u8 padC0[10];
+    /* 0xCA */ u16 panLfo;
+    /* 0xCC */ u8 padCC[4];
+    /* 0xD0 */ u16 noiseDuration;
+    /* 0xD2 */ u16 reverbDuration;
+    /* 0xD4 */ u16 padD4;
+    /* 0xD6 */ u16 volumeDelta;
+    /* 0xD8 */ u16 volumeAccum;
+    /* 0xDA */ u8 padDA[4];
+    /* 0xDE */ u16 expression;
+    /* 0xE0 */ u8 padE0[4];
+    /* 0xE4 */ u16 detune;
+    /* 0xE6 */ u8 padE6[4];
+    /* 0xEA */ u16 durationDelta2;
+    /* 0xEC */ u16 ecField;
+    /* 0xEE */ u16 portamento;
+    /* 0xF0 */ u16 volumeLfoStop;
+    /* 0xF2 */ u16 panLfoStop;
+    /* 0xF4 */ s32 voiceMask;
+    /* 0xF8 */ s32 updateFlags;
+    /* 0xFC */ s32 sampleAddr;
+    /* 0x100 */ s32 sampleLoop;
+    /* 0x104 */ u16 pad104;
+    /* 0x106 */ u16 adsrLow;
+    /* 0x108 */ u16 adsrHigh;
+    /* 0x10A */ u16 instOverride;
+    /* 0x10C */ u8 pad10C[4];
+} SoundSeqTrack; /* 0x110 = 272 bytes */
+
+/**
+ * @brief Sound voice/command structure used by CD sound functions.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x20];
+    /* 0x20 */ s32 dataAddr;
+    /* 0x24 */ u8 pad24[4];
+    /* 0x28 */ s32 voiceDataPtr;
+    /* 0x2C */ s32 cmdDataPtr;
+    /* 0x30 */ u8 pad30[4];
+    /* 0x34 */ u8 paramByte;
+    /* 0x35 */ u8 pad35;
+    /* 0x36 */ u8 cmdSize;
+    /* 0x37 */ u8 cmdType;
+    /* 0x38 */ u8 pad38[0x0E];
+    /* 0x46 */ u8 actionType;
+    /* 0x47 */ u8 actionParam;
+    /* 0x48 */ u8 actionMode;
+    /* 0x49 */ u8 pad49[8];
+    /* 0x51 */ u8 waveData;
+    /* 0x52 */ u8 pad52;
+    /* 0x53 */ u8 completionFlag;
+    /* 0x54 */ u8 pad54[9];
+    /* 0x5D */ u8 transferData;
+    /* 0x5E */ u8 pad5E[0x85];
+    /* 0xE3 */ u8 seqPartCount;
+    /* 0xE4 */ u8 program;
+    /* 0xE5 */ u8 padE5[4];
+    /* 0xE9 */ u8 seqEntryCount;
+    /* 0xEA */ u8 padEA[2];
+    /* 0xEC */ u16 seqDataSize;
+} SndVoice;
 
 #endif /* SOUND_H */

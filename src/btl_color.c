@@ -200,16 +200,16 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_800307F8);
  * @return 1 if valid and source matches, 0 otherwise.
  */
 s32 checkBattleCmdSource(s32 a0) {
-    u8 *base;
-    s32 idx;
+    BattleCmdEntry *base;
+    BattleCmdEntry *entry;
 
     if (a0 == 0) {
         return 0;
     }
-    base = getBattleCmdTable();
-    idx = (a0 & 3) * 36;
-    if (*(s8 *)(base + idx + 0x22) != 0) {
-        if (*(u16 *)(base + idx + 0x20) == (a0 >> 4)) {
+    base = (BattleCmdEntry *)getBattleCmdTable();
+    entry = &base[a0 & 3];
+    if (entry->active != 0) {
+        if (entry->sourceId == (a0 >> 4)) {
             return 1;
         }
     }
@@ -327,10 +327,10 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030F10);
  */
 s32 remapBattlePalette(s32 a0) {
     extern u8 g_gameState[];
-    s32 base = (s32)g_gameState;
-    u16 flags = *(u16 *)(base + 0xAE4);
+    s32 base = (s32)g_gameState; /* (s32) cast prevents symbol+constant folding */
+    u16 flags = *(u16 *)(base + 0xAE4); /* palette remap flags */
     if ((flags & 0x20) && a0 < 12) {
-        return *(u8 *)(a0 + base + 0xAE8) - 1;
+        return *(u8 *)(a0 + base + 0xAE8) - 1; /* palette remap table[a0] */
     }
     return a0;
 }
@@ -349,13 +349,13 @@ s32 remapBattlePalette(s32 a0) {
  */
 s32 reversePaletteRemap(s32 a0) {
     extern u8 g_gameState[];
-    s32 base = (s32)g_gameState;
-    u16 flags = *(u16 *)(base + 0xAE4);
+    s32 base = (s32)g_gameState; /* (s32) cast prevents symbol+constant folding */
+    u16 flags = *(u16 *)(base + 0xAE4); /* palette remap flags */
     u8 *table;
     s32 i;
     if (flags & 0x20) {
         if (a0 < 12) {
-            table = (u8 *)(base + 0xAE8);
+            table = (u8 *)(base + 0xAE8); /* palette remap table */
             goto search;
         }
     }

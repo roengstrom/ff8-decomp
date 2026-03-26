@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 
 extern s32 D_80074EB8[];
 extern u8 D_80070D60[];
@@ -45,23 +46,23 @@ s32 sndGetBankGroup(s32 a0) {
  */
 void sndInitTrack(void *a0, s32 a1) {
     *(s16*)((u8*)a0 + 0x80) = 0x6E00;
-    *(s32*)((u8*)a0 + 0x44) = 0x32000000;
+    ((SoundSeqTrack *)a0)->panShifted = 0x32000000;
     *(s32*)a0 = a1;
     *(s16*)((u8*)a0 + 0xE4) = 0;
     *(s16*)((u8*)a0 + 0xE6) = 0;
     *(s16*)((u8*)a0 + 0x98) = 0;
-    *(s32*)((u8*)a0 + 0x2C) = 0;
+    ((SoundSeqTrack *)a0)->cmdDataPtr = 0;
     *(s16*)((u8*)a0 + 0xEA) = 0;
     *(s16*)((u8*)a0 + 0x90) = 0;
     *(s16*)((u8*)a0 + 0xD8) = 0;
     *(s16*)((u8*)a0 + 0xD6) = 0;
     *(s16*)((u8*)a0 + 0x86) = 0;
-    *(s32*)((u8*)a0 + 0x50) = 0;
+    ((SoundSeqTrack *)a0)->timing = 0;
     *(s16*)((u8*)a0 + 0xD4) = 0;
-    *(s32*)((u8*)a0 + 0x30) = 0;
+    ((SoundSeqTrack *)a0)->flags = 0;
     *(s16*)((u8*)a0 + 0xF2) = 0;
     *(s16*)((u8*)a0 + 0x9A) = 0;
-    *(u16*)((u8*)a0 + 0x6E) = 0xFFFF;
+    ((SoundSeqTrack *)a0)->pad6E = 0xFFFF;
     *(s16*)((u8*)a0 + 0x10A) = 0;
     *(s16*)((u8*)a0 + 0xCA) = 0;
     *(s16*)((u8*)a0 + 0xBC) = 0;
@@ -91,7 +92,7 @@ s32 sndBuildVoiceMask(u8 *a0, s32 a1) {
     s32 bit = 1;
     do {
         if (a1 & (bit << i)) {
-            s32 val = *(s32 *)(a0 + 0xF4);
+            s32 val = ((SoundSeqTrack *)a0)->voiceMask;
             if ((u32)val < 0x18) {
                 result |= (bit << val);
             }
@@ -183,7 +184,7 @@ void sndConfigureTrackPlayback(s32 *a0) {
     register s32 result asm("$4");
     s32 val;
     func_8001708C(a0[0], a0[3]);
-    *(u16 *)((u8 *)D_80074F08 + 0x5E) = *(u16 *)((u8 *)a0 + 8);
+    ((SoundSeqTrack *)D_80074F08)->field5E = *(u16 *)((u8 *)a0 + 8);
     val = a0[4];
     result = 0;
     if (val != 0) {
