@@ -106,7 +106,7 @@ $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
 		SN_PATH=$(PSYQ41_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)))) $< -o $(BUILD_DIR)/$(*F).s && \
-		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ41_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@)
+		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(if $(filter $<,$(O0_SRCS)),--aspsx-version=2.40,$(PSYQ41_MASPSXFLAGS)) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
 $(ELF): $(ALL_OBJS) $(LD_SCRIPT)
