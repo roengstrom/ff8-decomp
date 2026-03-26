@@ -85,9 +85,7 @@ typedef struct {
     /* 0x43 */ u8 charIdx;             /**< Selected character index (0-7). */
     /* 0x44 */ u8 unk44;               /**< Page/row index for rendering. */
     /* 0x45 */ u8 unk45;               /**< Page offset for rendering. */
-    /* 0x46 */ u8 unk46;                 /**< Unknown. */
-    /* 0x47 */ u8 slotCount;             /**< Number of junction slots for current type. */
-    /* 0x48 */ u8 statInfo[6];           /**< Per-stat info bytes. */
+    /* 0x46 */ u8 statInfo[8];           /**< Per-stat info bytes; statInfo[1] = slotCount. */
     /* 0x4E */ s8 unk4E;               /**< Stat index for delta bar rendering. */
     /* 0x4F */ s8 statSlot;             /**< Current stat slot index (-1 = none). */
     /* 0x50 */ s8 unk50;               /**< Magic list cursor position. */
