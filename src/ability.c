@@ -1,115 +1,95 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gf.h"
+#include "gamestate.h"
+#include "ability.h"
 
 /**
- * @brief Look up an ability cap byte from g_gfData based on ability ID range.
- * @param id Ability ID (0x00–0x63+).
- * @return The cap value (u8) from the appropriate table section.
+ * @brief Look up an ability's AP cap from the kernel data.
+ * @param abilityId Ability ID (0-120, see AbilityId enum).
+ * @return The AP cap value for that ability.
  */
-s32 GetAbilityCap(s32 id) {
-    extern u8 g_gfData[];
-    u32 idx;
-
-    if (id < 0x14) {
-        s32 b = g_gfData;
-        return *(u8 *)(b + id * 8 + 0x40E4);
+s32 GetAbilityCap(s32 abilityId) {
+    if (abilityId < ABILITY_MAGIC) {
+        return g_gfData.abilityRangeI[abilityId].cap;
     }
-    idx = id - 0x14;
-    if (idx < 0x13U) {
-        s32 b = g_gfData;
-        return *(u8 *)(b + idx * 8 + 0x4184);
+    if ((u32)(abilityId - ABILITY_MAGIC) < 19) {
+        return g_gfData.abilityRangeJ[abilityId - ABILITY_MAGIC].cap;
     }
-    idx = id - 0x27;
-    if (idx < 0x13U) {
-        s32 b = g_gfData;
-        return *(u8 *)(b + idx * 8 + 0x421C);
+    if ((u32)(abilityId - ABILITY_HP_20) < 19) {
+        return g_gfData.abilityRangeK[abilityId - ABILITY_HP_20].cap;
     }
-    idx = id - 0x3A;
-    if (idx < 0x14U) {
-        s32 b = g_gfData;
-        return *(u8 *)(b + idx * 8 + 0x42B4);
+    if ((u32)(abilityId - ABILITY_MUG) < 20) {
+        return g_gfData.abilityRangeL[abilityId - ABILITY_MUG].cap;
     }
-    idx = id - 0x4E;
-    if (idx < 0x5U) {
-        s32 b = g_gfData;
-        return *(u8 *)(b + idx * 8 + 0x4354);
+    if ((u32)(abilityId - ABILITY_ALERT) < 5) {
+        return g_gfData.abilityRangeM[abilityId - ABILITY_ALERT].cap;
     }
-    idx = id - 0x53;
-    if (idx < 0x9U) {
-        s32 b = g_gfData;
-        return *(u8 *)(b + idx * 8 + 0x437C);
+    if ((u32)(abilityId - ABILITY_SUMMAG_10) < 9) {
+        return g_gfData.abilityRangeN[abilityId - ABILITY_SUMMAG_10].cap;
     }
-    {
-        s32 b = g_gfData;
-        s32 d = id - 0x5C;
-        return *(u8 *)(b + d * 8 + 0x43C4);
-    }
+    return g_gfData.abilityRangeO[abilityId - ABILITY_HAGGLE].cap;
 }
 
 
 /**
- * @brief Search an entity's ability slots for a given ability ID.
- * @param entityIdx Entity index (stride 132 into g_gfData).
+ * @brief Search a GF's ability slot table for a given ability ID.
+ * @param gfIdx GF index (0-15).
  * @param abilityId The ability ID to search for.
- * @return Slot index (0–20) if found, 0xFF if not found.
+ * @return Slot index (0-20) if found, 0xFF if not found.
  */
-s32 FindAbilitySlot(s32 entityIdx, s32 abilityId) {
-    extern u8 g_gfData[];
+s32 FindAbilitySlot(s32 gfIdx, s32 abilityId) {
     s32 i = 0;
-    s32 base = (s32)g_gfData;
+    s32 base = (s32)&g_gfData;
 
-    REGALLOC_BARRIER(entityIdx);
-    entityIdx *= 132;
+    REGALLOC_BARRIER(gfIdx);
+    gfIdx *= sizeof(GfAbilityTableEntry);
 
     do {
-        if (*(u8 *)(entityIdx + base + 0xF96) == abilityId) {
+        if (((GfAbilitySlot *)(gfIdx + base + 0xF96))->abilityId == abilityId) {
             return i;
         }
         i++;
-        entityIdx += 4;
-    } while (i < 0x15);
+        gfIdx += sizeof(GfAbilitySlot);
+    } while (i < GF_ABILITY_SLOT_COUNT);
     return 0xFF;
 }
 
 
 /**
- * @brief Add amount to an entity's ability value, clamping at 255.
- * @param entityIdx Index into the entity table at D_800773C8 (stride 68).
- * @param amount Value to add (truncated to u16).
- * @return The ability ID (entity[0x40]) if the new value >= cap, 0 otherwise.
+ * @brief Add AP to a GF's currently-learning ability, clamping at 255.
+ * @param gfIdx GF index (0-15).
+ * @param amount AP to add.
+ * @return The ability ID if AP reached the cap, 0 otherwise.
  */
-s32 AddAbilityExp(s32 entityIdx, s32 amount) {
-    extern u8 D_800773C8[];
-    u8 *entity = D_800773C8 + entityIdx * 68;
+s32 AddAbilityExp(s32 gfIdx, s32 amount) {
+    GfSaveData *gf = &g_gameState.gfs[gfIdx];
     s32 slot;
     s32 newVal;
     s32 cap;
 
-    if (entity[0x40] == 0) {
+    if (gf->learning == 0) {
         return 0;
     }
 
-    slot = FindAbilitySlot(entityIdx, entity[0x40]);
+    slot = FindAbilitySlot(gfIdx, gf->learning);
     if (slot == 0xFF) {
         return 0;
     }
     {
-        u8 *slotEntry = entity + slot;
-        newVal = slotEntry[0x24] + (u16)amount;
-        cap = GetAbilityCap(entity[0x40]);
+        newVal = gf->aps[slot] + (u16)amount;
+        cap = GetAbilityCap(gf->learning);
 
-        if (newVal >= 0x100) {
-            slotEntry[0x24] = 0xFF;
+        if (newVal >= 256) {
+            gf->aps[slot] = 0xFF;
         } else {
-            slotEntry[0x24] = newVal;
+            gf->aps[slot] = newVal;
         }
 
         if (newVal < cap) {
             return 0;
         }
     }
-    return entity[0x40];
+    return gf->learning;
 }
-
-

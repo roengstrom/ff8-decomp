@@ -106,6 +106,14 @@ typedef struct {
  * func_8002166C/func_800216B0 read xpParamB, xpParamC.
  * Ability slots begin at +0x1C with stride 4, up to 21 slots.
  */
+/** @brief Single ability slot within a GF's ability table (4 bytes). */
+typedef struct {
+    u8 abilityId;          /**< +0x00: Ability ID (0 = empty). */
+    u8 pad01[3];           /**< +0x01..+0x03: Unknown. */
+} GfAbilitySlot; /* 4 bytes */
+
+#define GF_ABILITY_SLOT_COUNT 21
+
 typedef struct {
     u16 nameParam0;        /**< +0x00: Lookup param (getSpellEntityData). */
     u8 preamble02[16];     /**< +0x02..+0x11: Preamble (unknown). */
@@ -113,12 +121,12 @@ typedef struct {
     u8 xpQuadDiv;          /**< +0x13: Quadratic divisor (at ptrAbilityTable132+1). */
     u8 xpConst;            /**< +0x14: Constant term (at ptrAbilityTable132+2). */
     u8 xpParamA;           /**< +0x15: Additional parameter A. */
-    u8 xpParamB;           /**< +0x16: Linear coeff for func_8002166C. */
-    u8 xpParamC;           /**< +0x17: Quad divisor for func_8002166C. */
+    u8 xpParamB;           /**< +0x16: Linear coeff for evalAbilityCurve. */
+    u8 xpParamC;           /**< +0x17: Quad divisor for evalAbilityCurve. */
     u8 pad18[4];           /**< +0x18..+0x1B: Unknown. */
-    u8 abilitySlots[84];   /**< +0x1C..+0x6F: 21 ability slots, 4 bytes each. */
+    GfAbilitySlot abilities[GF_ABILITY_SLOT_COUNT]; /**< +0x1C..+0x6F: 21 ability slots. */
     u8 pad70[20];          /**< +0x70..+0x83: Remaining (132 bytes total). */
-} GfAbilityTableEntry; /* 132 bytes: 2+16+1+1+1+1+1+1+4+84+20 = 132 */
+} GfAbilityTableEntry; /* 132 bytes */
 
 /** @brief LevelCurve12Entry (stride 12, +0x35B8 in GfData) */
 typedef struct {
