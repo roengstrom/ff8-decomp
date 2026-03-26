@@ -207,11 +207,7 @@ u8 *getAbilityName(s32 abilityId) {
     } else {
         s32 idx = abilityId - ABILITY_SUMMAG_10;
         if ((u32)idx >= 9) {
-            /* Anti-fold: struct access here causes CC1PSX to fold g_gfData+0x43C0
-               into a single lui/addiu, but the original keeps them separate. */
-            s32 gfBase = (s32)&g_gfData;
-            s32 idx2 = abilityId - ABILITY_HAGGLE;
-            param = *(u16 *)(gfBase + 0x43C0 + idx2 * sizeof(AbilityEntry));
+            param = g_gfData.abilityRangeO[abilityId - ABILITY_HAGGLE].statParam0;
             base = g_gfData.ptrAbilityRangeO;
         } else {
             param = g_gfData.abilityRangeN[idx].statParam0;
@@ -253,10 +249,7 @@ u8 *getAbilityDesc(s32 abilityId) {
     } else {
         s32 idx = abilityId - ABILITY_SUMMAG_10;
         if ((u32)idx >= 9) {
-            /* Anti-fold: see getAbilityName comment */
-            s32 gfBase = (s32)&g_gfData;
-            s32 idx2 = abilityId - ABILITY_HAGGLE;
-            param = *(u16 *)(gfBase + 0x43C0 + idx2 * sizeof(AbilityEntry) + 2);
+            param = g_gfData.abilityRangeO[abilityId - ABILITY_HAGGLE].statParam1;
             base = g_gfData.ptrAbilityRangeO;
         } else {
             param = g_gfData.abilityRangeN[idx].statParam1;
@@ -299,19 +292,9 @@ u8 *getMagicNamePtr(s32 magicId) {
  */
 s32 getSpellEntityData(s32 spellId) {
     if (spellId < 0x40) {
-        /* Anti-fold: struct access causes CC1PSX to fold junctionData offset */
-        u8 *gfBase = (u8 *)&g_gfData;
-        u16 param = *(u16 *)(gfBase + 0x21E + spellId * sizeof(GfJunctionEntry));
-        s32 ptr = *(s32 *)(gfBase + 0x84);
-        return resolveKernelPtr(param, ptr);
+        return resolveKernelPtr(g_gfData.junctionData[spellId].nameParam1, g_gfData.ptrGfSpellData);
     }
-    {
-        u8 *gfBase = (u8 *)&g_gfData;
-        s32 idx = spellId - 0x40;
-        u16 param = *(u16 *)(gfBase + 0xF7A + idx * sizeof(GfAbilityTableEntry));
-        s32 ptr = *(s32 *)(gfBase + 0x88);
-        return resolveKernelPtr(param, ptr);
-    }
+    return resolveKernelPtr(g_gfData.abilityTable132[spellId - 0x40].nameParam0, g_gfData.ptrAbilityTable132);
 }
 
 
@@ -325,10 +308,7 @@ s32 getStatName(s32 statId) {
     s32 base;
 
     if (statId >= 0x21) {
-        /* Anti-fold: struct access causes CC1PSX to fold statTable4 offset */
-        s32 gfBase = (s32)&g_gfData;
-        s32 idx = statId - 0x21;
-        param = *(u16 *)(gfBase + 0x3C48 + idx * sizeof(StatTable4Entry));
+        param = g_gfData.statTable4[statId - 0x21].param0;
         base = g_gfData.ptrStatTable4;
     } else {
         param = g_gfData.statTable24[statId].param0;
@@ -348,10 +328,7 @@ s32 getStatDesc(s32 statId) {
     s32 base;
 
     if (statId >= 0x21) {
-        /* Anti-fold: struct access causes CC1PSX to fold statTable4 offset */
-        s32 gfBase = (s32)&g_gfData;
-        s32 idx = statId - 0x21;
-        param = *(u16 *)(gfBase + 0x3C48 + idx * sizeof(StatTable4Entry) + 2);
+        param = g_gfData.statTable4[statId - 0x21].param1;
         base = g_gfData.ptrStatTable4;
     } else {
         param = g_gfData.statTable24[statId].param1;
