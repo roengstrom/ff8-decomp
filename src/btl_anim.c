@@ -34,15 +34,15 @@ void setAnimEntityOpacity(s32 idx, s32 val) {
  * @param a1 Value for field 7 (-1 to skip).
  * @param a2 Value for field 6 (-1 to skip).
  */
-void setAnimEntityParams(s32 a0, s32 a1, s32 a2) {
-    u8 *entry = (u8 *)g_battleAnims + (a0 & 1) * 196;
+void setAnimEntityParams(s32 idx, s32 a1, s32 a2) {
+    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
     if (a1 >= 0) {
-        entry[7] = a1;
+        entry->field07 = a1;
     }
     if (a2 >= 0) {
-        entry[6] = a2;
+        entry->field06 = a2;
     }
-    entry[0xA] = 1;
+    entry->field0A = 1;
 }
 
 
