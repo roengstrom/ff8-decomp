@@ -33,13 +33,14 @@ typedef struct {
     /* 0x32 */ u16 pad32;
 } PolyGT4; /* 0x34 = 52 bytes */
 
-/** @brief Input mesh data for GTE vertex transformation. */
+/** @brief Mesh render context for GTE transformation and GPU primitive generation. */
 typedef struct {
-    s32 pad00;
-    s32 pad04;
-    s32 *vertices;    /**< +0x08: Vertex position array (stride 8 bytes). */
-    s32 *normals;     /**< +0x0C: Vertex normal array (stride 8 bytes). */
-} GteMeshData;
+    /* 0x00 */ s32 pad00;
+    /* 0x04 */ PolyGT4 *primPtr;    /**< Current primitive write pointer (advances after rendering). */
+    /* 0x08 */ ScreenVert *vertices; /**< Vertex position array (stride 8 bytes). */
+    /* 0x0C */ s32 *normals;        /**< Vertex normal array (stride 8 bytes). */
+    /* 0x10 */ s32 *otBase;         /**< Ordering table base pointer. */
+} MeshRenderCtx;
 
 void RotTransPers(s32 *v0, s32 *v1, s32 *sxy, s32 *p);
 
@@ -57,7 +58,7 @@ void AddPrim(s32 *ot, void *prim);
  * @brief Transform 81 vertex/normal pairs through the GTE.
  * @param mesh Mesh data containing vertex and normal array pointers.
  */
-void func_80025920(GteMeshData *mesh) {
+void func_80025920(MeshRenderCtx *mesh) {
     register s32 *normals = mesh->normals;
     register s32 *vertices = mesh->vertices;
     register s32 i = 0;
@@ -177,18 +178,3 @@ PolyGT4 *func_800259C0(ScreenVert *vertices, PolyGT4 *primBuf, s32 *ot,
     }
     return prim;
 }
-
-
-INCLUDE_ASM("asm/nonmatchings/16120", func_80025D80);
-
-
-INCLUDE_ASM("asm/nonmatchings/16120", func_80025E4C);
-
-
-INCLUDE_ASM("asm/nonmatchings/16120", func_80025F58);
-
-
-INCLUDE_ASM("asm/nonmatchings/16120", func_800262B0);
-
-
-INCLUDE_ASM("asm/nonmatchings/16120", func_800263DC);
