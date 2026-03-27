@@ -41,21 +41,16 @@ s32 GetAbilityCap(s32 abilityId) {
  */
 s32 FindAbilitySlot(s32 gfIdx, s32 abilityId) {
     s32 i = 0;
-    s32 base = (s32)&g_gfData;
 
-    REGALLOC_BARRIER(gfIdx);
-    gfIdx *= sizeof(GfAbilityTableEntry);
-
-    do {
-        if (((GfAbilitySlot *)(gfIdx + base + 0xF96))->abilityId == abilityId) {
+    for (i = 0; i < GF_ABILITY_SLOT_COUNT; i++)
+    {
+        if (g_gfData.abilityTable132[gfIdx].abilities[i].abilityId == abilityId) {
             return i;
         }
-        i++;
-        gfIdx += sizeof(GfAbilitySlot);
-    } while (i < GF_ABILITY_SLOT_COUNT);
+    }
+
     return 0xFF;
 }
-
 
 /**
  * @brief Add AP to a GF's currently-learning ability, clamping at 255.
