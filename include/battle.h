@@ -47,8 +47,14 @@ typedef struct {
     s16 globalCoords[2][2];      /**< 0x1D0: Per-slot coords [slot][axis], x=0 y=1. */
     u8 pad1D8[8];                /**< 0x1D8-0x1DF: Unknown. */
     u8 defaultColor;             /**< 0x1E0: Default color value for entity init. */
-    u8 pad1E1[0x7E3];            /**< 0x1E1-0x9C3: Unknown. */
+    u8 pad1E1[0x51B];            /**< 0x1E1-0x6FB: Unknown. */
+    s32 field6FC;                /**< 0x6FC: Cleared during GPU init. */
+    u8 pad700[0x2C2];            /**< 0x700-0x9C1: Unknown. */
+    s16 field9C2;                /**< 0x9C2: Set to 0x4611 during GPU init. */
     s16 cdStreamCounter;         /**< 0x9C4: CD stream counter. */
+    u8 pad9C6[2];                /**< 0x9C6-0x9C7: Unknown. */
+    s32 field9C8;                /**< 0x9C8: Cleared during GPU init. */
+    s32 field9CC;                /**< 0x9CC: Cleared during GPU init. */
 } BattleAnimState;
 
 extern BattleAnimState g_battleAnims;

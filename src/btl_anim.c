@@ -329,14 +329,18 @@ void initCdAnimSubsystem(void) {
 /**
  * @brief Initialize GPU display and clear battle animation state fields.
  *
- * Calls GsInitGraph (func_800982D8), GsDefDispBuff (func_800980D0), and
- * initCdAnimSubsystem. Then clears g_battleAnims fields at +0x6FC, +0x9C8,
- * +0x9CC to zero and sets +0x9C2 to 0x4611.
- *
- * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
- *       this file (compiled with PsyQ 4.1).
+ * Calls GsInitGraph, GsDefDispBuff, and initCdAnimSubsystem, then
+ * resets display state fields.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028444);
+void func_80028444(void) {
+    func_800982D8();
+    func_800980D0();
+    initCdAnimSubsystem();
+    g_battleAnims.field6FC = 0;
+    g_battleAnims.field9C2 = 0x4611;
+    g_battleAnims.field9C8 = 0;
+    g_battleAnims.field9CC = 0;
+}
 
 
 /** @brief Calls initBattleSubsystems, callCdTick, and shutdownCardSubsystem in sequence. */
