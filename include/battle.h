@@ -61,6 +61,14 @@ typedef struct {
 
 extern BattleAnimState g_battleAnims;
 
+/** @brief Texture descriptor for VRAM loading (variable-length CLUT at end). */
+typedef struct {
+    u8 header[8];       /**< 0x00: Header data. */
+    s32 pixelOffset;    /**< 0x08: Offset from this field to pixel data. */
+    RECT clutRect;      /**< 0x0C: CLUT destination rectangle in VRAM. */
+    u16 clut[0];        /**< 0x14: CLUT palette data (variable length). */
+} TextureDesc;
+
 typedef struct {
     s32 field00;
     s32 field04;

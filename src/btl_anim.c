@@ -384,14 +384,14 @@ void convertClutPalette(u16 *clut) {
 
 /**
  * @brief Load texture and CLUT data into VRAM, preserving a region.
- * @param data Texture descriptor with embedded RECT, pixel data, and CLUT.
+ * @param data Texture descriptor with pixel data offset and CLUT.
  */
-void func_80028564(u8 *data) {
+void func_80028564(TextureDesc *data) {
     RECT rect;
     u8 storeBuf[0x100];
 
-    u8 *base = data + 8;
-    u8 *pixelBase = base + *(s32 *)base;
+    s32 *offPtr = &data->pixelOffset;
+    u8 *pixelBase = (u8 *)offPtr + *offPtr;
     rect = *(RECT *)(pixelBase + 4);
     rect.x = 0x380;
     rect.y = 0x100;
@@ -405,11 +405,11 @@ void func_80028564(u8 *data) {
     StoreImage(&rect, storeBuf);
     DrawSync(0);
 
-    rect = *(RECT *)(data + 0xC);
+    rect = data->clutRect;
     rect.x = 0x100;
     rect.y = 0xE0;
-    convertClutPalette((u16 *)(data + 0x14));
-    LoadImage(&rect, data + 0x14);
+    convertClutPalette(data->clut);
+    LoadImage(&rect, data->clut);
     DrawSync(0);
 
     rect.x = 0x110;
