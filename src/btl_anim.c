@@ -12,13 +12,15 @@ void func_800472F4(void);
 
 extern u8 g_animInitialized;
 extern u8 D_80082FB3;
-extern s8 D_80082FD4;
+extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
 extern u16 D_80083794;
 extern s32 D_800834C0;
 extern s16 D_800837AC;
 extern u8 D_800837A0[];
 extern u8 D_800837AE;
 extern u8 D_80052958;
+extern u8 D_800101C4[];
+extern u8 D_800101CC[];
 extern u8 D_800101D0[];
 extern u8 *D_8005F134;
 extern BattleDisplayEntity g_battleEntities[];
@@ -421,20 +423,20 @@ void loadBattleTimImage(Tim *data) {
 }
 
 
-/** @brief Wrapper that calls func_80050BC4. */
+/** @brief Wrapper that calls sfxInit. */
 void callSfxInit(void) {
-    func_80050BC4();
+    sfxInit();
 }
 
 
-/** @brief Wrapper that calls func_8004E720. */
+/** @brief Wrapper that calls sfxUpdate. */
 void callSfxUpdate(void) {
-    func_8004E720();
+    sfxUpdate();
 }
 
 
-/** @brief Wrapper that calls func_8004DFF4 (likely a CD subsystem tick or finalization). */
-void callCdTick(void) { func_8004DFF4(); }
+/** @brief Wrapper that calls cdTick (likely a CD subsystem tick or finalization). */
+void callCdTick(void) { cdTick(); }
 
 
 /**
@@ -484,11 +486,11 @@ void waitVSync(s32 a0) { VSync(); }
 
 
 /**
- * @brief Set the global flag D_80082FD4.
- * @param val Value to store in D_80082FD4.
+ * @brief Set the memory card operation flag.
+ * @param val Value to store in g_cardFlag.
  */
 void setCardFlag(s8 val) {
-    D_80082FD4 = val;
+    g_cardFlag = val;
 }
 
 
@@ -659,7 +661,7 @@ void setCardStatusSecondary(s32 a0, u8 a1) {
 void markCardBusy(s32 a0) { setCardStatus(a0, 1); }
 
 
-/** @brief Read memory card status (wrapper, discards result). */
+/** @brief Read memory card status (wrapper, return leaks from inner call). */
 void readCardStatusDiscard(void) { getCardStatus(); }
 
 
@@ -775,36 +777,182 @@ s32 loadCardSave(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029028);
+/**
+ * @brief Clear a memory card, retrying up to 180 times.
+ *
+ * Calls _card_clear in a retry loop. If _card_clear succeeds, waits for
+ * a card event. Returns 0 on success (via loadCardSave), 3 on busy event,
+ * or 4 on timeout/failure.
+ *
+ * @param a0 Packed card identifier.
+ * @return 0 on success, 3 if card event returned 1, 4 on timeout.
+ */
+/**
+ * @brief Clear a memory card, retrying up to 180 times.
+ * @param a0 Packed card identifier.
+ * @return 0 on success (via loadCardSave), 3 on event, 4 on timeout/busy.
+ */
+s32 clearCardSync(s32 a0) {
+    s32 counter;
+    s32 one;
 
-
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800290C0);
-
-
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029150);
-
-
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800291FC);
-
-
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800292AC);
-
-
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029360);
-
-
-/** @brief Returns the signed byte value at D_80082FD4. */
-s32 getCardFlagValue(void) {
-    return D_80082FD4;
+    counter = 0;
+    one = 1;
+    do {
+        if (_card_clear(a0) != 0) {
+            switch (busyWaitCardEvent()) {
+            case 0:
+                return loadCardSave(a0);
+            case 1:
+                return 4;
+            default:
+                return 3;
+            }
+        }
+        counter++;
+    } while (counter < 0xB4);
+    markCardBusy(a0);
+    return 4;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029400);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", checkAndClearCard);
 
 
-/** @brief Wrapper that calls func_80029400. */
+/**
+ * @brief Poll a memory card for readiness, with retries.
+ *
+ * Initializes event handlers, then calls checkAndClearCard in a retry loop.
+ * If the result is 2 (timeout), retries up to 3 times. Results in
+ * the [2,4] range continue looping; others exit immediately.
+ *
+ * @param a0 Packed card identifier.
+ * @return Card status result.
+ */
+s32 pollCardReady(s32 a0) {
+    s32 retryCount;
+    s32 loopLimit;
+    s32 twoConst;
+    s32 result;
+
+    initCardEventHandlers();
+    retryCount = 0;
+    loopLimit = 4;
+    twoConst = 2;
+    do {
+        result = checkAndClearCard(a0);
+        if ((u32)(result - 2) >= 3) {
+            break;
+        }
+        if (result == twoConst) {
+            retryCount++;
+            loopLimit = 4;
+            if (retryCount >= 3) {
+                break;
+            }
+        }
+        VSync(0);
+        loopLimit--;
+    } while (loopLimit > 0);
+    setCardFlag((s8)result);
+    return result;
+}
+
+
+/**
+ * @brief Format a memory card.
+ *
+ * Polls card readiness first. If the card is ready (status 0 or 2),
+ * performs a format operation. On format failure, marks the secondary
+ * status. On success, polls readiness again.
+ *
+ * @param a0 Packed card identifier.
+ * @return 0 on success, 1 on poll failure after format, 0 if card not ready.
+ */
+/**
+ * @brief Format a memory card.
+ *
+ * Polls card readiness first. If the card is ready (status 0 or 2),
+ * performs a format operation. On success, re-polls readiness.
+ *
+ * @param a0 Packed card identifier.
+ * @return 0 on success or if card not ready, 1 on poll failure after format.
+ */
+INCLUDE_ASM("asm/nonmatchings/btl_anim", formatCard);
+
+
+INCLUDE_ASM("asm/nonmatchings/btl_anim", formatCardAlt);
+
+
+/**
+ * @brief Build a memory card file path string.
+ *
+ * Constructs a path like "buXY:filename" where X is the port digit
+ * and Y is the slot digit, both as ASCII characters ('0'-based).
+ *
+ * @param cardId Packed card identifier (port in bit 4, slot in lower bits).
+ * @param filename Null-terminated filename to append.
+ * @param outBuf Destination buffer for the constructed path string.
+ */
+void buildCardPath(cardId, filename, outBuf)
+s32 cardId;
+s32 filename;
+s32 outBuf;
+{
+    u8 templateBuf[8];
+    s32 port;
+    s32 slot;
+
+    btlStrcpy(templateBuf, D_800101C4);
+    port = getCardPort(cardId);
+    slot = getCardSlot(cardId);
+    port += 0x30;
+    templateBuf[2] = port;
+    templateBuf[3] = slot + 0x30;
+    btlStrcpy(outBuf, templateBuf);
+    btlStrcat(outBuf, filename);
+}
+
+
+/** @brief Returns the memory card operation flag value. */
+s32 getCardFlagValue(void) {
+    return g_cardFlag;
+}
+
+
+/**
+ * @brief Open a memory card file by building the path and opening it.
+ *
+ * Initializes card event handlers, builds the card file path, checks
+ * the card status, and opens the file. If the status check fails,
+ * polls for card readiness before opening.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Null-terminated filename.
+ * @param flags File open flags.
+ * @return File descriptor on success, -1 on failure.
+ */
+s32 openCardFile(cardId, filename, flags)
+s32 cardId;
+s32 filename;
+s32 flags;
+{
+    u8 pathBuf[0x20];
+
+    initCardEventHandlers();
+    buildCardPath(cardId, filename, (s32)pathBuf);
+    if (((s32 (*)(s32))readCardStatusDiscard)(cardId) != 0) {
+        if (pollCardReady(cardId) != 0) {
+            return -1;
+        }
+    }
+    return open((s32)pathBuf, flags);
+}
+
+
+/** @brief Wrapper that calls openCardFile. */
 void callCardInit(void) {
-    func_80029400();
+    openCardFile();
 }
 
 
@@ -831,45 +979,148 @@ void closeFileDescriptorWrapper(s32 a0) {
  * @param a1 File index or name parameter.
  * @param a2 Directory entry buffer for firstfile result.
  * @return 0 if card initialization failed, otherwise the result of firstfile.
- * @note Calls initCardEventHandlers for setup, checks card status via func_80029150, builds
- *       the filename via func_80029360, then calls PsyQ firstfile.
+ * @note Calls initCardEventHandlers for setup, checks card status via pollCardReady, builds
+ *       the filename via buildCardPath, then calls PsyQ firstfile.
  */
 s32 openCardFirstFile(s32 a0, s32 a1, s32 a2) {
     s32 buf[8];
     initCardEventHandlers();
-    if (func_80029150(a0) != 0) return 0;
-    func_80029360(a0, a1, (s32)buf);
+    if (pollCardReady(a0) != 0) return 0;
+    buildCardPath(a0, a1, (s32)buf);
     firstfile((s32)buf, a2);
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029550);
+/**
+ * @brief Open the first memory card file, retrying up to 5 times.
+ *
+ * Calls openCardFirstFile in a loop. If the open fails (returns 0),
+ * waits one VSync and retries. Returns 0 if all retries are exhausted.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename parameter.
+ * @param dirEntry Directory entry buffer.
+ * @return Result of openCardFirstFile (nonzero on success, 0 on failure).
+ */
+s32 openFirstFileRetry(cardId, filename, dirEntry)
+s32 cardId;
+s32 filename;
+s32 dirEntry;
+{
+    s32 retries = 4;
+    s32 result;
+
+    do {
+        result = openCardFirstFile(cardId, filename, dirEntry);
+        if (result != 0) break;
+        VSync(0);
+        retries--;
+    } while (retries >= 0);
+    return result;
+}
 
 
 /** @brief Advance to the next file in the memory card directory listing (PsyQ nextfile wrapper). */
 void cardNextFile(void) { nextfile(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800295F0);
+/**
+ * @brief Sum all file sizes on a memory card, rounded to 8KB sectors.
+ *
+ * Opens the card directory with a wildcard, then iterates all files,
+ * summing each file's size rounded up to the next 8KB boundary.
+ *
+ * @param cardId Packed card identifier.
+ * @return Total size in bytes (8KB-aligned), or 0 if directory open failed.
+ */
+s32 sumCardFileSizes(s32 cardId) {
+    s32 dirEntry[10];
+    s32 total = 0;
+
+    if (openFirstFileRetry(cardId, (s32)D_800101CC, (s32)dirEntry) != 0) {
+        top:
+        {
+            s32 fileSize = dirEntry[6];
+            s32 rounded = (fileSize + 0x1FFF) / 0x2000;
+            total += rounded * 0x2000;
+        }
+        if (((s32 (*)(s32))cardNextFile)((s32)dirEntry) != 0) goto top;
+    }
+    return total;
+}
 
 
 /**
- * @brief Check if func_80029550 succeeds with a local buffer.
+ * @brief Check if openFirstFileRetry succeeds with a local buffer.
  *
- * Calls func_80029550 with a0, a1, and a stack-allocated buffer.
+ * Calls openFirstFileRetry with a0, a1, and a stack-allocated buffer.
  * Returns 1 if the result is nonzero, 0 otherwise.
  *
  * @param a0 First parameter passed through.
  * @param a1 Second parameter passed through.
- * @return Boolean: 1 if func_80029550 returned nonzero.
+ * @return Boolean: 1 if openFirstFileRetry returned nonzero.
  */
 s32 checkCardFileExists(s32 a0, s32 a1) {
     s32 buf[10];
-    return func_80029550(a0, a1, buf) != 0;
+    return openFirstFileRetry(a0, a1, buf) != 0;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029680);
+/**
+ * @brief Create a new file on the memory card.
+ *
+ * Checks if the file already exists (returns 2 if so), verifies there is
+ * enough free space on the card, creates the file with the appropriate
+ * sector count, then re-opens it. Returns -1 on failure, 1 on success.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename to create.
+ * @param size File size in bytes.
+ * @return 1 on success, 2 if file exists, -1 on failure.
+ */
+/**
+ * @brief Create a new file on the memory card.
+ *
+ * Checks if the file already exists (returns 2 if so), verifies there is
+ * enough free space on the card, creates the file with the appropriate
+ * sector count, then re-opens it. Returns -1 on failure, 1 on success.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename to create.
+ * @param size File size in bytes.
+ * @return 1 on success, 2 if file exists, -1 on failure.
+ */
+s32 createCardFile(s32 cardId, s32 filename, s32 size) {
+    s32 neg1;
+    s32 fd;
+    s32 free;
+
+    initCardEventHandlers();
+    if (checkCardFileExists(cardId, filename) != 0) {
+        return 2;
+    }
+    size = ((size + 0x1FFF) / 0x2000) * 0x2000;
+    free = sumCardFileSizes(cardId);
+    free = 0x1E000 - free;
+    if (free < size) {
+        return -1;
+    }
+    size /= 0x2000;
+    fd = openCardFile(cardId, filename, (size << 16) | 0x200);
+    neg1 = -1;
+    if (fd == neg1) {
+        markCardBusy(cardId);
+        return -1;
+    }
+    closeFileDescriptor(fd);
+    fd = openCardFile(cardId, filename, 1);
+    if (fd == neg1) {
+        markCardBusy(cardId);
+        return -1;
+    }
+    closeFileDescriptor(fd);
+    return 1;
+}
 
 
 /**
@@ -908,7 +1159,38 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029850);
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029A20);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029BA0);
+/**
+ * @brief Open a card file, write data, and close it.
+ *
+ * Opens the card file with write access (flag 3), performs a sector-aligned
+ * write via func_80029850, then closes the file. Returns -1 if open or
+ * write fails, marking the card busy.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename on the card.
+ * @param data Data buffer to write.
+ * @param size Number of bytes to write.
+ * @param offset File offset to write at.
+ * @return Bytes written on success, -1 on failure.
+ */
+s32 writeCardSector(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) {
+    s32 fd;
+    s32 neg1;
+    s32 result;
+
+    fd = openCardFile(cardId, filename, 3);
+    neg1 = -1;
+    if (fd == neg1) {
+        markCardBusy(cardId);
+        return neg1;
+    }
+    result = func_80029850(fd, data, size, offset);
+    closeFileDescriptor(fd);
+    if (result == neg1) {
+        markCardBusy(cardId);
+    }
+    return result;
+}
 
 
 /**
@@ -932,7 +1214,36 @@ s32 seekWriteReturnFd(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029CB8);
+/**
+ * @brief Open a card file, write data via seekWriteReturnFd, and handle errors.
+ *
+ * Opens with flag 0x8003 (write+create), writes via seekWriteReturnFd.
+ * If open fails (fd == -1) or write fails (result < 0), marks card busy
+ * and returns -1.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename on the card.
+ * @param data Data buffer to write.
+ * @param size Number of bytes to write.
+ * @param offset File offset to write at.
+ * @return File descriptor on success, -1 on failure.
+ */
+s32 writeCardFileSync(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) {
+    s32 fd;
+    s32 result;
+
+    fd = openCardFile(cardId, filename, 0x8003);
+    if (fd == -1) {
+        markCardBusy(cardId);
+        return -1;
+    }
+    result = seekWriteReturnFd(fd, data, size, offset);
+    if (result >= 0) {
+        return fd;
+    }
+    markCardBusy(cardId);
+    return -1;
+}
 
 
 /**
@@ -956,17 +1267,76 @@ s32 seekReadReturnFd(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029DAC);
+/**
+ * @brief Open a card file, read data via seekReadReturnFd, and handle errors.
+ *
+ * Opens with flag 0x8001 (read), reads via seekReadReturnFd. If open fails
+ * or read fails, marks card busy, closes fd, and returns -1.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename on the card.
+ * @param data Destination buffer.
+ * @param size Number of bytes to read.
+ * @param offset File offset to read from.
+ * @return File descriptor on success, -1 on failure.
+ */
+s32 readCardFileSync(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) {
+    s32 fd;
+    s32 result;
+
+    fd = openCardFile(cardId, filename, 0x8001);
+    if (fd < 0) {
+        markCardBusy(cardId);
+        return -1;
+    }
+    result = seekReadReturnFd(fd, data, size, offset);
+    if (result >= 0) {
+        return fd;
+    }
+    markCardBusy(cardId);
+    closeFileDescriptor(fd);
+    return fd;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029E40);
+/**
+ * @brief Open a card file with create flag, read data, close, and handle errors.
+ *
+ * Opens with flag 1 (create/read), reads data via func_80029A20,
+ * then closes the file. Returns -1 if open or read fails.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename Filename on the card.
+ * @param data Destination buffer.
+ * @param size Number of bytes to read.
+ * @param offset File offset to read from.
+ * @return Bytes read on success, -1 on failure.
+ */
+s32 readCardCreate(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) {
+    s32 fd;
+    s32 neg1;
+    s32 result;
+
+    fd = openCardFile(cardId, filename, 1);
+    neg1 = -1;
+    if (fd == neg1) {
+        markCardBusy(cardId);
+        return neg1;
+    }
+    result = func_80029A20(fd, data, size, offset);
+    closeFileDescriptor(fd);
+    if (result == neg1) {
+        markCardBusy(cardId);
+    }
+    return result;
+}
 
 
 /**
  * @brief Erase a memory card file.
  *
  * Sets up the card subsystem, checks if the file exists via checkCardFileExists,
- * builds the filename via func_80029360, and calls erase. If erase succeeds
+ * builds the filename via buildCardPath, and calls erase. If erase succeeds
  * (returns non-zero), returns 1. Otherwise calls cleanup and returns -1.
  *
  * @param a0 Packed card identifier.
@@ -979,7 +1349,7 @@ s32 eraseCardFile(s32 a0, s32 a1) {
     if (checkCardFileExists(a0, a1) == 0) {
         return -1;
     }
-    func_80029360(a0, a1, (s32)buf);
+    buildCardPath(a0, a1, (s32)buf);
     if (erase((s32)buf) != 0) {
         return 1;
     }
@@ -988,10 +1358,10 @@ s32 eraseCardFile(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029F5C);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", writeCardBlock);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029FDC);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", writeCardBlocks);
 
 
 /**
@@ -1022,7 +1392,7 @@ void initBattleSubsystems(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A150);
+INCLUDE_ASM("asm/nonmatchings/btl_anim", encodeCardFilename);
 
 
 /**
@@ -1172,6 +1542,17 @@ void copyDisplayCoords(u8 *a0) {
 }
 
 
+/**
+ * @brief Set up GPU draw area and offset packets, linking them to an OT entry.
+ *
+ * Copies the current display rectangle, calls SetDrawArea and SetDrawOffset
+ * to initialize two GPU environment packets at @p pkt, and links each into
+ * the ordering table at @p ot using P_TAG bit masking.
+ *
+ * @param ot Ordering table entry pointer.
+ * @param pkt GPU packet allocation pointer.
+ * @return Updated packet pointer (pkt + 24 bytes: two 12-byte packets).
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A45C);
 
 
@@ -1367,7 +1748,27 @@ void setBattleEntityBoundRect(s32 idx, RECT *src) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AD3C);
+/**
+ * @brief Set a battle entity's display rectangle with minimum size clamping.
+ *
+ * Copies src RECT into the entity's dispRect, then ensures the height
+ * is at least 1 and the width is at least 2.
+ *
+ * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param src Source RECT to copy.
+ */
+void setBattleEntityRectClamp(s32 idx, RECT *src) {
+    BattleDisplayEntity *entity = &g_battleEntities[idx];
+    BattleDisplayEntity *ent2;
+    ent2 = entity;
+    ent2->dispRect = *src;
+    if (ent2->dispRect.h <= 0) {
+        entity->dispRect.h = 1;
+    }
+    if (entity->dispRect.w < 2) {
+        ent2->dispRect.w = 2;
+    }
+}
 
 
 // battle_entity_get_field_38 - g_battleEntities stride 64
