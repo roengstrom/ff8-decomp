@@ -42,10 +42,13 @@ typedef struct {
 /** @brief Complete battle animation state (entities + global coords). */
 typedef struct {
     BattleAnimEntity entities[2]; /**< 0x000-0x187: Two animation entities. */
-    u8 pad188[0x48];             /**< 0x188-0x1CF: Unknown. */
+    u8 cdBufA[0x24];             /**< 0x188: CD audio buffer A. */
+    u8 cdBufB[0x24];             /**< 0x1AC: CD audio buffer B. */
     s16 globalCoords[2][2];      /**< 0x1D0: Per-slot coords [slot][axis], x=0 y=1. */
     u8 pad1D8[8];                /**< 0x1D8-0x1DF: Unknown. */
     u8 defaultColor;             /**< 0x1E0: Default color value for entity init. */
+    u8 pad1E1[0x7E3];            /**< 0x1E1-0x9C3: Unknown. */
+    s16 cdStreamCounter;         /**< 0x9C4: CD stream counter. */
 } BattleAnimState;
 
 extern BattleAnimState g_battleAnims;

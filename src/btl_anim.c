@@ -317,12 +317,12 @@ void setAnimFlag(s32 a0) {
  *       Passes two g_battleAnims buffer pointers (offsets 0x188 and 0x1AC) to func_8003BC24.
  */
 void initCdAnimSubsystem(void) {
-    u8 *base = (u8 *)&g_battleAnims;
+    BattleAnimState *bas = &g_battleAnims;
     func_800982B8();
-    func_8003BC24(base + 0x188, base + 0x1AC); /* CD audio buffers A and B */
+    func_8003BC24(bas->cdBufA, bas->cdBufB);
     cdInitHandlerWrapper();
     initAnimStateAndWait();
-    *(s16 *)(base + 0x9C4) = 0; /* reset CD stream counter */
+    bas->cdStreamCounter = 0;
 }
 
 
