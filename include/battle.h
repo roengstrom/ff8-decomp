@@ -49,7 +49,9 @@ typedef struct {
     u8 defaultColor;             /**< 0x1E0: Default color value for entity init. */
     u8 pad1E1[0x51B];            /**< 0x1E1-0x6FB: Unknown. */
     s32 field6FC;                /**< 0x6FC: Cleared during GPU init. */
-    u8 pad700[0x2C2];            /**< 0x700-0x9C1: Unknown. */
+    u8 pad700[0x274];            /**< 0x700-0x973: Unknown. */
+    s32 palette[3];              /**< 0x974: RGB888 palette (0x40BBGGRR). */
+    u8 pad980[0x42];             /**< 0x980-0x9C1: Unknown. */
     s16 field9C2;                /**< 0x9C2: Set to 0x4611 during GPU init. */
     s16 cdStreamCounter;         /**< 0x9C4: CD stream counter. */
     u8 pad9C6[2];                /**< 0x9C6-0x9C7: Unknown. */
