@@ -10,6 +10,19 @@ s32 func_80047384(void);
 void func_800472E4(void);
 void func_800472F4(void);
 
+extern u8 D_80082FB2;
+extern u8 D_80082FB3;
+extern s8 D_80082FD4;
+extern u16 D_80083794;
+extern s32 D_800834C0;
+extern s16 D_800837AC;
+extern u8 D_800837A0[];
+extern u8 D_800837AE;
+extern u8 D_80052958;
+extern u8 D_800101D0[];
+extern u8 *D_8005F134;
+extern BattleDisplayEntity g_battleEntities[];
+
 /**
  * @brief Set or clear opacity of a battle animation entity.
  * @param idx Entity index (masked to 0 or 1).
@@ -241,7 +254,6 @@ void initAnimEntityColor(s32 idx) {
  * frames. Finishes with VSync(2).
  */
 void initAnimStateAndWait(void) {
-    extern u8 D_80082FB2;
     s32 i;
 
     D_80082FB2 = 1;
@@ -259,12 +271,10 @@ void initAnimStateAndWait(void) {
 }
 
 
-extern u16 D_80083794;
 // get D_80083794 (u16)
 
 /** @brief Initializes D_80082FB2 to 0, calls func_80039764(0), then loops twice calling resetAnimEntity(i, 0). */
 void resetAnimState(void) {
-    extern u8 D_80082FB2;
     s32 i;
     D_80082FB2 = 0;
     func_80039764(0);
@@ -280,7 +290,6 @@ u16 getAnimGlobalState(void) {
 }
 
 
-extern u8 D_80082FB3;
 
 /**
  * @brief Set D_80083794 to a new value.
@@ -406,7 +415,6 @@ void btlMemcpy(u8 *src, u8 *dst, s32 numBytes) {
 void waitVSync(s32 a0) { VSync(); }
 
 
-extern s8 D_80082FD4;
 /**
  * @brief Set the global flag D_80082FD4.
  * @param val Value to store in D_80082FD4.
@@ -719,7 +727,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029360);
 
 /** @brief Returns the signed byte value at D_80082FD4. */
 s32 getCardFlagValue(void) {
-    extern s8 D_80082FD4;
     return D_80082FD4;
 }
 
@@ -959,10 +966,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A150);
  *       then applies func_8002A45C to the result.
  */
 s32 transformValueIfActive(s32 a0, s32 a1) {
-    extern u8 D_80052958;
-    extern u8 D_800837A0[];
-    extern s16 D_800837AC;
-    extern u8 D_800837AE;
     if (D_80052958 != 0) {
         s32 result = func_8002E8DC(a0, a1, D_800837AC, D_800837AE, (s32)D_800837A0, 7);
         a1 = func_8002A45C(a0, result);
@@ -1075,13 +1078,11 @@ void getBattleCharNameWrapper(void) { getBattleCharName(); }
  * @param dst Destination for the 8-byte unaligned copy (RECT-sized).
  */
 void copyDisplayRect(RECT *dst) {
-    extern u8 *D_8005F134;
     RECT *src = (RECT *)D_8005F134;
     *dst = *src;
 }
 
 
-extern u8 *D_8005F134;
 /**
  * @brief Copy display coordinates (x, y) from the global display struct D_8005F134.
  * @param a0 Destination buffer; receives x at offset 0 and y at offset 2 (both u16).
@@ -1142,7 +1143,6 @@ void swapDisplayList2(void) {
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A5E8);
 
 
-extern s32 D_800834C0;
 
 /** @brief Calls func_8002A5E8(a0, 0) then advanceBattleTimer(a0).
  *  @param a0 Parameter passed to both calls.
@@ -1190,7 +1190,6 @@ s32 getDisplayListPacketPtr(void) {
  * @param pkt GPU packet pointer to store.
  */
 void storeGpuPacket(s32 pkt) {
-    extern u8 D_800101D0[];
     s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
     s32 limit;
     *(s32 *)*(s32 *)(base + 0x6F0) = pkt; /* store pkt to active DisplayListBuf.pktAlloc */
@@ -1206,7 +1205,6 @@ void storeGpuPacket(s32 pkt) {
 
 /** @brief Returns the address of the ordering table (DisplayListBuf.ot) in the active buffer. */
 s32 getDisplayListOtBase(void) {
-    extern s32 D_800834C0;
     return D_800834C0 + 8; /* offset of ot[] in DisplayListBuf */
 }
 
@@ -1223,7 +1221,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AB5C);
 
 
-extern BattleDisplayEntity g_battleEntities[];
 
 /**
  * @brief Get a pointer to a battle entity by index.
