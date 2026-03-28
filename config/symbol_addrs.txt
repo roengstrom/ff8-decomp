@@ -1311,3 +1311,4 @@ g_meshBaseMatrix = 0x800528F4;
 g_meshRenderCtx = 0x801F0000;
 getAnimGlobalCoord = 0x80027F78;
 getAnimFrameSlotParam = 0x80027FDC;
+getAnimFrameType = 0x800280C0;

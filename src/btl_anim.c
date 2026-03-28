@@ -6,6 +6,9 @@
 void callCdTick(void);
 void shutdownCardSubsystem(void);
 void initBattleSubsystems(void);
+s32 func_80047384(void);
+void func_800472E4(void);
+void func_800472F4(void);
 
 /**
  * @brief Set or clear opacity of a battle animation entity.
@@ -103,7 +106,6 @@ s32 getAnimFrameSlotParam(s32 idx, s32 param, s32 frameOffset) {
     if (frame->field00 == 0) {
         param = CLAMP(param, 0, 3);
         if ((frame->field01 >> 4) == 1) {
-            SCHED_BARRIER();
             result = frame->params[param];
         }
     }
@@ -114,14 +116,45 @@ s32 getAnimFrameSlotParam(s32 idx, s32 param, s32 frameOffset) {
 
 /**
  * @brief Checks if all battle animation entities are inactive.
- * @return 1 if all inactive (func_800280C0(0, 0) returns -1), 0 otherwise.
+ * @return 1 if all inactive (getAnimFrameType(0, 0) returns -1), 0 otherwise.
  */
 s32 areAllAnimsInactive(void) {
-    return (u32)~func_800280C0(0, 0) >> 31;
+    return (u32)~getAnimFrameType(0, 0) >> 31;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800280C0);
+/**
+ * @brief Get the type of an animation frame slot, with optional sync.
+ * @param idx Entity index (bit 0 selects entity).
+ * @param frameOffset Frame counter offset to subtract.
+ * @return Frame type (field01 >> 4), or -1 if slot is inactive.
+ */
+s32 getAnimFrameType(s32 idx, s32 frameOffset) {
+    s32 syncFlag;
+    s32 slot;
+    BattleAnimEntity *entity;
+    AnimFrame *frame;
+    s32 frameSlot;
+
+    syncFlag = func_80047384() & 4;
+    if (syncFlag == 0) {
+        func_800472E4();
+    }
+
+    slot = idx & 1;
+    entity = &g_battleAnims.entities[g_battleAnims.entities[slot].linkedIdx];
+    frameSlot = (entity->frameCounter - frameOffset) & 7;
+    frame = &entity->frames[frameSlot];
+
+    if (syncFlag == 0) {
+        func_800472F4();
+    }
+
+    if (frame->field00 != 0) {
+        return -1;
+    }
+    return frame->field01 >> 4;
+}
 
 
 /**
