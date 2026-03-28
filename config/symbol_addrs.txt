@@ -1313,3 +1313,4 @@ getAnimGlobalCoord = 0x80027F78;
 getAnimFrameSlotParam = 0x80027FDC;
 getAnimFrameType = 0x800280C0;
 resetAnimEntity = 0x800281C4;
+g_animInitialized = 0x80082FB2;

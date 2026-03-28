@@ -10,7 +10,7 @@ s32 func_80047384(void);
 void func_800472E4(void);
 void func_800472F4(void);
 
-extern u8 D_80082FB2;
+extern u8 g_animInitialized;
 extern u8 D_80082FB3;
 extern s8 D_80082FD4;
 extern u16 D_80083794;
@@ -249,14 +249,14 @@ void initAnimEntityColor(s32 idx) {
 /**
  * @brief Initialize battle animation state and wait for completion.
  *
- * Sets D_80082FB2 to 1, initializes both animation slots via resetAnimEntity,
+ * Sets g_animInitialized to 1, initializes both animation slots via resetAnimEntity,
  * triggers a fade via func_80039764(3), then polls func_80027360 up to 24
  * frames. Finishes with VSync(2).
  */
 void initAnimStateAndWait(void) {
     s32 i;
 
-    D_80082FB2 = 1;
+    g_animInitialized = 1;
     for (i = 0; i < 2; i++) {
         resetAnimEntity(i, 0);
     }
@@ -273,10 +273,10 @@ void initAnimStateAndWait(void) {
 
 // get D_80083794 (u16)
 
-/** @brief Initializes D_80082FB2 to 0, calls func_80039764(0), then loops twice calling resetAnimEntity(i, 0). */
+/** @brief Initializes g_animInitialized to 0, calls func_80039764(0), then loops twice calling resetAnimEntity(i, 0). */
 void resetAnimState(void) {
     s32 i;
-    D_80082FB2 = 0;
+    g_animInitialized = 0;
     func_80039764(0);
     for (i = 0; i < 2; i++) {
         resetAnimEntity(i, 0);
