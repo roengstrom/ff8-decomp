@@ -332,7 +332,7 @@ void initCdAnimSubsystem(void) {
  * Calls GsInitGraph, GsDefDispBuff, and initCdAnimSubsystem, then
  * resets display state fields.
  */
-void func_80028444(void) {
+void initBattleDisplay(void) {
     func_800982D8();
     func_800980D0();
     initCdAnimSubsystem();

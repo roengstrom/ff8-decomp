@@ -413,12 +413,12 @@ void loadAndUploadTextures(void) {
 /** @brief Loads an overlay and initializes the field/battle module.
  *
  *  Calls loadCdOverlay to load the overlay at 0x80098000, then runs its
- *  init function (func_80098390) and calls func_80028444 for additional setup.
+ *  init function (func_80098390) and calls initBattleDisplay for additional setup.
  */
 void initFieldModule(void) {
     loadCdOverlay();
     func_80098390();
-    func_80028444();
+    initBattleDisplay();
 }
 
 /** @brief Extended battle/visual initialization — loads multiple CD assets.
