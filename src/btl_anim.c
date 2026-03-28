@@ -174,14 +174,51 @@ void setAnimUnk10Both(s32 unused, s32 index, s16 value) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281C4);
+/**
+ * @brief Initialize a linked battle animation entity.
+ * @param idx Entity index (selects via linkedIdx).
+ * @param frameId Frame ID to set in each frame's field02.
+ */
+void resetAnimEntity(s32 idx, s32 frameId) {
+    AnimFrame *fp;
+    s32 fid;
+    BattleAnimEntity *entity;
+    s32 i;
+
+    entity = &g_battleAnims.entities[g_battleAnims.entities[idx].linkedIdx];
+    entity->frameCounter = 0;
+    entity->field0A = 0;
+    entity->field0C = g_battleAnims.defaultColor;
+    entity->field0D = g_battleAnims.defaultColor;
+    entity->field0E = g_battleAnims.defaultColor;
+    entity->field0F = g_battleAnims.defaultColor;
+
+    fid = frameId;
+    for (i = 0; 8 > i; i++) {
+        AnimFrame *frame = &entity->frames[i];
+        frame->field00 = 0;
+        frame->field01 = 0;
+        fp = frame;
+        fp->field02 = fid;
+        fp->params[0] = 0;
+        frame->params[1] = 0;
+        frame->params[2] = 0;
+        frame->params[3] = 0;
+        fp->field08 = 0;
+        frame->field0A = 0;
+        frame->field0C = 0;
+        frame->field0E = 0;
+        fp->field10 = 0;
+        fp->field12 = 0;
+    }
+}
 
 
 /**
  * @brief Initialize a battle entity's color fields from the global default.
  *
  * Copies the byte at g_battleAnims+0x1E0 into the entity's color fields
- * at offsets +0x0C through +0x0F (RGBX), then calls func_800281C4 to
+ * at offsets +0x0C through +0x0F (RGBX), then calls resetAnimEntity to
  * perform further entity initialization.
  *
  * @param a0 Entity index (stride 196 into g_battleAnims).
@@ -194,14 +231,14 @@ void initAnimEntityColor(s32 a0) {
     entry[0xD] = *(u8 *)(base + 0x1E0);
     entry[0xE] = *(u8 *)(base + 0x1E0);
     entry[0xF] = *(u8 *)(base + 0x1E0);
-    func_800281C4(a0, 0);
+    resetAnimEntity(a0, 0);
 }
 
 
 /**
  * @brief Initialize battle animation state and wait for completion.
  *
- * Sets D_80082FB2 to 1, initializes both animation slots via func_800281C4,
+ * Sets D_80082FB2 to 1, initializes both animation slots via resetAnimEntity,
  * triggers a fade via func_80039764(3), then polls func_80027360 up to 24
  * frames. Finishes with VSync(2).
  */
@@ -211,7 +248,7 @@ void initAnimStateAndWait(void) {
 
     D_80082FB2 = 1;
     for (i = 0; i < 2; i++) {
-        func_800281C4(i, 0);
+        resetAnimEntity(i, 0);
     }
     func_80039764(3);
     for (i = 0; i < 24; i++) {
@@ -227,14 +264,14 @@ void initAnimStateAndWait(void) {
 extern u16 D_80083794;
 // get D_80083794 (u16)
 
-/** @brief Initializes D_80082FB2 to 0, calls func_80039764(0), then loops twice calling func_800281C4(i, 0). */
+/** @brief Initializes D_80082FB2 to 0, calls func_80039764(0), then loops twice calling resetAnimEntity(i, 0). */
 void resetAnimState(void) {
     extern u8 D_80082FB2;
     s32 i;
     D_80082FB2 = 0;
     func_80039764(0);
     for (i = 0; i < 2; i++) {
-        func_800281C4(i, 0);
+        resetAnimEntity(i, 0);
     }
 }
 

@@ -44,6 +44,8 @@ typedef struct {
     BattleAnimEntity entities[2]; /**< 0x000-0x187: Two animation entities. */
     u8 pad188[0x48];             /**< 0x188-0x1CF: Unknown. */
     s16 globalCoords[2][2];      /**< 0x1D0: Per-slot coords [slot][axis], x=0 y=1. */
+    u8 pad1D8[8];                /**< 0x1D8-0x1DF: Unknown. */
+    u8 defaultColor;             /**< 0x1E0: Default color value for entity init. */
 } BattleAnimState;
 
 extern BattleAnimState g_battleAnims;
