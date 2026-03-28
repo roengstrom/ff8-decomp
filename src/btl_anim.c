@@ -75,11 +75,9 @@ s16 getAnimGlobalCoord(s32 idx, s32 axis) {
  * @param y Y coordinate.
  */
 void setAnimGlobalCoords(s32 idx, s16 x, s16 y) {
-    s32 base;
     idx &= 1;
-    base = (s32)&g_battleAnims;
-    *(u16 *)(base + idx * 4 + 0x1D0) = x;
-    *(u16 *)(base + idx * 4 + 0x1D2) = y;
+    g_battleAnims.globalCoords[idx][0] = x;
+    g_battleAnims.globalCoords[idx][1] = y;
 }
 
 
