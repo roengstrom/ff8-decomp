@@ -665,7 +665,57 @@ void markCardBusy(s32 a0) { setCardStatus(a0, 1); }
 void readCardStatusDiscard(void) { getCardStatus(); }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028B98);
+/**
+ * @brief Query memory card info and return status code.
+ *
+ * Issues _card_info and waits for the event result. Retries up to 180 times
+ * if the card doesn't respond. Updates the card status byte at D_80082FB4
+ * based on port/slot indices.
+ *
+ * @param cardId Packed card identifier.
+ * @return 0 if card has no status, 1 if card status present or new card,
+ *         3 on unknown event, 4 on timeout.
+ */
+s32 func_80028B98(s32 cardId) {
+    extern u8 D_80082FB4[];
+    s32 base = (s32)D_80082FB4;
+    s32 port;
+    unsigned int new_var2;
+    s32 slot;
+    s32 retries;
+    s32 new_var;
+    new_var2 = getCardPort(new_var);
+    ;
+    port = new_var2;
+    slot = getCardSlot(new_var);
+    port = ((port * 4) + base) + slot;
+    *(u8 *)(port + 0x24) = 2;
+    retries = 0;
+top:
+    waitCardReady(cardId);
+    if (_card_info(cardId) != 0) {
+        switch (waitCardEvent()) {
+        case 0:
+            return ((s32 (*)(s32))getCardStatus)(cardId) != 0;
+        case 1:
+            break;
+        case 3:
+            markCardBusy(cardId);
+            setCardStatusSecondary(cardId, 0);
+            return 1;
+        default:
+            markCardBusy(cardId);
+            return 3;
+        }
+    } else {
+        retries++;
+        if (retries < 0xB4) {
+            goto top;
+        }
+    }
+    markCardBusy(cardId);
+    return 4;
+}
 
 
 /**
@@ -816,7 +866,35 @@ s32 clearCardSync(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", checkAndClearCard);
+/**
+ * @brief Check a memory card and clear it if needed.
+ *
+ * Calls func_80028B98 to get card info. If the card is new (result 0),
+ * checks card status and clears if present. Returns the final card status.
+ *
+ * @param cardId Packed card identifier.
+ * @return Card status: 0 = cleared successfully, 1 = card present but clear failed,
+ *         other = error from func_80028B98.
+ */
+s32 checkAndClearCard(s32 cardId) {
+    s32 result;
+
+    result = func_80028B98(cardId);
+    if (result == 0) {
+        if (((s32 (*)(s32))getCardStatus)(cardId) != 0) {
+            result = 1;
+        }
+    }
+    setCardFlag((s8)result);
+    if (result == 1) {
+        setCardFlag(-1);
+        result = clearCardSync(cardId);
+        if (result != 0) {
+            markCardBusy(cardId);
+        }
+    }
+    return result;
+}
 
 
 /**
@@ -863,25 +941,74 @@ s32 pollCardReady(s32 a0) {
  * @brief Format a memory card.
  *
  * Polls card readiness first. If the card is ready (status 0 or 2),
- * performs a format operation. On format failure, marks the secondary
- * status. On success, polls readiness again.
+ * performs a format operation. On format success, sets secondary status.
+ * Always marks the card busy after the format attempt.
  *
- * @param a0 Packed card identifier.
- * @return 0 on success, 1 on poll failure after format, 0 if card not ready.
- */
-/**
- * @brief Format a memory card.
- *
- * Polls card readiness first. If the card is ready (status 0 or 2),
- * performs a format operation. On success, re-polls readiness.
- *
- * @param a0 Packed card identifier.
+ * @param cardId Packed card identifier.
  * @return 0 on success or if card not ready, 1 on poll failure after format.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_anim", formatCard);
+s32 formatCard(s32 cardId) {
+    s32 result;
+
+    result = pollCardReady(cardId);
+    if (result != 0 && result != 2) {
+        return 0;
+    }
+    setCardFlag(-2);
+    initCardEventHandlers();
+    waitCardReady(cardId);
+    busyWaitCardEvent();
+    VSync(4);
+    result = _card_format(cardId);
+    if (result == 0) {
+        setCardStatusSecondary(cardId, 1);
+    }
+    markCardBusy(cardId);
+    if (result != 0) {
+        if (pollCardReady(cardId) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", formatCardAlt);
+/**
+ * @brief Format a memory card (alternate version).
+ *
+ * Like formatCard, but returns 1 immediately if the card poll returns 0 (ready).
+ * Only proceeds with formatting if poll returns 2 (card needs formatting).
+ *
+ * @param cardId Packed card identifier.
+ * @return 1 if card is already ready, 0 on format success or poll failure.
+ */
+s32 formatCardAlt(s32 cardId) {
+    s32 result;
+
+    result = pollCardReady(cardId);
+    if (result == 0) {
+        return 1;
+    }
+    if (result != 2) {
+        return 0;
+    }
+    setCardFlag(-2);
+    initCardEventHandlers();
+    waitCardReady(cardId);
+    busyWaitCardEvent();
+    VSync(4);
+    result = _card_format(cardId);
+    if (result == 0) {
+        setCardStatusSecondary(cardId, 1);
+    }
+    markCardBusy(cardId);
+    if (result != 0) {
+        if (pollCardReady(cardId) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
 
 
 /**
@@ -1358,10 +1485,71 @@ s32 eraseCardFile(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", writeCardBlock);
+/**
+ * @brief Write a single 128-byte block to a memory card with retry.
+ *
+ * Retries _card_write in a loop. On success, waits for the card
+ * event and returns whether it completed (1) or failed (0).
+ *
+ * @param cardId Packed card identifier.
+ * @param buf Data buffer to write.
+ * @param sector Sector number to write to.
+ * @return 1 on success (event completed), 0 on failure or timeout.
+ */
+s32 writeCardBlock(s32 cardId, s32 buf, s32 sector) {
+    s32 retries = 0xB4;
+
+top:
+    waitCardReady(cardId);
+    if (_card_write(cardId, sector, buf) == 0) {
+        retries++;
+        if (retries > 0) goto top;
+        return 0;
+    }
+    return busyWaitCardEvent() == 0;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", writeCardBlocks);
+/**
+ * @brief Write multiple 128-byte blocks to a memory card.
+ *
+ * Initializes card event handlers, clamps the sector range to [0, 1024],
+ * then writes each block sequentially. Returns the number of blocks
+ * successfully written, stopping on first failure.
+ *
+ * @param cardId Packed card identifier.
+ * @param buf Data buffer (increments by 128 per block).
+ * @param startSector Starting sector number.
+ * @param endSector Ending sector count (added to startSector for range).
+ * @return Number of blocks successfully written.
+ */
+s32 writeCardBlocks(s32 cardId, s32 buf, s32 startSector, s32 endSector) {
+    s32 limit;
+    s32 clampedLimit;
+    s32 count;
+
+    initCardEventHandlers();
+    limit = endSector + startSector;
+    if (limit >= 0) {
+        clampedLimit = 0x400;
+        if (limit < 0x401) {
+            clampedLimit = limit;
+        }
+    } else {
+        clampedLimit = 0;
+    }
+    limit = clampedLimit;
+    count = 0;
+    while (endSector < limit) {
+        if (writeCardBlock(cardId, buf, endSector) == 0) {
+            return count;
+        }
+        count++;
+        endSector++;
+        buf += 0x80;
+    }
+    return count;
+}
 
 
 /**
@@ -1553,7 +1741,27 @@ void copyDisplayCoords(u8 *a0) {
  * @param pkt GPU packet allocation pointer.
  * @return Updated packet pointer (pkt + 24 bytes: two 12-byte packets).
  */
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A45C);
+s32 func_8002A45C(s32 ot, s32 pkt) {
+    RECT rect;
+    s32 mask;
+    unsigned int new_var;
+    s32 tag;
+    copyDisplayRect(&rect);
+    SetDrawArea(pkt, &rect);
+    mask = 0xFFFFFF;
+    new_var = pkt;
+    tag = (s32)0xFF000000;
+    *(s32 *)new_var = ((*(s32 *)new_var) & tag) | ((*(s32 *)ot) & mask);
+    {
+        s32 addr = new_var & mask;
+        pkt += 0xC;
+        *(s32 *)ot = ((*(s32 *)ot) & tag) | addr;
+    }
+    SetDrawOffset(pkt, &rect);
+    *(s32 *)pkt = ((*(s32 *)pkt) & tag) | ((*(s32 *)ot) & mask);
+    *(s32 *)ot = ((*(s32 *)ot) & tag) | (pkt & mask);
+    do { return pkt + 0xC; } while (0);
+}
 
 
 /**
@@ -1677,6 +1885,26 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
 
 
+/**
+ * @brief Initialize the battle display system.
+ *
+ * Sets up display list buffers at g_battleAnims+0x694, computes half-size
+ * offsets, then initializes all battle subsystems (entities, SFX, GPU colors,
+ * camera, transitions, etc.).
+ *
+ * @param bufAddr Display buffer base address.
+ * @param bufSize Display buffer size (halved internally).
+ */
+/**
+ * @brief Initialize the battle display system.
+ *
+ * Sets up display list buffers, computes half-size offsets for double
+ * buffering, then initializes all battle subsystems: entities, SFX,
+ * GPU colors, camera, command entries, transitions, and animation entries.
+ *
+ * @param bufAddr Display buffer base address.
+ * @param bufSize Display buffer total size (halved internally for double buffering).
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AB5C);
 
 

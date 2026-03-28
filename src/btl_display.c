@@ -151,7 +151,7 @@ void initBattleEntity(s32 idx) {
     rect[2] = 0x80;
     rect[3] = 0x80;
     setBattleEntityBoundRect(idx, rect);
-    func_8002AD3C(idx, rect);
+    setBattleEntityRectClamp(idx, rect);
     setBattleEntityType(idx, 6);
     setBattleEntityField04(idx, 0);
     setBattleEntityField00(idx, 0);

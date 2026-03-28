@@ -681,7 +681,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E79CC);
  * @brief Poll for card data availability, up to 8 attempts.
  *
  * Tries func_8004F200 up to 8 times. If it succeeds, extracts
- * data via func_8004E720 and stores status 2. Returns the
+ * data via sfxUpdate and stores status 2. Returns the
  * result from the stack local.
  *
  * @param a0 Save context pointer (byte at 0x3C used as port).
@@ -694,7 +694,7 @@ s32 func_801E7A84(u8 *a0, s32 a1) {
 
     do {
         if (func_8004F200(a0[0x3C] << 4, a1, 0x280, 0x80) != 0) {
-            func_8004E720(0, 0, &result);
+            sfxUpdate(0, 0, &result);
             break;
         }
         s0++;
@@ -851,9 +851,9 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA9AC);
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAD28);
 
-/** @brief Call func_80050BC4 with all arguments set to zero. */
+/** @brief Call sfxInit with all arguments set to zero. */
 void func_801EAE4C(void) {
-    func_80050BC4(0, 0, 0);
+    sfxInit(0, 0, 0);
 }
 
 /**
@@ -882,7 +882,7 @@ s32 func_801EB00C(s32 a0, s32 a1, s32 a2, s32 a3) {
     s32 result = 0;
     if (a0 != 0) {
         if (func_800502C8(a1, a2, a3) != 0) {
-            func_8004E720(0, 0, &result);
+            sfxUpdate(0, 0, &result);
         }
     }
     return result;
@@ -898,7 +898,7 @@ s32 func_801EB054(s32 a0, s32 a1) {
     s32 result = 0;
     if (a0 != 0) {
         if (func_800503F8(a1) != 0) {
-            func_8004E720(0, 0, &result);
+            sfxUpdate(0, 0, &result);
         }
     }
     return result;

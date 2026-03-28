@@ -1,6 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_8004DFF4);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", cdTick);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_8004E034);
 
@@ -20,7 +20,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_8004E4E8);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_8004E588);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_8004E720);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", sfxUpdate);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_8004E874);
 
@@ -113,7 +113,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050A60);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050A84);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050BC4);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", sfxInit);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80050C8C);
 

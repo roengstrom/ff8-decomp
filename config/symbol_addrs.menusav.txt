@@ -162,6 +162,9 @@ getCardRarity = 0x80036978;
 setPartyLeader = 0x80036E8C;
 getGfAvailabilityMask = 0x80036F60;
 copyGfHpToSave = 0x80036FA4;
+sfxInit = 0x80050BC4;
+sfxUpdate = 0x8004E720;
+cdTick = 0x8004DFF4;
 
 getInventoryPtr = 0x80023900;
 modifyItemQuantity = 0x8002390C;
