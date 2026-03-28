@@ -1061,7 +1061,17 @@ void btlMemcpyBackward(u8 *src, u8 *dst, s32 n) {
  * @param count Number of bytes to compare.
  * @return 1 if all bytes match (or count <= 0), 0 on first mismatch.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A36C);
+s32 compareBytes(u8 *a, u8 *b, s32 count) {
+    s32 result = 1;
+    while (count > 0) {
+        u8 bVal = *b++;
+        if (*a++ != bVal) {
+            return 0;
+        }
+        count--;
+    }
+    return result;
+}
 
 
 /** @brief Wrapper for getCharNamePtr. */
