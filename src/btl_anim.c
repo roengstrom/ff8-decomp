@@ -2,7 +2,6 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-extern BattleAnimEntity g_battleAnims[];
 
 void callCdTick(void);
 void shutdownCardSubsystem(void);
@@ -14,7 +13,7 @@ void initBattleSubsystems(void);
  * @param val If nonzero, set to 0xFF (visible); otherwise 0 (hidden).
  */
 void setAnimEntityOpacity(s32 idx, s32 val) {
-    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
+    BattleAnimEntity *entry = &g_battleAnims.entities[idx & 1];
     if (val != 0) {
         entry->opacity = 0xFF;
     } else {
@@ -35,7 +34,7 @@ void setAnimEntityOpacity(s32 idx, s32 val) {
  * @param a2 Value for field 6 (-1 to skip).
  */
 void setAnimEntityParams(s32 idx, s32 a1, s32 a2) {
-    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
+    BattleAnimEntity *entry = &g_battleAnims.entities[idx & 1];
     if (a1 >= 0) {
         entry->field07 = a1;
     }
@@ -46,22 +45,41 @@ void setAnimEntityParams(s32 idx, s32 a1, s32 a2) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027F78);
+/**
+ * @brief Get a global coordinate (X or Y) for a battle anim slot.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param axis 0 = X, 1 = Y (clamped to [0,1]).
+ * @return The coordinate value as s16.
+ */
+s16 getAnimGlobalCoord(s32 idx, s32 axis) {
+    s32 slot = idx & 1;
+
+    do { slot++; slot--; } while (0); /* Regalloc: boost slot priority for s-reg order */
+
+    if (axis >= 0) {
+        idx = 1;
+        if (axis < 2) {
+            idx = axis;
+        }
+    } else {
+        idx = 0;
+    }
+    return g_battleAnims.globalCoords[slot][idx];
+}
 
 
 /**
- * @brief Store two u16 values into global state area beyond g_battleAnims entries.
+ * @brief Set global coordinates (X and Y) for a battle anim slot.
  * @param idx Entity index (masked to 0 or 1).
- * @param a1 Value stored at offset 0x1D0.
- * @param a2 Value stored at offset 0x1D2.
- * @note Offsets 0x1D0+ are global state beyond the 2 BattleAnimEntity entries.
+ * @param x X coordinate.
+ * @param y Y coordinate.
  */
-void setAnimGlobalCoords(s32 idx, s16 a1, s16 a2) {
+void setAnimGlobalCoords(s32 idx, s16 x, s16 y) {
     s32 base;
     idx &= 1;
-    base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
-    *(u16 *)(base + idx * 4 + 0x1D0) = a1; /* global coord X for slot idx */
-    *(u16 *)(base + idx * 4 + 0x1D2) = a2; /* global coord Y for slot idx */
+    base = (s32)&g_battleAnims;
+    *(u16 *)(base + idx * 4 + 0x1D0) = x;
+    *(u16 *)(base + idx * 4 + 0x1D2) = y;
 }
 
 
@@ -83,7 +101,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800280C0);
 /**
  * @brief Set an s16 value in the unk10 array of both battle animation entities.
  *
- * Writes @p value to g_battleAnims[0].unk10[index] and g_battleAnims[1].unk10[index].
+ * Writes @p value to both entities' unk10[index].
  *
  * @param unused Unused parameter.
  * @param index Index into the unk10 array (0-3).
@@ -92,8 +110,8 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800280C0);
 void setAnimUnk10Both(s32 unused, s32 index, s16 value) {
     int new_var;
     new_var = 1;
-    g_battleAnims[0].unk10[index] = value;
-    g_battleAnims[new_var].unk10[index] = value;
+    g_battleAnims.entities[0].unk10[index] = value;
+    g_battleAnims.entities[new_var].unk10[index] = value;
 }
 
 
@@ -111,7 +129,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_800281C4);
  */
 void initAnimEntityColor(s32 a0) {
     s32 off = a0 * 196;
-    s32 base = (s32)g_battleAnims;
+    s32 base = (s32)&g_battleAnims;
     u8 *entry = (u8 *)(off + base);
     entry[0xC] = *(u8 *)(base + 0x1E0); /* global default color */
     entry[0xD] = *(u8 *)(base + 0x1E0);
@@ -196,7 +214,7 @@ void setAnimFlag(s32 a0) {
  *       Passes two g_battleAnims buffer pointers (offsets 0x188 and 0x1AC) to func_8003BC24.
  */
 void initCdAnimSubsystem(void) {
-    u8 *base = (u8 *)g_battleAnims;
+    u8 *base = (u8 *)&g_battleAnims;
     func_800982B8();
     func_8003BC24(base + 0x188, base + 0x1AC); /* CD audio buffers A and B */
     cdInitHandlerWrapper();
@@ -993,7 +1011,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A45C);
  * from offset +0x54 to offset +0x00.
  */
 void swapDisplayList(void) {
-    s32 base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
+    s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
     s32 cur = *(s32 *)(base + 0x6F0); /* active DisplayListBuf pointer */
     s32 newBuf = base + 0x640; /* DisplayListBuf A */
     s32 v1;
@@ -1013,7 +1031,7 @@ void swapDisplayList(void) {
  * clears OT, copies GPU packet pointer.
  */
 void swapDisplayList2(void) {
-    s32 base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
+    s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
     s32 cur = *(s32 *)(base + 0x6F0); /* active DisplayListBuf pointer */
     s32 newBuf = base + 0x640; /* DisplayListBuf A */
     s32 v1;
@@ -1079,7 +1097,7 @@ s32 getDisplayListPacketPtr(void) {
  */
 void storeGpuPacket(s32 pkt) {
     extern u8 D_800101D0[];
-    s32 base = (s32)g_battleAnims; /* (s32) cast prevents symbol+constant folding */
+    s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
     s32 limit;
     *(s32 *)*(s32 *)(base + 0x6F0) = pkt; /* store pkt to active DisplayListBuf.pktAlloc */
     base = *(s32 *)(base + 0x6F0); /* reload active DisplayListBuf pointer */

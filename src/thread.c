@@ -106,14 +106,12 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027220);
 INCLUDE_ASM("asm/nonmatchings/thread", func_80027360);
 
 
-extern BattleAnimEntity g_battleAnims[];
-
 /**
  * @brief Mark a battle animation entity as active.
  * @param idx Index into g_battleAnims array.
  */
 void activateBattleAnim(s32 idx) {
-    BattleAnimEntity *entry = &g_battleAnims[idx];
+    BattleAnimEntity *entry = &g_battleAnims.entities[idx];
     entry->field19 = 1;
     entry->field0A = 1;
 }
@@ -142,7 +140,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027448);
  * @param a0 Pointer to a RECT (x, y, w, h as u16).
  */
 void setBattleAnimClipRect(u8 *a0) {
-    s32 dst = (s32)g_battleAnims;
+    s32 dst = (s32)&g_battleAnims;
     *(u16 *)(dst + 0x1D8) = *(u16 *)a0;                              /* RECT.x -> clip left */
     *(u16 *)(dst + 0x1DA) = *(u16 *)(a0 + 2);                       /* RECT.y -> clip top */
     *(u16 *)(dst + 0x1DC) = *(u16 *)a0 + *(u16 *)(a0 + 4) - 1;     /* x + w - 1 -> clip right */
@@ -155,7 +153,7 @@ void setBattleAnimClipRect(u8 *a0) {
  * @param idx Entity index.
  */
 s32 getBattleAnimField0B(s32 idx) {
-    BattleAnimEntity *entry = &g_battleAnims[idx];
+    BattleAnimEntity *entry = &g_battleAnims.entities[idx];
     return entry->field0B;
 }
 
@@ -177,7 +175,7 @@ u16 getAnimFrameParam(s32 idx, s32 offset) {
     BattleAnimEntity *linked;
     s32 sub_idx;
     idx &= 1;
-    base = g_battleAnims;
+    base = g_battleAnims.entities;
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -200,7 +198,7 @@ u16 getAnimFrameStatusFlags(s32 idx, s32 offset) {
     s32 off;
     u8 *p;
     idx &= 1;
-    base = g_battleAnims;
+    base = g_battleAnims.entities;
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -264,8 +262,8 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027B7C);
 s32 getBattleAnimLinkedValue(s32 a0) {
     s32 slot;
     a0 &= 1;
-    slot = g_battleAnims[a0].linkedIdx;
-    return (g_battleAnims[slot].fieldC3 & 0x7F) << 8;
+    slot = g_battleAnims.entities[a0].linkedIdx;
+    return (g_battleAnims.entities[slot].fieldC3 & 0x7F) << 8;
 }
 
 
@@ -287,7 +285,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_80027DB4);
  * @return Opacity value (0xFF = visible, 0 = hidden).
  */
 s32 getBattleAnimOpacity(s32 idx) {
-    BattleAnimEntity *entry = &g_battleAnims[idx & 1];
+    BattleAnimEntity *entry = &g_battleAnims.entities[idx & 1];
     return entry->opacity;
 }
 

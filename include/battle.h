@@ -42,6 +42,15 @@ typedef struct {
     u8 fieldC3;
 } BattleAnimEntity;
 
+/** @brief Complete battle animation state (entities + global coords). */
+typedef struct {
+    BattleAnimEntity entities[2]; /**< 0x000-0x187: Two animation entities. */
+    u8 pad188[0x48];             /**< 0x188-0x1CF: Unknown. */
+    s16 globalCoords[2][2];      /**< 0x1D0: Per-slot coords [slot][axis], x=0 y=1. */
+} BattleAnimState;
+
+extern BattleAnimState g_battleAnims;
+
 typedef struct {
     s32 field00;
     s32 field04;
