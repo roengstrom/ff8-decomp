@@ -382,7 +382,43 @@ void convertClutPalette(u16 *clut) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028564);
+/**
+ * @brief Load texture and CLUT data into VRAM, preserving a region.
+ * @param data Texture descriptor with embedded RECT, pixel data, and CLUT.
+ */
+void func_80028564(u8 *data) {
+    RECT rect;
+    u8 storeBuf[0x100];
+
+    u8 *base = data + 8;
+    u8 *pixelBase = base + *(s32 *)base;
+    rect = *(RECT *)(pixelBase + 4);
+    rect.x = 0x380;
+    rect.y = 0x100;
+    LoadImage(&rect, pixelBase + 0xC);
+    DrawSync(0);
+
+    rect.x = 0x110;
+    rect.y = 0xE8;
+    rect.w = 0x10;
+    rect.h = 0x8;
+    StoreImage(&rect, storeBuf);
+    DrawSync(0);
+
+    rect = *(RECT *)(data + 0xC);
+    rect.x = 0x100;
+    rect.y = 0xE0;
+    convertClutPalette((u16 *)(data + 0x14));
+    LoadImage(&rect, data + 0x14);
+    DrawSync(0);
+
+    rect.x = 0x110;
+    rect.y = 0xE8;
+    rect.w = 0x10;
+    rect.h = 0x8;
+    LoadImage(&rect, storeBuf);
+    DrawSync(0);
+}
 
 
 /** @brief Wrapper that calls func_80050BC4. */
