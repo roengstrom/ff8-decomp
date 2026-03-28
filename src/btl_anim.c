@@ -115,11 +115,11 @@ s32 getAnimFrameSlotParam(s32 idx, s32 param, s32 frameOffset) {
 
 
 /**
- * @brief Checks if all battle animation entities are inactive.
- * @return 1 if all inactive (getAnimFrameType(0, 0) returns -1), 0 otherwise.
+ * @brief Check if battle animation entity 0 has an active frame.
+ * @return 1 if active (frame type >= 0), 0 if inactive.
  */
 s32 areAllAnimsInactive(void) {
-    return (u32)~getAnimFrameType(0, 0) >> 31;
+    return getAnimFrameType(0, 0) >= 0;
 }
 
 
