@@ -81,7 +81,35 @@ void setAnimGlobalCoords(s32 idx, s16 x, s16 y) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80027FDC);
+/**
+ * @brief Read a parameter from an animation frame slot.
+ * @param idx Entity index (masked to 0 or 1).
+ * @param param Parameter index (clamped to [0,3]).
+ * @param frameOffset Frame counter offset to subtract.
+ * @return Parameter value (u8), or -1 if slot is inactive or wrong type.
+ */
+s32 getAnimFrameSlotParam(s32 idx, s32 param, s32 frameOffset) {
+    BattleAnimEntity *entity;
+    AnimFrame *frame;
+    s32 frameSlot;
+    s32 result;
+
+    idx &= 1;
+    entity = &g_battleAnims.entities[g_battleAnims.entities[idx].linkedIdx];
+    frameSlot = (entity->frameCounter - frameOffset) & 7;
+    result = -1;
+    frame = &entity->frames[frameSlot];
+
+    if (frame->field00 == 0) {
+        param = CLAMP(param, 0, 3);
+        if ((frame->field01 >> 4) == 1) {
+            SCHED_BARRIER();
+            result = frame->params[param];
+        }
+    }
+
+    return result;
+}
 
 
 /**

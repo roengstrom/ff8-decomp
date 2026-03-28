@@ -22,4 +22,11 @@ typedef int s32;
 #define REGALLOC_BARRIER(x)
 #endif
 
+/* Scheduling barrier — prevents CC1PSX from reordering instructions across it.
+   Compiles to nothing; safe to remove if byte-matching is not needed. */
+#define SCHED_BARRIER() asm("")
+
+/* Clamp value to [lo, hi] range. */
+#define CLAMP(val, lo, hi) ((val) < (lo) ? (lo) : (val) > (hi) ? (hi) : (val))
+
 #endif /* COMMON_H */
