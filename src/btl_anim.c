@@ -223,15 +223,13 @@ void resetAnimEntity(s32 idx, s32 frameId) {
  *
  * @param a0 Entity index (stride 196 into g_battleAnims).
  */
-void initAnimEntityColor(s32 a0) {
-    s32 off = a0 * 196;
-    s32 base = (s32)&g_battleAnims;
-    u8 *entry = (u8 *)(off + base);
-    entry[0xC] = *(u8 *)(base + 0x1E0); /* global default color */
-    entry[0xD] = *(u8 *)(base + 0x1E0);
-    entry[0xE] = *(u8 *)(base + 0x1E0);
-    entry[0xF] = *(u8 *)(base + 0x1E0);
-    resetAnimEntity(a0, 0);
+void initAnimEntityColor(s32 idx) {
+    BattleAnimEntity *entity = &g_battleAnims.entities[idx];
+    entity->field0C = g_battleAnims.defaultColor;
+    entity->field0D = g_battleAnims.defaultColor;
+    entity->field0E = g_battleAnims.defaultColor;
+    entity->field0F = g_battleAnims.defaultColor;
+    resetAnimEntity(idx, 0);
 }
 
 
