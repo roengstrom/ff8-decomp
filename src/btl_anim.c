@@ -377,7 +377,7 @@ void convertClutPalette(u16 *clut) {
 
         g &= 0xFF;
         b &= 0xFF;
-        (&g_battleAnims)->palette[i] = (r | (g << 8) | (b << 16)) | 0x40000000;
+        g_battleAnims.palette[i] = (r | (g << 8) | (b << 16)) | 0x40000000;
     }
 }
 
