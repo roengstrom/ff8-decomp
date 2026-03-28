@@ -1316,3 +1316,5 @@ resetAnimEntity = 0x800281C4;
 g_animInitialized = 0x80082FB2;
 initBattleDisplay = 0x80028444;
 compareBytes = 0x8002A36C;
+g_paletteIndices = 0x80052954;
+convertClutPalette = 0x800284BC;

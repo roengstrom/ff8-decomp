@@ -22,7 +22,7 @@ extern u8 D_80052958;
 extern u8 D_800101D0[];
 extern u8 *D_8005F134;
 extern BattleDisplayEntity g_battleEntities[];
-extern u8 D_80052954[];
+extern u8 g_paletteIndices[];
 
 /**
  * @brief Set or clear opacity of a battle animation entity.
@@ -356,14 +356,14 @@ void shutdownAnimSubsystem(void) {
  * @brief Convert 3 RGB555 CLUT entries to RGB888 palette colors.
  * @param clut Pointer to RGB555 color lookup table.
  *
- * Reads entries at indices D_80052954[0..2] (3, 5, 6), converts from
+ * Reads entries at indices g_paletteIndices[0..2] (3, 5, 6), converts from
  * RGB555 to RGB888 with bit extension, and stores as 0x40BBGGRR.
  */
-void func_800284BC(u16 *clut) {
+void convertClutPalette(u16 *clut) {
     s32 i;
 
     for (i = 0; i < 3; i++) {
-        u16 color = clut[D_80052954[i]];
+        u16 color = clut[g_paletteIndices[i]];
         s32 r = color & 0x1F;
         s32 g = color >> 2;
         s32 b = color >> 7;
