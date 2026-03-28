@@ -1318,3 +1318,4 @@ initBattleDisplay = 0x80028444;
 compareBytes = 0x8002A36C;
 g_paletteIndices = 0x80052954;
 convertClutPalette = 0x800284BC;
+loadBattleTimImage = 0x80028564;

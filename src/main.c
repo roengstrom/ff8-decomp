@@ -426,7 +426,7 @@ void initFieldModule(void) {
  *  1. Loads overlay via loadCdOverlay.
  *  2. Initializes a 0x6000-byte buffer at D_8006A468 via func_8002AB5C.
  *  3. Loads and uploads textures to VRAM via loadAndUploadTextures.
- *  4. Loads battle entity/model data and processes it via func_80028564.
+ *  4. Loads battle entity/model data and processes it via loadBattleTimImage.
  *  5. Loads a lookup table and copies 0x200 bytes via func_80039678.
  *  6. Loads additional data and stores its pointer via setBattleEntityBase.
  */
@@ -443,7 +443,7 @@ void initBattleAssets(void) {
     while (func_800393C8() != 0)
         ;
 
-    func_80028564(0x801B0000);
+    loadBattleTimImage(0x801B0000);
 
     cdRead(D_80097808[3].sector, D_80097808[3].size, 0x80090000, 0);
     while (func_800393C8() != 0)

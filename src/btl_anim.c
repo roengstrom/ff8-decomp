@@ -386,7 +386,7 @@ void convertClutPalette(u16 *clut) {
  * @brief Load a TIM image (CLUT + pixels) into VRAM, preserving a region.
  * @param data TIM image with CLUT and pixel sections.
  */
-void func_80028564(Tim *data) {
+void loadBattleTimImage(Tim *data) {
     RECT rect;
     u8 storeBuf[0x100];
 
