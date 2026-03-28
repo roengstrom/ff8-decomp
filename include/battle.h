@@ -61,13 +61,19 @@ typedef struct {
 
 extern BattleAnimState g_battleAnims;
 
-/** @brief Texture descriptor for VRAM loading (variable-length CLUT at end). */
+/** @brief TIM image section (CLUT or pixel data). */
 typedef struct {
-    u8 header[8];       /**< 0x00: Header data. */
-    s32 pixelOffset;    /**< 0x08: Offset from this field to pixel data. */
-    RECT clutRect;      /**< 0x0C: CLUT destination rectangle in VRAM. */
-    u16 clut[0];        /**< 0x14: CLUT palette data (variable length). */
-} TextureDesc;
+    s32 len;            /**< 0x00: Section length in bytes (including this header). */
+    RECT rect;          /**< 0x04: Destination rectangle in VRAM. */
+    u16 data[0];        /**< 0x0C: Section data (variable length). */
+} TimSection;
+
+/** @brief TIM image file header (PS1 standard texture format). */
+typedef struct {
+    u32 id;             /**< 0x00: Magic ID (0x10). */
+    u32 flags;          /**< 0x04: Format flags. */
+    TimSection clut;    /**< 0x08: CLUT section (followed by pixel section). */
+} Tim;
 
 typedef struct {
     s32 field00;
