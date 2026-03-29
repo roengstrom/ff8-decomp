@@ -1200,10 +1200,7 @@ s32 openCardFirstFile(s32 cardId, char *filename, s32 dirEntry)
  * @param dirEntry Directory entry buffer.
  * @return Result of openCardFirstFile (nonzero on success, 0 on failure).
  */
-s32 openFirstFileRetry(cardId, filename, dirEntry)
-s32 cardId;
-s32 filename;
-s32 dirEntry;
+s32 openFirstFileRetry(s32 cardId, char *filename, s32 dirEntry)
 {
     s32 retries = 4;
     s32 result;
@@ -1219,7 +1216,10 @@ s32 dirEntry;
 
 
 /** @brief Advance to the next file in the memory card directory listing (PsyQ nextfile wrapper). */
-void cardNextFile(void) { nextfile(); }
+s32 cardNextFile(s32 *dirEntry)
+{
+    return nextfile(dirEntry);
+}
 
 
 /**
@@ -1231,36 +1231,30 @@ void cardNextFile(void) { nextfile(); }
  * @param cardId Packed card identifier.
  * @return Total size in bytes (8KB-aligned), or 0 if directory open failed.
  */
-s32 sumCardFileSizes(s32 cardId) {
+s32 sumCardFileSizes(s32 cardId)
+{
     s32 dirEntry[10];
     s32 total = 0;
 
-    if (openFirstFileRetry(cardId, (s32)D_800101CC, (s32)dirEntry) != 0) {
-        top:
-        {
-            s32 fileSize = dirEntry[6];
-            s32 rounded = (fileSize + 0x1FFF) / 0x2000;
-            total += rounded * 0x2000;
-        }
-        if (((s32 (*)(s32))cardNextFile)((s32)dirEntry) != 0) goto top;
+    if (openFirstFileRetry(cardId, D_800101CC, dirEntry) != 0) {
+        do {
+            total += ((dirEntry[6] + 0x1FFF) / 0x2000) * 0x2000;
+        } while (cardNextFile(dirEntry) != 0);
     }
     return total;
 }
 
 
 /**
- * @brief Check if openFirstFileRetry succeeds with a local buffer.
+ * @brief Check whether a file exists on the memory card.
  *
- * Calls openFirstFileRetry with a0, a1, and a stack-allocated buffer.
- * Returns 1 if the result is nonzero, 0 otherwise.
- *
- * @param a0 First parameter passed through.
- * @param a1 Second parameter passed through.
- * @return Boolean: 1 if openFirstFileRetry returned nonzero.
+ * @param cardId Packed card identifier.
+ * @param filename File name to search for.
+ * @return 1 if the file exists, 0 otherwise.
  */
-s32 checkCardFileExists(s32 a0, s32 a1) {
+s32 checkCardFileExists(s32 cardId, s32 filename) {
     s32 buf[10];
-    return openFirstFileRetry(a0, a1, buf) != 0;
+    return openFirstFileRetry(cardId, filename, buf) != 0;
 }
 
 
