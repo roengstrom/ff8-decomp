@@ -576,8 +576,10 @@ s32 waitCardEvent(void) {
 }
 
 
-/** @brief Poll memory card events once (discards result). */
-void pollCardEventsDiscard(void) { pollCardEvents(); }
+/** @brief Poll memory card events once, returning the result.
+ * @return Event index 0-3 if fired, or -1 if none.
+ */
+s32 pollCardEventsDiscard(void) { return pollCardEvents(); }
 
 
 /**
@@ -771,7 +773,88 @@ void initCardDataBlock(void)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80028D80);
+/**
+ * @brief Poll memory card events and advance the card state machine.
+ *
+ * State 0 (idle): Issues _card_info to start a card operation, transitions
+ * to state 1, sets the poll timer to 180 frames.
+ *
+ * State 1 (polling): Calls pollCardEventsDiscard and dispatches on the result:
+ *   event 0: Card ready — clears state, resets cmd byte, returns getCardStatus != 0.
+ *   event 1: Match — clears state, marks busy, returns 4.
+ *   event 3: New card — clears state, resets cmd byte, marks busy, returns 1.
+ *   event -1: Timeout tick — decrements timer and cmd byte. If timer expires,
+ *             resets and returns 3.
+ *   other: Decrements cmd byte. If it reaches 0, resets to 1 and returns 3.
+ *          Otherwise marks busy and returns 4.
+ *
+ * Any other state: marks busy and returns -1.
+ *
+ * @param cardId Packed card identifier.
+ * @return Status code, or -1 if idle/error.
+ */
+s32 pollCardStatus(s32 cardId) {
+    CardDataBlock *card = &D_80082FB4;
+    s32 port;
+    s32 state;
+    s32 event;
+    u8 *cmdByte;
+
+    port = getCardPort(cardId);
+    cmdByte = &card->cmdBytes[port][getCardSlot(cardId)];
+    state = card->statusByte;
+
+    switch (state) {
+    case 0:
+        if (_card_info(cardId) != 0) {
+            card->statusByte = 1;
+            card->pad22[0] = 180;
+        }
+        break;
+    case 1:
+        event = pollCardEventsDiscard();
+        switch (event) {
+        case 0:
+            card->statusByte = 0;
+            *cmdByte = 2;
+            return getCardStatus(cardId) != 0;
+        case 3:
+            card->statusByte = 0;
+            *cmdByte = 2;
+            markCardBusy(cardId);
+            setCardStatusSecondary(cardId, 0);
+            return 1;
+        case 1:
+            card->statusByte = 0;
+            markCardBusy(cardId);
+            return 4;
+        case -1:
+            card->pad22[0]--;
+            (*cmdByte)--;
+            if (card->pad22[0] != 0) {
+                return -1;
+            }
+            card->pad22[0] = state;
+            card->statusByte = 0;
+            markCardBusy(cardId);
+            return 3;
+        default:
+            card->statusByte = 0;
+            (*cmdByte)--;
+            if ((s8)*cmdByte <= 0) {
+                *cmdByte = 1;
+                markCardBusy(cardId);
+                return 3;
+            }
+            markCardBusy(cardId);
+            return 4;
+        }
+    default:
+        markCardBusy(cardId);
+        break;
+    }
+    return -1;
+}
 
 
 /**
