@@ -279,5 +279,15 @@ $(foreach ovl,$(CODE_OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl),bin)))
 # Internal: build all overlay binaries
 build-overlays: $(foreach ovl,$(OVERLAYS),build-$(ovl))
 
+### Progress report (objdiff) ###
+OBJDIFF := tools/objdiff/objdiff
+
+objdiff-config:
+	@python3 tools/objdiff/objdiff_generate.py
+
+report: objdiff-config
+	@$(OBJDIFF) report generate -p . -o $(BUILD_DIR)/progress.json
+
 .PHONY: all build verify setup setup-toolchain split clean permute build-overlays \
+        objdiff-config report \
         $(foreach ovl,$(OVERLAYS),split-$(ovl) build-$(ovl) verify-$(ovl))
