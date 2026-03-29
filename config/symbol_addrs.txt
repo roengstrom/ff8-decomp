@@ -1347,3 +1347,7 @@ disableSoundReverb = 0x80030E60; // type:func
 initAnimEntry = 0x80031E1C; // type:func
 isAnyBattleCmdActive = 0x800307F8; // type:func
 updateCameraVibrate = 0x80030288; // type:func
+renderBattleFrame = 0x80032204; // type:func
+remapPartyBitmask = 0x80030F10; // type:func
+renderAnimOverlay = 0x80031CDC; // type:func
+stepAnimEntries = 0x80031954; // type:func
