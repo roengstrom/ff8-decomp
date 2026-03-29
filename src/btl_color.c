@@ -139,7 +139,7 @@ void setCameraShakeParams(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030288);
+INCLUDE_ASM("asm/nonmatchings/btl_color", updateCameraVibrate);
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800302DC);
@@ -186,7 +186,16 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030754);
  *
  * @return 1 if any entry is active, 0 otherwise.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_800307F8);
+/**
+ * @brief Check if any battle command entry is active.
+ *
+ * Iterates over 4 entries (stride 0x24) from getBattleCmdTable(). Returns 1
+ * immediately if any entry has a non-zero signed byte at offset 0x22 (active
+ * flag), or 0 if all are zero.
+ *
+ * @return 1 if any entry is active, 0 otherwise.
+ */
+INCLUDE_ASM("asm/nonmatchings/btl_color", isAnyBattleCmdActive);
 
 
 /**
@@ -217,7 +226,37 @@ s32 checkBattleCmdSource(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_800308B0);
+/**
+ * @brief Deactivate a battle command entry or clear all entries.
+ *
+ * If a0 is -1, clears all 4 entries' active byte and calls setAnimEntityParams
+ * with all zeros. Otherwise, validates the command via checkBattleCmdSource
+ * and clears just that entry's active byte.
+ *
+ * @param a0 Packed command identifier, or -1 to clear all.
+ */
+void deactivateBattleCmd(s32 a0) {
+    u8 *base = getBattleCmdTable();
+    s32 i;
+
+    if (a0 == -1) {
+        i = 3;
+    top:
+        *(u8 *)(base + 0x22) = 0;
+        i--;
+        base += 0x24;
+        if (i >= 0) {
+            goto top;
+        }
+        setAnimEntityParams(0, 0, 0);
+        return;
+    }
+    if (checkBattleCmdSource(a0)) {
+        s32 idx = a0 & 3;
+        base += (idx * 9) * 4;
+        *(u8 *)(base + 0x22) = 0;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003093C);
@@ -306,10 +345,74 @@ void playSoundEffect(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030DB0);
+/**
+ * @brief Configure sound reverb channels based on a bitmask.
+ *
+ * Reads hardware state via func_80047384, optionally pauses/resumes audio
+ * hardware. Mutes master volume, then enables reverb on channels indicated
+ * by bits 0-2 of a0. If a0 == 7, enables reverb on channel 0 (all).
+ *
+ * @param a0 Bitmask of reverb channels to enable (bits 0, 1, 2).
+ */
+void enableSoundReverb(s32 a0) {
+    s32 hwState = func_80047384();
+
+    if (!(hwState & 4)) {
+        func_800472E4();
+    }
+    sndSetMasterVolume(0);
+    if (a0 == 7) {
+        sndEnableReverb(0);
+    } else {
+        if (a0 & 1) {
+            sndEnableReverb(1);
+        }
+        if (a0 & 2) {
+            sndEnableReverb(2);
+        }
+        if (a0 & 4) {
+            sndEnableReverb(3);
+        }
+    }
+    if (!(hwState & 4)) {
+        func_800472F4();
+    }
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030E60);
+/**
+ * @brief Disable sound reverb channels based on a bitmask and restore volume.
+ *
+ * Reads hardware state via func_80047384, optionally pauses/resumes audio
+ * hardware. Disables reverb on channels indicated by bits 0-2 of a0,
+ * then restores master volume to 0x7F.
+ *
+ * @param a0 Bitmask of reverb channels to disable (bits 0, 1, 2).
+ */
+void disableSoundReverb(s32 a0) {
+    s32 hwState = func_80047384();
+
+    if (!(hwState & 4)) {
+        func_800472E4();
+    }
+    if (a0 == 7) {
+        sndDisableReverb(0);
+    } else {
+        if (a0 & 1) {
+            sndDisableReverb(1);
+        }
+        if (a0 & 2) {
+            sndDisableReverb(2);
+        }
+        if (a0 & 4) {
+            sndDisableReverb(3);
+        }
+    }
+    sndSetMasterVolume(0x7F);
+    if (!(hwState & 4)) {
+        func_800472F4();
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030F10);
@@ -524,7 +627,36 @@ void copyAnimEntryField(s32 a0, void *src) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031E1C);
+/**
+ * @brief Initialize an animation entry with full parameters.
+ *
+ * Sets up the D_80083772 entry at index a0 with source data, interpolation
+ * range, current/target values, and the active flag. Calls copyAnimEntryField
+ * for the first 4 bytes, then stores remaining fields and calls lerpRange
+ * to compute the initial interpolated value.
+ *
+ * @param a0 Entry index.
+ * @param a1 Flags byte (ORed with 0x80 for active).
+ * @param a2 Source data pointer (first 4 bytes copied).
+ * @param a3 Interpolation start value.
+ * @param arg4 Interpolation end value (on stack).
+ * @param arg5 Current position (on stack).
+ * @param arg6 Target max value (on stack).
+ */
+void initAnimEntry(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
+    extern u8 D_80083772[];
+    s32 base = (s32)D_80083772;
+    s32 flags = a1 | 0x80;
+
+    base = a0 * 16 + base;
+    copyAnimEntryField(a0, (void *)a2);
+    *(u8 *)(base + 0xE) = flags;
+    *(s16 *)(base + 4) = a3;
+    *(s16 *)(base + 6) = arg4;
+    *(s16 *)(base + 8) = arg5;
+    *(s16 *)(base + 0xA) = arg6;
+    *(s16 *)(base + 0xC) = lerpRange(a3, arg4, arg5, arg6);
+}
 
 
 extern u8 D_80083772[];
@@ -537,7 +669,7 @@ extern u8 D_80083772[];
  * and appends 0x60 as the 7th argument.
  */
 void setupAnimEntry(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
-    func_80031E1C(a0, a1, a2, a3, arg4, arg5, 0x60);
+    initAnimEntry(a0, a1, a2, a3, arg4, arg5, 0x60);
 }
 
 
@@ -548,7 +680,7 @@ void setupAnimEntry(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
  * through to func_80031E1C.
  */
 void setupAnimEntryFull(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
-    func_80031E1C(a0, a1, a2, a3, arg4, arg5, arg6);
+    initAnimEntry(a0, a1, a2, a3, arg4, arg5, arg6);
 }
 
 
