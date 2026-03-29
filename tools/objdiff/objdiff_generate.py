@@ -44,8 +44,10 @@ CATEGORIES = [
     {"id": "field_engine_alt", "name": "field_engine_alt.bin"},
 ]
 
-# Subdirs to skip (asm-only data, not real source)
+# Files/dirs to skip
 IGNORED = {"header.o", "asm"}
+# SDK libraries — third-party code, not tracked for progress
+SDK_DIRS = {"psxsdk"}
 
 
 def find_units():
@@ -64,9 +66,9 @@ def find_units():
                 "metadata": {"progress_categories": ["main"]},
             })
 
-        # PSX SDK subdirs
+        # Subdirs (skip SDK libraries)
         for subdir in sorted(MAIN_SRC_DIR.iterdir()):
-            if subdir.is_dir():
+            if subdir.is_dir() and subdir.name not in SDK_DIRS:
                 for o_file in sorted(subdir.glob("*.o")):
                     name = o_file.stem
                     rel = str(o_file.relative_to(MAIN_SRC_DIR))
