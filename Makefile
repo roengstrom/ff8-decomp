@@ -287,6 +287,7 @@ objdiff-config:
 
 report: objdiff-config
 	@$(OBJDIFF) report generate -p . -o $(BUILD_DIR)/progress.json
+	@python3 tools/objdiff/progress_html.py $(BUILD_DIR)/progress.json $(BUILD_DIR)/progress.html
 
 .PHONY: all build verify setup setup-toolchain split clean permute build-overlays \
         objdiff-config report \
