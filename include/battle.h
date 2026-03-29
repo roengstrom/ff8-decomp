@@ -232,6 +232,12 @@ typedef struct {
     u8 statusAlt[2][4];
 } CardDataBlock;
 
+/** Memory card constants. */
+#define CARD_BLOCK_SIZE      0x2000   /**< 8KB per block. */
+#define CARD_TOTAL_CAPACITY  0x1E000  /**< 120KB (15 blocks). */
+#define CARD_OPEN_CREATE     0x200    /**< Open flag: create file. */
+#define CARD_OPEN_READWRITE  1        /**< Open flag: read/write. */
+
 /** @brief Battle OT buffer state. */
 typedef struct {
     s32 pktAlloc;

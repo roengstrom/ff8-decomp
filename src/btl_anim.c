@@ -1270,19 +1270,7 @@ s32 checkCardFileExists(s32 cardId, s32 filename) {
  * @param size File size in bytes.
  * @return 1 on success, 2 if file exists, -1 on failure.
  */
-/**
- * @brief Create a new file on the memory card.
- *
- * Checks if the file already exists (returns 2 if so), verifies there is
- * enough free space on the card, creates the file with the appropriate
- * sector count, then re-opens it. Returns -1 on failure, 1 on success.
- *
- * @param cardId Packed card identifier.
- * @param filename Filename to create.
- * @param size File size in bytes.
- * @return 1 on success, 2 if file exists, -1 on failure.
- */
-s32 createCardFile(s32 cardId, s32 filename, s32 size) {
+s32 createCardFile(s32 cardId, char *filename, s32 size) {
     s32 neg1;
     s32 fd;
     s32 free;
@@ -1291,21 +1279,21 @@ s32 createCardFile(s32 cardId, s32 filename, s32 size) {
     if (checkCardFileExists(cardId, filename) != 0) {
         return 2;
     }
-    size = ((size + 0x1FFF) / 0x2000) * 0x2000;
+    size = ((size + CARD_BLOCK_SIZE - 1) / CARD_BLOCK_SIZE) * CARD_BLOCK_SIZE;
     free = sumCardFileSizes(cardId);
-    free = 0x1E000 - free;
+    free = CARD_TOTAL_CAPACITY - free;
     if (free < size) {
         return -1;
     }
-    size /= 0x2000;
-    fd = openCardFile(cardId, filename, (size << 16) | 0x200);
+    size /= CARD_BLOCK_SIZE;
+    fd = openCardFile(cardId, filename, (size << 16) | CARD_OPEN_CREATE);
     neg1 = -1;
     if (fd == neg1) {
         markCardBusy(cardId);
         return -1;
     }
     closeFileDescriptor(fd);
-    fd = openCardFile(cardId, filename, 1);
+    fd = openCardFile(cardId, filename, CARD_OPEN_READWRITE);
     if (fd == neg1) {
         markCardBusy(cardId);
         return -1;
