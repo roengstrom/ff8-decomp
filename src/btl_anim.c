@@ -619,7 +619,7 @@ s32 busyWaitCardEvent(void) {
  * @param cardId Packed card identifier (port in bit 4, slot in lower bits).
  * @return Status byte from CardDataBlock.status[port][slot].
  */
-volatile unsigned int getCardStatus(s32 cardId) {
+s32 getCardStatus(s32 cardId) {
     CardDataBlock *blk = &D_80082FB4;
     s32 port = getCardPort(cardId);
     s32 slot = getCardSlot(cardId);
@@ -663,8 +663,8 @@ void markCardBusy(s32 a0) {
  * @param cardId Packed card identifier.
  * @return Status byte.
  */
-void readCardStatusDiscard(s32 cardId) {
-    getCardStatus(cardId); // Return value appears unused
+s32 readCardStatusDiscard(s32 cardId) {
+    return getCardStatus(cardId); // Return value appears unused
 }
 
 
@@ -1088,10 +1088,7 @@ s32 formatCardAlt(s32 cardId) {
  * @param filename Null-terminated filename to append.
  * @param outBuf Destination buffer for the constructed path string.
  */
-void buildCardPath(cardId, filename, outBuf)
-s32 cardId;
-s32 filename;
-s32 outBuf;
+void buildCardPath(s32 cardId, char *filename, char *outBuf)
 {
     u8 templateBuf[8];
     s32 port;
@@ -1100,9 +1097,9 @@ s32 outBuf;
     btlStrcpy(templateBuf, D_800101C4);
     port = getCardPort(cardId);
     slot = getCardSlot(cardId);
-    port += 0x30;
+    port += '0';
     templateBuf[2] = port;
-    templateBuf[3] = slot + 0x30;
+    templateBuf[3] = slot + '0';
     btlStrcpy(outBuf, templateBuf);
     btlStrcat(outBuf, filename);
 }
@@ -1126,27 +1123,27 @@ s32 getCardFlagValue(void) {
  * @param flags File open flags.
  * @return File descriptor on success, -1 on failure.
  */
-s32 openCardFile(cardId, filename, flags)
-s32 cardId;
-s32 filename;
-s32 flags;
+s32 openCardFile(s32 cardId, char *filename, s32 openMode)
 {
-    u8 pathBuf[0x20];
+    char pathBuf[32];
 
     initCardEventHandlers();
-    buildCardPath(cardId, filename, (s32)pathBuf);
-    if (((s32 (*)(s32))readCardStatusDiscard)(cardId) != 0) {
+    buildCardPath(cardId, filename, pathBuf);
+
+    if (readCardStatusDiscard(cardId) != 0) {
         if (pollCardReady(cardId) != 0) {
             return -1;
         }
     }
-    return open((s32)pathBuf, flags);
+
+    return open(pathBuf, openMode);
 }
 
 
 /** @brief Wrapper that calls openCardFile. */
-void callCardInit(void) {
-    openCardFile();
+s32 callCardInit(s32 cardId, char *filename, s32 openMode)
+{
+    return openCardFile(cardId, filename, openMode);
 }
 
 
@@ -1168,20 +1165,27 @@ void closeFileDescriptorWrapper(s32 a0) {
 
 
 /**
- * @brief Open the first file on a memory card matching the given parameters.
- * @param a0 Packed card identifier.
- * @param a1 File index or name parameter.
- * @param a2 Directory entry buffer for firstfile result.
- * @return 0 if card initialization failed, otherwise the result of firstfile.
- * @note Calls initCardEventHandlers for setup, checks card status via pollCardReady, builds
- *       the filename via buildCardPath, then calls PsyQ firstfile.
+ * @brief Open the first file on a memory card matching a filename pattern.
+ *
+ * Initializes card event handlers, polls until the card is ready, builds
+ * the full card path ("buXY:filename"), and calls PsyQ firstfile to begin
+ * directory enumeration.
+ *
+ * @param cardId Packed card identifier.
+ * @param filename File name pattern to search for.
+ * @param dirEntry Directory entry buffer for firstfile result.
+ * @return 0 if card not ready, otherwise the result of firstfile.
  */
-s32 openCardFirstFile(s32 a0, s32 a1, s32 a2) {
-    s32 buf[8];
+s32 openCardFirstFile(s32 cardId, char *filename, s32 dirEntry)
+{
+    char pathBuf[32];
+
     initCardEventHandlers();
-    if (pollCardReady(a0) != 0) return 0;
-    buildCardPath(a0, a1, (s32)buf);
-    firstfile((s32)buf, a2);
+    if (pollCardReady(cardId) != 0) {
+        return 0;
+    }
+    buildCardPath(cardId, filename, pathBuf);
+    return firstfile(pathBuf, dirEntry);
 }
 
 
