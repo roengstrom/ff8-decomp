@@ -652,7 +652,9 @@ void setCardStatusSecondary(s32 cardId, u8 val) {
 
 
 /** @brief Mark a memory card slot as busy/active (set status byte to 1). */
-void markCardBusy(s32 a0) { setCardStatus(a0, 1); }
+void markCardBusy(s32 a0) {
+    setCardStatus(a0, 1);
+}
 
 
 /** @brief Read memory card status for a given card slot.
@@ -754,31 +756,17 @@ void initCardEventHandlers(void) {
  * (2 groups of 4) starting at D_80082FB4+0x24 with value 2, then
  * calls initCardEventHandlers to complete initialization.
  */
-void initCardDataBlock(void) {
+void initCardDataBlock(void)
+{
+    CardDataBlock *card = &D_80082FB4;
+    s32 i, j;
 
-    register u8 *base asm("$2") = (u8 *)&D_80082FB4;
-    s32 i;
-    s32 val;
-    u8 *ptr;
-    s32 j;
-    u8 *p;
-
-    REGALLOC_BARRIER(base);
-    i = 0;
-    val = 2;
-    base[0x21] = 0;
-    ptr = base;
-    top:
-    j = 3;
-    p = ptr + 0x27;
-    inner:
-    *p = val;
-    j--;
-    p--;
-    if (j >= 0) goto inner;
-    i++;
-    ptr += 4;
-    if (i < 2) goto top;
+    card->statusByte = 0;
+    for (i = 0; i < 2; i++) {
+        for (j = 0; j < 4; j++) {
+            card->cmdBytes[i][j] = 2;
+        }
+    }
     initCardEventHandlers();
 }
 
