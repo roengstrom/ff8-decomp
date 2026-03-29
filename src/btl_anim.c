@@ -1305,31 +1305,31 @@ s32 createCardFile(s32 cardId, char *filename, s32 size) {
 
 /**
  * @brief Seek to an offset in a file and write data.
- * @param a0 File descriptor.
- * @param a1 Pointer to data buffer to write.
- * @param a2 Number of bytes to write.
- * @param a3 File offset to seek to before writing.
+ * @param fd File descriptor.
+ * @param buf Pointer to data buffer to write.
+ * @param len Number of bytes to write.
+ * @param offset File offset to seek to before writing.
  * @return Number of bytes written on success, -1 if the seek failed.
  */
-s32 seekAndWrite(s32 a0, s32 a1, s32 a2, s32 a3) {
-    s32 result = lseek(a0, a3, 0);
+s32 seekAndWrite(s32 fd, s32 buf, s32 len, s32 offset) {
+    s32 result = lseek(fd, offset, 0);
     if (result == -1) return -1;
-    return write(a0, a1, a2);
+    return write(fd, buf, len);
 }
 
 
 /**
  * @brief Seek to an offset in a file and read data.
- * @param a0 File descriptor.
- * @param a1 Pointer to destination buffer.
- * @param a2 Number of bytes to read.
- * @param a3 File offset to seek to before reading.
+ * @param fd File descriptor.
+ * @param buf Pointer to destination buffer.
+ * @param len Number of bytes to read.
+ * @param offset File offset to seek to before reading.
  * @return Number of bytes read on success, -1 if the seek failed.
  */
-s32 seekAndRead(s32 a0, s32 a1, s32 a2, s32 a3) {
-    s32 result = lseek(a0, a3, 0);
+s32 seekAndRead(s32 fd, s32 buf, s32 len, s32 offset) {
+    s32 result = lseek(fd, offset, 0);
     if (result == -1) return -1;
-    return read(a0, a1, a2);
+    return read(fd, buf, len);
 }
 
 
@@ -1375,22 +1375,22 @@ s32 writeCardSector(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) {
 
 /**
  * @brief Seek to an offset in a file and write data, returning fd on success.
- * @param a0 File descriptor.
- * @param a1 Pointer to data buffer to write.
- * @param a2 Number of bytes to write.
- * @param a3 File offset to seek to before writing.
+ * @param fd File descriptor.
+ * @param buf Pointer to data buffer to write.
+ * @param len Number of bytes to write.
+ * @param offset File offset to seek to before writing.
  * @return File descriptor on success, -1 on failure.
  */
-s32 seekWriteReturnFd(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 seekWriteReturnFd(s32 fd, s32 buf, s32 len, s32 offset) {
     s32 result;
-    if (lseek(a0, a3, 0) < 0) {
+    if (lseek(fd, offset, 0) < 0) {
         return -1;
     }
-    result = write(a0, a1, a2);
+    result = write(fd, buf, len);
     if (result != 0) {
         return -1;
     }
-    return a0;
+    return fd;
 }
 
 
@@ -1428,22 +1428,22 @@ s32 writeCardFileSync(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) 
 
 /**
  * @brief Seek to an offset in a file and read data, returning fd on success.
- * @param a0 File descriptor.
- * @param a1 Pointer to destination buffer.
- * @param a2 Number of bytes to read.
- * @param a3 File offset to seek to before reading.
+ * @param fd File descriptor.
+ * @param buf Pointer to destination buffer.
+ * @param len Number of bytes to read.
+ * @param offset File offset to seek to before reading.
  * @return File descriptor on success, -1 on failure.
  */
-s32 seekReadReturnFd(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 seekReadReturnFd(s32 fd, s32 buf, s32 len, s32 offset) {
     s32 result;
-    if (lseek(a0, a3, 0) < 0) {
+    if (lseek(fd, offset, 0) < 0) {
         return -1;
     }
-    result = read(a0, a1, a2);
+    result = read(fd, buf, len);
     if (result != 0) {
         return -1;
     }
-    return a0;
+    return fd;
 }
 
 
