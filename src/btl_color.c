@@ -139,7 +139,37 @@ void setCameraShakeParams(s32 a0, s32 a1) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", updateCameraVibrate);
+/**
+ * @brief Update camera vibration timer and check for game state change.
+ *
+ * Increments D_800834D0.f6 (clamped to 0x40), then compares the low byte of
+ * g_gameState.unkCD4 against D_800834D0.f7. If they differ, resets f6 to 0
+ * and updates f7 to the current game state byte.
+ */
+void updateCameraVibrate(void) {
+    extern volatile GameState g_gameState;
+    s32 base = (s32)&D_800834D0;
+    s32 counter;
+    s32 clamped;
+    s32 gsVal;
+    s32 curVal;
+
+    counter = *(u8 *)(base + 6);
+    counter++;
+    clamped = 0x40;
+    if (counter < 0x41U) {
+        clamped = counter;
+    }
+    *(u8 *)(base + 6) = clamped;
+    gsVal = g_gameState.unkCD4;
+    curVal = *(u8 *)(base + 7);
+    gsVal &= 0xFF;
+    counter = gsVal;
+    if (counter != curVal) {
+        *(u8 *)(base + 6) = 0;
+        *(u8 *)(base + 7) = counter;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800302DC);
@@ -227,7 +257,22 @@ skip:
  *
  * @return 1 if any entry is active, 0 otherwise.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_color", isAnyBattleCmdActive);
+s32 isAnyBattleCmdActive(void) {
+    u8 *ptr = getBattleCmdTable();
+    s32 i = 0;
+    s32 active;
+top:
+    active = *(s8 *)(ptr + 0x22);
+    i++;
+    if (active != 0) {
+        return 1;
+    }
+    if (i < 4) {
+        ptr += 0x24;
+        goto top;
+    }
+    return 0;
+}
 
 
 /**
@@ -447,7 +492,54 @@ void disableSoundReverb(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", remapPartyBitmask);
+/**
+ * @brief Remap a party bitmask through the game state remap table.
+ *
+ * When bit 0x20 of the game state flags at offset 0xAE4 is set, each set
+ * bit in the lower 12 bits of a0 is remapped through the table at
+ * g_gameState+0xAE8. The upper 4 bits (0xF000) are preserved unchanged.
+ * Returns the original value if remapping is inactive.
+ *
+ * @param a0 Party bitmask (lower 12 bits = party members, upper 4 = flags).
+ * @return Remapped bitmask as u16, or original a0 if remapping inactive.
+ */
+s32 remapPartyBitmask(s16 a0) {
+    extern u8 g_gameState[];
+    s32 base = (s32)g_gameState;
+    u16 flags;
+    s32 result;
+    s32 i;
+    u8 *table;
+    s32 highBits;
+    s32 lowBits;
+    s32 one;
+    s32 tableVal;
+
+    if (!(*(u16 *)(base + 0xAE4) & 0x20)) {
+        return (u16)a0;
+    }
+    highBits = a0 & 0xF000;
+    table = (u8 *)(base + 0xAE8);
+    result = 0;
+    i = result;
+    one = a0 & 0xFFF;
+    lowBits = one;
+    one = 1;
+top:
+    if ((lowBits >> i) & 1) {
+        tableVal = *table;
+        table++;
+        if (tableVal != 0) {
+            tableVal--;
+            result |= one << tableVal;
+        }
+    } else {
+        table++;
+    }
+    i++;
+    if (i < 12) goto top;
+    return (u16)(highBits | result);
+}
 
 
 /**
@@ -530,7 +622,44 @@ extern Struct3754 D_80083754;
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003104C);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031188);
+/**
+ * @brief Render a null-terminated string, skipping separator characters.
+ *
+ * Iterates through each byte of the string at @p str. If the character is
+ * zero (null terminator), returns the current packet pointer. If the
+ * character equals 7 (separator), skips it but advances the y position.
+ * Otherwise calls func_8002FF34 to render the character glyph.
+ *
+ * @param a0 OT base pointer.
+ * @param a1 Current packet buffer pointer.
+ * @param a2 Pointer to null-terminated string.
+ * @param a3 Starting y position.
+ * @param arg4 Width parameter (passed on stack to func_8002FF34).
+ * @param arg5 Color parameter (passed on stack to func_8002FF34).
+ * @return Updated packet buffer pointer after rendering.
+ */
+s32 func_80031188(s32 a0, s32 a1, u8 *a2, s32 a3, s32 arg4, s32 arg5) {
+    s32 ot = a0;
+    u8 *str = a2;
+    s32 yPos = a3;
+    s32 width = arg4;
+    s32 sep = 7;
+    u8 ch;
+    s32 color = arg5;
+
+    do {
+    top:
+        ch = *str++;
+        if (ch == 0) {
+            return a1;
+        }
+        if (ch == sep) goto skip;
+        a1 = func_8002FF34(ot, a1, ch, yPos, width, color);
+    } while (0);
+skip:
+    yPos = yPos + 9;
+    goto top;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031224);
@@ -603,6 +732,16 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", stepAnimEntries);
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
 
 
+/**
+ * @brief Render both animation overlay channels.
+ *
+ * Builds a grayscale GPU color from D_800834D4, then calls func_80031A18
+ * twice (once for each channel, indices 0 and 1).
+ *
+ * @param a0 OT base pointer.
+ * @param a1 Packet buffer pointer.
+ * @return Updated packet pointer (from last func_80031A18 call).
+ */
 /**
  * @brief Render both animation overlay channels.
  *
