@@ -103,8 +103,8 @@ typedef struct {
     s8 f2;
     s8 f3;
     s16 f4;
-    s8 f6;
-    s8 f7;
+    u8 f6;
+    u8 f7;
 } BattleCameraState;
 
 extern BattleCameraState D_800834D0;
@@ -174,18 +174,50 @@ u8 *getBattleCmdTable(void) {
     return &D_80083878;
 }
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030754);
-
-
 /**
- * @brief Check if any of 4 sequential entries have a non-zero byte at offset +0x22.
+ * @brief Find the battle command entry with the lowest non-zero active value
+ *        that is still greater than or equal to the threshold.
  *
- * Calls getBattleCmdTable to get the base pointer, then iterates over 4 entries
- * (stride 0x24). Returns 1 immediately if any entry's byte at +0x22 is non-zero,
- * or 0 if all are zero.
+ * Scans 4 entries (stride 0x24) from getBattleCmdTable(). For each entry,
+ * checks if the signed byte at +0x22 is non-zero and >= threshold a0.
+ * If the entry's value is also less than the current best, updates best.
+ * If no valid entry is found, returns NULL. If an entry with active==0 is found,
+ * returns a pointer to that entry directly.
  *
- * @return 1 if any entry is active, 0 otherwise.
+ * @param a0 Threshold: entries with active >= a0 are candidates.
+ * @return Pointer to the best (lowest active) entry, or 0 if none found.
  */
+s32 findBestBattleCmd(s32 a0) {
+    u8 *ptr = getBattleCmdTable();
+    s32 best = 0xFF;
+    s32 i = 0;
+    s32 active;
+
+top:
+    do {
+        active = *(s8 *)(ptr + 0x22);
+        if (active == 0) {
+            return (s32)ptr;
+        }
+        if (a0 < active) goto skip;
+        if (active >= best) goto skip;
+    } while (0);
+    best = i;
+skip:
+    i++;
+    if (i < 4) {
+        ptr += 0x24;
+        goto top;
+    }
+    if (best != 0xFF) {
+        ptr = getBattleCmdTable();
+        ptr += (best * 9) * 4;
+        return (s32)ptr;
+    }
+    return 0;
+}
+
+
 /**
  * @brief Check if any battle command entry is active.
  *
@@ -415,7 +447,7 @@ void disableSoundReverb(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030F10);
+INCLUDE_ASM("asm/nonmatchings/btl_color", remapPartyBitmask);
 
 
 /**
@@ -484,6 +516,17 @@ void btlColorStub1044(void) {
 }
 
 
+typedef struct {
+    s16 f0;
+    s16 f2;
+    s16 f4;
+    s16 f6;
+    u8 f8;
+    u8 f9;
+} Struct3754;
+extern Struct3754 D_80083754;
+
+
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003104C);
 
 
@@ -496,15 +539,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031224);
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031364);
 
 
-typedef struct {
-    s16 f0;
-    s16 f2;
-    s16 f4;
-    s16 f6;
-    u8 f8;
-    u8 f9;
-} Struct3754;
-extern Struct3754 D_80083754;
 // init_battle_transition - initializes D_80083754 (Struct3754)
 
 /** @brief Sets D_80083754.f0 to 7. */
@@ -563,13 +597,23 @@ s32 lerpRange(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031954);
+INCLUDE_ASM("asm/nonmatchings/btl_color", stepAnimEntries);
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031CDC);
+/**
+ * @brief Render both animation overlay channels.
+ *
+ * Builds a grayscale GPU color from D_800834D4, then calls func_80031A18
+ * twice (once for each channel, indices 0 and 1).
+ *
+ * @param a0 OT base pointer.
+ * @param a1 Packet buffer pointer.
+ * @return Updated packet pointer (from last func_80031A18 call).
+ */
+INCLUDE_ASM("asm/nonmatchings/btl_color", renderAnimOverlay);
 
 
 /**
@@ -780,6 +824,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80032010);
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800320BC);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80032204);
+INCLUDE_ASM("asm/nonmatchings/btl_color", renderBattleFrame);
 
 
