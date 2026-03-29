@@ -227,7 +227,7 @@ typedef struct {
     u8 pad20;
     u8 statusByte;
     u8 pad22[2];
-    u8 cmdBytes[8];
+    u8 cmdBytes[2][4];
     u8 status[2][4];
     u8 statusAlt[2][4];
 } CardDataBlock;

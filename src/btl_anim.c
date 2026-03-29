@@ -11,9 +11,10 @@ void func_800472E4(void);
 void func_800472F4(void);
 
 extern u8 g_animInitialized;
-extern u8 D_80082FB3;
+extern u8 g_animFlag;
+extern CardDataBlock D_80082FB4;
 extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
-extern u16 D_80083794;
+extern u16 g_animState;
 extern s32 D_800834C0;
 extern s16 D_800837AC;
 extern u8 D_800837A0[];
@@ -274,8 +275,6 @@ void initAnimStateAndWait(void) {
 }
 
 
-// get D_80083794 (u16)
-
 /** @brief Initializes g_animInitialized to 0, calls func_80039764(0), then loops twice calling resetAnimEntity(i, 0). */
 void resetAnimState(void) {
     s32 i;
@@ -287,30 +286,29 @@ void resetAnimState(void) {
 }
 
 
-/** @brief Get the current value of D_80083794 (global u16 state variable). */
+/** @brief Get the current value of g_animState (global u16 state variable). */
 u16 getAnimGlobalState(void) {
-    return D_80083794;
+    return g_animState;
 }
 
 
-
 /**
- * @brief Set D_80083794 to a new value.
- * @param a0 Value to store.
+ * @brief Set g_animState to a new value.
+ * @param value Value to store.
  * @return The value that was set.
  */
-s32 setAnimGlobalState(s32 a0) {
-    D_80083794 = a0;
-    return a0;
+s32 setAnimGlobalState(s32 value) {
+    g_animState = value;
+    return value;
 }
 
 
 /**
- * @brief Set the global flag D_80082FB3.
- * @param a0 Value to store in D_80082FB3.
+ * @brief Set the global flag g_animFlag.
+ * @param value Value to store in g_animFlag.
  */
-void setAnimFlag(s32 a0) {
-    D_80082FB3 = a0;
+void setAnimFlag(s32 value) {
+    g_animFlag = value;
 }
 
 
@@ -436,7 +434,9 @@ void callSfxUpdate(void) {
 
 
 /** @brief Wrapper that calls cdTick (likely a CD subsystem tick or finalization). */
-void callCdTick(void) { cdTick(); }
+void callCdTick(void) {
+    cdTick();
+}
 
 
 /**
@@ -550,12 +550,12 @@ s32 testCardEvent(s32 a0) { TestEvent(a0); }
  * @note Tests events from D_80082FB4 array entries [0..3] in order.
  */
 s32 pollCardEvents(void) {
-    extern u8 D_80082FB4[];
-    s32 *s0 = (s32 *)((s32)D_80082FB4);
-    if (testCardEvent(s0[0])) return 0;
-    if (testCardEvent(s0[1])) return 1;
-    if (testCardEvent(s0[2])) return 2;
-    if (testCardEvent(s0[3])) return 3;
+
+    CardDataBlock *blk = &D_80082FB4;
+    if (testCardEvent(blk->events[0])) return 0;
+    if (testCardEvent(blk->events[1])) return 1;
+    if (testCardEvent(blk->events[2])) return 2;
+    if (testCardEvent(blk->events[3])) return 3;
     return -1;
 }
 
@@ -586,12 +586,12 @@ void pollCardEventsDiscard(void) { pollCardEvents(); }
  * @note Tests events from D_80082FB4 array entries [4..7] in order.
  */
 s32 pollCardEventsSecondary(void) {
-    extern u8 D_80082FB4[];
-    s32 *s0 = (s32 *)((s32)D_80082FB4);
-    if (TestEvent(s0[4])) return 0;
-    if (TestEvent(s0[5])) return 1;
-    if (TestEvent(s0[6])) return 2;
-    if (TestEvent(s0[7])) return 3;
+
+    CardDataBlock *blk = &D_80082FB4;
+    if (TestEvent(blk->events[4])) return 0;
+    if (TestEvent(blk->events[5])) return 1;
+    if (TestEvent(blk->events[6])) return 2;
+    if (TestEvent(blk->events[7])) return 3;
     return -1;
 }
 
@@ -614,46 +614,40 @@ s32 busyWaitCardEvent(void) {
 
 /**
  * @brief Read a memory card status byte for a given port and slot.
- * @param a0 Packed card identifier (port in bit 4, slot in lower bits).
- * @return Status byte from D_80082FB4 at offset 0x2C + port*4 + slot.
+ * @param cardId Packed card identifier (port in bit 4, slot in lower bits).
+ * @return Status byte from CardDataBlock.status[port][slot].
  */
-u8 getCardStatus(a0)
-
-s32 a0;
-{
-    extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4; /* (s32) cast prevents symbol+constant folding */
-    s32 port = getCardPort(a0);
-    s32 r2 = getCardSlot(a0);
-    return *(u8 *)(port * 4 + base + r2 + 0x2C);
+volatile unsigned int getCardStatus(s32 cardId) {
+    CardDataBlock *blk = &D_80082FB4;
+    s32 port = getCardPort(cardId);
+    s32 slot = getCardSlot(cardId);
+    return blk->status[port][slot];
 }
 
 
 /**
  * @brief Write a memory card status byte for a given port and slot.
- * @param a0 Packed card identifier (port in bit 4, slot in lower bits).
- * @param a1 Status value to write.
+ * @param cardId Packed card identifier (port in bit 4, slot in lower bits).
+ * @param val Status value to write.
  */
-void setCardStatus(s32 a0, u8 a1) {
-    extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4; /* (s32) cast prevents symbol+constant folding */
-    s32 port = getCardPort(a0);
-    s32 r2 = getCardSlot(a0);
-    *(u8 *)(port * 4 + base + r2 + 0x2C) = a1;
+void setCardStatus(s32 cardId, u8 val) {
+    CardDataBlock *blk = &D_80082FB4;
+    s32 port = getCardPort(cardId);
+    s32 slot = getCardSlot(cardId);
+    blk->status[port][slot] = val;
 }
 
 
 /**
  * @brief Write a secondary memory card status byte for a given port and slot.
- * @param a0 Packed card identifier (port in bit 4, slot in lower bits).
- * @param a1 Status value to write at offset 0x34 (secondary status table).
+ * @param cardId Packed card identifier (port in bit 4, slot in lower bits).
+ * @param val Status value to write.
  */
-void setCardStatusSecondary(s32 a0, u8 a1) {
-    extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4; /* (s32) cast prevents symbol+constant folding */
-    s32 port = getCardPort(a0);
-    s32 r2 = getCardSlot(a0);
-    *(u8 *)(port * 4 + base + r2 + 0x34) = a1;
+void setCardStatusSecondary(s32 cardId, u8 val) {
+    CardDataBlock *blk = &D_80082FB4;
+    s32 port = getCardPort(cardId);
+    s32 slot = getCardSlot(cardId);
+    blk->statusAlt[port][slot] = val;
 }
 
 
@@ -661,44 +655,52 @@ void setCardStatusSecondary(s32 a0, u8 a1) {
 void markCardBusy(s32 a0) { setCardStatus(a0, 1); }
 
 
-/** @brief Read memory card status (wrapper, return leaks from inner call). */
-void readCardStatusDiscard(void) { getCardStatus(); }
+/** @brief Read memory card status for a given card slot.
+ * @param cardId Packed card identifier.
+ * @return Status byte.
+ */
+void readCardStatusDiscard(s32 cardId) {
+    getCardStatus(cardId); // Return value appears unused
+}
 
 
 /**
  * @brief Query memory card info and return status code.
  *
- * Issues _card_info and waits for the event result. Retries up to 180 times
- * if the card doesn't respond. Updates the card status byte at D_80082FB4
- * based on port/slot indices.
+ * Marks the card's command byte as pending (cmdBytes[port][slot] = 2),
+ * then issues _card_info and waits for the event result. Retries up to
+ * 180 times if the card doesn't respond.
  *
  * @param cardId Packed card identifier.
- * @return 0 if card has no status, 1 if card status present or new card,
+ * @param chanId Packed card identifier (for port/slot lookup).
+ * @return 0 if card has no status, 1 if card present or new,
  *         3 on unknown event, 4 on timeout.
  */
-s32 func_80028B98(s32 cardId) {
-    extern u8 D_80082FB4[];
-    s32 base = (s32)D_80082FB4;
+s32 getCardInfo(cardId, chanId)
+s32 cardId;
+s32 chanId;
+{
     s32 port;
-    unsigned int new_var2;
+    CardDataBlock *card;
+    s32 chanId;
     s32 slot;
     s32 retries;
-    s32 new_var;
-    new_var2 = getCardPort(new_var);
-    ;
-    port = new_var2;
-    slot = getCardSlot(new_var);
-    port = ((port * 4) + base) + slot;
-    *(u8 *)(port + 0x24) = 2;
-    retries = 0;
-top:
-    waitCardReady(cardId);
-    if (_card_info(cardId) != 0) {
+
+    card = &D_80082FB4;
+    port = getCardPort(chanId);
+    slot = getCardSlot(chanId);
+
+    card->cmdBytes[port][slot] = 2;
+    for (retries = 0; retries < 180; retries++) {
+        waitCardReady(cardId);
+        if (_card_info(cardId) == 0)
+            continue;
         switch (waitCardEvent()) {
         case 0:
-            return ((s32 (*)(s32))getCardStatus)(cardId) != 0;
+            return getCardStatus(cardId) != 0;
         case 1:
-            break;
+            markCardBusy(cardId);
+            return 4;
         case 3:
             markCardBusy(cardId);
             setCardStatusSecondary(cardId, 0);
@@ -706,11 +708,6 @@ top:
         default:
             markCardBusy(cardId);
             return 3;
-        }
-    } else {
-        retries++;
-        if (retries < 0xB4) {
-            goto top;
         }
     }
     markCardBusy(cardId);
@@ -758,8 +755,8 @@ void initCardEventHandlers(void) {
  * calls initCardEventHandlers to complete initialization.
  */
 void initCardDataBlock(void) {
-    extern u8 D_80082FB4[];
-    register u8 *base asm("$2") = D_80082FB4;
+
+    register u8 *base asm("$2") = (u8 *)&D_80082FB4;
     s32 i;
     s32 val;
     u8 *ptr;
@@ -869,19 +866,18 @@ s32 clearCardSync(s32 a0) {
 /**
  * @brief Check a memory card and clear it if needed.
  *
- * Calls func_80028B98 to get card info. If the card is new (result 0),
+ * Calls getCardInfo to query the card. If the card is new (result 0),
  * checks card status and clears if present. Returns the final card status.
  *
  * @param cardId Packed card identifier.
- * @return Card status: 0 = cleared successfully, 1 = card present but clear failed,
- *         other = error from func_80028B98.
+ * @return 0 = cleared, 1 = card present but clear failed, other = error.
  */
 s32 checkAndClearCard(s32 cardId) {
     s32 result;
 
-    result = func_80028B98(cardId);
+    result = getCardInfo(cardId);
     if (result == 0) {
-        if (((s32 (*)(s32))getCardStatus)(cardId) != 0) {
+        if (getCardStatus(cardId) != 0) {
             result = 1;
         }
     }
@@ -1558,16 +1554,15 @@ s32 writeCardBlocks(s32 cardId, s32 buf, s32 startSector, s32 endSector) {
  *       re-enables interrupts, then calls func_8004D968 for final cleanup.
  */
 void shutdownCardSubsystem(void) {
-    extern s32 D_80082FB4[];
     func_800472E4();
-    CloseEvent(D_80082FB4[0]);
-    CloseEvent(D_80082FB4[1]);
-    CloseEvent(D_80082FB4[2]);
-    CloseEvent(D_80082FB4[3]);
-    CloseEvent(D_80082FB4[4]);
-    CloseEvent(D_80082FB4[5]);
-    CloseEvent(D_80082FB4[6]);
-    CloseEvent(D_80082FB4[7]);
+    CloseEvent(D_80082FB4.events[0]);
+    CloseEvent(D_80082FB4.events[1]);
+    CloseEvent(D_80082FB4.events[2]);
+    CloseEvent(D_80082FB4.events[3]);
+    CloseEvent(D_80082FB4.events[4]);
+    CloseEvent(D_80082FB4.events[5]);
+    CloseEvent(D_80082FB4.events[6]);
+    CloseEvent(D_80082FB4.events[7]);
     func_800472F4();
     func_8004D968();
 }

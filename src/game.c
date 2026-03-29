@@ -519,13 +519,6 @@ INCLUDE_ASM("asm/nonmatchings/game", func_80021108);
 
 
 /**
- * @brief Add or increment an ability in an entity's ability slot table.
- * Searches 32 slots (2 bytes each: ID + count) in g_gameState at offset 0x4A0.
- * @param entityIdx Entity index (stride 152 in g_gameState).
- * @param abilityId Ability ID to add/increment.
- * @return 0 if added/incremented, 1 if count already >= 100, 2 if all slots full.
- */
-/**
  * @brief Give a magic spell to a character.
  *
  * If the character already has the spell, increments its quantity.
