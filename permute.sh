@@ -208,9 +208,11 @@ DIR="${SCRIPT_DIR}"
 WIBO="${WIBO}"
 PSYQ_DIR="${PSYQ_DIR}"
 CCPSX="${CCPSX_DRIVER}"
-ASPSX="${WIBO} ${PSYQ_DIR}/ASPSX.EXE"
-PSYQ_OBJ_PARSER="${SCRIPT_DIR}/tools/psyq-obj-parser"
+MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
+ASPSX_VER="${ASPSX_VER}"
 COMPILE_FLAGS="${COMPILE_FLAGS}"
+AS="mipsel-linux-gnu-as"
+ASFLAGS="-march=r3000 -mabi=32 -EL -no-pad-sections -O0 -I${SCRIPT_DIR}/include"
 EOF
 
 cat >> "${FUNC_DIR}/compile.sh" <<'COMPILE_EOF'
@@ -219,13 +221,11 @@ TMPDIR=$(mktemp -d)
 trap "rm -rf ${TMPDIR}" EXIT
 cd "${TMPDIR}"
 
-# Compile with CCPSX -S → ASPSX → psyq-obj-parser → .o
-# Note: cd to TMPDIR so ASPSX writes its PQ* temp files there instead of the repo root.
-# Include path uses absolute DIR so -Iinclude still resolves correctly.
+# Compile with CCPSX -S → maspsx → GAS → .o (matches build system)
 SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -I"${DIR}/include" -DPERMUTER \
     ${COMPILE_FLAGS} "${INPUT}" -o "out.s"
-${ASPSX} -q "out.s" -o "out.obj"
-${PSYQ_OBJ_PARSER} "out.obj" -o "${OUTPUT}" > /dev/null 2>&1
+cat out.s | ${MASPSX} --aspsx-version=${ASPSX_VER} --run-assembler \
+    ${ASFLAGS} -o "${OUTPUT}"
 COMPILE_EOF
 
 chmod +x "${FUNC_DIR}/compile.sh"
