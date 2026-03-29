@@ -1311,10 +1311,12 @@ s32 createCardFile(s32 cardId, char *filename, s32 size) {
  * @param offset File offset to seek to before writing.
  * @return Number of bytes written on success, -1 if the seek failed.
  */
-s32 seekAndWrite(s32 fd, s32 buf, s32 len, s32 offset) {
-    s32 result = lseek(fd, offset, 0);
-    if (result == -1) return -1;
-    return write(fd, buf, len);
+s32 seekAndWrite(s32 fd, s32 buf, s32 size, s32 offset)
+{
+    if (lseek(fd, offset, 0) == -1) {
+        return -1;
+    }
+    return write(fd, buf, size);
 }
 
 
@@ -1326,9 +1328,11 @@ s32 seekAndWrite(s32 fd, s32 buf, s32 len, s32 offset) {
  * @param offset File offset to seek to before reading.
  * @return Number of bytes read on success, -1 if the seek failed.
  */
-s32 seekAndRead(s32 fd, s32 buf, s32 len, s32 offset) {
-    s32 result = lseek(fd, offset, 0);
-    if (result == -1) return -1;
+s32 seekAndRead(s32 fd, s32 buf, s32 len, s32 offset)
+{
+    if (lseek(fd, offset, 0) == -1) {
+        return -1;
+    }
     return read(fd, buf, len);
 }
 
