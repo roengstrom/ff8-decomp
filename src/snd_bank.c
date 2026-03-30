@@ -6,9 +6,49 @@ extern u8 D_80070D60[];
 extern s32 D_80073CA8;
 extern u8 *D_80073C34;
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016DB4);
+/**
+ * @brief Adjusts instrument index upward if flag 0x400 is set and instrument is in range.
+ *
+ * If bit 10 of @p a0 is set and the track's instrument index is in [0x40, 0x80),
+ * offsets the sample addresses by +0x20000 and the instrument by +0x20.
+ *
+ * @param a0 Flags bitfield.
+ * @param a1 Pointer to the sequence track structure.
+ * @return The (possibly adjusted) instrument index.
+ */
+s32 func_80016DB4(s32 a0, SoundSeqTrack *a1) {
+    if (a0 & 0x400) {
+        if ((u32)(a1->instrument - 0x40) < 0x40) {
+            s32 adj = 0x20000;
+            a1->sampleAddr = a1->sampleAddr + adj;
+            a1->sampleLoop = a1->sampleLoop + adj;
+            a1->instrument = a1->instrument + 0x20;
+        }
+    }
+    return a1->instrument;
+}
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016E08);
+/**
+ * @brief Adjusts instrument index downward if flag 0x400 is set and instrument is in range.
+ *
+ * If bit 10 of @p a0 is set and the track's instrument index is in [0x60, 0x80),
+ * offsets the sample addresses by -0x20000 and the instrument by -0x20.
+ *
+ * @param a0 Flags bitfield.
+ * @param a1 Pointer to the sequence track structure.
+ * @return The (possibly adjusted) instrument index.
+ */
+s32 func_80016E08(s32 a0, SoundSeqTrack *a1) {
+    if (a0 & 0x400) {
+        if ((u32)(a1->instrument - 0x60) < 0x20) {
+            s32 adj = (s32)0xFFFE0000;
+            a1->sampleAddr = a1->sampleAddr + adj;
+            a1->sampleLoop = a1->sampleLoop + adj;
+            a1->instrument = a1->instrument - 0x20;
+        }
+    }
+    return a1->instrument;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016E5C);
 
@@ -149,6 +189,18 @@ void sndReleaseVoiceFromTracks(s32 a0) {
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
 
+/**
+ * @brief Resolves two consecutive sample addresses from the instrument table.
+ *
+ * Looks up the halfword at D_80074ED0[a2*2] (first entry) and
+ * D_80074ED0[a2*2+1] (second entry). For each, if the value is not
+ * 0xFFFF, adds D_80074EDC as a base to produce a sample pointer;
+ * otherwise returns 0. Stores results at *a0 and *a1.
+ *
+ * @param a0 Output pointer for first sample address.
+ * @param a1 Output pointer for second sample address.
+ * @param a2 Instrument index (low 10 bits used).
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D14);
@@ -157,6 +209,16 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017D5C);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
 
+/**
+ * @brief Plays or stops a sound depending on the active sequence ID.
+ *
+ * Checks the halfword at D_80073DF0+0x5E (active sequence ID). If non-zero
+ * and matches a0[8], calls func_80017DB0(a0[0], 0) to stop. Otherwise calls
+ * func_8001708C(a0[0], -1) and stores a0[8] into the structure pointed to
+ * by D_80074F08 at offset 0x5E.
+ *
+ * @param a0 Pointer to a sound config structure (word 0 = track ID, halfword 8 = sequence ID).
+ */
 /**
  * @brief Plays or stops a sound depending on the active sequence ID.
  *
@@ -302,6 +364,16 @@ top:
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018908);
 
+/**
+ * @brief Sets volume/pan on the active sequence and marks dirty tracks.
+ *
+ * Checks if a0[0] matches the active sequence ID. If so, writes the
+ * volume (a0[1] & 0x7F shifted) and clears the pan fade counter on the
+ * appropriate bank. Then calls func_80017D14 with the track array to
+ * mark matching tracks dirty.
+ *
+ * @param a0 Pointer to a 2-word config struct: [seqId, volumeParam].
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018A74);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018B28);
@@ -324,6 +396,15 @@ void sndSetFadeAndTransfer(u16 *a0) {
     sndSetCdVolume();
 }
 
+/**
+ * @brief Computes fade step from input parameters and stores to globals.
+ *
+ * Reads a duration from a0[0] (default 1 if zero), computes the per-tick
+ * fade delta as ((a0[4] << 16) - D_80075078) / duration, stores duration
+ * to D_80074FE4 and delta to D_80074FE0.
+ *
+ * @param a0 Pointer to a fade config structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018D74);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018DDC);
@@ -340,6 +421,16 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800191F8);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800192D8);
 
+/**
+ * @brief Applies expression value to all active tracks matching a bitmask.
+ *
+ * Iterates 12 tracks in D_80072F70 (stride 0x110). For each track whose
+ * bit is set in D_80075028[0] and whose flags do NOT have bit 0x2000000,
+ * reads the expression byte from a0, clears the halfword at +0x8A,
+ * stores (byte & 0x7F) << 8 at +0x6A, and ORs 0x3 into updateFlags.
+ *
+ * @param a0 Pointer to the expression value byte.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80019450);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800194C8);
@@ -348,7 +439,35 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001958C);
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001966C);
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800197F4);
+/**
+ * @brief Applies a note byte to all active tracks without flag 0x2000000.
+ *
+ * Iterates 12 tracks in D_80072F70 (stride 0x110). For each track whose
+ * flags at +0x24 do NOT have bit 0x2000000 set, reads the note byte from
+ * a0, clears the halfword at +0x84, shifts the byte left 8 and stores
+ * at +0x3C, and ORs 0x10 into updateFlags at +0xF8.
+ *
+ * @param a0 Pointer to a byte containing the note value.
+ */
+void func_800197F4(u8 *a0) {
+    extern u8 D_80072F70[];
+    s32 i = 12;
+    s32 mask = 0x2000000;
+    s32 base = (s32)&D_80072F70;
+    s32 ptr = base + 0xF8;
+top:
+    if (!(*(s32 *)(ptr - 0xD4) & mask)) {
+        s32 val = *a0;
+        s32 flags = *(s32 *)ptr;
+        *(u16 *)(ptr - 0x74) = 0;
+        val <<= 8;
+        *(s32 *)(ptr - 0xBC) = val;
+        *(s32 *)ptr = flags | 0x10;
+    }
+    i--;
+    ptr += 0x110;
+    if (i != 0) goto top;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001984C);
 

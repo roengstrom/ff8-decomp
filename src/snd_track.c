@@ -95,6 +95,18 @@ s32 sndTrackTransposePercussion(s32 a0, s32 a1) {
     return a1;
 }
 
+/**
+ * @brief Resets a sequence track and clears voice bits from all SPU control fields.
+ *
+ * If the track's voice channel is 0 (primary), directly clears the voice
+ * bits from multiple fields in the D_80074F08 state structure. If the
+ * remaining active voice mask becomes zero, also clears the sequence ID
+ * and playback state. Otherwise delegates to sndTrackClearVoiceBits.
+ * Zeroes the track flags and marks the SPU dirty flags.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to clear.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C2C8);
 
 /**
@@ -142,7 +154,30 @@ void sndTrackBranch(SoundSeqTrack *track) {
  *
  * @param a0 Pointer to the stream state (cursor at +0x00).
  */
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C604);
+/**
+ * @brief Conditional branch in music sequence: reads voice index and optional offset.
+ *
+ * Reads a byte from the stream. If the byte is within the valid voice count
+ * (D_80074F08+0x60), reads a 16-bit signed offset from the next two bytes
+ * and jumps the stream cursor by that offset. Otherwise skips the 2-byte
+ * offset field.
+ *
+ * @param a0 Pointer to the stream state (cursor at +0x00).
+ */
+void func_8001C604(SoundSeqTrack *track) {
+    extern s32 *D_80074F08;
+    s32 *bank = D_80074F08;
+    u8 *ptr = *(u8 **)track;
+    s32 val = *ptr;
+    ptr++;
+    *(u8 **)track = ptr;
+    if (!(*(u16 *)((u8 *)bank + 0x60) < val)) {
+        s32 offset = (s16)(ptr[0] | (ptr[1] << 8));
+        *(u8 **)track = ptr + offset;
+    } else {
+        *(u8 **)track = ptr + 2;
+    }
+}
 
 /** @brief Reads one byte from stream, advances cursor, ORs 3 into flags, stores byte << 8 as halfword at +0x80.
  *  @param a0 Pointer to stream state.
@@ -155,6 +190,15 @@ void sndTrackReadPitchBend(SoundSeqTrack *track) {
     track->pitchBend = val << 8;
 }
 
+/**
+ * @brief Reads pitch bend target and fade counter from the stream.
+ *
+ * Reads a byte for the fade counter (0 becomes 0x100), then reads a
+ * second byte as the target pitch bend value. Computes the per-tick
+ * delta as (target - current) / counter and stores it.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C684);
 
 /**
@@ -314,6 +358,16 @@ void sndTrackReadInstrument(SoundSeqTrack *track) {
     track->flags &= (s32)0xE6FFEFF7;
 }
 
+/**
+ * @brief Reads byte from stream, looks up instrument override in bank pointer table.
+ *
+ * If D_80074F08+0x30 (bank pointer) is zero, returns. Otherwise looks up
+ * the byte as an index in the table. If the entry is negative, clears
+ * instOverride and masks flags. Otherwise stores the pointer, sets 0xE8
+ * to 0xFF, masks and ORs 0x1000 into flags.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CBA4);
 
 /** @brief Looks up D_80073E68 table by a0[0x66] index, copies fields to a0, ORs flags, masks a0[0x30].
@@ -403,6 +457,14 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CE14);
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CF0C);
 
+/**
+ * @brief Reads volume LFO fade parameters from the stream.
+ *
+ * Reads a byte for the fade counter (0 becomes 0x100), then reads the
+ * next byte as target volume. Computes delta = (target << 8 - current) / counter.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001CF6C);
 
 /** @brief Clears bit 0x1 in a0+0x30, sets bit 0x10 in a0+0xF8, zeroes a0+0xEE. */
@@ -678,6 +740,14 @@ void sndTrackReadAdsrAttackMode(SoundSeqTrack *track) {
     track->updateFlags = track->updateFlags | 0x100;
 }
 
+/**
+ * @brief Reads one byte from stream, sets sustain mode bits in adsrHigh.
+ *
+ * Clears bits 15-14 of +0x108, then sets them based on the byte value:
+ * 3 → 0x4000, 5 → 0x8000, 7 → 0xC000. ORs 0x200 into flags at +0xF8.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D714);
 
 /**
@@ -716,12 +786,31 @@ void sndTrackNop5(void) {
  *
  * @param a0 Pointer to the track structure.
  */
+/**
+ * @brief Advance to the next voice slot in the circular buffer.
+ *
+ * Increments the slot index (D4, mod 4), saves the current stream pointer
+ * to the slot's table entry, clears the slot's counter, and copies the
+ * current voice index to the new slot.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D7EC);
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D83C);
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D8D0);
 
+/**
+ * @brief Check loop counter and conditionally branch backward in the voice buffer.
+ *
+ * Reads a byte as the repeat count (0 becomes 0x100). Increments the
+ * counter at slot D4*2+0x70. If counter reaches repeat count, reads a
+ * 16-bit signed offset and branches, then decrements the slot index mod 4.
+ * Otherwise skips the 2-byte offset field.
+ *
+ * @param a0 Pointer to the track structure.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D93C);
 
 /**
@@ -802,8 +891,26 @@ void sndTrackClearOverride(SoundSeqTrack *track) {
  *
  * @param a0 Pointer to the stream state.
  */
+/**
+ * @brief Reads two bytes from stream, stores to D_80074F08+0x68 and +0x64,
+ *        then clears +0x6A and +0x66.
+ *
+ * @param a0 Pointer to the stream state.
+ */
+/**
+ * @brief Reads two bytes from stream, stores to D_80074F08+0x68 and +0x64,
+ *        then clears +0x6A and +0x66.
+ *
+ * @param a0 Pointer to the stream state.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DACC);
 
+/**
+ * @brief Reads two bytes from stream and combines into 16-bit value at
+ *        D_80074F08+0x6C (low byte first, high byte shifted left 8).
+ *
+ * @param a0 Pointer to the stream state.
+ */
 /**
  * @brief Reads two bytes from stream and combines into 16-bit value at
  *        D_80074F08+0x6C (low byte first, high byte shifted left 8).

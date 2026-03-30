@@ -5,7 +5,76 @@ void sndReleaseVoice(s32 a0);
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80014FFC);
 
-INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800150A8);
+void spuSetVoicePitch(s32 voice, s32 val);
+void spuSetVoiceVolume(s32 voice, s32 vol_l, s32 vol_r, s32 scale);
+void spuSetVoiceStartAddr(s32 voice, u32 val);
+void spuSetVoiceRepeatAddr(s32 voice, u32 val);
+void spuSetVoiceAdsrHigh(s32 voice, s32 val);
+void spuSetVoiceAdsrLow(s32 voice, s32 val);
+
+/**
+ * @brief Applies pending SPU register updates for a voice.
+ *
+ * Reads the update flags from the voice data structure (offset +4). For each
+ * set flag, calls the corresponding SPU register function (pitch, volume,
+ * sample address, repeat address, ADSR). Clears processed flags after each
+ * call and exits early when all flags are handled.
+ *
+ * @param a0 SPU voice index (0-23).
+ * @param a1 Pointer to the voice parameter structure.
+ */
+void func_800150A8(s32 a0, u8 *a1) {
+    s32 flags = *(s32 *)(a1 + 4);
+
+    if (flags == 0) {
+        return;
+    }
+    *(s32 *)(a1 + 4) = 0;
+
+    if (flags & 0x10) {
+        flags &= ~0x10;
+        spuSetVoicePitch(a0, *(u16 *)(a1 + 0x10));
+        if (flags == 0) {
+            return;
+        }
+    }
+
+    if (flags & 0x3) {
+        flags &= ~0x3;
+        spuSetVoiceVolume(a0, *(s16 *)(a1 + 0x18), *(s16 *)(a1 + 0x1A), *(u16 *)(a1 + 0x16));
+        if (flags == 0) {
+            return;
+        }
+    }
+
+    if (flags & 0x80) {
+        flags &= ~0x80;
+        spuSetVoiceStartAddr(a0, *(s32 *)(a1 + 8));
+        if (flags == 0) {
+            return;
+        }
+    }
+
+    if (flags & 0x10000) {
+        flags &= ~0x10000;
+        spuSetVoiceRepeatAddr(a0, *(s32 *)(a1 + 0xC));
+        if (flags == 0) {
+            return;
+        }
+    }
+
+    if (flags & 0x6600) {
+        flags &= ~0x6600;
+        spuSetVoiceAdsrHigh(a0, *(u16 *)(a1 + 0x14));
+        if (flags == 0) {
+            return;
+        }
+    }
+
+    if (flags & 0x9900) {
+        spuSetVoiceAdsrLow(a0, *(u16 *)(a1 + 0x12));
+    }
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800151C4);
 
@@ -141,7 +210,36 @@ void sndStoreTrackTiming(u8 *a0) {
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);
 
-INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016A1C);
+/**
+ * @brief Builds a voice bitmask from active tracks matching a track bitmask.
+ *
+ * For each set bit in @p trackMask, reads the corresponding track's voice
+ * assignment (offset +0xF4). If the voice index is valid (< 24), sets that
+ * voice's bit in *resultPtr. After processing, masks the result with @p finalMask.
+ *
+ * @param tracks Base pointer to the track array (stride 0x110).
+ * @param resultPtr Pointer to the output bitmask (accumulated via OR).
+ * @param trackMask Bitmask of tracks to check.
+ * @param finalMask AND mask applied to the result after accumulation.
+ */
+void func_80016A1C(u8 *tracks, s32 *resultPtr, s32 trackMask, s32 finalMask) {
+    s32 bit = 1;
+    s32 one = 1;
+
+    do {
+        if (trackMask & bit) {
+            s32 voice = ((SoundSeqTrack *)tracks)->voiceMask;
+            if ((u32)voice < 0x18) {
+                *resultPtr |= one << voice;
+            }
+        }
+        trackMask &= ~bit;
+        tracks += 0x110;
+        bit <<= 1;
+    } while (trackMask != 0);
+
+    *resultPtr &= finalMask;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80016A7C);
 

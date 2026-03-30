@@ -213,6 +213,15 @@ void sndCmd12(s32 a0, s32 a1) {
  *
  * @return Packed position value, or 0 if inactive.
  */
+/**
+ * @brief Query the current SPU transfer position as a packed 32-bit value.
+ *
+ * Returns 0 if neither field +0x04 nor +0x1C of the sound engine state
+ * (D_80074F08) is set. Otherwise returns the current position as
+ * (field_0x6C << 16) | (field_0x66 + 1).
+ *
+ * @return Packed position value, or 0 if inactive.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_80012FEC);
 
 /**
@@ -289,6 +298,16 @@ void sndCmd45(void) {
     func_8001A1E8(0x45);
 }
 
+/**
+ * @brief Collect key-on voice masks from all active tracks.
+ *
+ * Iterates over sound sequence tracks starting from D_80072F70. For each
+ * track whose corresponding bit in D_80075028 is set, ORs the track's
+ * keyOnMask field into the result. The bit mask starts at 0x1000 and
+ * shifts left each iteration.
+ *
+ * @return Combined key-on mask (24-bit), or 0 if D_80075028 is 0.
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_800131A8);
 
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_80013210);
@@ -355,6 +374,17 @@ void sndDisableReverb(u32 a0) {
 
 /**
  * @brief Multiply input by 256, call func_8003ED24 with sign-extended 16-bit value, return full shifted result.
+ *
+ * Shifts the input left by 8, sign-extends the lower 16 bits, passes
+ * the sign-extended value to func_8003ED24 as both arguments, then
+ * returns the original (non-truncated) shifted value.
+ *
+ * @param a0 Input value to shift.
+ * @return a0 * 256 (full 32-bit result, not truncated).
+ */
+/**
+ * @brief Multiply input by 256, call func_8003ED24 with sign-extended 16-bit value,
+ *        return full shifted result.
  *
  * Shifts the input left by 8, sign-extends the lower 16 bits, passes
  * the sign-extended value to func_8003ED24 as both arguments, then
@@ -839,7 +869,63 @@ void sndCmdE6(s32 a0) {
     func_8001A1E8(0xE6);
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_init", func_80014400);
+/**
+ * @brief Upload instrument sample data to SPU RAM.
+ *
+ * Validates the sound bank, waits for DMA, determines the SPU target
+ * address (0x51000 or 0x4B000 based on slot, adjusted by -0x20000 if
+ * bit 10 of the sound engine flags is set), then transfers sample data
+ * and copies voice parameters to D_80073C38.
+ *
+ * @param a0 Pointer to sound bank data.
+ * @param a1 Bank slot selector (0 = primary, nonzero = alternate).
+ * @return 0 on success, nonzero error code on validation failure.
+ */
+s32 func_80014400(s32 a0, s32 a1) {
+    extern u8 D_80073C38[];
+    extern s32 D_80073C58;
+    s32 spuAddr;
+    s32 result;
+
+    /* Regalloc: a0 init first (saves s1 first), boost a1 for s0 */
+    a0++;
+    a0--;
+    a1++;
+    a1--;
+    a1++;
+    a1--;
+    a1++;
+    a1--;
+
+    result = sndValidateBank(a0);
+    if (result != 0) {
+        goto fail;
+    }
+    sndDmaWait();
+    spuAddr = 0x51000;
+    if (a1 == 0) {
+        spuAddr = 0x4B000;
+    }
+    {
+        s32 *ptr = D_80074F08;
+        if ((ptr[1] | ptr[7]) && (ptr[0] & 0x400)) {
+            spuAddr -= 0x20000;
+            a1 = a0;
+        } else {
+            a1 = a0;
+        }
+        a0 += 0x40;
+        SpuSetTransferStartAddr(spuAddr);
+        sndDmaWriteSpu(a0, *(s32 *)(a1 + 0x10));
+        *(s32 *)(a1 + 0x20) = spuAddr;
+        func_8001A57C(a1, (s32)D_80073C38, 0x70);
+    }
+    goto done;
+fail:
+    D_80073C58 = 0;
+done:
+    return result;
+}
 
 /**
  * @brief Write masked volume to SPU command buffer and dispatch.
@@ -853,6 +939,19 @@ void sndCmdED(s32 a0, s32 a1) {
     func_8001A1E8(0xED);
 }
 
+/**
+ * @brief Validate bank and dispatch SPU command 0xEC with encoded parameters.
+ *
+ * Validates the sound bank at @p a0. If valid, determines SPU address
+ * (0x51000 or 0x4B000, adjusted if engine flag bit 10 set), then writes
+ * a0, (a1 & 0xFF) << 8, spuAddr, and a3 to D_80075058 and dispatches
+ * command 0xEC.
+ *
+ * @param a0 Sound bank address.
+ * @param a1 Instrument parameter (masked to 8 bits, shifted left 8).
+ * @param a2 Bank slot selector (0 = primary, nonzero = alternate).
+ * @param a3 Additional parameter stored at D_80075058[3].
+ */
 INCLUDE_ASM("asm/nonmatchings/snd_init", func_8001451C);
 
 /**

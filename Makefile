@@ -45,10 +45,10 @@ PSYQ43_SN_PATH   := $(PSYQ43_DIR)
 PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
-PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c
+PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c src/snd_cmd.c
 
 # Source files compiled without -G0 (default is -G0)
-NO_G0_SRCS := src/main.c
+NO_G0_SRCS := src/main.c src/snd_cmd.c
 
 # Source files compiled with -G4 (globals ≤4 bytes use assembler pseudo expansion)
 G4_SRCS := src/game.c
@@ -110,7 +110,7 @@ $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
-		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(CCPSXFLAGS) $< -o $(BUILD_DIR)/$(*F).s && \
+		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS))) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
 		SN_PATH=$(if $(filter $<,$(O0_SRCS)),$(PSYQ40_SN_PATH),$(PSYQ41_SN_PATH)) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)))) $< -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(if $(filter $<,$(O0_EXPAND_LI_SRCS)),,$(if $(filter $<,$(O0_SRCS)),$(PSYQ40_MASPSXFLAGS),$(PSYQ41_MASPSXFLAGS))) --run-assembler $(ASFLAGS) -o $@)
