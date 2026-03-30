@@ -40,7 +40,7 @@ options:
   # Misc
   disassemble_all: True
   section_order: [".rodata", ".text", ".data", ".bss"]
-  subalign: 2
+  subalign: 4
   o_as_suffix: True
   use_legacy_include_asm: False
   generate_asm_macros_files: False
