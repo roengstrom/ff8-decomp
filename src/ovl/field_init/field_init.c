@@ -174,28 +174,118 @@ void func_80098390(void) {
     func_800983B8();
 }
 
+/** @brief Animation frame data (0x14 bytes per frame). */
+typedef struct {
+    u8 data[0x14];
+} AnimFrame;
+
+/** @brief Entity identity at tail of AnimEntity. */
+typedef struct {
+    u8 entityId;
+    u8 entityType;
+} AnimEntityTail;
+
+/** @brief Single animation entity (0xC4 bytes). */
+typedef struct {
+    u8 flags;            /* 0x00 */
+    u8 pad01[5];         /* 0x01-0x05 */
+    u8 field_06[2];      /* 0x06-0x07 */
+    u8 pad08[3];         /* 0x08-0x0A */
+    u8 field_0B;         /* 0x0B */
+    u8 field_0C;         /* 0x0C */
+    u8 field_0D;         /* 0x0D */
+    u8 field_0E;         /* 0x0E */
+    u8 field_0F;         /* 0x0F */
+    s16 field_10;        /* 0x10 */
+    s16 field_12;        /* 0x12 */
+    u16 field_14;        /* 0x14 */
+    s16 field_16;        /* 0x16 */
+    u8 pad18;            /* 0x18 */
+    u8 field_19;         /* 0x19 */
+    u8 pad1A;            /* 0x1A */
+    u8 field_1B;         /* 0x1B */
+    AnimFrame frames[8]; /* 0x1C-0xBB */
+    u8 colors[6];        /* 0xBC-0xC1 */
+    AnimEntityTail tail;  /* 0xC2-0xC3 */
+} AnimEntity;
+
+/** @brief Top-level animation data block (D_80082DD0). */
+typedef struct {
+    AnimEntity entities[2];
+    u8 pad188[0x58];
+    u8 field_1E0;
+    u8 field_1E1;
+    u8 pad1E2;
+    u8 field_1E3;
+} AnimData;
+
+extern AnimData D_80082DD0;
+
 /**
- * @brief Initialize two render context structs for the field display system.
+ * @brief Initialize the two animation entities to default state.
  *
- * Sets global display parameters (default color intensity, blend mode) in the
- * BattleAnimEntity header area at D_80082DD0:
- *   - D_80082DD0[0x1E0] = 0x10 (default color intensity)
- *   - D_80082DD0[0x1E1] = 5 (blend mode)
- *   - D_80082DD0[0x1E3] = 0
- *
- * Calls setBattleAnimClipRect with a full-screen RECT(0, 0, 320, 224) to set display
- * bounds, then loops twice (i = 0..1) to initialize each of the two 0xC4-byte
- * BattleAnimEntity structs:
- *   1. Calls initAnimEntityColor(i) to copy default color into entity RGBX fields
- *   2. Sets field19 (active flag) to 1
- *   3. Sets unk10[0..3] to {0xFFF, 0x5000, 0xA000, 0x900}
- *   4. Clears frame data bytes (entry[1..7] offset +6) with a fill loop
- *   5. Sets pad00[0] to 0x40 and clears pad00[6]
- *   6. Runs a delay spin loop (5 iterations)
- *   7. Fills padBC[0..5] with 0xFF (opacity region)
- *   8. Clears opacity (0x1B) and field0B (0x0B)
- *   9. Calls setAnimGlobalCoords(i, 0, 0) to reset display coordinates
- *  10. Sets fieldC3 to 0x31 and linkedIdx to i
- *  11. Clears field0C..field0F (color fields)
+ * Sets global display parameters (color intensity=16, blend mode=5),
+ * configures the screen clip rect to 320x224, then initializes each
+ * entity with default rendering params, full-brightness colors, and
+ * zeroed animation state.
  */
-INCLUDE_ASM("asm/ovl/field_init/nonmatchings/field_init", func_800983B8);
+void func_800983B8(void) {
+    s16 clipRect[4];
+    AnimEntity *entity;
+    s32 i, j;
+
+    D_80082DD0.field_1E0 = 16;
+    D_80082DD0.field_1E1 = 5;
+    D_80082DD0.field_1E3 = 0;
+
+    clipRect[0] = 0;
+    clipRect[1] = 0;
+    clipRect[2] = 320;
+    clipRect[3] = 224;
+    setBattleAnimClipRect(clipRect);
+
+    entity = D_80082DD0.entities;
+    i = 0;
+
+    do {
+        do { entity++; entity--; } while (0); /* Regalloc: boost entity priority */
+        initAnimEntityColor(i);
+
+        entity->field_19 = 1;
+        {
+            s16 *p = &entity->field_10;
+            p[0] = 0xFFF;
+            p[1] = 0x5000;
+            *(u16 *)&p[2] = 0xA000;
+            p[3] = 0x900;
+        }
+
+        for (j = 0; j < 2; j++) {
+            entity->field_06[j] = 0;
+        }
+
+        entity->flags = 0x40;
+
+        for (j = 0; j < 6; j++) {
+            /* empty spin */
+        }
+
+        *(volatile u8 *)&entity->field_06[0] = 0;
+
+        for (j = 0; j < 6; j++) {
+            entity->colors[j] = 0xFF;
+        }
+
+        entity->field_1B = 0;
+        entity->field_0B = 0;
+        entity->tail.entityType = 0x31;
+        setAnimGlobalCoords(i, 0, 0);
+
+        entity->field_0C = 0;
+        entity->field_0D = 0;
+        entity->field_0E = 0;
+        entity->field_0F = 0;
+        entity->tail.entityId = i++;
+        entity++;
+    } while (i < 2);
+}
