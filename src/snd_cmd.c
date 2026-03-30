@@ -94,7 +94,14 @@ void sndVoiceCmdSetVolume(u8 *a0, s32 a1) {
  *
  * @param a0 Pointer to the voice control structure.
  */
-INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BC0C);
+void func_8003BC0C(SndVoice *voice) {
+    voice->cmdType = 0x4B;
+    voice->cmdDataPtr = 0;
+    voice->cmdSize = 0;
+}
+/* FIXME: trailing nop is compilation unit padding; should be removed
+   once splat supports proper segment address pinning in linker scripts. */
+INCLUDE_ASM("src/asm", func_8003BC20);
 
 
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BC24);
