@@ -45,10 +45,10 @@ PSYQ43_SN_PATH   := $(PSYQ43_DIR)
 PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
-PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c src/snd_cmd.c src/snd_cmd2.c src/snd_cmd3.c src/snd_cmd4.c src/snd_cmd5.c
+PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c src/snd_cmd.c
 
 # Source files compiled without -G0 (default is -G0)
-NO_G0_SRCS := src/main.c src/snd_cmd.c src/snd_cmd2.c src/snd_cmd3.c src/snd_cmd4.c src/snd_cmd5.c
+NO_G0_SRCS := src/main.c src/snd_cmd.c
 
 # Source files compiled with -G4 (globals ≤4 bytes use assembler pseudo expansion)
 G4_SRCS := src/game.c
