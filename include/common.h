@@ -26,4 +26,27 @@ typedef int s32;
 /* Clamp value to [lo, hi] range. */
 #define CLAMP(val, lo, hi) ((val) < (lo) ? (lo) : (val) > (hi) ? (hi) : (val))
 
+/* Keep a variable alive to prevent the compiler from optimizing it away. */
+#define KEEP_ALIVE(x) asm volatile("" :: "r"(x))
+
+/*
+ * Scratchpad GP macros — swap $gp to point at PS1 scratchpad RAM (0x1F800300)
+ * for fast temporary buffer access, then restore original $gp afterward.
+ */
+#define GP_SAVE(out) \
+    asm volatile("addu %0, $gp, $0" : "=r"(out))
+#define GP_SET_SCRATCH() \
+    asm volatile( \
+        "lui   $7, 0x1F80\n" \
+        "ori   $7, $7, 0x0300\n" \
+        "addu  $gp, $7, $0" \
+        : : : "gp", "$7" \
+    )
+#define GP_GET(out) \
+    asm volatile("addu %0, $gp, $0" : "=r"(out))
+#define GP_ADVANCE(n) \
+    asm volatile("addi $gp, $gp, " #n : : : "gp")
+#define GP_RESTORE(in) \
+    asm volatile("addu $gp, %0, $0" : : "r"(in) : "gp")
+
 #endif /* COMMON_H */
