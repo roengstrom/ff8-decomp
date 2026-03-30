@@ -393,7 +393,11 @@ void sndDisableReverb(u32 a0) {
  * @param a0 Input value to shift.
  * @return a0 * 256 (full 32-bit result, not truncated).
  */
-INCLUDE_ASM("asm/nonmatchings/snd_init", func_800133D8);
+s32 func_800133D8(s32 arg0) {
+    arg0 <<= 8;
+    func_8003ED24((s16)arg0, (s16)arg0);
+    return arg0;
+}
 
 /** @brief If a0 is non-zero, sets bit 0x10 in D_80077288[1]; otherwise clears it. Returns 0. */
 s32 sndSetEngineFlag(s32 a0) {
