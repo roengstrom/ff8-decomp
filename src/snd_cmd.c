@@ -89,10 +89,17 @@ void sndVoiceCmdSetVolume(u8 *a0, s32 a1) {
 
 /**
  * @brief Send a "stop" command (0x4B) to a sound voice.
+ * @param voice Pointer to the voice control structure.
  *
- * Sets the command byte to 0x4B, clears the data pointer and payload size.
- *
- * @param a0 Pointer to the voice control structure.
+ * Blocked by trailing nop at 0x8003BC20 (compilation unit padding).
+ * Matching C:
+ * @code
+ * void func_8003BC0C(SndVoice *voice) {
+ *     voice->cmdType = 0x4B;
+ *     voice->cmdDataPtr = 0;
+ *     voice->cmdSize = 0;
+ * }
+ * @endcode
  */
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BC0C);
 
