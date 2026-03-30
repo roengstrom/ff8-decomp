@@ -2,6 +2,7 @@
 #include "sound.h"
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
+
 /**
  * @brief Send a "play note" command (0x43) to a sound voice.
  *
@@ -93,10 +94,6 @@ void sndVoiceCmdSetVolume(u8 *a0, s32 a1) {
  *
  * @param a0 Pointer to the voice control structure.
  */
-void func_8003BC0C(SndVoice *voice) {
-    voice->cmdType = 0x4B;
-    voice->cmdDataPtr = 0;
-    voice->cmdSize = 0;
-}
-/* Compilation unit padding nop at 0x8003BC20 */
-INCLUDE_ASM("src/asm", func_8003BC20);
+INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BC0C);
+
+
