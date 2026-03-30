@@ -282,6 +282,9 @@ build-overlays: $(foreach ovl,$(OVERLAYS),build-$(ovl))
 ### Progress report (objdiff) ###
 OBJDIFF := tools/objdiff/objdiff
 
+expected:
+	@python3 tools/objdiff/build_expected.py
+
 objdiff-config:
 	@python3 tools/objdiff/objdiff_generate.py
 
@@ -290,5 +293,5 @@ report: objdiff-config
 	@python3 tools/objdiff/progress_html.py $(BUILD_DIR)/progress.json $(BUILD_DIR)/progress.html
 
 .PHONY: all build verify setup setup-toolchain split clean permute build-overlays \
-        objdiff-config report \
+        expected objdiff-config report \
         $(foreach ovl,$(OVERLAYS),split-$(ovl) build-$(ovl) verify-$(ovl))

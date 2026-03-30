@@ -14,6 +14,7 @@ BUILD = ROOT / "build"
 
 # Main binary source .o files
 MAIN_SRC_DIR = BUILD / "src"
+EXPECTED = ROOT / "expected"
 # Overlay source .o files pattern: build/ovl/<name>/src/ovl/<name>/<name>.o
 
 CATEGORIES = [
@@ -59,9 +60,10 @@ def find_units():
             if o_file.name in IGNORED:
                 continue
             name = o_file.stem
+            expected_o = EXPECTED / "build" / "src" / o_file.name
             units.append({
                 "name": f"src/{name}",
-                "target_path": str(o_file.relative_to(ROOT)),
+                "target_path": str(expected_o.relative_to(ROOT)) if expected_o.exists() else str(o_file.relative_to(ROOT)),
                 "base_path": str(o_file.relative_to(ROOT)),
                 "metadata": {"progress_categories": ["main"]},
             })
@@ -91,9 +93,10 @@ def find_units():
                 continue
             for o_file in sorted(src_dir.glob("*.o")):
                 name = o_file.stem
+                expected_o = EXPECTED / "build" / "ovl" / ovl_name / "src" / "ovl" / ovl_name / o_file.name
                 units.append({
                     "name": f"ovl/{ovl_name}/{name}",
-                    "target_path": str(o_file.relative_to(ROOT)),
+                    "target_path": str(expected_o.relative_to(ROOT)) if expected_o.exists() else str(o_file.relative_to(ROOT)),
                     "base_path": str(o_file.relative_to(ROOT)),
                     "metadata": {"progress_categories": [ovl_name]},
                 })
