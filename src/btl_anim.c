@@ -15,7 +15,7 @@ extern u8 g_animFlag;
 extern CardDataBlock D_80082FB4;
 extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
 extern u16 g_animState;
-extern s32 D_800834C0;
+extern DisplayListBuf *D_800834C0; /**< Pointer to active display list buffer. */
 extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
 extern s16 g_cardFileSlot;   /* save slot index */
 extern u8 g_cardFileType;    /* card/save type */
@@ -1950,7 +1950,7 @@ void renderDisplay(s32 a0) {
  * @return The pktAlloc field of the DisplayListBuf pointed to by D_800834C0.
  */
 s32 getDisplayListHead(void) {
-    return ((DisplayListBuf *)D_800834C0)->pktAlloc;
+    return D_800834C0->pktAlloc;
 }
 
 
@@ -1959,7 +1959,7 @@ s32 getDisplayListHead(void) {
  * @return The pktBase field of the DisplayListBuf pointed to by D_800834C0.
  */
 s32 getDisplayListPacketPtr(void) {
-    return ((DisplayListBuf *)D_800834C0)->pktBase;
+    return D_800834C0->pktBase;
 }
 
 
@@ -1989,14 +1989,40 @@ void storeGpuPacket(s32 pkt) {
 
 /** @brief Returns the address of the ordering table (DisplayListBuf.ot) in the active buffer. */
 s32 getDisplayListOtBase(void) {
-    return D_800834C0 + 8; /* offset of ot[] in DisplayListBuf */
+    return (s32)D_800834C0 + 8; /* offset of ot[] in DisplayListBuf */
 }
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
+/**
+ * @brief Link a GPU primitive into the ordering table and return scratchpad pointer.
+ *
+ * Redirects GP to scratchpad RAM, builds a display list packet, then links
+ * the primitive into the last OT entry (ot[17]) using P_TAG address swapping.
+ *
+ * @param colorTag Pointer to the primitive's P_TAG word.
+ * @return Scratchpad buffer pointer.
+ */
+s32 func_8002AA18(s32 *colorTag) {
+    u32 *ot;
+    s32 head;
+    s32 result;
+
+    GP_SAVE_SCRATCH();
+
+    ot = D_800834C0->ot;
+    head = getDisplayListHead();
+    head = func_8002BF24((s32)ot, head);
+    storeGpuPacket(head);
+
+    setaddr(&ot[17], getaddr(colorTag));
+    setaddr(colorTag, (s32)ot);
+
+    GP_RESTORE_RET(result);
+    return result;
+}
 
 
 /**

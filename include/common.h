@@ -49,4 +49,26 @@ typedef int s32;
 #define GP_RESTORE(in) \
     asm volatile("addu $gp, %0, $0" : : "r"(in) : "gp")
 
+/*
+ * Combined GP save+set scratchpad macro — saves $gp to $s2, sets $gp to
+ * scratchpad via $a2. Used by btl_anim display list functions.
+ */
+#define GP_SAVE_SCRATCH() \
+    asm volatile( \
+        "addu $s2, $gp, $zero\n\t" \
+        "lui $a2, 0x1F80\n\t" \
+        "ori $a2, $a2, 0x0300\n\t" \
+        "addu $gp, $a2, $zero" \
+        ::: "$18")
+
+/*
+ * Combined GP get return + restore macro — captures $gp (scratchpad pointer)
+ * into ret, then restores original $gp from $s2.
+ */
+#define GP_RESTORE_RET(ret) \
+    asm volatile( \
+        "addu %0, $gp, $zero\n\t" \
+        "addu $gp, $s2, $zero" \
+        : "=r"(ret))
+
 #endif /* COMMON_H */
