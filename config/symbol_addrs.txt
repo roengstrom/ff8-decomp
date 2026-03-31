@@ -1324,6 +1324,7 @@ sfxUpdate = 0x8004E720;
 cdTick = 0x8004DFF4;
 g_cardFlag = 0x80082FD4;
 g_animState = 0x80083794;
+g_cardFileActive = 0x80052958;
 g_cardFilename = 0x800837A0; // size:12
 g_cardFileSlot = 0x800837AC;
 g_cardFileType = 0x800837AE;

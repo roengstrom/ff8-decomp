@@ -19,7 +19,7 @@ extern s32 D_800834C0;
 extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
 extern s16 g_cardFileSlot;   /* save slot index */
 extern u8 g_cardFileType;    /* card/save type */
-extern u8 D_80052958;
+extern u8 g_cardFileActive;
 extern u8 D_800101C4[];
 extern u8 D_800101CC[];
 extern u8 D_800101D0[];
@@ -1659,11 +1659,11 @@ void encodeCardFilename(u8 *str, s16 slot, s8 type) {
     g_cardFileType = type;
 
     if (str == NULL) {
-        D_80052958 = 0;
+        g_cardFileActive = 0;
         return;
     }
 
-    D_80052958 = 1;
+    g_cardFileActive = 1;
     /* Regalloc: out++/-- boosts out to s1 so str stays in s3 */
     out++;
     out--;
@@ -1701,13 +1701,13 @@ done:
 /**
  * @brief Apply a transformation or encoding to a value if a global flag is set.
  * @param a0 First parameter (context or key).
- * @param a1 Value to potentially transform; returned unchanged if D_80052958 is 0.
- * @return Transformed a1 if D_80052958 is nonzero, otherwise the original a1.
+ * @param a1 Value to potentially transform; returned unchanged if g_cardFileActive is 0.
+ * @return Transformed a1 if g_cardFileActive is nonzero, otherwise the original a1.
  * @note When active, calls func_8002E8DC with card file info globals,
  *       then applies func_8002A45C to the result.
  */
 s32 transformValueIfActive(s32 a0, s32 a1) {
-    if (D_80052958 != 0) {
+    if (g_cardFileActive != 0) {
         s32 result = func_8002E8DC(a0, a1, g_cardFileSlot, g_cardFileType, (u8 *)g_cardFilename, 7);
         a1 = func_8002A45C(a0, result);
     }
@@ -2000,16 +2000,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
 
 
-/**
- * @brief Initialize the battle display system.
- *
- * Sets up display list buffers at g_battleAnims+0x694, computes half-size
- * offsets, then initializes all battle subsystems (entities, SFX, GPU colors,
- * camera, transitions, etc.).
- *
- * @param bufAddr Display buffer base address.
- * @param bufSize Display buffer size (halved internally).
- */
+
 /**
  * @brief Initialize the battle display system.
  *
