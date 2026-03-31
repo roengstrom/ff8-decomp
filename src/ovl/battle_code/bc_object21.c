@@ -190,14 +190,14 @@ void func_800DF794(void) {
 /**
  * @brief Call three animation functions in sequence.
  *
- * Calls storeGpuPacket with a1, func_8002AA18 with a0, then getDisplayListHead.
+ * Calls storeGpuPacket with a1, linkPrimToOT with a0, then getDisplayListHead.
  *
  * @param a0 Second animation parameter.
  * @param a1 First animation parameter.
  */
 void func_800DF7C8(s32 a0, s32 a1) {
     storeGpuPacket(a1);
-    func_8002AA18(a0);
+    linkPrimToOT(a0);
     getDisplayListHead();
 }
 

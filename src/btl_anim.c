@@ -2005,7 +2005,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
  * @param colorTag Pointer to the primitive's P_TAG word.
  * @return Scratchpad buffer pointer.
  */
-s32 func_8002AA18(s32 *colorTag) {
+s32 linkPrimToOT(s32 *colorTag) {
     u32 *ot;
     s32 head;
     s32 result;
