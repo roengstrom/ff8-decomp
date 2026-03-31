@@ -20,6 +20,8 @@ extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
 extern s16 g_cardFileSlot;   /* save slot index */
 extern u8 g_cardFileType;    /* card/save type */
 extern u8 g_cardFileActive;
+extern u8 g_animCurveFadeOut[];
+extern u8 g_animCurveFadeIn[];
 extern u8 D_800101C4[];
 extern u8 D_800101CC[];
 extern u8 D_800101D0[];
@@ -1997,7 +1999,30 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
+void func_8002AAC0(void)
+{
+    u8 *src = g_animCurveFadeOut;
+    u8 *dst;
+    s32 val, i;
+
+    val = 0x1000;
+    src = g_animCurveFadeOut + 64;
+    *src = 64;
+    for (i = 0; i < 64; i++) {
+        src--;
+        *src = val / 64;
+        val = val * 9 / 10;
+    }
+
+    src = g_animCurveFadeOut;
+    dst = g_animCurveFadeIn;
+    src += 65;
+    for (i = 0; i < 64; i++) {
+        src--;
+        *dst = *src;
+        dst++;
+    }
+}
 
 
 
