@@ -424,7 +424,7 @@ void initFieldModule(void) {
 /** @brief Extended battle/visual initialization — loads multiple CD assets.
  *
  *  1. Loads overlay via loadCdOverlay.
- *  2. Initializes a 0x6000-byte buffer at D_8006A468 via func_8002AB5C.
+ *  2. Initializes a 0x6000-byte buffer at D_8006A468 via initBattleAnimSystem.
  *  3. Loads and uploads textures to VRAM via loadAndUploadTextures.
  *  4. Loads battle entity/model data and processes it via loadBattleTimImage.
  *  5. Loads a lookup table and copies 0x200 bytes via func_80039678.
@@ -436,7 +436,7 @@ void initBattleAssets(void) {
     extern u8 D_8005F188[];
 
     loadCdOverlay();
-    func_8002AB5C((s32)D_8006A468, 0x6000);
+    initBattleAnimSystem((s32)D_8006A468, 0x6000);
     loadAndUploadTextures();
 
     cdRead(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, 0);

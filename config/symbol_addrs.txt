@@ -1361,3 +1361,4 @@ remapPartyBitmask = 0x80030F10; // type:func
 renderAnimOverlay = 0x80031CDC; // type:func
 stepAnimEntries = 0x80031954; // type:func
 findBestBattleCmd = 0x80030754; // type:func
+initBattleAnimSystem = 0x8002AB5C; // type:func

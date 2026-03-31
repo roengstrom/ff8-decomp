@@ -2011,7 +2011,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
  * @param bufAddr Display buffer base address.
  * @param bufSize Display buffer total size (halved internally for double buffering).
  */
-void func_8002AB5C(s32 vramBase, s32 vramSize)
+void initBattleAnimSystem(s32 vramBase, s32 vramSize)
 {
     s32 i;
     s32 half = vramSize / 2;
