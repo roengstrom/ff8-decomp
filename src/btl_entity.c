@@ -95,22 +95,22 @@ s32 getMaxBattleEntities(void) {
 }
 
 
-extern u8 D_80083840;
+extern u8 g_digitBaseCode;
 /**
- * @brief Get the current value of the global flag D_80083840.
- * @return The flag value as an unsigned byte.
+ * @brief Get the FF8 font code for digit '0'.
+ * @return Base character code for rendering digits in battle.
  */
-u8 getBattleFlag(void) {
-    return D_80083840;
+u8 getDigitBaseCode(void) {
+    return g_digitBaseCode;
 }
 
 
 /**
- * @brief Set the global flag D_80083840.
- * @param val The new flag value to store.
+ * @brief Set the FF8 font code for digit '0'.
+ * @param val Base character code from the menu string table.
  */
-void setBattleFlag(u8 val) {
-    D_80083840 = val;
+void setDigitBaseCode(u8 val) {
+    g_digitBaseCode = val;
 }
 
 

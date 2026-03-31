@@ -2041,7 +2041,7 @@ void func_8002AB5C(s32 vramBase, s32 vramSize)
     btlColorStub1044();
     initBattleTransition();
     clearAnimEntries();
-    setBattleFlag(((u8 *)getMenuString(0xB))[1]);
+    setDigitBaseCode(((u8 *)getMenuString(0xB))[1]);
     g_battleAnims.pad980[6] = 0;
     g_cardFileActive = 0;
 }
@@ -2161,8 +2161,6 @@ void setBattleEntityRectClamp(s32 idx, RECT *src) {
     }
 }
 
-
-// battle_entity_get_field_38 - g_battleEntities stride 64
 
 /**
  * @brief Get a battle entity's bounding rectangle.
