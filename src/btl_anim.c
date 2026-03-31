@@ -2007,7 +2007,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
  * its reverse. Used by battle transition interpolation to ease
  * coordinates between start and end positions.
  */
-void func_8002AAC0(void)
+void buildAnimEasingCurves(void)
 {
     u8 *src = g_animCurveFadeOut;
     u8 *dst;
@@ -2066,7 +2066,7 @@ void initBattleAnimSystem(s32 vramBase, s32 vramSize)
     buildGrayscaleGpuColor(0x1000);
     setMenuColorIntensity(0x1000);
     btlColorStub0234();
-    func_8002AAC0();
+    buildAnimEasingCurves();
     resetBattleCameraState();
     initBattleCmdEntries();
     setAnimEntityOpacity(0, 0);
