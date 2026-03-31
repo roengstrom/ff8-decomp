@@ -2077,7 +2077,21 @@ void setBattleEntitySubField(s32 idx, s32 offset, s32 val) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002ACF4);
+/**
+ * @brief Get a byte from a battle entity's subFields array.
+ *
+ * @note The compiler shares the g_battleEntities base address (v0) from the
+ * preceding setBattleEntitySubField. The `register idx` redeclaration
+ * preserves this cross-function optimization.
+ *
+ * @param idx Entity index (arrives pre-computed as entity pointer in v0).
+ * @param offset Index into the subFields array.
+ * @return Byte value at the given subField offset.
+ */
+u8 getBattleEntitySubField(s32 idx, s32 offset) {
+    register idx;
+    return *((u8 *)idx + offset + 0x3A);
+}
 
 
 /**
