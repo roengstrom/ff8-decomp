@@ -16,9 +16,9 @@ extern CardDataBlock D_80082FB4;
 extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
 extern u16 g_animState;
 extern s32 D_800834C0;
-extern s16 D_800837AC;
-extern u8 D_800837A0[];
-extern u8 D_800837AE;
+extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
+extern s16 g_cardFileSlot;   /* save slot index */
+extern u8 g_cardFileType;    /* card/save type */
 extern u8 D_80052958;
 extern u8 D_800101C4[];
 extern u8 D_800101CC[];
@@ -1644,12 +1644,12 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", encodeCardFilename);
  * @param a0 First parameter (context or key).
  * @param a1 Value to potentially transform; returned unchanged if D_80052958 is 0.
  * @return Transformed a1 if D_80052958 is nonzero, otherwise the original a1.
- * @note When active, calls func_8002E8DC with parameters from D_800837A0/AC/AE globals,
+ * @note When active, calls func_8002E8DC with card file info globals,
  *       then applies func_8002A45C to the result.
  */
 s32 transformValueIfActive(s32 a0, s32 a1) {
     if (D_80052958 != 0) {
-        s32 result = func_8002E8DC(a0, a1, D_800837AC, D_800837AE, (s32)D_800837A0, 7);
+        s32 result = func_8002E8DC(a0, a1, g_cardFileSlot, g_cardFileType, (u8 *)g_cardFilename, 7);
         a1 = func_8002A45C(a0, result);
     }
     return a1;
