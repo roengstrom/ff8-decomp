@@ -39,24 +39,35 @@ typedef struct {
     u8 fieldC3;
 } BattleAnimEntity;
 
+/** @brief VRAM display buffer with display list pointer. */
+typedef struct {
+    /* 0x00 */ s32 vramAddr;     /**< Current VRAM write address. */
+    /* 0x04 */ u8 pad04[0x4C];   /**< Unknown. */
+    /* 0x50 */ s32 vramBase;     /**< VRAM base address for this buffer. */
+    /* 0x54 */ s32 displayList;  /**< Pointer to GPU display list. */
+} DisplayBuffer; /* 0x58 bytes */
+
 /** @brief Complete battle animation state (entities + global coords). */
 typedef struct {
-    BattleAnimEntity entities[2]; /**< 0x000-0x187: Two animation entities. */
-    u8 cdBufA[0x24];             /**< 0x188: CD audio buffer A. */
-    u8 cdBufB[0x24];             /**< 0x1AC: CD audio buffer B. */
-    s16 globalCoords[2][2];      /**< 0x1D0: Per-slot coords [slot][axis], x=0 y=1. */
-    u8 pad1D8[8];                /**< 0x1D8-0x1DF: Unknown. */
-    u8 defaultColor;             /**< 0x1E0: Default color value for entity init. */
-    u8 pad1E1[0x51B];            /**< 0x1E1-0x6FB: Unknown. */
-    s32 field6FC;                /**< 0x6FC: Cleared during GPU init. */
-    u8 pad700[0x274];            /**< 0x700-0x973: Unknown. */
-    s32 palette[3];              /**< 0x974: RGB888 palette (0x40BBGGRR). */
-    u8 pad980[0x42];             /**< 0x980-0x9C1: Unknown. */
-    s16 field9C2;                /**< 0x9C2: Set to 0x4611 during GPU init. */
-    s16 cdStreamCounter;         /**< 0x9C4: CD stream counter. */
-    u8 pad9C6[2];                /**< 0x9C6-0x9C7: Unknown. */
-    s32 field9C8;                /**< 0x9C8: Cleared during GPU init. */
-    s32 field9CC;                /**< 0x9CC: Cleared during GPU init. */
+    /* 0x000 */ BattleAnimEntity entities[2]; /**< Two animation entities. */
+    /* 0x188 */ u8 cdBufA[0x24];             /**< CD audio buffer A. */
+    /* 0x1AC */ u8 cdBufB[0x24];             /**< CD audio buffer B. */
+    /* 0x1D0 */ s16 globalCoords[2][2];      /**< Per-slot coords [slot][axis]. */
+    /* 0x1D8 */ u8 pad1D8[8];                /**< Unknown. */
+    /* 0x1E0 */ u8 defaultColor;             /**< Default color value for entity init. */
+    /* 0x1E1 */ u8 pad1E1[0x463];            /**< Unknown. */
+    /* 0x644 */ DisplayBuffer buffers[2];     /**< Double-buffered VRAM display buffers. */
+    /* 0x6F4 */ s32 halfSize;                /**< Half of total VRAM size. */
+    /* 0x6F8 */ u8 pad6F8[4];                /**< Unknown. */
+    /* 0x6FC */ s32 field6FC;                /**< Cleared during GPU init. */
+    /* 0x700 */ u8 pad700[0x274];            /**< Unknown. */
+    /* 0x974 */ s32 palette[3];              /**< RGB888 palette (0x40BBGGRR). */
+    /* 0x980 */ u8 pad980[0x42];             /**< Unknown. */
+    /* 0x9C2 */ s16 field9C2;               /**< Set to 0x4611 during GPU init. */
+    /* 0x9C4 */ s16 cdStreamCounter;         /**< CD stream counter. */
+    /* 0x9C6 */ u8 pad9C6[2];                /**< Unknown. */
+    /* 0x9C8 */ s32 field9C8;                /**< Cleared during GPU init. */
+    /* 0x9CC */ s32 field9CC;                /**< Cleared during GPU init. */
 } BattleAnimState;
 
 extern BattleAnimState g_battleAnims;

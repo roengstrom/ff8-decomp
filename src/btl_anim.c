@@ -2011,7 +2011,40 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AAC0);
  * @param bufAddr Display buffer base address.
  * @param bufSize Display buffer total size (halved internally for double buffering).
  */
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AB5C);
+void func_8002AB5C(s32 vramBase, s32 vramSize)
+{
+    s32 i;
+    s32 half = vramSize / 2;
+    s32 vramEnd = vramBase + half;
+
+    g_battleAnims.buffers[0].vramBase = vramBase;
+    g_battleAnims.buffers[1].vramBase = vramEnd;
+    g_battleAnims.halfSize = half;
+
+    for (i = 0; i < 2; i++) {
+        g_battleAnims.buffers[i].vramAddr = g_battleAnims.buffers[i].vramBase + half - 0x800;
+    }
+
+    g_battleAnims.buffers[1].displayList = (s32)&g_battleAnims.buffers[0].displayList;
+    swapDisplayList();
+    initAllBattleEntities();
+    resetAllSfx();
+    setDefaultGpuColor();
+    buildGrayscaleGpuColor(0x1000);
+    setMenuColorIntensity(0x1000);
+    btlColorStub0234();
+    func_8002AAC0();
+    resetBattleCameraState();
+    initBattleCmdEntries();
+    setAnimEntityOpacity(0, 0);
+    setAnimEntityOpacity(1, 0);
+    btlColorStub1044();
+    initBattleTransition();
+    clearAnimEntries();
+    setBattleFlag(((u8 *)getMenuString(0xB))[1]);
+    g_battleAnims.pad980[6] = 0;
+    g_cardFileActive = 0;
+}
 
 
 
