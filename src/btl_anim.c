@@ -2086,6 +2086,14 @@ void setBattleEntitySubField(s32 idx, s32 offset, s32 val) {
  * optimization cannot be reproduced from natural struct access, so pointer
  * math with `register` redeclaration is used to match.
  *
+ * Original code:
+ * @code
+ * u8 getBattleEntitySubField(s32 idx, s32 offset) {
+ *     BattleDisplayEntity *entity = &g_battleEntities[idx];
+ *     return entity->subFields[offset];
+ * }
+ * @endcode
+ *
  * @param idx Entity index (arrives pre-computed as entity pointer in v0).
  * @param offset Index into the subFields array.
  * @return Byte value at the given subField offset.
