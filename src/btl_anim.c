@@ -2002,10 +2002,10 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
  * Redirects GP to scratchpad RAM, builds a display list packet, then links
  * the primitive into the last OT entry (ot[17]) using P_TAG address swapping.
  *
- * @param colorTag Pointer to the primitive's P_TAG word.
+ * @param prim Pointer to the primitive's P_TAG word.
  * @return Scratchpad buffer pointer.
  */
-s32 addPrimitive(s32 *colorTag) {
+s32 addPrimitive(s32 *prim) {
     u32 *ot;
     s32 head;
     s32 result;
@@ -2017,8 +2017,8 @@ s32 addPrimitive(s32 *colorTag) {
     head = func_8002BF24((s32)ot, head);
     storeGpuPacket(head);
 
-    setaddr(&ot[17], getaddr(colorTag));
-    setaddr(colorTag, (s32)ot);
+    setaddr(&ot[17], getaddr(prim));
+    setaddr(prim, (s32)ot);
 
     GP_RESTORE_RET(result);
     return result;

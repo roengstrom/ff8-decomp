@@ -1481,3 +1481,4 @@ spuSetTransferControl = 0x80014DFC;
 sndStopTrack = 0x800188B4;
 g_animCurveFadeOut = 0x800837B0;
 g_animCurveFadeIn = 0x800837F8;
+addPrimitive = 0x8002AA18; // type:func
