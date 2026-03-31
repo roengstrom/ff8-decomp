@@ -1636,7 +1636,66 @@ void initBattleSubsystems(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", encodeCardFilename);
+/**
+ * @brief Encode an ASCII filename into FF8's internal character encoding.
+ *
+ * Converts up to 8 ASCII characters (digits 0-9, letters A-Z/a-z) into
+ * FF8 font indices using the menu string table at index 0x0B. Letters
+ * are case-insensitive (uppercased via & 0xDF). Non-alphanumeric chars
+ * are skipped. Sets the global card file slot and type.
+ *
+ * @param str ASCII filename (NULL = mark inactive and return).
+ * @param slot Save slot index.
+ * @param type Card/save type.
+ */
+void encodeCardFilename(u8 *str, s16 slot, s8 type) {
+    s8 *out = g_cardFilename;
+    s32 count = 0;
+    s32 ch;
+    s32 digit;
+    int base;
+
+    g_cardFileSlot = slot;
+    g_cardFileType = type;
+
+    if (str == NULL) {
+        D_80052958 = 0;
+        return;
+    }
+
+    D_80052958 = 1;
+    /* Regalloc: out++/-- boosts out to s1 so str stays in s3 */
+    out++;
+    out--;
+
+top:
+    ch = *str++;
+    if (ch == 0) goto done;
+    if (count >= 8) goto done;
+
+    digit = ch - '0';
+    if ((u32)digit < 10) {
+        ch = digit;
+        base = ((u8 *)getMenuString(11))[1];
+        count++;
+        goto store;
+    }
+
+    ch = ch & 0xDF;
+    ch = ch - 'A';
+    if ((u32)ch >= 26) goto top;
+
+    base = ((u8 *)getMenuString(11))[11];
+    count++;
+
+store:
+    ch += base;
+    *out++ = ch;
+    goto top;
+
+done:
+    *out = 0;
+}
 
 
 /**
