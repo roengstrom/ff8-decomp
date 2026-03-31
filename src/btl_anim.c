@@ -1999,6 +1999,14 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002AA18);
 
 
+/**
+ * @brief Generate animation easing curve lookup tables.
+ *
+ * Builds g_animCurveFadeOut as an exponential decay curve (each step
+ * is 9/10 of the previous, scaled to 0–64) and g_animCurveFadeIn as
+ * its reverse. Used by battle transition interpolation to ease
+ * coordinates between start and end positions.
+ */
 void func_8002AAC0(void)
 {
     u8 *src = g_animCurveFadeOut;
