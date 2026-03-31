@@ -1365,4 +1365,4 @@ stepAnimEntries = 0x80031954; // type:func
 findBestBattleCmd = 0x80030754; // type:func
 initBattleAnimSystem = 0x8002AB5C; // type:func
 buildAnimEasingCurves = 0x8002AAC0; // type:func
-linkPrimToOT = 0x8002AA18; // type:func
+addPrimitive = 0x8002AA18; // type:func
