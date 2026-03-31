@@ -2080,9 +2080,11 @@ void setBattleEntitySubField(s32 idx, s32 offset, s32 val) {
 /**
  * @brief Get a byte from a battle entity's subFields array.
  *
- * @note The compiler shares the g_battleEntities base address (v0) from the
- * preceding setBattleEntitySubField. The `register idx` redeclaration
- * preserves this cross-function optimization.
+ * Dead code — never called anywhere in the binary. The compiler shared the
+ * g_battleEntities base address (v0) from the preceding setBattleEntitySubField
+ * via cross-function register reuse, producing only 4 instructions. This
+ * optimization cannot be reproduced from natural struct access, so pointer
+ * math with `register` redeclaration is used to match.
  *
  * @param idx Entity index (arrives pre-computed as entity pointer in v0).
  * @param offset Index into the subFields array.
