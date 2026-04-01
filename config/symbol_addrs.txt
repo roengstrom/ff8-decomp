@@ -425,6 +425,7 @@ copyDisplayRect = 0x8002A408; // type:func
 copyDisplayCoords = 0x8002A438; // type:func
 swapDisplayList = 0x8002A528; // type:func
 swapDisplayList2 = 0x8002A588; // type:func
+processBattleAnimFrames = 0x8002A5E8; // type:func
 renderAndUpdateDisplay = 0x8002A834; // type:func
 renderDisplay = 0x8002A868; // type:func
 getDisplayListHead = 0x8002A888; // type:func

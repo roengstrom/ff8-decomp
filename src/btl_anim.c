@@ -9,6 +9,18 @@ void initBattleSubsystems(void);
 s32 func_80047384(void);
 void func_800472E4(void);
 void func_800472F4(void);
+s32 getAnimFrameParam(s32, s32);
+u16 remapPartyBitmask(s32);
+s32 func_80027DB4(s32, s32, s32);
+s32 func_80027CF8(s32, s32, s32);
+s32 getAnimFrameStatusFlags(s32, s32);
+s32 func_8002CF54(s32);
+void decrementSfxCounter(void);
+s32 GetActiveFlag(s32);
+void dispatchBattleEntity(s32, s32, s32);
+void updateCameraVibrate(void);
+void func_8003104C(void);
+void stepAnimEntries(void);
 
 extern u8 g_animInitialized;
 extern u8 g_animFlag;
@@ -1924,24 +1936,101 @@ void swapDisplayList2(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A5E8);
+/**
+ * @brief Process battle animation frames and dispatch to entities.
+ *
+ * In mode 1 (per-frame), builds separate frame/status data for each frame
+ * by remapping party bitmasks, resolving coordinates, and collecting status
+ * flags. In mode 0 (single-frame), computes one frame's data and replicates
+ * it across all frames. Then iterates through frames in reverse, dispatching
+ * each to all active battle entities.
+ *
+ * @param frameCount Number of animation frames to process.
+ * @param mode 1 for per-frame processing, 0 for single-frame broadcast.
+ */
+void processBattleAnimFrames(s32 frameCount, s32 mode) {
+    s32 frameData[8];
+    s32 statusData[8];
+    s32 count = frameCount - 1;
+    s32 statusVal;
+    s32 val;
+    s32 i;
+    s32 j;
+    s32 param;
+    s32 frameVal;
+    s32 upperBits;
+
+    if (mode == 1) {
+        func_800472E4();
+        for (i = count; i >= 0; i--) {
+            param = remapPartyBitmask(getAnimFrameParam(0, i) & 0xFFFF) & 0xFFFF;
+            if ((param & 0xF000) == 0) {
+                val = func_80027DB4(0, 2, i);
+                if (val >= 0) {
+                    param |= func_80027CF8(0, val - 128, func_80027DB4(0, 3, i) - 128);
+                }
+            }
+            param |= remapPartyBitmask(func_80027A58(0, i) & 0xFFFF) << 16;
+            j = i;
+            frameData[j] = param;
+            statusData[j] = remapPartyBitmask(getAnimFrameStatusFlags(0, j) & 0xFFFF) & 0xFFFF;
+        }
+        func_800472F4();
+    } else {
+        func_800472E4();
+        param = remapPartyBitmask(getAnimFrameParam(0, 0) & 0xFFFF) & 0xFFFF;
+        upperBits = remapPartyBitmask(func_80027A58(0, 0) & 0xFFFF) << 16;
+        val = func_80027DB4((0, 0), 2, 0);
+        if (((param & 0xF000) == 0) && (val >= 0)) {
+            param |= func_80027CF8(0, val - 128, func_80027DB4(0, 3, 0) - 128);
+        }
+        func_800472F4();
+        i = count;
+        for (; i >= 0; i--) {
+            if (1) {
+                if (i == 0) {
+                    frameData[0] = param | upperBits;
+                } else {
+                    frameData[i] = param;
+                }
+                statusData[i] = func_8002CF54(param);
+            }
+        }
+    }
+
+    while (count >= 0) {
+        val = statusData[count];
+        param = frameData[count];
+        frameVal = param;
+        statusVal = val;
+        decrementSfxCounter();
+        for (j = 0; j < 8; j++) {
+            if (GetActiveFlag(j)) {
+                dispatchBattleEntity(j, frameVal, statusVal);
+            }
+        }
+        updateCameraVibrate();
+        func_8003104C();
+        stepAnimEntries();
+        count--;
+    }
+}
 
 
-
-/** @brief Calls func_8002A5E8(a0, 0) then advanceBattleTimer(a0).
+/** @brief Calls processBattleAnimFrames(a0, 0) then advanceBattleTimer(a0).
  *  @param a0 Parameter passed to both calls.
  */
 void renderAndUpdateDisplay(s32 a0) {
-    func_8002A5E8(a0, 0);
+    processBattleAnimFrames(a0, 0);
     advanceBattleTimer(a0);
 }
 
 
-/** @brief Calls func_8002A5E8(a0, 1).
+/** @brief Calls processBattleAnimFrames(a0, 1).
  *  @param a0 First parameter.
  */
 void renderDisplay(s32 a0) {
-    func_8002A5E8(a0, 1);
+    processBattleAnimFrames(a0, 1);
 }
 
 
