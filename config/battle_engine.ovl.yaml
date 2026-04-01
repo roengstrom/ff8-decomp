@@ -52,12 +52,5 @@ segments:
       - [0x28CC, c, be_object2]
       - [0x6248, c, be_object3]
       - [0x9BE0, c, be_object4]
-      - [0x2DD78, c, be_object5]
-      - [0x47C54, c, be_object6]
-      - [0x988D4, c, be_object7]
-      - [0x9AD00, c, be_object8]
-      - [0x9DA04, c, be_object9]
-      - [0xA0370, c, be_object10]
-      - [0xA2208, c, be_object11]
-      - [0xA2E44, asm, be_object12]         # data tables (not code)
+      - [0xC58C, asm, be_data]             # data tables: jump tables, animation data, etc. (not code)
   - [0x10AC40]

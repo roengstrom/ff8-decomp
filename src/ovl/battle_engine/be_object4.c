@@ -441,4 +441,3 @@ void func_800A4504(s32 a0, s32 a1) {
     D_801D4B1A = 0x180;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A458C);
