@@ -1993,7 +1993,42 @@ s32 getDisplayListOtBase(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
+/**
+ * @brief Render battle display list and link into ordering table.
+ *
+ * Swaps the display list, runs the full rendering chain (color, entity,
+ * overlay, transform), then links the result into OT entry 17 via P_TAG
+ * address swapping. Uses GP scratchpad for fast buffer access.
+ *
+ * @param colorTag Pointer to the color primitive's P_TAG word.
+ * @return Scratchpad buffer pointer.
+ */
+s32 func_8002A92C(s32 *colorTag) {
+    DisplayListBuf *buf;
+    u32 *ot;
+    s32 head;
+    s32 savedGp;
+    s32 result;
+
+    GP_SAVE_SCRATCH(savedGp);
+
+    swapDisplayList();
+    buf = D_800834C0;
+    head = getDisplayListHead();
+    head = func_800302DC((s32)&buf->ot[1], head);
+    head = func_80031364((s32)&buf->ot[14], head);
+    head = transformValueIfActive((s32)&buf->ot[13], head);
+    head = renderAnimOverlay((s32)&buf->ot[13], head);
+    ot = buf->ot;
+    head = func_8002BF24((s32)ot, head);
+    storeGpuPacket(head + 0x48);
+
+    setaddr(&ot[17], getaddr(colorTag));
+    setaddr(colorTag, (s32)ot);
+
+    GP_RESTORE_RET(savedGp, result);
+    return result;
+}
 
 
 /**
@@ -2008,9 +2043,10 @@ INCLUDE_ASM("asm/nonmatchings/btl_anim", func_8002A92C);
 s32 addPrimitive(s32 *prim) {
     u32 *ot;
     s32 head;
+    s32 savedGp;
     s32 result;
 
-    GP_SAVE_SCRATCH();
+    GP_SAVE_SCRATCH(savedGp);
 
     ot = D_800834C0->ot;
     head = getDisplayListHead();
@@ -2020,7 +2056,7 @@ s32 addPrimitive(s32 *prim) {
     setaddr(&ot[17], getaddr(prim));
     setaddr(prim, (s32)ot);
 
-    GP_RESTORE_RET(result);
+    GP_RESTORE_RET(savedGp, result);
     return result;
 }
 
