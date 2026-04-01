@@ -208,10 +208,54 @@ u16 getAnimFrameStatusFlags(s32 idx, s32 offset) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_80027A58);
+/**
+ * @brief Get a 16-bit animation frame value at offset 0x2C from a linked entity's frame buffer.
+ *
+ * Uses the low bit of a0 as an index into g_battleAnims (stride 196).
+ * Reads linkedIdx at offset 0xC2, then resolves the linked entity.
+ * Computes (frameCounter - offset) & 7 to index into frames[],
+ * and returns the halfword at offset 0x2C within that frame.
+ *
+ * @param idx Entity index (only bit 0 used).
+ * @param offset Frame offset subtracted from the current frame counter.
+ * @return Halfword at frames[sub_idx].field10 (offset 0x2C).
+ */
+u16 func_80027A58(s32 idx, s32 offset) {
+    BattleAnimEntity *base;
+    BattleAnimEntity *entry;
+    BattleAnimEntity *linked;
+    s32 sub_idx;
+    idx &= 1;
+    base = g_battleAnims.entities;
+    entry = base + idx;
+    linked = base + entry->linkedIdx;
+    sub_idx = (linked->frameCounter - offset) & 7;
+    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x2C);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_80027AC8);
+/**
+ * @brief Get a 16-bit animation frame value at offset 0x2E from a linked entity's frame buffer.
+ *
+ * Identical to func_80027A58 but returns the halfword at offset 0x2E
+ * within the resolved animation frame.
+ *
+ * @param idx Entity index (only bit 0 used).
+ * @param offset Frame offset subtracted from the current frame counter.
+ * @return Halfword at frames[sub_idx].field12 (offset 0x2E).
+ */
+u16 func_80027AC8(s32 idx, s32 offset) {
+    BattleAnimEntity *base;
+    BattleAnimEntity *entry;
+    BattleAnimEntity *linked;
+    s32 sub_idx;
+    idx &= 1;
+    base = g_battleAnims.entities;
+    entry = base + idx;
+    linked = base + entry->linkedIdx;
+    sub_idx = (linked->frameCounter - offset) & 7;
+    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x2E);
+}
 
 
 /**
@@ -270,7 +314,28 @@ s32 getBattleAnimLinkedValue(s32 a0) {
 INCLUDE_ASM("asm/nonmatchings/thread", func_80027C00);
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_80027C90);
+/**
+ * @brief Set or clear the high bit (0x80) of a linked entity's fieldC3.
+ *
+ * Looks up g_battleAnims.entities[a0 & 1], follows its linkedIdx to a
+ * second entity, then sets bit 7 of fieldC3 if a1 is nonzero, or clears
+ * it if a1 is zero.
+ *
+ * @param a0 Entity index (only bit 0 used).
+ * @param a1 If nonzero, set bit 7; if zero, clear bit 7.
+ */
+void setBattleAnimLinkedHighBit(s32 a0, s32 a1) {
+    s32 slot;
+    BattleAnimEntity *linked;
+    a0 &= 1;
+    slot = g_battleAnims.entities[a0].linkedIdx;
+    linked = &g_battleAnims.entities[slot];
+    if (a1) {
+        linked->fieldC3 |= 0x80;
+    } else {
+        linked->fieldC3 &= 0x7F;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/thread", func_80027CF8);

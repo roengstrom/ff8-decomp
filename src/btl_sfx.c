@@ -414,7 +414,38 @@ s32 idx;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DF5C);
+/**
+ * @brief Initialize an SFX slot: set active flag, callbacks, entity index, and clear fields.
+ *
+ * Activates the battle entity, assigns update/render callbacks (func_8002D970
+ * and func_8002DBF8), links the entity index, configures the sub-field, calls
+ * initSfxSlot for default values, then clears sequence state and status bits.
+ *
+ * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ */
+void func_8002DF5C(s32 idx) {
+    void func_8002D970(void);
+    void func_8002DBF8(void);
+    SfxEntry *entry = &g_sfxEntries[idx];
+
+    setBattleEntityActive(idx, 1);
+    entry->entityIdx = idx;
+    setBattleEntityField04(idx, (s32)func_8002D970);
+    setBattleEntityField00(idx, (s32)func_8002DBF8);
+    setBattleEntityField35(idx, 0);
+    setBattleEntitySubField(idx, 0, idx);
+    initSfxSlot(idx);
+    {
+        s32 mask = (s32)0xFF7FFFFF;
+        s32 status = *(s32 *)((u8 *)entry + 0x2C);
+        entry->seqState = 0;
+        entry->field30 = 0;
+        entry->field32 = 0;
+        *(s32 *)((u8 *)entry + 0x2C) = status & mask;
+    }
+    setSfxEntryField34(idx, 0);
+    setSfxEntryField38(idx, 0);
+}
 
 
 /**

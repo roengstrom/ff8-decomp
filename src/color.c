@@ -125,7 +125,30 @@ INCLUDE_ASM("asm/nonmatchings/color", func_800341BC);
 INCLUDE_ASM("asm/nonmatchings/color", func_8003431C);
 
 
-INCLUDE_ASM("asm/nonmatchings/color", func_80034830);
+/**
+ * @brief Render three rows of stat delta bars.
+ *
+ * Calls func_8003431C three times with incrementing row index (0, 1, 2)
+ * and a y-offset that advances by 0x32 each row. Returns the result of
+ * the last call.
+ *
+ * @param a0 Render context passed through to func_8003431C.
+ * @param a1 Initial bar value, threaded through each call's return.
+ * @param a2 Color/palette parameter passed on stack to func_8003431C.
+ * @return Result of the final func_8003431C call.
+ */
+s32 func_80034830(s32 a0, s32 a1, s32 a2) {
+    s32 rowWidth = 0x1E;
+    s32 yOffset = 0x22;
+    s32 i = 0;
+    s32 scale = 0x1000;
+    do {
+        a1 = func_8003431C(a0, a1, i, rowWidth, yOffset, scale, a2);
+        i++;
+        yOffset += 0x32;
+    } while (i < 3);
+    return a1;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/color", func_800348C4);

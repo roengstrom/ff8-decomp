@@ -3,6 +3,7 @@
 #include "battle.h"
 
 extern u8 g_tripleTriad;
+extern u16 D_8005EC3E[];
 
 /** @brief Return a pointer to the global item/key item inventory array g_tripleTriad. */
 u8 *getInventoryPtr(void) {
@@ -78,7 +79,22 @@ s32 decrementItem(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/item", func_80023A54);
+/**
+ * @brief Look up the name string pointer for an item.
+ *
+ * Uses the D_8005EC3E offset table to compute a pointer to the
+ * item's name string. Each table entry is a u16 offset relative
+ * to D_8005EC3E - 2.
+ *
+ * @param itemId Item index (0..0x6D).
+ * @return Pointer to item name string, or 0 if itemId >= 0x6E.
+ */
+u8 *func_80023A54(s32 itemId) {
+    if (itemId < 0x6E) {
+        return (u8 *)(D_8005EC3E[itemId] + (s32)D_8005EC3E - 2);
+    }
+    return 0;
+}
 
 
 /**
@@ -109,7 +125,36 @@ s32 isItemPresent(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/item", func_80023B14);
+/**
+ * @brief Get the quantity of an item, or check if a key item is present.
+ *
+ * For consumable items (index < 0x4D): returns the quantity (lower 7 bits)
+ * if the item is marked present (high bit set), or -1 if not present.
+ * For key items (index >= 0x4D): checks the key item bitfield. If the
+ * bit is set, returns whether the item byte equals 0xF0 (1 or 0).
+ * Returns -1 if the key item bit is not set.
+ *
+ * @param a0 Item slot index.
+ * @return Item quantity, 0/1 for key items, or -1 if not present.
+ */
+s32 func_80023B14(s32 a0) {
+    u8 *base = getInventoryPtr();
+    s32 idx;
+    s32 byte_idx;
+
+    if (a0 < 0x4D) {
+        if (base[a0] & 0x80) {
+            return base[a0] & 0x7F;
+        }
+        return -1;
+    }
+    idx = a0 - 0x4D;
+    byte_idx = idx / 8;
+    if (((base + byte_idx)[0x6E] >> (idx - byte_idx * 8)) & 1) {
+        return base[a0] == 0xF0;
+    }
+    return -1;
+}
 
 
 /**
@@ -164,7 +209,12 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80023C48);
  *
  * @return Pseudo-random value in [0, 32767].
  */
-INCLUDE_ASM("asm/nonmatchings/item", func_80023D04);
+s32 func_80023D04(void) {
+    s32 ptr = (s32)getInventoryPtr();
+    s32 seed = *(s32 *)(ptr + 0x7C);
+    *(s32 *)(ptr + 0x7C) = (seed * 69069) + 1;
+    return ((u32)((seed * 69069) + 1)) >> 17;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/item", func_80023D60);

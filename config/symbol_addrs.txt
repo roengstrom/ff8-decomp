@@ -1253,6 +1253,7 @@ sndStreamSetupStereoAlt = 0x8001F370; // type:func
 sndStreamCallbackStereoAltLow = 0x8001F51C; // type:func
 sndStreamCallbackStereoAltHigh = 0x8001F54C; // type:func
 sndStreamInitEngine = 0x8001F57C; // type:func
+func_800146F0 = 0x800146F0; // type:func
 sndValidateBank = 0x80014740; // type:func
 sndDmaCompleteCallback = 0x80014754; // type:func
 sndDmaSetActive = 0x80014778; // type:func

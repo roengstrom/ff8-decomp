@@ -71,4 +71,25 @@ typedef int s32;
         "addu $gp, $s2, $zero" \
         : "=r"(ret))
 
+/*
+ * Variant GP save+set scratchpad macro - saves $gp to $s3 instead of $s2.
+ * Used when $s2 is needed for a function argument.
+ */
+#define GP_SAVE_SCRATCH_S3() \
+    asm volatile( \
+        "addu $s3, $gp, $zero\n\t" \
+        "lui $a2, 0x1F80\n\t" \
+        "ori $a2, $a2, 0x0300\n\t" \
+        "addu $gp, $a2, $zero" \
+        ::: "$19")
+
+/*
+ * Variant GP get return + restore - restores $gp from $s3 instead of $s2.
+ */
+#define GP_RESTORE_RET_S3(ret) \
+    asm volatile( \
+        "addu %0, $gp, $zero\n\t" \
+        "addu $gp, $s3, $zero" \
+        : "=r"(ret))
+
 #endif /* COMMON_H */

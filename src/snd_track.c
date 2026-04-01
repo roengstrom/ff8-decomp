@@ -618,7 +618,25 @@ void sndTrackEnablePitchMod(s32 *a0, s32 a1) {
     D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001D484);
+/**
+ * @brief Disables pitch modulation for the given voice bitmask.
+ *
+ * If the track's channel (offset +0x60) is 0, clears bits in the primary SPU
+ * state (D_80074F08[0x40/4]); otherwise clears bits in D_80075028[0x20/4].
+ * Marks SPU dirty flags with 0x100.
+ *
+ * @param a0 Pointer to the sequence track structure.
+ * @param a1 Bitmask of SPU voices to disable pitch modulation for.
+ */
+void func_8001D484(s32 *a0, s32 a1) {
+    if (((SoundSeqTrack *)a0)->voiceActive == 0) {
+        s32 *p = D_80074F08;
+        p[0x40 / 4] = p[0x40 / 4] & ~a1;
+    } else {
+        D_80075028[0x20 / 4] = D_80075028[0x20 / 4] & ~a1;
+    }
+    D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
+}
 
 /** @brief Sets the halfword at offset 0x9A of a0 to 1. */
 void sndTrackSetTimerActive(SoundSeqTrack *track) {

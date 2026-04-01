@@ -172,7 +172,31 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F548);
 INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F5B4);
 
 
-INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F610);
+/**
+ * @brief Look up a string by index from the global string table and copy it.
+ *
+ * Reads the string table pointer from D_800834CC. If null or index out of
+ * range, returns dst unchanged. Otherwise copies the indexed string to dst
+ * via copyString and returns dst + length.
+ *
+ * @param index Index into the string table.
+ * @param dst Destination buffer for the copied string.
+ * @return Pointer past the end of the copied string, or dst if not found.
+ */
+u8 *func_8002F610(s32 index, u8 *dst) {
+    extern s32 D_800834CC;
+    u16 *table = (u16 *)D_800834CC;
+    u8 *src;
+    if (table == 0) {
+        return dst;
+    }
+    if (index >= table[0]) {
+        return dst;
+    }
+    src = (u8 *)table + table[index + 1];
+    copyString(dst, src);
+    return dst + btlStrlen(src);
+}
 
 
 /**
@@ -222,7 +246,27 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F610);
 INCLUDE_ASM("asm/nonmatchings/numstr", decodeMessage);
 
 
-INCLUDE_ASM("asm/nonmatchings/numstr", func_8002FD28);
+/**
+ * @brief Skip past control codes in the message stream and decode the remaining message.
+ *
+ * Reads skip count from offset 0x22 and stream pointer from offset 0x8 of the
+ * input structure. Calls func_8002F548 skip-count times to advance past that
+ * many type-2 delimiters. Then calls decodeMessage with the current position
+ * and stores the stream pointer at offset 0xC.
+ *
+ * @param a0 Pointer to the message state structure.
+ * @param a1 Output buffer for decodeMessage.
+ */
+void func_8002FD28(s32 *a0, u8 *a1) {
+    s32 skip = *(u8 *)((u8 *)a0 + 0x22);
+    u8 *stream = (u8 *)a0[2];
+    while (skip > 0) {
+        stream = func_8002F548(stream);
+        skip--;
+    }
+    decodeMessage((s32)stream, (s32)a1, -1);
+    a0[3] = (s32)stream;
+}
 
 
 /**

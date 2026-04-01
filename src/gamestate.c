@@ -42,7 +42,35 @@ s32 testFieldFlag(s32 bitIdx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037240);
+/**
+ * @brief Synchronize HP values for all available characters and GFs to the save data.
+ *
+ * Gets the character availability bitmask, iterates bits 0-7 calling
+ * func_80036FE0 for each set bit. Then gets the GF availability bitmask
+ * and iterates bits 0-15 calling copyGfHpToSave for each set bit.
+ */
+void func_80037240(void) {
+    s32 i;
+    u16 mask;
+
+    mask = func_80036EC0();
+    i = 0;
+    do {
+        if ((mask >> i) & 1) {
+            func_80036FE0(i);
+        }
+        i++;
+    } while (i < 8);
+
+    mask = getGfAvailabilityMask();
+    i = 0;
+    do {
+        if ((mask >> i) & 1) {
+            copyGfHpToSave(i);
+        }
+        i++;
+    } while (i < 16);
+}
 
 
 /** @brief Returns a pointer to global g_chocoboWorld. */
