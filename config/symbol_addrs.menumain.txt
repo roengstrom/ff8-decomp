@@ -603,3 +603,4 @@ sndStartPlaybackMode1 = 0x80019C9C;
 sndStartPlaybackMode2 = 0x80019CFC;
 spuSetTransferControl = 0x80014DFC;
 sndStopTrack = 0x800188B4;
+renderBattleDisplayList = 0x8002A92C; // type:func
