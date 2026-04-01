@@ -30,26 +30,6 @@ typedef int s32;
 #define KEEP_ALIVE(x) asm volatile("" :: "r"(x))
 
 /*
- * Scratchpad GP macros — swap $gp to point at PS1 scratchpad RAM (0x1F800300)
- * for fast temporary buffer access, then restore original $gp afterward.
- */
-#define GP_SAVE(out) \
-    asm volatile("addu %0, $gp, $0" : "=r"(out))
-#define GP_SET_SCRATCH() \
-    asm volatile( \
-        "lui   $7, 0x1F80\n" \
-        "ori   $7, $7, 0x0300\n" \
-        "addu  $gp, $7, $0" \
-        : : : "gp", "$7" \
-    )
-#define GP_GET(out) \
-    asm volatile("addu %0, $gp, $0" : "=r"(out))
-#define GP_ADVANCE(n) \
-    asm volatile("addi $gp, $gp, " #n : : : "gp")
-#define GP_RESTORE(in) \
-    asm volatile("addu $gp, %0, $0" : : "r"(in) : "gp")
-
-/*
  * Combined GP save+set scratchpad macro — saves $gp to `saved`, sets $gp to
  * scratchpad (0x1F800300) via $a2. Used by btl_anim display list functions.
  */
