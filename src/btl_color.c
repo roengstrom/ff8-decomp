@@ -90,9 +90,9 @@ void setCameraVibrateIntensity(s32 val) {
 
 
 /**
- * @brief Set control byte and optionally load game state into D_800834D0 fields.
+ * @brief Set control byte and optionally load game state into g_cameraShake fields.
  *
- * Always stores @p a0 as a byte at D_800834D0+3. If @p a0 is non-zero,
+ * Always stores @p a0 as a byte at g_cameraShake+3. If @p a0 is non-zero,
  * also clears byte at +6 and copies game state byte from g_gameState+0xCD4
  * into +7.
  *
@@ -107,7 +107,7 @@ typedef struct {
     u8 f7;
 } BattleCameraState;
 
-extern BattleCameraState D_800834D0;
+extern BattleCameraState g_cameraShake;
 
 
 /**
@@ -121,34 +121,34 @@ extern BattleCameraState D_800834D0;
 void setCameraVibrateState(unsigned int arg0) {
     extern volatile GameState g_gameState;
 
-    D_800834D0.f3 = arg0;
+    g_cameraShake.f3 = arg0;
     if (arg0 != 0) {
-        D_800834D0.f6 = 0;
-        D_800834D0.f7 = (s8)g_gameState.unkCD4;
+        g_cameraShake.f6 = 0;
+        g_cameraShake.f7 = (s8)g_gameState.unkCD4;
     }
 }
 
 
-/** @brief Stores u16 and u8 to adjacent fields of D_800834D0.
- *  @param a0 Value stored as u16.
- *  @param a1 Value stored as u8 at offset 2.
+/** @brief Set camera shake intensity and direction.
+ *  @param intensity Shake intensity (stored as s16).
+ *  @param direction Shake direction (stored as s8).
  */
-void setCameraShakeParams(s32 a0, s32 a1) {
-    *(u16 *)&D_800834D0 = a0;
-    *((u8 *)&D_800834D0 + 2) = a1;
+void setCameraShakeParams(s32 intensity, s32 direction) {
+    g_cameraShake.f0 = intensity;
+    g_cameraShake.f2 = direction;
 }
 
 
 /**
  * @brief Update camera vibration timer and check for game state change.
  *
- * Increments D_800834D0.f6 (clamped to 0x40), then compares the low byte of
- * g_gameState.unkCD4 against D_800834D0.f7. If they differ, resets f6 to 0
+ * Increments g_cameraShake.f6 (clamped to 0x40), then compares the low byte of
+ * g_gameState.unkCD4 against g_cameraShake.f7. If they differ, resets f6 to 0
  * and updates f7 to the current game state byte.
  */
 void updateCameraVibrate(void) {
     extern volatile GameState g_gameState;
-    s32 base = (s32)&D_800834D0;
+    s32 base = (s32)&g_cameraShake;
     s32 counter;
     s32 clamped;
     s32 gsVal;
@@ -180,17 +180,17 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030518);
 
 
 /**
- * @brief Reset the BattleCameraState struct (D_800834D0) to default values.
+ * @brief Reset the BattleCameraState struct (g_cameraShake) to default values.
  *
  * Clears all fields to zero except f4, which is set to 0x1000 (default zoom/distance).
  */
 void resetBattleCameraState(void) {
-    D_800834D0.f3 = 0;
-    D_800834D0.f4 = 0x1000;
-    D_800834D0.f0 = 0;
-    D_800834D0.f2 = 0;
-    D_800834D0.f7 = 0;
-    D_800834D0.f6 = 0;
+    g_cameraShake.f3 = 0;
+    g_cameraShake.f4 = 0x1000;
+    g_cameraShake.f0 = 0;
+    g_cameraShake.f2 = 0;
+    g_cameraShake.f7 = 0;
+    g_cameraShake.f6 = 0;
 }
 
 
