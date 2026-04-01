@@ -78,6 +78,11 @@ s32 func_801F6234(s32, s32, s32, s32, s32);
 void func_801F605C(s32, s32, s32, s32, s32);
 s32 func_801F776C(s32, s32);
 void setAnimEntityParams(s32, s32, s32);
+void func_801F2458(s32);
+void func_801F4A98();
+void func_801F5490(s32);
+void func_801F202C(void);
+void func_801F7B60(void);
 
 extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
@@ -580,8 +585,8 @@ s32 func_801F1CE8(s32 a0, s32 a1) {
 /* Menu Item List                                                           */
 /* ======================================================================== */
 
-/** @brief Empty stub (placeholder). */
-void func_801F1D2C(void) {
+/** @brief Empty stub (placeholder for panel init callback). */
+void func_801F1D2C(s32 a0, s32 a1, s32 a2) {
 }
 
 /**
@@ -1259,13 +1264,122 @@ void func_801F65F0(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F66B0);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6768);
+/**
+ * @brief Adjust cursor position based on D-pad input with wrapping and guard.
+ *
+ * If max == 1 (single option), returns 0 immediately.
+ * Checks bit flags for up (0x4000) and down (0x1000) input.
+ * On up: increments position, wraps to 0 if >= max.
+ * On down: decrements position, wraps to max-1 if < 0.
+ * Plays a sound effect on each valid input.
+ *
+ * @param flags   Input button flags.
+ * @param max     Maximum position value (exclusive).
+ * @param current Current cursor position.
+ * @return Updated cursor position, or 0 if max == 1.
+ */
+s32 func_801F6768(u16 flags, s32 max, s32 current) {
+    if (max == 1) {
+        return 0;
+    }
+    if (flags & 0x4000) {
+        sendSpuCommand(1);
+        current++;
+        if (current >= max) {
+            current = 0;
+        }
+    }
+    if (flags & 0x1000) {
+        sendSpuCommand(1);
+        current--;
+        if (current < 0) {
+            current = max - 1;
+        }
+    }
+    return current;
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6800);
+/**
+ * @brief Adjust cursor position based on D-pad input with wrapping.
+ *
+ * Checks bit flags for right (0x2000) and left (0x8000) input.
+ * On right: increments position, wraps to 0 if >= max.
+ * On left: decrements position, wraps to max-1 if < 0.
+ * Plays a sound effect on each valid input.
+ *
+ * @param flags   Input button flags.
+ * @param max     Maximum position value (exclusive).
+ * @param current Current cursor position.
+ * @return Updated cursor position.
+ */
+s32 func_801F6800(u16 flags, s32 max, s32 current) {
+    if (flags & 0x2000) {
+        sendSpuCommand(1);
+        current++;
+        if (current >= max) {
+            current = 0;
+        }
+    }
+    if (flags & 0x8000) {
+        sendSpuCommand(1);
+        current--;
+        if (current < 0) {
+            current = max - 1;
+        }
+    }
+    return current;
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6888);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6934);
+/**
+ * @brief Initialize the main menu state.
+ *
+ * Clears the menu flag, recalculates party stats, sets up the panel
+ * callback chain, initializes display lists, and populates the menu
+ * context structure with GF availability, character masks, and defaults.
+ */
+void func_801F6934(void) {
+    extern u8 D_801FAB7C;
+    extern u8 D_800562A4;
+    extern u8 D_801F7DF4;
+    extern u8 D_801F7E00;
+    extern u8 D_801F7E0C;
+    extern u8 D_801F87B8;
+    u8 *ctx;
+
+    D_801FAB7C = 0;
+    recalcPartyStats();
+    ctx = (u8 *)func_801F179C(func_801F2458, func_801F4A98);
+    func_801F1D2C((s32)&D_800562A4, (s32)&D_801F7DF4, (s32)D_801F8BB8);
+    func_801F1D2C(0, (s32)&D_801F7E00, (s32)D_801F889C);
+    func_801F1D2C(0, (s32)&D_801F7E0C, (s32)&D_801F87B8);
+    func_801F1CAC();
+    if (ctx != NULL) {
+        D_801FAB28 = 0x1000;
+        *(u16 *)(ctx + 0x2C) = 0;
+        D_801FAB2A = 0x1000;
+        *(u16 *)(ctx + 0x20) = func_80036EC0();
+        *(u16 *)(ctx + 0x32) = func_801F22F4();
+        *(u16 *)(ctx + 0x44) = 0;
+        *(u8 *)(ctx + 0x43) = 0;
+        *(u8 *)(ctx + 0x4B) = 0;
+        func_801F5490((s32)ctx);
+        func_801F1E54(ctx);
+        func_801F202C();
+        *(u16 *)(ctx + 0x2C) = 0;
+        func_801F2458((s32)ctx);
+        *(u8 *)(ctx + 0x23) = popcount(*(u16 *)(ctx + 0x20));
+        {
+            u8 tmp = D_801FAB30;
+            *(u8 *)(ctx + 0x40) = 0;
+            *(s32 *)(ctx + 0x24) = 0;
+            *(u8 *)(ctx + 0x41) = tmp;
+        }
+    }
+    func_801F1DB0(0);
+    func_801F7B60();
+}
 
 /** @brief Advance pseudo-random number generator (LCG: val*125+14 mod 32768). */
 s32 func_801F6A5C(void) {
