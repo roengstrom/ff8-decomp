@@ -72,7 +72,14 @@ s32 func_801E2934(void) {
  * @param a0 Ability list index.
  * @return Pointer to ability name string, or NULL if index out of bounds.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2944);
+s32 func_801E2944(s32 a0) {
+    extern u8 D_801E3D9C;
+    extern u8 D_801E3D84[];
+    if (a0 >= D_801E3D9C) {
+        return 0;
+    }
+    return getAbilityDesc(D_801E3D84[a0]);
+}
 
 /**
  * @brief Build list of equipped GF abilities for display.
