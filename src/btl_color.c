@@ -147,8 +147,8 @@ void setCameraShakeParams(s32 intensity, s32 direction) {
  * @brief Update camera vibration timer and check for game state change.
  *
  * Increments g_cameraShake.f6 (clamped to 0x40), then compares the low byte of
- * g_gameState.unkCD4 against g_cameraShake.f7. If they differ, resets f6 to 0
- * and updates f7 to the current game state byte.
+ * g_gameState.battleStateFlag against g_cameraShake.f7. If they differ, resets
+ * f6 to 0 and updates f7 to the current battle state byte.
  */
 void updateCameraVibrate(void) {
     s32 counter;
