@@ -109,6 +109,20 @@ typedef struct {
 
 extern BattleCameraState g_cameraShake;
 
+/** @brief Animation interpolation entry (stride 0x10 = 16 bytes). */
+typedef struct {
+    /* 0x00 */ u8 data[4];
+    /* 0x04 */ s16 lerpStart;
+    /* 0x06 */ s16 lerpEnd;
+    /* 0x08 */ s16 value;
+    /* 0x0A */ s16 lerpParam;
+    /* 0x0C */ s16 result;
+    /* 0x0E */ u8 flags;
+    /* 0x0F */ u8 pad0F;
+} AnimEntry;
+
+extern AnimEntry D_80083772[];
+
 
 /**
  * @brief Set battle camera vibration state.
@@ -764,7 +778,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", renderAnimOverlay);
  * @param a0 Entry index into D_80083772.
  */
 void clearAnimEntryActive(s32 a0) {
-    extern u8 D_80083772[];
     s32 base = (s32)D_80083772;
     base = a0 * 16 + base;
     *(u8 *)(base + 0xE) &= 0x7F;
@@ -782,8 +795,7 @@ void clearAnimEntryActive(s32 a0) {
  * @param a1 Value to store at entry offset 0x8.
  */
 void updateAnimEntry(s32 a0, s32 a1) {
-    extern u8 D_80083772;
-    s32 base = (s32)&D_80083772;
+    s32 base = (s32)D_80083772;
     s16 result;
 
     base = a0 * 16 + base;
@@ -803,7 +815,6 @@ void updateAnimEntry(s32 a0, s32 a1) {
  */
 void copyAnimEntryField(s32 a0, void *src) {
     typedef struct { s16 a, b; } S16Pair;
-    extern u8 D_80083772[];
     s32 base = (s32)D_80083772;
     base += a0 * 16;
     *(S16Pair *)base = *(S16Pair *)src;
@@ -827,7 +838,6 @@ void copyAnimEntryField(s32 a0, void *src) {
  * @param arg6 Target max value (on stack).
  */
 void initAnimEntry(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
-    extern u8 D_80083772[];
     s32 base = (s32)D_80083772;
     s32 flags = a1 | 0x80;
 
@@ -842,8 +852,6 @@ void initAnimEntry(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6)
 }
 
 
-extern u8 D_80083772[];
-// clear_animation_entries
 
 /**
  * @brief Call func_80031E1C with truncated a1 and constant 7th arg (0x60).
@@ -874,12 +882,13 @@ void setupAnimEntryFull(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 a
  * offset 0x0E to zero for each, marking them as inactive.
  */
 void clearAnimEntries(void) {
-    s32 i;
-    u8 *ptr = D_80083772;
-    for (i = 1; i >= 0; i--) {
-        ptr[0xE] = 0;
-        ptr += 0x10;
-    }
+    AnimEntry *entry = D_80083772;
+    s32 i = 1;
+    do {
+        entry->flags = 0;
+        i--;
+        entry++;
+    } while (i >= 0);
 }
 
 
