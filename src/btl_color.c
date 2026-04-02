@@ -47,7 +47,7 @@ extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
 extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
 extern BattleCameraState g_cameraShake; /* 0x800834D0 */
 extern s32 g_gpuColor;               /* 0x800834C8 — GPU color value */
-extern u16 D_800834D4;               /* 0x800834D4 — camera shake color */
+extern u16 g_cameraVibrateIntensity;               /* 0x800834D4 — camera shake color */
 extern s32 D_80083750;               /* 0x80083750 — battle timer */
 
 /**
@@ -105,11 +105,11 @@ void btlColorStub0234(void) {
 
 
 /**
- * @brief Set the global 16-bit value D_800834D4.
+ * @brief Set the global 16-bit value g_cameraVibrateIntensity.
  * @param val Value to store.
  */
 void setCameraVibrateIntensity(s32 val) {
-    D_800834D4 = val;
+    g_cameraVibrateIntensity = val;
 }
 
 
@@ -636,7 +636,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
 /**
  * @brief Render both animation overlay channels.
  *
- * Builds a grayscale GPU color from D_800834D4, then calls func_80031A18
+ * Builds a grayscale GPU color from g_cameraVibrateIntensity, then calls func_80031A18
  * twice (once for each channel, indices 0 and 1).
  *
  * @param a0 OT base pointer.
@@ -646,7 +646,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
 /**
  * @brief Render both animation overlay channels.
  *
- * Builds a grayscale GPU color from D_800834D4, then calls func_80031A18
+ * Builds a grayscale GPU color from g_cameraVibrateIntensity, then calls func_80031A18
  * twice (once for each channel, indices 0 and 1).
  *
  * @param a0 OT base pointer.
