@@ -261,7 +261,7 @@ s32 func_800B1730(u8 *a0) {
 }
 
 /**
- * Pops two values, calls func_8003093C(D_800C5FB0, val2, val1 | 1),
+ * Pops two values, calls loadBattleCmd(D_800C5FB0, val2, val1 | 1),
  * stores result in D_800DE878.
  *
  * @param a0 Pointer to the script/object structure.
@@ -278,7 +278,7 @@ s32 func_800B1738(u8 *a0) {
     val1 = *(s32 *)(a0 + (s8)idx * 4);
     *(u8 *)(a0 + 0x184) = idx - 2;
     val2 = *(s32 *)(a0 + (s8)(idx - 1) * 4);
-    *(s32 *)D_800DE878 = func_8003093C(D_800C5FB0, val2, val1 | 1);
+    *(s32 *)D_800DE878 = loadBattleCmd(D_800C5FB0, val2, val1 | 1);
     return 2;
 }
 

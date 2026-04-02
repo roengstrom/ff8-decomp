@@ -330,6 +330,7 @@ setCameraShakeParams = 0x80030274;
 resetBattleCameraState = 0x80030720;
 getBattleCmdTable = 0x80030748;
 checkBattleCmdSource = 0x80030848;
+loadBattleCmd = 0x8003093C; // type:func
 advanceBattleTimer = 0x80030CB0;
 initBattleCmdEntries = 0x80030CFC;
 sendSpuCommand = 0x80030D48;

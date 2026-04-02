@@ -329,7 +329,72 @@ void deactivateBattleCmd(s32 id) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003093C);
+/**
+ * @brief Load a command from a packed data block into a battle command entry.
+ *
+ * Finds a free or low-priority command slot via findBestBattleCmd, then
+ * loads stream data from the packed block at @p data. The block contains
+ * an offset table followed by variable-length stream pairs. Each pair
+ * has a CmdStreamHeader (two u16 lengths) followed by the raw data.
+ *
+ * @param data     Pointer to packed command data block (offset table + streams).
+ * @param idx      Index into the offset table.
+ * @param priority Priority value for the command slot.
+ * @return Packed command ID (sourceId << 4 | index), 0 if no slot, -1 if no data.
+ */
+s32 loadBattleCmd(u8 *data, s32 idx, s32 priority) {
+    BattleCmdEntry *cmd;
+    s32 offset;
+    CmdStreamHeader *hdr;
+    u16 len1, len2;
+    u8 *base;
+    u8 *block2;
+
+    cmd = findBestBattleCmd(priority);
+    if (cmd == 0) {
+        return 0;
+    }
+
+    offset = ((s32 *)data)[idx];
+    data += offset;
+    if (offset == 0) {
+        return -1;
+    }
+
+    hdr = (CmdStreamHeader *)data;
+    len1 = hdr->len1;
+    len2 = hdr->len2;
+    base = hdr->data;
+    block2 = hdr->data + len1;
+
+    if (len1 != 0) {
+        cmd->streams[0].start = base;
+        cmd->streams[0].end = base + len1;
+        cmd->streams[0].cursor = -1;
+        cmd->streams[0].enabled = 1;
+        cmd->streams[0].length = len1;
+    } else {
+        cmd->streams[0].enabled = 0;
+    }
+
+    if (len2 != 0) {
+        cmd->streams[1].start = block2;
+        cmd->streams[1].end = block2 + len2;
+        cmd->streams[1].cursor = -1;
+        cmd->streams[1].enabled = 1;
+        cmd->streams[1].length = len2;
+    } else {
+        cmd->streams[1].enabled = 0;
+    }
+
+    cmd->active = priority;
+    cmd->sourceId++;
+    if (cmd->sourceId >= 0x400) {
+        cmd->sourceId = 1;
+    }
+
+    return (cmd->sourceId << 4) | cmd->index;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030A54);

@@ -224,13 +224,30 @@ typedef struct {
     s32 pktBase;
 } DisplayListBuf;
 
+/** @brief Data stream within a battle command (two per entry). */
+typedef struct {
+    u8 *start;       /* +0x00: pointer to stream data start */
+    u8 *end;         /* +0x04: pointer to stream data end */
+    s16 cursor;      /* +0x08: current read position (-1 = not started) */
+    u16 length;      /* +0x0A: stream length in bytes */
+    u8 enabled;      /* +0x0C: 1 if stream has data, 0 if empty */
+    u8 pad0D[3];     /* +0x0D: padding */
+} CmdStream;
+
 /** @brief Battle command table entry (g_battleCmdTable, stride 0x24 = 36 bytes). */
 typedef struct {
-    u8 data[0x20];
-    u16 sourceId;
-    s8 active;
-    u8 index;
+    CmdStream streams[2]; /* +0x00: two data streams (0x20 bytes) */
+    u16 sourceId;         /* +0x20: source ID (wraps at 0x400, reset to 1) */
+    s8 active;            /* +0x22: priority/active flag */
+    u8 index;             /* +0x23: slot index (0-3) */
 } BattleCmdEntry;
+
+/** @brief Header for packed command stream data within a command data block. */
+typedef struct {
+    u16 len1;    /* +0x00: length of first stream */
+    u16 len2;    /* +0x02: length of second stream */
+    u8 data[1];  /* +0x04: stream1 data[len1], then stream2 data[len2] */
+} CmdStreamHeader;
 
 /** @brief Memory card subsystem data block (D_80082FB4). */
 typedef struct {
