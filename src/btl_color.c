@@ -189,7 +189,6 @@ void updateCameraVibrate(void) {
  */
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800302DC);
 
-// init_battle_camera
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030518);
 
