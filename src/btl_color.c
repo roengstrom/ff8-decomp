@@ -174,6 +174,19 @@ void updateCameraVibrate(void) {
 }
 
 
+/**
+ * @brief Render battle HUD text (HP, damage numbers, status text).
+ *
+ * Checks the camera vibration state and game mode, converts battle
+ * values to display strings via intToDecStringShort, and renders them
+ * as GPU sprite text using func_8002FF34. Links the result into the OT.
+ *
+ * @param ot OT entry pointer.
+ * @param cursor Packet buffer pointer.
+ * @return Updated cursor past all emitted packets.
+ *
+ * @see https://decomp.me/scratch/CEsOX
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800302DC);
 
 // init_battle_camera
