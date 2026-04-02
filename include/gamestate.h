@@ -296,7 +296,9 @@ typedef struct {
     /* 0xB14 */ LimitBreakData limitBreaks;                /**< Limit break progress (16 bytes). */
     /* 0xB24 */ u8            battleOrder[32];              /**< Battle item menu ordering. */
     /* 0xB44 */ ItemSlot      itemSlots[ITEM_SLOT_COUNT];  /**< Item inventory (198 slots). */
-    /* 0xCD0 */ u8            padCD0[0x90];                /**< Battle vars / misc. */
+    /* 0xCD0 */ u8            padCD0[4];                   /**< Battle vars / misc. */
+    /* 0xCD4 */ s32           battleStateFlag;             /**< Battle state word, low byte compared against camera shake. */
+    /* 0xCD8 */ u8            padCD8[0x88];                /**< Battle vars / misc (continued). */
     /* 0xD60 */ u8            padD60[0x100];               /**< Steps, SeeD rank, counters. */
     /* 0xE60 */ u8            padE60[0x400];               /**< Field script vars, TT rules. */
     /* 0x1260 */ u8           pad1260[0x80];               /**< World map position/vehicles. */

@@ -1,11 +1,54 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gamestate.h"
+
+/* --- Local type definitions --- */
 
 typedef struct {
-    /* 0x000 */ u8 unk0[0xCD4];
-    /* 0xCD4 */ s32 unkCD4;
-} GameState;
+    s16 f0;
+    s8 f2;
+    s8 f3;
+    s16 f4;
+    u8 f6;
+    u8 f7;
+} BattleCameraState;
+
+typedef struct {
+    u8 data[4];
+    s16 lerpStart;
+    s16 lerpEnd;
+    s16 value;
+    s16 lerpParam;
+    s16 result;
+    u8 flags;
+    u8 pad0F;
+} AnimEntry;
+
+typedef struct {
+    s16 f0;
+    s16 f2;
+    s16 f4;
+    s16 f6;
+    u8 f8;
+    u8 f9;
+} Struct3754;
+
+/* --- Externs (sorted by address) --- */
+
+extern u8 D_80052A34[];              /* 0x80052A34 — SPU command table */
+extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
+extern Struct3754 D_80083754;        /* 0x80083754 — transition state */
+extern u8 D_80083756;                /* 0x80083756 — transition flag */
+extern u8 D_80083878;                /* 0x80083878 — battle cmd table byte */
+extern s32 D_80083918;               /* 0x80083918 — battle OT buffer index */
+extern s32 D_80083920[];             /* 0x80083920 — battle OT buffers */
+extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
+extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
+extern BattleCameraState g_cameraShake; /* 0x800834D0 */
+extern s32 D_800834C8;               /* 0x800834C8 — GPU color value */
+extern u16 D_800834D4;               /* 0x800834D4 — camera shake color */
+extern s32 D_80083750;               /* 0x80083750 — battle timer */
 
 /**
  * @brief Clear the RGB color bytes at offsets 0x20, 0x21, and 0x22 of a structure.
@@ -38,7 +81,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_8002FF34);
  * @param a0 Intensity value (same for all channels).
  */
 void buildGrayscaleGpuColor(s32 a0) {
-    extern s32 D_800834C8;
     a0 /= 32;
     a0 &= 0xFF;
     D_800834C8 = a0 | (a0 << 8) | (a0 << 16) | 0x64000000;
@@ -56,7 +98,6 @@ void buildGrayscaleGpuColor(s32 a0) {
  * @param a2 Blue intensity.
  */
 void buildRgbGpuColor(s32 a0, s32 a1, s32 a2) {
-    extern s32 D_800834C8;
     a0 /= 32;
     a1 /= 32;
     a2 /= 32;
@@ -79,7 +120,6 @@ void btlColorStub0234(void) {
 }
 
 
-extern s16 D_800834D4;
 /**
  * @brief Set the global 16-bit value D_800834D4.
  * @param val Value to store.
@@ -98,32 +138,6 @@ void setCameraVibrateIntensity(s32 val) {
  *
  * @param a0 Control value; stored as byte, also acts as enable flag.
  */
-typedef struct {
-    s16 f0;
-    s8 f2;
-    s8 f3;
-    s16 f4;
-    u8 f6;
-    u8 f7;
-} BattleCameraState;
-
-extern BattleCameraState g_cameraShake;
-
-/** @brief Animation interpolation entry (stride 0x10 = 16 bytes). */
-typedef struct {
-    /* 0x00 */ u8 data[4];
-    /* 0x04 */ s16 lerpStart;
-    /* 0x06 */ s16 lerpEnd;
-    /* 0x08 */ s16 value;
-    /* 0x0A */ s16 lerpParam;
-    /* 0x0C */ s16 result;
-    /* 0x0E */ u8 flags;
-    /* 0x0F */ u8 pad0F;
-} AnimEntry;
-
-extern AnimEntry D_80083772[];
-
-
 /**
  * @brief Set battle camera vibration state.
  *
@@ -133,12 +147,11 @@ extern AnimEntry D_80083772[];
  * @param arg0 Vibration enable flag and intensity.
  */
 void setCameraVibrateState(unsigned int arg0) {
-    extern volatile GameState g_gameState;
 
     g_cameraShake.f3 = arg0;
     if (arg0 != 0) {
         g_cameraShake.f6 = 0;
-        g_cameraShake.f7 = (s8)g_gameState.unkCD4;
+        g_cameraShake.f7 = (s8)((volatile GameState *)(&g_gameState))->battleStateFlag;
     }
 }
 
@@ -161,7 +174,6 @@ void setCameraShakeParams(s32 intensity, s32 direction) {
  * and updates f7 to the current game state byte.
  */
 void updateCameraVibrate(void) {
-    extern volatile GameState g_gameState;
     s32 base = (s32)&g_cameraShake;
     s32 counter;
     s32 clamped;
@@ -175,7 +187,7 @@ void updateCameraVibrate(void) {
         clamped = counter;
     }
     *(u8 *)(base + 6) = clamped;
-    gsVal = g_gameState.unkCD4;
+    gsVal = ((volatile GameState *)(&g_gameState))->battleStateFlag;
     curVal = *(u8 *)(base + 7);
     gsVal &= 0xFF;
     counter = gsVal;
@@ -208,7 +220,6 @@ void resetBattleCameraState(void) {
 }
 
 
-extern u8 D_80083878;
 
 /**
  * @brief Get a pointer to the global byte D_80083878.
@@ -368,7 +379,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030B2C);
  * @param a0 Amount to add to the timer.
  */
 void advanceBattleTimer(s32 a0) {
-    extern s32 D_80083750;
     s32 counter = D_80083750;
     counter += a0;
 top:
@@ -390,7 +400,6 @@ top:
  * Finally zeroes D_80083750.
  */
 void initBattleCmdEntries(void) {
-    extern s32 D_80083750;
     u8 *base = getBattleCmdTable();
     s32 i = 0;
     s32 one = 1;
@@ -416,7 +425,6 @@ top:
  * @param a0 Index into the D_80052A34 lookup table.
  */
 void sendSpuCommand(s32 a0) {
-    extern u8 D_80052A34[];
     sndKeyOn(D_80052A34[a0]);
 }
 
@@ -430,7 +438,6 @@ void sendSpuCommand(s32 a0) {
  * @param a0 Index into D_80052A34 sound table.
  */
 void playSoundEffect(s32 a0) {
-    extern u8 D_80052A34[];
     u8 *ptr = D_80052A34 + a0;
     sndPlaySfx(*ptr, 0, 0x80, 0x7F);
 }
@@ -517,120 +524,18 @@ void disableSoundReverb(s32 a0) {
  * @param a0 Party bitmask (lower 12 bits = party members, upper 4 = flags).
  * @return Remapped bitmask as u16, or original a0 if remapping inactive.
  */
-s32 remapPartyBitmask(s16 a0) {
-    extern u8 g_gameState[];
-    s32 base = (s32)g_gameState;
-    u16 flags;
-    s32 result;
-    s32 i;
-    u8 *table;
-    s32 highBits;
-    s32 lowBits;
-    s32 one;
-    s32 tableVal;
-
-    if (!(*(u16 *)(base + 0xAE4) & 0x20)) {
-        return (u16)a0;
-    }
-    highBits = a0 & 0xF000;
-    table = (u8 *)(base + 0xAE8);
-    result = 0;
-    i = result;
-    one = a0 & 0xFFF;
-    lowBits = one;
-    one = 1;
-top:
-    if ((lowBits >> i) & 1) {
-        tableVal = *table;
-        table++;
-        if (tableVal != 0) {
-            tableVal--;
-            result |= one << tableVal;
-        }
-    } else {
-        table++;
-    }
-    i++;
-    if (i < 12) goto top;
-    return (u16)(highBits | result);
-}
+INCLUDE_ASM("asm/nonmatchings/btl_color", remapPartyBitmask);
 
 
-/**
- * @brief Remap a battle palette index through a lookup table if active.
- *
- * When bit 0x20 of the game state flags at offset 0xAE4 is set and the
- * index is within range (< 12), returns the looked-up value minus one
- * from the table at g_gameState + 0xAE8. Otherwise returns the index unchanged.
- *
- * @param a0 Palette index to remap.
- * @return Remapped index or the original index if remapping is inactive.
- */
-s32 remapBattlePalette(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base = (s32)g_gameState; /* (s32) cast prevents symbol+constant folding */
-    u16 flags = *(u16 *)(base + 0xAE4); /* palette remap flags */
-    if ((flags & 0x20) && a0 < 12) {
-        return *(u8 *)(a0 + base + 0xAE8) - 1; /* palette remap table[a0] */
-    }
-    return a0;
-}
+INCLUDE_ASM("asm/nonmatchings/btl_color", remapBattlePalette);
 
 
-/**
- * @brief Reverse-lookup a remapped palette index to find its original slot.
- *
- * When bit 0x20 of the game state flags at offset 0xAE4 is set and the
- * index is within range (< 12), searches the table at g_gameState + 0xAE8
- * for the value (a0 + 1) and returns the matching slot index.
- * Returns -1 if not found, or the original index if remapping is inactive.
- *
- * @param a0 Remapped palette index to look up.
- * @return Original slot index, -1 if not found, or a0 if remapping inactive.
- */
-s32 reversePaletteRemap(s32 a0) {
-    extern u8 g_gameState[];
-    s32 base = (s32)g_gameState; /* (s32) cast prevents symbol+constant folding */
-    u16 flags = *(u16 *)(base + 0xAE4); /* palette remap flags */
-    u8 *table;
-    s32 i;
-    if (flags & 0x20) {
-        if (a0 < 12) {
-            table = (u8 *)(base + 0xAE8); /* palette remap table */
-            goto search;
-        }
-    }
-    return a0;
-found:
-    return i;
-search:
-    a0++;
-    i = 0;
-    do {
-        u8 val = *table++;
-        if ((val & 0xFF) == a0) {
-            goto found;
-        }
-        i++;
-    } while (i < 12);
-    return -1;
-}
+INCLUDE_ASM("asm/nonmatchings/btl_color", reversePaletteRemap);
 
 
 /** @brief Empty stub -- no operation. */
 void btlColorStub1044(void) {
 }
-
-
-typedef struct {
-    s16 f0;
-    s16 f2;
-    s16 f4;
-    s16 f6;
-    u8 f8;
-    u8 f9;
-} Struct3754;
-extern Struct3754 D_80083754;
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003104C);
@@ -695,7 +600,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_800316D4);
 
 /** @brief Stores a byte to global D_80083756. */
 void setTransitionFlag(s32 a0) {
-    extern u8 D_80083756;
     D_80083756 = a0;
 }
 
@@ -892,8 +796,6 @@ void clearAnimEntries(void) {
 }
 
 
-extern u8 D_80085134[];
-extern u8 D_80083938[];
 
 /**
  * @brief Get a pointer to the global buffer D_80085134.
@@ -950,8 +852,6 @@ s32 getBattleAllocSize(void) {
  * at offset 0x78 to point to offset 0x7C (start of free space).
  */
 void flipBattleOtBuffer(void) {
-    extern s32 D_80083918;
-    extern s32 D_80083920[];
     s32 buf;
     s32 ptr;
 
