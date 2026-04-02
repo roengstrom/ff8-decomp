@@ -277,24 +277,24 @@ s32 isAnyBattleCmdActive(void) {
 /**
  * @brief Check if a battle command matches the expected source entity.
  *
- * Returns 0 if a0 is zero. Otherwise, looks up the entry at
- * getBattleCmdTable()[(a0 & 3) * 36], checks if byte 0x22 is nonzero,
- * then compares halfword 0x20 against (a0 >> 4).
+ * Returns 0 if @p cmd is zero. Otherwise, looks up the entry at index
+ * (cmd & 3), checks if it is active, then compares its sourceId against
+ * (cmd >> 4).
  *
- * @param a0 Packed command: bits [1:0] = entry index, bits [15:4] = source ID.
- * @return 1 if valid and source matches, 0 otherwise.
+ * @param cmd Packed command: bits [1:0] = entry index, bits [15:4] = source ID.
+ * @return 1 if active and source matches, 0 otherwise.
  */
-s32 checkBattleCmdSource(s32 a0) {
+s32 checkBattleCmdSource(s32 cmd) {
     BattleCmdEntry *base;
     BattleCmdEntry *entry;
 
-    if (a0 == 0) {
+    if (cmd == 0) {
         return 0;
     }
     base = getBattleCmdTable();
-    entry = &base[a0 & 3];
+    entry = &base[cmd & 3];
     if (entry->active != 0) {
-        if (entry->sourceId == (a0 >> 4)) {
+        if (entry->sourceId == (cmd >> 4)) {
             return 1;
         }
     }
