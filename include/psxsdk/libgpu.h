@@ -6,22 +6,22 @@
 /**
  * @brief GPU primitive tag (ordering table link).
  *
- * SDK definition: unsigned long *tag holds both the 24-bit next-pointer
- * and 8-bit packet length in a single word.
+ * Uses bitfields to pack a 24-bit next-pointer and 8-bit packet word count
+ * into a single 32-bit word. This matches the codegen produced by the
+ * original PsyQ toolchain for addPrim/setaddr/getaddr operations.
  */
 typedef struct {
-    unsigned long *tag;
-    unsigned char r0, g0, b0, code;
+    unsigned addr : 24;
+    unsigned len : 8;
+    u8 r0, g0, b0, code;
 } P_TAG;
 
-/* --- Ordering table macros (SDK-style) --- */
+/* --- Ordering table macros --- */
 
-#define setlen(p, _len)    (((P_TAG *)(p))->tag = \
-    (unsigned long *)((((u32)(((P_TAG *)(p))->tag)) & 0x00FFFFFF) | ((u32)(_len) << 24)))
-#define getlen(p)          ((u8)((u32)(((P_TAG *)(p))->tag) >> 24))
-#define setaddr(p, _addr)  (((P_TAG *)(p))->tag = \
-    (unsigned long *)((((u32)(((P_TAG *)(p))->tag)) & 0xFF000000) | ((u32)(_addr) & 0x00FFFFFF)))
-#define getaddr(p)         ((u32)(((P_TAG *)(p))->tag) & 0x00FFFFFF)
+#define setlen(p, _len)    (((P_TAG *)(p))->len = (u8)(_len))
+#define getlen(p)          (u8)(((P_TAG *)(p))->len)
+#define setaddr(p, _addr)  (((P_TAG *)(p))->addr = (u32)(_addr))
+#define getaddr(p)         (u32)(((P_TAG *)(p))->addr)
 #define setcode(p, _code)  (((P_TAG *)(p))->code = (u8)(_code))
 #define getcode(p)         (u8)(((P_TAG *)(p))->code)
 

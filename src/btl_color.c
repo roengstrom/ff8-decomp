@@ -218,44 +218,36 @@ BattleCmdEntry *getBattleCmdTable(void) {
 }
 
 /**
- * @brief Find the battle command entry with the lowest non-zero active value
- *        that is still greater than or equal to the threshold.
+ * @brief Find the best available battle command entry.
  *
- * Scans 4 entries (stride 0x24) from getBattleCmdTable(). For each entry,
- * checks if the signed byte at +0x22 is non-zero and >= threshold a0.
- * If the entry's value is also less than the current best, updates best.
- * If no valid entry is found, returns NULL. If an entry with active==0 is found,
- * returns a pointer to that entry directly.
+ * Scans the 4-entry battle command table for a free or low-priority slot.
+ * If any entry has active == 0, returns it immediately (first-fit).
+ * Otherwise, returns the entry with the lowest active value that is
+ * still <= threshold. Returns NULL if no suitable entry is found.
  *
- * @param a0 Threshold: entries with active >= a0 are candidates.
- * @return Pointer to the best (lowest active) entry, or 0 if none found.
+ * @param threshold Maximum active value to consider as a candidate.
+ * @return Pointer to the best entry, or NULL if none found.
  */
-s32 findBestBattleCmd(s32 a0) {
-    u8 *ptr = (u8 *)getBattleCmdTable();
-    s32 best = 0xFF;
-    s32 i = 0;
-    s32 active;
+BattleCmdEntry* findBestBattleCmd(s32 threshold) {
+    BattleCmdEntry* ptr;
+    s32 best;
+    s32 i;
 
-top:
-    do {
-        active = *(s8 *)(ptr + 0x22);
-        if (active == 0) {
-            return (s32)ptr;
+    ptr = getBattleCmdTable();
+    ptr++; ptr--; /* Regalloc: boost ptr priority */
+    best = 0xFF;
+
+    for (i = 0; i < 4; i++, ptr++) {
+        if (ptr->active == 0) {
+            return ptr;
         }
-        if (a0 < active) goto skip;
-        if (active >= best) goto skip;
-    } while (0);
-    best = i;
-skip:
-    i++;
-    if (i < 4) {
-        ptr += 0x24;
-        goto top;
+        if (threshold >= ptr->active && ptr->active < best) {
+            best = i;
+        }
     }
+
     if (best != 0xFF) {
-        ptr = getBattleCmdTable();
-        ptr += (best * 9) * 4;
-        return (s32)ptr;
+        return &getBattleCmdTable()[best];
     }
     return 0;
 }
