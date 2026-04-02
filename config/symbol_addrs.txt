@@ -1363,6 +1363,7 @@ g_gpuColor = 0x800834C8;
 g_cameraShake = 0x800834D0;
 g_cameraVibrateIntensity = 0x800834D4;
 g_animState = 0x80083794;
+g_battleCmdTable = 0x80083878;
 g_cardFilename = 0x800837A0; // size:12
 g_cardFileSlot = 0x800837AC;
 g_cardFileType = 0x800837AE;

@@ -224,7 +224,7 @@ typedef struct {
     s32 pktBase;
 } DisplayListBuf;
 
-/** @brief Battle command table entry (D_80083878, stride 0x24 = 36 bytes). */
+/** @brief Battle command table entry (g_battleCmdTable, stride 0x24 = 36 bytes). */
 typedef struct {
     u8 data[0x20];
     u16 sourceId;
