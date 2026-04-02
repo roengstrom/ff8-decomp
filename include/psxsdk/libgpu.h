@@ -242,10 +242,15 @@ typedef struct {
     u8 u0, v0; u16 clut;
 } SPRT_8;
 
-/** @brief Combined texture page setting + sprite primitive. */
+/** @brief Combined texture page + sprite primitive (24 bytes).
+ *  Single P_TAG covers the whole packet; no separate SPRT tag. */
 typedef struct {
-    DR_MODE mode;
-    SPRT sprt;
+    u32 tag;                  /* +0x00: P_TAG */
+    u32 drawMode;             /* +0x04: GP0(E1) texture page command */
+    u8 r0, g0, b0, code;     /* +0x08: SPRT color + code (0x64) */
+    s16 x0, y0;              /* +0x0C: sprite position */
+    u8 u0, v0; u16 clut;     /* +0x10: texture UV + CLUT */
+    u16 w, h;                 /* +0x14: sprite dimensions */
 } TSPRT;
 
 /* --- GPU function declarations --- */
