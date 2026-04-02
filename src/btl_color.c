@@ -256,25 +256,19 @@ BattleCmdEntry* findBestBattleCmd(s32 threshold) {
 /**
  * @brief Check if any battle command entry is active.
  *
- * Iterates over 4 entries (stride 0x24) from getBattleCmdTable(). Returns 1
- * immediately if any entry has a non-zero signed byte at offset 0x22 (active
- * flag), or 0 if all are zero.
+ * Scans the 4-entry battle command table. Returns 1 immediately if any
+ * entry has a non-zero active flag, or 0 if all are inactive.
  *
  * @return 1 if any entry is active, 0 otherwise.
  */
 s32 isAnyBattleCmdActive(void) {
-    u8 *ptr = (u8 *)getBattleCmdTable();
-    s32 i = 0;
-    s32 active;
-top:
-    active = *(s8 *)(ptr + 0x22);
-    i++;
-    if (active != 0) {
-        return 1;
-    }
-    if (i < 4) {
-        ptr += 0x24;
-        goto top;
+    BattleCmdEntry* ptr = getBattleCmdTable();
+    s32 i;
+
+    for (i = 0; i < 4; i++, ptr++) {
+        if (ptr->active != 0) {
+            return 1;
+        }
     }
     return 0;
 }
