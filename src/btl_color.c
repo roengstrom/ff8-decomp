@@ -305,32 +305,26 @@ s32 checkBattleCmdSource(s32 cmd) {
 /**
  * @brief Deactivate a battle command entry or clear all entries.
  *
- * If a0 is -1, clears all 4 entries' active byte and calls setAnimEntityParams
- * with all zeros. Otherwise, validates the command via checkBattleCmdSource
- * and clears just that entry's active byte.
+ * If @p id is -1, clears all 4 entries' active flag and resets anim
+ * entity params. Otherwise, validates the command via checkBattleCmdSource
+ * and clears just that entry's active flag.
  *
- * @param a0 Packed command identifier, or -1 to clear all.
+ * @param id Packed command identifier, or -1 to clear all.
  */
-void deactivateBattleCmd(s32 a0) {
-    u8 *base = (u8 *)getBattleCmdTable();
+void deactivateBattleCmd(s32 id) {
+    BattleCmdEntry* ptr = getBattleCmdTable();
     s32 i;
 
-    if (a0 == -1) {
-        i = 3;
-    top:
-        *(u8 *)(base + 0x22) = 0;
-        i--;
-        base += 0x24;
-        if (i >= 0) {
-            goto top;
+    if (id == -1) {
+        for (i = 3; i >= 0; i--, ptr++) {
+            ptr->active = 0;
         }
         setAnimEntityParams(0, 0, 0);
-        return;
-    }
-    if (checkBattleCmdSource(a0)) {
-        s32 idx = a0 & 3;
-        base += (idx * 9) * 4;
-        *(u8 *)(base + 0x22) = 0;
+    } else {
+        if (checkBattleCmdSource(id)) {
+            ptr += id & 3;
+            ptr->active = 0;
+        }
     }
 }
 
