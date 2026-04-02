@@ -231,7 +231,7 @@ BattleCmdEntry *getBattleCmdTable(void) {
  * @return Pointer to the best (lowest active) entry, or 0 if none found.
  */
 s32 findBestBattleCmd(s32 a0) {
-    u8 *ptr = getBattleCmdTable();
+    u8 *ptr = (u8 *)getBattleCmdTable();
     s32 best = 0xFF;
     s32 i = 0;
     s32 active;
@@ -271,7 +271,7 @@ skip:
  * @return 1 if any entry is active, 0 otherwise.
  */
 s32 isAnyBattleCmdActive(void) {
-    u8 *ptr = getBattleCmdTable();
+    u8 *ptr = (u8 *)getBattleCmdTable();
     s32 i = 0;
     s32 active;
 top:
@@ -305,7 +305,7 @@ s32 checkBattleCmdSource(s32 a0) {
     if (a0 == 0) {
         return 0;
     }
-    base = (BattleCmdEntry *)getBattleCmdTable();
+    base = getBattleCmdTable();
     entry = &base[a0 & 3];
     if (entry->active != 0) {
         if (entry->sourceId == (a0 >> 4)) {
@@ -326,7 +326,7 @@ s32 checkBattleCmdSource(s32 a0) {
  * @param a0 Packed command identifier, or -1 to clear all.
  */
 void deactivateBattleCmd(s32 a0) {
-    u8 *base = getBattleCmdTable();
+    u8 *base = (u8 *)getBattleCmdTable();
     s32 i;
 
     if (a0 == -1) {
@@ -388,7 +388,7 @@ top:
  * Finally zeroes D_80083750.
  */
 void initBattleCmdEntries(void) {
-    u8 *base = getBattleCmdTable();
+    u8 *base = (u8 *)getBattleCmdTable();
     s32 i = 0;
     s32 one = 1;
     u8 *ptr = base + 0x20;
