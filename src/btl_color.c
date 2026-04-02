@@ -151,26 +151,25 @@ void setCameraShakeParams(s32 intensity, s32 direction) {
  * and updates f7 to the current game state byte.
  */
 void updateCameraVibrate(void) {
-    s32 base = (s32)&g_cameraShake;
     s32 counter;
     s32 clamped;
     s32 gsVal;
     s32 curVal;
 
-    counter = *(u8 *)(base + 6);
+    counter = g_cameraShake.f6;
     counter++;
     clamped = 0x40;
     if (counter < 0x41U) {
         clamped = counter;
     }
-    *(u8 *)(base + 6) = clamped;
+    g_cameraShake.f6 = clamped;
     gsVal = ((volatile GameState *)(&g_gameState))->battleStateFlag;
-    curVal = *(u8 *)(base + 7);
+    curVal = g_cameraShake.f7;
     gsVal &= 0xFF;
     counter = gsVal;
     if (counter != curVal) {
-        *(u8 *)(base + 6) = 0;
-        *(u8 *)(base + 7) = counter;
+        g_cameraShake.f6 = 0;
+        g_cameraShake.f7 = counter;
     }
 }
 
