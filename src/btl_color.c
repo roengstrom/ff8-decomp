@@ -120,20 +120,19 @@ void setCameraVibrateIntensity(s32 val) {
  * also clears byte at +6 and copies game state byte from g_gameState+0xCD4
  * into +7.
  *
- * @param a0 Control value; stored as byte, also acts as enable flag.
- */
-/**
+ /**
  * @brief Set battle camera vibration state.
  *
- * Always stores a0 to unk3. If a0 is non-zero, also clears unk6
- * and copies the low byte of g_gameState+0xCD4 to unk7.
+ * Always stores the control value to g_cameraShake.f3. If non-zero,
+ * also resets the vibration counter (f6) and snapshots the current
+ * battle state flag into f7 for change detection.
  *
- * @param arg0 Vibration enable flag and intensity.
+ * @param arg0 Vibration enable flag.
  */
-void setCameraVibrateState(unsigned int arg0) {
+void setCameraVibrateState(unsigned int enable) {
 
-    g_cameraShake.f3 = arg0;
-    if (arg0 != 0) {
+    g_cameraShake.f3 = enable;
+    if (enable != 0) {
         g_cameraShake.f6 = 0;
         g_cameraShake.f7 = (s8)((volatile GameState *)(&g_gameState))->battleStateFlag;
     }
