@@ -40,7 +40,7 @@ extern u8 D_80052A34[];              /* 0x80052A34 — SPU command table */
 extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
 extern Struct3754 D_80083754;        /* 0x80083754 — transition state */
 extern u8 D_80083756;                /* 0x80083756 — transition flag */
-extern u8 g_battleCmdTable;                /* 0x80083878 — battle cmd table byte */
+extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
 extern s32 D_80083918;               /* 0x80083918 — battle OT buffer index */
 extern s32 D_80083920[];             /* 0x80083920 — battle OT buffers */
 extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
@@ -210,11 +210,11 @@ void resetBattleCameraState(void) {
 
 
 /**
- * @brief Get a pointer to the global byte g_battleCmdTable.
- * @return Address of g_battleCmdTable.
+ * @brief Get the battle command table.
+ * @return Pointer to the battle command entry array.
  */
-u8 *getBattleCmdTable(void) {
-    return &g_battleCmdTable;
+BattleCmdEntry *getBattleCmdTable(void) {
+    return g_battleCmdTable;
 }
 
 /**
