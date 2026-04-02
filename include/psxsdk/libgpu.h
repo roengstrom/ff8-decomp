@@ -92,6 +92,162 @@ typedef struct {
     DR_ENV dr_env;
 } DRAWENV;
 
+/* --- GPU primitive types --- */
+
+/** @brief Draw mode command (GP0(E1h)). Sets texture page, semi-transparency, dithering. */
+typedef struct {
+    u32 tag;
+    u32 code[1];
+} DR_MODE;
+
+/** @brief Flat-shaded triangle. Code 0x20. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+} POLY_F3;
+
+/** @brief Flat-shaded quad. Code 0x28. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+    s16 x2, y2;
+    s16 x3, y3;
+} POLY_F4;
+
+/** @brief Textured triangle. Code 0x24. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+    s16 x1, y1;
+    u8 u1, v1; u16 tpage;
+    s16 x2, y2;
+    u8 u2, v2; u16 pad1;
+} POLY_FT3;
+
+/** @brief Textured quad. Code 0x2C. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+    s16 x1, y1;
+    u8 u1, v1; u16 tpage;
+    s16 x2, y2;
+    u8 u2, v2; u16 pad1;
+    s16 x3, y3;
+    u8 u3, v3; u16 pad2;
+} POLY_FT4;
+
+/** @brief Gouraud-shaded triangle. Code 0x30. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+    u8 r2, g2, b2, pad2;
+    s16 x2, y2;
+} POLY_G3;
+
+/** @brief Gouraud-shaded quad. Code 0x38. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+    u8 r2, g2, b2, pad2;
+    s16 x2, y2;
+    u8 r3, g3, b3, pad3;
+    s16 x3, y3;
+} POLY_G4;
+
+/** @brief Gouraud-shaded textured triangle. Code 0x34. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+    u8 u1, v1; u16 tpage;
+    u8 r2, g2, b2, pad2;
+    s16 x2, y2;
+    u8 u2, v2; u16 pad3;
+} POLY_GT3;
+
+/** @brief Gouraud-shaded textured quad. Code 0x3C. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+    u8 u1, v1; u16 tpage;
+    u8 r2, g2, b2, pad2;
+    s16 x2, y2;
+    u8 u2, v2; u16 pad3;
+    u8 r3, g3, b3, pad4;
+    s16 x3, y3;
+    u8 u3, v3; u16 pad5;
+} POLY_GT4;
+
+/** @brief Straight line. Code 0x40. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    s16 x1, y1;
+} LINE_F2;
+
+/** @brief Gouraud-shaded line. Code 0x50. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 r1, g1, b1, pad1;
+    s16 x1, y1;
+} LINE_G2;
+
+/** @brief Free-size sprite. Code 0x64. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+    u16 w, h;
+} SPRT;
+
+/** @brief 16x16 sprite. Code 0x7C. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+} SPRT_16;
+
+/** @brief 8x8 sprite. Code 0x74. */
+typedef struct {
+    u32 tag;
+    u8 r0, g0, b0, code;
+    s16 x0, y0;
+    u8 u0, v0; u16 clut;
+} SPRT_8;
+
+/** @brief Combined texture page setting + sprite primitive. */
+typedef struct {
+    DR_MODE mode;
+    SPRT sprt;
+} TSPRT;
+
 /* --- GPU function declarations --- */
 
 void ResetGraph(s32 mode);
