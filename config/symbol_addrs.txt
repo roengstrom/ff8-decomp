@@ -1359,6 +1359,7 @@ g_cardFlag = 0x80082FD4;
 g_sfxEntries = 0x80082FF0;
 g_flashColor = 0x800831D4;
 g_battleEntities = 0x80083210;
+g_gpuColor = 0x800834C8;
 g_cameraShake = 0x800834D0;
 D_800834D4 = 0x800834D4;
 g_animState = 0x80083794;

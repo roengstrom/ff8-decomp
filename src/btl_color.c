@@ -46,7 +46,7 @@ extern s32 D_80083920[];             /* 0x80083920 — battle OT buffers */
 extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
 extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
 extern BattleCameraState g_cameraShake; /* 0x800834D0 */
-extern s32 D_800834C8;               /* 0x800834C8 — GPU color value */
+extern s32 g_gpuColor;               /* 0x800834C8 — GPU color value */
 extern u16 D_800834D4;               /* 0x800834D4 — camera shake color */
 extern s32 D_80083750;               /* 0x80083750 — battle timer */
 
@@ -54,10 +54,10 @@ extern s32 D_80083750;               /* 0x80083750 — battle timer */
  * @brief Clear the RGB color bytes at offsets 0x20, 0x21, and 0x22 of a structure.
  * @param a0 Pointer to the base of the structure whose color fields are zeroed.
  */
-void clearEntityColor(u8 *a0) {
-    a0[0x20] = 0;
-    a0[0x22] = 0;
-    a0[0x21] = 0;
+void clearEntityColor(SfxEntry *entry) {
+    entry->field20 = 0;
+    entry->field22 = 0;
+    entry->field21 = 0;
 }
 
 
@@ -65,46 +65,30 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_8002FF34);
 
 
 /**
- * @brief Build a packed grayscale GPU color from a scalar and store it.
- *
- * Divides the input by 32 (signed), masks to 8 bits, replicates across
- * R/G/B channels, sets the command byte to 0x64, and stores to D_800834C8.
- *
- * @param a0 Scalar intensity value.
+ * @brief Build a packed grayscale GPU color and store to g_gpuColor.
+ * @param intensity Scalar intensity value (divided by 32, masked to 8 bits).
  */
-/**
- * @brief Build a packed monochrome GPU color from a single scalar and store it.
- *
- * Divides a0 by 32 (signed), masks to 8 bits, replicates the byte across
- * all 3 color channels, ORs with 0x64000000, and stores to D_800834C8.
- *
- * @param a0 Intensity value (same for all channels).
- */
-void buildGrayscaleGpuColor(s32 a0) {
-    a0 /= 32;
-    a0 &= 0xFF;
-    D_800834C8 = a0 | (a0 << 8) | (a0 << 16) | 0x64000000;
+void buildGrayscaleGpuColor(s32 intensity) {
+    intensity /= 32;
+    intensity &= 0xFF;
+    g_gpuColor = intensity | (intensity << 8) | (intensity << 16) | 0x64000000;
 }
 
 
 /**
- * @brief Build a packed RGB GPU color from three scalars and store it.
- *
- * Divides each channel by 32 (signed), masks to 8 bits, packs as
- * R | (G << 8) | (B << 16) | 0x64000000, and stores to D_800834C8.
- *
- * @param a0 Red intensity.
- * @param a1 Green intensity.
- * @param a2 Blue intensity.
+ * @brief Build a packed RGB GPU color and store to g_gpuColor.
+ * @param r Red intensity (divided by 32, masked to 8 bits).
+ * @param g Green intensity.
+ * @param b Blue intensity.
  */
-void buildRgbGpuColor(s32 a0, s32 a1, s32 a2) {
-    a0 /= 32;
-    a1 /= 32;
-    a2 /= 32;
-    a0 &= 0xFF;
-    a1 &= 0xFF;
-    a2 &= 0xFF;
-    D_800834C8 = a0 | (a1 << 8) | (a2 << 16) | 0x64000000;
+void buildRgbGpuColor(s32 r, s32 g, s32 b) {
+    r /= 32;
+    g /= 32;
+    b /= 32;
+    r &= 0xFF;
+    g &= 0xFF;
+    b &= 0xFF;
+    g_gpuColor = r | (g << 8) | (b << 16) | 0x64000000;
 }
 
 
