@@ -449,17 +449,15 @@ top:
  * Finally zeroes g_battleTimer.
  */
 void initBattleCmdEntries(void) {
-    u8 *base = (u8 *)getBattleCmdTable();
-    s32 i = 0;
-    s32 one = 1;
-    u8 *ptr = base + 0x20;
-top:
-    ptr[3] = i;
-    i++;
-    ptr[2] = 0;
-    *(s16 *)ptr = one;
-    ptr += 0x24;
-    if (i < 4) goto top;
+    BattleCmdEntry* ptr = getBattleCmdTable();
+    s32 i;
+
+    for (i = 0; i < 4; i++, ptr++) {
+        ptr->index = i;
+        ptr->active = 0;
+        ptr->sourceId = 1;
+    }
+
     g_battleTimer = 0;
 }
 
