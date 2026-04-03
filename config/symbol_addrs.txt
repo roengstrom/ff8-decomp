@@ -544,6 +544,7 @@ remapButtonIndex = 0x80030FA0; // type:func
 reverseButtonRemap = 0x80030FDC; // type:func
 btlColorStub1044 = 0x80031044; // type:func
 updatePaletteTransition = 0x8003104C; // type:func
+renderBattleString = 0x80031188; // type:func
 setTransitionPhase7 = 0x800316C4; // type:func
 setTransitionFlag = 0x800318E0; // type:func
 initBattleTransition = 0x800318EC; // type:func

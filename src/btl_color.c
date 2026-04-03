@@ -737,31 +737,31 @@ void updatePaletteTransition(void) {
  * character equals 7 (separator), skips it but advances the y position.
  * Otherwise calls func_8002FF34 to render the character glyph.
  *
- * @param a0 OT base pointer.
- * @param a1 Current packet buffer pointer.
- * @param a2 Pointer to null-terminated string.
- * @param a3 Starting y position.
- * @param arg4 Width parameter (passed on stack to func_8002FF34).
- * @param arg5 Color parameter (passed on stack to func_8002FF34).
+ * @param ot    OT base pointer.
+ * @param pkt   Current packet buffer pointer.
+ * @param str   Pointer to null-terminated string.
+ * @param y     Starting y position.
+ * @param width Width parameter (passed to func_8002FF34).
+ * @param color Color parameter (passed to func_8002FF34).
  * @return Updated packet buffer pointer after rendering.
  */
-s32 func_80031188(s32 a0, s32 a1, u8 *a2, s32 a3, s32 arg4, s32 arg5) {
-    s32 ot = a0;
-    u8 *str = a2;
-    s32 yPos = a3;
-    s32 width = arg4;
+s32 renderBattleString(s32 ot, s32 pkt, u8 *str, s32 y, s32 width, s32 color) {
+    s32 otBase = ot;
+    u8 *ptr = str;
+    s32 yPos = y;
+    s32 w = width;
     s32 sep = 7;
     u8 ch;
-    s32 color = arg5;
+    s32 col = color;
 
     do {
     top:
-        ch = *str++;
+        ch = *ptr++;
         if (ch == 0) {
-            return a1;
+            return pkt;
         }
         if (ch == sep) goto skip;
-        a1 = func_8002FF34(ot, a1, ch, yPos, width, color);
+        pkt = func_8002FF34(otBase, pkt, ch, yPos, w, col);
     } while (0);
 skip:
     yPos = yPos + 9;
