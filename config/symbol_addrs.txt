@@ -1362,6 +1362,7 @@ g_battleEntities = 0x80083210;
 g_gpuColor = 0x800834C8;
 g_cameraShake = 0x800834D0;
 g_cameraVibrateIntensity = 0x800834D4;
+g_battleTimer = 0x80083750;
 g_animState = 0x80083794;
 g_battleCmdTable = 0x80083878;
 g_cardFilename = 0x800837A0; // size:12
