@@ -25,20 +25,22 @@ typedef struct {
     u8 pad0F;
 } AnimEntry;
 
+/** @brief Palette transition state machine (D_80083754). */
 typedef struct {
-    s16 f0;
-    s16 f2;
-    s16 f4;
-    s16 f6;
-    u8 f8;
-    u8 f9;
-} Struct3754;
+    u16 state;      /* 0x00 */
+    u16 pad02;      /* 0x02 */
+    s16 brightness; /* 0x04 */
+    s16 fade;       /* 0x06 */
+    u8 srcPalette;  /* 0x08 */
+    u8 dstPalette;  /* 0x09 */
+    u8 timer;       /* 0x0A */
+} PalTransition;
 
 /* --- Externs (sorted by address) --- */
 
 extern u8 g_battleSfxTable[];              /* 0x80052A34 — SPU command table */
 extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
-extern Struct3754 D_80083754;        /* 0x80083754 — transition state */
+extern PalTransition D_80083754;     /* 0x80083754 — palette transition state */
 extern u8 D_80083756;                /* 0x80083756 — transition flag */
 extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
 extern s32 D_80083918;               /* 0x80083918 — battle OT buffer index */
@@ -654,7 +656,77 @@ void btlColorStub1044(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_8003104C);
+/**
+ * @brief Advance the palette transition state machine.
+ *
+ * Drives a multi-phase screen fade effect for battle transitions.
+ * State 0-1: fade out (ramp fade to 0x1000 in steps of 0x100).
+ * State 2-3: hold (countdown timer from 24).
+ * State 4-5: crossfade brightness (ramp to 0x1000 in steps of 0x155).
+ * State 7-8: fade in (ramp fade back down to 0 in steps of 0x100).
+ * States 6, 9, 10: idle/complete.
+ */
+void func_8003104C(void) {
+    u16 *state = &D_80083754.state;
+    PalTransition *p = &D_80083754;
+
+    switch (*state) {
+    case 0:
+        p->brightness = 0;
+        p->fade = 0;
+        *state = 1;
+    case 1:
+        p->fade += 0x100;
+        if ((s16)p->fade < 0x1000) {
+            return;
+        }
+        p->fade = 0x1000;
+        *state = 2;
+        return;
+    case 2:
+        p->timer = 24;
+        *state = 3;
+    case 3:
+        p->timer--;
+        if ((u8)p->timer) {
+            return;
+        }
+        *state = 4;
+        return;
+    case 4:
+        if (p->dstPalette == p->srcPalette) {
+            p->brightness = 0x1000;
+            *state = 6;
+            return;
+        }
+        *state = 5;
+        return;
+    case 5:
+        p->brightness += 0x155;
+        if ((s16)p->brightness < 0x1000) {
+            return;
+        }
+        p->brightness = 0x1000;
+        *state = 6;
+        return;
+    case 6:
+        return;
+    case 7:
+        *state = 8;
+        return;
+    case 8:
+        p->fade -= 0x100;
+        if ((s16)p->fade > 0) {
+            return;
+        }
+        p->fade = 0;
+        *state = 9;
+        return;
+    case 9:
+    case 10:
+        return;
+    }
+}
 
 
 /**
@@ -705,9 +777,9 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031364);
 
 // init_battle_transition - initializes D_80083754 (Struct3754)
 
-/** @brief Sets D_80083754.f0 to 7. */
+/** @brief Begin the fade-out phase of the palette transition. */
 void setTransitionPhase7(void) {
-    D_80083754.f0 = 7;
+    D_80083754.state = 7;
 }
 
 
@@ -721,17 +793,17 @@ void setTransitionFlag(s32 a0) {
 
 
 /**
- * @brief Initialize the battle transition struct D_80083754 to its starting state.
+ * @brief Reset the palette transition to its idle state.
  *
- * Sets the transition phase to 9, clears the timer fields (f4, f6), and resets
- * the flag bytes (f8, f9) to zero.
+ * Sets state to 9 (idle), clears brightness and fade, and resets
+ * source/destination palette indices.
  */
 void initBattleTransition(void) {
-    D_80083754.f0 = 9;
-    D_80083754.f4 = 0;
-    D_80083754.f6 = 0;
-    D_80083754.f8 = 0;
-    D_80083754.f9 = 0;
+    D_80083754.state = 9;
+    D_80083754.brightness = 0;
+    D_80083754.fade = 0;
+    D_80083754.srcPalette = 0;
+    D_80083754.dstPalette = 0;
 }
 
 
