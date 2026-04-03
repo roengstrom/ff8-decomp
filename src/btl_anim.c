@@ -1845,34 +1845,27 @@ void copyDisplayCoords(DVECTOR *dst) {
 /**
  * @brief Set up GPU draw area and offset packets, linking them to an OT entry.
  *
- * Copies the current display rectangle, calls SetDrawArea and SetDrawOffset
- * to initialize two GPU environment packets at @p pkt, and links each into
- * the ordering table at @p ot using P_TAG bit masking.
+ * Copies the current display rectangle, emits a SetDrawArea and
+ * SetDrawOffset packet, and links each into the ordering table via addPrim.
  *
  * @param ot Ordering table entry pointer.
  * @param pkt GPU packet allocation pointer.
  * @return Updated packet pointer (pkt + 24 bytes: two 12-byte packets).
  */
-s32 func_8002A45C(s32 ot, s32 pkt) {
+u8* func_8002A45C(u32* ot, u8* pkt) {
     RECT rect;
-    s32 mask;
-    unsigned int new_var;
-    s32 tag;
+
     copyDisplayRect(&rect);
     SetDrawArea(pkt, &rect);
-    mask = 0xFFFFFF;
-    new_var = pkt;
-    tag = (s32)0xFF000000;
-    *(s32 *)new_var = ((*(s32 *)new_var) & tag) | ((*(s32 *)ot) & mask);
-    {
-        s32 addr = new_var & mask;
-        pkt += 0xC;
-        *(s32 *)ot = ((*(s32 *)ot) & tag) | addr;
-    }
+    addPrim(ot, pkt);
+    pkt += 0xC;
+
     SetDrawOffset(pkt, &rect);
-    *(s32 *)pkt = ((*(s32 *)pkt) & tag) | ((*(s32 *)ot) & mask);
-    *(s32 *)ot = ((*(s32 *)ot) & tag) | (pkt & mask);
-    do { return pkt + 0xC; } while (0);
+    addPrim(ot, pkt);
+
+    pkt += 0xC;
+
+    return pkt;
 }
 
 
