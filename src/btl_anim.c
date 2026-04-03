@@ -1997,20 +1997,22 @@ void processBattleAnimFrames(s32 frameCount, s32 mode) {
 }
 
 
-/** @brief Calls processBattleAnimFrames(a0, 0) then advanceBattleTimer(a0).
- *  @param a0 Parameter passed to both calls.
+/**
+ * @brief Process battle animation frames and advance the battle timer.
+ * @param frameCount Number of frames to process.
  */
-void renderAndUpdateDisplay(s32 a0) {
-    processBattleAnimFrames(a0, 0);
-    advanceBattleTimer(a0);
+void renderAndUpdateDisplay(s32 frameCount) {
+    processBattleAnimFrames(frameCount, 0);
+    advanceBattleTimer(frameCount);
 }
 
 
-/** @brief Calls processBattleAnimFrames(a0, 1).
- *  @param a0 First parameter.
+/**
+ * @brief Process battle animation frames in render-only mode.
+ * @param frameCount Number of frames to process.
  */
-void renderDisplay(s32 a0) {
-    processBattleAnimFrames(a0, 1);
+void renderDisplay(s32 frameCount) {
+    processBattleAnimFrames(frameCount, 1);
 }
 
 
