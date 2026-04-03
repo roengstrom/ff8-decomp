@@ -422,16 +422,16 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030B2C);
 
 
 /**
- * @brief Add to the battle timer and call func_80030B2C for each full tick.
+ * @brief Add to the battle timer and process ticks.
  *
- * Adds @p a0 to g_battleTimer. While the counter >= 4, subtracts 4 and calls
- * func_80030B2C(). Stores the remainder back to g_battleTimer.
+ * Accumulates @p delta into g_battleTimer. For every 4 units accumulated,
+ * calls func_80030B2C() once. The remainder is stored back.
  *
- * @param a0 Amount to add to the timer.
+ * @param delta Amount to add to the timer.
  */
-void advanceBattleTimer(s32 a0) {
+void advanceBattleTimer(s32 delta) {
     s32 counter = g_battleTimer;
-    counter += a0;
+    counter += delta;
 top:
     if (counter >= 4) {
         func_80030B2C();
