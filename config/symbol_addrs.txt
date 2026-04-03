@@ -1359,6 +1359,7 @@ g_gfData = 0x80078E00;
 g_battleAnims = 0x80082DD0;
 g_animInitialized = 0x80082FB2;
 g_animFlag = 0x80082FB3;
+g_cardData = 0x80082FB4;
 g_cardFlag = 0x80082FD4;
 g_sfxEntries = 0x80082FF0;
 g_flashColor = 0x800831D4;

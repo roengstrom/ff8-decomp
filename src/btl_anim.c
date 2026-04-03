@@ -25,7 +25,7 @@ void stepAnimEntries(void);
 
 extern u8 g_animInitialized;
 extern u8 g_animFlag;
-extern CardDataBlock D_80082FB4;
+extern CardDataBlock g_cardData;
 extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
 extern u16 g_animState;
 extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
@@ -509,62 +509,62 @@ void setCardFlag(s8 val) {
 
 /**
  * @brief Encode a memory card port and slot into a single byte.
- * @param a0 Memory card port number (reduced mod 2: 0 or 1).
- * @param a1 Memory card slot number (reduced mod 4: 0-3).
+ * @param port Memory card port number (reduced mod 2: 0 or 1).
+ * @param slot Memory card slot number (reduced mod 4: 0-3).
  * @return Packed value: (port << 4) | slot.
  */
-s32 packCardId(s32 a0, s32 a1) {
-    a1 %= 4;
-    a0 %= 2;
-    return (a0 << 4) | a1;
+s32 packCardId(s32 port, s32 slot) {
+    slot %= 4;
+    port %= 2;
+    return (port << 4) | slot;
 }
 
 
 /**
  * @brief Extract the memory card port number from a packed card identifier.
- * @param a0 Packed card identifier (port in bit 4).
+ * @param id Packed card identifier (port in bit 4).
  * @return Port number (0 or 1).
  */
-s32 getCardPort(s32 a0) {
-    return (a0 >> 4) % 2;
+s32 getCardPort(s32 id) {
+    return (id >> 4) % 2;
 }
 
 
 /**
  * @brief Extract the memory card slot number from a packed card identifier.
- * @param a0 Packed card identifier (slot in lower 2 bits).
+ * @param id Packed card identifier (slot in lower 2 bits).
  * @return Slot number (0-3).
  */
-s32 getCardSlot(s32 a0) {
-    return a0 % 4;
+s32 getCardSlot(s32 id) {
+    return id % 4;
 }
 
 
 /**
  * @brief Wait for a memory card operation to complete on the specified port.
- * @param a0 Packed card identifier; port is extracted via getCardPort.
+ * @param id Packed card identifier; port is extracted via getCardPort.
  */
-void waitCardReady(s32 a0) {
-    _card_wait(getCardPort(a0));
+void waitCardReady(s32 id) {
+    _card_wait(getCardPort(id));
 }
 
 
 /**
  * @brief Test a BIOS event (wrapper for PsyQ TestEvent).
- * @param a0 Event descriptor to test.
+ * @param event Event descriptor to test.
  * @return Nonzero if the event has been delivered.
  */
-s32 testCardEvent(s32 a0) { TestEvent(a0); }
+s32 testCardEvent(s32 event) { TestEvent(event); }
 
 
 /**
  * @brief Poll the first 4 memory card events and return which one fired.
  * @return Event index 0-3 if an event was delivered, or -1 if none fired.
- * @note Tests events from D_80082FB4 array entries [0..3] in order.
+ * @note Tests events from g_cardData array entries [0..3] in order.
  */
 s32 pollCardEvents(void) {
 
-    CardDataBlock *blk = &D_80082FB4;
+    CardDataBlock *blk = &g_cardData;
     if (testCardEvent(blk->events[0])) return 0;
     if (testCardEvent(blk->events[1])) return 1;
     if (testCardEvent(blk->events[2])) return 2;
@@ -598,11 +598,11 @@ s32 pollCardEventsDiscard(void) { return pollCardEvents(); }
 /**
  * @brief Poll the second set of 4 memory card events and return which one fired.
  * @return Event index 0-3 if an event was delivered, or -1 if none fired.
- * @note Tests events from D_80082FB4 array entries [4..7] in order.
+ * @note Tests events from g_cardData array entries [4..7] in order.
  */
 s32 pollCardEventsSecondary(void) {
 
-    CardDataBlock *blk = &D_80082FB4;
+    CardDataBlock *blk = &g_cardData;
     if (TestEvent(blk->events[4])) return 0;
     if (TestEvent(blk->events[5])) return 1;
     if (TestEvent(blk->events[6])) return 2;
@@ -633,7 +633,7 @@ s32 busyWaitCardEvent(void) {
  * @return Status byte from CardDataBlock.status[port][slot].
  */
 s32 getCardStatus(s32 cardId) {
-    CardDataBlock *blk = &D_80082FB4;
+    CardDataBlock *blk = &g_cardData;
     s32 port = getCardPort(cardId);
     s32 slot = getCardSlot(cardId);
     return blk->status[port][slot];
@@ -646,7 +646,7 @@ s32 getCardStatus(s32 cardId) {
  * @param val Status value to write.
  */
 void setCardStatus(s32 cardId, u8 val) {
-    CardDataBlock *blk = &D_80082FB4;
+    CardDataBlock *blk = &g_cardData;
     s32 port = getCardPort(cardId);
     s32 slot = getCardSlot(cardId);
     blk->status[port][slot] = val;
@@ -659,7 +659,7 @@ void setCardStatus(s32 cardId, u8 val) {
  * @param val Status value to write.
  */
 void setCardStatusSecondary(s32 cardId, u8 val) {
-    CardDataBlock *blk = &D_80082FB4;
+    CardDataBlock *blk = &g_cardData;
     s32 port = getCardPort(cardId);
     s32 slot = getCardSlot(cardId);
     blk->statusAlt[port][slot] = val;
@@ -703,7 +703,7 @@ s32 chanId;
     s32 slot;
     s32 retries;
 
-    card = &D_80082FB4;
+    card = &g_cardData;
     port = getCardPort(chanId);
     slot = getCardSlot(chanId);
 
@@ -752,28 +752,14 @@ void initCardEventHandlers(void) {
 
 
 /**
- * @brief Initialize the memory card data block at D_80082FB4.
+ * @brief Initialize the memory card data block.
  *
- * Clears byte at +0x21, fills 2 sets of 4 consecutive bytes starting at
- * +0x27 (then +0x2B) with the value 2, then calls initCardEventHandlers.
- */
-/**
- * @brief Initialize SFX entry command bytes and reset state.
- *
- * Clears the status byte at D_80082FB4+0x21 to zero, then fills
- * 8 bytes (2 groups of 4) starting at D_80082FB4+0x24 with value 2.
- * Finally calls initCardEventHandlers to complete initialization.
- */
-/**
- * @brief Initialize card data slots and reset card state.
- *
- * Clears the status byte at D_80082FB4+0x21 to zero, fills 8 bytes
- * (2 groups of 4) starting at D_80082FB4+0x24 with value 2, then
- * calls initCardEventHandlers to complete initialization.
+ * Clears the status byte, fills all command byte slots with 2
+ * (2 ports x 4 slots), then calls initCardEventHandlers.
  */
 void initCardDataBlock(void)
 {
-    CardDataBlock *card = &D_80082FB4;
+    CardDataBlock *card = &g_cardData;
     s32 i, j;
 
     card->statusByte = 0;
@@ -807,7 +793,7 @@ void initCardDataBlock(void)
  * @return Status code, or -1 if idle/error.
  */
 s32 pollCardStatus(s32 cardId) {
-    CardDataBlock *card = &D_80082FB4;
+    CardDataBlock *card = &g_cardData;
     s32 port;
     s32 state;
     s32 event;
@@ -872,33 +858,35 @@ s32 pollCardStatus(s32 cardId) {
 
 /**
  * @brief Attempt to load a memory card save, retrying up to 180 times.
- * @param a0 Packed card identifier.
+ *
+ * Waits for the card, issues _card_load, then polls for completion.
+ * Updates card status bytes based on the result.
+ *
+ * @param id Packed card identifier.
  * @return 0 on success, 2 if new card detected, 3 on timeout, 4 on other failure.
- * @note Waits for the card, issues _card_load, then polls events. Updates card status
- *       bytes based on the result.
  */
-s32 loadCardSave(s32 a0) {
+s32 loadCardSave(s32 id) {
     s32 counter;
 
     counter = 0;
     do {
-        waitCardReady(a0);
-        if (_card_load(a0) != 0) {
+        waitCardReady(id);
+        if (_card_load(id) != 0) {
             s32 result = waitCardEvent();
             switch (result) {
             case 0:
-                setCardStatusSecondary(a0, 0);
-                setCardStatus(a0, 0);
+                setCardStatusSecondary(id, 0);
+                setCardStatus(id, 0);
                 return 0;
             case 3:
-                setCardStatusSecondary(a0, 1);
-                markCardBusy(a0);
+                setCardStatusSecondary(id, 1);
+                markCardBusy(id);
                 return 2;
             case 2:
-                markCardBusy(a0);
+                markCardBusy(id);
                 return 3;
             default:
-                markCardBusy(a0);
+                markCardBusy(id);
                 return 4;
             }
         }
@@ -1624,19 +1612,19 @@ s32 writeCardBlocks(s32 cardId, s32 buf, s32 startSector, s32 endSector) {
 
 /**
  * @brief Shut down the memory card subsystem by closing all 8 card events.
- * @note Disables interrupts via func_800472E4, closes all events in D_80082FB4[0..7],
+ * @note Disables interrupts via func_800472E4, closes all events in g_cardData[0..7],
  *       re-enables interrupts, then calls func_8004D968 for final cleanup.
  */
 void shutdownCardSubsystem(void) {
     func_800472E4();
-    CloseEvent(D_80082FB4.events[0]);
-    CloseEvent(D_80082FB4.events[1]);
-    CloseEvent(D_80082FB4.events[2]);
-    CloseEvent(D_80082FB4.events[3]);
-    CloseEvent(D_80082FB4.events[4]);
-    CloseEvent(D_80082FB4.events[5]);
-    CloseEvent(D_80082FB4.events[6]);
-    CloseEvent(D_80082FB4.events[7]);
+    CloseEvent(g_cardData.events[0]);
+    CloseEvent(g_cardData.events[1]);
+    CloseEvent(g_cardData.events[2]);
+    CloseEvent(g_cardData.events[3]);
+    CloseEvent(g_cardData.events[4]);
+    CloseEvent(g_cardData.events[5]);
+    CloseEvent(g_cardData.events[6]);
+    CloseEvent(g_cardData.events[7]);
     func_800472F4();
     func_8004D968();
 }

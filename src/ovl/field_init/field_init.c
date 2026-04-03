@@ -56,7 +56,7 @@ void func_800980B0(void) {
  * TIMEOUT, NEW specs), then creates 4x2 battle entity slots.
  */
 void func_800980D0(void) {
-    extern s32 D_80082FB4[];
+    extern s32 g_cardData[];
 
     s32 *events;
     s32 i;
@@ -65,7 +65,7 @@ void func_800980D0(void) {
     setCardFlag(-1);
     func_8004D8C4(0);
     func_8004D930();
-    events = D_80082FB4;
+    events = g_cardData;
     func_800471A4();
     func_8004D844(0);
     j = 0;

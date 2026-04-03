@@ -242,7 +242,7 @@ typedef struct {
     u8 data[1];  /* +0x04: stream1 data[len1], then stream2 data[len2] */
 } CmdStreamHeader;
 
-/** @brief Memory card subsystem data block (D_80082FB4). */
+/** @brief Memory card subsystem data block (g_cardData). */
 typedef struct {
     s32 events[8];
     u8 pad20;
