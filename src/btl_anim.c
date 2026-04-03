@@ -2062,15 +2062,17 @@ s32 getDisplayListPacketPtr(void) {
  *
  * @param pkt GPU packet pointer to store.
  */
-void storeGpuPacket(s32 pkt) {
-    s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
-    s32 limit;
-    *(s32 *)*(s32 *)(base + 0x6F0) = pkt; /* store pkt to active DisplayListBuf.pktAlloc */
-    base = *(s32 *)(base + 0x6F0); /* reload active DisplayListBuf pointer */
-    limit = *(s32 *)(base + 4); /* DisplayListBuf.pktLimit */
-    if ((u32)limit < (u32)pkt) {
-        if ((u32)pkt <= 0x801AFFFFU) {
-            printf((char *)D_800101D0, (u32)pkt - (u32)limit);
+void storeGpuPacket(u8 *pkt) {
+    DisplayListBuf *buf;
+    u32 limit;
+
+    buf = g_battleAnims.activeBuf;
+    buf->pktAlloc = pkt;
+    limit = g_battleAnims.activeBuf->pktLimit;
+
+    if (limit < pkt) {
+        if (pkt <= 0x801AFFFFU) {
+            printf((char *)D_800101D0, pkt - limit);
         }
     }
 }
@@ -2192,8 +2194,8 @@ void buildAnimEasingCurves(void)
  * buffering, then initializes all battle subsystems: entities, SFX,
  * GPU colors, camera, command entries, transitions, and animation entries.
  *
- * @param bufAddr Display buffer base address.
- * @param bufSize Display buffer total size (halved internally for double buffering).
+ * @param vramBase Display buffer base address in VRAM.
+ * @param vramSize Display buffer total size (halved internally for double buffering).
  */
 void initBattleAnimSystem(s32 vramBase, s32 vramSize)
 {
@@ -2201,15 +2203,15 @@ void initBattleAnimSystem(s32 vramBase, s32 vramSize)
     s32 half = vramSize / 2;
     s32 vramEnd = vramBase + half;
 
-    g_battleAnims.buffers[0].vramBase = vramBase;
-    g_battleAnims.buffers[1].vramBase = vramEnd;
+    g_battleAnims.displayLists[0].pktBase = (u8 *)vramBase;
+    g_battleAnims.displayLists[1].pktBase = (u8 *)vramEnd;
     g_battleAnims.halfSize = half;
 
     for (i = 0; i < 2; i++) {
-        g_battleAnims.buffers[i].vramAddr = g_battleAnims.buffers[i].vramBase + half - 0x800;
+        g_battleAnims.displayLists[i].pktLimit = g_battleAnims.displayLists[i].pktBase + half - 0x800;
     }
 
-    g_battleAnims.buffers[1].displayList = (s32)&g_battleAnims.buffers[0].displayList;
+    g_battleAnims.activeBuf = &g_battleAnims.displayLists[1];
     swapDisplayList();
     initAllBattleEntities();
     resetAllSfx();

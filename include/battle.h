@@ -39,13 +39,14 @@ typedef struct {
     u8 fieldC3;
 } BattleAnimEntity;
 
-/** @brief VRAM display buffer with display list pointer. */
+/** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
 typedef struct {
-    /* 0x00 */ s32 vramAddr;     /**< Current VRAM write address. */
-    /* 0x04 */ u8 pad04[0x4C];   /**< Unknown. */
-    /* 0x50 */ s32 vramBase;     /**< VRAM base address for this buffer. */
-    /* 0x54 */ s32 displayList;  /**< Pointer to GPU display list. */
-} DisplayBuffer; /* 0x58 bytes */
+    u8 *pktAlloc;
+    u8 *pktLimit;
+    u32 ot[18];
+    u8 pad50[4];
+    u8 *pktBase;
+} DisplayListBuf;
 
 /** @brief Complete battle animation state (entities + global coords). */
 typedef struct {
@@ -55,8 +56,9 @@ typedef struct {
     /* 0x1D0 */ s16 globalCoords[2][2];      /**< Per-slot coords [slot][axis]. */
     /* 0x1D8 */ u8 pad1D8[8];                /**< Unknown. */
     /* 0x1E0 */ u8 defaultColor;             /**< Default color value for entity init. */
-    /* 0x1E1 */ u8 pad1E1[0x463];            /**< Unknown. */
-    /* 0x644 */ DisplayBuffer buffers[2];     /**< Double-buffered VRAM display buffers. */
+    /* 0x1E1 */ u8 pad1E1[0x45F];            /**< Unknown. */
+    /* 0x640 */ DisplayListBuf displayLists[2]; /**< Double-buffered GPU display lists (2 × 0x58). */
+    /* 0x6F0 */ DisplayListBuf *activeBuf;   /**< Pointer to active display list buffer. */
     /* 0x6F4 */ s32 halfSize;                /**< Half of total VRAM size. */
     /* 0x6F8 */ u8 pad6F8[4];                /**< Unknown. */
     /* 0x6FC */ s32 field6FC;                /**< Cleared during GPU init. */
@@ -214,15 +216,6 @@ typedef struct {
     u8 field2;
     u8 field3;
 } BattleCmdSlot;
-
-/** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
-typedef struct {
-    u8 *pktAlloc;
-    u8 *pktLimit;
-    u32 ot[18];
-    u8 pad50[4];
-    u8 *pktBase;
-} DisplayListBuf;
 
 /** @brief Data stream within a battle command (two per entry). */
 typedef struct {
