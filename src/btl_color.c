@@ -666,7 +666,7 @@ void btlColorStub1044(void) {
  * State 7-8: fade in (ramp fade back down to 0 in steps of 0x100).
  * States 6, 9, 10: idle/complete.
  */
-void func_8003104C(void) {
+void updatePalTransition(void) {
     u16 *state = &D_80083754.state;
     PalTransition *p = &D_80083754;
 

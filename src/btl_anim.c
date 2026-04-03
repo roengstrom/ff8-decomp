@@ -19,7 +19,7 @@ void decrementSfxCounter(void);
 s32 GetActiveFlag(s32);
 void dispatchBattleEntity(s32, s32, s32);
 void updateCameraVibrate(void);
-void func_8003104C(void);
+void updatePalTransition(void);
 void stepAnimEntries(void);
 
 extern u8 g_animInitialized;
@@ -2010,7 +2010,7 @@ void processBattleAnimFrames(s32 frameCount, s32 mode) {
             }
         }
         updateCameraVibrate();
-        func_8003104C();
+        updatePalTransition();
         stepAnimEntries();
         count--;
     }
