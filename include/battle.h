@@ -217,11 +217,11 @@ typedef struct {
 
 /** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
 typedef struct {
-    s32 pktAlloc;
-    s32 pktLimit;
+    u8 *pktAlloc;
+    u8 *pktLimit;
     u32 ot[18];
     u8 pad50[4];
-    s32 pktBase;
+    u8 *pktBase;
 } DisplayListBuf;
 
 /** @brief Data stream within a battle command (two per entry). */
