@@ -36,7 +36,6 @@ extern u8 g_animCurveFadeOut[];
 extern u8 g_animCurveFadeIn[];
 extern u8 D_800101C4[];
 extern u8 D_800101CC[];
-extern u8 D_800101D0[];
 extern u8 *D_8005F134;
 extern BattleDisplayEntity g_battleEntities[];
 extern u8 g_paletteIndices[];
@@ -2072,7 +2071,7 @@ void storeGpuPacket(u8 *pkt) {
 
     if (limit < pkt) {
         if (pkt <= 0x801AFFFFU) {
-            printf((char *)D_800101D0, pkt - limit);
+            printf("WARNING:MesCon required more memory.:%d\n", pkt - limit);
         }
     }
 }

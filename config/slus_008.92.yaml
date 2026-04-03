@@ -58,6 +58,7 @@ segments:
     vram: 0x80010000
     subsegments:
       - [0x800, rodata]
+      - [0x9D0, .rodata, btl_anim]
       - [0x9FC, rodata]
       - [0xF54, .rodata, btl_color]
       - [0xF80, rodata]
