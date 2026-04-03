@@ -86,7 +86,7 @@ void func_801F7B60(void);
 
 extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
-extern s32 D_8005F134;
+extern s32 g_activeDrawEnv;
 extern s32 D_8005F138;
 void VSync(s32);
 
@@ -181,7 +181,7 @@ s32 func_801F0028(void) {
  *
  * If the active window pointer (D_801FA3C0) equals D_801FA280 base,
  * advances it by 0xA0 bytes. Sets up the draw-list entry at
- * offset 0x74 and links the panel into the global list (D_8005F134).
+ * offset 0x74 and links the panel into the global list (g_activeDrawEnv).
  */
 void func_801F0038(void)
 {
@@ -197,7 +197,7 @@ void func_801F0038(void)
     new_var = D_801FA3C0;
     temp = *((s32 *) (new_var + 0x98));
     *((s32 *) (new_var + 0x70)) = new_var + 0x74;
-    D_8005F134 = new_var + 0x14;
+    g_activeDrawEnv = new_var + 0x14;
     *((s32 *) (new_var + 0x9C)) = temp;
 }
 
@@ -205,7 +205,7 @@ void func_801F0038(void)
  * @brief Initialize display system and link the active panel.
  *
  * Resets the display pipeline, sets D_801FA3C0 as both
- * the active window (D_8005F138) and draw-list head (D_8005F134),
+ * the active window (D_8005F138) and draw-list head (g_activeDrawEnv),
  * then initializes rendering from the panel's draw-list at offset 0x70.
  */
 void func_801F00A0(void)
@@ -219,7 +219,7 @@ void func_801F00A0(void)
     val = D_801FA3C0;
     D_8005F138 = val;
     arg = *(s32 *)(val + 0x70);
-    D_8005F134 = val + 0x14;
+    g_activeDrawEnv = val + 0x14;
     DrawOTag(arg);
 }
 

@@ -1337,6 +1337,7 @@ g_vsyncSkip = 0x8005F10C;
 g_bufferIndex = 0x8005F114;
 g_fadeMode = 0x8005F116;
 g_orderingTablePtrs = 0x8005F128;
+g_activeDrawEnv = 0x8005F134;
 g_renderMode = 0x8005F146;
 g_currentMusicTrack = 0x8005F14E;
 g_vsyncRate = 0x8005F158;

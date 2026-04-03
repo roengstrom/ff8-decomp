@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 #include "battle.h"
 
 
@@ -35,7 +36,7 @@ extern u8 g_animCurveFadeOut[];
 extern u8 g_animCurveFadeIn[];
 extern u8 D_800101C4[];
 extern u8 D_800101CC[];
-extern u8 *D_8005F134;
+extern DRAWENV *g_activeDrawEnv;
 extern BattleDisplayEntity g_battleEntities[];
 extern u8 g_paletteIndices[];
 
@@ -1836,24 +1837,23 @@ void getBattleCharNameWrapper(void) { getBattleCharName(); }
 
 
 /**
- * @brief Copy 8-byte display field from *D_8005F134 to destination.
+ * @brief Copy the clip rectangle from the active draw environment.
  *
- * @param dst Destination for the 8-byte unaligned copy (RECT-sized).
+ * @param dst Destination RECT.
  */
 void copyDisplayRect(RECT *dst) {
-    RECT *src = (RECT *)D_8005F134;
-    *dst = *src;
+    *dst = g_activeDrawEnv->clip;
 }
 
 
 /**
- * @brief Copy display coordinates (x, y) from the global display struct D_8005F134.
- * @param a0 Destination buffer; receives x at offset 0 and y at offset 2 (both u16).
+ * @brief Copy the draw offset from the active draw environment.
+ * @param dst Destination vector for the display coordinates.
  */
-void copyDisplayCoords(u8 *a0) {
-    u8 *p = D_8005F134;
-    *(u16 *)(a0 + 0) = *(u16 *)(p + 8);
-    *(u16 *)(a0 + 2) = *(u16 *)(p + 0xA);
+void copyDisplayCoords(DVECTOR *dst) {
+    DRAWENV *env = g_activeDrawEnv;
+    dst->vx = env->dispX;
+    dst->vy = env->dispY;
 }
 
 
@@ -2076,9 +2076,9 @@ void storeGpuPacket(u8 *pkt) {
 }
 
 
-/** @brief Returns the address of the ordering table (DisplayListBuf.ot) in the active buffer. */
+/** @brief Returns the ordering table of the active display list buffer. */
 s32 getDisplayListOtBase(void) {
-    return (s32)g_battleAnims.activeBuf + 8; /* offset of ot[] in DisplayListBuf */
+    return (s32)g_battleAnims.activeBuf->ot;
 }
 
 

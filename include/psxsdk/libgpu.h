@@ -82,7 +82,8 @@ typedef struct {
  */
 typedef struct {
     RECT clip;
-    s16 ofs[2];
+    s16 dispX;
+    s16 dispY;
     RECT tw;
     u16 tpage;
     u8 dtd;

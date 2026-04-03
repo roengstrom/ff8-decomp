@@ -473,6 +473,7 @@ sndVoiceCmdSetProgram = 0x8003BBAC;
 sndVoiceCmdSetPitch = 0x8003BBCC;
 sndVoiceCmdSetVolume = 0x8003BBEC;
 sndVoiceCmdArchive = 0x8003BEE0;
+g_activeDrawEnv = 0x8005F134;
 g_gameState = 0x80077378;
 g_battleChars = 0x80078720;
 g_menuColor = 0x80083848;
