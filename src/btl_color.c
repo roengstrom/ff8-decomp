@@ -15,15 +15,15 @@ typedef struct {
 } BattleCameraState;
 
 typedef struct {
-    u8 data[4];
-    s16 lerpStart;
-    s16 lerpEnd;
-    s16 value;
-    s16 lerpParam;
-    s16 result;
-    u8 flags;
-    u8 pad0F;
-} AnimEntry;
+    u8 data[4];       /* 0x00 */
+    s16 rangeStart;   /* 0x04 */
+    s16 rangeEnd;     /* 0x06 */
+    s16 inputStart;   /* 0x08 */
+    s16 inputEnd;     /* 0x0A */
+    s16 current;      /* 0x0C */
+    u8 flags;         /* 0x0E */
+    u8 pad;           /* 0x0F */
+} AnimEntry; /* 0x10 */
 
 /** @brief Palette transition state machine (D_80083754). */
 typedef struct {
@@ -832,7 +832,42 @@ s32 lerpRange(s32 a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", stepAnimEntries);
+/**
+ * @brief Step animation entries toward their interpolated targets.
+ *
+ * For each active entry (flags bit 7 set), computes the target via
+ * lerpRange and moves the current value toward it by +/-2 per step.
+ */
+void stepAnimEntries(void) {
+    s32 i;
+    AnimEntry *entry = D_80083772;
+    s32 current;
+    s32 target;
+
+    for (i = 0; i < 2; i++, entry++) {
+        if (!(entry->flags & 0x80)) {
+            continue;
+        }
+
+        current = entry->current;
+        target = lerpRange(entry->rangeStart, entry->rangeEnd, entry->inputStart, entry->inputEnd);
+
+        if (current < target) {
+            current += 2;
+            if (target < current) {
+                current = target;
+            }
+        }
+        if (target < current) {
+            current -= 2;
+            if (current < target) {
+                current = target;
+            }
+        }
+
+        entry->current = current;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
