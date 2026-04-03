@@ -4,6 +4,7 @@
 #include "battle.h"
 
 
+u8 *emitDrawEnvPackets(u32 *ot, u8 *pkt);
 void callCdTick(void);
 void shutdownCardSubsystem(void);
 void initBattleSubsystems(void);
@@ -1697,7 +1698,7 @@ done:
  * @brief Apply GPU draw area/offset setup if the card file overlay is active.
  *
  * When g_cardFileActive is set, calls func_8002E8DC to process the overlay
- * data, then func_8002A45C to emit draw area/offset packets into the OT.
+ * data, then emitDrawEnvPackets to emit draw area/offset packets into the OT.
  * Returns the packet pointer unchanged if inactive.
  *
  * @param ot   Ordering table entry pointer.
@@ -1707,7 +1708,7 @@ done:
 s32 transformValueIfActive(s32 ot, s32 pkt) {
     if (g_cardFileActive != 0) {
         s32 result = func_8002E8DC(ot, pkt, g_cardFileSlot, g_cardFileType, (u8 *)g_cardFilename, 7);
-        pkt = func_8002A45C(ot, result);
+        pkt = emitDrawEnvPackets(ot, result);
     }
     return pkt;
 }
@@ -1852,7 +1853,7 @@ void copyDisplayCoords(DVECTOR *dst) {
  * @param pkt GPU packet allocation pointer.
  * @return Updated packet pointer (pkt + 24 bytes: two 12-byte packets).
  */
-u8* func_8002A45C(u32* ot, u8* pkt) {
+u8* emitDrawEnvPackets(u32* ot, u8* pkt) {
     RECT rect;
 
     copyDisplayRect(&rect);

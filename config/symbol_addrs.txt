@@ -423,6 +423,7 @@ getCharNamePtrWrapper2 = 0x8002A3C8; // type:func
 getBattleCharNameWrapper = 0x8002A3E8; // type:func
 copyDisplayRect = 0x8002A408; // type:func
 copyDisplayCoords = 0x8002A438; // type:func
+emitDrawEnvPackets = 0x8002A45C; // type:func
 swapDisplayList = 0x8002A528; // type:func
 swapDisplayList2 = 0x8002A588; // type:func
 processBattleAnimFrames = 0x8002A5E8; // type:func
