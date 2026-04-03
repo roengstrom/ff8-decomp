@@ -27,7 +27,6 @@ extern u8 g_animFlag;
 extern CardDataBlock D_80082FB4;
 extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
 extern u16 g_animState;
-extern DisplayListBuf *D_800834C0; /**< Pointer to active display list buffer. */
 extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
 extern s16 g_cardFileSlot;   /* save slot index */
 extern u8 g_cardFileType;    /* card/save type */
@@ -2035,19 +2034,19 @@ void renderDisplay(s32 a0) {
 
 /**
  * @brief Read the current packet allocation pointer from the active display list buffer.
- * @return The pktAlloc field of the DisplayListBuf pointed to by D_800834C0.
+ * @return The pktAlloc field of the active display list buffer.
  */
 s32 getDisplayListHead(void) {
-    return D_800834C0->pktAlloc;
+    return g_battleAnims.activeBuf->pktAlloc;
 }
 
 
 /**
  * @brief Read the base packet pointer from the active display list buffer.
- * @return The pktBase field of the DisplayListBuf pointed to by D_800834C0.
+ * @return The pktBase field of the active display list buffer.
  */
 s32 getDisplayListPacketPtr(void) {
-    return D_800834C0->pktBase;
+    return g_battleAnims.activeBuf->pktBase;
 }
 
 
@@ -2079,7 +2078,7 @@ void storeGpuPacket(u8 *pkt) {
 
 /** @brief Returns the address of the ordering table (DisplayListBuf.ot) in the active buffer. */
 s32 getDisplayListOtBase(void) {
-    return (s32)D_800834C0 + 8; /* offset of ot[] in DisplayListBuf */
+    return (s32)g_battleAnims.activeBuf + 8; /* offset of ot[] in DisplayListBuf */
 }
 
 
@@ -2103,7 +2102,7 @@ s32 renderBattleDisplayList(s32 *colorTag) {
     GP_SAVE_SCRATCH(savedGp);
 
     swapDisplayList();
-    buf = D_800834C0;
+    buf = g_battleAnims.activeBuf;
     head = getDisplayListHead();
     head = func_800302DC((s32)&buf->ot[1], head);
     head = func_80031364((s32)&buf->ot[14], head);
@@ -2138,7 +2137,7 @@ s32 addPrimitive(s32 *prim) {
 
     GP_SAVE_SCRATCH(savedGp);
 
-    ot = D_800834C0->ot;
+    ot = g_battleAnims.activeBuf->ot;
     head = getDisplayListHead();
     head = func_8002BF24((s32)ot, head);
     storeGpuPacket(head);
