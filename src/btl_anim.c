@@ -1879,37 +1879,40 @@ u8* emitDrawEnvPackets(u32* ot, u8* pkt) {
  * from offset +0x54 to offset +0x00.
  */
 void swapDisplayList(void) {
-    s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
-    s32 cur = *(s32 *)(base + 0x6F0); /* active DisplayListBuf pointer */
-    s32 newBuf = base + 0x640; /* DisplayListBuf A */
-    s32 v1;
-    if (cur == newBuf) {
-        newBuf = base + 0x698; /* DisplayListBuf B */
+    BattleAnimState *base = &g_battleAnims;
+    DisplayListBuf *buf;
+    DisplayListBuf *active;
+
+    buf = &base->bufs[0];
+    if (base->active == buf) {
+        buf = &base->bufs[1];
     }
-    *(s32 *)(base + 0x6F0) = newBuf;
-    ClearOTag((u32 *)(newBuf + 8), 0x12); /* clear OT (18 entries) */
-    v1 = *(s32 *)(base + 0x6F0);
-    *(s32 *)v1 = *(s32 *)(v1 + 0x54); /* pktAlloc = pktBase */
+
+    base->active = buf;
+    ClearOTag(buf->ot, OT_SIZE);
+    active = base->active;
+    active->pktAlloc = active->pktBase;
 }
 
 /**
  * @brief Swap the active display list buffer and clear the new OT (duplicate).
  *
- * Identical logic to swapDisplayList — toggles display list buffers,
- * clears OT, copies GPU packet pointer.
+ * Identical logic to swapDisplayList.
  */
 void swapDisplayList2(void) {
-    s32 base = (s32)&g_battleAnims; /* (s32) cast prevents symbol+constant folding */
-    s32 cur = *(s32 *)(base + 0x6F0); /* active DisplayListBuf pointer */
-    s32 newBuf = base + 0x640; /* DisplayListBuf A */
-    s32 v1;
-    if (cur == newBuf) {
-        newBuf = base + 0x698; /* DisplayListBuf B */
+    BattleAnimState *base = &g_battleAnims;
+    DisplayListBuf *buf;
+    DisplayListBuf *active;
+
+    buf = &base->bufs[0];
+    if (base->active == buf) {
+        buf = &base->bufs[1];
     }
-    *(s32 *)(base + 0x6F0) = newBuf;
-    ClearOTag((u32 *)(newBuf + 8), 0x12); /* clear OT (18 entries) */
-    v1 = *(s32 *)(base + 0x6F0);
-    *(s32 *)v1 = *(s32 *)(v1 + 0x54); /* pktAlloc = pktBase */
+
+    base->active = buf;
+    ClearOTag(buf->ot, OT_SIZE);
+    active = base->active;
+    active->pktAlloc = active->pktBase;
 }
 
 
@@ -2016,7 +2019,7 @@ void renderDisplay(s32 a0) {
  * @return The pktAlloc field of the active display list buffer.
  */
 s32 getDisplayListHead(void) {
-    return g_battleAnims.activeBuf->pktAlloc;
+    return g_battleAnims.active->pktAlloc;
 }
 
 
@@ -2025,7 +2028,7 @@ s32 getDisplayListHead(void) {
  * @return The pktBase field of the active display list buffer.
  */
 s32 getDisplayListPacketPtr(void) {
-    return g_battleAnims.activeBuf->pktBase;
+    return g_battleAnims.active->pktBase;
 }
 
 
@@ -2039,17 +2042,17 @@ s32 getDisplayListPacketPtr(void) {
  *
  * @param pkt GPU packet pointer to store.
  */
-void storeGpuPacket(u8 *pkt) {
+void storeGpuPacket(s32 pkt) {
     DisplayListBuf *buf;
-    u32 limit;
+    s32 limit;
 
-    buf = g_battleAnims.activeBuf;
+    buf = g_battleAnims.active;
     buf->pktAlloc = pkt;
-    limit = g_battleAnims.activeBuf->pktLimit;
+    limit = g_battleAnims.active->pktLimit;
 
-    if (limit < pkt) {
-        if (pkt <= 0x801AFFFFU) {
-            printf("WARNING:MesCon required more memory.:%d\n", pkt - limit);
+    if ((u32)limit < (u32)pkt) {
+        if ((u32)pkt <= 0x801AFFFFU) {
+            printf("WARNING:MesCon required more memory.:%d\n", (u32)pkt - (u32)limit);
         }
     }
 }
@@ -2057,7 +2060,7 @@ void storeGpuPacket(u8 *pkt) {
 
 /** @brief Returns the ordering table of the active display list buffer. */
 s32 getDisplayListOtBase(void) {
-    return (s32)g_battleAnims.activeBuf->ot;
+    return (s32)g_battleAnims.active->ot;
 }
 
 
@@ -2081,7 +2084,7 @@ s32 renderBattleDisplayList(s32 *colorTag) {
     GP_SAVE_SCRATCH(savedGp);
 
     swapDisplayList();
-    buf = g_battleAnims.activeBuf;
+    buf = g_battleAnims.active;
     head = getDisplayListHead();
     head = func_800302DC((s32)&buf->ot[1], head);
     head = func_80031364((s32)&buf->ot[14], head);
@@ -2116,7 +2119,7 @@ s32 addPrimitive(s32 *prim) {
 
     GP_SAVE_SCRATCH(savedGp);
 
-    ot = g_battleAnims.activeBuf->ot;
+    ot = g_battleAnims.active->ot;
     head = getDisplayListHead();
     head = func_8002BF24((s32)ot, head);
     storeGpuPacket(head);
@@ -2180,15 +2183,15 @@ void initBattleAnimSystem(s32 vramBase, s32 vramSize)
     s32 half = vramSize / 2;
     s32 vramEnd = vramBase + half;
 
-    g_battleAnims.displayLists[0].pktBase = (u8 *)vramBase;
-    g_battleAnims.displayLists[1].pktBase = (u8 *)vramEnd;
+    g_battleAnims.bufs[0].pktBase = vramBase;
+    g_battleAnims.bufs[1].pktBase = vramEnd;
     g_battleAnims.halfSize = half;
 
     for (i = 0; i < 2; i++) {
-        g_battleAnims.displayLists[i].pktLimit = g_battleAnims.displayLists[i].pktBase + half - 0x800;
+        g_battleAnims.bufs[i].pktLimit = g_battleAnims.bufs[i].pktBase + half - 0x800;
     }
 
-    g_battleAnims.activeBuf = &g_battleAnims.displayLists[1];
+    g_battleAnims.active = &g_battleAnims.bufs[1];
     swapDisplayList();
     initAllBattleEntities();
     resetAllSfx();

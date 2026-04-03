@@ -39,13 +39,15 @@ typedef struct {
     u8 fieldC3;
 } BattleAnimEntity;
 
+#define OT_SIZE 18
+
 /** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
 typedef struct {
-    u8 *pktAlloc;
-    u8 *pktLimit;
-    u32 ot[18];
-    u8 pad50[4];
-    u8 *pktBase;
+    u32 pktAlloc;
+    u32 pktLimit;
+    u32 ot[OT_SIZE];
+    u32 pad50;
+    u32 pktBase;
 } DisplayListBuf;
 
 /** @brief Complete battle animation state (entities + global coords). */
@@ -57,8 +59,8 @@ typedef struct {
     /* 0x1D8 */ u8 pad1D8[8];                /**< Unknown. */
     /* 0x1E0 */ u8 defaultColor;             /**< Default color value for entity init. */
     /* 0x1E1 */ u8 pad1E1[0x45F];            /**< Unknown. */
-    /* 0x640 */ DisplayListBuf displayLists[2]; /**< Double-buffered GPU display lists (2 × 0x58). */
-    /* 0x6F0 */ DisplayListBuf *activeBuf;   /**< Pointer to active display list buffer. */
+    /* 0x640 */ DisplayListBuf bufs[2];         /**< Double-buffered GPU display lists (2 × 0x58). */
+    /* 0x6F0 */ DisplayListBuf *active;      /**< Pointer to active display list buffer. */
     /* 0x6F4 */ s32 halfSize;                /**< Half of total VRAM size. */
     /* 0x6F8 */ u8 pad6F8[4];                /**< Unknown. */
     /* 0x6FC */ s32 field6FC;                /**< Cleared during GPU init. */
