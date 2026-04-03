@@ -48,7 +48,7 @@ extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
 extern BattleCameraState g_cameraShake; /* 0x800834D0 */
 extern s32 g_gpuColor;               /* 0x800834C8 — GPU color value */
 extern u16 g_cameraVibrateIntensity;               /* 0x800834D4 — camera shake color */
-extern s32 D_80083750;               /* 0x80083750 — battle timer */
+extern s32 g_battleTimer;               /* 0x80083750 — battle timer */
 
 /**
  * @brief Clear the RGB color bytes at offsets 0x20, 0x21, and 0x22 of a structure.
@@ -397,6 +397,22 @@ s32 loadBattleCmd(u8 *data, s32 idx, s32 priority) {
 }
 
 
+/**
+ * @brief Read and interpolate the next value from a command stream.
+ *
+ * Reads keyframe pairs (value, duration) from the stream. Linearly
+ * interpolates between the current value and the next over the
+ * duration, advances the cursor each call, and moves to the next
+ * keyframe pair when the duration expires. Returns the interpolated
+ * result doubled and clamped to 0-255, or -1 if the stream is
+ * disabled or exhausted (0xFF duration marker).
+ *
+ * Stream format: [val0][dur0][val1][dur1]...[0xFF]
+ *
+ * @param stream Pointer to a CmdStream.
+ * @return Interpolated value (0-255), or -1 if stream ended.
+ * @see https://decomp.me/scratch/oOOHt
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030A54);
 
 
@@ -406,13 +422,13 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030B2C);
 /**
  * @brief Add to the battle timer and call func_80030B2C for each full tick.
  *
- * Adds @p a0 to D_80083750. While the counter >= 4, subtracts 4 and calls
- * func_80030B2C(). Stores the remainder back to D_80083750.
+ * Adds @p a0 to g_battleTimer. While the counter >= 4, subtracts 4 and calls
+ * func_80030B2C(). Stores the remainder back to g_battleTimer.
  *
  * @param a0 Amount to add to the timer.
  */
 void advanceBattleTimer(s32 a0) {
-    s32 counter = D_80083750;
+    s32 counter = g_battleTimer;
     counter += a0;
 top:
     if (counter >= 4) {
@@ -420,17 +436,17 @@ top:
         counter -= 4;
         goto top;
     }
-    D_80083750 = counter;
+    g_battleTimer = counter;
 }
 
 
 /**
- * @brief Initialize 4 battle command entries and clear D_80083750.
+ * @brief Initialize 4 battle command entries and clear g_battleTimer.
  *
  * Calls getBattleCmdTable() to get the entry table base, then for each of
  * the 4 entries (stride 0x24, starting at offset 0x20): sets the index
  * at byte +3, clears byte +2, and sets halfword +0 to 1.
- * Finally zeroes D_80083750.
+ * Finally zeroes g_battleTimer.
  */
 void initBattleCmdEntries(void) {
     u8 *base = (u8 *)getBattleCmdTable();
@@ -444,7 +460,7 @@ top:
     *(s16 *)ptr = one;
     ptr += 0x24;
     if (i < 4) goto top;
-    D_80083750 = 0;
+    g_battleTimer = 0;
 }
 
 
