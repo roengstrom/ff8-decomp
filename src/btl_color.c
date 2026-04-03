@@ -560,14 +560,14 @@ void disableSoundReverb(s32 mask) {
  * @brief Remap a party bitmask through the controller config remap table.
  *
  * When CONFIG_CONTROLLER is set in g_gameState.config.flags, each set bit
- * in the lower 12 bits is remapped through the button remap table starting
- * at g_gameState.config.buttonL2. The upper 4 bits (0xF000) are preserved.
+ * in the lower 12 bits is remapped through the button remap table
+ * g_gameState.config.buttons. The upper 4 bits (0xF000) are preserved.
  * Returns the original value if remapping is inactive.
  *
  * @param bitmask Party bitmask (lower 12 bits = members, upper 4 = flags).
  * @return Remapped bitmask, or original if remapping inactive.
  */
-u16 remapPartyBitmask(u16 bitmask) {
+u16 remapControllerInput(u16 bitmask) {
     s32 top;
     u8* table;
     s32 result;
@@ -578,7 +578,7 @@ u16 remapPartyBitmask(u16 bitmask) {
     }
 
     top = bitmask & 0xF000;
-    table = &g_gameState.config.buttonL2;
+    table = g_gameState.config.buttons;
     result = 0;
     bitmask &= 0xFFF;
 
@@ -597,10 +597,56 @@ u16 remapPartyBitmask(u16 bitmask) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", remapBattlePalette);
+/**
+ * @brief Remap a battle palette index through the controller button table.
+ *
+ * If CONFIG_CONTROLLER is set and @p index is within the 12-button range,
+ * returns the remapped button value minus 1. Otherwise returns the index
+ * unchanged.
+ *
+ * @param index Button/palette index to remap.
+ * @return Remapped index, or original if remapping inactive or out of range.
+ */
+s32 remapButtonIndex(s32 index) {
+    if ((g_gameState.config.flags & CONFIG_CONTROLLER) && index < 12) {
+        return g_gameState.config.buttons[index] - 1;
+    }
+    return index;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", reversePaletteRemap);
+/**
+ * @brief Reverse-lookup a logical button index to its physical button.
+ *
+ * Inverse of remapButtonIndex. Given a logical index, searches the
+ * controller remap table for which physical button maps to it.
+ * Returns the index unchanged if remapping is inactive or out of range,
+ * or -1 if no physical button maps to the given logical index.
+ *
+ * @param index Logical button index to reverse-lookup.
+ * @return Physical button index, original index if inactive, or -1 if not found.
+ */
+s32 reverseButtonRemap(s32 index) {
+    u8* table;
+    s32 i;
+    u8 remap;
+
+    if (!(g_gameState.config.flags & CONFIG_CONTROLLER) || index >= 12) {
+        return index;
+    }
+
+    table = g_gameState.config.buttons;
+    index++;
+
+    for (i = 0; i < 12; i++) {
+        remap = *table++;
+        if (remap == index) {
+            return i;
+        }
+    }
+
+    return -1;
+}
 
 
 /** @brief Empty stub -- no operation. */

@@ -111,18 +111,7 @@ typedef struct {
                                         bit8=scan mode. */
     /* 0x06 */ u8 camera;          /**< Camera mode. */
     /* 0x07 */ u8 pad07;           /**< Unknown. */
-    /* 0x08 */ u8 buttonL2;        /**< L2 button mapping. */
-    /* 0x09 */ u8 buttonR2;        /**< R2 button mapping. */
-    /* 0x0A */ u8 buttonL1;        /**< L1 button mapping. */
-    /* 0x0B */ u8 buttonR1;        /**< R1 button mapping. */
-    /* 0x0C */ u8 buttonTriangle;  /**< Triangle button mapping. */
-    /* 0x0D */ u8 buttonCircle;    /**< Circle button mapping. */
-    /* 0x0E */ u8 buttonCross;     /**< Cross button mapping. */
-    /* 0x0F */ u8 buttonSquare;    /**< Square button mapping. */
-    /* 0x10 */ u8 buttonSelect;    /**< Select button mapping. */
-    /* 0x11 */ u8 pad11;           /**< Unknown. */
-    /* 0x12 */ u8 pad12;           /**< Unknown. */
-    /* 0x13 */ u8 buttonStart;     /**< Start button mapping. */
+    /* 0x08 */ u8 buttons[12];      /**< Button remapping table (L2,R2,L1,R1,Tri,Cir,X,Sq,Sel,?,?,Start). */
 } GameConfig; /* 0x14 = 20 bytes */
 
 /** @brief GameConfig.flags bitfield. */
@@ -132,6 +121,18 @@ typedef struct {
 #define CONFIG_CONTROLLER 0x20  /**< Controller type. */
 #define CONFIG_VIBRATION  0x40  /**< Vibration enabled. */
 #define CONFIG_ANALOG     0x80  /**< Analog stick enabled. */
+
+/** @brief Button indices into GameConfig.buttons[]. */
+#define BTN_L2       0
+#define BTN_R2       1
+#define BTN_L1       2
+#define BTN_R1       3
+#define BTN_TRIANGLE 4
+#define BTN_CIRCLE   5
+#define BTN_CROSS    6
+#define BTN_SQUARE   7
+#define BTN_SELECT   8
+#define BTN_START    11
 
 /* ======================================================================== */
 /* Misc1 — Party, Gil, Griever Name                                        */

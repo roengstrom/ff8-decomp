@@ -10,7 +10,7 @@ s32 func_80047384(void);
 void func_800472E4(void);
 void func_800472F4(void);
 s32 getAnimFrameParam(s32, s32);
-u16 remapPartyBitmask(s32);
+u16 remapControllerInput(s32);
 s32 func_80027DB4(s32, s32, s32);
 s32 func_80027CF8(s32, s32, s32);
 s32 getAnimFrameStatusFlags(s32, s32);
@@ -1963,23 +1963,23 @@ void processBattleAnimFrames(s32 frameCount, s32 mode) {
     if (mode == 1) {
         func_800472E4();
         for (i = count; i >= 0; i--) {
-            param = remapPartyBitmask(getAnimFrameParam(0, i) & 0xFFFF) & 0xFFFF;
+            param = remapControllerInput(getAnimFrameParam(0, i) & 0xFFFF) & 0xFFFF;
             if ((param & 0xF000) == 0) {
                 val = func_80027DB4(0, 2, i);
                 if (val >= 0) {
                     param |= func_80027CF8(0, val - 128, func_80027DB4(0, 3, i) - 128);
                 }
             }
-            param |= remapPartyBitmask(func_80027A58(0, i) & 0xFFFF) << 16;
+            param |= remapControllerInput(func_80027A58(0, i) & 0xFFFF) << 16;
             j = i;
             frameData[j] = param;
-            statusData[j] = remapPartyBitmask(getAnimFrameStatusFlags(0, j) & 0xFFFF) & 0xFFFF;
+            statusData[j] = remapControllerInput(getAnimFrameStatusFlags(0, j) & 0xFFFF) & 0xFFFF;
         }
         func_800472F4();
     } else {
         func_800472E4();
-        param = remapPartyBitmask(getAnimFrameParam(0, 0) & 0xFFFF) & 0xFFFF;
-        upperBits = remapPartyBitmask(func_80027A58(0, 0) & 0xFFFF) << 16;
+        param = remapControllerInput(getAnimFrameParam(0, 0) & 0xFFFF) & 0xFFFF;
+        upperBits = remapControllerInput(func_80027A58(0, 0) & 0xFFFF) << 16;
         val = func_80027DB4((0, 0), 2, 0);
         if (((param & 0xF000) == 0) && (val >= 0)) {
             param |= func_80027CF8(0, val - 128, func_80027DB4(0, 3, 0) - 128);
