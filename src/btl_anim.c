@@ -59,21 +59,20 @@ void setAnimEntityOpacity(s32 idx, s32 val) {
 /**
  * @brief Set animation parameters on a battle entity.
  *
- *  Computes the entry address as g_battleAnims + (a0 & 1) * 196.
- *  Conditionally stores a1 to field 7 and a2 to field 6 (only if >= 0).
- *  Always stores 1 to field 0xA.
+ * Conditionally updates field07 and field06 (skipped if < 0),
+ * then marks the entity active by setting field0A to 1.
  *
- * @param a0 Entity index (masked to 0 or 1).
- * @param a1 Value for field 7 (-1 to skip).
- * @param a2 Value for field 6 (-1 to skip).
+ * @param idx Entity index (masked to 0 or 1).
+ * @param param7 Value for field07 (-1 to skip).
+ * @param param6 Value for field06 (-1 to skip).
  */
-void setAnimEntityParams(s32 idx, s32 a1, s32 a2) {
+void setAnimEntityParams(s32 idx, s32 param7, s32 param6) {
     BattleAnimEntity *entry = &g_battleAnims.entities[idx & 1];
-    if (a1 >= 0) {
-        entry->field07 = a1;
+    if (param7 >= 0) {
+        entry->field07 = param7;
     }
-    if (a2 >= 0) {
-        entry->field06 = a2;
+    if (param6 >= 0) {
+        entry->field06 = param6;
     }
     entry->field0A = 1;
 }
@@ -147,9 +146,9 @@ s32 getAnimFrameSlotParam(s32 idx, s32 param, s32 frameOffset) {
 
 /**
  * @brief Check if battle animation entity 0 has an active frame.
- * @return 1 if active (frame type >= 0), 0 if inactive.
+ * @return 1 if entity 0 has an active frame, 0 otherwise.
  */
-s32 areAllAnimsInactive(void) {
+s32 isAnimActive(void) {
     return getAnimFrameType(0, 0) >= 0;
 }
 
@@ -248,11 +247,10 @@ void resetAnimEntity(s32 idx, s32 frameId) {
 /**
  * @brief Initialize a battle entity's color fields from the global default.
  *
- * Copies the byte at g_battleAnims+0x1E0 into the entity's color fields
- * at offsets +0x0C through +0x0F (RGBX), then calls resetAnimEntity to
- * perform further entity initialization.
+ * Sets all four color fields (0C-0F) to g_battleAnims.defaultColor,
+ * then calls resetAnimEntity to reset frame state.
  *
- * @param a0 Entity index (stride 196 into g_battleAnims).
+ * @param idx Entity index (0 or 1).
  */
 void initAnimEntityColor(s32 idx) {
     BattleAnimEntity *entity = &g_battleAnims.entities[idx];
@@ -494,9 +492,9 @@ void btlMemcpy(u8 *src, u8 *dst, s32 numBytes) {
 
 /**
  * @brief Wait for vertical sync (VSync wrapper).
- * @param a0 Unused parameter.
+ * @param mode VSync mode parameter (passed to VSync).
  */
-void waitVSync(s32 a0) { VSync(); }
+void waitVSync(s32 mode) { VSync(); }
 
 
 /**
@@ -555,7 +553,7 @@ void waitCardReady(s32 id) {
  * @param event Event descriptor to test.
  * @return Nonzero if the event has been delivered.
  */
-s32 testCardEvent(s32 event) { TestEvent(event); }
+s32 testCardEvent(s32 event) { return TestEvent(event); }
 
 
 /**
@@ -668,8 +666,8 @@ void setCardStatusSecondary(s32 cardId, u8 val) {
 
 
 /** @brief Mark a memory card slot as busy/active (set status byte to 1). */
-void markCardBusy(s32 a0) {
-    setCardStatus(a0, 1);
+void markCardBusy(s32 cardId) {
+    setCardStatus(cardId, 1);
 }
 
 
@@ -689,10 +687,11 @@ s32 readCardStatusDiscard(s32 cardId) {
  * then issues _card_info and waits for the event result. Retries up to
  * 180 times if the card doesn't respond.
  *
- * @param cardId Packed card identifier.
- * @param chanId Packed card identifier (for port/slot lookup).
+ * @param cardId Packed card identifier (used for _card_info calls).
+ * @param chanId Packed card identifier (used for port/slot lookup).
  * @return 0 if card has no status, 1 if card present or new,
  *         3 on unknown event, 4 on timeout.
+ * @note K&R declaration + shadowed chanId required for matching codegen.
  */
 s32 getCardInfo(cardId, chanId)
 s32 cardId;

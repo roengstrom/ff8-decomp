@@ -69,7 +69,7 @@ s32 func_801E5820(CfgContext *arg0)
  * Sets both config availability flags at @p a0[0x2D] and @p a0[0x2E]
  * to 1, then validates them. Calls func_80027DB4(0,0,0) to check
  * memory card status; if negative, clears a0[0x2E]. Then calls
- * areAllAnimsInactive(); if it returns 0, clears a0[0x2D]. If nonzero,
+ * isAnimActive(); if it returns 0, clears a0[0x2D]. If nonzero,
  * calls getBattleAnimField0B(0) and clears a0[0x2D] if that returns 0.
  *
  * @param a0 Pointer to config menu context.
@@ -81,7 +81,7 @@ void func_801E587C(u8 *a0) {
     if (func_80027DB4(0, 0, 0) < 0) {
         a0[0x2E] = 0;
     }
-    if (areAllAnimsInactive() == 0 || getBattleAnimField0B(0) == 0) {
+    if (isAnimActive() == 0 || getBattleAnimField0B(0) == 0) {
         a0[0x2D] = 0;
     }
 }
