@@ -475,16 +475,15 @@ void sendSpuCommand(s32 a0) {
 
 
 /**
- * @brief Play sound effect from D_80052A34 table.
+ * @brief Play a sound effect from the battle SFX table.
  *
- * Loads a byte from D_80052A34[a0] and calls sndPlaySfx
- * with default volume/pan parameters (0, 0x80, 0x7F).
+ * Looks up a sound ID from D_80052A34 and plays it via sndPlaySfx
+ * with default volume (0x80) and pan (0x7F).
  *
- * @param a0 Index into D_80052A34 sound table.
+ * @param idx Index into the D_80052A34 sound table.
  */
-void playSoundEffect(s32 a0) {
-    u8 *ptr = D_80052A34 + a0;
-    sndPlaySfx(*ptr, 0, 0x80, 0x7F);
+void playSoundEffect(s32 idx) {
+    sndPlaySfx(D_80052A34[idx], 0, 0x80, 0x7F);
 }
 
 
