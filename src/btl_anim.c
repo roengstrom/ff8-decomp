@@ -2042,17 +2042,17 @@ s32 getDisplayListPacketPtr(void) {
  *
  * @param pkt GPU packet pointer to store.
  */
-void storeGpuPacket(s32 pkt) {
+void storeGpuPacket(u32 pkt) {
     DisplayListBuf *buf;
-    s32 limit;
+    u32 limit;
 
     buf = g_battleAnims.active;
     buf->pktAlloc = pkt;
     limit = g_battleAnims.active->pktLimit;
 
-    if ((u32)limit < (u32)pkt) {
-        if ((u32)pkt <= 0x801AFFFFU) {
-            printf("WARNING:MesCon required more memory.:%d\n", (u32)pkt - (u32)limit);
+    if (limit < pkt) {
+        if (pkt <= 0x801AFFFFU) {
+            printf("WARNING:MesCon required more memory.:%d\n", pkt - limit);
         }
     }
 }
