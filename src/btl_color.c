@@ -441,12 +441,10 @@ top:
 
 
 /**
- * @brief Initialize 4 battle command entries and clear g_battleTimer.
+ * @brief Initialize the 4 battle command entries and reset the battle timer.
  *
- * Calls getBattleCmdTable() to get the entry table base, then for each of
- * the 4 entries (stride 0x24, starting at offset 0x20): sets the index
- * at byte +3, clears byte +2, and sets halfword +0 to 1.
- * Finally zeroes g_battleTimer.
+ * Sets each entry's index to its slot number, clears the active flag,
+ * and sets sourceId to 1. Zeroes g_battleTimer.
  */
 void initBattleCmdEntries(void) {
     BattleCmdEntry* ptr = getBattleCmdTable();
