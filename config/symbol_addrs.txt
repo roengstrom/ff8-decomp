@@ -1328,6 +1328,7 @@ g_meshVPage = 0x80052941;
 g_meshTpage = 0x8005294C;
 g_paletteIndices = 0x80052954;
 g_cardFileActive = 0x80052958;
+g_battleSfxTable = 0x80052A34;
 load_table = 0x80053C58; // 19-entry file descriptor table (overlays + mngrp.bin + init.out)
 g_fadeCounter = 0x8005F0FC;
 g_vsyncSkip = 0x8005F10C;

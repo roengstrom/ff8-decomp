@@ -36,7 +36,7 @@ typedef struct {
 
 /* --- Externs (sorted by address) --- */
 
-extern u8 D_80052A34[];              /* 0x80052A34 — SPU command table */
+extern u8 g_battleSfxTable[];              /* 0x80052A34 — SPU command table */
 extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
 extern Struct3754 D_80083754;        /* 0x80083754 — transition state */
 extern u8 D_80083756;                /* 0x80083756 — transition flag */
@@ -461,29 +461,28 @@ void initBattleCmdEntries(void) {
 
 
 /**
- * @brief Send an SPU command looked up from table D_80052A34.
+ * @brief Send an SPU command from the battle SFX table.
  *
- * Uses the input as an index into D_80052A34 to retrieve a command byte,
- * then passes it to sndKeyOn which writes it to the SPU command buffer
- * (D_80075058) and triggers SPU processing.
+ * Looks up a command byte from g_battleSfxTable and sends it to the
+ * SPU via sndKeyOn.
  *
- * @param a0 Index into the D_80052A34 lookup table.
+ * @param idx Index into g_battleSfxTable.
  */
-void sendSpuCommand(s32 a0) {
-    sndKeyOn(D_80052A34[a0]);
+void sendSpuCommand(s32 idx) {
+    sndKeyOn(g_battleSfxTable[idx]);
 }
 
 
 /**
  * @brief Play a sound effect from the battle SFX table.
  *
- * Looks up a sound ID from D_80052A34 and plays it via sndPlaySfx
+ * Looks up a sound ID from g_battleSfxTable and plays it via sndPlaySfx
  * with default volume (0x80) and pan (0x7F).
  *
- * @param idx Index into the D_80052A34 sound table.
+ * @param idx Index into the g_battleSfxTable sound table.
  */
 void playSoundEffect(s32 idx) {
-    sndPlaySfx(D_80052A34[idx], 0, 0x80, 0x7F);
+    sndPlaySfx(g_battleSfxTable[idx], 0, 0x80, 0x7F);
 }
 
 
@@ -494,25 +493,25 @@ void playSoundEffect(s32 idx) {
  * hardware. Mutes master volume, then enables reverb on channels indicated
  * by bits 0-2 of a0. If a0 == 7, enables reverb on channel 0 (all).
  *
- * @param a0 Bitmask of reverb channels to enable (bits 0, 1, 2).
+ * @param mask Bitmask of reverb channels to enable (bits 0, 1, 2).
  */
-void enableSoundReverb(s32 a0) {
+void enableSoundReverb(s32 mask) {
     s32 hwState = func_80047384();
 
     if (!(hwState & 4)) {
         func_800472E4();
     }
     sndSetMasterVolume(0);
-    if (a0 == 7) {
+    if (mask == 7) {
         sndEnableReverb(0);
     } else {
-        if (a0 & 1) {
+        if (mask & 1) {
             sndEnableReverb(1);
         }
-        if (a0 & 2) {
+        if (mask & 2) {
             sndEnableReverb(2);
         }
-        if (a0 & 4) {
+        if (mask & 4) {
             sndEnableReverb(3);
         }
     }
@@ -529,24 +528,24 @@ void enableSoundReverb(s32 a0) {
  * hardware. Disables reverb on channels indicated by bits 0-2 of a0,
  * then restores master volume to 0x7F.
  *
- * @param a0 Bitmask of reverb channels to disable (bits 0, 1, 2).
+ * @param mask Bitmask of reverb channels to disable (bits 0, 1, 2).
  */
-void disableSoundReverb(s32 a0) {
+void disableSoundReverb(s32 mask) {
     s32 hwState = func_80047384();
 
     if (!(hwState & 4)) {
         func_800472E4();
     }
-    if (a0 == 7) {
+    if (mask == 7) {
         sndDisableReverb(0);
     } else {
-        if (a0 & 1) {
+        if (mask & 1) {
             sndDisableReverb(1);
         }
-        if (a0 & 2) {
+        if (mask & 2) {
             sndDisableReverb(2);
         }
-        if (a0 & 4) {
+        if (mask & 4) {
             sndDisableReverb(3);
         }
     }
@@ -558,17 +557,44 @@ void disableSoundReverb(s32 a0) {
 
 
 /**
- * @brief Remap a party bitmask through the game state remap table.
+ * @brief Remap a party bitmask through the controller config remap table.
  *
- * When bit 0x20 of the game state flags at offset 0xAE4 is set, each set
- * bit in the lower 12 bits of a0 is remapped through the table at
- * g_gameState+0xAE8. The upper 4 bits (0xF000) are preserved unchanged.
+ * When CONFIG_CONTROLLER is set in g_gameState.config.flags, each set bit
+ * in the lower 12 bits is remapped through the button remap table starting
+ * at g_gameState.config.buttonL2. The upper 4 bits (0xF000) are preserved.
  * Returns the original value if remapping is inactive.
  *
- * @param a0 Party bitmask (lower 12 bits = party members, upper 4 = flags).
- * @return Remapped bitmask as u16, or original a0 if remapping inactive.
+ * @param bitmask Party bitmask (lower 12 bits = members, upper 4 = flags).
+ * @return Remapped bitmask, or original if remapping inactive.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_color", remapPartyBitmask);
+u16 remapPartyBitmask(u16 bitmask) {
+    s32 top;
+    u8* table;
+    s32 result;
+    s32 i;
+
+    if (!(g_gameState.config.flags & CONFIG_CONTROLLER)) {
+        return bitmask;
+    }
+
+    top = bitmask & 0xF000;
+    table = &g_gameState.config.buttonL2;
+    result = 0;
+    bitmask &= 0xFFF;
+
+    for (i = 0; i < 12; i++) {
+        if ((bitmask >> i) & 1) {
+            s32 remap = *table++;
+            if (remap) {
+                result |= 1 << (remap - 1);
+            }
+        } else {
+            table++;
+        }
+    }
+
+    return (u16)(top | result);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_color", remapBattlePalette);
