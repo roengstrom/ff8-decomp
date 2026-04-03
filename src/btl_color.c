@@ -34,13 +34,13 @@ typedef struct {
     u8 srcPalette;  /* 0x08 */
     u8 dstPalette;  /* 0x09 */
     u8 timer;       /* 0x0A */
-} PalTransition;
+} PaletteTransition;
 
 /* --- Externs (sorted by address) --- */
 
 extern u8 g_battleSfxTable[];              /* 0x80052A34 — SPU command table */
 extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
-extern PalTransition D_80083754;     /* 0x80083754 — palette transition state */
+extern PaletteTransition D_80083754;     /* 0x80083754 — palette transition state */
 extern u8 D_80083756;                /* 0x80083756 — transition flag */
 extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
 extern s32 D_80083918;               /* 0x80083918 — battle OT buffer index */
@@ -666,9 +666,9 @@ void btlColorStub1044(void) {
  * State 7-8: fade in (ramp fade back down to 0 in steps of 0x100).
  * States 6, 9, 10: idle/complete.
  */
-void updatePalTransition(void) {
+void updatePaletteTransition(void) {
     u16 *state = &D_80083754.state;
-    PalTransition *p = &D_80083754;
+    PaletteTransition *p = &D_80083754;
 
     switch (*state) {
     case 0:
