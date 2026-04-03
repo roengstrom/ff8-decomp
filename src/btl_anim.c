@@ -899,29 +899,23 @@ s32 loadCardSave(s32 id) {
 /**
  * @brief Clear a memory card, retrying up to 180 times.
  *
- * Calls _card_clear in a retry loop. If _card_clear succeeds, waits for
- * a card event. Returns 0 on success (via loadCardSave), 3 on busy event,
- * or 4 on timeout/failure.
+ * Calls _card_clear in a retry loop. On success, waits for a card event
+ * and attempts loadCardSave. Marks card busy on timeout.
  *
- * @param a0 Packed card identifier.
- * @return 0 on success, 3 if card event returned 1, 4 on timeout.
+ * @param id Packed card identifier.
+ * @return 0 on success, 3 on event failure, 4 on timeout/busy.
  */
-/**
- * @brief Clear a memory card, retrying up to 180 times.
- * @param a0 Packed card identifier.
- * @return 0 on success (via loadCardSave), 3 on event, 4 on timeout/busy.
- */
-s32 clearCardSync(s32 a0) {
+s32 clearCardSync(s32 id) {
     s32 counter;
     s32 one;
 
     counter = 0;
     one = 1;
     do {
-        if (_card_clear(a0) != 0) {
+        if (_card_clear(id) != 0) {
             switch (busyWaitCardEvent()) {
             case 0:
-                return loadCardSave(a0);
+                return loadCardSave(id);
             case 1:
                 return 4;
             default:
@@ -930,7 +924,7 @@ s32 clearCardSync(s32 a0) {
         }
         counter++;
     } while (counter < 0xB4);
-    markCardBusy(a0);
+    markCardBusy(id);
     return 4;
 }
 
@@ -972,10 +966,10 @@ s32 checkAndClearCard(s32 cardId) {
  * If the result is 2 (timeout), retries up to 3 times. Results in
  * the [2,4] range continue looping; others exit immediately.
  *
- * @param a0 Packed card identifier.
+ * @param id Packed card identifier.
  * @return Card status result.
  */
-s32 pollCardReady(s32 a0) {
+s32 pollCardReady(s32 id) {
     s32 retryCount;
     s32 loopLimit;
     s32 twoConst;
@@ -986,7 +980,7 @@ s32 pollCardReady(s32 a0) {
     loopLimit = 4;
     twoConst = 2;
     do {
-        result = checkAndClearCard(a0);
+        result = checkAndClearCard(id);
         if ((u32)(result - 2) >= 3) {
             break;
         }
@@ -1150,18 +1144,18 @@ s32 callCardInit(s32 cardId, char *filename, s32 openMode)
 
 /**
  * @brief Close a file descriptor if it is valid (not -1).
- * @param a0 File descriptor to close.
+ * @param fd File descriptor to close.
  */
-void closeFileDescriptor(s32 a0) {
-    if (a0 != -1) {
-        close(a0);
+void closeFileDescriptor(s32 fd) {
+    if (fd != -1) {
+        close(fd);
     }
 }
 
 
-/** @brief Wrapper for closeFileDescriptor (close a file descriptor if valid). */
-void closeFileDescriptorWrapper(s32 a0) {
-    closeFileDescriptor(a0);
+/** @brief Wrapper for closeFileDescriptor. */
+void closeFileDescriptorWrapper(s32 fd) {
+    closeFileDescriptor(fd);
 }
 
 
@@ -1524,21 +1518,21 @@ s32 readCardCreate(s32 cardId, s32 filename, s32 data, s32 size, s32 offset) {
  * builds the filename via buildCardPath, and calls erase. If erase succeeds
  * (returns non-zero), returns 1. Otherwise calls cleanup and returns -1.
  *
- * @param a0 Packed card identifier.
- * @param a1 File index or name parameter.
+ * @param cardId Packed card identifier.
+ * @param filename File name parameter.
  * @return 1 if erase succeeded, -1 on failure.
  */
-s32 eraseCardFile(s32 a0, s32 a1) {
+s32 eraseCardFile(s32 cardId, s32 filename) {
     s32 buf[8];
     initCardEventHandlers();
-    if (checkCardFileExists(a0, a1) == 0) {
+    if (checkCardFileExists(cardId, filename) == 0) {
         return -1;
     }
-    buildCardPath(a0, a1, (s32)buf);
+    buildCardPath(cardId, filename, (s32)buf);
     if (erase((s32)buf) != 0) {
         return 1;
     }
-    markCardBusy(a0);
+    markCardBusy(cardId);
     return -1;
 }
 
@@ -1700,19 +1694,22 @@ done:
 
 
 /**
- * @brief Apply a transformation or encoding to a value if a global flag is set.
- * @param a0 First parameter (context or key).
- * @param a1 Value to potentially transform; returned unchanged if g_cardFileActive is 0.
- * @return Transformed a1 if g_cardFileActive is nonzero, otherwise the original a1.
- * @note When active, calls func_8002E8DC with card file info globals,
- *       then applies func_8002A45C to the result.
+ * @brief Apply GPU draw area/offset setup if the card file overlay is active.
+ *
+ * When g_cardFileActive is set, calls func_8002E8DC to process the overlay
+ * data, then func_8002A45C to emit draw area/offset packets into the OT.
+ * Returns the packet pointer unchanged if inactive.
+ *
+ * @param ot   Ordering table entry pointer.
+ * @param pkt  Current GPU packet pointer.
+ * @return Updated packet pointer, or original if inactive.
  */
-s32 transformValueIfActive(s32 a0, s32 a1) {
+s32 transformValueIfActive(s32 ot, s32 pkt) {
     if (g_cardFileActive != 0) {
-        s32 result = func_8002E8DC(a0, a1, g_cardFileSlot, g_cardFileType, (u8 *)g_cardFilename, 7);
-        a1 = func_8002A45C(a0, result);
+        s32 result = func_8002E8DC(ot, pkt, g_cardFileSlot, g_cardFileType, (u8 *)g_cardFilename, 7);
+        pkt = func_8002A45C(ot, result);
     }
-    return a1;
+    return pkt;
 }
 
 
@@ -1744,17 +1741,17 @@ void btlStrcat2(u8 *dst, u8 *src) {
 
 
 /**
- * @brief Count the number of non-zero bytes from a0 until a null terminator.
- * @param a0 Pointer to null-terminated byte string.
- * @return Number of bytes before the null terminator (string length).
+ * @brief Return the length of a null-terminated byte string.
+ * @param str Pointer to null-terminated string.
+ * @return Number of bytes before the null terminator.
  */
-s32 btlStrlen(u8 *a0) {
+s32 btlStrlen(u8 *str) {
     s32 count = 0;
     goto test;
 inc:
     count++;
 test:
-    if (*a0++ != 0) goto inc;
+    if (*str++ != 0) goto inc;
     return count;
 }
 
