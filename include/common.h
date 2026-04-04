@@ -30,6 +30,18 @@ typedef int s32;
 #define KEEP_ALIVE(x) asm volatile("" :: "r"(x))
 
 /*
+ * GP stack allocation — allocates `size` bytes from the GP-relative area,
+ * returning the current GP in `ptr`. Used for temporary scratchpad structs.
+ */
+#define GP_ALLOC(ptr, size) \
+    asm volatile("addu %0, $gp, $zero" : "=r"(ptr)); \
+    asm volatile("addi $gp, $gp, %0" : : "i"(size))
+
+/* Free `size` bytes from the GP stack (reverses GP_ALLOC). */
+#define GP_FREE(size) \
+    asm volatile("addi $gp, $gp, -%0" : : "i"(size))
+
+/*
  * Combined GP save+set scratchpad macro — saves $gp to `saved`, sets $gp to
  * scratchpad (0x1F800300) via $a2. Used by btl_anim display list functions.
  */

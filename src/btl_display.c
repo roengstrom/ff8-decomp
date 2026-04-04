@@ -1,8 +1,32 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
+#include "psxsdk/libc.h"
 #include "battle.h"
 
 extern BattleDisplayEntity g_battleEntities[];
+extern void copyDisplayRect(RECT *dst);
+
+/** @brief Clipped rectangle result: the clipped rect + saved pre-clip position. */
+typedef struct {
+    RECT rect;       /* 0x00: clipped rectangle */
+    s32 savedPos;    /* 0x08: packed original x|y before clipping */
+} ClipResult;
+
+/** @brief Scratch workspace for rectangle clipping operations. */
+typedef struct {
+    ClipResult work;
+    ClipResult disp;
+} ClipWork;
+
+/** @brief Parameters for a double-blit operation with source rects and destination buffers. */
+typedef struct {
+    u8 pad[0x08];
+    RECT srcRect1;
+    RECT srcRect2;
+    u8 dstData1[12];
+    u8 dstData2[12];
+} BlitParams;
 
 /**
  * @brief Set a battle entity's type and compute draw mode from bit 0.
@@ -169,4 +193,63 @@ void initBattleEntity(s32 idx) {
 INCLUDE_ASM("asm/nonmatchings/btl_display", func_8002B080);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_display", func_8002B16C);
+/**
+ * @brief Clip two source rectangles against the display area and write results.
+ *
+ * For each of the two source rects in @p arg, offsets by the display origin,
+ * clips against the display rect via func_8002B080, clamps minimum size to
+ * 2x1, and copies the 12-byte result to the output buffers.
+ *
+ * @param arg Blit parameters with source rects and destination buffers.
+ * @return 1 if the first rectangle intersects the display area, 0 otherwise.
+ */
+s32 func_8002B16C(BlitParams *arg) {
+    ClipWork *cw;
+    ClipResult *disp;
+    s32 result;
+
+    GP_ALLOC(cw, sizeof(ClipWork));
+
+    disp = &cw->disp;
+
+    copyDisplayRect(&disp->rect);
+    disp->savedPos = *(s32 *)&disp->rect;
+
+    cw->work.rect = arg->srcRect1;
+    cw->work.rect.x += disp->rect.x;
+    cw->work.rect.y += disp->rect.y;
+    cw->work.savedPos = *(s32 *)&cw->work.rect;
+
+    if (cw->work.rect.w <= 0 || cw->work.rect.h <= 0) {
+        result = 0;
+    } else {
+        result = func_8002B080(&cw->work.rect, &disp->rect, &cw->work.rect) != 0;
+    }
+    result++; result--; /* Regalloc */
+
+    if (cw->work.rect.w < 2) cw->work.rect.w = 2;
+    if (cw->work.rect.h < 2) cw->work.rect.h = 1;
+
+    memcpy(arg->dstData1, cw, 12);
+
+    copyDisplayRect(&disp->rect);
+    disp->savedPos = *(s32 *)&disp->rect;
+
+    cw->work.rect = arg->srcRect2;
+    cw->work.rect.x += disp->rect.x;
+    cw->work.rect.y += disp->rect.y;
+    cw->work.savedPos = *(s32 *)&cw->work.rect;
+
+    if (cw->work.rect.w > 0 && cw->work.rect.h > 0) {
+        func_8002B080(&cw->work.rect, &disp->rect, &cw->work.rect);
+    }
+
+    if (cw->work.rect.w < 2) cw->work.rect.w = 2;
+    if (cw->work.rect.h < 2) cw->work.rect.h = 1;
+
+    memcpy(arg->dstData2, cw, 12);
+
+    GP_FREE(sizeof(ClipWork));
+
+    return result;
+}
