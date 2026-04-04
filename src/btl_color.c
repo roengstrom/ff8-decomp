@@ -36,13 +36,6 @@ typedef struct {
     u8 timer;       /* 0x0A */
 } PaletteTransition;
 
-/* --- Externs (sorted by address) --- */
-
-extern u8 g_battleSfxTable[];              /* 0x80052A34 — SPU command table */
-extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
-extern PaletteTransition D_80083754;     /* 0x80083754 — palette transition state */
-extern u8 D_80083756;                /* 0x80083756 — transition flag */
-extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
 /** @brief Battle HUD OT buffer (smaller display list for UI elements). */
 typedef struct {
     u8 pad00[0x70];          /* 0x00 */
@@ -51,6 +44,13 @@ typedef struct {
     u32 pktBase;             /* 0x7C: packet buffer start */
 } HudDisplayBuf;
 
+/* --- Externs (sorted by address) --- */
+
+extern u8 g_battleSfxTable[];              /* 0x80052A34 — SPU command table */
+extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
+extern PaletteTransition D_80083754;     /* 0x80083754 — palette transition state */
+extern u8 D_80083756;                /* 0x80083756 — transition flag */
+extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
 extern HudDisplayBuf *D_80083918;    /* 0x80083918 — active HUD display buffer */
 extern HudDisplayBuf *D_80083920[];  /* 0x80083920 — HUD display buffer pair */
 extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
@@ -61,8 +61,8 @@ extern u16 g_cameraVibrateIntensity;               /* 0x800834D4 — camera shak
 extern s32 g_battleTimer;               /* 0x80083750 — battle timer */
 
 /**
- * @brief Clear the RGB color bytes at offsets 0x20, 0x21, and 0x22 of a structure.
- * @param a0 Pointer to the base of the structure whose color fields are zeroed.
+ * @brief Clear the RGB color fields of an SFX entry.
+ * @param entry Pointer to the SFX entry to clear.
  */
 void clearEntityColor(SfxEntry *entry) {
     entry->field20 = 0;
@@ -123,7 +123,6 @@ void setCameraVibrateIntensity(s32 val) {
 }
 
 
-/**
 /**
  * @brief Set battle camera vibration state.
  *
@@ -783,8 +782,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031224);
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031364);
 
 
-// init_battle_transition - initializes D_80083754 (Struct3754)
-
 /** @brief Begin the fade-out phase of the palette transition. */
 void setTransitionPhase7(void) {
     D_80083754.state = 7;
@@ -794,9 +791,9 @@ void setTransitionPhase7(void) {
 INCLUDE_ASM("asm/nonmatchings/btl_color", func_800316D4);
 
 
-/** @brief Stores a byte to global D_80083756. */
-void setTransitionFlag(s32 a0) {
-    D_80083756 = a0;
+/** @brief Set the palette transition flag. */
+void setTransitionFlag(s32 val) {
+    D_80083756 = val;
 }
 
 
@@ -818,25 +815,25 @@ void initBattleTransition(void) {
 /**
  * @brief Perform linear interpolation within a range.
  *
- * Returns 0 if a2 < a0 (below range start), a3 if a2 >= a1 (at or above range end),
- * or a proportional value between 0 and a3 based on where a2 falls in [a0, a1).
+ * Returns 0 if input is below rangeStart, maxOut if at or above rangeEnd,
+ * or a proportional value in between.
  *
- * @param a0 Range start (minimum input value).
- * @param a1 Range end (maximum input value).
- * @param a2 Current input value to interpolate.
- * @param a3 Maximum output value (returned when a2 >= a1).
- * @return Interpolated value in [0, a3].
+ * @param rangeStart Minimum input value.
+ * @param rangeEnd   Maximum input value.
+ * @param input      Current input value to interpolate.
+ * @param maxOut     Maximum output value.
+ * @return Interpolated value in [0, maxOut].
  */
-s32 lerpRange(s32 a0, s32 a1, s32 a2, s32 a3) {
-    if (a2 < a0) {
+s32 lerpRange(s32 rangeStart, s32 rangeEnd, s32 input, s32 maxOut) {
+    if (input < rangeStart) {
         return 0;
     }
-    if (a2 >= a1) {
-        return a3;
+    if (input >= rangeEnd) {
+        return maxOut;
     }
-    a2 -= a0;
-    a1 -= a0;
-    return a2 * a3 / a1;
+    input -= rangeStart;
+    rangeEnd -= rangeStart;
+    return input * maxOut / rangeEnd;
 }
 
 
@@ -884,22 +881,12 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80031A18);
 /**
  * @brief Render both animation overlay channels.
  *
- * Builds a grayscale GPU color from g_cameraVibrateIntensity, then calls func_80031A18
- * twice (once for each channel, indices 0 and 1).
+ * Builds a grayscale GPU color from g_cameraVibrateIntensity, then calls
+ * func_80031A18 twice (once for each channel, indices 0 and 1).
  *
- * @param a0 OT base pointer.
- * @param a1 Packet buffer pointer.
- * @return Updated packet pointer (from last func_80031A18 call).
- */
-/**
- * @brief Render both animation overlay channels.
- *
- * Builds a grayscale GPU color from g_cameraVibrateIntensity, then calls func_80031A18
- * twice (once for each channel, indices 0 and 1).
- *
- * @param a0 OT base pointer.
- * @param a1 Packet buffer pointer.
- * @return Updated packet pointer (from last func_80031A18 call).
+ * @param ot  OT base pointer.
+ * @param pkt Packet buffer pointer.
+ * @return Updated packet pointer.
  */
 INCLUDE_ASM("asm/nonmatchings/btl_color", renderAnimOverlay);
 
@@ -981,32 +968,27 @@ void initAnimEntry(s32 idx, s32 flags, s32 src, s32 start, s32 end, s32 inStart,
 
 
 /**
- * @brief Call func_80031E1C with truncated a1 and constant 7th arg (0x60).
+ * @brief Initialize an animation entry with default inEnd (0x60).
  *
- * Passes through all 6 caller args, truncates a1 to u8,
- * and appends 0x60 as the 7th argument.
+ * Wrapper for initAnimEntry with a fixed inEnd of 0x60.
  */
-void setupAnimEntry(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5) {
-    initAnimEntry(a0, a1, a2, a3, arg4, arg5, 0x60);
+void setupAnimEntry(s32 idx, u8 flags, s32 src, s32 start, s32 end, s32 inStart) {
+    initAnimEntry(idx, flags, src, start, end, inStart, 0x60);
 }
 
 
 /**
- * @brief Call func_80031E1C with truncated a1, passing all 7 args through.
+ * @brief Initialize an animation entry with all parameters.
  *
- * Truncates a1 to u8 and passes all caller arguments
- * through to func_80031E1C.
+ * Wrapper for initAnimEntry passing all arguments through.
  */
-void setupAnimEntryFull(s32 a0, u8 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
-    initAnimEntry(a0, a1, a2, a3, arg4, arg5, arg6);
+void setupAnimEntryFull(s32 idx, u8 flags, s32 src, s32 start, s32 end, s32 inStart, s32 inEnd) {
+    initAnimEntry(idx, flags, src, start, end, inStart, inEnd);
 }
 
 
 /**
- * @brief Clear animation entry active flags.
- *
- * Iterates over 2 entries in D_80083772 (stride 0x10) and sets the byte at
- * offset 0x0E to zero for each, marking them as inactive.
+ * @brief Clear all animation entry flags, marking both as inactive.
  */
 void clearAnimEntries(void) {
     AnimEntry *entry = D_80083772;
@@ -1067,12 +1049,10 @@ s32 getBattleAllocSize(void) {
 
 
 /**
- * @brief Flip the double-buffered ordering table and initialize the new back buffer.
+ * @brief Flip the double-buffered HUD ordering table.
  *
- * Selects the OT buffer that is not currently active (from D_80083920[0..1]),
- * sets it as the active buffer in D_80083918, clears its 2-entry ordering tag
- * at offset 0x70 via ClearOTag, and initializes the primitive allocation pointer
- * at offset 0x78 to point to offset 0x7C (start of free space).
+ * Selects the inactive buffer from D_80083920, sets it as active,
+ * clears its OT, and resets the packet allocation pointer.
  */
 void flipBattleOtBuffer(void) {
     HudDisplayBuf *buf;
