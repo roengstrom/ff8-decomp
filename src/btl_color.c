@@ -7,12 +7,12 @@
 /* --- Local type definitions --- */
 
 typedef struct {
-    s16 f0;
-    s8 f2;
-    s8 f3;
-    s16 f4;
-    u8 f6;
-    u8 f7;
+    s16 intensity;      /* 0x00: shake intensity */
+    s8 direction;       /* 0x02: shake direction */
+    s8 enable;          /* 0x03: vibration enable flag */
+    s16 zoom;           /* 0x04: zoom/distance (default 0x1000) */
+    u8 counter;         /* 0x06: vibration timer (clamped to 0x40) */
+    u8 stateSnapshot;   /* 0x07: battle state byte for change detection */
 } BattleCameraState;
 
 typedef struct {
@@ -58,7 +58,7 @@ extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
 extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
 extern BattleCameraState g_cameraShake; /* 0x800834D0 */
 extern s32 g_gpuColor;               /* 0x800834C8 — GPU color value */
-extern u16 g_cameraVibrateIntensity;               /* 0x800834D4 — camera shake color */
+extern u16 g_cameraVibrateIntensity; /* 0x800834D4 — camera vibrate intensity */
 extern s32 g_battleTimer;               /* 0x80083750 — battle timer */
 
 /**
@@ -127,18 +127,17 @@ void setCameraVibrateIntensity(s32 val) {
 /**
  * @brief Set battle camera vibration state.
  *
- * Always stores the control value to g_cameraShake.f3. If non-zero,
- * also resets the vibration counter (f6) and snapshots the current
- * battle state flag into f7 for change detection.
+ * Always stores the control value to g_cameraShake.enable. If non-zero,
+ * also resets the vibration counter and snapshots the current
+ * battle state flag for change detection.
  *
  * @param enable Vibration enable flag.
  */
 void setCameraVibrateState(unsigned int enable) {
-
-    g_cameraShake.f3 = enable;
+    g_cameraShake.enable = enable;
     if (enable != 0) {
-        g_cameraShake.f6 = 0;
-        g_cameraShake.f7 = (s8)((volatile GameState *)(&g_gameState))->battleStateFlag;
+        g_cameraShake.counter = 0;
+        g_cameraShake.stateSnapshot = (s8)((volatile GameState *)(&g_gameState))->battleStateFlag;
     }
 }
 
@@ -148,17 +147,17 @@ void setCameraVibrateState(unsigned int enable) {
  *  @param direction Shake direction (stored as s8).
  */
 void setCameraShakeParams(s32 intensity, s32 direction) {
-    g_cameraShake.f0 = intensity;
-    g_cameraShake.f2 = direction;
+    g_cameraShake.intensity = intensity;
+    g_cameraShake.direction = direction;
 }
 
 
 /**
  * @brief Update camera vibration timer and check for game state change.
  *
- * Increments g_cameraShake.f6 (clamped to 0x40), then compares the low byte of
- * g_gameState.battleStateFlag against g_cameraShake.f7. If they differ, resets
- * f6 to 0 and updates f7 to the current battle state byte.
+ * Increments g_cameraShake.counter (clamped to 0x40), then compares the low byte of
+ * g_gameState.battleStateFlag against g_cameraShake.stateSnapshot. If they differ,
+ * resets counter to 0 and updates the snapshot.
  */
 void updateCameraVibrate(void) {
     s32 counter;
@@ -166,20 +165,20 @@ void updateCameraVibrate(void) {
     s32 gsVal;
     s32 curVal;
 
-    counter = g_cameraShake.f6;
+    counter = g_cameraShake.counter;
     counter++;
     clamped = 0x40;
     if (counter < 0x41U) {
         clamped = counter;
     }
-    g_cameraShake.f6 = clamped;
+    g_cameraShake.counter = clamped;
     gsVal = ((volatile GameState *)(&g_gameState))->battleStateFlag;
-    curVal = g_cameraShake.f7;
+    curVal = g_cameraShake.stateSnapshot;
     gsVal &= 0xFF;
     counter = gsVal;
     if (counter != curVal) {
-        g_cameraShake.f6 = 0;
-        g_cameraShake.f7 = counter;
+        g_cameraShake.counter = 0;
+        g_cameraShake.stateSnapshot = counter;
     }
 }
 
@@ -209,14 +208,13 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030518);
  * Clears all fields to zero except f4, which is set to 0x1000 (default zoom/distance).
  */
 void resetBattleCameraState(void) {
-    g_cameraShake.f3 = 0;
-    g_cameraShake.f4 = 0x1000;
-    g_cameraShake.f0 = 0;
-    g_cameraShake.f2 = 0;
-    g_cameraShake.f7 = 0;
-    g_cameraShake.f6 = 0;
+    g_cameraShake.enable = 0;
+    g_cameraShake.zoom = 0x1000;
+    g_cameraShake.intensity = 0;
+    g_cameraShake.direction = 0;
+    g_cameraShake.stateSnapshot = 0;
+    g_cameraShake.counter = 0;
 }
-
 
 
 /**
