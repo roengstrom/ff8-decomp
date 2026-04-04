@@ -458,6 +458,7 @@ GetActiveFlag = 0x8002AF54; // type:func battle_entity_get_field_34
 setBattleEntityScale = 0x8002AF70; // type:func
 getBattleEntityScale = 0x8002AF88; // type:func
 initBattleEntity = 0x8002AFA4; // type:func
+clipBlitRects = 0x8002B16C; // type:func
 __udivdi3 = 0x8002BA80;
 getEntityTablePtr = 0x8002BEEC; // type:func
 dispatchBattleEntity = 0x8002C030; // type:func

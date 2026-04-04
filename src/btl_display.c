@@ -203,7 +203,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_display", func_8002B080);
  * @param arg Blit parameters with source rects and destination buffers.
  * @return 1 if the first rectangle intersects the display area, 0 otherwise.
  */
-s32 func_8002B16C(BlitParams *arg) {
+s32 clipBlitRects(BlitParams *arg) {
     ClipWork *cw;
     ClipResult *disp;
     s32 result;
