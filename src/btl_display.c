@@ -45,13 +45,13 @@ void setBattleEntityType(s32 idx, s32 val) {
 
 
 /**
- * @brief Set a battle entity's field00.
+ * @brief Set a battle entity's update callback.
  * @param idx Entity index.
- * @param val Value to store.
+ * @param val Callback function pointer (or 0 to clear).
  */
 void setBattleEntityField00(s32 idx, s32 val) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
-    entity->field00 = val;
+    entity->callback = (EntityCallback)val;
 }
 
 

@@ -90,8 +90,11 @@ typedef struct {
     TimSection clut;    /**< 0x08: CLUT section (followed by pixel section). */
 } Tim;
 
-typedef struct {
-    s32 field00;
+struct BattleDisplayEntity;
+typedef void (*EntityCallback)(struct BattleDisplayEntity *);
+
+typedef struct BattleDisplayEntity {
+    EntityCallback callback; /* 0x00: update function pointer */
     s32 field04;
     RECT boundRect;
     RECT dispRect;

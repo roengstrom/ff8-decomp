@@ -37,18 +37,16 @@ INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BF24);
 
 
 /**
- * @brief Dispatch a battle entity's function pointer.
+ * @brief Dispatch a battle entity's update callback.
  *
- * If the entity's field00 (function pointer) is non-NULL, calls it
- * with the entity address.
+ * If the entity has a callback set, invokes it with the entity pointer.
  *
  * @param idx Entity index.
  */
 void dispatchBattleEntity(s32 idx) {
     BattleDisplayEntity *entity = &g_battleEntities[idx];
-    void (*fp)(s32) = (void (*)(s32))entity->field00;
-    if (fp != 0) {
-        fp((s32)entity);
+    if (entity->callback) {
+        entity->callback(entity);
     }
 }
 
