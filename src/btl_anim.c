@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libgte.h"
+#include "psxsdk/libc.h"
 #include "battle.h"
 
 

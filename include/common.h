@@ -14,8 +14,6 @@ typedef int s32;
 #define NULL ((void *)0)
 #endif
 
-extern void *memcpy(void *dst, const void *src, u32 n);
-
 /* No-op barrier to control register allocation for decomp matching.
    Compiles to nothing; safe to remove if byte-matching is not needed. */
 #ifdef __GNUC__
