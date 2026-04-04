@@ -1,6 +1,5 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
-#include "psxsdk/libgte.h"
 #include "psxsdk/libc.h"
 #include "battle.h"
 
@@ -30,7 +29,7 @@ typedef struct {
 
 /**
  * @brief Set a battle entity's type and compute draw mode from bit 0.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param val Entity type; if bit 0 is set, drawMode = 0x3A000000, else 0x38000000.
  */
 void setBattleEntityType(s32 idx, s32 val) {
@@ -46,8 +45,8 @@ void setBattleEntityType(s32 idx, s32 val) {
 
 
 /**
- * @brief Set a battle entity's field00 (first word).
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @brief Set a battle entity's field00.
+ * @param idx Entity index.
  * @param val Value to store.
  */
 void setBattleEntityField00(s32 idx, s32 val) {
@@ -57,8 +56,8 @@ void setBattleEntityField00(s32 idx, s32 val) {
 
 
 /**
- * @brief Set a battle entity's field04 (second word).
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @brief Set a battle entity's field04.
+ * @param idx Entity index.
  * @param val Value to store.
  */
 void setBattleEntityField04(s32 idx, s32 val) {
@@ -69,7 +68,7 @@ void setBattleEntityField04(s32 idx, s32 val) {
 
 /**
  * @brief Set a battle entity's field36.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param val Value to store.
  */
 void setBattleEntityField36(s32 idx, s32 val) {
@@ -80,7 +79,7 @@ void setBattleEntityField36(s32 idx, s32 val) {
 
 /**
  * @brief Get a battle entity's field36.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Value of field36.
  */
 u32 getBattleEntityField36(s32 idx) {
@@ -91,7 +90,7 @@ u32 getBattleEntityField36(s32 idx) {
 
 /**
  * @brief Set a battle entity's field35.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param val Value to store.
  */
 void setBattleEntityField35(s32 idx, s32 val) {
@@ -102,7 +101,7 @@ void setBattleEntityField35(s32 idx, s32 val) {
 
 /**
  * @brief Get a battle entity's field35.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Value of field35.
  */
 u32 getBattleEntityField35(s32 idx) {
@@ -113,7 +112,7 @@ u32 getBattleEntityField35(s32 idx) {
 
 /**
  * @brief Set a battle entity's active flag; if 0, fully deactivate the entity.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param value Active flag; if 0, also clears field36, field04, and field00.
  */
 void setBattleEntityActive(s32 idx, s32 value) {
@@ -130,7 +129,7 @@ void setBattleEntityActive(s32 idx, s32 value) {
 
 /**
  * @brief Get a battle entity's active flag.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Active flag value (0 = inactive).
  */
 s32 GetActiveFlag(s32 idx) {
@@ -141,7 +140,7 @@ s32 GetActiveFlag(s32 idx) {
 
 /**
  * @brief Set a battle entity's scale factor.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param val Scale value (0x1000 = 1.0).
  */
 void setBattleEntityScale(s32 idx, s32 val) {
@@ -152,7 +151,7 @@ void setBattleEntityScale(s32 idx, s32 val) {
 
 /**
  * @brief Get a battle entity's scale factor.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Scale value (0x1000 = 1.0).
  */
 s32 getBattleEntityScale(s32 idx) {
@@ -163,9 +162,11 @@ s32 getBattleEntityScale(s32 idx) {
 
 /**
  * @brief Initialize a battle entity to default values.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
- * @note Sets up a default rectangle (64,64,128,128), entity type 6, clears pointers and IDs,
- *       sets field 0x37 to 3, initializes sub-fields, sets field 0x3C to 0x1000, clears field 0x36.
+ *
+ * Sets up a default bounding rect (64,64,128,128), entity type 6,
+ * clears fields, sets anim speed to 3, scale to 0x1000.
+ *
+ * @param idx Entity index.
  */
 void initBattleEntity(s32 idx) {
     s16 rect[4];
@@ -197,7 +198,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_display", func_8002B080);
  * @brief Clip two source rectangles against the display area and write results.
  *
  * For each of the two source rects in @p arg, offsets by the display origin,
- * clips against the display rect via func_8002B080, clamps minimum size to
+ * clips against the display rect via RECT intersection, clamps minimum size to
  * 2x1, and copies the 12-byte result to the output buffers.
  *
  * @param arg Blit parameters with source rects and destination buffers.
