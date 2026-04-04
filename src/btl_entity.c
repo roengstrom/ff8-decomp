@@ -5,7 +5,7 @@
 extern BattleDisplayEntity g_battleEntities[];
 extern s32 D_800834CC;
 extern u8 g_digitBaseCode;
-extern SfxEntry g_sfxEntries[];
+extern SfxSystem g_sfxEntries;
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BAA0);
@@ -132,7 +132,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002C734);
  * @param a2 Value for field32.
  */
 void setSfxEntryParams(s32 idx, s32 a1, s32 a2) {
-    SfxEntry* entry = &g_sfxEntries[idx];
+    SfxEntry* entry = &g_sfxEntries.entries[idx];
     entry->field30 = a1;
     entry->field32 = a2;
 }
@@ -146,7 +146,7 @@ void setSfxEntryParams(s32 idx, s32 a1, s32 a2) {
  * @param a3 Value for field2C.
  */
 void setSfxEntryTimings(s32 idx, s32 a1, s32 a2, s32 a3) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field29 = a1;
     entry->field2A = a2;
     entry->field2C = a3;
@@ -159,7 +159,7 @@ void setSfxEntryTimings(s32 idx, s32 a1, s32 a2, s32 a3) {
  * @param val Value to store.
  */
 void setSfxEntryField2B(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field2B = val;
 }
 
@@ -170,7 +170,7 @@ void setSfxEntryField2B(s32 idx, s32 val) {
  * @param val Value to store.
  */
 void setSfxEntryField34(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field34 = val;
 }
 
@@ -181,7 +181,7 @@ void setSfxEntryField34(s32 idx, s32 val) {
  * @param val Value to store.
  */
 void setSfxEntryField38(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field38 = val;
 }
 
@@ -192,7 +192,7 @@ void setSfxEntryField38(s32 idx, s32 val) {
  * @param val Volume value (0x1000 = default).
  */
 void setSfxEntryVolume(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->volume = val;
     setBattleEntityScale(entry->entityIdx, val);
 }

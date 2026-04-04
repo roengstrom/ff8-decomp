@@ -2,37 +2,32 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
-extern SfxEntry g_sfxEntries[];
+extern SfxSystem g_sfxEntries;
+extern s32 g_flashColor;
+extern s8 D_800831DC;
+extern u8 D_800831D3;
+extern s32 D_80083850;
+extern s32 g_menuColor;
+extern u8 D_800834D8[];
+
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002C8A4);
 
 
 /**
- * @brief Decrement byte at offset 0x1E3 in g_sfxEntries and trigger an SFX update.
- *
- * Offset 0x1E3 falls within entry index 8 (8 * 60 = 480 = 0x1E0, +3 = 0x1E3),
- * at field offset 0x03 of that entry. After decrementing, calls func_8002C8A4
- * to process the change.
+ * @brief Decrement the global SFX counter and trigger an SFX update.
  */
 void decrementSfxCounter(void) {
-    s32 base = (s32)g_sfxEntries;
-    ((SfxGlobalState *)(base + 0x1E0))->counter--;
+    g_sfxEntries.state.counter--;
     func_8002C8A4();
 }
 
 
 /**
- * @brief Build a packed RGBA-like color value from a scalar and store it as an
- *        SFX control word.
- *
- * Divides the input by 32, masks to 8 bits, replicates across the low 24 bits
- * (R=G=B), sets the high byte to 0x64 (alpha/command), and stores the result
- * in g_flashColor before triggering an SFX update.
- *
+ * @brief Build a packed grayscale color from intensity and store as flash color.
  * @param a0 Scalar intensity value (divided by 32, clamped to 0-255).
  */
 void setFlashColor(s32 a0) {
-    extern s32 g_flashColor;
     a0 /= 32;
     a0 &= 0xFF;
     a0 |= (a0 << 16) | (a0 << 8);
@@ -44,95 +39,93 @@ void setFlashColor(s32 a0) {
 
 /**
  * @brief Read volume from an SFX entry and dispatch to color/effect updates.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  */
 void dispatchSfxColorUpdate(s32 idx) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     s32 val = entry->volume;
     setFlashColor(val);
     buildGrayscaleGpuColor(val);
 }
 
 
-// sfx_entry_swap_field_16 - g_sfxEntries stride 60, returns old value
-
 /**
  * @brief Set the linked battle entity index on an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Battle entity index.
  */
 void setSfxEntityIndex(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->entityIdx = val;
 }
 
 
 /**
  * @brief Swap the state of an SFX entry, returning the old value.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val New state value.
  * @return Previous state value.
  */
 s32 swapSfxState(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
-    s32 old = entry->state;
-    entry->state = val;
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
+    s32 old = entry->flags.fields.state;
+    entry->flags.fields.state = val;
     return old;
 }
 
 
 /**
  * @brief Get the state of an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @return State value (0 = inactive, 1 = active).
  */
 s32 getSfxState(s32 idx) {
-    SfxEntry *entry = &g_sfxEntries[idx];
-    return entry->state;
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
+    return entry->flags.fields.state;
 }
 
 
 /**
  * @brief Set pitch and clear field14 on an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Pitch value.
  */
 void setSfxPitch(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->pitch = val;
-    entry->field14 = 0;
+    entry->flags.fields.field14 = 0;
 }
 
 
 /**
  * @brief Set field1C on an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Value to store.
  */
 void setSfxField1C(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field1C = val;
 }
 
 
 /**
  * @brief Set the rate delta on an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Rate delta value (negative = fade out).
  */
 void setSfxRateDelta(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->rateDelta = val;
 }
 
 
 /**
  * @brief Get field1C of an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @return Signed 16-bit value.
  */
 s32 getSfxField1C(s32 idx) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     return entry->field1C;
 }
 
@@ -146,16 +139,14 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CC4C);
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CDE4);
 
 
-/** @brief Stores a byte to global D_800831DC. */
-void setSfxGlobalFlag(s32 a0) {
-    extern s8 D_800831DC;
-    D_800831DC = a0;
+/** @brief Set the global SFX flag. */
+void setSfxGlobalFlag(s32 val) {
+    D_800831DC = val;
 }
 
 
-/** @brief Returns the signed byte value of global D_800831DC. */
+/** @brief Get the global SFX flag. */
 s32 getSfxGlobalFlag(void) {
-    extern s8 D_800831DC;
     return D_800831DC;
 }
 
@@ -193,26 +184,22 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D040);
  * @param a0 Sound effect index.
  * @param a1 Data pointer to store.
  */
-void initSfxPlayback(s32 a0, s32 a1) {
-    s32 mask1 = 0x0FFFFFFF;
-    s32 mask2 = (s32)0xF0FFFFFF;
-    u8 *entry = (u8 *)g_sfxEntries + a0 * 60;
-    s32 status = *(s32 *)(entry + 0x14);
-    SfxEntry *ep = (SfxEntry *)entry;
-    ep->field28 = 0;
-    ep->dataPtr = a1;
-    ep->dataPtrCopy = a1;
-    ep->field12 = 0;
-    ep->seqState = 0;
-    status &= mask1;
-    status |= 0x70000000;
-    mask2 &= status;
-    mask2 |= (u32)status >> 28 << 24;
-    *(s32 *)(entry + 0x14) = mask2;
+void initSfxPlayback(s32 index, s32 param) {
+    SfxEntry *entry = &g_sfxEntries.entries[index];
+
+    entry->field28 = 0;
+    entry->dataPtr = param;
+    entry->dataPtrCopy = param;
+    entry->field12 = 0;
+    entry->seqState = 0;
+    entry->flags.raw = (entry->flags.raw & 0x0FFFFFFF) | 0x70000000;
+    entry->flags.raw = (entry->flags.raw & 0xF0FFFFFF) | (entry->flags.raw >> 28 << 24);
+
     clearEntityColor(entry);
-    ep->field29 = 0xFF;
-    ep->field2A = 0xFF;
-    ep->field19 = 0;
+
+    entry->field29 = 0xFF;
+    entry->field2A = 0xFF;
+    entry->field19 = 0;
 }
 
 
@@ -256,13 +243,13 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DBF8);
 
 /**
  * @brief Configure an SFX entry for playback: mark as active, set rate, and set mode.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param rate Playback rate value (e.g. 0x200, 0x1000).
  * @param mode Playback mode byte.
  */
 void configureSfxPlayback(s32 idx, s32 rate, s32 mode) {
-    SfxEntry *entry = &g_sfxEntries[idx];
-    entry->state = 1;
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
+    entry->flags.fields.state = 1;
     entry->rateDelta = rate;
     entry->mode = mode;
 }
@@ -308,12 +295,11 @@ void fadeOutSfxFast(s32 idx) {
  * Adds 3 to @p val, clamps to [3, 11], then calls setBattleEntityAnimSpeed with
  * the entry's entityIdx and the clamped value.
  *
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Base reverb mode value.
  */
 void setSfxReverbMode(s32 idx, s32 val) {
-    s32 off;
-    s32 base;
+    SfxEntry *entry;
     s32 clamped;
     val += 3;
     if (val >= 3) {
@@ -324,19 +310,18 @@ void setSfxReverbMode(s32 idx, s32 val) {
     } else {
         clamped = 3;
     }
-    off = idx * 60;
-    base = (s32)g_sfxEntries;
-    setBattleEntityAnimSpeed(((SfxEntry *)(off + base))->entityIdx, clamped);
+    entry = &g_sfxEntries.entries[idx];
+    setBattleEntityAnimSpeed(entry->entityIdx, clamped);
 }
 
 
 /**
  * @brief Get field28 of an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @return Value of field28.
  */
 s32 getSfxField28(s32 idx) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     return entry->field28;
 }
 
@@ -347,32 +332,32 @@ s32 getSfxField28(s32 idx) {
  * Reads the entity index from the SFX entry, then sets entity type
  * (and derived draw mode) on that battle entity with the value OR'd with 8.
  *
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Flag value to OR with 8 before storing.
  */
 void setSfxEntityType(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     setBattleEntityType(entry->entityIdx, val | 8);
 }
 
 
 /**
  * @brief Read the entity type of the battle entity linked to an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  */
 void readSfxEntityType(s32 idx) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     getBattleEntityType(entry->entityIdx);
 }
 
 
 /**
  * @brief Set field2F on an SFX entry.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param val Value to store.
  */
 void setSfxField2F(s32 idx, s32 val) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field2F = val;
 }
 
@@ -384,15 +369,15 @@ void setSfxField2F(s32 idx, s32 val) {
  * pitch = 0x1000, state = 0, reverb mode = 3, rate = 0, delta = 0,
  * entity flags = 6|8, display rect = (64,64,128,128), volume = 0x1000.
  *
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  */
 void initSfxSlot(idx)
 
 s32 idx;
 {
     s32 a1 = 0;
-    SfxEntry *entry = &g_sfxEntries[idx];
-    entry->field14 = 0;
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
+    entry->flags.fields.field14 = 0;
     entry->field19 = 0;
     entry->field2F = 0;
     initSfxPlayback(idx, a1);
@@ -421,12 +406,12 @@ s32 idx;
  * and func_8002DBF8), links the entity index, configures the sub-field, calls
  * initSfxSlot for default values, then clears sequence state and status bits.
  *
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  */
 void func_8002DF5C(s32 idx) {
     void func_8002D970(void);
     void func_8002DBF8(void);
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
 
     setBattleEntityActive(idx, 1);
     entry->entityIdx = idx;
@@ -450,11 +435,11 @@ void func_8002DF5C(s32 idx) {
 
 /**
  * @brief Copy an SFX entry's source rectangle to destination.
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  * @param dst Destination RECT.
  */
 void getSfxRect(s32 idx, RECT *dst) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     *dst = entry->rect;
 }
 
@@ -473,18 +458,17 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E1B4);
  * calls func_8002C130 to finalize.
  */
 void resetAllSfx(void) {
-    extern u8 D_800831D3;
+    SfxSystem *sys = &g_sfxEntries;
     s32 i;
-    s32 base = (s32)g_sfxEntries;
-    ((SfxGlobalState *)(base + 0x1E0))->activeFlag = -1;
+    sys->state.activeFlag = -1;
     for (i = 0; i < 8; i++) {
         func_8002DF5C(i);
     }
     D_800831D3 = 0;
-    ((SfxGlobalState *)(base + 0x1E0))->field18 = 0;
-    ((SfxGlobalState *)(base + 0x1E0))->field1A = 0;
-    ((SfxGlobalState *)(base + 0x1E0))->field14 = 0;
-    ((SfxGlobalState *)(base + 0x1E0))->field15 = 0;
+    sys->state.field18 = 0;
+    sys->state.field1A = 0;
+    sys->state.field14 = 0;
+    sys->state.field15 = 0;
     func_8002C130();
 }
 
@@ -495,10 +479,10 @@ void resetAllSfx(void) {
  * Reads the entity index from the SFX entry, gets its animation speed,
  * then passes the result to getEntityTablePtr.
  *
- * @param idx Index into the SFX entry array (g_sfxEntries, stride 60).
+ * @param idx SFX entry index.
  */
 void dispatchSfxAnimSpeed(s32 idx) {
-    SfxEntry *entry = &g_sfxEntries[idx];
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
     s32 val = getBattleEntityAnimSpeed(entry->entityIdx);
     getEntityTablePtr(val);
 }
@@ -515,11 +499,10 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E3A4);
  *  @param a0 Nibble index.
  *  @return The 4-bit value (0-15).
  */
-s32 getNibbleValue(s32 a0) {
-    extern u8 D_800834D8[];
-    s32 base = (s32)D_800834D8;
-    u32 val = *(u8 *)(base + (a0 >> 1));
-    if (a0 & 1) {
+s32 getNibbleValue(s32 idx) {
+    u8 *base = D_800834D8;
+    u32 val = base[idx >> 1];
+    if (idx & 1) {
         val >>= 4;
     }
     return val & 0xF;
@@ -574,8 +557,6 @@ u16 getGlyphStatusU16(s32 a0) {
  * @param a0 Scalar intensity value.
  */
 void setMenuColorIntensity(s32 a0) {
-    extern s32 D_80083850;
-    extern s32 g_menuColor;
     D_80083850 = a0;
     {
         s32 val = (u32)a0 >> 5;

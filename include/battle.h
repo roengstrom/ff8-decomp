@@ -111,15 +111,22 @@ typedef struct BattleDisplayEntity {
     s16 pad3E;
 } BattleDisplayEntity;
 
+typedef union {
+    u32 raw;
+    struct {
+        s16 field14;
+        u8 state;
+        u8 field17;
+    } fields;
+} SfxFlags;
+
 typedef struct {
     RECT rect;
     s32 dataPtr;
     s32 dataPtrCopy;
     s16 pitch;
     u16 field12;
-    s16 field14;
-    u8 state;
-    u8 pad17;
+    SfxFlags flags;
     u8 entityIdx;
     u8 field19;
     s16 volume;
@@ -157,6 +164,12 @@ typedef struct {
     u16 field18;
     u16 field1A;
 } SfxGlobalState;
+
+/** @brief Complete SFX system: 8 entry slots + global state. */
+typedef struct {
+    SfxEntry entries[8];       /* 0x000: 8 × 60 = 480 bytes */
+    SfxGlobalState state;      /* 0x1E0: global SFX state */
+} SfxSystem;
 
 typedef enum {
     CTRL_ACTIVE     = 0x01,
