@@ -43,8 +43,16 @@ extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
 extern PaletteTransition D_80083754;     /* 0x80083754 — palette transition state */
 extern u8 D_80083756;                /* 0x80083756 — transition flag */
 extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
-extern s32 D_80083918;               /* 0x80083918 — battle OT buffer index */
-extern s32 D_80083920[];             /* 0x80083920 — battle OT buffers */
+/** @brief Battle HUD OT buffer (smaller display list for UI elements). */
+typedef struct {
+    u8 pad00[0x70];          /* 0x00 */
+    u32 ot[2];               /* 0x70: 2-entry ordering table */
+    u32 pktAlloc;            /* 0x78: current packet allocation pointer */
+    u32 pktBase;             /* 0x7C: packet buffer start */
+} HudDisplayBuf;
+
+extern HudDisplayBuf *D_80083918;    /* 0x80083918 — active HUD display buffer */
+extern HudDisplayBuf *D_80083920[];  /* 0x80083920 — HUD display buffer pair */
 extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
 extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
 extern BattleCameraState g_cameraShake; /* 0x800834D0 */
@@ -897,85 +905,77 @@ INCLUDE_ASM("asm/nonmatchings/btl_color", renderAnimOverlay);
 
 
 /**
- * @brief Clear bit 7 of animation entry flags.
- *
- * Clears the high bit of the byte at offset 0xE in D_80083772[a0]
- * (stride 16), effectively marking the entry as inactive.
- *
- * @param a0 Entry index into D_80083772.
+ * @brief Deactivate an animation entry by clearing the active flag.
+ * @param idx Entry index into D_80083772.
  */
-void clearAnimEntryActive(s32 a0) {
-    s32 base = (s32)D_80083772;
-    base = a0 * 16 + base;
-    *(u8 *)(base + 0xE) &= 0x7F;
+void clearAnimEntryActive(s32 idx) {
+    AnimEntry *entry = D_80083772;
+    entry = &entry[idx];
+    entry->flags &= 0x7F;
 }
 
 
 /**
- * @brief Update a D_80083772 entry with position and optionally store result.
+ * @brief Update an animation entry's input and optionally recompute current.
  *
- * Calls lerpRange with fields from the entry at index a0 (stride 16).
- * Always stores a1 to entry offset 0x8. If bit 1 of entry byte 0xE is set,
- * also stores the return value to entry offset 0xC.
+ * Sets inputStart to the new value and interpolates via lerpRange.
+ * If flags bit 1 is set, stores the interpolated result to current.
  *
- * @param a0 Entry index into D_80083772 (stride 16 bytes).
- * @param a1 Value to store at entry offset 0x8.
+ * @param idx   Entry index into D_80083772.
+ * @param value New inputStart value.
  */
-void updateAnimEntry(s32 a0, s32 a1) {
-    s32 base = (s32)D_80083772;
+void updateAnimEntry(s32 idx, s32 value) {
+    AnimEntry *entry = D_80083772;
     s16 result;
 
-    base = a0 * 16 + base;
-    result = lerpRange(*(s16 *)(base + 4), *(s16 *)(base + 6), a1, *(s16 *)(base + 0xA));
-    *(s16 *)(base + 8) = a1;
-    if (*(u8 *)(base + 0xE) & 2) {
-        *(s16 *)(base + 0xC) = result;
+    entry = &entry[idx];
+    result = lerpRange(entry->rangeStart, entry->rangeEnd, value, entry->inputEnd);
+    entry->inputStart = value;
+    if (entry->flags & 2) {
+        entry->current = result;
     }
 }
 
 
 /**
- * @brief Copy 4-byte field from source to D_80083772 entry.
+ * @brief Copy the first 4 bytes of data into an animation entry.
  *
- * @param a0 Entry index into D_80083772 (stride 16 bytes).
- * @param src Source for the 4-byte unaligned copy.
+ * @param idx Entry index into D_80083772.
+ * @param src Source for the 4-byte copy.
  */
-void copyAnimEntryField(s32 a0, void *src) {
-    typedef struct { s16 a, b; } S16Pair;
-    s32 base = (s32)D_80083772;
-    base += a0 * 16;
-    *(S16Pair *)base = *(S16Pair *)src;
+void copyAnimEntryField(s32 idx, u8 *src) {
+    AnimEntry *entry = D_80083772;
+    entry = &entry[idx];
+    memcpy(entry->data, src, 4);
 }
 
 
 /**
  * @brief Initialize an animation entry with full parameters.
  *
- * Sets up the D_80083772 entry at index a0 with source data, interpolation
- * range, current/target values, and the active flag. Calls copyAnimEntryField
- * for the first 4 bytes, then stores remaining fields and calls lerpRange
- * to compute the initial interpolated value.
+ * Copies source data, sets the active flag, configures interpolation
+ * range and input values, then computes the initial current value.
  *
- * @param a0 Entry index.
- * @param a1 Flags byte (ORed with 0x80 for active).
- * @param a2 Source data pointer (first 4 bytes copied).
- * @param a3 Interpolation start value.
- * @param arg4 Interpolation end value (on stack).
- * @param arg5 Current position (on stack).
- * @param arg6 Target max value (on stack).
+ * @param idx     Entry index.
+ * @param flags   Flags byte (ORed with 0x80 for active).
+ * @param src     Source data pointer (first 4 bytes copied).
+ * @param start   Range start value.
+ * @param end     Range end value.
+ * @param inStart Input start value.
+ * @param inEnd   Input end value.
  */
-void initAnimEntry(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, s32 arg5, s32 arg6) {
-    s32 base = (s32)D_80083772;
-    s32 flags = a1 | 0x80;
+void initAnimEntry(s32 idx, s32 flags, s32 src, s32 start, s32 end, s32 inStart, s32 inEnd) {
+    AnimEntry *entry = D_80083772;
+    s32 activeFlags = flags | 0x80;
 
-    base = a0 * 16 + base;
-    copyAnimEntryField(a0, (void *)a2);
-    *(u8 *)(base + 0xE) = flags;
-    *(s16 *)(base + 4) = a3;
-    *(s16 *)(base + 6) = arg4;
-    *(s16 *)(base + 8) = arg5;
-    *(s16 *)(base + 0xA) = arg6;
-    *(s16 *)(base + 0xC) = lerpRange(a3, arg4, arg5, arg6);
+    entry = &entry[idx];
+    copyAnimEntryField(idx, (void *)src);
+    entry->flags = activeFlags;
+    entry->rangeStart = start;
+    entry->rangeEnd = end;
+    entry->inputStart = inStart;
+    entry->inputEnd = inEnd;
+    entry->current = lerpRange(start, end, inStart, inEnd);
 }
 
 
@@ -1075,17 +1075,17 @@ s32 getBattleAllocSize(void) {
  * at offset 0x78 to point to offset 0x7C (start of free space).
  */
 void flipBattleOtBuffer(void) {
-    s32 buf;
-    s32 ptr;
+    HudDisplayBuf *buf;
+    HudDisplayBuf *active;
 
     buf = D_80083920[0];
     if (D_80083918 == buf) {
         buf = D_80083920[1];
     }
     D_80083918 = buf;
-    ClearOTag((u32 *)(buf + 0x70), 2);
-    ptr = D_80083918;
-    *(s32 *)(ptr + 0x78) = ptr + 0x7C;
+    ClearOTag(buf->ot, 2);
+    active = D_80083918;
+    active->pktAlloc = (u32)&active->pktBase;
 }
 
 
