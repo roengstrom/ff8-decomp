@@ -103,22 +103,14 @@ INCLUDE_ASM("asm/nonmatchings/card", func_80036EC0);
  * @return Bitmask where bit N is set if GF N is available.
  */
 u16 getGfAvailabilityMask(void) {
-    u16 mask;
+    u16 mask = 0;
     s32 i;
-    s32 bit;
-    u8 *p;
 
-    mask = 0;
-    i = 0;
-    bit = 1;
-    p = (u8 *)&g_gameState;
-    do {
-        if (p[0x61] & 1) { /* gfs[i].exists (0x50 + 0x11) */
-            mask |= (bit << i);
+    for (i = 0; i < GF_COUNT; i++) {
+        if (g_gameState.gfs[i].exists & 1) {
+            mask |= (1 << i);
         }
-        p += sizeof(GfSaveData);
-        i++;
-    } while (i < 16);
+    }
     return mask;
 }
 
@@ -126,15 +118,10 @@ u16 getGfAvailabilityMask(void) {
 /**
  * @brief Copy a GF's current HP from the battle character table to the save data.
  *
- * Reads the GF's HP from g_battleChars and writes it to the GF's save entry.
- *
  * @param gfIdx GF index (0-15).
  */
 void copyGfHpToSave(s32 gfIdx) {
-    s32 base1 = (s32)&g_gameState;
-    s32 off1 = gfIdx * sizeof(GfSaveData);
-    s32 base2 = (s32)g_battleChars;
-    *(s16 *)(base1 + off1 + 0x62) = *(u16 *)(base2 + gfIdx * 12 + 0x61A);
+    g_gameState.gfs[gfIdx].hp = g_battleChars.gfEntries[gfIdx].hp;
 }
 
 

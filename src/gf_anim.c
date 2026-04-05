@@ -106,7 +106,7 @@ void applyPartyAbilityFlags(s32 a0) {
     s32 base1 = (s32)g_gameState;
     s32 base3;
     s32 off = base1 + a0 * 152;
-    base3 = (s32)g_battleChars;
+    base3 = (s32)&g_battleChars;
     do {
         s32 val = *(u8 *)(off + i + 0x4E4);
         s32 idx = val - 0x4E;

@@ -348,14 +348,14 @@ s32 getStatDesc(s32 statId) {
  * @return Pointer to the character's name string.
  */
 u8 *getBattleCharName(s32 entityIdx) {
-    if (g_battleChars[entityIdx].characterId == CHAR_SQUALL) {
+    if (g_battleChars.chars[entityIdx].characterId == CHAR_SQUALL) {
         return g_gameState.squallName;
     }
-    if (g_battleChars[entityIdx].characterId == CHAR_RINOA) {
+    if (g_battleChars.chars[entityIdx].characterId == CHAR_RINOA) {
         return g_gameState.rinoaName;
     }
     return resolveKernelPtr(
-        g_gfData.xpCurves36[g_battleChars[entityIdx].characterId].lookupParam,
+        g_gfData.xpCurves36[g_battleChars.chars[entityIdx].characterId].lookupParam,
         g_gfData.ptrGfCurve36);
 }
 

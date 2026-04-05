@@ -73,7 +73,7 @@ s32 evalStatCurve(s32 a0, s32 a1) {
  * @note Reads a sub-index from g_battleChars offset 0x1C3, then looks up linearCoeff/quadDivisor in g_gfData.xpCurves36.
  */
 s32 evalEntityXpCurve(s32 entityIdx, s32 a1) {
-    u8 idx = g_battleChars[entityIdx].characterId;
+    u8 idx = g_battleChars.chars[entityIdx].characterId;
     return evalQuadraticCurve(a1, g_gfData.xpCurves36[idx].linearCoeff, g_gfData.xpCurves36[idx].quadDivisor);
 }
 

@@ -306,6 +306,19 @@ typedef struct {
     /* 0x1C4 */ u8 pad1C4[0x0C];
 } BattleCharData;
 
-extern BattleCharData g_battleChars[];
+/** @brief GF battle entry (12 bytes, used for GF HP in battle). */
+typedef struct {
+    u8 pad00[0x0A];
+    u16 hp;             /* 0x0A */
+} BattleGfEntry;
+
+/** @brief Complete battle character/GF state block. */
+typedef struct {
+    /* 0x000 */ BattleCharData chars[3];    /* 3 party members × 0x1D0 */
+    /* 0x570 */ u8 pad570[0xA0];
+    /* 0x610 */ BattleGfEntry gfEntries[16]; /* 16 × 12 bytes */
+} BattleCharState;
+
+extern BattleCharState g_battleChars;
 
 #endif /* BATTLE_H */

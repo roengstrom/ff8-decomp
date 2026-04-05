@@ -542,7 +542,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A1760);
  * @param flags Flag value (masked to 0x30E7FFF).
  */
 void func_800A184C(s32 idx, s32 attr, s32 flags) {
-    u8 *entry = (u8 *)&g_battleChars[idx];
+    u8 *entry = (u8 *)&g_battleChars.chars[idx];
     *(u16 *)(entry + 0x1B2) = attr & 0x7F;
     *(s32 *)(entry + 0x188) = flags & 0x30E7FFF;
 }

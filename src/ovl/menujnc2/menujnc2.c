@@ -900,7 +900,7 @@ void snapshotJunctionPreview(s32 charIdx) {
     g_gameState.chars[charIdx].junctedGfs = g_junctionChars[charIdx].junctedGfs;
     buildAvailableAbilities(charIdx);
     syncCharacterHp(charIdx);
-    btlMemcpyForward(g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
+    btlMemcpyForward(&g_battleChars, &g_junctionPreview, sizeof(BattleCharData));
     g_gameState.chars[charIdx].junctedGfs = saved;
     func_801F1B4C(charIdx);
 }
