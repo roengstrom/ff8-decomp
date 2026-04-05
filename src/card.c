@@ -23,11 +23,11 @@ typedef struct {
 extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78: GF learn tables */
 
 /**
- * @brief Initialize 128 card hand slots to empty.
+ * @brief Initialize 128 ability slots to empty.
  *
- * Sets each 2-byte slot: byte 0 (card ID) = 0, byte 1 (card type) = 0xFF.
+ * Sets each 2-byte entry: byte 0 (state) = 0, byte 1 (index) = 0xFF.
  *
- * @param ptr Pointer to the card hand array (256 bytes).
+ * @param ptr Pointer to the ability slot buffer (256 bytes).
  */
 void initCardHandSlots(u8 *ptr) {
     s32 i = 0;
@@ -41,16 +41,16 @@ void initCardHandSlots(u8 *ptr) {
 
 
 /**
- * @brief Populate a card hand from GF learned abilities.
+ * @brief Mark learned abilities in an ability slot buffer.
  *
  * Scans the 128-bit ability bitmask for the given GF. For each
- * set bit, writes 2 to the corresponding hand slot (marking it as
- * learned). Stops after 22 entries.
+ * set bit, writes 2 (learned) to the corresponding slot.
+ * Stops after 22 entries.
  *
  * @param index GF index.
- * @param dest  Card hand buffer (128 × 2-byte slots).
- * @param count Starting count of filled slots.
- * @return Updated count of filled slots.
+ * @param dest  Ability slot buffer (128 × 2-byte entries).
+ * @param count Starting count of filled entries.
+ * @return Updated count of filled entries.
  */
 s32 func_80036710(s32 index, u8 *dest, s32 count) {
     u32 *bitmask = g_gameState.gfs[index].completeAbilities;
@@ -71,13 +71,13 @@ s32 func_80036710(s32 index, u8 *dest, s32 count) {
 
 
 /**
- * @brief Populate card hand slots from a GF's learnable abilities.
+ * @brief Populate ability slots from a GF's learnable abilities.
  *
  * Checks each of the 21 abilities against the GF's level, learned mask,
  * and existing hand entries. Adds unlearned, level-eligible abilities.
  *
  * @param gfIndex GF index.
- * @param dest    Card hand buffer (128 × 2-byte slots).
+ * @param dest    Ability slot buffer (128 × 2-byte slots).
  * @param count   Starting count of filled slots.
  * @return Updated count of filled slots.
  */
@@ -111,15 +111,15 @@ s32 func_8003678C(s32 gfIndex, u8 *dest, s32 count) {
 
 
 /**
- * @brief Populate card hand from chained GF abilities.
+ * @brief Populate ability slots from chained GF abilities.
  *
  * Handles abilities with levelReq >= 101 (chained prerequisites).
  * For each chained ability, checks if the prerequisite ability is
- * already learned (state 2 in hand), and optionally checks a second
- * prerequisite. Adds eligible abilities to the hand buffer.
+ * already learned (state 2), and optionally checks a second
+ * prerequisite. Adds eligible abilities to the buffer.
  *
  * @param gfIndex GF index.
- * @param dest    Card hand buffer (128 × 2-byte slots).
+ * @param dest    Ability slot buffer (128 × 2-byte slots).
  * @param count   Starting count of filled slots.
  * @return Updated count of filled slots.
  */
