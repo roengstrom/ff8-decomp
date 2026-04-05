@@ -40,7 +40,34 @@ void initCardHandSlots(u8 *ptr) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_80036710);
+/**
+ * @brief Populate a card hand from GF learned abilities.
+ *
+ * Scans the 128-bit ability bitmask for the given GF. For each
+ * set bit, writes 2 to the corresponding hand slot (marking it as
+ * learned). Stops after 22 entries.
+ *
+ * @param index GF index.
+ * @param dest  Card hand buffer (128 × 2-byte slots).
+ * @param count Starting count of filled slots.
+ * @return Updated count of filled slots.
+ */
+s32 func_80036710(s32 index, u8 *dest, s32 count) {
+    u32 *bitmask = g_gameState.gfs[index].completeAbilities;
+    s32 i;
+
+    for (i = 0; i < 128; i++) {
+        if (bitmask[i / 32] & (1 << (i & 0x1F))) {
+            if (count >= 22) {
+                return count;
+            }
+            *dest = 2;
+            count++;
+        }
+        dest += 2;
+    }
+    return count;
+}
 
 
 /**
