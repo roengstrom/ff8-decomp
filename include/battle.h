@@ -152,9 +152,10 @@ typedef struct {
 
 typedef struct {
     u8 pad00[3];
-    u8 counter;
-    u8 pad04[8];
-    s8 activeFlag;
+    u8 counter;         /* 0x03 */
+    u32 color1;         /* 0x04: flash color (processed) */
+    u32 color2;         /* 0x08: flash color (output) */
+    s8 activeFlag;      /* 0x0C */
     u8 pad0D[7];
     u8 field14;
     u8 field15;

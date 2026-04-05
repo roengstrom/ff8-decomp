@@ -7,13 +7,38 @@ extern s32 g_flashColor;
 extern s8 D_800831DC;
 extern u8 D_800831D3;
 extern s32 D_80083850;
-extern s32 g_menuColor;
+extern s32 g_menuColor[2];
 extern u8 D_800834D8[];
 void func_8002D970(void);
 void func_8002DBF8(void);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002C8A4);
+/**
+ * @brief Process flash color based on SFX counter flags.
+ *
+ * If counter bit 4 is set, attenuates both the flash color and menu color
+ * to 75% intensity. Stores the results to the global state output fields.
+ */
+void func_8002C8A4(void) {
+    u32 color1 = g_sfxEntries.state.color1;
+    u8 flags = g_sfxEntries.state.counter;
+    u32 color2 = g_menuColor[0];
+
+    if (flags & 0x10) {
+        color1 &= 0xFF;
+        color1 = (color1 * 3) >> 2;
+        color1 = color1 | ((color1 << 16) | (color1 << 8));
+        color1 |= 0x64000000;
+
+        color2 &= 0xFF;
+        color2 = (color2 * 3) >> 2;
+        color2 = color2 | ((color2 << 16) | (color2 << 8));
+        color2 |= 0x64000000;
+    }
+
+    g_sfxEntries.state.color2 = color1;
+    g_menuColor[1] = color2;
+}
 
 
 /**
@@ -554,7 +579,7 @@ void setMenuColorIntensity(s32 intensity) {
     }
     intensity |= (intensity << 16) | (intensity << 8);
     intensity |= 0x64000000;
-    g_menuColor = intensity;
+    g_menuColor[0] = intensity;
     func_8002C8A4();
 }
 
