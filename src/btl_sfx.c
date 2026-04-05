@@ -627,6 +627,22 @@ void setMenuColorIntensity(s32 intensity) {
 }
 
 
+/**
+ * @brief Build a tile sprite GPU primitive for a font glyph.
+ *
+ * Sets up a 12x12 tile sprite with OT linkage, palette, tpage,
+ * color (from D_8008384C or g_menuColor based on palette page),
+ * and UV coordinates computed from the tile index (21 tiles per row).
+ * Uses swl-based setaddr (non-standard OT macro variant).
+ *
+ * @param ot   Current OT link value.
+ * @param prim Pointer to the tile sprite primitive to fill.
+ * @param tileIdx Tile index (bit 10 selects alternate tpage).
+ * @param palArg  Palette argument (bits 2:0 = palette, bits 7:3 = page).
+ * @param xy   Packed x|y position.
+ * @return Updated OT link value for the next primitive.
+ * @see https://decomp.me/scratch/IELV1
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E810);
 
 
