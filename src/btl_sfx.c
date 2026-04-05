@@ -260,7 +260,13 @@ void initSfxPlaybackAfterStrings(s32 index, u8 *data, s32 count) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D784);
+void func_8002D784(s32 arg0, s32 arg1, s32 min, s32 max, s32 val, s32 arg5) {
+    val = CLAMP(val, min, max);
+
+    initSfxPlayback(arg0, arg1);
+    setSfxEntryTimings(arg0, min, max, arg5);
+    setSfxEntryField2B(arg0, val);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D818);
