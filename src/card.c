@@ -7,9 +7,9 @@
 
 /** @brief GF ability learn requirement (4 bytes). */
 typedef struct {
-    u8 levelReq;
-    u8 pad01;
-    u8 abilitySlot;
+    u8 levelReq;        /* 0x00: level required, or index for chained abilities (101+) */
+    u8 prereq;          /* 0x01: prerequisite ability index (0xFF = none) */
+    u8 slot;            /* 0x02: ability slot index */
     u8 pad03;
 } GfAbilityEntry;
 
@@ -66,7 +66,7 @@ s32 func_8003678C(s32 gfIndex, u8 *dest, s32 count) {
 
     for (i = 0; i < 21; i++) {
         u8 reqLevel = learnData->abilities[i].levelReq;
-        u8 slot = learnData->abilities[i].abilitySlot;
+        u8 slot = learnData->abilities[i].slot;
 
         if (reqLevel == 0xFF) continue;
         if (reqLevel >= 101) continue;
@@ -83,7 +83,60 @@ s32 func_8003678C(s32 gfIndex, u8 *dest, s32 count) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_8003685C);
+/**
+ * @brief Populate card hand from chained GF abilities.
+ *
+ * Handles abilities with levelReq >= 101 (chained prerequisites).
+ * For each chained ability, checks if the prerequisite ability is
+ * already learned (state 2 in hand), and optionally checks a second
+ * prerequisite. Adds eligible abilities to the hand buffer.
+ *
+ * @param gfIndex GF index.
+ * @param dest    Card hand buffer (128 × 2-byte slots).
+ * @param count   Starting count of filled slots.
+ * @return Updated count of filled slots.
+ */
+s32 func_8003685C(s32 gfIndex, u8 *dest, s32 count) {
+    u32 learnedMask;
+    GfLearnData *learnData;
+    s32 i;
+
+    learnedMask = *(u32 *)&g_gameState.gfs[gfIndex].learning; /* learning + forgotten packed */
+    learnData = &D_80079D78[gfIndex];
+    learnedMask >>= 8;
+
+    for (i = 0; i < 21; i++) {
+        s32 levelReq = learnData->abilities[i].levelReq;
+        u8 prereq = learnData->abilities[i].prereq;
+        u8 slot = learnData->abilities[i].slot;
+        u8 reqSlot;
+        u8 reqState;
+
+        if (levelReq == 0xFF) continue;
+        levelReq -= 101;
+        if ((u8)levelReq >= 21) continue;
+        if (count >= 22) return count;
+
+        reqState = levelReq;
+        reqState = learnData->abilities[(u8)reqState].slot;
+        reqSlot = reqState;
+        if (prereq != 0xFF) {
+            prereq = learnData->abilities[prereq].slot;
+        }
+
+        reqState = dest[reqSlot * 2];
+        if (reqState != 2) continue;
+        if (prereq != 0xFF && dest[prereq * 2] == reqState) continue;
+
+        if (dest[slot * 2] != 0) continue;
+        if (learnedMask & (1 << i)) continue;
+
+        count++;
+        dest[slot * 2] = 1;
+        dest[slot * 2 + 1] = i;
+    }
+    return count;
+}
 
 
 /**
