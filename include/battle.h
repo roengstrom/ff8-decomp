@@ -126,7 +126,7 @@ typedef struct {
         } fields;
     } flags;
     u8 entityIdx;
-    u8 field19;
+    s8 field19;
     s16 volume;
     s16 field1C;
     s16 rateDelta;

@@ -182,12 +182,24 @@ s32 getSfxGlobalFlag(void) {
  * @brief Get the remaining duration for an SFX entry.
  *
  * Returns -1 if inactive, otherwise the difference between
- * total length and current position.
+ * total length (field2B) and current position (field29).
  *
  * @param idx SFX entry index.
  * @return Remaining duration, or -1 if inactive.
  */
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CE84);
+s32 func_8002CE84(s32 idx) {
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
+    SfxEntry *e2;
+    s32 always;
+    e2 = entry;
+    always = 1; /* Regalloc */
+    if (always) {
+        if (entry->field19 == 0) {
+            return -1;
+        }
+        return e2->field2B - e2->field29;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CECC);
