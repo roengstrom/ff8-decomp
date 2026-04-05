@@ -128,28 +128,28 @@ INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002C734);
 /**
  * @brief Set field30 and field32 on an SFX entry.
  * @param idx SFX entry index.
- * @param a1 Value for field30.
- * @param a2 Value for field32.
+ * @param val30 Value for field30.
+ * @param val32 Value for field32.
  */
-void setSfxEntryParams(s32 idx, s32 a1, s32 a2) {
-    SfxEntry* entry = &g_sfxEntries.entries[idx];
-    entry->field30 = a1;
-    entry->field32 = a2;
+void setSfxEntryParams(s32 idx, s32 val30, s32 val32) {
+    SfxEntry *entry = &g_sfxEntries.entries[idx];
+    entry->field30 = val30;
+    entry->field32 = val32;
 }
 
 
 /**
  * @brief Set timing fields on an SFX entry.
  * @param idx SFX entry index.
- * @param a1 Value for field29.
- * @param a2 Value for field2A.
- * @param a3 Value for field2C.
+ * @param val29 Value for field29.
+ * @param val2A Value for field2A.
+ * @param val2C Value for field2C.
  */
-void setSfxEntryTimings(s32 idx, s32 a1, s32 a2, s32 a3) {
+void setSfxEntryTimings(s32 idx, s32 val29, s32 val2A, s32 val2C) {
     SfxEntry *entry = &g_sfxEntries.entries[idx];
-    entry->field29 = a1;
-    entry->field2A = a2;
-    entry->field2C = a3;
+    entry->field29 = val29;
+    entry->field2A = val2A;
+    entry->field2C = val2C;
 }
 
 

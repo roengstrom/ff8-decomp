@@ -372,12 +372,12 @@ void initSfxSlot(idx)
 
 s32 idx;
 {
-    s32 a1 = 0;
+    s32 nullData = 0;
     SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->flags.fields.field14 = 0;
     entry->field19 = 0;
     entry->field2F = 0;
-    initSfxPlayback(idx, a1);
+    initSfxPlayback(idx, nullData);
     setSfxPitch(idx, 0x1000);
     swapSfxState(idx, 0);
     setSfxReverbMode(idx, 3);

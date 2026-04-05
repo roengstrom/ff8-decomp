@@ -2218,7 +2218,7 @@ void initBattleAnimSystem(s32 vramBase, s32 vramSize)
 
 /**
  * @brief Get a pointer to a battle entity by index.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Pointer to the entity.
  */
 BattleDisplayEntity *getBattleEntity(s32 idx) {
@@ -2227,7 +2227,7 @@ BattleDisplayEntity *getBattleEntity(s32 idx) {
 
 /**
  * @brief Set a battle entity's animation speed, clamped to [3, 11].
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param val Value to set; clamped to minimum 3 and maximum 11.
  */
 void setBattleEntityAnimSpeed(s32 idx, s32 val) {
@@ -2248,7 +2248,7 @@ void setBattleEntityAnimSpeed(s32 idx, s32 val) {
 
 /**
  * @brief Get a battle entity's animation speed.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Animation speed value for the entity.
  */
 s32 getBattleEntityAnimSpeed(s32 idx) {
@@ -2259,7 +2259,7 @@ s32 getBattleEntityAnimSpeed(s32 idx) {
 
 /**
  * @brief Store a byte value into a battle entity's subFields array.
- * @param idx Entity index (stride 64 bytes).
+ * @param idx Entity index.
  * @param offset Index into the subFields array (0 or 1).
  * @param val Byte value to store.
  */
@@ -2298,7 +2298,7 @@ u8 getBattleEntitySubField(s32 idx, s32 offset) {
 
 /**
  * @brief Set a battle entity's bounding rectangle.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param src Source RECT to copy.
  */
 void setBattleEntityBoundRect(s32 idx, RECT *src) {
@@ -2313,7 +2313,7 @@ void setBattleEntityBoundRect(s32 idx, RECT *src) {
  * Copies src RECT into the entity's dispRect, then ensures the height
  * is at least 1 and the width is at least 2.
  *
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param src Source RECT to copy.
  */
 void setBattleEntityRectClamp(s32 idx, RECT *src) {
@@ -2332,7 +2332,7 @@ void setBattleEntityRectClamp(s32 idx, RECT *src) {
 
 /**
  * @brief Get a battle entity's bounding rectangle.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param dst Destination RECT to copy into.
  */
 void getBattleEntityBoundRect(s32 idx, RECT *dst) {
@@ -2343,7 +2343,7 @@ void getBattleEntityBoundRect(s32 idx, RECT *dst) {
 
 /**
  * @brief Get a battle entity's display rectangle.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @param dst Destination RECT to copy into.
  */
 void getBattleEntityDispRect(s32 idx, RECT *dst) {
@@ -2354,7 +2354,7 @@ void getBattleEntityDispRect(s32 idx, RECT *dst) {
 
 /**
  * @brief Get a battle entity's entity type.
- * @param idx Entity index into g_battleEntities (stride 64 bytes).
+ * @param idx Entity index.
  * @return Entity type value.
  */
 s32 getBattleEntityType(s32 idx) {
