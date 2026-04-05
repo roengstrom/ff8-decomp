@@ -113,8 +113,8 @@ typedef struct BattleDisplayEntity {
 
 typedef struct {
     RECT rect;
-    s32 dataPtr;
-    s32 dataPtrCopy;
+    u8 *dataPtr;
+    u8 *dataPtrCopy;
     s16 pitch;
     u16 field12;
     union {

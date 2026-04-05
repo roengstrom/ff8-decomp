@@ -218,14 +218,14 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D040);
  * nibbles, calls clearEntityColor, and sets default volume bytes.
  *
  * @param index SFX entry index.
- * @param param Data pointer to store.
+ * @param data  Pointer to SFX script data (or NULL).
  */
-void initSfxPlayback(s32 index, s32 param) {
+void initSfxPlayback(s32 index, u8 *data) {
     SfxEntry *entry = &g_sfxEntries.entries[index];
 
     entry->field28 = 0;
-    entry->dataPtr = param;
-    entry->dataPtrCopy = param;
+    entry->dataPtr = data;
+    entry->dataPtrCopy = data;
     entry->field12 = 0;
     entry->seqState = 0;
     entry->flags.raw = (entry->flags.raw & 0x0FFFFFFF) | 0x70000000;
@@ -260,10 +260,10 @@ void initSfxPlaybackAfterStrings(s32 index, u8 *data, s32 count) {
 }
 
 
-void func_8002D784(s32 arg0, s32 arg1, s32 min, s32 max, s32 val, s32 arg5) {
+void func_8002D784(s32 arg0, u8 *data, s32 min, s32 max, s32 val, s32 arg5) {
     val = CLAMP(val, min, max);
 
-    initSfxPlayback(arg0, arg1);
+    initSfxPlayback(arg0, data);
     setSfxEntryTimings(arg0, min, max, arg5);
     setSfxEntryField2B(arg0, val);
 }
@@ -415,7 +415,7 @@ void initSfxSlot(idx)
 
 s32 idx;
 {
-    s32 nullData = 0;
+    u8 *nullData = 0;
     SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->flags.fields.field14 = 0;
     entry->field19 = 0;
