@@ -269,7 +269,20 @@ void func_8002D784(s32 arg0, u8 *data, s32 min, s32 max, s32 val, s32 arg5) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D818);
+void func_8002D818(s32 arg0, u8 *str, s32 count, s32 min, s32 max, s32 val, s32 arg6) {
+    s32 clamped;
+    while (count > 0) {
+        while (*str++) { }
+        count--;
+    }
+
+    clamped = val;
+    clamped = CLAMP(clamped, min, max);
+
+    initSfxPlayback(arg0, str);
+    setSfxEntryTimings(arg0, min, max, arg6);
+    setSfxEntryField2B(arg0, clamped);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D8CC);
