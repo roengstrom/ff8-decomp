@@ -285,6 +285,18 @@ void func_8002D818(s32 arg0, u8 *str, s32 count, s32 min, s32 max, s32 val, s32 
 }
 
 
+/**
+ * @brief Execute an SFX entry's callback and update colors.
+ *
+ * If the entry is active (state != 0), switches GP to scratchpad,
+ * invokes the entry's callback (field34) if set, updates flash/GPU
+ * colors via dispatchSfxColorUpdate, and processes the entry via
+ * func_8002CC4C. Restores GP before returning.
+ *
+ * @param arg0 Value passed as second arg to the callback and func_8002CC4C.
+ * @param index SFX entry index.
+ * @see https://decomp.me/scratch/mYKYb
+ */
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D8CC);
 
 
