@@ -16,7 +16,7 @@ typedef struct {
     u8 r0, g0, b0, code;
 } P_TAG;
 
-/* --- Ordering table macros --- */
+/* --- Ordering table macros (PsyQ SDK) --- */
 
 #define setlen(p, _len)    (((P_TAG *)(p))->len = (u8)(_len))
 #define getlen(p)          (u8)(((P_TAG *)(p))->len)
@@ -25,9 +25,13 @@ typedef struct {
 #define setcode(p, _code)  (((P_TAG *)(p))->code = (u8)(_code))
 #define getcode(p)         (u8)(((P_TAG *)(p))->code)
 
+#define nextPrim(p)        (void *)((((P_TAG *)(p))->addr) | 0x80000000)
+#define isendprim(p)       ((((P_TAG *)(p))->addr) == 0xffffff)
+
 #define addPrim(ot, p)     setaddr(p, getaddr(ot)), setaddr(ot, p)
 #define addPrims(ot, p0, p1) setaddr(p1, getaddr(ot)), setaddr(ot, p0)
-#define termPrim(p)        setaddr(p, 0xFFFFFF)
+#define catPrim(p0, p1)    setaddr(p0, p1)
+#define termPrim(p)        setaddr(p, 0xffffffff)
 
 /**
  * @brief Rectangle (position + size), used by GPU primitives.
