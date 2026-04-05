@@ -138,6 +138,37 @@ void copyGfHpToSave(s32 gfIdx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_80036FE0);
+/**
+ * @brief Set a character as party leader, reset their HP and status,
+ *        then restore original party slots.
+ *
+ * Saves the current party, clears it, sets the leader to trigger
+ * stat recalculation, then writes D_80078894 to the character's
+ * currentHp and clears all status flags except bit 7. Finally
+ * restores the saved party and recalculates stats.
+ *
+ * @param charIdx Character index.
+ */
+void func_80036FE0(s32 charIdx) {
+    extern u16 D_80078894;
+    u8 saved[4];
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        saved[i] = g_gameState.party.party[i];
+        g_gameState.party.party[i] = 0xFF;
+    }
+
+    setPartyLeader(charIdx);
+
+    g_gameState.chars[charIdx].currentHp = D_80078894;
+    g_gameState.chars[charIdx].statusFlags &= 0x80;
+
+    for (i = 0; i < 3; i++) {
+        g_gameState.party.party[i] = saved[i];
+    }
+
+    recalcPartyStats();
+}
 
 
