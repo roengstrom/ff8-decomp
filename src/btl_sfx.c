@@ -9,6 +9,8 @@ extern u8 D_800831D3;
 extern s32 D_80083850;
 extern s32 g_menuColor;
 extern u8 D_800834D8[];
+void func_8002D970(void);
+void func_8002DBF8(void);
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002C8A4);
@@ -25,14 +27,14 @@ void decrementSfxCounter(void) {
 
 /**
  * @brief Build a packed grayscale color from intensity and store as flash color.
- * @param a0 Scalar intensity value (divided by 32, clamped to 0-255).
+ * @param intensity Scalar intensity value (divided by 32, clamped to 0-255).
  */
-void setFlashColor(s32 a0) {
-    a0 /= 32;
-    a0 &= 0xFF;
-    a0 |= (a0 << 16) | (a0 << 8);
-    a0 |= 0x64000000;
-    g_flashColor = a0;
+void setFlashColor(s32 intensity) {
+    intensity /= 32;
+    intensity &= 0xFF;
+    intensity |= (intensity << 16) | (intensity << 8);
+    intensity |= 0x64000000;
+    g_flashColor = intensity;
     func_8002C8A4();
 }
 
@@ -154,11 +156,10 @@ s32 getSfxGlobalFlag(void) {
 /**
  * @brief Get the remaining duration for an SFX entry.
  *
- * Looks up the entry at g_sfxEntries + idx * 60. If the entry's active
- * flag (signed byte at +0x19) is zero, returns -1. Otherwise returns
- * the difference between the total length (+0x2B) and current position (+0x29).
+ * Returns -1 if inactive, otherwise the difference between
+ * total length and current position.
  *
- * @param idx Index into the SFX entry array (stride 60).
+ * @param idx SFX entry index.
  * @return Remaining duration, or -1 if inactive.
  */
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CE84);
@@ -176,13 +177,11 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D040);
 /**
  * @brief Initialize a sound effect entry for playback.
  *
- * Computes the entry address as g_sfxEntries + a0 * 60, clears various
- * fields, stores the data pointer (a1) at offsets +0x08 and +0x0C,
- * modifies the status word at +0x14 (sets nibble to 0x7, rotates top nibble
- * down), calls clearEntityColor, and sets default volume bytes.
+ * Clears fields, stores the data pointer, sets up the packed flags
+ * nibbles, calls clearEntityColor, and sets default volume bytes.
  *
- * @param a0 Sound effect index.
- * @param a1 Data pointer to store.
+ * @param index SFX entry index.
+ * @param param Data pointer to store.
  */
 void initSfxPlayback(s32 index, s32 param) {
     SfxEntry *entry = &g_sfxEntries.entries[index];
@@ -210,17 +209,17 @@ void initSfxPlayback(s32 index, s32 param) {
  * null is found for each string. After skipping, calls initSfxPlayback with
  * the original @p a0 and @p a1.
  *
- * @param a0 First parameter passed through to initSfxPlayback.
- * @param a1 Pointer to the start of the string data.
- * @param a2 Number of strings to skip.
+ * @param index SFX entry index.
+ * @param data  Pointer to the start of the string data.
+ * @param count Number of strings to skip.
  */
-void initSfxPlaybackAfterStrings(s32 a0, u8 *a1, s32 a2) {
-    while (a2 > 0) {
-        while (*a1++ != 0) {
+void initSfxPlaybackAfterStrings(s32 index, u8 *data, s32 count) {
+    while (count > 0) {
+        while (*data++ != 0) {
         }
-        a2--;
+        count--;
     }
-    initSfxPlayback(a0, a1);
+    initSfxPlayback(index, data);
 }
 
 
@@ -232,8 +231,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D818);
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D8CC);
 
-
-// sfx_entry_init_fields_16_1E_2D - g_sfxEntries stride 60
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D970);
 
@@ -268,9 +265,9 @@ void startSfxNormal(s32 idx) {
 
 
 /**
- * @brief Set the rate delta (field 0x1E) for an SFX entry.
- * @param idx Index into the SFX entry array.
- * @param val Rate delta value (negative values = fade out).
+ * @brief Set the rate delta for an SFX entry (wrapper).
+ * @param idx SFX entry index.
+ * @param val Rate delta value (negative = fade out).
  */
 void setSfxFadeRate(s32 idx, s32 val) {
     setSfxRateDelta(idx, val);
@@ -409,8 +406,6 @@ s32 idx;
  * @param idx SFX entry index.
  */
 void func_8002DF5C(s32 idx) {
-    void func_8002D970(void);
-    void func_8002DBF8(void);
     SfxEntry *entry = &g_sfxEntries.entries[idx];
 
     setBattleEntityActive(idx, 1);
@@ -420,14 +415,12 @@ void func_8002DF5C(s32 idx) {
     setBattleEntityField35(idx, 0);
     setBattleEntitySubField(idx, 0, idx);
     initSfxSlot(idx);
-    {
-        s32 mask = (s32)0xFF7FFFFF;
-        s32 status = *(s32 *)((u8 *)entry + 0x2C);
-        entry->seqState = 0;
-        entry->field30 = 0;
-        entry->field32 = 0;
-        *(s32 *)((u8 *)entry + 0x2C) = status & mask;
-    }
+
+    entry->seqState = 0;
+    entry->field30 = 0;
+    entry->field32 = 0;
+    *(u32 *)&entry->field2C &= 0xFF7FFFFF;
+
     setSfxEntryField34(idx, 0);
     setSfxEntryField38(idx, 0);
 }
@@ -453,9 +446,8 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E1B4);
 /**
  * @brief Reset all SFX entries and clear global SFX state.
  *
- * Sets g_sfxEntries[0x1EC] to -1, calls func_8002DF5C for each of the 8
- * SFX slots, clears D_800831D3 and several fields in g_sfxEntries, then
- * calls func_8002C130 to finalize.
+ * Marks the global state as inactive, reinitializes all 8 SFX slots,
+ * clears global counters, then calls func_8002C130 to finalize.
  */
 void resetAllSfx(void) {
     SfxSystem *sys = &g_sfxEntries;
@@ -496,7 +488,7 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E3A4);
 
 /** @brief Extracts a 4-bit nibble from packed byte array D_800834D8.
  *  Even indices return the low nibble; odd indices return the high nibble.
- *  @param a0 Nibble index.
+ *  @param idx Nibble index.
  *  @return The 4-bit value (0-15).
  */
 s32 getNibbleValue(s32 idx) {
@@ -518,53 +510,51 @@ INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E4AC);
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E680);
 
 
-/** @brief Calls func_8002E4AC with a1=1. */
-void getGlyphWidthA(s32 a0) {
-    func_8002E4AC(a0, 1);
+/** @brief Get glyph width (variant A). */
+void getGlyphWidthA(s32 code) {
+    func_8002E4AC(code, 1);
 }
 
 
-/** @brief Calls func_8002E4AC with a1=1. */
-void getGlyphWidthB(s32 a0) {
-    func_8002E4AC(a0, 1);
+/** @brief Get glyph width (variant B). */
+void getGlyphWidthB(s32 code) {
+    func_8002E4AC(code, 1);
 }
 
 
-/** @brief Calls func_8002E4AC(a0, 1) and returns the result as u16. */
-u16 getGlyphWidthU16(s32 a0) {
-    return (u16)func_8002E4AC(a0, 1);
-}
-
-
-/**
- * @brief Wrapper that calls func_8002E4AC with second argument 0 and returns result as u16.
- * @param a0 First argument passed through to func_8002E4AC.
- * @return Result of func_8002E4AC truncated to 16 bits.
- * @note Purpose uncertain -- appears to query a 16-bit status value.
- */
-u16 getGlyphStatusU16(s32 a0) {
-    return (u16)func_8002E4AC(a0, 0);
+/** @brief Get glyph width as u16. */
+u16 getGlyphWidthU16(s32 code) {
+    return (u16)func_8002E4AC(code, 1);
 }
 
 
 /**
- * @brief Store raw intensity and build packed grayscale color for SFX overlay.
- *
- * Stores the raw value in D_80083850, then divides by 32, masks to 8 bits,
- * replicates across R/G/B, sets command byte to 0x64, and stores to
- * g_menuColor before triggering an SFX update.
- *
- * @param a0 Scalar intensity value.
+ * @brief Get glyph status as u16.
+ * @param code Glyph code.
+ * @return Status value truncated to 16 bits.
  */
-void setMenuColorIntensity(s32 a0) {
-    D_80083850 = a0;
+u16 getGlyphStatusU16(s32 code) {
+    return (u16)func_8002E4AC(code, 0);
+}
+
+
+/**
+ * @brief Store raw intensity and build packed grayscale color for the menu overlay.
+ *
+ * Saves the raw value, builds a packed RGB color (R=G=B), sets command
+ * byte to 0x64, stores to g_menuColor, then triggers an SFX update.
+ *
+ * @param intensity Scalar intensity value.
+ */
+void setMenuColorIntensity(s32 intensity) {
+    D_80083850 = intensity;
     {
-        s32 val = (u32)a0 >> 5;
-        a0 = val & 0xFF;
+        s32 val = (u32)intensity >> 5;
+        intensity = val & 0xFF;
     }
-    a0 |= (a0 << 16) | (a0 << 8);
-    a0 |= 0x64000000;
-    g_menuColor = a0;
+    intensity |= (intensity << 16) | (intensity << 8);
+    intensity |= 0x64000000;
+    g_menuColor = intensity;
     func_8002C8A4();
 }
 

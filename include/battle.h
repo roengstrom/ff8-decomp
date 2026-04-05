@@ -111,22 +111,20 @@ typedef struct BattleDisplayEntity {
     s16 pad3E;
 } BattleDisplayEntity;
 
-typedef union {
-    u32 raw;
-    struct {
-        s16 field14;
-        u8 state;
-        u8 field17;
-    } fields;
-} SfxFlags;
-
 typedef struct {
     RECT rect;
     s32 dataPtr;
     s32 dataPtrCopy;
     s16 pitch;
     u16 field12;
-    SfxFlags flags;
+    union {
+        u32 raw;
+        struct {
+            s16 field14;
+            u8 state;
+            u8 field17;
+        } fields;
+    } flags;
     u8 entityIdx;
     u8 field19;
     s16 volume;
