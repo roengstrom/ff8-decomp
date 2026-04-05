@@ -312,11 +312,19 @@ typedef struct {
     u16 hp;             /* 0x0A */
 } BattleGfEntry;
 
+/** @brief GF battle level entry (12 bytes). */
+typedef struct {
+    u8 level;           /* 0x00 */
+    u8 pad[0x0B];
+} BattleLevelEntry;
+
 /** @brief Complete battle character/GF state block. */
 typedef struct {
-    /* 0x000 */ BattleCharData chars[3];    /* 3 party members × 0x1D0 */
+    /* 0x000 */ BattleCharData chars[3];          /* 3 party members × 0x1D0 */
     /* 0x570 */ u8 pad570[0xA0];
-    /* 0x610 */ BattleGfEntry gfEntries[16]; /* 16 × 12 bytes */
+    /* 0x610 */ BattleGfEntry gfEntries[1];       /* hp sub-array (stride 12, 16 entries) */
+    /* 0x61C */ u8 pad61C[0x04];
+    /* 0x620 */ BattleLevelEntry levelEntries[16]; /* 16 × 12 bytes */
 } BattleCharState;
 
 extern BattleCharState g_battleChars;

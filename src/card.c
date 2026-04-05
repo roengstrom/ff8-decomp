@@ -5,6 +5,21 @@
 #include "gamestate.h"
 #include "character.h"
 
+/** @brief GF ability learn requirement (4 bytes). */
+typedef struct {
+    u8 levelReq;
+    u8 pad01;
+    u8 abilitySlot;
+    u8 pad03;
+} GfAbilityEntry;
+
+/** @brief GF learnable ability table (stride 0x84). */
+typedef struct {
+    u8 pad00[0x1C];
+    GfAbilityEntry abilities[21];
+    u8 pad70[0x14];
+} GfLearnData;
+
 /**
  * @brief Initialize 128 card hand slots to empty.
  *
@@ -26,7 +41,45 @@ void initCardHandSlots(u8 *ptr) {
 INCLUDE_ASM("asm/nonmatchings/card", func_80036710);
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_8003678C);
+/**
+ * @brief Populate card hand slots from a GF's learnable abilities.
+ *
+ * Checks each of the 21 abilities against the GF's level, learned mask,
+ * and existing hand entries. Adds unlearned, level-eligible abilities.
+ *
+ * @param gfIndex GF index.
+ * @param dest    Card hand buffer (128 × 2-byte slots).
+ * @param count   Starting count of filled slots.
+ * @return Updated count of filled slots.
+ */
+s32 func_8003678C(s32 gfIndex, u8 *dest, s32 count) {
+    extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78 */
+    s32 i;
+    GfLearnData *learnData = &D_80079D78[gfIndex];
+    u32 learnedMask;
+    s32 level;
+
+    learnedMask = *(u32 *)&g_gameState.gfs[gfIndex].learning; /* learning + forgotten1-3 packed */
+    level = g_battleChars.levelEntries[gfIndex].level;
+    learnedMask >>= 8;
+
+    for (i = 0; i < 21; i++) {
+        u8 reqLevel = learnData->abilities[i].levelReq;
+        u8 slot = learnData->abilities[i].abilitySlot;
+
+        if (reqLevel == 0xFF) continue;
+        if (reqLevel >= 101) continue;
+        if (count >= 22) return count;
+        if (level < reqLevel) continue;
+        if (dest[slot * 2] != 0) continue;
+        if (learnedMask & (1 << i)) continue;
+
+        count++;
+        dest[slot * 2] = 1;
+        dest[slot * 2 + 1] = i;
+    }
+    return count;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/card", func_8003685C);
