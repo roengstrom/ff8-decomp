@@ -20,6 +20,8 @@ typedef struct {
     u8 pad70[0x14];
 } GfLearnData;
 
+extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78: GF learn tables */
+
 /**
  * @brief Initialize 128 card hand slots to empty.
  *
@@ -53,7 +55,6 @@ INCLUDE_ASM("asm/nonmatchings/card", func_80036710);
  * @return Updated count of filled slots.
  */
 s32 func_8003678C(s32 gfIndex, u8 *dest, s32 count) {
-    extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78 */
     s32 i;
     GfLearnData *learnData = &D_80079D78[gfIndex];
     u32 learnedMask;
