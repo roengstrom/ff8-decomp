@@ -406,7 +406,40 @@ void setPartyLeader(s32 charId) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_80036EC0);
+/**
+ * @brief Build a bitmask of available characters, optionally filtered by party.
+ *
+ * If partyLockFlag bit 0 is set, only characters currently in the party
+ * are eligible. Otherwise all existing characters are included.
+ *
+ * @return Bitmask where bit N is set if character N is available.
+ */
+u16 func_80036EC0(void) {
+    s32 i;
+    u16 charMask;
+    u16 partyMask;
+
+    partyMask = 0xFFFF;
+    if (g_gameState.partyLockFlag & 1) {
+        partyMask = 0;
+        for (i = 0; i < 3; i++) {
+            u8 slot = g_gameState.party.party[i];
+            if (slot != 0xFF) {
+                partyMask |= (1 << slot);
+            }
+        }
+    }
+
+    charMask = 0;
+    for (i = 0; i < 8; i++) {
+        if (g_gameState.chars[i].exists & 1) {
+            do { charMask |= 1 << i; } while (0);
+        }
+    }
+    charMask = charMask & partyMask;
+
+    return charMask;
+}
 
 
 /**

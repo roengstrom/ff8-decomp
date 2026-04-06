@@ -299,7 +299,9 @@ typedef struct {
     /* 0xB44 */ ItemSlot      itemSlots[ITEM_SLOT_COUNT];  /**< Item inventory (198 slots). */
     /* 0xCD0 */ u8            padCD0[4];                   /**< Battle vars / misc. */
     /* 0xCD4 */ s32           battleStateFlag;             /**< Battle state word, low byte compared against camera shake. */
-    /* 0xCD8 */ u8            padCD8[0x88];                /**< Battle vars / misc (continued). */
+    /* 0xCD8 */ u8            padCD8[0x4A];                /**< Battle vars / misc (continued). */
+    /* 0xD22 */ u8            partyLockFlag;               /**< Bit 0: party is locked. */
+    /* 0xD23 */ u8            padD23[0x3D];                /**< Battle vars / misc (continued). */
     /* 0xD60 */ u8            padD60[0x100];               /**< Steps, SeeD rank, counters. */
     /* 0xE60 */ u8            padE60[0x400];               /**< Field script vars, TT rules. */
     /* 0x1260 */ u8           pad1260[0x80];               /**< World map position/vehicles. */
