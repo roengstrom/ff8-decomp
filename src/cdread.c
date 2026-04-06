@@ -276,11 +276,8 @@ void func_80039218(void) {
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        {
-            u8 *p = D_8008A3DC;
-            CdIntToPos(D_8008A3B8, p);
-            p[-3] = 7;
-        }
+        CdIntToPos(D_8008A3B8, D_8008A3D8.params);
+        D_8008A3D8.status = 7;
         CdFlush();
         CdControl(9, 0, 0);
         break;
