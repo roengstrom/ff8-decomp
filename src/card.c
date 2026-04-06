@@ -273,7 +273,42 @@ clamped_done:
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_80036C74);
+/**
+ * @brief Swap the first two non-zero party members.
+ *
+ * Returns early if any slot is empty (0xFF). Finds the first and second
+ * non-zero party members and swaps their positions.
+ */
+void func_80036C74(void) {
+    s32 i;
+    s32 second;
+    s32 first;
+    u8 tmp;
+
+    for (i = 0; i < 3; i++) {
+        if (g_gameState.party.party[i] == 0xFF) {
+            return;
+        }
+    }
+
+    for (i = 0; i < 3; i++) {
+        if (g_gameState.party.party[i] != 0) {
+            first = i;
+            break;
+        }
+    }
+
+    for (i = 0; i < 3; i++) {
+        if ((g_gameState.party.party[i] != 0) && (first != i)) {
+            second = i;
+            break;
+        }
+    }
+
+    tmp = g_gameState.party.party[second];
+    g_gameState.party.party[second] = g_gameState.party.party[first];
+    g_gameState.party.party[first] = tmp;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/card", func_80036D44);
