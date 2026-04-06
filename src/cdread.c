@@ -245,7 +245,7 @@ void func_80039140(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039218);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039218); /* 0x12C */
 
 
 /**
@@ -277,26 +277,26 @@ void cdBreakRead(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_800393C8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_800393C8); /* 0x50 */
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039440);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039440); /* 0x4 */
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039444);
-
-
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003947C);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039444); /* 0x38 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_800394D0);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003947C); /* 0x54 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039520);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_800394D0); /* 0x50 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039678);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039520); /* 0x158 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_800396E0);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039678); /* 0x68 */
+
+
+INCLUDE_ASM("asm/nonmatchings/cdread", func_800396E0); /* 0x48 */
 
 
 /**
@@ -311,7 +311,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_800396E0);
  * @param out Output pointer to receive the second field value
  * @return Absolute pointer computed as base + entry[0]
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039728);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039728); /* 0x24 */
 
 
 /**
@@ -324,10 +324,10 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039728);
  * @param idx Index into the table
  * @return Absolute pointer computed as base + base[idx]
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003974C);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003974C); /* 0x18 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039764);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039764); /* 0x118 */
 
 
 void func_80039910(void);
@@ -342,7 +342,7 @@ s32 func_800398A8(void);
  * - D_8008A404-0x04 = 0 (status cleared)
  * - D_8008A404+0x08 = 0 (status cleared)
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003987C);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003987C); /* 0x2C */
 
 
 /**
@@ -354,10 +354,10 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003987C);
  *
  * @return 1 if ready and callback invoked, 0 otherwise.
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_800398A8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_800398A8); /* 0x68 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039910);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039910); /* 0x190 */
 
 
 /**
@@ -367,10 +367,10 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039910);
  *
  * @return The previous value of D_800565BC.
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AA0);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AA0); /* 0x14 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AB4);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AB4); /* 0xCC */
 
 
 /**
@@ -380,40 +380,40 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_80039AB4);
  * callback from RCnt(3) via ChangeClearRCnt and SysDeqIntRP, then exits
  * the critical section via func_800472F4.
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039B80);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039B80); /* 0x44 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039BC4);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039BC4); /* 0x334 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039EF8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039EF8); /* 0xF0 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039FE8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_80039FE8); /* 0x210 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A1F8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A1F8); /* 0x278 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A470);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A470); /* 0x90 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A500);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A500); /* 0x28 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A534);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A534); /* 0x48 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A57C);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A57C); /* 0xD8 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A654);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A654); /* 0xAC */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A700);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A700); /* 0xC4 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A7C4);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003A7C4); /* 0x394 */
 
 
 /** @brief Wrapper that calls func_80039AA0 (read and clear CD status). */
@@ -430,19 +430,19 @@ void cdDisableInterruptWrapper(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003ABC4);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003ABC4); /* 0x4C */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AC10);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AC10); /* 0xCC */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003ACDC);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003ACDC); /* 0xF8 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003ADD4);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003ADD4); /* 0xD4 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AEA8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AEA8); /* 0xA8 */
 
 
 /**
@@ -457,7 +457,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AEA8);
  * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
  *       this file (compiled with PsyQ 4.1).
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF50);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF50); /* 0x38 */
 
 /**
  * @brief Calls a function pointer from D_80056568, then passes result to func_8003BA2C.
@@ -472,7 +472,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF50);
  * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
  *       this file (compiled with PsyQ 4.1).
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF88);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF88); /* 0x48 */
 
 /**
  * @brief Calls a function pointer from D_80056568, then passes result to sndSetVoiceData.
@@ -487,7 +487,7 @@ INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AF88);
  * @note PsyQ 4.3 function (FILLED epilogue) — cannot be decomped from
  *       this file (compiled with PsyQ 4.1).
  */
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AFD0);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003AFD0); /* 0x48 */
 
 
 /**
@@ -541,7 +541,7 @@ void sndDispatchVoiceAction(SndVoice *voice) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B0C4);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B0C4); /* 0x270 */
 
 
 /**
@@ -564,7 +564,7 @@ s32 sndCalcSequenceSize(SndVoice *voice) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B36C);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B36C); /* 0xD4 */
 
 
 /**
@@ -592,10 +592,10 @@ void sndDispatchCommand(SndVoice *voice) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B4E8);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B4E8); /* 0x3F8 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B8E0);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B8E0); /* 0x68 */
 
 
 /** @brief Sets command byte 0x4D, state byte 6, and copies field 0x20 to 0x2C.
@@ -609,10 +609,10 @@ void sndSetTransferCommand(SndVoice *voice) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B964);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003B964); /* 0xC8 */
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_8003BA2C);
+INCLUDE_ASM("asm/nonmatchings/cdread", func_8003BA2C); /* 0x98 */
 
 
 // snd_voice_cmd_play_note - cmd=0x43, sets payload byte
