@@ -15,6 +15,18 @@ typedef struct {
 } CdFileDesc;   /* 0x08 = 8 bytes */
 
 /**
+ * @brief CD drive timeout and state (D_8008A3C8).
+ *
+ * Tracks the timeout counter for CD operations and drive-level state.
+ */
+typedef struct {
+    /* 0x00 */ u32 timeout;       /**< Timeout counter (resets at 0x708 / 1800). */
+    /* 0x04 */ u32 readSectors;   /**< Number of sectors for current read. */
+    /* 0x08 */ u16 state;         /**< CD drive state machine phase. */
+    /* 0x0A */ u16 discNumber;    /**< Disc number (set by setDiscNumber). */
+} CdDriveState; /* 0x0C = 12 bytes */
+
+/**
  * @brief CD-ROM subsystem state (D_8008A3D8).
  *
  * Tracks the state machine for CD read operations, including sector

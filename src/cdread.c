@@ -4,6 +4,11 @@
 #include "sound.h"
 #include "cd.h"
 
+extern CdDriveState D_8008A3C8;
+extern CdReadState D_8008A3D8;
+extern u8 D_800853B8[];
+extern s32 D_80056558;
+
 /**
  * @brief Clear CD status flag and invoke pending callback if set.
  *
@@ -11,8 +16,7 @@
  * stored at D_8008A3D8+0x20 if it is non-NULL.
  */
 void cdClearStatusAndCallback(void) {
-    extern u8 D_8008A3D8[];
-    s32 base = (s32)D_8008A3D8;
+    s32 base = (s32)&D_8008A3D8;
     void (*callback)(void) = *(void (**)(void))(base + 0x20);
     *(u8 *)(base + 1) = 0;
     if (callback != 0) {
@@ -35,12 +39,11 @@ void cdStubNoop(void) {
  * and calls cdClearStatusAndCallback to continue processing.
  */
 void cdStartSyncRead(void) {
-    extern u8 D_8008A3DC[];
     u8 *p;
     if (CdSync(1, 0) != 2) {
         return;
     }
-    p = D_8008A3DC;
+    p = D_8008A3D8.cdParams;
     CdControl(2, p, 0);
     *(p - 3) = 1;
     cdClearStatusAndCallback();
@@ -55,12 +58,11 @@ void cdStartSyncRead(void) {
  * D_8008A3D9 to 4, and calls cdPollReadState to poll for completion.
  */
 void cdStartAsyncRead(void) {
-    extern u8 D_8008A3DC[];
     u8 *p;
     if (CdSync(1, 0) != 2) {
         return;
     }
-    p = D_8008A3DC;
+    p = D_8008A3D8.cdParams;
     CdControlF(2, p);
     *(p - 3) = 4;
     cdPollReadState();
@@ -78,23 +80,20 @@ void cdStartAsyncRead(void) {
  *   Calls VSync(0) and returns to state 3 to retry.
  */
 void cdPollReadState(void) {
-    extern u32 D_8008A3C8;
-    extern u8 D_8008A3D9;
-
     switch (CdSync(1, 0)) {
     case 2:
-        D_8008A3C8 = 0;
-        D_8008A3D9 = 5;
+        D_8008A3C8.timeout = 0;
+        D_8008A3D8.state = 5;
         cdReadSectors();
         break;
     case 5:
-        D_8008A3C8++;
-        if (D_8008A3C8 >= 0x708) {
-            D_8008A3C8 = 0;
+        D_8008A3C8.timeout++;
+        if (D_8008A3C8.timeout >= 0x708) {
+            D_8008A3C8.timeout = 0;
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D9 = 3;
+        D_8008A3D8.state = 3;
         break;
     }
 }
@@ -111,14 +110,12 @@ void cdPollReadState(void) {
  * a CdControl pause command (type 9).
  */
 void cdReadSectors(void) {
-    extern u8 D_8008A3D8[];
-    extern u32 D_8008A3C8;
-    u8 *p = D_8008A3D8;
+    u8 *p = (u8 *)&D_8008A3D8;
 
     if (CdRead(*(s32 *)(p + 8), *(s32 *)(p + 0x1C), 0x80) == 0) { /* sectorCount, destBuffer */
-        D_8008A3C8++;
-        if (D_8008A3C8 >= 0x708) {
-            D_8008A3C8 = 0;
+        D_8008A3C8.timeout++;
+        if (D_8008A3C8.timeout >= 0x708) {
+            D_8008A3C8.timeout = 0;
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
@@ -126,7 +123,7 @@ void cdReadSectors(void) {
         CdFlush();
         CdControl(9, 0, 0);
     } else {
-        D_8008A3C8 = 0;
+        D_8008A3C8.timeout = 0;
         *(p + 1) = 6;
         cdHandleReadSync();
     }
@@ -143,23 +140,21 @@ void cdReadSectors(void) {
  * - Otherwise: returns without action (read still in progress).
  */
 void cdHandleReadSync(void) {
-    extern u32 D_8008A3C8;
-    extern u8 D_8008A3D9;
     s32 result = CdReadSync(1, 0);
     if (result != -1) {
         if (result == 0) {
-            D_8008A3C8 = 0;
-            D_8008A3D9 = 1;
+            D_8008A3C8.timeout = 0;
+            D_8008A3D8.state = 1;
             cdClearStatusAndCallback();
         }
     } else {
-        D_8008A3C8++;
-        if (D_8008A3C8 >= 0x708) {
-            D_8008A3C8 = 0;
+        D_8008A3C8.timeout++;
+        if (D_8008A3C8.timeout >= 0x708) {
+            D_8008A3C8.timeout = 0;
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D9 = 3;
+        D_8008A3D8.state = 3;
         CdFlush();
         CdControl(9, 0, 0);
     }
@@ -175,12 +170,11 @@ void cdHandleReadSync(void) {
  * and calls cdPollSeekState to continue processing.
  */
 void cdStartAsyncSeek(void) {
-    extern u8 D_8008A3DC[];
     u8 *p;
     if (CdSync(1, 0) != 2) {
         return;
     }
-    p = D_8008A3DC;
+    p = D_8008A3D8.cdParams;
     CdControlF(2, p);
     *(p - 3) = 8;
     cdPollSeekState();
@@ -197,29 +191,58 @@ void cdStartAsyncSeek(void) {
  *   frames, resets and plays error sound. Returns to state 7 to retry.
  */
 void cdPollSeekState(void) {
-    extern u32 D_8008A3C8;
-    extern u8 D_8008A3D9;
-
     switch (CdSync(1, 0)) {
     case 2:
-        D_8008A3C8 = 0;
-        D_8008A3D9 = 9;
+        D_8008A3C8.timeout = 0;
+        D_8008A3D8.state = 9;
         func_80039140();
         break;
     case 5:
-        D_8008A3C8++;
-        if (D_8008A3C8 >= 0x708) {
-            D_8008A3C8 = 0;
+        D_8008A3C8.timeout++;
+        if (D_8008A3C8.timeout >= 0x708) {
+            D_8008A3C8.timeout = 0;
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D9 = 7;
+        D_8008A3D8.state = 7;
         break;
     }
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039140);
+/**
+ * @brief Read sectors from CD with timeout and error handling.
+ *
+ * Reads up to 10 sectors from disc into D_800853B8. On failure, increments
+ * the timeout counter; if it reaches 0x708 (1800), plays an error sound
+ * and resets. On success, advances to func_80039218 for post-read processing.
+ */
+void func_80039140(void) {
+    u32 sectors;
+    CdDriveState *drive = &D_8008A3C8;
+
+    sectors = D_8008A3D8.sectorCount;
+    drive->readSectors = sectors;
+    if (sectors >= 10) {
+        drive->readSectors = 10;
+    }
+
+    if (CdRead(drive->readSectors, D_800853B8, 0x80) == 0) {
+        drive->timeout++;
+        if (drive->timeout >= 0x708) {
+            drive->timeout = 0;
+            sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
+        }
+        VSync(0);
+        D_8008A3D8.state = 7;
+        CdFlush();
+        CdControl(9, 0, 0);
+    } else {
+        drive->timeout = 0;
+        D_8008A3D8.state = 10;
+        func_80039218();
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/cdread", func_80039218);
@@ -247,10 +270,9 @@ void cdCheckDriveStatus(void) {
  * to abort the read and resets the CD state machine to state 0 (idle).
  */
 void cdBreakRead(void) {
-    extern u8 D_8008A3D9;
     if (CdSync(1, 0) == 2) {
         CdReadBreak();
-        D_8008A3D9 = 0;
+        D_8008A3D8.state = 0;
     }
 }
 
@@ -633,7 +655,6 @@ void sndConfigureCommand(SndVoice *voice) {
  * @return 1 if command complete, 0 otherwise.
  */
 s32 sndCheckCompletion(SndVoice *voice) {
-    extern s32 D_80056558;
     if (voice->completionFlag != 0) {
         if (voice->actionType == 2) {
             return 1;
