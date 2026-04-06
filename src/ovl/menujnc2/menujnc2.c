@@ -23,7 +23,7 @@ extern u8 D_801EEF10[];
 extern u8 D_801EEF38;
 extern u8 D_801EEF40[];
 extern u8 D_801EEF9A;
-extern u8 getCardRarity(s32 id);
+extern u8 getAbilityCategory(s32 id);
 extern u8 g_characterAbilities[];
 extern u8 D_801EEED0[];
 extern s32 func_801F776C(s32 magicId, s32 slotType);
@@ -483,7 +483,7 @@ void buildAvailableAbilities(s32 charIdx) {
  *
  * Scans the ability availability bitfield (g_availableAbilities) for commands
  * (IDs 0x14-0x26) and abilities (IDs 0x27-0x52). For each available
- * entry, stores the ID and type (from getCardRarity) into D_801EEF10
+ * entry, stores the ID and type (from getAbilityCategory) into D_801EEF10
  * (commands) or D_801EEF40 (abilities), then updates the counts.
  *
  * @param charIdx Character index (0-7).
@@ -508,7 +508,7 @@ void buildAbilityTables(s32 charIdx) {
     for (; id < 0x27; id++) {
         if (availBits[id / 32] & (one << (id & 0x1F))) {
             table[0] = id;
-            table[1] = getCardRarity(id);
+            table[1] = getAbilityCategory(id);
             table += 2;
             count++;
         }
@@ -522,7 +522,7 @@ void buildAbilityTables(s32 charIdx) {
     for (; id < 0x53; id++) {
         if (availBits[id / 32] & (one << (id & 0x1F))) {
             table[0] = id;
-            table[1] = getCardRarity(id);
+            table[1] = getAbilityCategory(id);
             table += 2;
             count++;
         }

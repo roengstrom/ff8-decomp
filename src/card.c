@@ -29,7 +29,7 @@ extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78: GF learn tables */
  *
  * @param ptr Pointer to the ability slot buffer (256 bytes).
  */
-void initCardHandSlots(u8 *ptr) {
+void initAbilitySlots(u8 *ptr) {
     s32 i = 0;
     do {
         i++;
@@ -176,7 +176,7 @@ s32 func_8003685C(s32 gfIndex, u8 *dest, s32 count) {
  * @param cardId Card ID.
  * @return Rarity level (0-6).
  */
-s32 getCardRarity(s32 cardId) {
+s32 getAbilityCategory(s32 cardId) {
     s32 result;
     if (cardId < 20) {
         result = 0;
