@@ -20,7 +20,32 @@
 #include "battle.h"
 #include "gf.h"
 
-extern u8 D_800ED148[];
+/** @brief Battle state structure (D_800ED148). */
+typedef struct {
+    u8 pad0[0x4];
+    s32 unk4;
+    u8 pad8[0x4];
+    u8 unkC;
+    u8 padD[0x5B6];
+    u8 unk5C3;
+    u8 pad5C4[0x719];
+    u8 unkCDD;
+    u8 padCDE[0x60E];
+    u8 unk12EC;
+    u8 pad12ED[0x2C];
+    u8 unk1319;
+} BattleState;
+
+/** @brief Battle config/shuffle structure (D_80082C08). */
+typedef struct {
+    u16 unk0;
+    u16 unk2;
+    u8 unk4[3];
+    u8 unk7;
+} BattleConfig;
+
+extern BattleState D_800ED148;
+extern BattleConfig D_80082C08;
 extern u8 D_800ED157[];
 extern u8 D_800ED158[];
 extern u8 D_800E19BC[];
@@ -35,7 +60,6 @@ extern u8 D_800EEBB0[];
 extern u8 D_800EE449[];
 extern u8 D_800EE456[];
 extern u8 D_800EE4C1[];
-extern u16 D_80082C08[];
 extern u8 D_80082C0A[];
 extern u8 D_80082C0F[];
 extern s16 D_8005F11C;
@@ -159,15 +183,55 @@ void func_800D0F74(void);
 /**
  * @brief Battle initialization entry point.
  *
- * Sets up entity state array, initializes task queue, shuffle buffer,
- * sound channels, animation entities, and queues initial battle commands.
- * Initializes D_800ED148 fields and D_80082C08 shuffle buffer, chains
- * func_80042634 -> func_8009B198 -> func_800B25E4, loads D_800EDE24 entity
- * pointer, calls func_8009B6D0 with D_80082C08 halfword, adjusts entity
- * by -0xCDC, conditionally merges status bits from entity+0xCDD into
- * D_80082C08+2, then calls 14 setup functions ending with func_8009AF14.
+ * Initializes the battle state, config, and all battle subsystems.
+ * Loads the active entity data, merges status bits from the entity
+ * into the battle config, then calls the chain of setup functions
+ * for animations, sound, camera, and AI.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_80099FE8);
+void func_80099FE8(void) {
+    s32 i;
+
+    func_80027448();
+    func_8009B428();
+
+    D_800ED148.unk5C3 = 1;
+    D_800ED148.unk4 = 0;
+    D_800ED148.unk12EC = 0xFF;
+    D_800ED148.unkC = 0xFF;
+    D_80082C08.unk7 = 0;
+    D_800ED148.unk1319 = 0xFF;
+
+    for (i = 0; i < 3; i++) {
+        D_80082C08.unk4[i] = 0xFF;
+    }
+
+    func_8009B198(func_80042634(-1));
+    func_800B25E4();
+    func_8009B6D0(D_80082C08.unk0, D_800EDE24);
+    {
+        BattleState *base = (BattleState *)(D_800EDE24 - 0xCDC);
+        if ((base->unkCDD & 0xE0) == 0) {
+            D_80082C08.unk2 |= base->unkCDD & (~0x10);
+        } else {
+            D_80082C08.unk2 &= 0xFF1F;
+            D_80082C08.unk2 |= (*base).unkCDD & (~0x10);
+        }
+    }
+    func_800A94E0();
+    func_800A86F0(1);
+    func_800A86F0(2);
+    func_800A86F0(0);
+    func_800A6724();
+    func_800A853C();
+    func_800A7884();
+    func_800A864C();
+    func_800A30E4();
+    func_8009A38C();
+    func_8009A3BC();
+    func_8009B134(9, 0x80, 0);
+    func_8009A4A4();
+    func_8009AF14((void *)func_8009ABFC);
+}
 
 /**
  * @brief Transition to battle active state.
@@ -176,18 +240,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_80099FE8);
  * sound/SFX commands. Sets entity state to 2 (active).
  */
 void func_8009A160(void) {
-    volatile s32 *f;
+    volatile BattleState *state;
     func_800A7B48();
     func_800A6D30();
     func_8009A638();
     func_8009A928();
     func_8009A74C();
-    func_8009AF14((s32)&func_800D0F74);
+    func_8009AF14(&func_800D0F74);
     func_800A69BC();
     func_8009B134(0x70, 0x80, 0);
-    func_8009AF14((s32)&func_8009ABE4);
-    f = (volatile s32 *)D_800ED148;
-    f[1] = 2;
+    func_8009AF14(&func_8009ABE4);
+    state = &D_800ED148;
+    state->unk4 = 2;
 }
 
 /**
@@ -199,7 +263,7 @@ void func_8009A160(void) {
  * into jal delay slots.
  */
 void func_8009A1E0(void) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     s32 one = 1;
 
     *(volatile u8 *)(base + 0x12EA) = one;
@@ -222,7 +286,7 @@ void func_8009A1E0(void) {
  */
 void func_8009A254(void) {
     s32 i = 0;
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
 
     for (; i < 7; i++, base += 0xD0) {
         if (*(volatile s32 *)(base + 0x8C) & 1) {
@@ -240,7 +304,7 @@ void func_8009A254(void) {
  * @return The byte at offset 0x12E9 in the battle state array.
  */
 u32 func_8009A2E0(void) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     REGALLOC_BARRIER(base);
     return *(u8 *)(base + 0x12E9);
 }
@@ -250,7 +314,7 @@ u32 func_8009A2E0(void) {
  * @return The byte at offset 0x12EA in the battle state array.
  */
 u32 func_8009A2F4(void) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     REGALLOC_BARRIER(base);
     return *(u8 *)(base + 0x12EA);
 }
@@ -267,7 +331,7 @@ u32 func_8009A2F4(void) {
  * Best attempt:
  * @code
  * void func_8009A308(void) {
- *     s32 base = (s32)D_800ED148;
+ *     s32 base = (s32)&D_800ED148;
  *     s32 one;
  *     if (*(u8 *)(base + 0x12EA) == 0) goto skip;
  *     one = 1;
@@ -277,7 +341,7 @@ u32 func_8009A2F4(void) {
  *     func_8009B690();
  *     goto loop;
  * skip: done:
- *     *(u8 *)((s32)D_800ED148 + 0x12E9) = 0;
+ *     *(u8 *)((s32)&D_800ED148 + 0x12E9) = 0;
  *     func_8009B690();
  *     func_800B26B8();
  * }
@@ -356,7 +420,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A42C);
 void func_8009A4A4(void) {
     s32 cmdId = 3;
     s32 i = 0;
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
 
     for (; i < 8; i++) {
         if (*(u8 *)(i + base + 0xD5C)) {
@@ -404,7 +468,7 @@ s32 func_8009A514(s32 a0, s32 a1) {
  *     buf[2] = 1;
  *     if (*(s32 *)(base + 0x8C) & 2) buf[3] = 1;
  *     else buf[3] = 0;
- *     { s32 b = (s32)D_800ED148;
+ *     { s32 b = (s32)&D_800ED148;
  *       s32 o1 = ((idx * 2 + idx) * 4 + idx) * 16;
  *       *(u8 *)(o1 + b + 0xCB) = *(u8 *)(src + b + 0xD14);
  *       s32 o2 = (src * 2 + src) * 2;
@@ -425,7 +489,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A528);
 void func_8009A638(void) {
     s32 cmdId = 3;
     s32 i = 0;
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
 
     for (; i < 8; i++) {
         if (*(u8 *)(i + base + 0xD5C)) {
@@ -446,7 +510,7 @@ void func_8009A638(void) {
  * @code
  * void func_8009A6A8(s32 a0) {
  *     s32 idx = a0;
- *     s32 base = (s32)D_800ED148;
+ *     s32 base = (s32)&D_800ED148;
  *     s32 offset = ((idx * 2 + idx) * 4 + idx) * 16;
  *     s32 entity = offset + base;
  *     func_800A240C(*(s32 *)(entity + 0x28), offset + base + 0x90);
@@ -506,7 +570,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009A8B4);
 void func_8009A928(void) {
     s32 i = 0;
     s32 sentinel = 0xFF;
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
 
     for (; i < 3; i++, base += 0xD0) {
         if (*(u8 *)(base + 0xCB) != sentinel) {
@@ -540,7 +604,7 @@ void func_8009AA2C(void) {
     if (*(u8 *)D_80082C0F != 0) {
         return;
     }
-    base = (s32)D_800ED148;
+    base = (s32)&D_800ED148;
 
     if (*(u8 *)(base + 0x12F9) != 1) {
         sentinel = 0xFF;
@@ -611,7 +675,7 @@ void func_8009AB54(s32 a0) {
  * func_800AED9C, func_800AEB50.
  */
 void func_8009AB98(void) {
-    if (*(s32 *)D_800ED148 == 0) {
+    if (*(s32 *)&D_800ED148 == 0) {
         func_800AECD4();
         func_800AED30();
         func_800AEC04();
@@ -626,7 +690,7 @@ void func_8009AB98(void) {
  * Writes value 3 to D_800ED148 offset 0x4 (entity state field).
  */
 void func_8009ABE4(void) {
-    volatile s32 *f = (volatile s32 *)D_800ED148;
+    volatile s32 *f = (volatile s32 *)&D_800ED148;
     f[1] = 3;
 }
 
@@ -637,7 +701,7 @@ void func_8009ABE4(void) {
  *
  */
 void func_8009ABFC(void) {
-    volatile s32 *f = (volatile s32 *)D_800ED148;
+    volatile s32 *f = (volatile s32 *)&D_800ED148;
     f[1] = 1;
 }
 
@@ -657,7 +721,7 @@ void func_8009AC14(void) {
  * func_800A30E4 (animation), and func_800A79A0 (state reset).
  */
 void func_8009AC34(void) {
-    *(s32 *)D_800ED148 = 0;
+    *(s32 *)&D_800ED148 = 0;
     func_8009AA2C();
     func_800A30E4();
     func_800A79A0();
@@ -671,7 +735,7 @@ void func_8009AC34(void) {
  * calls func_800AF8A4 with it.
  */
 void func_8009AC68(void) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     *(s32 *)base = 0;
     func_8009AA2C();
     func_800A30E4();
@@ -702,7 +766,7 @@ void func_8009ACB4(void) {
 void func_8009ACEC(void) {
     s32 i = 0;
     s32 mask = 0x7FFFFFFF;
-    register s32 tmp asm("$2") = D_800ED148;
+    register s32 tmp asm("$2") = (s32)&D_800ED148;
     s32 base;
     REGALLOC_BARRIER(tmp);
     base = tmp;
@@ -746,7 +810,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009AD7C);
  * @code
  * void func_8009AE08(s32 a0) {
  *     switch (a0) {
- *     case 5:  *(s32 *)D_800ED148 = 1; break;
+ *     case 5:  *(s32 *)&D_800ED148 = 1; break;
  *     case 6:  func_8009AF14((s32)func_8009AC14); break;
  *     case 7:  func_8009AF14((s32)func_8009AC34); break;
  *     case 8:  func_8009AF14((s32)func_8009ACB4); break;
@@ -829,7 +893,7 @@ void func_8009AF98(s32 a0) {
  * @param a0 Entity slot index.
  */
 s32 func_8009AFF0(s32 a0) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     s32 offset = ((a0 * 2 + a0) * 4 + a0) * 16;
     u8 *entity = (u8 *)(offset + base);
     s32 flags;
@@ -1150,7 +1214,7 @@ void func_8009B428(void) {
 void func_8009B478(void) {
     s32 i = 0;
     s32 sentinel = 0xFF;
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     s32 base2;
     s32 entry;
 
@@ -1166,7 +1230,7 @@ void func_8009B478(void) {
 loop:
     i = *(u8 *)(entry + 0x1104);
 found:
-    base2 = (s32)D_800ED148;
+    base2 = (s32)&D_800ED148;
     {
         s32 off;
         void (*fn)(s32);
@@ -1194,7 +1258,7 @@ found:
 void func_8009B520(void) {
     s32 i = 0;
     s32 one = 1;
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     s32 ptr = base + ptr - ptr;
 
 top:
@@ -1253,7 +1317,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object1", func_8009B5C4);
  * pointer from D_800ED148+0x12D8.
  */
 void func_8009B654(void) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     s32 callback = *(s32 *)(base + 0x128C);
     if (callback != 0) {
         ((void (*)(s32))callback)(*(s32 *)(base + 0x12D8));
@@ -1361,7 +1425,7 @@ s32 func_8009B7F4(s32 a0, s32 a1) {
     s32 max;
 
     if (*(u8 *)D_800EE4C1 == 0xED) {
-        s32 base = (s32)D_800ED148;
+        s32 base = (s32)&D_800ED148;
         s32 offset = ((a1 * 2 + a1) * 4 + a1) * 16;
         if (*(s32 *)(base + offset + 0x28) == 0) {
             return 0;
@@ -1402,7 +1466,7 @@ void func_8009B878(s32 a0, u16 *a1, s32 *a2, s32 a3) {
     if (a0 < 3) {
         return;
     }
-    base = (s32)D_800ED148;
+    base = (s32)&D_800ED148;
     offset = ((a0 * 2 + a0) * 4 + a0) * 16;
     linked = *(u8 **)(*(s32 *)(offset + base + 0x10));
     status = *a1;
@@ -1444,7 +1508,7 @@ void func_8009B924(s32 slot, s32 clearMask, s32 applyMask) {
     s32 bit;
     s32 i;
 
-    ((BattleEntity *)D_800ED148)[slot].status &= ~clearMask;
+    ((BattleEntity *)&D_800ED148)[slot].status &= ~clearMask;
 
     for (bit = 1, i = 0; i < 14; i++, bit <<= 1) {
         if (applyMask & bit) {
@@ -1453,7 +1517,7 @@ void func_8009B924(s32 slot, s32 clearMask, s32 applyMask) {
         }
     }
 
-    ((BattleEntity *)D_800ED148)[slot].flags &= ~applyMask;
+    ((BattleEntity *)&D_800ED148)[slot].flags &= ~applyMask;
 
     for (bit = 1, i = 0; i < 14; i++, bit <<= 1) {
         if (applyMask & bit)
@@ -1461,8 +1525,8 @@ void func_8009B924(s32 slot, s32 clearMask, s32 applyMask) {
     }
 
     func_8009B878(slot,
-        &((BattleEntity *)D_800ED148)[slot].status,
-        (s32 *)&((BattleEntity *)D_800ED148)[slot].flags, 1);
+        &((BattleEntity *)&D_800ED148)[slot].status,
+        (s32 *)&((BattleEntity *)&D_800ED148)[slot].flags, 1);
 }
 
 /**
