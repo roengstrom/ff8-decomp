@@ -214,7 +214,63 @@ s32 getAbilityCategory(s32 cardId) {
 INCLUDE_ASM("asm/nonmatchings/card", func_800369CC);
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_80036B90);
+/**
+ * @brief Reset a character's junctions and recalculate stats.
+ *
+ * Clears junctioned GFs, commands, abilities, and junction slots for the
+ * given character. Temporarily sets the character as party leader to trigger
+ * stat recalculation, clears status (preserving bit 7), sets HP from
+ * D_80078894, then restores the original party slot.
+ *
+ * @param charIndex Character index (clamped to 0-7).
+ */
+void func_80036B90(s32 charIndex) {
+    extern CharacterData g_characters[];
+    extern u16 D_80078894;
+    CharacterData *chr;
+    s32 i;
+    u8 savedSlot;
+    s32 clamped;
+
+    if (charIndex < 0)
+        goto clamp_zero;
+    clamped = 7;
+    if (charIndex < 8)
+        clamped = charIndex;
+    goto clamped_done;
+clamp_zero:
+    clamped = 0;
+clamped_done:
+    charIndex = clamped;
+    chr = &g_characters[charIndex];
+    chr->junctedGfs = 0;
+
+    for (i = 0; i < 4; i++) {
+        chr->commands[i] = 0;
+        chr->abilities[i] = 0;
+    }
+
+    {
+        u8 *p = (u8 *)chr + 19;
+        for (i = 19; i >= 0; i--) {
+            p[0x5C] = 0;
+            p--;
+        }
+    }
+
+    savedSlot = g_gameState.party.party[0];
+    g_gameState.party.party[0] = charIndex;
+    recalcPartyStats();
+
+    do {
+        chr->statusFlags &= 0x80;
+    } while (0);
+
+    chr->currentHp = D_80078894;
+
+    g_gameState.party.party[0] = savedSlot;
+    recalcPartyStats();
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/card", func_80036C74);
