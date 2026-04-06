@@ -16,7 +16,7 @@ extern s32 D_80056558;
  * if one is registered.
  */
 void cdClearStatusAndCallback(void) {
-    D_8008A3D8.state = 0;
+    D_8008A3D8.status = 0;
     if (D_8008A3D8.callback) {
         D_8008A3D8.callback();
     }
@@ -39,8 +39,8 @@ void cdStartSyncRead(void) {
     s32 result = CdSync(1, 0);
 
     if (result == 2) {
-        CdControl(2, D_8008A3D8.cdParams, 0);
-        D_8008A3D8.state = 1;
+        CdControl(2, D_8008A3D8.params, 0);
+        D_8008A3D8.status = 1;
         cdClearStatusAndCallback();
     }
 }
@@ -57,8 +57,8 @@ void cdStartAsyncRead(void) {
     s32 result = CdSync(1, 0);
 
     if (result == 2) {
-        CdControlF(2, D_8008A3D8.cdParams);
-        D_8008A3D8.state = 4;
+        CdControlF(2, D_8008A3D8.params);
+        D_8008A3D8.status = 4;
         cdPollReadState();
     }
 }
@@ -78,7 +78,7 @@ void cdPollReadState(void) {
     switch (CdSync(1, 0)) {
     case 2:
         D_8008A3C8.timeout = 0;
-        D_8008A3D8.state = 5;
+        D_8008A3D8.status = 5;
         cdReadSectors();
         break;
     case 5:
@@ -88,7 +88,7 @@ void cdPollReadState(void) {
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D8.state = 3;
+        D_8008A3D8.status = 3;
         break;
     }
 }
@@ -105,21 +105,19 @@ void cdPollReadState(void) {
  * a CdControl pause command (type 9).
  */
 void cdReadSectors(void) {
-    u8 *p = (u8 *)&D_8008A3D8;
-
-    if (CdRead(*(s32 *)(p + 8), *(s32 *)(p + 0x1C), 0x80) == 0) { /* sectorCount, destBuffer */
+    if (CdRead(D_8008A3D8.sectorCount, D_8008A3D8.readBuffer, 0x80) == 0) {
         D_8008A3C8.timeout++;
         if (D_8008A3C8.timeout >= 0x708) {
             D_8008A3C8.timeout = 0;
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        *(p + 1) = 3;
+        D_8008A3D8.status = 3;
         CdFlush();
         CdControl(9, 0, 0);
     } else {
         D_8008A3C8.timeout = 0;
-        *(p + 1) = 6;
+        D_8008A3D8.status = 6;
         cdHandleReadSync();
     }
 }
@@ -139,7 +137,7 @@ void cdHandleReadSync(void) {
     if (result != -1) {
         if (result == 0) {
             D_8008A3C8.timeout = 0;
-            D_8008A3D8.state = 1;
+            D_8008A3D8.status = 1;
             cdClearStatusAndCallback();
         }
     } else {
@@ -149,7 +147,7 @@ void cdHandleReadSync(void) {
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D8.state = 3;
+        D_8008A3D8.status = 3;
         CdFlush();
         CdControl(9, 0, 0);
     }
@@ -165,14 +163,13 @@ void cdHandleReadSync(void) {
  * and calls cdPollSeekState to continue processing.
  */
 void cdStartAsyncSeek(void) {
-    u8 *p;
-    if (CdSync(1, 0) != 2) {
-        return;
+    s32 result = CdSync(1, 0);
+
+    if (result == 2) {
+        CdControlF(2, D_8008A3D8.params);
+        D_8008A3D8.status = 8;
+        cdPollSeekState();
     }
-    p = D_8008A3D8.cdParams;
-    CdControlF(2, p);
-    *(p - 3) = 8;
-    cdPollSeekState();
 }
 
 
@@ -189,7 +186,7 @@ void cdPollSeekState(void) {
     switch (CdSync(1, 0)) {
     case 2:
         D_8008A3C8.timeout = 0;
-        D_8008A3D8.state = 9;
+        D_8008A3D8.status = 9;
         func_80039140();
         break;
     case 5:
@@ -199,7 +196,7 @@ void cdPollSeekState(void) {
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D8.state = 7;
+        D_8008A3D8.status = 7;
         break;
     }
 }
@@ -229,12 +226,12 @@ void func_80039140(void) {
             sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
         }
         VSync(0);
-        D_8008A3D8.state = 7;
+        D_8008A3D8.status = 7;
         CdFlush();
         CdControl(9, 0, 0);
     } else {
         drive->timeout = 0;
-        D_8008A3D8.state = 10;
+        D_8008A3D8.status = 10;
         func_80039218();
     }
 }
@@ -267,7 +264,7 @@ void cdCheckDriveStatus(void) {
 void cdBreakRead(void) {
     if (CdSync(1, 0) == 2) {
         CdReadBreak();
-        D_8008A3D8.state = 0;
+        D_8008A3D8.status = 0;
     }
 }
 
