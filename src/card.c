@@ -22,6 +22,40 @@ typedef struct {
 
 extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78: GF learn tables */
 
+/** @brief Ability slot entry in the 128-slot working buffer (2 bytes). */
+typedef struct {
+    u8 type;           /**< Slot state: 0=empty, 1=chained, 2=learned, 3=level-eligible. */
+    u8 abilityIndex;   /**< Ability index (0xFF = unused). */
+} AbilitySlot;
+
+/**
+ * @brief Ability category lookup info (4 bytes, indexed by category 0-6).
+ *
+ * Maps ability categories to offsets within g_gfData for looking up
+ * ability-specific data (e.g. AP cost, stat modifiers).
+ */
+typedef struct {
+    u16 dataOffset;    /**< Byte offset into g_gfData for this category's table. */
+    u8 startIndex;     /**< First slot index in this category range. */
+    u8 stride;         /**< Byte stride between entries in the data table. */
+} AbilityCategoryInfo;
+
+/**
+ * @brief Output entry for GF ability list (8 bytes).
+ *
+ * One per available ability, populated by func_800369CC for the
+ * junction/ability menu.
+ */
+typedef struct {
+    u8 slotIndex;      /**< Ability slot index (0-127). */
+    u8 abilityIndex;   /**< Ability index within the GF's learn table. */
+    u8 type;           /**< Slot type (learned/eligible/chained). */
+    u8 category;       /**< Ability category (0-6, from getAbilityCategory). */
+    u8 gfDataValue;    /**< Data value from g_gfData ability table. */
+    u8 gsValue;        /**< Current ability level from GF save data. */
+    u8 pad[2];         /**< Padding to 8-byte stride. */
+} AbilityListEntry;
+
 /**
  * @brief Initialize 128 ability slots to empty.
  *
@@ -167,28 +201,30 @@ s32 func_8003685C(s32 gfIndex, u8 *dest, s32 count) {
 
 
 /**
- * @brief Map a card ID to its rarity level (0-6).
+ * @brief Map an ability slot index to its category (0-6).
  *
- * Divides the card ID range into 7 tiers:
- * 0-19 = level 0, 20-38 = level 1, 39-57 = level 2,
- * 58-77 = level 3, 78-82 = level 4, 83-91 = level 5, 92+ = level 6.
+ * Divides the slot index range into 7 tiers used for looking up
+ * ability data in D_80053C3C:
+ * 0-19 = category 0, 20-38 = category 1, 39-57 = category 2,
+ * 58-77 = category 3, 78-82 = category 4, 83-91 = category 5,
+ * 92+ = category 6.
  *
- * @param cardId Card ID.
- * @return Rarity level (0-6).
+ * @param slotIndex Ability slot index (0-127).
+ * @return Category (0-6).
  */
-s32 getAbilityCategory(s32 cardId) {
+s32 getAbilityCategory(s32 slotIndex) {
     s32 result;
-    if (cardId < 20) {
+    if (slotIndex < 20) {
         result = 0;
-    } else if (cardId < 39) {
+    } else if (slotIndex < 39) {
         result = 1;
-    } else if (cardId < 58) {
+    } else if (slotIndex < 58) {
         result = 2;
-    } else if (cardId < 78) {
+    } else if (slotIndex < 78) {
         result = 3;
-    } else if (cardId < 83) {
+    } else if (slotIndex < 83) {
         result = 4;
-    } else if (cardId < 92) {
+    } else if (slotIndex < 92) {
         result = 5;
     } else {
         result = 6;
@@ -205,13 +241,55 @@ s32 getAbilityCategory(s32 cardId) {
  * category, data lookup value from g_gfData, and current ability level from
  * the GF's save data. Returns the total number of available abilities.
  *
- * @param gfIndex          GF index.
- * @param output           Output array of CardHandEntry structs (or NULL to just count).
+ * @param gfIndex          GF index (0-15).
+ * @param output           Output array of AbilityListEntry structs (or NULL to just count).
  * @param includeJunction  If nonzero, includes level-eligible and chained abilities.
  * @return Total number of available abilities.
- * @see https://decomp.me/scratch/bpAxD
  */
-INCLUDE_ASM("asm/nonmatchings/card", func_800369CC);
+s32 func_800369CC(s32 gfIndex, AbilityListEntry *output, s32 includeJunction) {
+    extern AbilityCategoryInfo D_80053C3C[];
+    extern u8 g_gfData[];
+
+    AbilitySlot slots[128];
+    s32 totalCount;
+    s32 slotIndex;
+
+    initAbilitySlots((u8 *)slots);
+    totalCount = func_80036710(gfIndex, (u8 *)slots, 0);
+    if (includeJunction) {
+        totalCount = func_8003678C(gfIndex, (u8 *)slots, totalCount);
+        totalCount = func_8003685C(gfIndex, (u8 *)slots, totalCount);
+    }
+
+    if (output != 0) {
+        s32 j;
+        slotIndex = 0;
+        for (j = slotIndex; j < totalCount; j++) {
+            while (slots[slotIndex].type == 0) {
+                slotIndex++;
+            }
+
+            output->slotIndex = slotIndex;
+            output->type = slots[slotIndex].type;
+            output->abilityIndex = slots[slotIndex].abilityIndex;
+            output->category = getAbilityCategory(slotIndex);
+
+            if (output->abilityIndex < 0xFF) {
+                AbilityCategoryInfo *info = &D_80053C3C[output->category];
+                u8 *entry = g_gfData;
+                entry = (u8 *)(info->dataOffset + (s32)entry);
+                entry += info->stride * (slotIndex - info->startIndex);
+                output->gfDataValue = entry[4];
+                output->gsValue = g_gameState.gfs[gfIndex].aps[output->abilityIndex];
+            }
+
+            output++;
+            slotIndex++;
+        }
+    }
+
+    return totalCount;
+}
 
 
 /**

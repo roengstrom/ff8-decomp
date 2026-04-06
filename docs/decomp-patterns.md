@@ -119,6 +119,35 @@ the base pointer register as rs in the resulting `addu`.
 
 *Example: AddAbilityExp*
 
+### Local variable cast swaps addu operand order without cascading
+
+Pointer arithmetic always puts the pointer register first in `addu`, regardless of
+C source order (`ptr + int` and `int + ptr` both produce `addu rd, ptr_reg, int_reg`).
+To get the integer operand first, you need integer arithmetic — but casting the extern
+directly (`(s32)g_symbol`) changes register allocation for the entire basic block.
+
+The fix: assign the pointer to a **local variable** first, then cast the local:
+
+```c
+// WRONG: cascades v0/v1 allocation for entire block
+u8 *entry = (u8 *)(info->dataOffset + (s32)g_gfData);
+
+// WRONG: pointer arithmetic, always puts g_gfData first
+u8 *entry = g_gfData + info->dataOffset;
+
+// RIGHT: local variable isolates the cast, preserves block allocation
+u8 *entry = g_gfData;
+entry = (u8 *)(info->dataOffset + (s32)entry);
+// -> addu rd, dataOffset_reg, gfData_reg  (dataOffset first!)
+```
+
+The local variable `entry` holds the same address as `g_gfData`, but the `(s32)entry`
+cast applies to the local, not the extern symbol. The compiler treats this as integer
+arithmetic (preserving C source order) without propagating type changes back to the
+extern symbol's allocation context.
+
+*Example: func_800369CC*
+
 ### Struct field access vs raw pointer casts
 
 The compiler treats struct field access and raw pointer casts differently for
