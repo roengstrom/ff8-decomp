@@ -10,17 +10,15 @@ extern u8 D_800853B8[];
 extern s32 D_80056558;
 
 /**
- * @brief Clear CD status flag and invoke pending callback if set.
+ * @brief Clear CD state and invoke completion callback.
  *
- * Clears the status byte at D_8008A3D8+1, then calls the function pointer
- * stored at D_8008A3D8+0x20 if it is non-NULL.
+ * Resets the CD read state to idle, then calls the completion callback
+ * if one is registered.
  */
 void cdClearStatusAndCallback(void) {
-    s32 base = (s32)&D_8008A3D8;
-    void (*callback)(void) = *(void (**)(void))(base + 0x20);
-    *(u8 *)(base + 1) = 0;
-    if (callback != 0) {
-        callback();
+    D_8008A3D8.state = 0;
+    if (D_8008A3D8.callback) {
+        D_8008A3D8.callback();
     }
 }
 
