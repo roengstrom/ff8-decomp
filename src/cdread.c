@@ -5,7 +5,10 @@
 #include "cd.h"
 
 extern CdDriveState D_8008A3C8;
+extern s32 D_8008A3B8;
 extern CdReadState D_8008A3D8;
+extern u8 D_8008A3DC[];
+extern u8 *D_80039418;
 extern u8 D_800853B8[];
 extern s32 D_80056558;
 
@@ -237,7 +240,52 @@ void func_80039140(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdread", func_80039218); /* 0x12C */
+/**
+ * @brief Handle post-read synchronization and advance to next chunk.
+ *
+ * Checks CdReadSync for the result of the previous CdRead:
+ * - On success (0): updates the read buffer pointer and remaining sector
+ *   count, then either completes (if no more data) or seeks to the next
+ *   chunk position on disc.
+ * - On error (-1): increments timeout, plays error sound if threshold
+ *   reached, flushes and re-seeks.
+ */
+void func_80039218(void) {
+    s32 result = CdReadSync(1, 0);
+
+    switch (result) {
+    case 0:
+        D_8008A3C8.timeout = 0;
+        D_80039418 = D_800853B8;
+        D_8008A3D8.sectorCount -= 10;
+        D_8008A3B8 += 10;
+
+        if (func_8003947C() == 0) {
+            D_8008A3D8.status = 1;
+            cdClearStatusAndCallback();
+        } else {
+            CdIntToPos(D_8008A3B8, D_8008A3D8.params);
+            D_8008A3D8.status = 7;
+        }
+        break;
+
+    case -1:
+        D_8008A3C8.timeout++;
+        if (D_8008A3C8.timeout >= 0x708) {
+            D_8008A3C8.timeout = 0;
+            sndKeyOn(0x10, 0, 0x80, 0x7F, 0);
+        }
+        VSync(0);
+        {
+            u8 *p = D_8008A3DC;
+            CdIntToPos(D_8008A3B8, p);
+            p[-3] = 7;
+        }
+        CdFlush();
+        CdControl(9, 0, 0);
+        break;
+    }
+}
 
 
 /**
