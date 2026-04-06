@@ -47,21 +47,20 @@ void cdStartSyncRead(void) {
 
 
 /**
- * @brief Initiate an asynchronous CD-ROM read command (read phase).
+ * @brief Initiate an asynchronous CD-ROM read command.
  *
- * Calls CdSync(1, 0) to wait for the previous operation. If the result
- * is 2 (ready), issues CdControlF(2, D_8008A3DC), sets state byte
- * D_8008A3D9 to 4, and calls cdPollReadState to poll for completion.
+ * Waits for the previous CD operation to finish. If ready, issues an
+ * async CdControlF read command with the stored CD parameters, sets
+ * state to 4, and begins polling for completion.
  */
 void cdStartAsyncRead(void) {
-    u8 *p;
-    if (CdSync(1, 0) != 2) {
-        return;
+    s32 result = CdSync(1, 0);
+
+    if (result == 2) {
+        CdControlF(2, D_8008A3D8.cdParams);
+        D_8008A3D8.state = 4;
+        cdPollReadState();
     }
-    p = D_8008A3D8.cdParams;
-    CdControlF(2, p);
-    *(p - 3) = 4;
-    cdPollReadState();
 }
 
 
