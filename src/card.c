@@ -311,7 +311,83 @@ void func_80036C74(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/card", func_80036D44);
+/**
+ * @brief Rebuild party slots based on a bitmask of eligible characters.
+ *
+ * Clears and rebuilds the party slot assignments. For each non-empty,
+ * non-Squall party member, checks if they have the required flag (bit 3
+ * of exists). Eligible members whose bit is set in @p mask stay;
+ * others are removed. Copies the result to D_800780B0 and recalculates.
+ *
+ * @param mask Bitmask of characters allowed to remain in the party.
+ */
+void func_80036D44(s32 mask) {
+    extern u8 D_800780B0[];
+    u8 newSlots[3];
+    u8 val;
+    u8 *p;
+    s32 new_var;
+    s32 i;
+    s32 slotCount;
+    int new_var2;
+    s32 bit;
+    s32 abilityId;
+    CharacterData *chr;
+    new_var2 = 0xFF;
+
+    val = new_var2;
+    i = 2;
+    p = &newSlots[i];
+    for (i = 2; i >= 0; i--) {
+        *(p--) = val;
+    }
+
+    abilityId = 9;
+    slotCount = 1;
+    bit = slotCount;
+    g_gameState.chars[0].characterId = 8;
+    newSlots[0] = 8;
+    for (i = 0; i < 3; i++) {
+        u8 slot = g_gameState.party.party[i];
+        if (slot == 0xFF) {
+            continue;
+        }
+        if (0 == slot) {
+            continue;
+        }
+        chr = &g_gameState.chars[slot];
+        if (chr->exists & 0x8) {
+            chr->characterId = abilityId;
+            new_var = mask & (1 << (abilityId - 8));
+            if (new_var) {
+                newSlots[slotCount] = abilityId;
+                slotCount++;
+            } else {
+                g_gameState.party.party[i] = 0xFF;
+            }
+            abilityId++;
+        } else {
+            g_gameState.party.party[i] = 0xFF;
+        }
+    }
+
+    {
+        u8 *p = D_800780B0;
+        u8 val = new_var2;
+        for (i = 2; i >= 0; i--) {
+            *(p++) = val;
+        }
+    }
+    {
+        u8 *dst = D_800780B0;
+        u8 *src = (u8 *)((u32)newSlots + (u32)dst - (u32)dst);
+        for (i = 0; i < 3; i++) {
+            *dst++ = *src++;
+        }
+    }
+    func_80036C74();
+    recalcPartyStats();
+}
 
 
 /**

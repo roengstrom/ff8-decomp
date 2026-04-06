@@ -239,8 +239,7 @@ typedef struct {
     /* 0x70 */ u16 gfCompatibility[16];/**< GF compatibility values (one per GF). */
     /* 0x90 */ u16 kills;              /**< Kill count. */
     /* 0x92 */ u16 kos;                /**< KO count. */
-    /* 0x94 */ u8 exists;              /**< Character exists/unlocked flag. */
-    /* 0x95 */ u8 unknown95;           /**< Unknown. */
+    /* 0x94 */ u16 exists;              /**< Character exists/flags. */
     /* 0x96 */ u16 statusFlags;        /**< Status/condition flags. */
 } CharacterData; /* 0x98 = 152 bytes */
 
