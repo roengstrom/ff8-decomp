@@ -31,20 +31,18 @@ void cdStubNoop(void) {
 /**
  * @brief Initiate a synchronous CD-ROM read command.
  *
- * Calls CdSync(1, 0) to wait for the previous operation to finish.
- * If the result is 2 (ready), issues a CdControl read command (type 2)
- * with parameters from D_8008A3DC, sets state byte D_8008A3D9 to 1,
- * and calls cdClearStatusAndCallback to continue processing.
+ * Waits for the previous CD operation to finish. If ready, issues a
+ * CdControl read command with the stored CD parameters, sets state
+ * to 1, and invokes the completion callback.
  */
 void cdStartSyncRead(void) {
-    u8 *p;
-    if (CdSync(1, 0) != 2) {
-        return;
+    s32 result = CdSync(1, 0);
+
+    if (result == 2) {
+        CdControl(2, D_8008A3D8.cdParams, 0);
+        D_8008A3D8.state = 1;
+        cdClearStatusAndCallback();
     }
-    p = D_8008A3D8.cdParams;
-    CdControl(2, p, 0);
-    *(p - 3) = 1;
-    cdClearStatusAndCallback();
 }
 
 
