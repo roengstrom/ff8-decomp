@@ -197,6 +197,20 @@ s32 getAbilityCategory(s32 cardId) {
 }
 
 
+/**
+ * @brief Build a list of available GF abilities for the junction menu.
+ *
+ * Populates a slot buffer with learned, level-eligible, and chained abilities,
+ * then iterates the filled slots to build output entries with ability index,
+ * category, data lookup value from g_gfData, and current ability level from
+ * the GF's save data. Returns the total number of available abilities.
+ *
+ * @param gfIndex          GF index.
+ * @param output           Output array of CardHandEntry structs (or NULL to just count).
+ * @param includeJunction  If nonzero, includes level-eligible and chained abilities.
+ * @return Total number of available abilities.
+ * @see https://decomp.me/scratch/bpAxD
+ */
 INCLUDE_ASM("asm/nonmatchings/card", func_800369CC);
 
 
