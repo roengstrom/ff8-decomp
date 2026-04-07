@@ -20,6 +20,13 @@
 #include "battle.h"
 #include "gf.h"
 
+/** @brief Single battle unit entry (stride 0xD0), used for array access. */
+typedef struct {
+    u8 pad0[0x8C];
+    s32 flags;          /* 0x8C */
+    u8 pad90[0x40];
+} BattleUnit; /* 0xD0 bytes */
+
 /** @brief Battle state structure (D_800ED148). */
 typedef struct {
     u8 pad0[0x4];
@@ -285,13 +292,12 @@ void func_8009A1E0(void) {
  * func_800A59AC.
  */
 void func_8009A254(void) {
-    s32 i = 0;
-    s32 base = (s32)&D_800ED148;
-
-    for (; i < 7; i++, base += 0xD0) {
-        if (*(volatile s32 *)(base + 0x8C) & 1) {
-            if (*(volatile s32 *)(base + 0x8C) & 0x10) {
-                if (!(*(volatile s32 *)(base + 0x8C) & 0x80)) {
+    volatile BattleUnit *units = (volatile BattleUnit *)&D_800ED148;
+    s32 i;
+    for (i = 0; i < 7; i++) {
+        if (units[i].flags & 1) {
+            if (units[i].flags & 0x10) {
+                if (!(units[i].flags & 0x80)) {
                     func_800A59AC(i, 0, 0);
                 }
             }
