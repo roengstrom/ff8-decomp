@@ -115,12 +115,15 @@ typedef struct {
 } GameConfig; /* 0x14 = 20 bytes */
 
 /** @brief GameConfig.flags bitfield. */
-#define CONFIG_ATB        0x01  /**< ATB mode (0=active, 1=wait). */
-#define CONFIG_SOUND      0x02  /**< Sound (0=stereo, 1=mono). */
-#define CONFIG_CURSOR     0x04  /**< Cursor (0=initial, 1=memory). */
-#define CONFIG_CONTROLLER 0x20  /**< Controller type. */
-#define CONFIG_VIBRATION  0x40  /**< Vibration enabled. */
-#define CONFIG_ANALOG     0x80  /**< Analog stick enabled. */
+#define CONFIG_ATB        0x001  /**< ATB mode (0=active, 1=wait). */
+#define CONFIG_SOUND      0x002  /**< Sound (0=stereo, 1=mono). */
+#define CONFIG_CURSOR     0x004  /**< Cursor (0=initial, 1=memory). */
+#define CONFIG_UNK_08     0x008  /**< Unknown. */
+#define CONFIG_UNK_10     0x010  /**< Unknown. */
+#define CONFIG_CONTROLLER 0x020  /**< Controller (0=normal, 1=customize). */
+#define CONFIG_VIBRATION  0x040  /**< Vibration (0=off, 1=on). */
+#define CONFIG_ANALOG     0x080  /**< Unknown (bit 7). */
+#define CONFIG_SCAN       0x100  /**< Scan (0=once, 1=always). */
 
 /** @brief Button indices into GameConfig.buttons[]. */
 #define BTN_L2       0
