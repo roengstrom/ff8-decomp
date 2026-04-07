@@ -21,6 +21,7 @@ options:
 
   # Analysis
   find_file_boundaries: True
+  disassemble_all: True
 
   # Symbols
   symbol_addrs_path:
