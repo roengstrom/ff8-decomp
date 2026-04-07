@@ -1359,6 +1359,7 @@ g_tripleTriad = 0x80078658; // TripleTriadData (g_gameState + 0x12E0)
 g_chocoboWorld = 0x800786D8; // ChocoboWorldData (g_gameState + 0x1360)
 g_battleChars = 0x80078720;
 g_gfData = 0x80078E00;
+g_battleConfig = 0x80082C08;
 g_battleAnims = 0x80082DD0;
 g_animInitialized = 0x80082FB2;
 g_animFlag = 0x80082FB3;

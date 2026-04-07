@@ -584,7 +584,7 @@ s32 abilityId;
 
 
 /**
- * @brief Search D_8005289C array for the value stored at D_80082C08.
+ * @brief Search D_8005289C array for the value stored at g_battleConfig.
  * @return 1 if found, 0 if not found or array is empty (0xFFFF terminated).
  */
 INCLUDE_ASM("asm/nonmatchings/game", func_80021300);

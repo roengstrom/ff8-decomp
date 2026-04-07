@@ -45,7 +45,7 @@ typedef struct {
 
 
 extern BattleState D_800ED148;
-extern BattleConfig D_80082C08;
+extern BattleConfig g_battleConfig;
 extern u8 D_800ED157[];
 extern u8 D_800ED158[];
 extern u8 D_800E19BC[];
@@ -198,23 +198,23 @@ void func_80099FE8(void) {
     D_800ED148.unk4 = 0;
     D_800ED148.unk12EC = 0xFF;
     D_800ED148.unkC = 0xFF;
-    D_80082C08.unk7 = 0;
+    g_battleConfig.result = BATTLE_RESULT_UNDETERMINED;
     D_800ED148.unk1319 = 0xFF;
 
     for (i = 0; i < 3; i++) {
-        D_80082C08.unk4[i] = 0xFF;
+        g_battleConfig.unk4[i] = 0xFF;
     }
 
     func_8009B198(func_80042634(-1));
     func_800B25E4();
-    func_8009B6D0(D_80082C08.unk0, D_800EDE24);
+    func_8009B6D0(g_battleConfig.battleSceneId, D_800EDE24);
     {
         BattleState *base = (BattleState *)(D_800EDE24 - 0xCDC);
         if ((base->unkCDD & 0xE0) == 0) {
-            D_80082C08.unk2 |= base->unkCDD & (~0x10);
+            g_battleConfig.unk2 |= base->unkCDD & (~0x10);
         } else {
-            D_80082C08.unk2 &= 0xFF1F;
-            D_80082C08.unk2 |= (*base).unkCDD & (~0x10);
+            g_battleConfig.unk2 &= 0xFF1F;
+            g_battleConfig.unk2 |= (*base).unkCDD & (~0x10);
         }
     }
     func_800A94E0();

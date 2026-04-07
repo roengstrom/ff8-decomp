@@ -4,12 +4,18 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 
-/** @brief Battle command config (D_80082C08). */
+/** @brief Battle result values (BattleConfig.result). */
+#define BATTLE_RESULT_UNDETERMINED  0
+#define BATTLE_RESULT_GAMEOVER      1
+#define BATTLE_RESULT_ESCAPED       2
+#define BATTLE_RESULT_WIN           4
+
+/** @brief Battle command config (g_battleConfig). */
 typedef struct {
-    u16 unk0;
+    u16 battleSceneId;
     u16 unk2;
     u8 unk4[3];
-    u8 unk7;
+    u8 result;          /**< Battle result (BATTLE_RESULT_*). */
     u8 unk8;
 } BattleConfig;
 

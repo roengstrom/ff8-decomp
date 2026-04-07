@@ -18,7 +18,7 @@ void func_800AE6C0(void);
 s32 func_8009AF3C(s32, s32, s32, s32, s32);
 void func_80048BB8(s32);
 void sndStopAll(void);
-extern u8 D_80082C08[];
+extern u8 g_battleConfig[];
 extern u8 g_gameState[];
 void resetCdDrive(void);
 
@@ -374,14 +374,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object6", func_800AEB50);
 /**
  * @brief Check conditions and trigger callback mode 3 for entity system.
  *
- * Returns early if D_80082C08[7] is non-zero, or if bit 2 of the
- * halfword at D_80082C08+2 is clear, or if g_gameState[0xCD4] is
- * non-zero, or if the halfword at D_80082C08 equals 0x13D.
+ * Returns early if g_battleConfig[7] is non-zero, or if bit 2 of the
+ * halfword at g_battleConfig+2 is clear, or if g_gameState[0xCD4] is
+ * non-zero, or if the halfword at g_battleConfig equals 0x13D.
  * Otherwise calls func_800AEACC(-1), sets mode to 3, stores 3 in
  * D_800EE449, and registers func_8009AD7C as callback.
  */
 void func_800AEC04(void) {
-    u8 *base = D_80082C08;
+    u8 *base = g_battleConfig;
 
     if (base[7] != 0) {
         return;

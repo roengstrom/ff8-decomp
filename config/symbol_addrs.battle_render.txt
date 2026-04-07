@@ -470,6 +470,7 @@ sndVoiceCmdSetProgram = 0x8003BBAC;
 sndVoiceCmdSetPitch = 0x8003BBCC;
 sndVoiceCmdSetVolume = 0x8003BBEC;
 sndVoiceCmdArchive = 0x8003BEE0;
+g_battleConfig = 0x80082C08;
 g_gameState = 0x80077378;
 func_80098000 = 0x80098000; // type:u32
 func_80098688 = 0x80098688; // type:func

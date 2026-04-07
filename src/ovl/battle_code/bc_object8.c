@@ -25,7 +25,7 @@ extern u8 D_800EE465[];
 extern u8 D_80082C11[];
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
-extern u8 D_80082C08[];
+extern u8 g_battleConfig[];
 extern u8 D_800EF2D0[];
 extern u8 D_800EF020[];
 extern u8 D_800EEFB0[];
@@ -328,7 +328,7 @@ top:
  *
  * Checks a chain of conditions: whether func_800AE788 returns the sentinel
  * 0xFF, whether func_800B20D8 indicates busy, bit 2 of D_8007809A flags,
- * whether D_80082C08 matches 0x13D, and whether entity slot 0x40 is
+ * whether g_battleConfig matches 0x13D, and whether entity slot 0x40 is
  * available via func_8009B79C. If all pass, sets D_800EE45C to 1 and
  * calls func_800B1A48 to start the action.
  *
@@ -342,7 +342,7 @@ s32 func_800B2128(void) {
         return 0;
     }
     if (*(u8 *)D_8007809A & 4) {
-        if (*(u16 *)D_80082C08 != 0x13D) {
+        if (*(u16 *)g_battleConfig != 0x13D) {
             if (func_8009B79C(0x40, 0xFF) != 0) {
                 *(u8 *)D_800EE45C = 1;
                 func_800B1A48();

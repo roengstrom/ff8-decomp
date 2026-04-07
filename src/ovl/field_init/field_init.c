@@ -60,7 +60,7 @@ typedef struct {
 
 extern s8 D_8005F170;
 extern u8 D_80078E00[];
-extern BattleConfig D_80082C08;
+extern BattleConfig g_battleConfig;
 extern AnimData D_80082DD0;
 extern CardDataBlock g_cardData;
 extern u8 D_8008369C[];
@@ -90,13 +90,13 @@ void func_80098000(void) {
 void func_80098028(void) {
     s32 i;
 
-    D_80082C08.unk0 = 0;
-    D_80082C08.unk2 = 0;
-    D_80082C08.unk8 = 0;
+    g_battleConfig.battleSceneId = 0;
+    g_battleConfig.unk2 = 0;
+    g_battleConfig.unk8 = 0;
     D_8005F170 = 0;
 
     for (i = 0; i < 3; i++) {
-        D_80082C08.unk4[i] = 0xFF;
+        g_battleConfig.unk4[i] = 0xFF;
     }
 
     cdReadSync(D_80097800.sector, D_80097800.size, 0x801A0000, 0);
