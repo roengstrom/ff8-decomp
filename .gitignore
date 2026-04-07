@@ -23,7 +23,7 @@ config/*.ld
 assets/*.bin
 assets/*.tim
 
-# Generated data headers (built from extracted assets)
-src/ovl/field_init/field_init_font.h
+# Generated C source (built from extracted assets by tools/assets.py)
+src/ovl/field_init/field_init_tim.c
 objdiff.json
 expected/

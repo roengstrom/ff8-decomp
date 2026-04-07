@@ -278,18 +278,18 @@ $(foreach ovl,$(CODE_OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl),bin)))
 
 # field_init: extract font TIM from overlay binary during split
 FIELD_INIT_TIM := assets/field_init_font.tim
-FIELD_INIT_DATA_H := src/ovl/field_init/field_init_font.h
 
 split-field_init: $(FIELD_INIT_TIM)
 
 $(FIELD_INIT_TIM): original/field_init.bin
 	dd if=$< of=$@ bs=1 skip=$$((0x500)) count=$$((0x460)) 2>/dev/null
 
-$(FIELD_INIT_DATA_H): $(FIELD_INIT_TIM) tools/bin2c.py
-	python3 tools/bin2c.py $< D_80098500 u32 $@
+# Asset pipeline: convert binary assets to C source
+build-assets: $(FIELD_INIT_TIM)
+	python3 tools/assets.py build config/assets.yaml
 
-# field_init C object depends on generated header
-build/ovl/field_init/src/ovl/field_init/field_init.o: $(FIELD_INIT_DATA_H)
+# field_init font object depends on generated C
+build/ovl/field_init/src/ovl/field_init/field_init_tim.o: build-assets
 
 # Internal: build all overlay binaries
 build-overlays: $(foreach ovl,$(OVERLAYS),build-$(ovl))

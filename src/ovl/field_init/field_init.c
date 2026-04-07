@@ -1,7 +1,14 @@
 #include "common.h"
 #include "cd.h"
+#include "battle.h"
+#include "field_init_font.h"
 
-extern u8 D_80098960[];
+extern s8 D_8005F170;
+extern u8 D_80078E00[];
+extern u8 D_80082C08[];
+extern CardDataBlock g_cardData;
+extern u8 D_8008369C[];
+extern CdFileDesc D_80097800;
 
 /** @brief Field initialization entry: call setup then init step. */
 void func_80098000(void) {
@@ -18,11 +25,6 @@ void func_80098000(void) {
  * and copies it to the battle data buffer (D_80078E00).
  */
 void func_80098028(void) {
-    extern u8 D_80082C08[];
-    extern s8 D_8005F170;
-    extern CdFileDesc D_80097800;
-    extern u8 D_80078E00[];
-
     s32 fillVal = 0xFF;
     s32 i = 2;
     u8 *base = D_80082C08;
@@ -58,8 +60,6 @@ void func_800980B0(void) {
  * TIMEOUT, NEW specs), then creates 4x2 battle entity slots.
  */
 void func_800980D0(void) {
-    extern s32 g_cardData[];
-
     s32 *events;
     s32 i;
     s32 j;
@@ -67,7 +67,7 @@ void func_800980D0(void) {
     setCardFlag(-1);
     func_8004D8C4(0);
     func_8004D930();
-    events = g_cardData;
+    events = (s32 *)&g_cardData;
     func_800471A4();
     func_8004D844(0);
     j = 0;
@@ -149,7 +149,6 @@ void func_800982D8(void) {
  */
 void func_80098330(void) {
     u8 *src = D_80098960;
-    extern u8 D_8008369C[];
     u8 *dst = D_8008369C;
     s32 count;
     u8 byte;
@@ -174,11 +173,6 @@ void func_80098390(void) {
     func_80098330();
     func_800983B8();
 }
-
-/** @brief Animation frame data (0x14 bytes per frame). */
-typedef struct {
-    u8 data[0x14];
-} AnimFrame;
 
 /** @brief Entity identity at tail of AnimEntity. */
 typedef struct {
@@ -290,12 +284,3 @@ void func_800983B8(void) {
         entity++;
     } while (i < 2);
 }
-
-#include "field_init_font.h"
-
-/** @brief Glyph index mapping table for extended characters (0xE8-0xFF). */
-u8 D_80098960[] = {
-    0xE8, 0xFF, 0x67, 0x6C, 0x63, 0x20, 0x6C, 0x63, 0x72, 0x6D, 0x70, 0x63, 0x4C, 0x54, 0x6A, 0x20,
-    0x6A, 0x6A, 0x4B, 0x4A, 0x6C, 0x72, 0x67, 0x6A, 0x6D, 0x20, 0x63, 0x64, 0x6D, 0x6C, 0x20, 0x75,
-    0x20, 0x70, 0x75, 0x67, 0x64, 0x67, 0x49, 0x47, 0x71, 0x20, 0x5F, 0x70, 0x4A, 0x49, 0x20, 0x57,
-};

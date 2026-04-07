@@ -48,5 +48,7 @@ segments:
     vram: 0x80098000
     subsegments:
       - [0x0, c, field_init]
+      - [0x500, .data, field_init_tim]
+      - [0x960, .data, field_init_font]
       - [0x990, bin]
   - [0x992]
