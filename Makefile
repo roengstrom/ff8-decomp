@@ -129,7 +129,11 @@ build: $(BUILT_EXE) build-overlays
 
 # Build and compare SHA1 against originals (main + overlays)
 # Builds each overlay individually, skipping any that fail to compile
+# Build everything first, then compare SHA1 against originals
 verify: $(BUILT_EXE)
+	@$(foreach ovl,$(OVERLAYS), \
+		$(MAKE) build-$(ovl) 2>/dev/null || true; \
+	)
 	@FAIL=0; \
 	printf "%-20s  %-40s  %-40s  %s\n" "Name" "Expected" "Actual" "State"; \
 	printf "%-20s  %-40s  %-40s  %s\n" "--------------------" "----------------------------------------" "----------------------------------------" "--------"; \
@@ -142,7 +146,7 @@ verify: $(BUILT_EXE)
 		FAIL=1; \
 	fi; \
 	$(foreach ovl,$(OVERLAYS), \
-		if $(MAKE) -q build-$(ovl) 2>/dev/null || $(MAKE) build-$(ovl) 2>/dev/null; then \
+		if [ -f $($(ovl)_BIN) ]; then \
 			BUILT=$$(sha1sum $($(ovl)_BIN) | cut -d' ' -f1); \
 			ORIG=$$(sha1sum $($(ovl)_TARGET) | cut -d' ' -f1); \
 			if [ "$$BUILT" = "$$ORIG" ]; then \

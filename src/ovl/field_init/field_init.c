@@ -3,12 +3,76 @@
 #include "battle.h"
 #include "field_init_font.h"
 
+/** @brief Kernel event control block entity (stride 0xC0). */
+typedef struct {
+    u8 pad00[0x94];
+    s32 status;         /* 0x94 */
+    u8 pad98[0x28];
+} EventEntry; /* 0xC0 bytes */
+
+/** @brief Kernel script/event state at fixed address 0x100. */
+typedef struct {
+    u8 pad00[0x10];
+    EventEntry *entries; /* 0x10 */
+} EventState;
+
+/** @brief Entity identity at tail of AnimEntity. */
+typedef struct {
+    u8 entityId;
+    u8 entityType;
+} AnimEntityTail;
+
+/** @brief Single animation entity (0xC4 bytes). */
+typedef struct {
+    u8 flags;            /* 0x00 */
+    u8 pad01[5];         /* 0x01-0x05 */
+    u8 field_06[2];      /* 0x06-0x07 */
+    u8 pad08[3];         /* 0x08-0x0A */
+    u8 field_0B;         /* 0x0B */
+    u8 field_0C;         /* 0x0C */
+    u8 field_0D;         /* 0x0D */
+    u8 field_0E;         /* 0x0E */
+    u8 field_0F;         /* 0x0F */
+    s16 field_10;        /* 0x10 */
+    s16 field_12;        /* 0x12 */
+    u16 field_14;        /* 0x14 */
+    s16 field_16;        /* 0x16 */
+    u8 pad18;            /* 0x18 */
+    u8 field_19;         /* 0x19 */
+    u8 pad1A;            /* 0x1A */
+    u8 field_1B;         /* 0x1B */
+    AnimFrame frames[8]; /* 0x1C-0xBB */
+    u8 colors[6];        /* 0xBC-0xC1 */
+    AnimEntityTail tail;  /* 0xC2-0xC3 */
+} AnimEntity;
+
+/** @brief Top-level animation data block (D_80082DD0). */
+typedef struct {
+    AnimEntity entities[2];
+    u8 pad188[0x58];
+    u8 field_1E0;
+    u8 field_1E1;
+    u8 pad1E2;
+    u8 field_1E3;
+} AnimData;
+
+/* --- Externs (sorted by address) --- */
+
 extern s8 D_8005F170;
 extern u8 D_80078E00[];
 extern BattleConfig D_80082C08;
+extern AnimData D_80082DD0;
 extern CardDataBlock g_cardData;
 extern u8 D_8008369C[];
 extern CdFileDesc D_80097800;
+
+/* --- Helpers --- */
+
+static inline EventState *getEventState(void) {
+    return (EventState *)0x100;
+}
+
+/* --- Functions --- */
 
 /** @brief Field initialization entry: call setup then init step. */
 void func_80098000(void) {
@@ -54,48 +118,42 @@ void func_800980B0(void) {
  * TIMEOUT, NEW specs), then creates 4x2 battle entity slots.
  */
 void func_800980D0(void) {
-    s32 *events;
-    s32 i;
-    s32 j;
+    s32 i, j;
 
     setCardFlag(-1);
     func_8004D8C4(0);
     func_8004D930();
-    events = (s32 *)&g_cardData;
     func_800471A4();
     func_8004D844(0);
-    j = 0;
-    func_800472E4(); /* EnterCriticalSection */
+    func_800472E4();
 
-    events[0] = func_80047204(0xF4000001, 4, 0x2000, 0);
-    events[1] = func_80047204(0xF4000001, 0x8000, 0x2000, 0);
-    events[2] = func_80047204(0xF4000001, 0x100, 0x2000, 0);
-    events[3] = func_80047204(0xF4000001, 0x2000, 0x2000, 0);
-    events[4] = func_80047204(0xF0000011, 4, 0x2000, 0);
-    events[5] = func_80047204(0xF0000011, 0x8000, 0x2000, 0);
-    events[6] = func_80047204(0xF0000011, 0x100, 0x2000, 0);
-    events[7] = func_80047204(0xF0000011, 0x2000, 0x2000, 0);
+    g_cardData.events[0] = func_80047204(0xF4000001, 4, 0x2000, 0);
+    g_cardData.events[1] = func_80047204(0xF4000001, 0x8000, 0x2000, 0);
+    g_cardData.events[2] = func_80047204(0xF4000001, 0x100, 0x2000, 0);
+    g_cardData.events[3] = func_80047204(0xF4000001, 0x2000, 0x2000, 0);
+    g_cardData.events[4] = func_80047204(0xF0000011, 4, 0x2000, 0);
+    g_cardData.events[5] = func_80047204(0xF0000011, 0x8000, 0x2000, 0);
+    g_cardData.events[6] = func_80047204(0xF0000011, 0x100, 0x2000, 0);
+    g_cardData.events[7] = func_80047204(0xF0000011, 0x2000, 0x2000, 0);
 
-    func_80047244(events[0]);
-    func_80047244(events[1]);
-    func_80047244(events[2]);
-    func_80047244(events[3]);
-    func_80047244(events[4]);
-    func_80047244(events[5]);
-    func_80047244(events[6]);
-    func_80047244(events[7]);
+    func_80047244(g_cardData.events[0]);
+    func_80047244(g_cardData.events[1]);
+    func_80047244(g_cardData.events[2]);
+    func_80047244(g_cardData.events[3]);
+    func_80047244(g_cardData.events[4]);
+    func_80047244(g_cardData.events[5]);
+    func_80047244(g_cardData.events[6]);
+    func_80047244(g_cardData.events[7]);
 
-    func_800472F4(); /* ExitCriticalSection */
+    func_800472F4();
 
-    do {
-        i = 0;
-        do {
-            s32 entity = packCardId(i, j);
-            markCardBusy(entity);
-            setCardStatusSecondary(entity, 0);
-        } while (++i < 2);
-        i = 0;
-    } while (++j < 4);
+    for (j = 0; j < 4; j++) {
+        for (i = 0; i < 2; i++) {
+            s32 id = packCardId(i, j);
+            markCardBusy(id);
+            setCardStatusSecondary(id, 0);
+        }
+    }
 }
 
 /**
@@ -103,23 +161,6 @@ void func_800980D0(void) {
  */
 void func_800982B8(void) {
     func_8004DF84();
-}
-
-/** @brief Kernel event control block entity (stride 0xC0). */
-typedef struct {
-    u8 pad00[0x94];
-    s32 status;         /* 0x94 */
-    u8 pad98[0x28];
-} EventEntry; /* 0xC0 bytes */
-
-/** @brief Kernel script/event state at fixed address 0x100. */
-typedef struct {
-    u8 pad00[0x10];
-    EventEntry *entries; /* 0x10 */
-} EventState;
-
-static inline EventState *getEventState(void) {
-    return (EventState *)0x100;
 }
 
 /**
@@ -177,48 +218,6 @@ void func_80098390(void) {
     func_800983B8();
 }
 
-/** @brief Entity identity at tail of AnimEntity. */
-typedef struct {
-    u8 entityId;
-    u8 entityType;
-} AnimEntityTail;
-
-/** @brief Single animation entity (0xC4 bytes). */
-typedef struct {
-    u8 flags;            /* 0x00 */
-    u8 pad01[5];         /* 0x01-0x05 */
-    u8 field_06[2];      /* 0x06-0x07 */
-    u8 pad08[3];         /* 0x08-0x0A */
-    u8 field_0B;         /* 0x0B */
-    u8 field_0C;         /* 0x0C */
-    u8 field_0D;         /* 0x0D */
-    u8 field_0E;         /* 0x0E */
-    u8 field_0F;         /* 0x0F */
-    s16 field_10;        /* 0x10 */
-    s16 field_12;        /* 0x12 */
-    u16 field_14;        /* 0x14 */
-    s16 field_16;        /* 0x16 */
-    u8 pad18;            /* 0x18 */
-    u8 field_19;         /* 0x19 */
-    u8 pad1A;            /* 0x1A */
-    u8 field_1B;         /* 0x1B */
-    AnimFrame frames[8]; /* 0x1C-0xBB */
-    u8 colors[6];        /* 0xBC-0xC1 */
-    AnimEntityTail tail;  /* 0xC2-0xC3 */
-} AnimEntity;
-
-/** @brief Top-level animation data block (D_80082DD0). */
-typedef struct {
-    AnimEntity entities[2];
-    u8 pad188[0x58];
-    u8 field_1E0;
-    u8 field_1E1;
-    u8 pad1E2;
-    u8 field_1E3;
-} AnimData;
-
-extern AnimData D_80082DD0;
-
 /**
  * @brief Initialize the two animation entities to default state.
  *
@@ -229,8 +228,9 @@ extern AnimData D_80082DD0;
  */
 void func_800983B8(void) {
     s16 clipRect[4];
+    s32 i;
     AnimEntity *entity;
-    s32 i, j;
+    s32 j;
 
     D_80082DD0.field_1E0 = 16;
     D_80082DD0.field_1E1 = 5;
@@ -244,19 +244,14 @@ void func_800983B8(void) {
 
     entity = D_80082DD0.entities;
     i = 0;
-
     do {
-        do { entity++; entity--; } while (0); /* Regalloc: boost entity priority */
+        do { entity++; entity--; } while (0);
         initAnimEntityColor(i);
-
         entity->field_19 = 1;
-        {
-            s16 *p = &entity->field_10;
-            p[0] = 0xFFF;
-            p[1] = 0x5000;
-            *(u16 *)&p[2] = 0xA000;
-            p[3] = 0x900;
-        }
+        entity->field_10 = 0xFFF;
+        entity->field_12 = 0x5000;
+        entity->field_14 = 0xA000;
+        entity->field_16 = 0x900;
 
         for (j = 0; j < 2; j++) {
             entity->field_06[j] = 0;
@@ -265,7 +260,7 @@ void func_800983B8(void) {
         entity->flags = 0x40;
 
         for (j = 0; j < 6; j++) {
-            /* empty spin */
+            ;
         }
 
         *(volatile u8 *)&entity->field_06[0] = 0;
@@ -278,7 +273,6 @@ void func_800983B8(void) {
         entity->field_0B = 0;
         entity->tail.entityType = 0x31;
         setAnimGlobalCoords(i, 0, 0);
-
         entity->field_0C = 0;
         entity->field_0D = 0;
         entity->field_0E = 0;
