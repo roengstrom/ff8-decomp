@@ -276,6 +276,21 @@ endef
 $(foreach ovl,$(MENU_OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl),ovl)))
 $(foreach ovl,$(CODE_OVERLAYS),$(eval $(call OVERLAY_TEMPLATE,$(ovl),bin)))
 
+# field_init: extract font TIM from overlay binary during split
+FIELD_INIT_TIM := assets/field_init_font.tim
+FIELD_INIT_DATA_H := src/ovl/field_init/field_init_font.h
+
+split-field_init: $(FIELD_INIT_TIM)
+
+$(FIELD_INIT_TIM): original/field_init.bin
+	dd if=$< of=$@ bs=1 skip=$$((0x500)) count=$$((0x460)) 2>/dev/null
+
+$(FIELD_INIT_DATA_H): $(FIELD_INIT_TIM) tools/bin2c.py
+	python3 tools/bin2c.py $< D_80098500 u32 $@
+
+# field_init C object depends on generated header
+build/ovl/field_init/src/ovl/field_init/field_init.o: $(FIELD_INIT_DATA_H)
+
 # Internal: build all overlay binaries
 build-overlays: $(foreach ovl,$(OVERLAYS),build-$(ovl))
 
