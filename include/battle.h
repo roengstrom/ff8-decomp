@@ -4,6 +4,15 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 
+/** @brief Battle command config (D_80082C08). */
+typedef struct {
+    u16 unk0;
+    u16 unk2;
+    u8 unk4[3];
+    u8 unk7;
+    u8 unk8;
+} BattleConfig;
+
 typedef struct {
     u8 field00;
     u8 field01;

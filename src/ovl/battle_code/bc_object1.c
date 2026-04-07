@@ -43,13 +43,6 @@ typedef struct {
     u8 unk1319;
 } BattleState;
 
-/** @brief Battle config/shuffle structure (D_80082C08). */
-typedef struct {
-    u16 unk0;
-    u16 unk2;
-    u8 unk4[3];
-    u8 unk7;
-} BattleConfig;
 
 extern BattleState D_800ED148;
 extern BattleConfig D_80082C08;
