@@ -105,33 +105,42 @@ void func_800982B8(void) {
     func_8004DF84();
 }
 
+/** @brief Kernel event control block entity (stride 0xC0). */
+typedef struct {
+    u8 pad00[0x94];
+    s32 status;         /* 0x94 */
+    u8 pad98[0x28];
+} EventEntry; /* 0xC0 bytes */
+
+/** @brief Kernel script/event state at fixed address 0x100. */
+typedef struct {
+    u8 pad00[0x10];
+    EventEntry *entries; /* 0x10 */
+} EventState;
+
+static inline EventState *getEventState(void) {
+    return (EventState *)0x100;
+}
+
 /**
- * @brief Set memory card event status to "ready" (0x404) for 4 card slots.
+ * @brief Set memory card event status to "ready" for 4 event slots.
  *
- * Reads the event table base from ECB+0x10, then writes 0x404 (EvStACTIVE |
- * EvMdNOINTR) to the status field (+0x94) of each of 4 card event entries
- * (stride 0xC0) within a critical section.
+ * Reads the event table from the kernel ECB at 0x100, then writes
+ * 0x404 (EvStACTIVE | EvMdNOINTR) to the status field of each of
+ * 4 entries within a critical section.
  */
 void func_800982D8(void) {
-    s32 ecb_base = 0x100;
+    s32 i;
+    EventState *state = getEventState();
 
-    func_800472E4(); /* EnterCriticalSection */
+    func_800472E4();
 
-    {
-        s32 i = 0;
-        s32 val = 0x404;
-        s32 offset = i;
-        s32 base;
-
-        top:
-        base = *(s32 *)(ecb_base + 0x10);
-        i++;
-        *(s32 *)(base + offset + 0x94) = val;
-        offset += 0xC0;
-        if (i < 4) goto top;
+    for (i = 0; i < 4; i++) {
+        EventEntry *entry = &state->entries[i];
+        entry->status = 0x404;
     }
 
-    func_800472F4(); /* ExitCriticalSection */
+    func_800472F4();
 }
 
 /**
