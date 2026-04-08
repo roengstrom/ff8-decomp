@@ -256,7 +256,38 @@ void func_801E2ABC(TutoState *output) {
     func_801F5440();
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2D3C);
+/**
+ * @brief Save game state back to the tutorial save buffer.
+ *
+ * Copies character data, GF data, config, party/inventory/battle data,
+ * and battle party from g_gameState back to the 0x801D9000 buffer.
+ * This is the reverse of func_801E2ABC which loads from the buffer
+ * into g_gameState.
+ */
+void func_801E2D3C(void) {
+    typedef struct {
+        u32 data[0x244 / 4];
+    } SaveMiscBlock;
+
+    GameState *dst = (GameState *)0x801D9000;
+    s32 i;
+
+    for (i = 0; i < CHARACTER_COUNT; i++) {
+        dst->chars[i] = g_gameState.chars[i];
+    }
+
+    for (i = 0; i < GF_COUNT; i++) {
+        dst->gfs[i] = g_gameState.gfs[i];
+    }
+
+    dst->config = g_gameState.config;
+
+    *(SaveMiscBlock *)&dst->party = *(SaveMiscBlock *)&g_gameState.party;
+
+    for (i = 0; i < 4; i++) {
+        dst->battleParty[i] = g_gameState.battleParty[i];
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2EF0);
 
