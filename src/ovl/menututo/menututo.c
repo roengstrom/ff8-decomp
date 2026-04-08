@@ -1,4 +1,5 @@
 #include "common.h"
+#include "gamestate.h"
 
 /**
  * @brief Read tutorial column index 1.
@@ -113,7 +114,11 @@ void func_801E293C(s32 a0, s32 a1) {
  */
 /** @brief Tutorial state structure for rendering callbacks. */
 typedef struct {
-    u8 pad00[0x2A];
+    u8 pad00[0x20];
+    u16 availMask;      /**< Bitfield of available characters (set by func_801E2ABC). */
+    u8 pad22;
+    u8 availCount;      /**< Number of available characters (set by func_801E2ABC). */
+    u8 pad24[6];
     s16 field_2A;       /**< Scroll/fade position. */
     s16 field_2C;       /**< Scroll/fade progress value. */
     u8 pad2E[4];
@@ -166,7 +171,90 @@ void func_801E29F8(s32 a0, TutoState *data) {
     func_801F0A34(a0, 0, scaled + 0xA8, height);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2ABC);
+/**
+ * @brief Initialize game state from save data buffers.
+ *
+ * Copies character data from 0x801DB000 and GF data from 0x801DC000
+ * into g_gameState, sets initial HP to 9999, copies GF names from
+ * 0x801D9000, and initializes party/limit break/config fields.
+ * If D_801FABC7 is set, scans characters to build an availability
+ * mask for the party selection menu.
+ *
+ * @param output Tutorial state receiving character availability data.
+ */
+void func_801E2ABC(TutoState *output) {
+    extern u8 D_801FABC7;
+
+    s32 nameSrc = 0x801D9000;
+    CharacterData *charSrc = (CharacterData *)0x801DB000;
+    GfSaveData *gfSrc = (GfSaveData *)0x801DC000;
+    s32 i;
+    s32 nameOff;
+
+    for (i = 0; i < CHARACTER_COUNT; i++) {
+        g_gameState.chars[i] = *charSrc;
+        charSrc++;
+        g_gameState.chars[i].currentHp = 9999;
+        g_gameState.chars[i].statusFlags = 0;
+        g_gameState.chars[i].characterId = i;
+    }
+
+    for (i = 0, nameOff = 0x50; i < GF_COUNT; i++) {
+        g_gameState.gfs[i] = *gfSrc;
+        gfSrc++;
+        g_gameState.gfs[i].hp = 9999;
+        copyString((u8 *)&g_gameState.gfs[i], (u8 *)(nameSrc + nameOff));
+        nameOff += 0x44;
+    }
+
+    g_gameState.party.party[0] = 0;
+    g_gameState.party.party[1] = 1;
+    g_gameState.party.party[2] = 4;
+    g_gameState.battleParty[0] = 0;
+    g_gameState.battleParty[1] = 1;
+    g_gameState.battleParty[2] = 4;
+
+    if (D_801FABC7 != 0) {
+        s32 mask = 0;
+        s32 count = 0;
+
+        for (i = 0; i < CHARACTER_COUNT; i++) {
+            s32 bit = 1;
+
+            if (g_gameState.chars[i].exists & 1) {
+                mask |= bit << i;
+                count++;
+            }
+        }
+
+        output->availMask = mask;
+        output->availCount = count;
+        g_gameState.party.party[0] = 1;
+        g_gameState.party.party[1] = 0;
+        g_gameState.party.party[2] = 5;
+        g_gameState.battleParty[0] = 0;
+        g_gameState.battleParty[1] = 1;
+        g_gameState.battleParty[2] = 5;
+    }
+
+    g_gameState.limitBreaks.angeloCompleted = 0x11;
+    g_gameState.limitBreaks.angeloKnown = 0x13;
+    g_gameState.limitBreaks.quistisLimits = 1;
+    g_gameState.limitBreaks.irvineLimits = 1;
+    g_gameState.limitBreaks.selphieLimits = 1;
+    g_gameState.config.pad07 = 0;
+    g_gameState.partyLockFlag = 0;
+    g_gameState.party.unknown17 = 0;
+    g_gameState.fieldD20 = 0;
+    g_gameState.limitBreaks.zellLimits = 0x4F;
+
+    for (i = 0; i < 8; i++) {
+        g_gameState.limitBreaks.angeloPoints[i] = 0xFF;
+    }
+
+    recalcPartyStats();
+    func_801F5440();
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2D3C);
 

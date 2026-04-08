@@ -152,7 +152,8 @@ typedef struct {
     /* 0x04 */ u32 unlockedWeapons;    /**< Bitfield of unlocked weapon upgrades. */
     /* 0x08 */ u8 grieverName[12];     /**< Player-chosen name for Griever. */
     /* 0x14 */ u16 unknown14;          /**< Unknown (often 7966?). */
-    /* 0x16 */ u16 unknown16;          /**< Unknown (changes per disc). */
+    /* 0x16 */ u8 unknown16;           /**< Unknown (changes per disc). */
+    /* 0x17 */ u8 unknown17;           /**< Unknown (zeroed on save init). */
     /* 0x18 */ u32 gil;                /**< Current gil. */
     /* 0x1C */ u32 dreamGil;           /**< Gil held during Laguna dream sequences. */
 } PartyData; /* 0x20 = 32 bytes */
@@ -302,9 +303,12 @@ typedef struct {
     /* 0xB44 */ ItemSlot      itemSlots[ITEM_SLOT_COUNT];  /**< Item inventory (198 slots). */
     /* 0xCD0 */ u8            padCD0[4];                   /**< Battle vars / misc. */
     /* 0xCD4 */ s32           battleStateFlag;             /**< Battle state word, low byte compared against camera shake. */
-    /* 0xCD8 */ u8            padCD8[0x4A];                /**< Battle vars / misc (continued). */
+    /* 0xCD8 */ u8            padCD8[0x48];                /**< Battle vars / misc (continued). */
+    /* 0xD20 */ u16           fieldD20;                    /**< Unknown (zeroed on save init). */
     /* 0xD22 */ u8            partyLockFlag;               /**< Bit 0: party is locked. */
-    /* 0xD23 */ u8            padD23[0x3D];                /**< Battle vars / misc (continued). */
+    /* 0xD23 */ u8            padD23[0x15];                /**< Battle vars / misc (continued). */
+    /* 0xD38 */ u8            battleParty[3];              /**< Battle party member IDs (mirrors party.party). */
+    /* 0xD3B */ u8            padD3B[0x25];                /**< Battle vars / misc (continued). */
     /* 0xD60 */ u8            padD60[0x100];               /**< Steps, SeeD rank, counters. */
     /* 0xE60 */ u8            padE60[0x400];               /**< Field script vars, TT rules. */
     /* 0x1260 */ u8           pad1260[0x80];               /**< World map position/vehicles. */
