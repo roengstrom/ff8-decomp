@@ -1,6 +1,6 @@
 assets:
   - name: field_init_font
     source: assets/field_init_font.tim
-    symbol: D_80098500
+    symbol: g_fieldFontTim
     header: field_init_font.h
     output: src/ovl/field_init/field_init_tim.c

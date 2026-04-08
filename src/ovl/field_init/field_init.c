@@ -46,7 +46,7 @@ typedef struct {
     AnimEntityTail tail;  /* 0xC2-0xC3 */
 } AnimEntity;
 
-/** @brief Top-level animation data block (D_80082DD0). */
+/** @brief Top-level animation data block (g_battleAnims). */
 typedef struct {
     AnimEntity entities[2];
     u8 pad188[0x58];
@@ -61,10 +61,12 @@ typedef struct {
 extern s8 D_8005F170;
 extern u8 D_80078E00[];
 extern BattleConfig g_battleConfig;
-extern AnimData D_80082DD0;
 extern CardDataBlock g_cardData;
 extern u8 D_8008369C[];
 extern CdFileDesc D_80097800;
+
+/* --- Forward declarations --- */
+void func_800983B8(void);
 
 /* --- Helpers --- */
 
@@ -185,21 +187,21 @@ void func_800982D8(void) {
 }
 
 /**
- * @brief Decode table data from D_80098960 into D_8008369C.
+ * @brief Decode table data from g_fieldFontGlyphs into D_8008369C.
  *
  * First byte is a start index, second is the limit. Copies pairs of
  * bytes from the source data into the destination buffer until the
  * index exceeds the limit.
  */
 void func_80098330(void) {
-    u8 *src = D_80098960;
+    u8 *src = g_fieldFontGlyphs;
     u8 *dst = D_8008369C;
     s32 count;
     u8 byte;
     s32 limit;
 
     src++;
-    count = D_80098960[0];
+    count = g_fieldFontGlyphs[0];
     limit = *src;
     src++;
 
@@ -231,10 +233,11 @@ void func_800983B8(void) {
     s32 i;
     AnimEntity *entity;
     s32 j;
+    AnimData *anim = (AnimData *)&g_battleAnims;
 
-    D_80082DD0.field_1E0 = 16;
-    D_80082DD0.field_1E1 = 5;
-    D_80082DD0.field_1E3 = 0;
+    anim->field_1E0 = 16;
+    anim->field_1E1 = 5;
+    anim->field_1E3 = 0;
 
     clipRect[0] = 0;
     clipRect[1] = 0;
@@ -242,7 +245,7 @@ void func_800983B8(void) {
     clipRect[3] = 224;
     setBattleAnimClipRect(clipRect);
 
-    entity = D_80082DD0.entities;
+    entity = anim->entities;
     i = 0;
     do {
         do { entity++; entity--; } while (0);

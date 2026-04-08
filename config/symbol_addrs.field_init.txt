@@ -471,6 +471,7 @@ sndVoiceCmdSetPitch = 0x8003BBCC;
 sndVoiceCmdSetVolume = 0x8003BBEC;
 sndVoiceCmdArchive = 0x8003BEE0;
 g_battleConfig = 0x80082C08;
+g_battleAnims = 0x80082DD0;
 g_gameState = 0x80077378;
 g_cardData = 0x80082FB4;
 func_80098028 = 0x80098028; // type:func

@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-extern u8 D_80098500[];
-extern u8 D_80098960[];
+extern u8 g_fieldFontTim[];
+extern u8 g_fieldFontGlyphs[];
 
 #endif /* FIELD_INIT_FONT_H */
