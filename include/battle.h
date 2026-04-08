@@ -13,8 +13,8 @@
 /** @brief Battle command config (g_battleConfig). */
 typedef struct {
     u16 battleSceneId;
-    u16 unk2;
-    u8 unk4[3];
+    u16 unk2; // Flags?, when first bit is set, escape it not possible
+    u8 unk4[3]; // Post battle command queue?
     u8 result;          /**< Battle result (BATTLE_RESULT_*). */
     u8 unk8;
 } BattleConfig;
