@@ -111,9 +111,60 @@ void func_801E293C(s32 a0, s32 a1) {
  * @param a0 OT pointer
  * @param a1 Pointer to tutorial state structure
  */
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E296C);
+/** @brief Tutorial state structure for rendering callbacks. */
+typedef struct {
+    u8 pad00[0x2A];
+    s16 field_2A;       /**< Scroll/fade position. */
+    s16 field_2C;       /**< Scroll/fade progress value. */
+    u8 pad2E[4];
+    s8 field_32;        /**< Tutorial entry index (signed). */
+    u8 pad33[2];
+    u8 field_35;        /**< Tutorial page parameter index. */
+} TutoState;
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E29F8);
+void func_801E296C(s32 a0, TutoState *data) {
+    extern u16 D_801FA3C8[];
+
+    s32 index;
+    s32 tableVal;
+    s32 scaled;
+    s32 val = data->field_2C;
+    u8 param = data->field_35;
+
+    scaled = val;
+    index = (tableVal = 0x1000 - val);
+    index /= 64;
+
+    tableVal = D_801FA3C8[index];
+    scaled = (D_801FA3C8[index] * 190) / 4096;
+    func_801F0A34(a0, 0, scaled + 0xA8, (param * 15) + 0x3E);
+}
+
+/**
+ * @brief Draw tutorial text with table-based X scaling and entry-based Y.
+ *
+ * Computes Y from the entry index modulo 10, and X from a CLUT lookup
+ * table indexed by the scroll position divided by 64.
+ *
+ * @param a0 OT pointer.
+ * @param data Pointer to tutorial state structure.
+ */
+void func_801E29F8(s32 a0, TutoState *data) {
+    extern u16 D_801FA3C8[];
+
+    s32 tableVal;
+    u32 scaled;
+    u32 height;
+    u32 mod = 10;
+    s16 pos = data->field_2A;
+    s8 val = (s8)data->field_32;
+
+    height = ((val % (tableVal = 10)) * 15) + 0x3E;
+    tableVal = D_801FA3C8[(tableVal = pos) / 64];
+    scaled = (tableVal * 190) / 4096;
+
+    func_801F0A34(a0, 0, scaled + 0xA8, height);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2ABC);
 
