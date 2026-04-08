@@ -37,7 +37,7 @@ options:
 
   # Misc
   section_order: [".text", ".rodata", ".data"]
-  subalign: 2
+  subalign: null
   o_as_suffix: True
   use_legacy_include_asm: False
   generate_asm_macros_files: False
@@ -49,5 +49,6 @@ segments:
     vram: 0x801E2800
     subsegments:
       - [0x0, c, menututo]
-      - [0x2538, rodata]
+      - [0x2538, .rodata, menututo]
+      - [0x2558, rodata]
   - [0x26C0]

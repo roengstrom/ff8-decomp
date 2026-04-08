@@ -20,7 +20,42 @@ s32 func_801E2810(void) {
     return D_801E4EC2;
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2820);
+/**
+ * @brief Load a sub-overlay at an offset from the base address.
+ *
+ * Dispatches to loadSubOverlay with a base pointer adjusted by a
+ * fixed offset determined by the tutorial section index.
+ *
+ * @param index Tutorial section index (0-6).
+ * @param base Base address of the overlay data.
+ */
+void func_801E2820(s32 index, u8 *base) {
+    switch (index) {
+    case 0:
+        base += 0x1C;
+        break;
+    case 1:
+        base += 0x14;
+        break;
+    case 2:
+        base += 0x18;
+        break;
+    case 3:
+        base += 0x2C;
+        break;
+    case 4:
+        base += 0x30;
+        break;
+    case 5:
+        base += 0x47;
+        break;
+    case 6:
+        base += 0xB4;
+        break;
+    }
+
+    loadSubOverlay(base, 0x801D1000);
+}
 
 /**
  * @brief Load tutorial page indices from table.

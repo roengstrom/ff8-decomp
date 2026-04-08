@@ -474,6 +474,7 @@ sndVoiceCmdSetVolume = 0x8003BBEC;
 sndVoiceCmdArchive = 0x8003BEE0;
 g_gameState = 0x80077378;
 g_menuColor = 0x80083848;
+jtbl_801E4D38 = 0x801E4D38; // type:jtbl function_owner:func_801E2820
 func_801E2820 = 0x801E2820; // type:func
 func_801E28E4 = 0x801E28E4; // type:func
 func_801E2910 = 0x801E2910; // type:func
