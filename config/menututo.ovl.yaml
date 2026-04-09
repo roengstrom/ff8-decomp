@@ -21,7 +21,6 @@ options:
 
   # Analysis
   find_file_boundaries: True
-  disassemble_all: True
 
   # Symbols
   symbol_addrs_path:
@@ -51,4 +50,6 @@ segments:
       - [0x0, c, menututo]
       - [0x2538, .rodata, menututo]
       - [0x2558, rodata]
+      - [0x25E0, .rodata, menututo]
+      - [0x2618, rodata]
   - [0x26C0]
