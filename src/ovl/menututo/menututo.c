@@ -112,19 +112,20 @@ void func_801E293C(s32 a0, s32 a1) {
  * @param a0 OT pointer
  * @param a1 Pointer to tutorial state structure
  */
-/** @brief Tutorial state structure for rendering callbacks. */
+/** @brief Tutorial callback context structure. */
 typedef struct {
-    u8 pad00[0x20];
-    u16 availMask;      /**< Bitfield of available characters (set by func_801E2ABC). */
-    u8 pad22;
-    u8 availCount;      /**< Number of available characters (set by func_801E2ABC). */
-    u8 pad24[6];
-    s16 field_2A;       /**< Scroll/fade position. */
-    s16 field_2C;       /**< Scroll/fade progress value. */
-    u8 pad2E[4];
-    s8 field_32;        /**< Tutorial entry index (signed). */
-    u8 pad33[2];
-    u8 field_35;        /**< Tutorial page parameter index. */
+    /* 0x00 */ u8 pad00[0x10];
+    /* 0x10 */ u16 state;        /**< State machine state (0-13). */
+    /* 0x12 */ u8 pad12[0xE];
+    /* 0x20 */ u16 fadeAlpha;    /**< Fade alpha (0-0x1000); reused as avail mask during init. */
+    /* 0x22 */ u16 pageIndex;    /**< Page sequence index. */
+    /* 0x24 */ u8 pad24[6];
+    /* 0x2A */ s16 field_2A;     /**< Scroll/fade position. */
+    /* 0x2C */ s16 field_2C;     /**< Scroll/fade progress value. */
+    /* 0x2E */ u8 pad2E[4];
+    /* 0x32 */ s8 field_32;      /**< Tutorial entry index (signed). */
+    /* 0x33 */ u8 pad33[2];
+    /* 0x35 */ u8 field_35;      /**< Tutorial page parameter index. */
 } TutoState;
 
 void func_801E296C(s32 a0, TutoState *data) {
@@ -227,8 +228,8 @@ void func_801E2ABC(TutoState *output) {
             }
         }
 
-        output->availMask = mask;
-        output->availCount = count;
+        output->fadeAlpha = mask;
+        ((u8 *)&output->pageIndex)[1] = count;
         g_gameState.party.party[0] = 1;
         g_gameState.party.party[1] = 0;
         g_gameState.party.party[2] = 5;
@@ -289,7 +290,7 @@ void func_801E2D3C(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2EF0);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2EF0); /* 0x1D4 */
 
 /**
  * @brief Scan tutorial entry table and build list of available entries.
@@ -319,29 +320,181 @@ void func_801E30C4(u8 *a0) {
     *(u8 *)(a0 + 0x36) = count;
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3140);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3140); /* 0xD80 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3EC0);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3EC0); /* 0xCC */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3F8C);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3F8C); /* 0xF4 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4080);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4080); /* 0x194 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4214);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4214); /* 0x108 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E431C);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E431C); /* 0xB8 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E43D4);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E43D4); /* 0x1C4 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4598);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4598); /* 0x144 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E46DC);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E46DC); /* 0x11C */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E47F8);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E47F8); /* 0xC8 */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E48C0);
+/**
+ * @brief Tutorial page navigation state machine.
+ *
+ * Handles loading, displaying, and navigating tutorial pages.
+ * Uses D_801E4EAC as a page sequence table terminated by 0xFFFF.
+ * Button masks from D_801FAB1C control navigation:
+ *   0x8004 = previous page, 0x2008 = next page,
+ *   0x40 = confirm/advance, 0x10 = cancel/exit.
+ *
+ * @param self Pointer to tutorial callback context.
+ */
+void func_801E48C0(TutoState *self) {
+    extern u16 D_801FAB1C;
+    extern u16 D_801E4EAC[];
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0);
+    u16 buttons = D_801FAB1C;
+    u16 *state = &self->state;
+
+    switch (*state) {
+    case 0:
+        *state = 1;
+        break;
+
+    case 1:
+        if (pollCdReadStatus() != 0) {
+            break;
+        }
+        loadTimImage((u8 *)0x801CD000);
+        *state = 2;
+        break;
+
+    case 2:
+        *state = 3;
+        break;
+
+    case 3: {
+        u16 val;
+
+        val = self->fadeAlpha + 0x100;
+        self->fadeAlpha = val;
+        if ((s16)val >= 0x1000) {
+            self->fadeAlpha = 0x1000;
+        }
+
+        if (buttons & 0x8004) {
+            sendSpuCommand(2);
+            val = self->pageIndex - 1;
+            self->pageIndex = val;
+            if ((s16)val < 0) {
+                u16 prev;
+                do {
+                    prev = self->pageIndex;
+                    val = prev + 1;
+                    self->pageIndex = val;
+                } while (D_801E4EAC[(s16)val] != 0xFFFF);
+                self->pageIndex = prev;
+            }
+            *state = 4;
+        }
+
+        if (buttons & 0x2008) {
+            sendSpuCommand(2);
+            val = self->pageIndex + 1;
+            self->pageIndex = val;
+            if (D_801E4EAC[(s16)val] == 0xFFFF) {
+                self->pageIndex = 0;
+            }
+            *state = 4;
+        }
+
+        if (buttons & 0x40) {
+            sendSpuCommand(2);
+            val = self->pageIndex + 1;
+            self->pageIndex = val;
+            if (D_801E4EAC[(s16)val] == 0xFFFF) {
+                *state = 6;
+                break;
+            }
+            *state = 4;
+        }
+
+        if (buttons & 0x10) {
+            sendSpuCommand(3);
+            *state = 6;
+        }
+        break;
+    }
+
+    case 4:
+        loadSubOverlay(D_801E4EAC[(s16)self->pageIndex], (u8 *)0x801CD000);
+        *state = 5;
+        break;
+
+    case 5: {
+        u16 fade = self->fadeAlpha - 0x100;
+        self->fadeAlpha = fade;
+        if ((s16)fade > 0) {
+            break;
+        }
+        self->fadeAlpha = 0;
+        *state = 1;
+        break;
+    }
+
+    case 6:
+        *state = 7;
+        break;
+
+    case 7: {
+        u16 fade = self->fadeAlpha - 0x100;
+        self->fadeAlpha = fade;
+        if ((s16)fade > 0) {
+            break;
+        }
+        self->fadeAlpha = 0;
+        *state = 8;
+        break;
+    }
+
+    case 8:
+        func_80048BB8(0);
+        *state = 9;
+        break;
+
+    case 9:
+        func_801F010C(0x180);
+        *state = 10;
+        break;
+
+    case 10:
+        *state = 11;
+        break;
+
+    case 11:
+        func_80048BB8(1);
+        loadOverlayWithTimCallback(9, (u8 *)0x801CD000);
+        loadOverlayWithTimCallback(10, (u8 *)0x801D5000);
+        *state = 12;
+        break;
+
+    case 12:
+        if (pollCdReadStatus() != 0) {
+            break;
+        }
+        *state = 13;
+        break;
+
+    case 13:
+        func_801F18FC((u8 *)self);
+        func_801F0BB0();
+        break;
+    }
+}
+
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0); /* 0xE0 */
 
 /**
  * @brief Conditionally call func_801E4BD0 if field 0x20 is non-zero.
@@ -349,24 +502,24 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0);
  * @param a1 First argument passed to func_801E4BD0
  * @param a2 Second argument passed to func_801E4BD0
  */
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0);
+INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0); /* 0x34 */
 
 /**
  * @brief Initialize tutorial menu: register callbacks, clear state, and enter.
  *
  * Registers func_801E48C0 and func_801E4CB0 as callbacks via func_801F179C.
- * If registration succeeds, clears the 16-bit fields at offsets 0x20 and 0x22,
+ * If registration succeeds, clears fadeAlpha and pageIndex,
  * calls func_801F010C(0x140) for display setup, then enters via func_801E48C0.
  */
 void func_801E4CE4(void) {
     extern void func_801E48C0();
     extern void func_801E4CB0();
-    s32 result = func_801F179C((s32)func_801E48C0, (s32)func_801E4CB0);
+    TutoState *ctx = (TutoState *)func_801F179C((s32)func_801E48C0, (s32)func_801E4CB0);
 
-    if (result != 0) {
-        *(s16 *)(result + 0x20) = 0;
-        *(s16 *)(result + 0x22) = 0;
+    if (ctx != NULL) {
+        ctx->fadeAlpha = 0;
+        ctx->pageIndex = 0;
         func_801F010C(0x140);
-        func_801E48C0(result);
+        func_801E48C0(ctx);
     }
 }
