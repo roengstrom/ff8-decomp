@@ -49,5 +49,6 @@ segments:
     subsegments:
       - [0x0, c, menututo]
       - [0x2538, .rodata, menututo]
-      - [0x2558, rodata]
+      - [0x2558, .rodata, menututo]
+      - [0x25E0, rodata]
   - [0x26C0]
