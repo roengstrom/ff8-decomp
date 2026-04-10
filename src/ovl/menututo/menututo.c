@@ -2,6 +2,11 @@
 #include "gamestate.h"
 #include "menu.h"
 
+extern MenuDisplayConfig g_menuDisplayCfg;
+extern s32 g_menuColor;
+extern u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
+extern s32 func_801EF9AC(s32, s32, s32, s32);
+
 /**
  * @brief Read tutorial column index 1.
  *
@@ -933,7 +938,37 @@ top:
     }
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3EC0); /* 0xCC */
+/**
+ * @brief Render a tutorial panel header with text and border.
+ *
+ * Loads the text string for entry 0x10, draws it offset from the given
+ * position, configures the display panel (icon 0x57), and renders the
+ * border via func_801EF9AC.
+ *
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @param x Panel X position.
+ * @param y Panel Y position.
+ * @return Updated OT cursor position.
+ */
+s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 textAddr;
+    s32 xOff = x + 0x20;
+    s32 yOff = y + 6;
+
+    textAddr = func_801E28E4(0x10);
+    cursorY = func_801F0FEC(renderCtx, cursorY, xOff, yOff, textAddr, 7);
+
+    cfg->iconType = 0x57;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->w = 0xF4;
+    cfg->y = y;
+    cfg->h = 0x16;
+
+    return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3F8C); /* 0xF4 */
 

@@ -68,7 +68,7 @@ s32 func_801F3FE8();
 s32 func_801F4744();
 void func_801EF9AC(s32, s32, s32, s32);
 s32 func_801F6358(s32, s32, s32, s32, s32);
-s32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
+u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
 s32 func_801F6AD0(s32);
 s32 func_801F5F60(s32, s32, s32, s32);
 void func_801EFBB4(s32, s32, s32);

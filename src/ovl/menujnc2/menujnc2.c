@@ -39,7 +39,7 @@ extern JunctionGfEntry D_801EEDD0;
 extern void func_800300F8(s32 renderCtx, s32 x, s32 w, s32 y, s32 color, s32 menuColor, s32 selColor);
 extern s32 func_801F3FB4(u16 statusFlags);
 extern s32 getCharNamePtr(u8 characterId);
-extern s32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
+extern u32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 namePtr, s32 gfInfo);
 extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 scale, s32 color);
 extern s32 func_8002FF34(s32 renderCtx, s32 cursorY, s32 stringId, s32 x, s32 y, s32 color);
 extern u8 *getAbilityName(s32 id);
