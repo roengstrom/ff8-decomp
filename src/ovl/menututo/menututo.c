@@ -242,9 +242,9 @@ void func_801E2ABC(TutoState *output) {
         nameOff += 0x44;
     }
 
-    g_gameState.party.party[0] = 0;
-    g_gameState.party.party[1] = 1;
-    g_gameState.party.party[2] = 4;
+    g_gameState.mainData.party.party[0] = 0;
+    g_gameState.mainData.party.party[1] = 1;
+    g_gameState.mainData.party.party[2] = 4;
     g_gameState.battleParty[0] = 0;
     g_gameState.battleParty[1] = 1;
     g_gameState.battleParty[2] = 4;
@@ -264,27 +264,27 @@ void func_801E2ABC(TutoState *output) {
 
         output->fadeAlpha = mask;
         output->pad23 = count;
-        g_gameState.party.party[0] = 1;
-        g_gameState.party.party[1] = 0;
-        g_gameState.party.party[2] = 5;
+        g_gameState.mainData.party.party[0] = 1;
+        g_gameState.mainData.party.party[1] = 0;
+        g_gameState.mainData.party.party[2] = 5;
         g_gameState.battleParty[0] = 0;
         g_gameState.battleParty[1] = 1;
         g_gameState.battleParty[2] = 5;
     }
 
-    g_gameState.limitBreaks.angeloCompleted = 0x11;
-    g_gameState.limitBreaks.angeloKnown = 0x13;
-    g_gameState.limitBreaks.quistisLimits = 1;
-    g_gameState.limitBreaks.irvineLimits = 1;
-    g_gameState.limitBreaks.selphieLimits = 1;
+    g_gameState.mainData.limitBreaks.angeloCompleted = 0x11;
+    g_gameState.mainData.limitBreaks.angeloKnown = 0x13;
+    g_gameState.mainData.limitBreaks.quistisLimits = 1;
+    g_gameState.mainData.limitBreaks.irvineLimits = 1;
+    g_gameState.mainData.limitBreaks.selphieLimits = 1;
     g_gameState.config.pad07 = 0;
-    g_gameState.partyLockFlag = 0;
-    g_gameState.party.unknown17 = 0;
-    g_gameState.fieldD20 = 0;
-    g_gameState.limitBreaks.zellLimits = 0x4F;
+    g_gameState.mainData.partyLockFlag = 0;
+    g_gameState.mainData.party.unknown17 = 0;
+    g_gameState.mainData.fieldD20 = 0;
+    g_gameState.mainData.limitBreaks.zellLimits = 0x4F;
 
     for (i = 0; i < 8; i++) {
-        g_gameState.limitBreaks.angeloPoints[i] = 0xFF;
+        g_gameState.mainData.limitBreaks.angeloPoints[i] = 0xFF;
     }
 
     recalcPartyStats();
@@ -300,10 +300,6 @@ void func_801E2ABC(TutoState *output) {
  * into g_gameState.
  */
 void func_801E2D3C(void) {
-    typedef struct {
-        u32 data[0x244 / 4];
-    } SaveMiscBlock;
-
     GameState *dst = (GameState *)0x801D9000;
     s32 i;
 
@@ -316,15 +312,43 @@ void func_801E2D3C(void) {
     }
 
     dst->config = g_gameState.config;
-
-    *(SaveMiscBlock *)&dst->party = *(SaveMiscBlock *)&g_gameState.party;
+    dst->mainData = g_gameState.mainData;
 
     for (i = 0; i < 4; i++) {
         dst->battleParty[i] = g_gameState.battleParty[i];
     }
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E2EF0); /* 0x1D4 */
+/**
+ * @brief Restore game state from the tutorial save buffer.
+ *
+ * Copies character data, GF data, config, party/inventory/battle data,
+ * and battle party from the 0x801D9000 buffer back into g_gameState.
+ * This is the reverse of func_801E2D3C which saves to the buffer.
+ * Recalculates party stats after restoring.
+ */
+void func_801E2EF0(void) {
+    GameState *save = (GameState *)0x801D9000;
+    s32 i;
+
+    for (i = 0; i < CHARACTER_COUNT; i++) {
+        g_gameState.chars[i] = save->chars[i];
+    }
+
+    for (i = 0; i < GF_COUNT; i++) {
+        g_gameState.gfs[i] = save->gfs[i];
+    }
+
+    g_gameState.config = save->config;
+    g_gameState.mainData = save->mainData;
+
+    for (i = 0; i < 4; i++) {
+        g_gameState.battleParty[i] = save->battleParty[i];
+    }
+
+    recalcPartyStats();
+    func_801F5440();
+}
 
 /**
  * @brief Scan tutorial entry table and build list of available entries.

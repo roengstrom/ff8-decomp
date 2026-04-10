@@ -280,6 +280,25 @@ typedef struct {
 #define GAMESTATE_TOTAL_SIZE        0x13A0 /**< Total: 80 + 4944 = 5024 bytes. */
 
 /**
+ * @brief Party, inventory, and battle state data (0x244 = 580 bytes).
+ *
+ * Covers GameState offsets 0xAF4–0xD38. Copied as a single block
+ * during tutorial save/restore.
+ */
+typedef struct {
+    /* 0x00 */ PartyData     party;                       /**< Party/gil/Griever (32 bytes). */
+    /* 0x20 */ LimitBreakData limitBreaks;                /**< Limit break progress (16 bytes). */
+    /* 0x30 */ u8            battleOrder[32];              /**< Battle item menu ordering. */
+    /* 0x50 */ ItemSlot      itemSlots[ITEM_SLOT_COUNT];  /**< Item inventory (198 slots). */
+    /* 0x1DC */ u8           padDC[4];                    /**< Battle vars / misc. */
+    /* 0x1E0 */ s32          battleStateFlag;             /**< Battle state word, low byte compared against camera shake. */
+    /* 0x1E4 */ u8           padE4[0x48];                 /**< Battle vars / misc (continued). */
+    /* 0x22C */ u16          fieldD20;                    /**< Unknown (zeroed on save init). */
+    /* 0x22E */ u8           partyLockFlag;               /**< Bit 0: party is locked. */
+    /* 0x22F */ u8           pad2F[0x15];                 /**< Battle vars / misc (continued). */
+} SaveMainData; /* 0x244 = 580 bytes */
+
+/**
  * @brief Full game state (g_gameState at 0x80077378, 0x13A0 bytes).
  *
  * Sections not yet mapped to named structs are left as padding arrays.
@@ -297,16 +316,7 @@ typedef struct {
     /* 0x490 */ CharacterData chars[CHARACTER_COUNT];      /**< Character data (8 × 152 bytes). */
     /* 0x950 */ ShopData      shops[SHOP_COUNT];           /**< Shop inventory (20 × 20 bytes). */
     /* 0xAE0 */ GameConfig    config;                      /**< Game config (20 bytes). */
-    /* 0xAF4 */ PartyData     party;                       /**< Party/gil/Griever (32 bytes). */
-    /* 0xB14 */ LimitBreakData limitBreaks;                /**< Limit break progress (16 bytes). */
-    /* 0xB24 */ u8            battleOrder[32];              /**< Battle item menu ordering. */
-    /* 0xB44 */ ItemSlot      itemSlots[ITEM_SLOT_COUNT];  /**< Item inventory (198 slots). */
-    /* 0xCD0 */ u8            padCD0[4];                   /**< Battle vars / misc. */
-    /* 0xCD4 */ s32           battleStateFlag;             /**< Battle state word, low byte compared against camera shake. */
-    /* 0xCD8 */ u8            padCD8[0x48];                /**< Battle vars / misc (continued). */
-    /* 0xD20 */ u16           fieldD20;                    /**< Unknown (zeroed on save init). */
-    /* 0xD22 */ u8            partyLockFlag;               /**< Bit 0: party is locked. */
-    /* 0xD23 */ u8            padD23[0x15];                /**< Battle vars / misc (continued). */
+    /* 0xAF4 */ SaveMainData  mainData;                     /**< Party/items/battle state (580 bytes). */
     /* 0xD38 */ u8            battleParty[3];              /**< Battle party member IDs (mirrors party.party). */
     /* 0xD3B */ u8            padD3B[0x25];                /**< Battle vars / misc (continued). */
     /* 0xD60 */ u8            padD60[0x100];               /**< Steps, SeeD rank, counters. */

@@ -137,7 +137,7 @@ void setCameraVibrateState(unsigned int enable) {
     g_cameraShake.enable = enable;
     if (enable != 0) {
         g_cameraShake.counter = 0;
-        g_cameraShake.stateSnapshot = (s8)((volatile GameState *)(&g_gameState))->battleStateFlag;
+        g_cameraShake.stateSnapshot = (s8)((volatile GameState *)(&g_gameState))->mainData.battleStateFlag;
     }
 }
 
@@ -156,7 +156,7 @@ void setCameraShakeParams(s32 intensity, s32 direction) {
  * @brief Update camera vibration timer and check for game state change.
  *
  * Increments g_cameraShake.counter (clamped to 0x40), then compares the low byte of
- * g_gameState.battleStateFlag against g_cameraShake.stateSnapshot. If they differ,
+ * g_gameState.mainData.battleStateFlag against g_cameraShake.stateSnapshot. If they differ,
  * resets counter to 0 and updates the snapshot.
  */
 void updateCameraVibrate(void) {
@@ -172,7 +172,7 @@ void updateCameraVibrate(void) {
         clamped = counter;
     }
     g_cameraShake.counter = clamped;
-    gsVal = ((volatile GameState *)(&g_gameState))->battleStateFlag;
+    gsVal = ((volatile GameState *)(&g_gameState))->mainData.battleStateFlag;
     curVal = g_cameraShake.stateSnapshot;
     gsVal &= 0xFF;
     counter = gsVal;

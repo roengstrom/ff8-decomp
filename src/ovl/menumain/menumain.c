@@ -786,7 +786,7 @@ void func_801F22A8(void) {
     i = 0;
 
     for (; i < 3; i++) {
-        u8 val = g_gameState.party.party[i];
+        u8 val = g_gameState.mainData.party.party[i];
         if (val != PARTY_SLOT_EMPTY) {
             result |= (1 << val);
         }
@@ -1006,8 +1006,8 @@ void func_801F5300(void) {
     s32 i = 0;
 
     for (; i < 3; i++) {
-        D_801FABC4[i] = g_gameState.party.party[i];
-        g_gameState.party.party[i] = PARTY_SLOT_EMPTY;
+        D_801FABC4[i] = g_gameState.mainData.party.party[i];
+        g_gameState.mainData.party.party[i] = PARTY_SLOT_EMPTY;
     }
 }
 
@@ -1016,7 +1016,7 @@ void func_801F5340(void) {
     s32 i = 0;
 
     for (; i < 3; i++) {
-        g_gameState.party.party[i] = D_801FABC4[i];
+        g_gameState.mainData.party.party[i] = D_801FABC4[i];
     }
 }
 

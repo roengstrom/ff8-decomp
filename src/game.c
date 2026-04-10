@@ -447,8 +447,8 @@ void decrementItemByType(s32 itemId) {
     }
 
     for (i = 0; i < ITEM_SLOT_COUNT; i++) {
-        if (g_gameState.itemSlots[i].id == itemId) {
-            g_gameState.itemSlots[i].count--;
+        if (g_gameState.mainData.itemSlots[i].id == itemId) {
+            g_gameState.mainData.itemSlots[i].count--;
         }
     }
 }
@@ -463,7 +463,7 @@ void decrementItemByType(s32 itemId) {
  * @return 0 if added successfully (count < 100), 1 if capped or inventory full.
  */
 s32 addItemToInventory(s32 itemId, s32 amount) {
-    u8 *base = (u8 *)g_gameState.itemSlots;
+    u8 *base = (u8 *)g_gameState.mainData.itemSlots;
     u8 *ptr;
     s32 i;
 
@@ -571,7 +571,7 @@ s32 abilityId;
 
     if (abilityId == 0) return 0;
 
-    slot_id = g_gameState.party.party[partySlot];
+    slot_id = g_gameState.mainData.party.party[partySlot];
     i = 0;
     while (i < 20) {
         if (g_gameState.chars[slot_id].junctions[i] == abilityId) {
@@ -670,7 +670,7 @@ default_case:
  * @note The stat at ptr+2 (likely HP or experience) is read as u16, added to a1, then clamped by clampToMaxHp.
  */
 void addCharMaxHp(s32 partyIdx, s32 amount) {
-    u8 idx = g_gameState.party.party[partyIdx];
+    u8 idx = g_gameState.mainData.party.party[partyIdx];
     CharacterData *ch = &g_gameState.chars[idx];
     ch->maxHp = clampToMaxHp(ch->maxHp + amount);
 }
