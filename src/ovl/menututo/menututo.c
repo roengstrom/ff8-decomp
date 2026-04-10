@@ -6,6 +6,7 @@ extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
 extern u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
 extern s32 func_801EF9AC(s32, s32, s32, s32);
+extern void decodeMessage(u8 *, u8 *, s32);
 
 /**
  * @brief Read tutorial column index 1.
@@ -970,7 +971,42 @@ s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E3F8C); /* 0xF4 */
+/**
+ * @brief Render a tutorial content panel with decoded message text.
+ *
+ * If the state has a message pointer (panelHandle), decodes the message
+ * into a local buffer and renders it. Configures the display panel
+ * (icon 0x55) and draws the border.
+ *
+ * @param state Tutorial state (panelHandle at 0x24 holds message pointer).
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @param x Panel X position.
+ * @param y Panel Y position (from stack).
+ * @return Updated OT cursor position.
+ */
+u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 xOff = x + 0xA;
+    s32 yOff = y + 9;
+    s32 w = 0x144;
+    s32 h = 0x1A;
+
+    if (state->panelHandle != 0) {
+        u8 textBuf[128];
+        decodeMessage((u8 *)state->panelHandle, textBuf, -1);
+        cursorY = func_801F0FEC(renderCtx, cursorY, xOff, yOff, (s32)textBuf, 7);
+    }
+
+    cfg->iconType = 0x55;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = w;
+    cfg->h = h;
+
+    return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4080); /* 0x194 */
 
