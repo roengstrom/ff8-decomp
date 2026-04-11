@@ -14,6 +14,7 @@ extern s32 drawColorByMenuPalette(s32, s32, s32, s32, s32);
 extern void decodeMessage(u8 *, u8 *, s32);
 extern u8 D_800780AB;
 extern u16 D_801FA3C8[];
+extern u8 D_801E4EA8;
 
 /**
  * @brief Read tutorial column index 1.
@@ -1265,7 +1266,54 @@ s32 func_801E4598(TutoState *state, s32 renderCtx, s32 cursorY) {
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E46DC); /* 0x11C */
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E47F8); /* 0xC8 */
+/**
+ * @brief Warm-entry to tutorial menu with sibling overlay memory scrub.
+ *
+ * Registers the tutorial main (func_801E3140) and render (func_801E4598)
+ * callbacks via func_801F179C and primes the returned state for a
+ * re-entry path (isReentry=1, fadeProgress=0, cursorPos=0). Resets fade
+ * and panel globals. If registration succeeds, dispatches directly into
+ * the main callback with fadeAlpha=0x1B, fadePos=0, and pad23=3 preset.
+ *
+ * Finally, zeroes the two memory regions bracketing menututo's load
+ * area: [0x801CD000..0x801E0000) (sub-overlay scratch buffer below)
+ * and [0x801E5800..0x801EF800) (sibling menu overlay area above),
+ * scrubbing any cached data left by previously loaded overlays.
+ *
+ * @note Purpose uncertain — appears to be a warm-entry variant of
+ * func_801E4CE4 that bypasses normal init by dispatching directly into
+ * the main callback and clearing sibling overlay memory.
+ */
+void func_801E47F8(void) {
+    TutoState *ctx;
+    u8 *p;
+
+    ctx = (TutoState *)func_801F179C((s32)func_801E3140, (s32)func_801E4598);
+    NOP(); // FIXME
+    ctx->isReentry = 1;
+    ctx->fadeProgress = 0;
+    ctx->cursorPos = 0;
+    func_801F0948(0);
+    func_801F1D34(&D_801E4EA8);
+    func_801F1DB0(0);
+
+    if (ctx != NULL) {
+        func_801E3140(ctx);
+        ctx->fadeAlpha = 0x1B;
+        ctx->fadePos = 0;
+        ctx->pad23 = 3;
+    }
+
+    p = (u8 *)0x801E5800;
+    do {
+        *p++ = 0;
+    } while (p != (u8 *)0x801EF800);
+
+    p = (u8 *)0x801CD000;
+    do {
+        *p++ = 0;
+    } while (p != (u8 *)0x801E0000);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E48C0); /* 0x310 */
 

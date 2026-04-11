@@ -21,6 +21,7 @@ typedef int s32;
 #else
 #define REGALLOC_BARRIER(x)
 #endif
+#define NOP() asm("nop")
 
 
 /* Clamp value to [lo, hi] range. */
