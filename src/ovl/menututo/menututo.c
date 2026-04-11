@@ -8,7 +8,9 @@ extern u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
 extern s32 func_801EF9AC(s32, s32, s32, s32);
 extern s32 func_801F6AFC(s32);
 extern s32 func_801F7A54(void);
+extern s32 drawColorByMenuPalette(s32, s32, s32, s32, s32);
 extern void decodeMessage(u8 *, u8 *, s32);
+extern u8 D_800780AB;
 
 /**
  * @brief Read tutorial column index 1.
@@ -1073,7 +1075,47 @@ u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4214); /* 0x108 */
+/**
+ * @brief Render a single tutorial entry in a 10-per-page list.
+ *
+ * Computes the global entry index (index * 10 + startY) and returns
+ * cursorY unchanged if it's beyond the total tutorial entry count.
+ * Otherwise, renders the entry's label text at a per-slot Y offset
+ * and draws the 1-indexed entry number via drawColorByMenuPalette
+ * (with packed X/Y coordinate).
+ *
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @param index Zero-based page index.
+ * @param startY Slot within the page (0-9).
+ * @param x Base X coordinate (5th arg, passed on stack).
+ * @return Updated OT cursor position (unchanged if entry out of range).
+ */
+u32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 x) {
+    s32 panelX;
+    u16 xCoord;
+    s32 yPos;
+    u8 *text;
+    s32 endPos;
+    s32 xPos;
+
+    endPos = (index * 10) + startY;
+    if (endPos >= D_800780AB) {
+        return cursorY;
+    }
+
+    endPos += 1;
+    text = func_801E28E4(0x17);
+    xPos = ((long long)g_menuDisplayCfg.x) + (x + 0xA);
+    yPos = g_menuDisplayCfg.y + 5;
+    yPos += startY * 15;
+
+    cursorY = func_801F0FEC(renderCtx, cursorY, xPos, yPos, text, 7);
+
+    panelX = g_menuDisplayCfg.x;
+    xCoord = panelX + (x + 0xC0);
+    return drawColorByMenuPalette(renderCtx, cursorY, ((yPos << 15) << 1) | xCoord, endPos, 7);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E431C); /* 0xB8 */
 
