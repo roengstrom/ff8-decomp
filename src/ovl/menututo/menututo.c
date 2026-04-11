@@ -1155,7 +1155,68 @@ u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
     return func_801EFBB4(renderCtx, cursorY, (s32)func_801E4214);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E43D4); /* 0x1C4 */
+/**
+ * @brief Render the tutorial section-select panel during fade-in.
+ *
+ * Animates the panel scale using a lookup table indexed by fadeProgress,
+ * renders each available tutorial section name, and draws the panel
+ * border. Early-returns cursorY unchanged if fadeProgress is 0.
+ *
+ * @param state Tutorial state with fadeProgress and availSlots.
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @return Updated OT cursor position.
+ */
+s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
+    extern u16 D_801FA3C8[];
+    extern TutoSectionEntry D_801E4E3C[];
+    TutoSectionEntry *sectionTable;
+    s32 tableVal;
+    s32 index;
+    s32 i;
+    s32 yPos;
+    s32 scaled;
+    MenuDisplayConfig *cfg;
+    s32 xPos;
+    s16 progress = state->fadeProgress;
+    u8 textBuf[128];
+    s32 textAddr;
+    u8 entryIdx;
+    s32 msgPtr;
+
+    if (progress != 0) {
+        index = (tableVal = 0x1000 - progress);
+        index /= 64;
+        tableVal = D_801FA3C8[index];
+        scaled = (tableVal * 190) / 4096;
+        yPos = 0x3E;
+        cfg = &g_menuDisplayCfg;
+        xPos = scaled + 0xA8;
+        sectionTable = D_801E4E3C;
+        i = 0;
+
+        if (state->availCount != 0) {
+            textAddr = (s32)textBuf;
+            do {
+                entryIdx = state->availSlots[i];
+                msgPtr = func_801E28E4(sectionTable[entryIdx].sectionId);
+                decodeMessage((u8 *)msgPtr, textBuf, -1);
+                cursorY = func_801F0FEC(renderCtx, cursorY, xPos, yPos, textAddr, 7);
+                i++;
+                yPos += 15;
+            } while (i < state->availCount);
+        }
+
+        cfg->iconType = 0;
+        cfg->x = scaled + 0x9E;
+        cfg->y = 0x39;
+        cfg->iconSubType = 0;
+        cfg->w = 0xCA;
+        cfg->h = 0x8F - (9 - state->availCount) * 15;
+        cursorY = func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+    }
+    return cursorY;
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4598); /* 0x144 */
 
