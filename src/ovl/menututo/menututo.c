@@ -4,6 +4,7 @@
 
 extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
+extern s32 func_801E4BD0(s32, s32, s32);
 extern u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
 extern s32 func_801EF9AC(s32, s32, s32, s32);
 extern u32 func_801EFBB4(s32, s32, s32);
@@ -1320,12 +1321,21 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E48C0); /* 0x310 *
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0); /* 0xE0 */
 
 /**
- * @brief Conditionally call func_801E4BD0 if field 0x20 is non-zero.
- * @param a0 Pointer to structure with s16 field at offset 0x20
- * @param a1 First argument passed to func_801E4BD0
- * @param a2 Second argument passed to func_801E4BD0
+ * @brief Tutorial render callback: forward to fade renderer if fade is active.
+ *
+ * @param state Tutorial state (fadeAlpha at offset 0x20).
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @return Updated OT cursor position (unchanged if fadeAlpha is 0).
  */
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0); /* 0x34 */
+s32 func_801E4CB0(TutoState *state, s32 renderCtx, s32 cursorY) {
+    s16 alpha = state->fadeAlpha;
+
+    if (alpha != 0) {
+        cursorY = func_801E4BD0(renderCtx, cursorY, alpha);
+    }
+    return cursorY;
+}
 
 /**
  * @brief Initialize tutorial menu: register callbacks, clear state, and enter.
@@ -1336,7 +1346,6 @@ INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4CB0); /* 0x34 */
  */
 void func_801E4CE4(void) {
     extern void func_801E48C0();
-    extern void func_801E4CB0();
     TutoState *ctx = (TutoState *)func_801F179C((s32)func_801E48C0, (s32)func_801E4CB0);
 
     if (ctx != NULL) {
