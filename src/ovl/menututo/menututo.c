@@ -1163,33 +1163,32 @@ u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
  * @return Updated OT cursor position.
  */
 s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
-    TutoSectionEntry *sectionTable;
-    s32 tableVal;
-    s32 index;
-    s32 i;
-    s32 yPos;
-    s32 scaled;
     MenuDisplayConfig *cfg;
+    TutoSectionEntry *sectionTable;
+    s32 scaleVal;
+    s32 index;
+    s32 scaled;
     s32 xPos;
-    s16 progress = state->fadeProgress;
+    s32 yPos;
+    s32 i;
     u8 textBuf[128];
-    s32 textAddr;
-    u8 entryIdx;
-    s32 msgPtr;
+    s16 progress = state->fadeProgress;
 
     if (progress != 0) {
-        index = (tableVal = 0x1000 - progress);
-        index /= 64;
-        tableVal = D_801FA3C8[index];
-        scaled = (tableVal * 190) / 4096;
-        yPos = 0x3E;
+        scaleVal = 0x1000 - progress;
+        index = scaleVal / 64;
+        scaleVal = D_801FA3C8[index];
+        scaled = (scaleVal * 190) / 4096;
+        yPos = 62;
         cfg = &g_menuDisplayCfg;
-        xPos = scaled + 0xA8;
+        xPos = scaled + 168;
         sectionTable = D_801E4E3C;
         i = 0;
 
         if (state->availCount != 0) {
-            textAddr = (s32)textBuf;
+            s32 textAddr = (s32)textBuf;
+            u8 entryIdx;
+            s32 msgPtr;
             do {
                 entryIdx = state->availSlots[i];
                 msgPtr = func_801E28E4(sectionTable[entryIdx].sectionId);
@@ -1201,11 +1200,11 @@ s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
         }
 
         cfg->iconType = 0;
-        cfg->x = scaled + 0x9E;
-        cfg->y = 0x39;
         cfg->iconSubType = 0;
-        cfg->w = 0xCA;
-        cfg->h = 0x8F - (9 - state->availCount) * 15;
+        cfg->x = scaled + 158;
+        cfg->y = 57;
+        cfg->w = 202;
+        cfg->h = 143 - (9 - state->availCount) * 15;
         cursorY = func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
     }
     return cursorY;
