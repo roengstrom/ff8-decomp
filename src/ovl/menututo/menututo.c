@@ -13,6 +13,7 @@ extern s32 func_801F7A54(void);
 extern s32 drawColorByMenuPalette(s32, s32, s32, s32, s32);
 extern void decodeMessage(u8 *, u8 *, s32);
 extern u8 D_800780AB;
+extern u16 D_801FA3C8[];
 
 /**
  * @brief Read tutorial column index 1.
@@ -174,9 +175,9 @@ typedef struct {
     u8 pad09[3];
 } TutoSectionEntry;
 
-void func_801E296C(s32 a0, TutoState *data) {
-    extern u16 D_801FA3C8[];
+extern TutoSectionEntry D_801E4E3C[];
 
+void func_801E296C(s32 a0, TutoState *data) {
     s32 index;
     s32 tableVal;
     s32 scaled;
@@ -202,8 +203,6 @@ void func_801E296C(s32 a0, TutoState *data) {
  * @param data Pointer to tutorial state structure.
  */
 void func_801E29F8(s32 a0, TutoState *data) {
-    extern u16 D_801FA3C8[];
-
     s32 tableVal;
     u32 scaled;
     u32 height;
@@ -373,10 +372,9 @@ void func_801E2EF0(void) {
  * @param a0 Pointer to tutorial state structure
  */
 void func_801E30C4(u8 *a0) {
-    extern u8 D_801E4E3C[];
     s32 i = 0;
     s32 count = 0;
-    u8 *table = D_801E4E3C;
+    u8 *table = (u8 *)D_801E4E3C;
 
     do {
         if (testFieldFlag(table[8]) != 0) {
@@ -401,12 +399,9 @@ void func_801E30C4(u8 *a0) {
  * @param ctx Tutorial state context.
  */
 void func_801E3140(TutoState *ctx) {
-    extern MenuDisplayConfig g_menuDisplayCfg;
     extern TutoEntry D_801E4E18[];
-    extern TutoSectionEntry D_801E4E3C[];
     extern u8 D_801E4EC0;
     extern u16 D_801E4EAC;
-    extern u8 D_800780AB;
     volatile extern s32 D_8008514C;
     extern u8 D_801FABC7;
 
@@ -1168,8 +1163,6 @@ u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
  * @return Updated OT cursor position.
  */
 s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
-    extern u16 D_801FA3C8[];
-    extern TutoSectionEntry D_801E4E3C[];
     TutoSectionEntry *sectionTable;
     s32 tableVal;
     s32 index;
