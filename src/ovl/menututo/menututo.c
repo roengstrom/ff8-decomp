@@ -1210,7 +1210,58 @@ s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
     return cursorY;
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4598); /* 0x144 */
+/**
+ * @brief Render the tutorial screen while the UI is in state 0x14.
+ *
+ * Short-circuits and returns cursorY unchanged unless func_801F0D84()
+ * reports state 0x14. Otherwise primes the draw state via func_801F1AFC,
+ * applies the fade palette intensity from state->fadePos, then draws the
+ * layered panels in order: title bar (func_801E3EC0), message panel
+ * (func_801E3F8C), the scrolling-section content panel while
+ * scrollPos < 0x1000 (func_801E431C, with an X offset driven by
+ * D_801FA3C8[scrollPos/64] * 190 / 4096 + 0x9E), the section list overlay
+ * (func_801E43D4), and the main entry list (func_801E4080). Finally
+ * issues func_801F1B10 as a cleanup tick and returns the updated cursor.
+ *
+ * @param state Tutorial state pointer.
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @return Updated OT cursor position (unchanged if not in state 0x14).
+ */
+s32 func_801E4598(TutoState *state, s32 renderCtx, s32 cursorY) {
+    s32 tableVal;
+    s32 index;
+    s32 scaled;
+    s32 yArg;
+    s32 cursorTmp;
+    s16 scrollPos;
+
+    if (func_801F0D84() != 0x14) {
+        return cursorY;
+    }
+
+    func_801F1AFC();
+    setMenuColorIntensity(state->fadePos);
+
+    cursorY = func_801E3EC0(renderCtx, cursorY, 0x18, 6);
+    yArg = 0x1D;
+    cursorY = func_801E3F8C(state, renderCtx, cursorY, 0x1E, yArg);
+    scrollPos = state->scrollPos;
+
+    if (scrollPos < 0x1000) {
+        tableVal = scrollPos;
+        index = tableVal / 64;
+        tableVal = D_801FA3C8[index];
+        yArg = 0x39;
+        scaled = (tableVal * 190) / 4096;
+        cursorY = func_801E431C(state, renderCtx, cursorY, scaled + 0x9E, yArg);
+    }
+
+    cursorTmp = func_801E43D4(state, renderCtx, cursorY);
+    cursorY = func_801E4080(state, renderCtx, cursorTmp, 0x18, 0x39);
+    func_801F1B10();
+    return cursorY;
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E46DC); /* 0x11C */
 
