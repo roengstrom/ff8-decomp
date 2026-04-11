@@ -295,7 +295,12 @@ typedef struct {
     /* 0x1E4 */ u8           padE4[0x48];                 /**< Battle vars / misc (continued). */
     /* 0x22C */ u16          fieldD20;                    /**< Unknown (zeroed on save init). */
     /* 0x22E */ u8           partyLockFlag;               /**< Bit 0: party is locked. */
-    /* 0x22F */ u8           pad2F[0x15];                 /**< Battle vars / misc (continued). */
+    /* 0x22F */ u8           pad2F[0x10];                 /**< Battle vars / misc (continued). */
+    /* 0x23F */ u8           tutoEntryCount;              /**< Current tutorial section entry count.
+                                                               Read/written as D_800780AB in menututo.
+                                                               0 greys out the section in the list;
+                                                               divided by 10 gives the page count. */
+    /* 0x240 */ u8           pad40[4];                    /**< Battle vars / misc (continued). */
 } SaveMainData; /* 0x244 = 580 bytes */
 
 /**

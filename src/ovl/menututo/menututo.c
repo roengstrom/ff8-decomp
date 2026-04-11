@@ -6,6 +6,8 @@ extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
 extern u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
 extern s32 func_801EF9AC(s32, s32, s32, s32);
+extern s32 func_801F6AFC(s32);
+extern s32 func_801F7A54(void);
 extern void decodeMessage(u8 *, u8 *, s32);
 
 /**
@@ -1008,7 +1010,68 @@ u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4080); /* 0x194 */
+/**
+ * @brief Render the tutorial section list panel.
+ *
+ * Iterates over the 8 tutorial section entries in D_801E4E18 and renders
+ * each section name with an appropriate color. Entries with loadCmd==0,
+ * Chocobo World unavailable (panelId 0x3D, checked via func_801F7A54), or
+ * PocketStation absent (panelId 0x3E, checked via g_gameState + 0xD33 /
+ * D_800780AB) are rendered in grey (color 1); normal entries use color 7.
+ * Also configures the display panel and draws the border.
+ *
+ * @param state Unused tutorial state pointer.
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @param x Panel X coordinate.
+ * @param y Panel Y coordinate (5th arg, passed on stack).
+ * @return Updated OT cursor position.
+ */
+u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+    extern TutoEntry D_801E4E18[];
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    TutoEntry *table = D_801E4E18;
+    s32 xOff = x + 0xA;
+    s32 yOff = y + 5;
+    s32 i;
+    s32 color;
+    s32 textAddr;
+
+    for (i = 0; i < 8; i++) {
+        color = 1;
+        if (table[i].loadCmd) {
+            color = 7;
+        }
+        if (table[i].panelId == 0x3D) {
+            if (func_801F7A54() < 0) {
+                color = 1;
+            }
+        }
+        if (table[i].panelId == 0x3E) {
+            if (g_gameState.mainData.tutoEntryCount == 0) {
+                color = 1;
+            }
+        }
+        if (table[i].hasFlag) {
+            textAddr = func_801E28E4(table[i].panelId);
+        } else {
+            textAddr = func_801F6AFC(table[i].panelId);
+        }
+        cursorY = func_801F0FEC(renderCtx, cursorY, xOff, yOff, textAddr, color);
+        yOff += 0xF;
+    }
+
+    cursorY++; cursorY--; /* regalloc hack: boost cursorY use count above yOff so it claims s2 */
+
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 0x86;
+    cfg->h = 0x80;
+
+    return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4214); /* 0x108 */
 
