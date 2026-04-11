@@ -6,6 +6,8 @@ extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32 g_menuColor;
 extern u32 func_801F0FEC(s32, s32, s32, s32, s32, s32);
 extern s32 func_801EF9AC(s32, s32, s32, s32);
+extern u32 func_801EFBB4(s32, s32, s32);
+extern u32 func_801F5F60(s32, s32, s32, s32);
 extern s32 func_801F6AFC(s32);
 extern s32 func_801F7A54(void);
 extern s32 drawColorByMenuPalette(s32, s32, s32, s32, s32);
@@ -1117,7 +1119,41 @@ u32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 x) {
     return drawColorByMenuPalette(renderCtx, cursorY, ((yPos << 15) << 1) | xCoord, endPos, 7);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E431C); /* 0xB8 */
+/**
+ * @brief Render the tutorial page content panel (text entries + scroll).
+ *
+ * Configures the display panel at the given position with 10 rows,
+ * copies scroll offset and page navigation state from the tutorial
+ * context, optionally draws a scroll indicator if there are more than
+ * 10 entries, then renders each entry via func_801E4214.
+ *
+ * @param state Tutorial state (scrollAnim/targetPage/prevPage drive display).
+ * @param renderCtx Render context handle.
+ * @param cursorY Current OT cursor position.
+ * @param x Panel X position.
+ * @param y Panel Y position (5th arg, passed on stack).
+ * @return Updated OT cursor position.
+ */
+u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->w = 0xCA;
+    cfg->h = 0x9E;
+    cfg->columnCount = 0xA;
+    cfg->y = y;
+    cfg->pageStart = state->targetPage;
+    cfg->pageEnd = state->prevPage;
+    cfg->scrollOffset = state->scrollAnim;
+
+    if (D_800780AB >= 0xB) {
+        cursorY = func_801F5F60(renderCtx, cursorY, g_menuColor, 3);
+    }
+
+    return func_801EFBB4(renderCtx, cursorY, (s32)func_801E4214);
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E43D4); /* 0x1C4 */
 
