@@ -82,7 +82,35 @@ void replaceLeadingZeros(u8 *a0, s32 a1, s32 a2, s32 a3) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F320);
+/**
+ * @brief Strip up to @p count leading occurrences of @p ch from a string.
+ *
+ * Scans the first @p count bytes of @p str, skipping those equal to @p ch.
+ * Copies the remainder (from the first non-matching byte) back to the start
+ * of @p str and null-terminates.
+ *
+ * @param str String to modify in place.
+ * @param count Maximum number of leading characters to strip.
+ * @param ch Character value to strip.
+ */
+void func_8002F320(u8 *str, s32 count, s32 ch) {
+    u8 *src = str;
+    u8 *dst = str;
+    s32 i;
+
+    for (i = 0; i < count; i++) {
+        src = str;
+        str++;
+        if (*src != ch)
+            break;
+    }
+
+    while (*src != 0) {
+        *dst++ = *src++;
+    }
+
+    *dst = 0;
+}
 
 
 extern u8 D_80052A20[];
