@@ -49,4 +49,5 @@ segments:
     vram: 0x80098000
     subsegments:
       - [0x0, c, battle_render]
+      - [0x353C, bin]
   - [0x139F8]

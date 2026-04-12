@@ -488,4 +488,4 @@ func_8009AC18 = 0x8009AC18; // type:func
 func_8009AE1C = 0x8009AE1C; // type:func
 func_8009AF64 = 0x8009AF64; // type:func
 func_8009B170 = 0x8009B170; // type:func
-func_8009B394 = 0x8009B394; // type:u32
+func_8009B394 = 0x8009B394; // type:func
