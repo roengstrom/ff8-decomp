@@ -1,15 +1,20 @@
 #include "common.h"
 
-extern u8 D_800EBF24[];
+typedef struct {
+    u8 pad00[3];
+    s8 flag;
+} D_800EBF24_Type;
+
+extern D_800EBF24_Type *D_800EBF24[];
 extern u8 D_800FB408[];
 extern u8 D_800FA5F8[];
 extern u8 D_800E6658[];
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7294);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7294); /* 0x58 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C72EC);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C72EC); /* 0x68 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7354);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7354); /* 0xF8 */
 
 /**
  * @brief Register a particle effect with a callback from D_800E6658 table.
@@ -41,82 +46,88 @@ u8 *func_800C749C(void) {
     return buf;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C74E0);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C74E0); /* 0x1A8 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7688);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7688); /* 0x44 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C76CC);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C76CC); /* 0xC0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C778C);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C778C); /* 0x96C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C80F8);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C80F8); /* 0x2C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8124);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8124); /* 0x124 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8248);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8248); /* 0x2D0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8518);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8518); /* 0x10 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8528);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8528); /* 0x18C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C86B4);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C86B4); /* 0x114 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C87C8);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C87C8); /* 0xE8 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C88B0);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C88B0); /* 0x8C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C893C);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C893C); /* 0x13C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8A78);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8A78); /* 0xB0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8B2C);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8B2C); /* 0xA8 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8BD4);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8BD4); /* 0x138 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D0C);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D0C); /* 0x3C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D48);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D48); /* 0x68 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8DB0);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8DB0); /* 0xA4 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8E54);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8E54); /* 0xBC */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8F10);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8F10); /* 0xCC */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8FDC);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8FDC); /* 0x38 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9014);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9014); /* 0xBC */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C90D0);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C90D0); /* 0xB0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9180);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9180); /* 0xAC */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C922C);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C922C); /* 0x90 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C92BC);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C92BC); /* 0xB8 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9374);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9374); /* 0xB0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9424);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9424); /* 0x94 */
 
 /**
  * @brief Look up a pointer from D_800EBF24 array with fallback.
  *
- * Loads the pointer at D_800EBF24[a0]. If the signed byte at offset 3
- * of that pointer is non-zero, returns D_800EBF24[0] as fallback.
- * Otherwise returns the indexed pointer.
+ * Loads the entry at D_800EBF24[index]. If the entry's flag byte is
+ * non-zero, returns D_800EBF24[0] as fallback.
  *
- * @param a0 Array index.
- * @return Pointer from D_800EBF24[a0] or D_800EBF24[0] on fallback.
+ * @param index Array index.
+ * @return Entry from D_800EBF24[index] or D_800EBF24[0] on fallback.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C94B8);
+D_800EBF24_Type *func_800C94B8(s32 index) {
+    D_800EBF24_Type *entry = D_800EBF24[index];
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C94EC);
+    if (entry->flag == 0)
+        return entry;
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9628);
+    return D_800EBF24[0];
+}
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C96E4);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C94EC); /* 0x13C */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C97E4);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9628); /* 0xBC */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9E10);
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C96E4); /* 0x100 */
+
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C97E4); /* 0x62C */
+
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9E10); /* 0x13C */
