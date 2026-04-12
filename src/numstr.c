@@ -2,6 +2,8 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
+extern u8 D_8008386C;
+
 /**
  * @brief Convert an unsigned integer to a decimal digit string using divisor table D_800529F4.
  *
@@ -197,7 +199,42 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F4B0);
 INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F548);
 
 
-INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F5B4);
+/**
+ * @brief Advance through a control-coded string, processing embedded commands.
+ *
+ * Scans @p str byte-by-byte, handling control codes:
+ *  - 0: end of string (returns NULL).
+ *  - 1: line/segment break (returns pointer past the break).
+ *  - 6: color code (reads next byte into D_8008386C, then continues).
+ *  - 7: section end (returns pointer past it).
+ *
+ * @param str Pointer to control-coded string, or NULL.
+ * @return Pointer to the next unprocessed byte, or NULL on end/null input.
+ */
+u8 *func_8002F5B4(u8 *str) {
+    s32 ch;
+    u8 *colorPtr;
+
+    if (str == 0)
+        return 0;
+
+    colorPtr = &D_8008386C;
+
+    do {
+        ch = *str++;
+
+        if (ch == 6)
+            *colorPtr = *str++;
+
+        if (ch == 0)
+            return 0;
+
+        if (ch == 1)
+            return str;
+    } while (ch != 7);
+
+    return str;
+}
 
 
 /**
