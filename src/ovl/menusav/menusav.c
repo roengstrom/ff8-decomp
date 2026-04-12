@@ -117,9 +117,9 @@ s32 func_801E292C(s32 a0) {
     return *(u16 *)(result + 2) == 0x8FF;
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2958);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2958); /* 0x158 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2AB0);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2AB0); /* 0x1E0 */
 
 /** @brief Draw inner panel with section id 0x5 and clear flag. */
 s32 func_801E2C90(s32 a0) {
@@ -187,7 +187,7 @@ void func_801E2D78(s32 a0) {
  *
  * @param a0 Save context pointer.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC); /* 0xC0 */
 
 /**
  * @brief Check save slot validity flags and store result.
@@ -207,7 +207,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2DDC);
  * @param a0 Save context pointer.
  * @return 1 if available, 0 otherwise.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C); /* 0x30 */
 
 /**
  * @brief Select and decode a string ID based on save slot status.
@@ -251,19 +251,19 @@ s32 func_801E2ECC(u8 *a0, s32 a1) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2F6C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2F6C); /* 0x12C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E3098);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E3098); /* 0x23CC */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5464);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5464); /* 0xAC */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5510);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5510); /* 0xB4 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E55C4);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E55C4); /* 0xC4 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5688);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5688); /* 0x114 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E579C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E579C); /* 0x124 */
 
 /**
  * @brief Render save menu entry with string ID 0x26 (save slot label).
@@ -392,11 +392,11 @@ void func_801E5B70(s32 a0, s32 a1, s32 a2) {
  * @param a3 Fourth render parameter (0x14 added).
  * @param stack_arg Save slot index for func_801E2800.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5BCC);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5BCC); /* 0x6C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5C38);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5C38); /* 0xCC */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04); /* 0xC0 */
 
 /**
  * @brief Look up save slot data and render with func_801F3270.
@@ -411,15 +411,15 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04);
  * @param a3 Fourth render parameter (0x8 added).
  * @param stack_arg Save slot index for func_801E2800.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5DC4);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5DC4); /* 0x6C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5E30);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5E30); /* 0xB0 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5EE0);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5EE0); /* 0x180 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6060);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6060); /* 0xDC */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E613C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E613C); /* 0x84 */
 
 /**
  * @brief Build a parameter struct on the stack and call func_8002B898.
@@ -441,11 +441,11 @@ void func_801E61C0(s32 a0, s32 a1, s32 a2, s32 a3) {
     func_8002B898(a0, a1, (s32)buf, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6204);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6204); /* 0x338 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E653C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E653C); /* 0x218 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6754);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6754); /* 0xB0 */
 
 /**
  * @brief Render save menu entry with string ID 0x0D.
@@ -477,19 +477,19 @@ void func_801E68BC(s32 a0, s32 a1) {
     func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6918);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6918); /* 0x168 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6A80);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6A80); /* 0x9C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6B1C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6B1C); /* 0xC4 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6BE0);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6BE0); /* 0x42C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E700C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E700C); /* 0x184 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7190);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7190); /* 0xD8 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268); /* 0x158 */
 
 /** @brief Call memzero16 with g_gameState and 0x13A. */
 void func_801E73C0(void) {
@@ -653,11 +653,11 @@ void func_801E7598(void) {
  * @param a0 Save menu context pointer.
  * @return Processed input result.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E760C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E760C); /* 0xB8 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E76C4);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E76C4); /* 0x16C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7830);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7830); /* 0xCC */
 
 /**
  * @brief Initialize save data structure with checksum and set active flag.
@@ -673,9 +673,9 @@ void func_801E78FC(void) {
     s0[0] |= 2;
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7938);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7938); /* 0x94 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E79CC);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E79CC); /* 0xB8 */
 
 /**
  * @brief Poll for card data availability, up to 8 attempts.
@@ -748,15 +748,15 @@ s32 func_801E7B40(s32 a0) {
  *
  * @param a0 Save context pointer.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B5C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B5C); /* 0x8C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7BE8);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7BE8); /* 0x1C1C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9804);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9804); /* 0xC4 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E98C8);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E98C8); /* 0xC0 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9988);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9988); /* 0xA8 */
 
 /**
  * @brief Render a centered text string in the save menu.
@@ -798,11 +798,11 @@ s32 func_801E9AD0(void) {
     return 0x801CD000;
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9ADC);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9ADC); /* 0xE8 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9BC4);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9BC4); /* 0x110 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4); /* 0xB0 */
 
 /**
  * @brief Copy rectangle parameters with offset and dispatch rendering.
@@ -827,29 +827,29 @@ void func_801E9D84(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
     func_801E9CD4(a0, a1, (s32)g_menuDisplayCfg, g_menuColor, (s32)src);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9DE8);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9DE8); /* 0x128 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9F10);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9F10); /* 0x124 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA034);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA034); /* 0x14C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA180);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA180); /* 0xF8 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA278);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA278); /* 0x104 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA37C);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA37C); /* 0xC8 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA444);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA444); /* 0x9C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA4E0);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA4E0); /* 0x160 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA640);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA640); /* 0x2C4 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA904);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA904); /* 0xA8 */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA9AC);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA9AC); /* 0x37C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAD28);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAD28); /* 0x124 */
 
 /** @brief Call sfxInit with all arguments set to zero. */
 void func_801EAE4C(void) {
@@ -868,7 +868,7 @@ void func_801EAE74(void) {
     D_801EC301 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE98);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAE98); /* 0x174 */
 
 /**
  * @brief Conditionally read card data and extract value.
@@ -958,7 +958,7 @@ s32 func_801EB0B8(void) {
  * @param a1 Output character buffer.
  * @param a2 Character offset added to each digit.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4); /* 0x5C */
 
 /**
  * @brief Convert a value to variable-radix digit string using D_801EBD14 table.
@@ -969,7 +969,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB0F4);
  * @param a1 Output character buffer.
  * @param a2 Character offset added to each digit.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB150);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB150); /* 0x5C */
 
 /**
  * @brief Convert a 32-bit value to 8 hex digit characters.
@@ -1033,7 +1033,7 @@ s32 func_801EB1DC(s32 a0) {
  * @param a1 Offset to add
  * @return Encoded result masked to byte
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224); /* 0x4C */
 
 /**
  * @brief Convert BCD value, subtract offset, clamp to 0, and encode.
@@ -1045,7 +1045,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB224);
  * @param a1 Offset to subtract
  * @return Encoded result masked to byte
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270); /* 0x48 */
 
 /**
  * @brief Convert BCD-encoded byte to decimal, or return 100 if zero.
@@ -1065,7 +1065,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB270);
  * @param a0 BCD-encoded value.
  * @return Decimal value, or 100 if input is zero.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB2B8); /* 0x2C */
 
 /**
  * @brief Convert save checksum to packed color value.
@@ -1085,7 +1085,7 @@ s32 func_801EB2E4(void) {
     return (buf[7] << 8) + (buf[8] << 4) + buf[9];
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334); /* 0xD4 */
 
 /**
  * @brief Look up save icon display value from table.
@@ -1109,7 +1109,7 @@ s32 func_801EB408(s32 a0, s32 a1) {
     return func_801EB1DC(a0_new + v0);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB458);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB458); /* 0x120 */
 
 /**
  * @brief Find a unique coordinate pair by repeated random sampling.
@@ -1137,26 +1137,37 @@ s32 func_801EB578(s32 a0, s32 a1) {
 }
 
 /**
- * @brief Search byte pair array for a matching entry.
+ * @brief Search a byte-pair table for a matching entry.
  *
- * Searches through @p a2 consecutive byte pairs in array @p a3.
- * Each pair consists of two bytes read sequentially. Returns 0 if
- * a pair is found where the first byte equals @p a0 and the second
- * byte equals @p a1. Returns 1 if no match is found or if @p a2 <= 0.
+ * Iterates through @p count consecutive byte pairs in @p table.
+ * Returns 0 if a pair matching (@p key1, @p key2) is found,
+ * or 1 if no match exists.
  *
- * @param a0 First byte to match.
- * @param a1 Second byte to match.
- * @param a2 Number of pairs to search.
- * @param a3 Pointer to byte pair array.
+ * @param key1 First byte to match.
+ * @param key2 Second byte to match.
+ * @param count Number of pairs to search.
+ * @param table Pointer to byte pair array.
  * @return 0 if match found, 1 otherwise.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB5F0);
+s32 func_801EB5F0(s32 key1, s32 key2, s32 count, u8 *table) {
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB630);
+    for (i = 0; i < count; i++) {
+        u8 first = *table++;
+        u8 second = *table++;
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB6B4);
+        if (key1 == first && key2 == second)
+            return 0;
+    }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB768);
+    return 1;
+}
+
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB630); /* 0x84 */
+
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB6B4); /* 0xB4 */
+
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB768); /* 0xE8 */
 
 /**
  * @brief Update save data byte at offset 3 based on bytes at offsets 1 and 6.
@@ -1178,7 +1189,7 @@ void func_801EB850(void) {
  * and stores at offsets 0x03, 0x10, 0x12, 0x32 in the save data.
  * Finally calls func_801EB850 to update checksum.
  */
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB890);
+INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB890); /* 0x98 */
 
 /**
  * @brief Initialize save data structure with default values.
