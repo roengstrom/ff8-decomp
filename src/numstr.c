@@ -196,7 +196,46 @@ void u32ToHexTiles(u32 val, u8 *dst, s32 base_char) {
 INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F4B0);
 
 
-INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F548);
+/**
+ * @brief Advance through a control-coded string to the next segment.
+ *
+ * Scans @p str byte-by-byte, handling control codes:
+ *  - 0: end of string (returns NULL).
+ *  - 1: line break (returns pointer past it).
+ *  - 2: page break (returns pointer past it).
+ *  - 6: color code (reads next byte into D_8008386C, then continues).
+ *  - 7: section end (returns pointer past it).
+ *
+ * @param str Pointer to control-coded string, or NULL.
+ * @return Pointer to the next unprocessed byte, or NULL on end/null input.
+ */
+u8 *func_8002F548(u8 *str) {
+    s32 ch;
+    u8 *colorPtr;
+
+    if (str == 0)
+        return 0;
+
+    colorPtr = &D_8008386C;
+
+    do {
+        ch = *str++;
+
+        if (ch == 2)
+            return str;
+
+        if (ch == 6)
+            *colorPtr = *str++;
+
+        if (ch == 1)
+            return str;
+
+        if (ch == 7)
+            return str;
+    } while (ch != 0);
+
+    return 0;
+}
 
 
 /**
@@ -206,7 +245,7 @@ INCLUDE_ASM("asm/nonmatchings/numstr", func_8002F548);
  *  - 0: end of string (returns NULL).
  *  - 1: line/segment break (returns pointer past the break).
  *  - 6: color code (reads next byte into D_8008386C, then continues).
- *  - 7: section end (returns pointer past it).
+ *  - 7: section end (returns pointer past it). 
  *
  * @param str Pointer to control-coded string, or NULL.
  * @return Pointer to the next unprocessed byte, or NULL on end/null input.
