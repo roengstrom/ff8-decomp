@@ -201,7 +201,7 @@ s32 cdReadAsyncSync(void) {
  */
 void resetCdDrive(void) {
     extern CdReadState D_8008A3D8;
-    CdReadState *cd = (CdReadState *)((s32)&D_8008A3D8);
+    CdReadState *cd = &D_8008A3D8;
     u8 state = cd->status;
 
     if (state == 0xB || state == 0) return;
