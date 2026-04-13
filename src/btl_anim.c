@@ -2094,7 +2094,7 @@ s32 renderBattleDisplayList(s32 *colorTag) {
     head = renderAnimOverlay((s32)&buf->ot[13], head);
     ot = buf->ot;
     head = func_8002BF24((s32)ot, head);
-    storeGpuPacket(head + 0x48);
+    storeGpuPacket(head + sizeof(buf->ot));
 
     setaddr(&ot[17], getaddr(colorTag));
     setaddr(colorTag, (s32)ot);
