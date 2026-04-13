@@ -105,7 +105,7 @@ void applyPartyAbilityFlags(s32 charIdx) {
     for (i = 0; i < 4; i++) {
         u8 ability = g_gameState.chars[charIdx].abilities[i];
         if ((u32)(ability - 0x4E) < 5) {
-            g_battleChars.levelEntries[15].abilityFlags |= g_gfData.abilityRangeM[ability - 0x4E].typeField;
+            ((BattleCharFlags *)&g_battleChars)->partyAbilityFlags |= g_gfData.abilityRangeM[ability - 0x4E].typeField;
         }
     }
 }

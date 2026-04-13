@@ -358,9 +358,7 @@ typedef struct {
 /** @brief GF battle level entry (12 bytes). */
 typedef struct {
     u8 level;           /* 0x00 */
-    u8 pad01[3];
-    u8 abilityFlags;    /* 0x04: party ability flags (only used in last entry). */
-    u8 pad05[7];
+    u8 pad[0x0B];
 } BattleLevelEntry;
 
 /** @brief Complete battle character/GF state block. */
@@ -370,7 +368,14 @@ typedef struct {
     /* 0x610 */ BattleGfEntry gfEntries[1];       /* hp sub-array (stride 12, 16 entries) */
     /* 0x61C */ u8 pad61C[0x04];
     /* 0x620 */ BattleLevelEntry levelEntries[16]; /* 16 × 12 bytes */
+    /* 0x6E0 */
 } BattleCharState;
+
+/** @brief Battle state with trailing party ability flags at +0x6D8. */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x6D8];
+    /* 0x6D8 */ u8 partyAbilityFlags;             /**< OR'd party ability flags from equipped GF abilities. */
+} BattleCharFlags;
 
 extern BattleCharState g_battleChars;
 
