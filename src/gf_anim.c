@@ -65,15 +65,14 @@ s32 getStatusImmunityFlags(u32 a0) {
 
 
 /**
- * @brief Check if any of 4 command slots has command type 6 (likely "Magic" or a special command).
- * @param a0 Pointer to an array of command entries (4 bytes each, type field at offset 0x1E).
+ * @brief Check if any of 4 command slots has command type 6 (Magic).
+ * @param state Pointer to state block with command slots at +0x1E.
  * @return 1 if any slot has type == 6, 0 otherwise.
  */
-s32 hasCommandType6(u8 *a0) {
+s32 hasCommandType6(GfAnimState *state) {
     s32 i;
     for (i = 0; i < 4; i++) {
-        if (a0[0x1E] == 6) return 1;
-        a0 += 4;
+        if (state->slots[i].gfId == 6) return 1;
     }
     return 0;
 }
@@ -89,7 +88,7 @@ s32 getMagicAvailFlags(BattleCharData *charData) {
     s32 val = charData->statusFlags;
     s32 masked = val & 0x20000;
     s32 flag = masked != 0;
-    if (hasCommandType6((u8 *)charData)) {
+    if (hasCommandType6((GfAnimState *)charData)) {
         if (D_80082C10 & 8) {
             return flag;
         }
