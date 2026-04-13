@@ -202,15 +202,14 @@ s32 cdReadAsyncSync(void) {
  * 0xC (reset), then calls cdBreakRead to finalize.
  */
 void resetCdDrive(void) {
-    CdReadState *cd = &D_8008A3D8;
-    u8 state = cd->status;
+    u8 state = D_8008A3D8.status;
 
     if (state == 0xB || state == 0) return;
 
-    cd->readBuffer = 0;
-    cd->sectorCount = 0;
-    cd->callback = 0;
-    cd->status = 0xC;
+    D_8008A3D8.readBuffer = 0;
+    D_8008A3D8.sectorCount = 0;
+    D_8008A3D8.callback = 0;
+    D_8008A3D8.status = 0xC;
     cdBreakRead();
 }
 
