@@ -271,7 +271,7 @@ typedef struct {
 
 /** @brief Battle command slot entry (4 bytes). */
 typedef struct {
-    u8 field0;
+    u8 cmdType;
     u8 field1;
     u8 field2;
     u8 field3;
