@@ -12,7 +12,14 @@ extern FieldEngineState *D_800562C4;
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
 extern s32 D_80085220;
-extern s32 D_80085224;
+/** @brief Battle field entity (stride 0x264 = 612 bytes). */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x160];
+    /* 0x160 */ u32 flags;
+    /* 0x164 */ u8 pad164[0x100];
+} BattleFieldEntity; /* 0x264 */
+
+extern BattleFieldEntity *D_80085224;
 extern u8 D_80085388;
 extern u8 D_8005644B[];
 extern u8 D_80077E5A;
@@ -428,19 +435,14 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800381BC);
  * each entry. Then calls func_800381BC to apply the changes.
  */
 void clearEntityFlags(void) {
-    s32 base = D_80085224;
-    s32 count = D_80085388;
-    s32 i = 0;
+    s32 i;
+    BattleFieldEntity *ent = D_80085224;
+    u8 count = D_80085388;
 
-    if (count != 0) {
-        s32 mask = ~0x44;
-        s32 ptr = base + 0x160;
-        do {
-            *(s32 *)ptr &= mask;
-            i++;
-            ptr += 0x264;
-        } while (i < count);
+    for (i = 0; i < count; i++, ent++) {
+        ent->flags &= ~0x44;
     }
+
     func_800381BC();
 }
 

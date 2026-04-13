@@ -10,26 +10,32 @@ extern u8 D_80082C10;
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
 
 
+/** @brief GF animation slot (4 bytes, inside GfAnimState at +0x1E). */
+typedef struct {
+    u8 gfId;            /* 0x00: GF/animation index. */
+    u8 frameStart;      /* 0x01: start frame from g_gfData. */
+    u8 frameEnd;        /* 0x02: end frame from g_gfData. */
+    u8 frameCounter;    /* 0x03: current frame counter. */
+} GfAnimSlot;
+
+/** @brief GF animation state block. */
+typedef struct {
+    u8 pad[0x1E];
+    GfAnimSlot slots[16];
+} GfAnimState;
+
 /**
- * @brief Initialize a GF entry's animation index and look up display data.
+ * @brief Initialize a GF animation slot with look-up data from g_gfData.
  *
- * Stores @p a2 at entry[0x1E] (animation index), looks up g_gfData table
- * (stride 8) to copy bytes at +0xE9 and +0xEA to entry[0x1F] and [0x20],
- * and clears entry[0x21].
- *
- * @param a0 Base pointer for GF entries.
- * @param a1 Entry index (stride 4).
- * @param a2 Animation index to set.
+ * @param state Animation state block.
+ * @param index Slot index.
+ * @param gfId GF/animation index to set.
  */
-void initGfAnimEntry(u8 *a0, s32 a1, s32 a2) {
-    u8 *entry = a0 + a1 * 4;
-    s32 idx;
-    *(volatile u8 *)(entry + 0x1E) = a2;
-    idx = *(volatile u8 *)(entry + 0x1E);
-    entry[0x1F] = g_gfData.statTable8[idx].typeField;
-    idx = *(volatile u8 *)(entry + 0x1E);
-    entry[0x21] = 0;
-    entry[0x20] = g_gfData.statTable8[idx].bonusField;
+void initGfAnimEntry(GfAnimState *state, s32 index, s32 gfId) {
+    state->slots[index].gfId = gfId;
+    state->slots[index].frameStart = g_gfData.statTable8[state->slots[index].gfId].typeField;
+    state->slots[index].frameCounter = 0;
+    state->slots[index].frameEnd = g_gfData.statTable8[state->slots[index].gfId].bonusField;
 }
 
 
