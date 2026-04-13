@@ -2,6 +2,21 @@
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
 
+extern u8 D_8007809B[];
+extern u8 g_chocoboWorld;
+extern u8 D_80085218;
+extern u8 g_gameState[];
+extern u8 *D_800562C4;
+extern u8 D_8005F388[];
+extern u8 D_80063388[];
+extern s32 D_80085220;
+extern s32 D_80085224;
+extern u8 D_80085388;
+extern u8 D_8005644B[];
+extern u8 D_80077E5A;
+extern u16 D_800562C8[];
+extern s32 D_800562D4;
+
 INCLUDE_ASM("asm/nonmatchings/gamestate", func_800370AC);
 
 
@@ -10,7 +25,6 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800370AC);
  * @param a0 Bit index to set.
  */
 void setFieldFlag(s32 bitIdx) {
-    extern u8 D_8007809B[];
     u8 *base = D_8007809B;
     s32 byteIdx = bitIdx / 8;
     base[byteIdx] |= (1 << (bitIdx & 7));
@@ -22,7 +36,6 @@ void setFieldFlag(s32 bitIdx) {
  * @param a0 Bit index to clear.
  */
 void clearFieldFlag(s32 bitIdx) {
-    extern u8 D_8007809B[];
     u8 *base = D_8007809B;
     s32 byteIdx = bitIdx / 8;
     base[byteIdx] &= ~(1 << (bitIdx & 7));
@@ -35,7 +48,6 @@ void clearFieldFlag(s32 bitIdx) {
  * @return Non-zero if bit is set, zero otherwise.
  */
 s32 testFieldFlag(s32 bitIdx) {
-    extern u8 D_8007809B[];
     u8 *base = D_8007809B;
     s32 byteIdx = bitIdx / 8;
     return base[byteIdx] & (1 << (bitIdx & 7));
@@ -75,7 +87,6 @@ void func_80037240(void) {
 
 /** @brief Returns a pointer to global g_chocoboWorld. */
 u8 *getChocoboWorldPtr(void) {
-    extern u8 g_chocoboWorld;
     return &g_chocoboWorld;
 }
 
@@ -228,14 +239,12 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800379AC);
 
 /** @brief Sets global D_80085218 to 1. */
 void setMcBusy(void) {
-    extern u8 D_80085218;
     D_80085218 = 1;
 }
 
 
 /** @brief Returns the unsigned byte value of global D_80085218. */
 u32 isMcBusy(void) {
-    extern u8 D_80085218;
     return D_80085218;
 }
 
@@ -257,7 +266,6 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B7C);
  * @return Slot index (0-2) if found, 0xFF if not found.
  */
 s32 findBattlePartySlot(s32 charId) {
-    extern u8 g_gameState[];
     s32 i = 0;
     s32 base = (s32)g_gameState;
     charId &= 0xFF;
@@ -281,7 +289,6 @@ s32 findBattlePartySlot(s32 charId) {
  * @return Slot index (0-2) if found, 0xFF if not found.
  */
 s32 findPartySlot(s32 charId) {
-    extern u8 g_gameState[];
     s32 i = 0;
     s32 base = (s32)g_gameState;
     charId &= 0xFF;
@@ -305,7 +312,6 @@ s32 findPartySlot(s32 charId) {
  * @return Slot index (0-7) if found, 0xFF if not found.
  */
 s32 findCharacterSlot(s32 charId) {
-    extern u8 g_gameState[];
     s32 i = 0;
     s32 base;
     charId &= 0xFF;
@@ -332,7 +338,6 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037C6C);
  * to flush sound state and sndSetChannelVolume to reset channel 0.
  */
 void stopAllSounds(void) {
-    extern u8 *D_800562C4;
     s32 val;
     sndCmdC1(*(s32 *)(D_800562C4 + 0x6C), 15, 0);
     val = *(s32 *)(D_800562C4 + 0x70);
@@ -356,9 +361,6 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037D40);
  * @return Pointer to the selected sound bank table.
  */
 u8 *toggleSoundBank(void) {
-    extern u8 *D_800562C4;
-    extern u8 D_8005F388[];
-    extern u8 D_80063388[];
 
     *(u8 *)(D_800562C4 + 0xC9) ^= 1;
     if (*(s8 *)(D_800562C4 + 0xC9) == 0) {
@@ -378,10 +380,6 @@ u8 *toggleSoundBank(void) {
  * func_80039678. Sets the completion flag at D_800562C4 + 0xD6.
  */
 void loadSoundBankA(void) {
-    extern s32 D_80085220;
-    extern u8 *D_800562C4;
-    extern u8 D_8005F388[];
-    extern u8 D_80063388[];
     s32 size;
     s32 result;
     u8 *table;
@@ -409,10 +407,6 @@ void loadSoundBankA(void) {
  * D_8005F388 when it is zero.
  */
 void loadSoundBankB(void) {
-    extern s32 D_80085220;
-    extern u8 *D_800562C4;
-    extern u8 D_8005F388[];
-    extern u8 D_80063388[];
     s32 size;
     s32 result;
     u8 *table;
@@ -449,8 +443,6 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800381BC);
  * each entry. Then calls func_800381BC to apply the changes.
  */
 void clearEntityFlags(void) {
-    extern s32 D_80085224;
-    extern u8 D_80085388;
     s32 base = D_80085224;
     s32 count = D_80085388;
     s32 i = 0;
@@ -470,7 +462,6 @@ void clearEntityFlags(void) {
 
 /** @brief Returns bits 3-4 of the flags word at offset 0x68 through D_800562C4. */
 s32 getFieldStateFlags(void) {
-    extern u8 *D_800562C4;
     return *(s32 *)(D_800562C4 + 0x68) & 0x18;
 }
 
@@ -486,7 +477,6 @@ s32 getFieldStateFlags(void) {
  * @return The 2-bit value (0-3) at the given index.
  */
 s32 getPackedField2Bit(s32 entryIdx) {
-    extern u8 *D_800562C4;
     u8 *ptr = D_800562C4;
     s32 idx;
 
@@ -504,15 +494,12 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_800383B8);
  *  @return The byte value at D_8005644B[a0 & 0xFF].
  */
 u8 lookupFieldTable(s32 tableIdx) {
-    extern u8 D_8005644B[];
     return D_8005644B[tableIdx & 0xFF];
 }
 
 
 /** @brief Returns halfword from D_800562C8 table indexed by D_80077E5A. */
 u16 getCurrentFieldMusic(void) {
-    extern u8 D_80077E5A;
-    extern u16 D_800562C8[];
     return D_800562C8[D_80077E5A];
 }
 
@@ -521,7 +508,6 @@ u16 getCurrentFieldMusic(void) {
  *  @return Bits 16-30 of the new state (0-32767).
  */
 s32 fieldRandom(void) {
-    extern s32 D_800562D4;
     D_800562D4 = D_800562D4 * 0x41C64E6D + 0x3039;
     return ((u32)D_800562D4 >> 16) & 0x7FFF;
 }
