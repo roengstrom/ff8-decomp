@@ -140,7 +140,9 @@ typedef struct {
  * @brief Sound voice/command structure used by CD sound functions.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[0x20];
+    /* 0x00 */ u8 pad00[0x0C];
+    /* 0x0C */ s32 playCount;          /**< Play/repeat count. */
+    /* 0x10 */ u8 pad10[0x10];
     /* 0x20 */ s32 dataAddr;
     /* 0x24 */ u8 cmdData[4];        /**< Inline command data buffer. */
     /* 0x28 */ s32 voiceDataPtr;

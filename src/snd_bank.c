@@ -269,10 +269,10 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018438);
  *
  * @param a0 Pointer to the sound voice structure.
  */
-void sndPlayVoiceWithCount(u8 *a0) {
+void sndPlayVoiceWithCount(SndVoice *voice) {
     s32 val, result;
-    func_80018158(a0);
-    val = *(s32 *)(a0 + 0xC);
+    func_80018158(voice);
+    val = voice->playCount;
     result = 0;
     if (val != 0) {
         result = val - 1;
