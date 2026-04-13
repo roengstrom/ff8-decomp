@@ -179,11 +179,20 @@ typedef struct {
     u16 field1A;
 } SfxGlobalState;
 
-/** @brief Complete SFX system: 8 entry slots + global state. */
+/** @brief Complete SFX system: 8 entry slots + global state + message display values. */
 typedef struct {
     SfxEntry entries[8];       /* 0x000: 8 × 60 = 480 bytes */
     SfxGlobalState state;      /* 0x1E0: global SFX state */
+    u8 pad1FC[4];              /* 0x1FC: padding */
+    u32 msgValues[8];          /* 0x200: numeric values formatted by decodeMessage */
 } SfxSystem;
+
+/** @brief Message formatting config (D_80083858). */
+typedef struct {
+    u8 digitBase;              /* 0x00: base character code for digit rendering */
+    u8 pad01[0xF];             /* 0x01: padding */
+    u8 separator;              /* 0x10: thousands separator character */
+} MsgFormatConfig;
 
 typedef enum {
     CTRL_ACTIVE     = 0x01,

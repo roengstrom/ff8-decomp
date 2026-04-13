@@ -1,8 +1,28 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libc.h"
 #include "battle.h"
 
 extern u8 D_8008386C;
+
+extern u8 D_80052A30[];
+extern u8 D_800773A8[];
+extern u8 D_80077E74[];
+extern u8 D_800773B4[];
+extern u8 D_80083857[];
+extern u8 D_80083858;
+extern u8 D_80083868;
+extern u8 D_8008369C[];
+extern SfxSystem g_sfxEntries;
+extern u8 *getMagicNamePtr(s32 magicId);
+extern s32 getStatName(s32 statId);
+extern u8 *getBattleCharNameWrapper(s32 entityIdx);
+extern u8 *getCharNamePtrWrapper(s32 charId);
+extern u8 *getCharNamePtrWrapper2(s32 charId);
+extern u8 getDigitBaseCode(void);
+extern void copyString(u8 *dst, u8 *src);
+extern s32 btlStrlen(u8 *str);
+extern void func_8002F4B0(u8 *buf, s32 separator);
 
 /**
  * @brief Convert an unsigned integer to a decimal digit string using divisor table D_800529F4.
@@ -346,6 +366,7 @@ u8 *func_8002F610(s32 index, u8 *dst) {
  * @param input   Source byte stream with embedded control codes.
  * @param output  Destination buffer for decoded text.
  * @param maxLen  Maximum output length, or -1 for default limit (128 bytes).
+ * @see https://decomp.me/scratch/7Ruwy
  */
 INCLUDE_ASM("asm/nonmatchings/numstr", decodeMessage);
 
