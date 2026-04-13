@@ -23,6 +23,9 @@ extern u8 getDigitBaseCode(void);
 extern void copyString(u8 *dst, u8 *src);
 extern s32 btlStrlen(u8 *str);
 extern void func_8002F4B0(u8 *buf, s32 separator);
+extern u32 D_800529F4[];
+extern u32 D_80052A08[];
+extern s32 D_800834CC;
 
 /**
  * @brief Convert an unsigned integer to a decimal digit string using divisor table D_800529F4.
@@ -36,7 +39,6 @@ extern void func_8002F4B0(u8 *buf, s32 separator);
  * @param a2 Base character code added to each digit (e.g. tile index for '0').
  */
 void intToDecString(u32 a0, u8 *a1, s32 a2) {
-    extern u32 D_800529F4[];
     u32 *t = D_800529F4;
     u32 d = *t++;
 
@@ -65,7 +67,6 @@ void intToDecString(u32 a0, u8 *a1, s32 a2) {
  * @param a2 Base character code added to each digit.
  */
 void intToDecStringShort(u32 a0, u8 *a1, s32 a2) {
-    extern u32 D_80052A08[];
     u32 *t = D_80052A08;
     u32 d = *t++;
 
@@ -308,7 +309,6 @@ u8 *func_8002F5B4(u8 *str) {
  * @return Pointer past the end of the copied string, or dst if not found.
  */
 u8 *func_8002F610(s32 index, u8 *dst) {
-    extern s32 D_800834CC;
     u16 *table = (u16 *)D_800834CC;
     u8 *src;
     if (table == 0) {

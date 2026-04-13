@@ -1,6 +1,12 @@
 #include "common.h"
 #include "sound.h"
 
+extern volatile s32 D_80074ED4;
+extern s32 D_80074E88;
+extern u8 D_800516B8[];
+extern s32 D_8001AD60;
+extern s32 D_8005169C;
+
 void spuSetIrqAddr(u32 val);
 
 INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800146F0);
@@ -12,7 +18,6 @@ u32 sndValidateBank(u32 *a0) {
 
 /** @brief Calls func_8003E494(0) and clears D_80074ED4. */
 void sndDmaCompleteCallback(void) {
-    extern s32 D_80074ED4;
     func_8003E494(0);
     D_80074ED4 = 0;
 }
@@ -30,7 +35,6 @@ void sndDmaCompleteCallback(void) {
  * the transfer completion callback via func_8003E494.
  */
 void sndDmaSetActive(void) {
-    extern volatile s32 D_80074ED4;
     D_80074ED4 = 1;
     func_8003E494((s32)sndDmaCompleteCallback);
 }
@@ -45,7 +49,6 @@ void sndDmaSetActive(void) {
  * @param a1 Transfer size in bytes.
  */
 void sndDmaWriteSpu(s32 a0, s32 a1) {
-    extern volatile s32 D_80074ED4;
     D_80074ED4 = 1;
     func_8003E494((s32)sndDmaCompleteCallback);
     func_8003E3A4(a0, a1);
@@ -67,7 +70,6 @@ void sndDmaReadSpu(s32 a0, s32 a1) {
  * the active SPU transfer has finished.
  */
 void sndDmaWait(void) {
-    extern volatile s32 D_80074ED4;
     while (D_80074ED4 == 1) {}
 }
 
@@ -109,11 +111,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_dma", func_80014974);
  *     callback (D_8001AD60).
  */
 void sndSpuInit(void) {
-    extern s32 D_80074E88;
-    extern u8 D_800516B8[];
-    extern s32 D_8001AD60;
-    extern s32 D_8005169C;
-
     SpuStart();
     SpuInitMalloc(4, (s32)&D_80074E88);
     SpuSetTransferMode(0);
@@ -147,10 +144,6 @@ void sndSpuInit(void) {
  * func_8003DE44 (SpuQuit) for final SPU cleanup.
  */
 void sndSpuShutdown(void) {
-    extern s32 D_80074ED4;
-    extern u8 D_800516B8[];
-    extern s32 D_8005169C;
-
     if (D_80074ED4 == 1) {
         sndDmaWriteSpu((s32)D_800516B8, 0x40);
         sndDmaWait();

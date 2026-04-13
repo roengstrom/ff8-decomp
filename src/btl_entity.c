@@ -6,6 +6,7 @@ extern BattleDisplayEntity g_battleEntities[];
 extern s32 D_800834CC;
 extern u8 g_digitBaseCode;
 extern SfxSystem g_sfxEntries;
+extern DisplayListBuf *D_800834C0;
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BAA0);
@@ -26,7 +27,6 @@ INCLUDE_ASM("asm/nonmatchings/btl_entity", func_8002BE48);
  * @return Pointer to the OT entry at active display list's ot[animSpeed].
  */
 s32* getEntityTablePtr(s32 idx) {
-    extern DisplayListBuf *D_800834C0; /* g_battleAnims.active */
     u32 *base = D_800834C0->ot;
     s32 speed = getBattleEntityAnimSpeed(idx);
     return &base[speed];

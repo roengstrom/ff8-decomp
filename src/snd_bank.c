@@ -5,6 +5,13 @@ extern s32 D_80074EB8[];
 extern u8 D_80070D60[];
 extern s32 D_80073CA8;
 extern u8 *D_80073C34;
+extern s32 *D_80074F08;
+extern s32 D_80074EB0;
+extern u8 *D_80074ED8;
+extern u8 D_80074F20;
+extern u16 D_80074FE4;
+extern s32 D_80075078;
+extern u8 D_80072F70[];
 
 /**
  * @brief Adjusts instrument index upward if flag 0x400 is set and instrument is in range.
@@ -241,8 +248,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018158);
  * @param a0 Pointer to audio config struct.
  */
 void sndConfigureTrackPlayback(s32 *a0) {
-    extern s32 *D_80074F08;
-    extern s32 D_80074EB0;
     register s32 result asm("$4");
     s32 val;
     func_8001708C(a0[0], a0[3]);
@@ -271,7 +276,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018438);
  * @param a0 Pointer to the sound voice structure.
  */
 void sndPlayVoiceWithCount(u8 *a0) {
-    extern s32 D_80074EB0;
     s32 val, result;
     func_80018158(a0);
     val = *(s32 *)(a0 + 0xC);
@@ -312,7 +316,6 @@ void sndPlayWithDefaults(s32 *a0) {
  * @param a0 Pointer to the sound parameter structure.
  */
 void sndPlaySoundEffect(s32 *a0) {
-    extern u8 *D_80074ED8;
     s32 local10, local14;
 
     func_80017C9C(&local10, &local14, a0[0]);
@@ -333,7 +336,6 @@ void sndPlaySoundEffect(s32 *a0) {
  * @param a0 Pointer to the sound parameter structure.
  */
 void sndPlaySoundByIndex(s32 *a0) {
-    extern u8 *D_80074ED8;
     s32 local10, local14;
 
     func_80017C9C(&local10, &local14, a0[0]);
@@ -353,7 +355,6 @@ void sndStopTrack(s32 *a0) {
  * Writes zero to offset 0 of each entry, iterating backward.
  */
 void sndClearVoicePool(void) {
-    extern u8 D_80074F20;
     s32 i = 12;
     s32 base = (s32)&D_80074F20;
 top:
@@ -389,8 +390,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018C48);
  * @param a0 Pointer to a halfword containing the SPU address high bits.
  */
 void sndSetFadeAndTransfer(u16 *a0) {
-    extern u16 D_80074FE4;
-    extern s32 D_80075078;
     D_80074FE4 = 0;
     D_80075078 = *a0 << 16;
     sndSetCdVolume();
@@ -450,7 +449,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001966C);
  * @param a0 Pointer to a byte containing the note value.
  */
 void func_800197F4(u8 *a0) {
-    extern u8 D_80072F70[];
     s32 i = 12;
     s32 mask = 0x2000000;
     s32 base = (s32)&D_80072F70;

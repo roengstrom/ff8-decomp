@@ -96,7 +96,8 @@ s32 findNthSetBit(s32 a0, s32 a1) {
 
 
 extern u8 D_80085138;
-// set D_80085138 (u8)
+extern s32 D_80083798;
+extern s32 D_8008379C;
 
 /**
  * @brief Finds the bit position in @p a0 of the @p a1-th set bit (0-indexed).
@@ -133,14 +134,12 @@ INCLUDE_ASM("asm/nonmatchings/render", func_80035B70);
 
 /** @brief Stores a word to global D_80083798. */
 void setVsyncCallback(s32 a0) {
-    extern s32 D_80083798;
     D_80083798 = a0;
 }
 
 
 /** @brief Stores a word to global D_8008379C. */
 void setDrawCallback(s32 a0) {
-    extern s32 D_8008379C;
     D_8008379C = a0;
 }
 
@@ -152,7 +151,6 @@ void setDrawCallback(s32 a0) {
  * calls sndEnableReverb with parameters 1 and 3 sequentially.
  */
 void dispatchVsyncCallback(void) {
-    extern s32 D_80083798;
     void (*fp)(void) = (void (*)(void))D_80083798;
     if (fp != 0) {
         fp();
@@ -170,7 +168,6 @@ void dispatchVsyncCallback(void) {
  * calls sndDisableReverb with parameters 3 and 1 sequentially.
  */
 void dispatchDrawCallback(void) {
-    extern s32 D_8008379C;
     void (*fp)(void) = (void (*)(void))D_8008379C;
     if (fp != 0) {
         fp();

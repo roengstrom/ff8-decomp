@@ -25,8 +25,14 @@ void startCdReadAsync(void) { func_80038868(); }
 INCLUDE_ASM("asm/nonmatchings/overlay", func_80035D30);
 
 
-extern s32 D_8008514C;
+extern volatile s32 D_8008514C;
 extern volatile u16 D_80085208;
+extern s32 D_80085140;
+extern s32 D_80085144;
+extern OvlCmdEntry g_ovlCmdQueue[];
+extern u32 load_table[];
+extern u8 D_8008520A;
+extern u8 D_80053CF0[];
 
 /** @brief Wrapper that polls CD-ROM read completion via func_800393C8. */
 void pollCdReadStatus(void) {
@@ -62,9 +68,6 @@ s32 getGameStateS16(void) {
  * @brief Reset overlay queue state — clears read/write indices and sets result to -1.
  */
 void resetOverlayQueue(void) {
-    extern s32 D_80085140;
-    extern s32 D_80085144;
-    extern volatile s32 D_8008514C;
     D_80085140 = 0;
     D_80085144 = 0;
     D_8008514C = -1;
@@ -121,9 +124,6 @@ void loadTimImage(u8 *a0) {
  * @param callback2 Second callback address (or 0).
  */
 void enqueueOverlayCmd(s32 cmd, s32 overlay_id, s32 param, s32 load_addr, s32 callback1, s32 callback2) {
-    extern s32 D_80085140;
-    extern s32 D_80085144;
-    extern OvlCmdEntry g_ovlCmdQueue[];
     OvlCmdEntry *slot;
     s32 write_idx;
     s32 was_equal;
@@ -170,9 +170,6 @@ void loadSubOverlay(s32 a0, s32 a1) {
  * @param a2         Second callback address (or 0).
  */
 void loadOverlay(s32 overlay_id, s32 a1, s32 a2) {
-    extern u32 load_table[]; // D_80053C58
-    extern s32 D_8008514C;
-    extern u8 D_8008520A;
     u32 descriptor;
     s32 dep;
     u32 *p;
@@ -203,8 +200,6 @@ void loadOverlayDirect(s32 a0, s32 a1) {
 
 
 extern u8 D_80035F70[];
-extern s32 D_80085140;
-extern s32 D_80085144;
 
 /**
  * @brief Enqueue a type-0x11 overlay load with a completion callback.
@@ -239,7 +234,6 @@ s32 isOverlayQueueEmpty(void) {
  * @param a0 If negative, performs the VRAM region move.
  */
 void saveAndClearFramebuffer(s32 a0) {
-    extern u8 D_80053CF0[];
     DrawSync(0);
     VSync(0);
     StoreImage(D_80053CF0, (u32 *)0x801BF000);

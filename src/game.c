@@ -7,6 +7,28 @@
 
 u8 *resolveKernelPtr(u16 a0, s32 a1);
 
+extern volatile s16 g_renderMode;
+extern volatile u16 g_vsyncRate;
+extern s32 D_800974C0[2];
+extern s32 D_800974C8[2];
+extern s32 D_800974B8[2];
+extern u8 D_800762C8[];
+extern u8 D_80052898[];
+
+void dispatchScratchpadThread(void);
+s32 getRenderCompleteFlag(void);
+void cdReadSync(s32, s32, s32, s32);
+void func_8001F5C8(void);
+void func_80098238(void);
+void setCameraVibrateIntensity(s32);
+void setCameraVibrateState(s32);
+s32 func_80021300(void);
+void func_80023D60(s32);
+void cdReadAsyncSync(s32, s32, s32, s32);
+void func_80099D30(void);
+void func_80098304(void);
+void func_80035360(void);
+
 /** @brief Empty stub at the end of the sound engine region.
  *  Followed by ~4KB of zero padding before the game code resumes.
  */
@@ -20,10 +42,6 @@ INCLUDE_ASM("asm/nonmatchings/game", func_8001F5C8);
  * sets g_renderMode to 0 (RENDER_IDLE) to signal the main loop.
  */
 void vsyncGameHandler(void) {
-    extern s16 g_renderMode;
-    void dispatchScratchpadThread(void);
-    s32 getRenderCompleteFlag(void);
-
     dispatchScratchpadThread();
     if (getRenderCompleteFlag() != 0) {
         g_renderMode = 0;
@@ -272,8 +290,6 @@ u8 *getAbilityDesc(s32 abilityId) {
  * @return Pointer to the spell's encoded name string.
  */
 u8 *getMagicNamePtr(s32 magicId) {
-    extern u8 D_800762C8[];
-
     if (magicId < 0x40) {
         return (u8 *)resolveKernelPtr(g_gfData.junctionData[magicId].nameParam0, g_gfData.ptrGfSpellData);
     }
@@ -423,7 +439,6 @@ s32 getMenuString(s32 stringId) {
  * @return Pointer to g_gfData + tableBase + offset, or D_80052898 if offset is 0xFFFF.
  */
 u8 *resolveKernelPtr(u16 offset, s32 tableBase) {
-    extern u8 D_80052898[];
     u8 *result;
     if (offset != 0xFFFF) {
         result = tableBase + (offset + (u8 *)&g_gfData);
@@ -592,24 +607,6 @@ INCLUDE_ASM("asm/nonmatchings/game", func_80021300);
  * Loops until an unhandled state value is encountered, which sets g_vsyncRate=4 and returns.
  */
 void gameStateLoop(void) {
-    extern volatile u16 g_vsyncRate;
-    extern volatile s16 g_renderMode;
-    extern s32 D_800974C0[2];
-    extern s32 D_800974C8[2];
-    extern s32 D_800974B8[2];
-
-    void cdReadSync(s32, s32, s32, s32);
-    void func_8001F5C8(void);
-    void func_80098238(void);
-    void setCameraVibrateIntensity(s32);
-    void setCameraVibrateState(s32);
-    s32 func_80021300(void);
-    void func_80023D60(s32);
-    void cdReadAsyncSync(s32, s32, s32, s32);
-    void func_80099D30(void);
-    void func_80098304(void);
-    void func_80035360(void);
-
     s32 mode = 4;
     s16 state;
 

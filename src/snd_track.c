@@ -5,6 +5,8 @@ extern s32 *D_80074F08;
 extern s32 D_80075028[];
 extern s32 D_80077288[];
 extern s32 D_80077298[];
+extern s32 D_80074EE8[];
+extern u8 D_80051824;
 
 void sndStreamSetupMono(void);
 void sndStreamCallbackMonoLow(void);
@@ -119,7 +121,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C2C8);
  * @param a0 Pointer to stream state (first word is stream cursor).
  */
 void sndTrackReadTempo(SoundSeqTrack *track) {
-    extern s32 *D_80074F08;
     s32 byte0 = *(u8 *)(*(s32 *)track) << 16;
     s32 *bank = D_80074F08;
     *(s32 *)((u8 *)bank + 0x20) = byte0;
@@ -165,7 +166,6 @@ void sndTrackBranch(SoundSeqTrack *track) {
  * @param a0 Pointer to the stream state (cursor at +0x00).
  */
 void func_8001C604(SoundSeqTrack *track) {
-    extern s32 *D_80074F08;
     s32 *bank = D_80074F08;
     u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
@@ -318,7 +318,6 @@ void sndTrackDecPanpot(SoundSeqTrack *track) {
  * @param a0 Pointer to the track structure.
  */
 void sndTrackReadInstrumentTransposed(SoundSeqTrack *track) {
-    extern s32 *D_80074F08;
     u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
     s32 inst;
@@ -345,7 +344,6 @@ void sndTrackReadInstrumentTransposed(SoundSeqTrack *track) {
  * @param a0 Pointer to the track structure.
  */
 void sndTrackReadInstrument(SoundSeqTrack *track) {
-    extern s32 *D_80074F08;
     s32 *bankPtr = D_80074F08;
     u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
@@ -1061,7 +1059,6 @@ void sndTrackClearOverlap(SoundSeqTrack *track) {
  * @param a0 Pointer to the stream/voice state structure.
  */
 void sndTrackReadVolumePanCurve(SoundSeqTrack *track) {
-    extern s32 D_80074EE8[];
     u8 *ptr = *(u8 **)track;
     u16 off;
     s32 a5;
@@ -1129,7 +1126,6 @@ void sndTrackSetSustainFlag(SoundSeqTrack *track) {
  * @param a0 Pointer to stream state.
  */
 void sndTrackReadBankAddress(SoundSeqTrack *track) {
-    extern u8 D_80051824;
     u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;

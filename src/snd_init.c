@@ -1,6 +1,20 @@
 #include "common.h"
 #include "sound.h"
 
+extern u8 *D_80074ED0;
+extern u8 *D_80074ED8;
+extern u8 *D_80074EDC;
+extern s32 D_8005169C;
+extern s32 D_80074ED4;
+extern u8 D_800516B8[];
+extern s16 D_80073E62;
+extern s16 D_80073E60;
+extern s32 D_8007735C;
+extern s32 D_8007728C;
+extern u8 D_80073C30[];
+extern u8 D_80073C38[];
+extern s32 D_80073C58;
+
 /** @brief Initializes the SPU (Sound Processing Unit).
  *
  *  Wrapper that calls sndSpuInit (which runs the full SPU init sequence:
@@ -35,9 +49,6 @@ s32 sndShutdown(void) {
  * @return 0 on success, non-zero error code from sndValidateBank on failure.
  */
 s32 sndLoadBank(u8 *a0) {
-    extern u8 *D_80074ED0;
-    extern u8 *D_80074ED8;
-    extern u8 *D_80074EDC;
     s32 result = sndValidateBank(a0);
     if (result == 0) {
         a0 += 0x10;
@@ -61,9 +72,6 @@ s32 sndLoadBank(u8 *a0) {
  * @return Always returns 0.
  */
 s32 sndStopAll(void) {
-    extern s32 D_8005169C;
-    extern s32 D_80074ED4;
-    extern u8 D_800516B8[];
     s32 i;
 
     DisableEvent(D_8005169C);
@@ -121,8 +129,6 @@ extern s32 D_800772CC;
  * @return The maximum volume across the selected sources.
  */
 s32 sndGetMaxVolume(s32 a0) {
-    extern s16 D_80073E62;
-    extern s16 D_80073E60;
     s32 vol = 0;
     if (a0 & 1) {
         vol = (s16)((SoundSeqTrack *)D_80074F08)->pitchValue;
@@ -728,13 +734,11 @@ INCLUDE_ASM("asm/nonmatchings/snd_init", func_80013AA8);
 
 /** @brief Returns the value of global D_80074ED4. */
 s32 sndGetEngineState(void) {
-    extern s32 D_80074ED4;
     return D_80074ED4;
 }
 
 /** @brief Clears D_8007735C, sets bit 0x1 in D_80077288, returns 0. */
 s32 sndResetState(void) {
-    extern s32 D_8007735C;
     D_8007735C = 0;
     D_80077288[0] |= 0x1;
     return 0;
@@ -797,9 +801,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_init", func_80014190);
  * @return Always 0.
  */
 s32 sndSetCdMixVolume(s32 a0) {
-    extern s32 D_8007728C;
-    extern u8 D_80073C30[];
-
     if (D_8007728C & 2) {
         s32 base = (s32)D_80073C30;
         s32 vol = (u32)(a0 * 46448) >> 17;
@@ -829,7 +830,6 @@ s32 sndSetCdMixVolume(s32 a0) {
  * @param a2 Third word of command buffer.
  */
 void sndCmdE0(s32 a0, s32 a1, s32 a2) {
-    extern s32 D_80075058;
     if (sndValidateBank() == 0) {
         register s32 cmd asm("$4") = 0xE0; // FIXME: register+barrier forces li into bne delay slot
         REGALLOC_BARRIER(cmd);
@@ -859,7 +859,6 @@ void sndCmdE4(s32 a0) {
  * @param a1 Second parameter, masked to 7 bits and shifted left 8.
  */
 void sndCmdE5(s32 a0, s32 a1) {
-    extern s32 D_80075058;
     D_80075058 = a0;
     *(&D_80075058 + 1) = (a1 & 0x7F) << 8;
     func_8001A1E8(0xE5);
@@ -886,8 +885,6 @@ void sndCmdE6(s32 a0) {
  * @return 0 on success, nonzero error code on validation failure.
  */
 s32 func_80014400(s32 a0, s32 a1) {
-    extern u8 D_80073C38[];
-    extern s32 D_80073C58;
     s32 spuAddr;
     s32 result;
 
@@ -937,7 +934,6 @@ done:
  * @param a1 Secondary parameter stored at D_80075058+4.
  */
 void sndCmdED(s32 a0, s32 a1) {
-    extern s32 D_80075058;
     D_80075058 = (a0 & 0xFF) << 8;
     *(&D_80075058 + 1) = a1;
     func_8001A1E8(0xED);

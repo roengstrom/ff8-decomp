@@ -3,14 +3,25 @@
 
 extern s32 *D_80074F08;
 extern s32 D_80075028;
+extern u16 D_80073E62;
+extern s32 D_80077284;
+extern u16 D_80073E60;
+extern s32 D_80077280;
+extern u8 D_80070D60[];
+extern s32 D_80073CA8;
+extern u8 *D_80073C34;
+extern s32 D_8007728C;
+extern u8 D_80072F70[];
+extern s32 D_800772A4;
+extern s32 D_800772F4;
+extern u8 D_80077298[];
+extern s32 D_8007507C;
 
 /**
  * @brief Clears D_80073E62, stores *a0 << 16 into D_80077284.
  * @param a0 Pointer to a byte value.
  */
 void sndSetVolumeFade(s8 *a0) {
-    extern u16 D_80073E62;
-    extern s32 D_80077284;
     s32 val = *a0;
     D_80073E62 = 0;
     D_80077284 = val << 16;
@@ -25,8 +36,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001999C);
  * @param a0 Pointer to a byte value.
  */
 void sndSetPanFade(s8 *a0) {
-    extern u16 D_80073E60;
-    extern s32 D_80077280;
     s32 val = *a0;
     D_80073E60 = 0;
     D_80077280 = val << 16;
@@ -43,9 +52,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019A94);
  * then conditionally for a secondary source (D_80073CA8 with D_80073C34) if set.
  */
 void sndTransferData(void) {
-    extern u8 D_80070D60[];
-    extern s32 D_80073CA8;
-    extern u8 *D_80073C34;
     func_80017410(D_80074F08, D_80070D60, 0);
     if (D_80073CA8 != 0) {
         func_80017410(D_80073CA8, D_80073C34, 0);
@@ -61,9 +67,6 @@ void sndTransferData(void) {
  * @param a0 Pointer to the transfer mode value.
  */
 void sndTransferDataWithMode(s32 *a0) {
-    extern u8 D_80070D60[];
-    extern s32 D_80073CA8;
-    extern u8 *D_80073C34;
     func_80017410(D_80074F08, D_80070D60, *a0);
     if (D_80073CA8 != 0 && *a0 != 0) {
         func_80017410(D_80073CA8, D_80073C34, *a0);
@@ -89,10 +92,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019BC0);
  * optionally for secondary source (D_80073CA8, D_80073C34), then calls func_80017D5C.
  */
 void sndStartPlaybackMode1(void) {
-    extern u8 D_80070D60[];
-    extern s32 D_80073CA8;
-    extern u8 *D_80073C34;
-    extern s32 D_8007728C;
     D_8007728C = 1;
     func_80017D14(D_80074F08, D_80070D60);
     if (D_80073CA8 != 0) {
@@ -108,10 +107,6 @@ void sndStartPlaybackMode1(void) {
  * optionally for secondary source (D_80073CA8, D_80073C34), then calls func_80017D5C.
  */
 void sndStartPlaybackMode2(void) {
-    extern u8 D_80070D60[];
-    extern s32 D_80073CA8;
-    extern u8 *D_80073C34;
-    extern s32 D_8007728C;
     D_8007728C = 2;
     func_80017D14(D_80074F08, D_80070D60);
     if (D_80073CA8 != 0) {
@@ -129,8 +124,6 @@ void sndStartPlaybackMode2(void) {
  * @param a0 Pointer to word value to store in D_8007507C.
  */
 void sndSetTempoAllTracks(s32 *a0) {
-    extern u8 D_80070D60[];
-    extern s32 D_8007507C;
     s32 i = 0;
     s32 base = (s32)D_80070D60;
     s32 *ptr = (s32 *)(base + 0xF8);
@@ -157,9 +150,6 @@ void sndSetSequenceOffset(u16 *a0) {
  * Sets bit 0 of D_800772F4 to signal the update.
  */
 void func_80019DB0(void) {
-    extern s32 D_80075028;
-    extern s32 D_800772A4;
-    extern s32 D_800772F4;
     s32 unusedMask;
     s32 bit;
     s32 voice;
@@ -213,9 +203,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_param", func_80019EA0);
  * Sets bit 1 of D_800772F4.
  */
 void func_80019F3C(void) {
-    extern u8 D_80072F70[];
-    extern s32 D_80075028;
-    extern s32 D_800772F4;
     s32 voiceMask;
     s32 bit;
     s32 voice;
@@ -270,7 +257,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001A058);
  * to 0 for the stream's voice and the next consecutive voice.
  */
 void sndMuteVoicePair(void) {
-    extern u8 D_80077298[];
     SoundStream *stream = (SoundStream *)D_80077298;
     if (stream->active != 0) {
         spuSetVoicePitch(stream->voiceIdx, 0);
@@ -285,7 +271,6 @@ void sndMuteVoicePair(void) {
  * pitch for the stream's voice and the next consecutive voice.
  */
 void sndRestoreVoicePair(void) {
-    extern u8 D_80077298[];
     SoundStream *stream = (SoundStream *)D_80077298;
     if (stream->active != 0) {
         spuSetVoicePitch(stream->voiceIdx, stream->savedPitch);

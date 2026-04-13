@@ -2,6 +2,8 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 
+extern s32 g_menuColor[];
+
 INCLUDE_ASM("asm/nonmatchings/color", func_800330F4);
 
 
@@ -33,7 +35,6 @@ void drawColorDefault(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
  * @param arg4 Mode index; values >= 8 select the alternate color table.
  */
 void drawColorByMenuPalette(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern s32 g_menuColor[];
     s32 idx;
     if (arg4 >= 8) {
         arg4 -= 8;
@@ -54,8 +55,7 @@ void drawColorByMenuPalette(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
  * @param a3 Fourth argument passed through
  */
 void drawMenuColorDefault(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern s32 g_menuColor;
-    func_800330F4(a0, a1, a2, a3, g_menuColor, 7);
+    func_800330F4(a0, a1, a2, a3, g_menuColor[0], 7);
 }
 
 
