@@ -283,21 +283,15 @@ INCLUDE_ASM("asm/nonmatchings/overlay", func_8003646C);
  */
 void resetCardSlots(s32 a0) {
     if (a0 != 0) {
-        s32 base = (s32)&g_gameState;
-        u8 flags = *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E); /* mainData.partyLockFlag */
-        *(u8 *)(base + GAMESTATE_PERSOS_OFFSET + 0x08) = 8;             /* chars[0].characterId */
-        *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E) = flags | 1;
+        u8 flags = g_gameState.mainData.partyLockFlag;
+        g_gameState.chars[0].characterId = 8;
+        g_gameState.mainData.partyLockFlag = flags | 1;
     } else {
-        s32 base;
-        s32 ptr;
         a0 = 7;
-        base = (s32)&g_gameState;
-        *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E) = *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E) & 0xFE;
-        ptr = base + (CHARACTER_COUNT - 1) * sizeof(CharacterData);
+        g_gameState.mainData.partyLockFlag &= 0xFE;
         do {
-            *(u8 *)(ptr + GAMESTATE_PERSOS_OFFSET + 0x08) = a0; /* chars[a0].characterId */
+            g_gameState.chars[a0].characterId = a0;
             a0--;
-            ptr -= sizeof(CharacterData);
         } while (a0 >= 0);
     }
 }
