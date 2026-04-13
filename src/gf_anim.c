@@ -37,15 +37,13 @@ void initGfAnimEntry(u8 *a0, s32 a1, s32 a2) {
  * @note Abilities in range 0x3A..0x4D are status immunity abilities; each has R/G/B
  *       immunity bytes looked up from g_gfData.abilityRangeL[].
  */
-s32 getStatusImmunityFlags(s32 a0) {
+s32 getStatusImmunityFlags(u32 a0) {
     s32 result = 0;
     s32 i = 0;
-    s32 base = (s32)&g_gameState;
-    s32 off = base + a0 * sizeof(CharacterData);
     do {
-        s32 val = *(u8 *)(off + i + GAMESTATE_PERSOS_OFFSET + 0x54); /* chars[a0].abilities[i] */
-        s32 idx = val - 0x3A;
-        if ((u32)idx < 0x14) {
+        s32 val = g_gameState.chars[a0].abilities[i];
+        u32 idx = val - 0x3A;
+        if (idx < 0x14) {
             u8 b = g_gfData.abilityRangeL[idx].extraField;
             u8 g = g_gfData.abilityRangeL[idx].bonusField;
             u8 r = g_gfData.abilityRangeL[idx].typeField;
