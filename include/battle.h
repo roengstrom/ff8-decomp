@@ -358,7 +358,9 @@ typedef struct {
 /** @brief GF battle level entry (12 bytes). */
 typedef struct {
     u8 level;           /* 0x00 */
-    u8 pad[0x0B];
+    u8 pad01[3];
+    u8 abilityFlags;    /* 0x04: party ability flags (only used in last entry). */
+    u8 pad05[7];
 } BattleLevelEntry;
 
 /** @brief Complete battle character/GF state block. */

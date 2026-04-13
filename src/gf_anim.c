@@ -4,6 +4,8 @@
 #include "gamestate.h"
 #include "gf.h"
 
+extern u8 D_80078DF8;
+
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
 
 
@@ -98,20 +100,14 @@ s32 getMagicAvailFlags(BattleCharData *charData) {
  *       in g_gfData.abilityRangeM[] and OR'd into g_battleChars party ability flags
  *       at offset 0x6D8. Likely enables field/world abilities (encounter-none, rare-item).
  */
-void applyPartyAbilityFlags(s32 a0) {
-    s32 i = 0;
-    s32 base = (s32)&g_gameState;
-    s32 base3;
-    s32 off = base + a0 * sizeof(CharacterData);
-    base3 = (s32)&g_battleChars;
-    do {
-        s32 val = *(u8 *)(off + i + GAMESTATE_PERSOS_OFFSET + 0x54); /* chars[a0].abilities[i] */
-        s32 idx = val - 0x4E;
-        if ((u32)idx < 5) {
-            *(u8 *)(base3 + 0x6D8) |= g_gfData.abilityRangeM[idx].typeField;
+void applyPartyAbilityFlags(s32 charIdx) {
+    s32 i;
+    for (i = 0; i < 4; i++) {
+        u8 ability = g_gameState.chars[charIdx].abilities[i];
+        if ((u32)(ability - 0x4E) < 5) {
+            g_battleChars.levelEntries[15].abilityFlags |= g_gfData.abilityRangeM[ability - 0x4E].typeField;
         }
-        i++;
-    } while (i < 4);
+    }
 }
 
 
@@ -215,15 +211,12 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_8002363C);
  *       Calls func_8002363C for each active GF to recalculate its derived stats.
  */
 void recalcAllGfStats(void) {
-    s32 i = 0;
-    u8 *ptr = (u8 *)&g_gameState;
-    do {
-        if (ptr[GAMESTATE_GFS_OFFSET + 0x11] & 1) { /* gfs[i].exists */
+    s32 i;
+    for (i = 0; i < 16; i++) {
+        if (g_gameState.gfs[i].exists & 1) {
             func_8002363C(i);
         }
-        i++;
-        ptr += sizeof(GfSaveData);
-    } while (i < GF_COUNT);
+    }
 }
 
 
@@ -234,20 +227,15 @@ void recalcAllGfStats(void) {
  *       func_80022E08 and func_800231E0. Finally calls recalcAllGfStats for GFs.
  */
 void recalcPartyStats(void) {
-    extern u8 D_80078DF8;
     s32 i;
-    s32 base;
-    s32 ptr;
 
     D_80078DF8 = 0;
-    i = 0;
-    base = (s32)&g_gameState;
-    do {
-        ptr = i + base;
-        func_80022E08(*(u8 *)(ptr + GAMESTATE_PARTY_DATA_OFFSET), i); /* party.party[i] */
-        func_800231E0(*(u8 *)(ptr + GAMESTATE_PARTY_DATA_OFFSET), i); /* party.party[i] */
-        i++;
-    } while (i < PARTY_SLOT_COUNT);
+
+    for (i = 0; i < 3; i++) {
+        func_80022E08(g_gameState.mainData.party.party[i], i);
+        func_800231E0(g_gameState.mainData.party.party[i], i);
+    }
+
     recalcAllGfStats();
 }
 
