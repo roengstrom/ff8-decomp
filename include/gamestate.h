@@ -217,7 +217,7 @@ typedef struct {
     /* 0x76 */ u16 defeats;           /**< TT loss count. */
     /* 0x78 */ u16 draws;             /**< TT draw count. */
     /* 0x7A */ u16 pad7A;             /**< Unknown. */
-    /* 0x7C */ u32 pad7C;             /**< Unknown. */
+    /* 0x7C */ s32 rngState;           /**< PRNG state (LCG: seed * 69069 + 1). */
 } TripleTriadData; /* 0x80 = 128 bytes */
 
 /* ======================================================================== */

@@ -1,12 +1,13 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gamestate.h"
 
-extern u8 g_tripleTriad;
+extern TripleTriadData g_tripleTriad;
 extern u16 D_8005EC3E[];
 
-/** @brief Return a pointer to the global item/key item inventory array g_tripleTriad. */
-u8 *getInventoryPtr(void) {
+/** @brief Return a pointer to the global Triple Triad / inventory data structure. */
+TripleTriadData *getInventoryPtr(void) {
     return &g_tripleTriad;
 }
 
@@ -23,7 +24,7 @@ s32 modifyItemQuantity(a0, a1)
 s32 a0;
 s32 a1;
 {
-    u8 *base = getInventoryPtr();
+    u8 *base = (u8 *)getInventoryPtr();
     u8 *ptr;
     u8 val;
 
@@ -54,20 +55,20 @@ s32 a1;
 /**
  * @brief Mark an inventory item as present and set its flag byte to 0xF0.
  *
- * For item slots < 0x4D: sets the high bit (0x80) of the item byte.
- * For key item slots >= 0x4D: sets the corresponding bit in the key item
- * bitfield (starting at offset 0x6E). Then calls modifyItemQuantity(a0, 0xF0).
+ * For item slots < 0x4D: sets the high bit (0x80) of the card byte.
+ * For key item slots >= 0x4D: sets the corresponding bit in the
+ * rareCards bitfield. Then calls modifyItemQuantity(a0, 0xF0).
  *
  * @param a0 Inventory slot index.
  */
 void markItemPresent(s32 a0) {
-    u8 *base = getInventoryPtr();
+    TripleTriadData *base = getInventoryPtr();
     if (a0 < 0x4D) {
-        base[a0] |= 0x80;
+        base->cards[a0] |= 0x80;
     } else {
         s32 idx = a0 - 0x4D;
         s32 byte_idx = idx / 8;
-        (base + byte_idx)[0x6E] |= 1 << (idx - byte_idx * 8);
+        base->rareCards[byte_idx] |= 1 << (idx - byte_idx * 8);
     }
     modifyItemQuantity(a0, 0xF0);
 }
@@ -100,24 +101,24 @@ u8 *func_80023A54(s32 itemId) {
 /**
  * @brief Check if an inventory item is present or a key item bit is set.
  *
- * For item slots < 0x4D: returns 1 if the high bit (0x80) of the item byte is set.
- * For key item slots >= 0x4D: returns 1 if the corresponding bit in the key item
- * bitfield (starting at offset 0x6E) is set.
+ * For item slots < 0x4D: returns 1 if the high bit (0x80) of the card byte is set.
+ * For key item slots >= 0x4D: returns 1 if the corresponding bit in the
+ * rareCards bitfield is set.
  *
  * @param a0 Inventory slot index.
  * @return 1 if the item/key item is flagged, 0 otherwise.
  */
 s32 isItemPresent(s32 a0) {
-    u8 *base = getInventoryPtr();
+    TripleTriadData *base = getInventoryPtr();
     s32 byte_idx;
     if (a0 < 0x4D) {
-        if (base[a0] & 0x80) {
+        if (base->cards[a0] & 0x80) {
             return 1;
         }
     } else {
         a0 -= 0x4D;
         byte_idx = a0 / 8;
-        if (((base + byte_idx)[0x6E] >> (a0 - byte_idx * 8)) & 1) {
+        if ((base->rareCards[byte_idx] >> (a0 - byte_idx * 8)) & 1) {
             return 1;
         }
     }
@@ -138,20 +139,20 @@ s32 isItemPresent(s32 a0) {
  * @return Item quantity, 0/1 for key items, or -1 if not present.
  */
 s32 func_80023B14(s32 a0) {
-    u8 *base = getInventoryPtr();
+    TripleTriadData *base = getInventoryPtr();
     s32 idx;
     s32 byte_idx;
 
     if (a0 < 0x4D) {
-        if (base[a0] & 0x80) {
-            return base[a0] & 0x7F;
+        if (base->cards[a0] & 0x80) {
+            return base->cards[a0] & 0x7F;
         }
         return -1;
     }
     idx = a0 - 0x4D;
     byte_idx = idx / 8;
-    if (((base + byte_idx)[0x6E] >> (idx - byte_idx * 8)) & 1) {
-        return base[a0] == 0xF0;
+    if ((base->rareCards[byte_idx] >> (idx - byte_idx * 8)) & 1) {
+        return ((u8 *)base)[a0] == 0xF0;
     }
     return -1;
 }
@@ -188,7 +189,7 @@ s32 sumItemQuantities(void) {
  * @return Byte at base[a0] if a0 >= 0x4D, else 0.
  */
 s32 getKeyItemValue(s32 a0) {
-    u8 *base = getInventoryPtr();
+    u8 *base = (u8 *)getInventoryPtr(); /* raw byte access into struct */
     if (a0 >= 0x4D) {
         return base[a0];
     }
@@ -203,16 +204,16 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80023C48);
  * @brief Advance the item PRNG and return a pseudo-random value.
  *
  * Uses a Linear Congruential Generator with multiplier 69069 and
- * increment 1. The state is stored at offset +0x7C of the structure
- * returned by getInventoryPtr. Returns the upper 15 bits of the
+ * increment 1. The state is stored in the rngState field of the
+ * TripleTriadData structure. Returns the upper 15 bits of the
  * updated state.
  *
  * @return Pseudo-random value in [0, 32767].
  */
 s32 func_80023D04(void) {
-    s32 ptr = (s32)getInventoryPtr();
-    s32 seed = *(s32 *)(ptr + 0x7C);
-    *(s32 *)(ptr + 0x7C) = (seed * 69069) + 1;
+    TripleTriadData *ptr = getInventoryPtr();
+    s32 seed = ptr->rngState;
+    ptr->rngState = (seed * 69069) + 1;
     return ((u32)((seed * 69069) + 1)) >> 17;
 }
 

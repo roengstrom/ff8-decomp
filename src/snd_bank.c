@@ -84,35 +84,35 @@ s32 sndGetBankGroup(s32 a0) {
  * @param a0 Pointer to the track structure (stride 0x110).
  * @param a1 Instrument bank ID to assign to this track.
  */
-void sndInitTrack(void *a0, s32 a1) {
-    *(s16*)((u8*)a0 + 0x80) = 0x6E00;
-    ((SoundSeqTrack *)a0)->panShifted = 0x32000000;
-    *(s32*)a0 = a1;
-    *(s16*)((u8*)a0 + 0xE4) = 0;
-    *(s16*)((u8*)a0 + 0xE6) = 0;
-    *(s16*)((u8*)a0 + 0x98) = 0;
-    ((SoundSeqTrack *)a0)->cmdDataPtr = 0;
-    *(s16*)((u8*)a0 + 0xEA) = 0;
-    *(s16*)((u8*)a0 + 0x90) = 0;
-    *(s16*)((u8*)a0 + 0xD8) = 0;
-    *(s16*)((u8*)a0 + 0xD6) = 0;
-    *(s16*)((u8*)a0 + 0x86) = 0;
-    ((SoundSeqTrack *)a0)->timing = 0;
-    *(s16*)((u8*)a0 + 0xD4) = 0;
-    ((SoundSeqTrack *)a0)->flags = 0;
-    *(s16*)((u8*)a0 + 0xF2) = 0;
-    *(s16*)((u8*)a0 + 0x9A) = 0;
-    ((SoundSeqTrack *)a0)->pad6E = 0xFFFF;
-    *(s16*)((u8*)a0 + 0x10A) = 0;
-    *(s16*)((u8*)a0 + 0xCA) = 0;
-    *(s16*)((u8*)a0 + 0xBC) = 0;
-    *(s16*)((u8*)a0 + 0xAA) = 0;
-    *(s16*)((u8*)a0 + 0xCC) = 0;
-    *(s16*)((u8*)a0 + 0xBE) = 0;
-    *(s16*)((u8*)a0 + 0xAC) = 0;
-    *(s16*)((u8*)a0 + 0xD2) = 0;
-    *(s16*)((u8*)a0 + 0xD0) = 0;
-    sndTrackApplyInstrument(a0, 0);
+void sndInitTrack(SoundSeqTrack *track, s32 bankId) {
+    track->pitchBend = 0x6E00;
+    track->panShifted = 0x32000000;
+    *(s32 *)track = bankId;
+    track->detune = 0;
+    track->detuneTarget = 0;
+    track->duration = 0;
+    track->cmdDataPtr = 0;
+    track->durationDelta2 = 0;
+    track->pad90 = 0;
+    track->volumeAccum = 0;
+    track->volumeDelta = 0;
+    track->panFade = 0;
+    track->timing = 0;
+    track->panEnvSpeed = 0;
+    track->flags = 0;
+    track->panLfoStop = 0;
+    track->timerActive = 0;
+    track->pad6E = 0xFFFF;
+    track->instOverride = 0;
+    track->panLfo = 0;
+    track->volumeLfo = 0;
+    track->delaySend = 0;
+    track->panLfoTarget = 0;
+    track->volumeLfoTarget = 0;
+    track->delaySendTarget = 0;
+    track->reverbDuration = 0;
+    track->noiseDuration = 0;
+    sndTrackApplyInstrument(track, 0);
 }
 
 /**

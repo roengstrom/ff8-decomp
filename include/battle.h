@@ -71,7 +71,10 @@ typedef struct {
     /* 0x188 */ u8 cdBufA[0x24];             /**< CD audio buffer A. */
     /* 0x1AC */ u8 cdBufB[0x24];             /**< CD audio buffer B. */
     /* 0x1D0 */ s16 globalCoords[2][2];      /**< Per-slot coords [slot][axis]. */
-    /* 0x1D8 */ u8 pad1D8[8];                /**< Unknown. */
+    /* 0x1D8 */ u16 clipLeft;               /**< Clip region left edge. */
+    /* 0x1DA */ u16 clipTop;                /**< Clip region top edge. */
+    /* 0x1DC */ u16 clipRight;              /**< Clip region right edge. */
+    /* 0x1DE */ u16 clipBottom;             /**< Clip region bottom edge. */
     /* 0x1E0 */ u8 defaultColor;             /**< Default color value for entity init. */
     /* 0x1E1 */ u8 pad1E1[0x45F];            /**< Unknown. */
     /* 0x640 */ DisplayListBuf bufs[2];         /**< Double-buffered GPU display lists (2 × 0x58). */

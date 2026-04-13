@@ -15,7 +15,7 @@ void spuSetVoiceAdsrLow(s32 voice, s32 val);
 /**
  * @brief Applies pending SPU register updates for a voice.
  *
- * Reads the update flags from the voice data structure (offset +4). For each
+ * Reads the update flags from the voice parameter structure. For each
  * set flag, calls the corresponding SPU register function (pitch, volume,
  * sample address, repeat address, ADSR). Clears processed flags after each
  * call and exits early when all flags are handled.
@@ -23,17 +23,17 @@ void spuSetVoiceAdsrLow(s32 voice, s32 val);
  * @param a0 SPU voice index (0-23).
  * @param a1 Pointer to the voice parameter structure.
  */
-void func_800150A8(s32 a0, u8 *a1) {
-    s32 flags = *(s32 *)(a1 + 4);
+void func_800150A8(s32 a0, SndVoiceParam *a1) {
+    s32 flags = a1->updateFlags;
 
     if (flags == 0) {
         return;
     }
-    *(s32 *)(a1 + 4) = 0;
+    a1->updateFlags = 0;
 
     if (flags & 0x10) {
         flags &= ~0x10;
-        spuSetVoicePitch(a0, *(u16 *)(a1 + 0x10));
+        spuSetVoicePitch(a0, a1->sampleRate);
         if (flags == 0) {
             return;
         }
@@ -41,7 +41,7 @@ void func_800150A8(s32 a0, u8 *a1) {
 
     if (flags & 0x3) {
         flags &= ~0x3;
-        spuSetVoiceVolume(a0, *(s16 *)(a1 + 0x18), *(s16 *)(a1 + 0x1A), *(u16 *)(a1 + 0x16));
+        spuSetVoiceVolume(a0, a1->volLeft, a1->volRight, a1->sweep);
         if (flags == 0) {
             return;
         }
@@ -49,7 +49,7 @@ void func_800150A8(s32 a0, u8 *a1) {
 
     if (flags & 0x80) {
         flags &= ~0x80;
-        spuSetVoiceStartAddr(a0, *(s32 *)(a1 + 8));
+        spuSetVoiceStartAddr(a0, a1->startAddr);
         if (flags == 0) {
             return;
         }
@@ -57,7 +57,7 @@ void func_800150A8(s32 a0, u8 *a1) {
 
     if (flags & 0x10000) {
         flags &= ~0x10000;
-        spuSetVoiceRepeatAddr(a0, *(s32 *)(a1 + 0xC));
+        spuSetVoiceRepeatAddr(a0, a1->repeatAddr);
         if (flags == 0) {
             return;
         }
@@ -65,14 +65,14 @@ void func_800150A8(s32 a0, u8 *a1) {
 
     if (flags & 0x6600) {
         flags &= ~0x6600;
-        spuSetVoiceAdsrHigh(a0, *(u16 *)(a1 + 0x14));
+        spuSetVoiceAdsrHigh(a0, a1->adsrHigh);
         if (flags == 0) {
             return;
         }
     }
 
     if (flags & 0x9900) {
-        spuSetVoiceAdsrLow(a0, *(u16 *)(a1 + 0x12));
+        spuSetVoiceAdsrLow(a0, a1->adsrLow);
     }
 }
 

@@ -59,22 +59,27 @@ typedef struct {
     /* 0x96 */ u16 durationCounter;
     /* 0x98 */ u16 duration;
     /* 0x9A */ u16 timerActive;
-    /* 0x9C */ u8 pad9C[32];
+    /* 0x9C */ u8 pad9C[14];
+    /* 0xAA */ u16 delaySend;
+    /* 0xAC */ u16 delaySendTarget;
+    /* 0xAE */ u8 padAE[14];
     /* 0xBC */ u16 volumeLfo;
-    /* 0xBE */ u16 padBE;
+    /* 0xBE */ u16 volumeLfoTarget;
     /* 0xC0 */ u8 padC0[10];
     /* 0xCA */ u16 panLfo;
-    /* 0xCC */ u8 padCC[4];
+    /* 0xCC */ u16 panLfoTarget;
+    /* 0xCE */ u8 padCE[2];
     /* 0xD0 */ u16 noiseDuration;
     /* 0xD2 */ u16 reverbDuration;
-    /* 0xD4 */ u16 padD4;
+    /* 0xD4 */ u16 panEnvSpeed;
     /* 0xD6 */ u16 volumeDelta;
     /* 0xD8 */ u16 volumeAccum;
     /* 0xDA */ u8 padDA[4];
     /* 0xDE */ u16 expression;
     /* 0xE0 */ u8 padE0[4];
     /* 0xE4 */ u16 detune;
-    /* 0xE6 */ u8 padE6[4];
+    /* 0xE6 */ u16 detuneTarget;
+    /* 0xE8 */ u8 padE8[2];
     /* 0xEA */ u16 durationDelta2;
     /* 0xEC */ u16 ecField;
     /* 0xEE */ u16 portamento;
@@ -106,12 +111,31 @@ typedef struct {
 } SndInstrument; /* 16 bytes */
 
 /**
+ * @brief SPU voice parameter block passed to func_800150A8.
+ *
+ * Contains the pending SPU register values for a single voice.
+ * Field updateFlags holds a bitmask indicating which registers need writing.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[4];       /**< Unknown / unused. */
+    /* 0x04 */ s32 updateFlags;   /**< Bitmask of pending SPU register updates. */
+    /* 0x08 */ s32 startAddr;     /**< SPU sample start address. */
+    /* 0x0C */ s32 repeatAddr;    /**< SPU sample repeat/loop address. */
+    /* 0x10 */ u16 sampleRate;    /**< Voice pitch / sample rate. */
+    /* 0x12 */ u16 adsrLow;       /**< ADSR envelope low halfword. */
+    /* 0x14 */ u16 adsrHigh;      /**< ADSR envelope high halfword. */
+    /* 0x16 */ u16 sweep;         /**< Volume sweep / scale value. */
+    /* 0x18 */ s16 volLeft;       /**< Left channel volume. */
+    /* 0x1A */ s16 volRight;      /**< Right channel volume. */
+} SndVoiceParam; /* 0x1C = 28 bytes */
+
+/**
  * @brief Sound voice/command structure used by CD sound functions.
  */
 typedef struct {
     /* 0x00 */ u8 pad00[0x20];
     /* 0x20 */ s32 dataAddr;
-    /* 0x24 */ u8 pad24[4];
+    /* 0x24 */ u8 cmdData[4];        /**< Inline command data buffer. */
     /* 0x28 */ s32 voiceDataPtr;
     /* 0x2C */ s32 cmdDataPtr;
     /* 0x30 */ u8 pad30[4];
@@ -119,7 +143,8 @@ typedef struct {
     /* 0x35 */ u8 pad35;
     /* 0x36 */ u8 cmdSize;
     /* 0x37 */ u8 cmdType;
-    /* 0x38 */ u8 pad38[0x0E];
+    /* 0x38 */ u8 cmdTypePrev;       /**< Archived (previous) command type. */
+    /* 0x39 */ u8 pad39[0x0D];
     /* 0x46 */ u8 actionType;
     /* 0x47 */ u8 actionParam;
     /* 0x48 */ u8 actionMode;
