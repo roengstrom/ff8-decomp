@@ -195,21 +195,21 @@ s32 cdReadAsyncSync(void) {
 /**
  * @brief Reset CD state unless already idle (0) or in final state (0xB).
  *
- * Checks state byte at D_8008A3D8+1. If it's 0 or 0xB, returns immediately.
- * Otherwise clears three control fields and sets state to 0xC, then calls
- * cdBreakRead to finalize.
+ * Checks CdReadState status field. If it's 0 or 0xB, returns immediately.
+ * Otherwise clears readBuffer, sectorCount, callback and sets status to
+ * 0xC (reset), then calls cdBreakRead to finalize.
  */
 void resetCdDrive(void) {
-    extern u8 D_8008A3D8;
-    s32 base = (s32)&D_8008A3D8;
-    u8 state = *(u8 *)(base + 1);
+    extern CdReadState D_8008A3D8;
+    CdReadState *cd = (CdReadState *)((s32)&D_8008A3D8);
+    u8 state = cd->status;
 
     if (state == 0xB || state == 0) return;
 
-    *(s32 *)(base + 0x1C) = 0; /* CdReadState.destBuffer */
-    *(s32 *)(base + 0x08) = 0; /* CdReadState.sectorCount */
-    *(s32 *)(base + 0x20) = 0; /* CdReadState.callback */
-    *(u8 *)(base + 1) = 0xC;  /* CdReadState.state */
+    cd->readBuffer = 0;
+    cd->sectorCount = 0;
+    cd->callback = 0;
+    cd->status = 0xC;
     cdBreakRead();
 }
 

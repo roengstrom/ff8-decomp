@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 
 void spuSetIrqAddr(u32 val);
 
@@ -73,19 +74,19 @@ void sndDmaWait(void) {
 /**
  * @brief Initiates a single SPU sample upload step.
  *
- * Validates @p a0 via sndValidateBank, then reads the sample's transfer
- * size (offset 0x18) and start address (offset 0x10) to call func_800148B0,
- * which performs the actual DMA transfer.
+ * Validates the sound bank descriptor, then reads the sample's transfer
+ * size and SPU start address to call func_800148B0, which performs the
+ * actual DMA transfer.
  *
- * @param a0 Pointer to a sound bank entry or sample descriptor.
+ * @param a0 Pointer to a sound bank descriptor.
  * @param a1 Transfer mode or bank index.
- * @return 0 on success, -1 if validation of @p a0 fails.
+ * @return 0 on success, -1 if validation fails.
  */
-s32 sndUploadSample(s32 a0, s32 a1) {
-    if (sndValidateBank(a0) != 0) {
+s32 sndUploadSample(SndBankDesc *a0, s32 a1) {
+    if (sndValidateBank((u32 *)a0) != 0) {
         return -1;
     }
-    func_800148B0(a0, a1, *(s32 *)(a0 + 0x18), *(s32 *)(a0 + 0x10));
+    func_800148B0((s32)a0, a1, a0->spuSize, a0->spuAddr);
     return 0;
 }
 

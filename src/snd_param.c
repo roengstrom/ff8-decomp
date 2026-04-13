@@ -264,32 +264,32 @@ void func_80019F3C(void) {
 INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001A058);
 
 /**
- * @brief Mutes two consecutive SPU voices if active flag is set.
+ * @brief Mutes two consecutive SPU voices if the stream is active.
  *
- * Checks the active flag at D_80077298+0xC. If non-zero, sets sample rate
- * to 0 for the voice at D_80077298+0x10 and the next consecutive voice.
+ * Checks the SoundStream active flag. If non-zero, sets sample rate
+ * to 0 for the stream's voice and the next consecutive voice.
  */
 void sndMuteVoicePair(void) {
     extern u8 D_80077298[];
-    u8 *base = D_80077298;
-    if (*(s32 *)(base + 0xC) != 0) {
-        spuSetVoicePitch(*(s32 *)(base + 0x10), 0);
-        spuSetVoicePitch(*(s32 *)(base + 0x10) + 1, 0);
+    SoundStream *stream = (SoundStream *)D_80077298;
+    if (stream->active != 0) {
+        spuSetVoicePitch(stream->voiceIdx, 0);
+        spuSetVoicePitch(stream->voiceIdx + 1, 0);
     }
 }
 
 /**
- * @brief Sets sample rate for two consecutive SPU voices from struct fields.
+ * @brief Restores pitch for two consecutive SPU voices from saved state.
  *
- * Checks the active flag at D_80077298+0xC. If non-zero, sets sample rate
- * from D_80077298+0x58 for the voice at D_80077298+0x10 and the next voice.
+ * Checks the SoundStream active flag. If non-zero, restores the saved
+ * pitch for the stream's voice and the next consecutive voice.
  */
 void sndRestoreVoicePair(void) {
     extern u8 D_80077298[];
-    u8 *base = D_80077298;
-    if (*(s32 *)(base + 0xC) != 0) {
-        spuSetVoicePitch(*(s32 *)(base + 0x10), *(s32 *)(base + 0x58));
-        spuSetVoicePitch(*(s32 *)(base + 0x10) + 1, *(s32 *)(base + 0x58));
+    SoundStream *stream = (SoundStream *)D_80077298;
+    if (stream->active != 0) {
+        spuSetVoicePitch(stream->voiceIdx, stream->savedPitch);
+        spuSetVoicePitch(stream->voiceIdx + 1, stream->savedPitch);
     }
 }
 

@@ -881,7 +881,7 @@ void sndCmdE6(s32 a0) {
  * bit 10 of the sound engine flags is set), then transfers sample data
  * and copies voice parameters to D_80073C38.
  *
- * @param a0 Pointer to sound bank data.
+ * @param a0 Pointer to sound bank descriptor (SndBankDesc).
  * @param a1 Bank slot selector (0 = primary, nonzero = alternate).
  * @return 0 on success, nonzero error code on validation failure.
  */
@@ -920,8 +920,8 @@ s32 func_80014400(s32 a0, s32 a1) {
         }
         a0 += 0x40;
         SpuSetTransferStartAddr(spuAddr);
-        sndDmaWriteSpu(a0, *(s32 *)(a1 + 0x10));
-        *(s32 *)(a1 + 0x20) = spuAddr;
+        sndDmaWriteSpu(a0, ((SndBankDesc *)a1)->spuAddr);
+        ((SndBankDesc *)a1)->spuLoadedAddr = spuAddr;
         func_8001A57C(a1, (s32)D_80073C38, 0x70);
     }
     goto done;

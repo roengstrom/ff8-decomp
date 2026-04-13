@@ -163,4 +163,48 @@ typedef struct {
     /* 0xEC */ u16 seqDataSize;
 } SndVoice;
 
+/**
+ * @brief Sound bank descriptor header (passed to sndValidateBank / sndUploadSample).
+ *
+ * The first 0x40 bytes form the header; sample data follows immediately after.
+ */
+typedef struct {
+    /* 0x00 */ u32 magic;           /**< Validation magic (checked by sndValidateBank). */
+    /* 0x04 */ u8 pad04[0x0C];     /**< Unknown header fields. */
+    /* 0x10 */ s32 spuAddr;         /**< SPU sample start address / transfer size. */
+    /* 0x14 */ u8 pad14[4];        /**< Unknown. */
+    /* 0x18 */ s32 spuSize;         /**< SPU transfer size in bytes. */
+    /* 0x1C */ u8 pad1C[4];        /**< Unknown. */
+    /* 0x20 */ s32 spuLoadedAddr;   /**< SPU address where sample was uploaded (written after transfer). */
+    /* 0x24 */ u8 pad24[0x1C];     /**< Remaining header padding (total header = 0x40 bytes). */
+} SndBankDesc; /* 0x40 bytes */
+
+/**
+ * @brief CD audio / streaming sound state (D_80077298).
+ *
+ * Controls SPU streaming playback, tracking voice indices, pitch,
+ * volume/pan, loop counters and IRQ state.
+ */
+typedef struct {
+    /* 0x00 */ s32 spuBaseAddr;    /**< SPU base address for stream. */
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 active;         /**< Active/IRQ voice bitmask (nonzero = playing). */
+    /* 0x10 */ s32 voiceIdx;       /**< First SPU voice index for this stream. */
+    /* 0x14 */ u8 pad14[0x0C];
+    /* 0x20 */ s32 unk20;
+    /* 0x24 */ s32 tickCounter;    /**< Tick counter (incremented each frame). */
+    /* 0x28 */ s32 tickCount;      /**< Running tick accumulator. */
+    /* 0x2C */ u8 pad2C[0x08];
+    /* 0x34 */ s32 unk34;          /**< Set to -1 during init. */
+    /* 0x38 */ s32 unk38;
+    /* 0x3C */ s32 loopLimit;      /**< Loop/sector limit (sectorCount >> 12). */
+    /* 0x40 */ s32 panVolume;      /**< Raw pan/volume value. */
+    /* 0x44 */ u8 pad44[0x04];
+    /* 0x48 */ s32 panTarget;      /**< Pan target (cleared when setting pan). */
+    /* 0x4C */ u8 pad4C[0x0C];
+    /* 0x58 */ s32 savedPitch;     /**< Saved pitch value for voice restore. */
+    /* 0x5C */ u8 pad5C[0x04];
+} SoundStream; /* 0x60 = 96 bytes */
+
 #endif /* SOUND_H */
