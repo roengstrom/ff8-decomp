@@ -3,6 +3,8 @@
 #include "overlay.h"
 #include "cd.h"
 
+extern CdReadState D_8008A3D8;
+
 void resetCdDrive(void);
 void setDiscNumber(s32 a0);
 
@@ -57,14 +59,14 @@ void setAudioVolume(s32 a0) {
  * @param a0 If nonzero, perform full CD hardware initialization.
  */
 void initCdSubsystem(s32 a0) {
-    extern u8 D_8008A3D8;
+
     extern s16 D_8008A3D0;
     extern u8 D_8008A3DA;
     s32 result;
     u8 buf;
 
-    D_8008A3D8 = 0;
-    (&D_8008A3D8)[1] = 0;
+    D_8008A3D8.flags = 0;
+    D_8008A3D8.status = 0;
     D_8008A3D0 = 0;
 
     if (a0 != 0) {
@@ -82,15 +84,15 @@ void initCdSubsystem(s32 a0) {
 
 /** @brief Clears bit 1 in global D_8008A3D8. */
 void clearCdBusyFlag(void) {
-    extern u8 D_8008A3D8;
-    D_8008A3D8 &= 0xFD;
+
+    D_8008A3D8.flags &= 0xFD;
 }
 
 
 /** @brief Sets bit 1 in global D_8008A3D8. */
 void setCdBusyFlag(void) {
-    extern u8 D_8008A3D8;
-    D_8008A3D8 |= 0x02;
+
+    D_8008A3D8.flags |= 0x02;
 }
 
 
@@ -200,7 +202,6 @@ s32 cdReadAsyncSync(void) {
  * 0xC (reset), then calls cdBreakRead to finalize.
  */
 void resetCdDrive(void) {
-    extern CdReadState D_8008A3D8;
     CdReadState *cd = &D_8008A3D8;
     u8 state = cd->status;
 

@@ -38,7 +38,7 @@ typedef struct {
  * parameters, destination buffer, callback pointer, and error counters.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00;
+    /* 0x00 */ u8 flags;             /**< Bit 1: busy flag. Cleared/set by clearCdBusyFlag/setCdBusyFlag. */
     /* 0x01 */ u8 status;          /**< State machine phase (0=idle, 0xB=complete, 0xC=reset). */
     /* 0x02 */ u8 pad02[2];
     /* 0x04 */ u8 params[4];       /**< CdControl parameters. */
