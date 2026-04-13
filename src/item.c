@@ -64,7 +64,7 @@ void markItemPresent(s32 a0) {
     } else {
         s32 idx = a0 - 0x4D;
         s32 byte_idx = idx / 8;
-        base->rareCards[byte_idx] |= 1 << (idx - byte_idx * 8);
+        base->rareCards[byte_idx] |= 1 << (idx % 8);
     }
     modifyItemQuantity(a0, 0xF0);
 }
@@ -147,7 +147,7 @@ s32 func_80023B14(s32 a0) {
     }
     idx = a0 - 0x4D;
     byte_idx = idx / 8;
-    if ((base->rareCards[byte_idx] >> (idx - byte_idx * 8)) & 1) {
+    if ((base->rareCards[byte_idx] >> (idx % 8)) & 1) {
         return base->cardLocations[a0 - 0x4D] == 0xF0;
     }
     return -1;
