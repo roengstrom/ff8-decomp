@@ -436,10 +436,7 @@ void setSfxField2F(s32 idx, s32 val) {
  *
  * @param idx SFX entry index.
  */
-void initSfxSlot(idx)
-
-s32 idx;
-{
+void initSfxSlot(s32 idx) {
     u8 *nullData = 0;
     SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->flags.fields.field14 = 0;

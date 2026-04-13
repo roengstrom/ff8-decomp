@@ -561,11 +561,7 @@ s32 giveCharacterMagic(CharacterId charIdx, MagicId magicId) {
  * @param abilityId Ability ID to search for; returns 0 if 0.
  * @return 1 if the ability is found in the character's junction list, 0 otherwise.
  */
-s32 hasJunctionedAbility(partySlot, abilityId)
-
-s32 partySlot;
-s32 abilityId;
-{
+s32 hasJunctionedAbility(s32 partySlot, s32 abilityId) {
     u8 slot_id;
     s32 i;
 

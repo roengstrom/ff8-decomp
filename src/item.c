@@ -19,17 +19,13 @@ TripleTriadData *getInventoryPtr(void) {
  * @return 0 on success, -1 if increment/decrement would overflow (max 100) or underflow (min 0).
  * @note Item quantities stored in lower 7 bits (0x7F mask). Upper bit may be a flag.
  */
-s32 modifyItemQuantity(a0, a1)
-
-s32 a0;
-s32 a1;
-{
-    u8 *base = (u8 *)getInventoryPtr();
+s32 modifyItemQuantity(s32 a0, s32 a1) {
+    TripleTriadData *base = getInventoryPtr();
     u8 *ptr;
     u8 val;
 
     if (a0 < 0x4D) {
-        ptr = &base[a0];
+        ptr = &base->cards[a0];
         if (a1 == 0xF0) {
             val = *ptr;
             if ((val & 0x7F) < 100) {
@@ -46,7 +42,7 @@ s32 a1;
             }
         }
     } else {
-        base[a0] = (u8)a1;
+        base->cardLocations[a0 - 0x4D] = (u8)a1;
     }
     return 0;
 }
@@ -152,7 +148,7 @@ s32 func_80023B14(s32 a0) {
     idx = a0 - 0x4D;
     byte_idx = idx / 8;
     if ((base->rareCards[byte_idx] >> (idx - byte_idx * 8)) & 1) {
-        return ((u8 *)base)[a0] == 0xF0;
+        return base->cardLocations[a0 - 0x4D] == 0xF0;
     }
     return -1;
 }
@@ -180,18 +176,18 @@ s32 sumItemQuantities(void) {
 
 
 /**
- * @brief Look up a byte from getInventoryPtr result table.
+ * @brief Look up a card location value.
  *
- * Calls getInventoryPtr(a0) to get a base pointer. If a0 >= 0x4D,
- * returns the byte at base[a0]; otherwise returns 0.
+ * Returns the card location byte for slot indices >= 0x4D;
+ * returns 0 for regular card slots.
  *
- * @param a0 Index value (also passed through to getInventoryPtr).
- * @return Byte at base[a0] if a0 >= 0x4D, else 0.
+ * @param a0 Card slot index.
+ * @return Card location value if a0 >= 0x4D, else 0.
  */
 s32 getKeyItemValue(s32 a0) {
-    u8 *base = (u8 *)getInventoryPtr(); /* raw byte access into struct */
+    TripleTriadData *base = getInventoryPtr();
     if (a0 >= 0x4D) {
-        return base[a0];
+        return base->cardLocations[a0 - 0x4D];
     }
     return 0;
 }
