@@ -48,4 +48,21 @@ typedef struct {
     u8 unk24C;              /**< 0x24C */
 } FieldEntity;              /* size >= 0x24D */
 
+/**
+ * @brief Field engine global state (pointed to by D_800562C4).
+ *
+ * Large runtime struct for field map state. Only partially mapped;
+ * fields are added as they are identified in decomped code.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x68];
+    /* 0x68 */ s32 stateFlags;          /**< Field state flags (bits 3-4 checked by getFieldStateFlags). */
+    /* 0x6C */ s32 soundHandle0;        /**< Sound channel handle 0. */
+    /* 0x70 */ s32 soundHandle1;        /**< Sound channel handle 1 (-1 = inactive). */
+    /* 0x74 */ u8 packedFlags[0x55];    /**< Packed 2-bit-per-entry flag table. */
+    /* 0xC9 */ u8 soundBankSelector;    /**< Sound bank toggle (0 or 1). */
+    /* 0xCA */ u8 padCA[0x0C];
+    /* 0xD6 */ u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
+} FieldEngineState;
+
 #endif /* FIELD_H */

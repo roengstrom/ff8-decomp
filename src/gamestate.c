@@ -3,11 +3,12 @@
 #include "overlay.h"
 #include "gamestate.h"
 #include "character.h"
+#include "field.h"
 
 extern u8 D_8007809B[];
 extern u8 g_chocoboWorld;
 extern u8 D_80085218;
-extern u8 *D_800562C4;
+extern FieldEngineState *D_800562C4;
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
 extern s32 D_80085220;
@@ -323,8 +324,8 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037C6C);
  */
 void stopAllSounds(void) {
     s32 val;
-    sndCmdC1(*(s32 *)(D_800562C4 + 0x6C), 15, 0);
-    val = *(s32 *)(D_800562C4 + 0x70);
+    sndCmdC1(D_800562C4->soundHandle0, 15, 0);
+    val = D_800562C4->soundHandle1;
     if (val != -1) {
         sndCmdC1(val, 15, 0);
     }
@@ -346,8 +347,8 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037D40);
  */
 u8 *toggleSoundBank(void) {
 
-    *(u8 *)(D_800562C4 + 0xC9) ^= 1;
-    if (*(s8 *)(D_800562C4 + 0xC9) == 0) {
+    D_800562C4->soundBankSelector ^= 1;
+    if ((s8)D_800562C4->soundBankSelector == 0) {
         return D_8005F388;
     }
     return D_80063388;
@@ -373,13 +374,13 @@ void loadSoundBankA(void) {
     result = func_80039728(D_80085220, 1, &size);
     sndProcessAudio(result, 1);
     result = func_80039728(D_80085220, 0, &size);
-    if (*(s8 *)(D_800562C4 + 0xC9) != 0) {
+    if ((s8)D_800562C4->soundBankSelector != 0) {
         table = D_8005F388;
     } else {
         table = D_80063388;
     }
     func_80039678((s32)table, result, size);
-    *(u8 *)(D_800562C4 + 0xD6) = 1;
+    D_800562C4->soundLoadComplete = 1;
 }
 
 
@@ -400,13 +401,13 @@ void loadSoundBankB(void) {
     result = func_80039728(D_80085220, 1, &size);
     sndProcessAudio(result, 1);
     result = func_80039728(D_80085220, 0, &size);
-    if (*(s8 *)(D_800562C4 + 0xC9) == 0) {
+    if ((s8)D_800562C4->soundBankSelector == 0) {
         table = D_8005F388;
     } else {
         table = D_80063388;
     }
     func_80039678((s32)table, result, size);
-    *(u8 *)(D_800562C4 + 0xD6) = 1;
+    D_800562C4->soundLoadComplete = 1;
 }
 
 
@@ -446,7 +447,7 @@ void clearEntityFlags(void) {
 
 /** @brief Returns bits 3-4 of the flags word at offset 0x68 through D_800562C4. */
 s32 getFieldStateFlags(void) {
-    return *(s32 *)(D_800562C4 + 0x68) & 0x18;
+    return D_800562C4->stateFlags & 0x18;
 }
 
 
@@ -461,9 +462,8 @@ s32 getFieldStateFlags(void) {
  * @return The 2-bit value (0-3) at the given index.
  */
 s32 getPackedField2Bit(s32 entryIdx) {
-    u8 *ptr = D_800562C4;
+    u8 *ptr = (u8 *)D_800562C4;
     s32 idx;
-
     entryIdx &= 0xFF;
     idx = entryIdx / 4;
     return (*(u8 *)(ptr + idx + 0x74) >> ((entryIdx - idx * 4) * 2)) & 3;
