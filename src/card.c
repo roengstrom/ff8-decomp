@@ -21,6 +21,10 @@ typedef struct {
 } GfLearnData;
 
 extern GfLearnData D_80079D78[];  /* g_gfData + 0xF78: GF learn tables */
+extern u8 g_gfData[];
+extern CharacterData g_characters[];
+extern u16 D_80078894;
+extern u8 D_800780B0[];
 
 /** @brief Ability slot entry in the 128-slot working buffer (2 bytes). */
 typedef struct {
@@ -39,6 +43,8 @@ typedef struct {
     u8 startIndex;     /**< First slot index in this category range. */
     u8 stride;         /**< Byte stride between entries in the data table. */
 } AbilityCategoryInfo;
+
+extern AbilityCategoryInfo D_80053C3C[];
 
 /**
  * @brief Output entry for GF ability list (8 bytes).
@@ -247,9 +253,6 @@ s32 getAbilityCategory(s32 slotIndex) {
  * @return Total number of available abilities.
  */
 s32 func_800369CC(s32 gfIndex, AbilityListEntry *output, s32 includeJunction) {
-    extern AbilityCategoryInfo D_80053C3C[];
-    extern u8 g_gfData[];
-
     AbilitySlot slots[128];
     s32 totalCount;
     s32 slotIndex;
@@ -303,8 +306,6 @@ s32 func_800369CC(s32 gfIndex, AbilityListEntry *output, s32 includeJunction) {
  * @param charIndex Character index (clamped to 0-7).
  */
 void func_80036B90(s32 charIndex) {
-    extern CharacterData g_characters[];
-    extern u16 D_80078894;
     CharacterData *chr;
     s32 i;
     u8 savedSlot;
@@ -400,7 +401,6 @@ void func_80036C74(void) {
  * @param mask Bitmask of characters allowed to remain in the party.
  */
 void func_80036D44(s32 mask) {
-    extern u8 D_800780B0[];
     u8 newSlots[3];
     u8 val;
     u8 *p;
@@ -563,7 +563,6 @@ void copyGfHpToSave(s32 gfIdx) {
  * @param charIdx Character index.
  */
 void func_80036FE0(s32 charIdx) {
-    extern u16 D_80078894;
     u8 saved[4];
     s32 i;
 

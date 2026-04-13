@@ -4,6 +4,14 @@
 #include "cd.h"
 
 extern CdReadState D_8008A3D8;
+extern u8 D_8001092C[];
+extern u8 D_8001093C[];
+extern u8 D_8001094C[];
+extern u8 D_8001095C[];
+extern s16 D_8008A3D0;
+extern s8 D_8008A3DA;
+extern u16 D_8008A3D2;
+extern u8 D_8008A3D9;
 
 void resetCdDrive(void);
 void setDiscNumber(s32 a0);
@@ -18,10 +26,6 @@ void setDiscNumber(s32 a0);
  * @return Disc number (1–4), or -1 on failure.
  */
 s32 detectDiscNumber(void) {
-    extern u8 D_8001092C[];
-    extern u8 D_8001093C[];
-    extern u8 D_8001094C[];
-    extern u8 D_8001095C[];
     u8 buf[24];
     VSync(30);
     if (CdSearchFile(buf, D_8001092C)) {
@@ -60,8 +64,6 @@ void setAudioVolume(s32 a0) {
  */
 void initCdSubsystem(s32 a0) {
 
-    extern s16 D_8008A3D0;
-    extern u8 D_8008A3DA;
     s32 result;
     u8 buf;
 
@@ -222,7 +224,6 @@ void resetCdDrive(void) {
  * byte D_8008A3D9 as 0xB (complete).
  */
 void resetCdDriveMode(void) {
-    extern s8 D_8008A3D9;
     CdControlB(0xE, 0, 0);
     VSync(3);
     CdControlB(8, 0, 0);
@@ -233,7 +234,6 @@ void resetCdDriveMode(void) {
 INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038A60);
 
 
-extern s8 D_8008A3DA;
 /**
  * @brief Get the current disc ID.
  * @return Disc identifier as a signed byte (D_8008A3DA).
@@ -242,9 +242,6 @@ s8 getDiscId(void) {
     return D_8008A3DA;
 }
 
-
-extern u16 D_8008A3D2;
-extern u8 D_8008A3D9;
 
 /**
  * @brief Set the current disc number.

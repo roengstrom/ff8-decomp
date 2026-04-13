@@ -66,6 +66,25 @@ typedef struct {
     u16 field_120;        /* 0x120 */
 } FieldEntity;
 
+extern u8 g_gameState[];
+extern volatile u16 g_vsyncRate;
+extern u16 g_currentMusicTrack;
+extern u8 D_8005F150;
+extern u8 D_8005F151;
+extern FieldEntity g_fieldEntity;
+extern u8 D_80067468[];
+extern CdFileDesc D_800974D8[];
+extern u8 D_8006A468[];
+extern u8 D_8005F188[];
+extern u8 D_80070468[];
+extern TILE g_clearTiles[];
+extern volatile u16 g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
+extern volatile u8 g_fadeMode; /* volatile for codegen match (forces reload each access) */
+extern u8 g_fadeCounter;
+extern DISPENV g_dispEnvs[];
+extern DRAWENV g_drawEnvs[];
+extern u32 g_orderingTablePtrs[];
+
 /** @brief Empty stub, called at the very start of main before initialization.
  *  @note Purpose uncertain — may be a debug hook or placeholder that was
  *        never filled in the retail build.
@@ -264,12 +283,6 @@ INCLUDE_ASM("asm/nonmatchings/main", func_80011870);
  *  state structure), g_vsyncRate (VSync rate), and fade state variables.
  */
 void RestoreSnapshot(void) {
-    extern u8 g_gameState[];
-    extern volatile u16 g_vsyncRate;
-    extern u16 g_currentMusicTrack;
-    extern u8 D_8005F150;
-    extern u8 D_8005F151;
-    extern FieldEntity g_fieldEntity;
     SnapshotBuf *buf;
     FieldEntity *entity;
 
@@ -355,9 +368,6 @@ void loadSecondaryData(void) {
  *     sndUploadSamples.
  */
 void initSoundEngine(void) {
-    extern u8 D_80067468[];
-    extern CdFileDesc D_800974D8[];
-
     sndInit();
 
     cdRead(D_800974D8[0].sector, D_800974D8[0].size, (s32)D_80067468, 0);
@@ -431,10 +441,6 @@ void initFieldModule(void) {
  *  6. Loads additional data and stores its pointer via setBattleEntityBase.
  */
 void initBattleAssets(void) {
-    extern CdFileDesc D_80097808[];
-    extern u8 D_8006A468[];
-    extern u8 D_8005F188[];
-
     loadCdOverlay();
     initBattleAnimSystem((s32)D_8006A468, 0x6000);
     loadAndUploadTextures();
@@ -501,7 +507,6 @@ INCLUDE_ASM("asm/nonmatchings/main", main);
  *            Value 2 (8-bit) is used from ProcessFade.
  */
 void SetupDrawMode(s32 a0) {
-    extern u8 D_80070468[];
     u16 tpage;
 
     tpage = GetTPage(0, a0, 0, 0);
@@ -516,7 +521,6 @@ void SetupDrawMode(s32 a0) {
  *  clearing during frame rendering.
  */
 void InitClearTiles(void) {
-    extern TILE g_clearTiles[];
     s32 i = 0;
     TILE *tile = &g_clearTiles[0];
 top:
@@ -548,8 +552,6 @@ top:
  *  implicit ptr-to-int, explicit stride).
  */
 void copyFramebuffer(void) {
-    extern DISPENV g_dispEnvs[];
-    extern volatile u16 g_bufferIndex; /* volatile for codegen match */
     s32 base;
     s32 ofs1;
 
@@ -576,14 +578,6 @@ void copyFramebuffer(void) {
  *            fade effects.
  */
 INCLUDE_ASM("asm/nonmatchings/main", BuildPrimList);
-
-extern volatile u16 g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
-extern volatile u8 g_fadeMode; /* volatile for codegen match (forces reload each access) */
-extern volatile u16 g_renderMode;
-extern u8 g_fadeCounter;
-extern DISPENV g_dispEnvs[];
-extern DRAWENV g_drawEnvs[];
-extern u32 g_orderingTablePtrs[];
 
 /** @brief Main frame rendering function with double-buffer swap and fade effects.
  *

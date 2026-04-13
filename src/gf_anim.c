@@ -5,6 +5,7 @@
 #include "gf.h"
 
 extern u8 D_80078DF8;
+extern u8 D_80082C10;
 
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
 
@@ -79,7 +80,6 @@ s32 hasCommandType6(u8 *a0) {
  *         (unless D_80082C10 bit 3 is set, which suppresses the magic flag).
  */
 s32 getMagicAvailFlags(BattleCharData *charData) {
-    extern u8 D_80082C10;
     s32 val = charData->statusFlags;
     s32 masked = val & 0x20000;
     s32 flag = masked != 0;

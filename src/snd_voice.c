@@ -1,6 +1,8 @@
 #include "common.h"
 #include "sound.h"
 
+extern u8 D_80073CB0[];
+
 void sndReleaseVoice(s32 a0);
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80014FFC);
@@ -92,7 +94,6 @@ INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015AC8);
  * @return The index of the freed voice, or 0x18 (24) if no voice is available.
  */
 s32 sndAllocVoice(void) {
-    extern u8 D_80073CB0[];
     u32 i;
     u16 min_val;
     u32 min_idx;
