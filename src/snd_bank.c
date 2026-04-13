@@ -167,30 +167,24 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017880);
  *
  * @param a0 SPU voice index to release (0-23).
  */
-void sndReleaseVoiceFromTracks(s32 a0) {
-    s32 base = (s32)D_80070D60;
-    s32 i = 32;
-    s32 replacement = 24;
-    s32 ptr = base + 0xF4;
-    do {
-        if (*(s32 *)ptr == a0) {
-            *(s32 *)ptr = replacement;
-        }
-        i--;
-        ptr += 0x110;
-    } while (i != 0);
+void sndReleaseVoiceFromTracks(s32 voiceId) {
+    s32 i;
+    SoundSeqTrack *track;
+
+    track = (SoundSeqTrack *)D_80070D60;
+    for (i = 32; i != 0; i--) {
+        if (track->voiceMask == voiceId)
+            track->voiceMask = 0x18;
+        track++;
+    }
+
     if (D_80073CA8 != 0) {
-        base = (s32)D_80073C34;
-        i = 32;
-        replacement = 24;
-        ptr = base + 0xF4;
-        do {
-            if (*(s32 *)ptr == a0) {
-                *(s32 *)ptr = replacement;
-            }
-            i--;
-            ptr += 0x110;
-        } while (i != 0);
+        track = (SoundSeqTrack *)D_80073C34;
+        for (i = 32; i != 0; i--) {
+            if (track->voiceMask == voiceId)
+                track->voiceMask = 0x18;
+            track++;
+        }
     }
 }
 
