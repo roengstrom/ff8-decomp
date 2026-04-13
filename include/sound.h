@@ -47,7 +47,8 @@ typedef struct {
     /* 0x6E */ u16 pad6E;
     /* 0x70 */ u8 pad70[16];
     /* 0x80 */ u16 pitchBend;
-    /* 0x82 */ u8 pad82[4];
+    /* 0x82 */ u8 pad82[2];
+    /* 0x84 */ u16 pitchFadeCounter;
     /* 0x86 */ u16 panFade;
     /* 0x88 */ u16 panFadeTarget;
     /* 0x8A */ u16 exprFade;

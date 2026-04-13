@@ -440,23 +440,18 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001966C);
  *
  * @param a0 Pointer to a byte containing the note value.
  */
-void func_800197F4(u8 *a0) {
-    s32 i = 12;
-    s32 mask = 0x2000000;
-    s32 base = (s32)&D_80072F70;
-    s32 ptr = base + 0xF8;
-top:
-    if (!(*(s32 *)(ptr - 0xD4) & mask)) {
-        s32 val = *a0;
-        s32 flags = *(s32 *)ptr;
-        *(u16 *)(ptr - 0x74) = 0;
-        val <<= 8;
-        *(s32 *)(ptr - 0xBC) = val;
-        *(s32 *)ptr = flags | 0x10;
+void func_800197F4(u8 *param) {
+    s32 i;
+    SoundSeqTrack *track = (SoundSeqTrack *)D_80072F70;
+
+    for (i = 12; i != 0; i--) {
+        if (!(track->keyOnMask & 0x2000000)) {
+            track->loopLimit = *param << 8;
+            track->pitchFadeCounter = 0;
+            track->updateFlags |= 0x10;
+        }
+        track++;
     }
-    i--;
-    ptr += 0x110;
-    if (i != 0) goto top;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001984C);
