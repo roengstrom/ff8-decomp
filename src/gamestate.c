@@ -462,11 +462,8 @@ s32 getFieldStateFlags(void) {
  * @return The 2-bit value (0-3) at the given index.
  */
 s32 getPackedField2Bit(s32 entryIdx) {
-    u8 *ptr = (u8 *)D_800562C4;
-    s32 idx;
     entryIdx &= 0xFF;
-    idx = entryIdx / 4;
-    return (*(u8 *)(ptr + idx + 0x74) >> ((entryIdx - idx * 4) * 2)) & 3;
+    return (D_800562C4->packedFlags[entryIdx / 4] >> ((entryIdx % 4) * 2)) & 3;
 }
 
 
