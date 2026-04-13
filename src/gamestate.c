@@ -1,11 +1,12 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
+#include "gamestate.h"
+#include "character.h"
 
 extern u8 D_8007809B[];
 extern u8 g_chocoboWorld;
 extern u8 D_80085218;
-extern u8 g_gameState[];
 extern u8 *D_800562C4;
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
@@ -257,72 +258,55 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B44);
 INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B7C);
 
 /**
- * @brief Search g_gameState party slots (offset 0xD38) for a matching byte.
- *
- * Iterates through 3 bytes at g_gameState[0xD38..0xD3A] looking for
- * a match with the low byte of a0.
- *
- * @param a0 Value to search for (low 8 bits used).
+ * @brief Search battle party slots for a matching character ID.
+ * @param characterId Character ID to search for.
  * @return Slot index (0-2) if found, 0xFF if not found.
  */
-s32 findBattlePartySlot(s32 charId) {
-    s32 i = 0;
-    s32 base = (s32)g_gameState;
-    charId &= 0xFF;
-    do {
-        if (*(u8 *)(i + base + 0xD38) == charId) { /* battleParty[i] */
-            return (u8)i;
+u8 findBattlePartySlot(u8 characterId) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        if (g_gameState.battleParty[i] == characterId) {
+            return i;
         }
-        i++;
-    } while (i < 3);
+    }
+
     return 0xFF;
 }
 
 
 /**
- * @brief Search g_gameState slots (offset 0xAF4) for a matching byte.
- *
- * Iterates through 3 bytes at g_gameState[0xAF4..0xAF6] looking for
- * a match with the low byte of a0.
- *
- * @param a0 Value to search for (low 8 bits used).
+ * @brief Search active party slots for a matching character ID.
+ * @param characterId Character ID to search for.
  * @return Slot index (0-2) if found, 0xFF if not found.
  */
-s32 findPartySlot(s32 charId) {
-    s32 i = 0;
-    s32 base = (s32)g_gameState;
-    charId &= 0xFF;
-    do {
-        if (*(u8 *)(i + base + 0xAF4) == charId) { /* party.party[i] */
-            return (u8)i;
+u8 findPartySlot(u8 characterId) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        if (g_gameState.mainData.party.party[i] == characterId) {
+            return i;
         }
-        i++;
-    } while (i < 3);
+    }
+
     return 0xFF;
 }
 
 
 /**
- * @brief Search for a card value in the hand slots.
- *
- * Iterates through 8 hand slots (stride 0x98 in g_gameState, offset 0x498)
- * looking for a match with the low byte of a0.
- *
- * @param a0 Card value to search for (low 8 bits used).
+ * @brief Search character slots for a matching character ID.
+ * @param characterId Character ID to search for.
  * @return Slot index (0-7) if found, 0xFF if not found.
  */
-s32 findCharacterSlot(s32 charId) {
-    s32 i = 0;
-    s32 base;
-    charId &= 0xFF;
-    base = (s32)g_gameState;
-    do {
-        if (*(u8 *)(base + 0x498) == charId) { /* chars[i].characterId */
-            return (u8)i;
+u8 findCharacterSlot(u8 characterId) {
+    s32 i;
+
+    for (i = 0; i < 8; i++) {
+        if (g_gameState.chars[i].characterId == characterId) {
+            return i;
         }
-        i++;
-        base += 0x98;
-    } while (i < 8);
+    }
+
     return 0xFF;
 }
 
