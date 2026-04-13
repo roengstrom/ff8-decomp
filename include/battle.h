@@ -197,6 +197,22 @@ typedef struct {
     u8 separator;              /* 0x10: thousands separator character */
 } MsgFormatConfig;
 
+/** @brief Message state struct passed to decode/advance functions.
+ *
+ * Accessed as s32[] array in some functions, with a u8 skip count at +0x22.
+ * Fields at +0x00..+0x07 are unknown; +0x08 is the stream pointer,
+ * +0x0C is the stored/output pointer.
+ */
+typedef struct {
+    s32 unk00;                  /* 0x00 */
+    s32 unk04;                  /* 0x04 */
+    s32 streamPtr;              /* 0x08: current stream pointer (a0[2]) */
+    s32 storedPtr;              /* 0x0C: stored/output pointer (a0[3]) */
+    u8 pad10[0x12];             /* 0x10 */
+    u8 skipCount;               /* 0x22: number of control codes to skip */
+    u8 pad23[1];                /* 0x23: pad to 0x24 */
+} MsgState;
+
 typedef enum {
     CTRL_ACTIVE     = 0x01,
     CTRL_FLAG_02    = 0x02,

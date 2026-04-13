@@ -178,7 +178,7 @@ u16 getAnimFrameParam(s32 idx, s32 offset) {
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
-    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x1E); /* frames[sub_idx].field02 */
+    return ((AnimFrame *)((u8 *)linked + 0x1C))[sub_idx].field02;
 }
 
 
@@ -194,30 +194,26 @@ u16 getAnimFrameStatusFlags(s32 idx, s32 offset) {
     BattleAnimEntity *entry;
     BattleAnimEntity *linked;
     s32 sub_idx;
-    s32 off;
-    u8 *p;
+    AnimFrame *frame;
     idx &= 1;
     base = g_battleAnims.entities;
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
-    off = sub_idx * 20 + 0x1C;
-    p = (u8 *)linked + off;
-    return *(u16 *)(p + 8) | *(u16 *)(p + 0xA) | *(u16 *)(p + 0xC) | *(u16 *)(p + 0xE);
+    frame = &linked->frames[sub_idx];
+    return frame->field08 | frame->field0A | frame->field0C | frame->field0E;
 }
 
 
 /**
- * @brief Get a 16-bit animation frame value at offset 0x2C from a linked entity's frame buffer.
+ * @brief Get field10 from a linked entity's animation frame.
  *
- * Uses the low bit of a0 as an index into g_battleAnims (stride 196).
- * Reads linkedIdx at offset 0xC2, then resolves the linked entity.
- * Computes (frameCounter - offset) & 7 to index into frames[],
- * and returns the halfword at offset 0x2C within that frame.
+ * Same lookup pattern as getAnimFrameParam: resolves via linkedIdx,
+ * indexes into frames[] circular buffer, but returns field10.
  *
  * @param idx Entity index (only bit 0 used).
  * @param offset Frame offset subtracted from the current frame counter.
- * @return Halfword at frames[sub_idx].field10 (offset 0x2C).
+ * @return field10 of the resolved AnimFrame.
  */
 u16 func_80027A58(s32 idx, s32 offset) {
     BattleAnimEntity *base;
@@ -229,19 +225,19 @@ u16 func_80027A58(s32 idx, s32 offset) {
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
-    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x2C);
+    return ((AnimFrame *)((u8 *)linked + 0x1C))[sub_idx].field10;
 }
 
 
 /**
- * @brief Get a 16-bit animation frame value at offset 0x2E from a linked entity's frame buffer.
+ * @brief Get field12 from a linked entity's animation frame.
  *
- * Identical to func_80027A58 but returns the halfword at offset 0x2E
- * within the resolved animation frame.
+ * Same lookup pattern as getAnimFrameParam: resolves via linkedIdx,
+ * indexes into frames[] circular buffer, but returns field12.
  *
  * @param idx Entity index (only bit 0 used).
  * @param offset Frame offset subtracted from the current frame counter.
- * @return Halfword at frames[sub_idx].field12 (offset 0x2E).
+ * @return field12 of the resolved AnimFrame.
  */
 u16 func_80027AC8(s32 idx, s32 offset) {
     BattleAnimEntity *base;
@@ -253,7 +249,7 @@ u16 func_80027AC8(s32 idx, s32 offset) {
     entry = base + idx;
     linked = base + entry->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
-    return *(u16 *)((u8 *)linked + sub_idx * 20 + 0x2E);
+    return ((AnimFrame *)((u8 *)linked + 0x1C))[sub_idx].field12;
 }
 
 

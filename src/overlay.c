@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "gamestate.h"
 #include "overlay.h"
 
 
@@ -274,31 +275,29 @@ INCLUDE_ASM("asm/nonmatchings/overlay", func_8003646C);
 
 /** @brief Initialize or reset card hand slot states.
  *
- *  If @p a0 is non-zero, sets g_gameState[0x498] = 8 and sets bit 0 of
- *  g_gameState[0xD22]. If @p a0 is zero, clears bit 0 of g_gameState[0xD22]
- *  and fills 8 slots (stride 0x98) with descending index values (7 down to 0).
+ *  If @p a0 is non-zero, sets chars[0].characterId to 8 and sets bit 0 of
+ *  mainData.partyLockFlag. If @p a0 is zero, clears bit 0 of partyLockFlag
+ *  and fills all 8 character slots with descending index values (7 down to 0).
  *
- *  @param a0 Non-zero to set single slot, zero to reset all 8 slots.
+ *  @param a0 Non-zero to set single slot, zero to reset all 8 character slots.
  */
 void resetCardSlots(s32 a0) {
-    extern u8 g_gameState[];
-
     if (a0 != 0) {
-        s32 base = (s32)g_gameState;
-        u8 flags = *(u8 *)(base + 0xD22); /* misc2 card flags */
-        *(u8 *)(base + 0x498) = 8;        /* chars[0].characterId */
-        *(u8 *)(base + 0xD22) = flags | 1;
+        s32 base = (s32)&g_gameState;
+        u8 flags = *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E); /* mainData.partyLockFlag */
+        *(u8 *)(base + GAMESTATE_PERSOS_OFFSET + 0x08) = 8;             /* chars[0].characterId */
+        *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E) = flags | 1;
     } else {
         s32 base;
         s32 ptr;
         a0 = 7;
-        base = (s32)g_gameState;
-        *(u8 *)(base + 0xD22) = *(u8 *)(base + 0xD22) & 0xFE;
-        ptr = base + 0x428;
+        base = (s32)&g_gameState;
+        *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E) = *(u8 *)(base + GAMESTATE_PARTY_DATA_OFFSET + 0x22E) & 0xFE;
+        ptr = base + (CHARACTER_COUNT - 1) * sizeof(CharacterData);
         do {
-            *(u8 *)(ptr + 0x498) = a0; /* chars[i].characterId */
+            *(u8 *)(ptr + GAMESTATE_PERSOS_OFFSET + 0x08) = a0; /* chars[a0].characterId */
             a0--;
-            ptr -= 0x98; /* sizeof(CharacterData) */
+            ptr -= sizeof(CharacterData);
         } while (a0 >= 0);
     }
 }

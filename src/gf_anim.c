@@ -1,6 +1,7 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gamestate.h"
 #include "gf.h"
 
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
@@ -31,19 +32,18 @@ void initGfAnimEntry(u8 *a0, s32 a1, s32 a2) {
 
 /**
  * @brief Accumulate status immunity flags as an RGB-packed bitmask from a character's equipped abilities.
- * @param a0 Character slot index (stride 152 in g_gameState).
+ * @param a0 Character slot index into g_gameState.chars[].
  * @return Packed bitmask: (B << 16) | (G << 8) | R, OR'd across up to 4 matching ability slots.
- * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x3A..0x4D are looked up
- *       in g_gfData (stride 8, offsets 0x42B5/B6/B7 for R/G/B status immunity bytes).
+ * @note Abilities in range 0x3A..0x4D are status immunity abilities; each has R/G/B
+ *       immunity bytes looked up from g_gfData.abilityRangeL[].
  */
 s32 getStatusImmunityFlags(s32 a0) {
-    extern u8 g_gameState[];
     s32 result = 0;
     s32 i = 0;
-    s32 base1 = (s32)g_gameState;
-    s32 off = base1 + a0 * 152;
+    s32 base = (s32)&g_gameState;
+    s32 off = base + a0 * sizeof(CharacterData);
     do {
-        s32 val = *(u8 *)(off + i + 0x4E4);
+        s32 val = *(u8 *)(off + i + GAMESTATE_PERSOS_OFFSET + 0x54); /* chars[a0].abilities[i] */
         s32 idx = val - 0x3A;
         if ((u32)idx < 0x14) {
             u8 b = g_gfData.abilityRangeL[idx].extraField;
@@ -95,20 +95,19 @@ s32 getMagicAvailFlags(BattleCharData *charData) {
 
 /**
  * @brief Apply party ability flags from a character's equipped abilities to g_battleChars.
- * @param a0 Character slot index (stride 152 in g_gameState).
- * @note Checks 4 ability slots (offsets 0x4E4..0x4E7). Abilities in range 0x4E..0x52 are looked up
- *       in g_gfData (stride 8, offset 0x4355) and OR'd into g_battleChars offset 0x6D8.
- *       Likely enables field/world abilities (e.g., encounter-none, rare-item).
+ * @param a0 Character slot index into g_gameState.chars[].
+ * @note Abilities in range 0x4E..0x52 are party abilities; each value is looked up
+ *       in g_gfData.abilityRangeM[] and OR'd into g_battleChars party ability flags
+ *       at offset 0x6D8. Likely enables field/world abilities (encounter-none, rare-item).
  */
 void applyPartyAbilityFlags(s32 a0) {
-    extern u8 g_gameState[];
     s32 i = 0;
-    s32 base1 = (s32)g_gameState;
+    s32 base = (s32)&g_gameState;
     s32 base3;
-    s32 off = base1 + a0 * 152;
+    s32 off = base + a0 * sizeof(CharacterData);
     base3 = (s32)&g_battleChars;
     do {
-        s32 val = *(u8 *)(off + i + 0x4E4);
+        s32 val = *(u8 *)(off + i + GAMESTATE_PERSOS_OFFSET + 0x54); /* chars[a0].abilities[i] */
         s32 idx = val - 0x4E;
         if ((u32)idx < 5) {
             *(u8 *)(base3 + 0x6D8) |= g_gfData.abilityRangeM[idx].typeField;
@@ -214,44 +213,43 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_8002363C);
 
 /**
  * @brief Iterate over 16 GF entries and recalculate stats for each active one.
- * @note Checks g_gameState entries (stride 0x44) for bit 0 of field 0x61 (active flag).
+ * @note Checks each GfSaveData.exists for bit 0 (active flag).
  *       Calls func_8002363C for each active GF to recalculate its derived stats.
  */
 void recalcAllGfStats(void) {
-    extern u8 g_gameState[];
     s32 i = 0;
-    u8 *ptr = g_gameState;
+    u8 *ptr = (u8 *)&g_gameState;
     do {
-        if (ptr[0x61] & 1) {
+        if (ptr[GAMESTATE_GFS_OFFSET + 0x11] & 1) { /* gfs[i].exists */
             func_8002363C(i);
         }
         i++;
-        ptr += 0x44;
-    } while (i < 16);
+        ptr += sizeof(GfSaveData);
+    } while (i < GF_COUNT);
 }
 
 
 /**
  * @brief Recalculate stats for all 3 party members and their GFs.
- * @note Resets D_80078DF8, then for each of the 3 party slots calls func_80022E08 and
- *       func_800231E0 to recalculate character stats. Finally calls recalcAllGfStats for GFs.
+ * @note Resets D_80078DF8, then for each of the 3 party slots reads the
+ *       character ID from g_gameState.mainData.party.party[i] and calls
+ *       func_80022E08 and func_800231E0. Finally calls recalcAllGfStats for GFs.
  */
 void recalcPartyStats(void) {
     extern u8 D_80078DF8;
-    extern u8 g_gameState[];
     s32 i;
     s32 base;
     s32 ptr;
 
     D_80078DF8 = 0;
     i = 0;
-    base = (s32)g_gameState;
+    base = (s32)&g_gameState;
     do {
         ptr = i + base;
-        func_80022E08(*(u8 *)(ptr + 0xAF4), i);
-        func_800231E0(*(u8 *)(ptr + 0xAF4), i);
+        func_80022E08(*(u8 *)(ptr + GAMESTATE_PARTY_DATA_OFFSET), i); /* party.party[i] */
+        func_800231E0(*(u8 *)(ptr + GAMESTATE_PARTY_DATA_OFFSET), i); /* party.party[i] */
         i++;
-    } while (i < 3);
+    } while (i < PARTY_SLOT_COUNT);
     recalcAllGfStats();
 }
 

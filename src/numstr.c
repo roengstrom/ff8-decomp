@@ -374,23 +374,23 @@ INCLUDE_ASM("asm/nonmatchings/numstr", decodeMessage);
 /**
  * @brief Skip past control codes in the message stream and decode the remaining message.
  *
- * Reads skip count from offset 0x22 and stream pointer from offset 0x8 of the
- * input structure. Calls func_8002F548 skip-count times to advance past that
- * many type-2 delimiters. Then calls decodeMessage with the current position
- * and stores the stream pointer at offset 0xC.
+ * Reads skipCount and streamPtr from the MsgState structure.
+ * Calls func_8002F548 skipCount times to advance past that many type-2
+ * delimiters. Then calls decodeMessage with the current position and stores
+ * the result in storedPtr.
  *
  * @param a0 Pointer to the message state structure.
  * @param a1 Output buffer for decodeMessage.
  */
 void func_8002FD28(s32 *a0, u8 *a1) {
-    s32 skip = *(u8 *)((u8 *)a0 + 0x22);
-    u8 *stream = (u8 *)a0[2];
+    s32 skip = ((MsgState *)a0)->skipCount;
+    u8 *stream = (u8 *)((MsgState *)a0)->streamPtr;
     while (skip > 0) {
         stream = func_8002F548(stream);
         skip--;
     }
     decodeMessage((s32)stream, (s32)a1, -1);
-    a0[3] = (s32)stream;
+    ((MsgState *)a0)->storedPtr = (s32)stream;
 }
 
 
