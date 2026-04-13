@@ -110,6 +110,12 @@ typedef struct {
     /* 0x0E */ u16 adsrHigh;      /**< ADSR envelope high halfword. */
 } SndInstrument; /* 16 bytes */
 
+/** @brief Voice pool entry (D_80074F20, stride 16 bytes). */
+typedef struct {
+    /* 0x00 */ s32 field0;
+    /* 0x04 */ u8 pad04[12];
+} VoicePoolEntry; /* 16 bytes */
+
 /**
  * @brief SPU voice parameter block passed to func_800150A8.
  *

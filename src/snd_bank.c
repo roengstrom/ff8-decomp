@@ -8,7 +8,7 @@ extern u8 *D_80073C34;
 extern s32 *D_80074F08;
 extern s32 D_80074EB0;
 extern u8 *D_80074ED8;
-extern u8 D_80074F20;
+extern VoicePoolEntry D_80074F20[12];
 extern u16 D_80074FE4;
 extern s32 D_80075078;
 extern u8 D_80072F70[];
@@ -349,12 +349,10 @@ void sndStopTrack(s32 *a0) {
  * Writes zero to offset 0 of each entry, iterating backward.
  */
 void sndClearVoicePool(void) {
-    s32 i = 12;
-    s32 base = (s32)&D_80074F20;
-top:
-    i--;
-    *(s32 *)(base + i * 16) = 0;
-    if (i != 0) goto top;
+    s32 i;
+    for (i = 12; i != 0; i--) {
+        D_80074F20[i - 1].field0 = 0;
+    }
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018908);
