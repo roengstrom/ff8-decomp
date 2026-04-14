@@ -1062,7 +1062,37 @@ void rebuildJunctionFlags(s32 charIdx) {
  *
  * @param gfBitmask Bitmask indicating which characters are active.
  */
-INCLUDE_ASM("asm/ovl/menujnc2/nonmatchings/menujnc2", initJunctionChars);
+void initJunctionChars(s32 mask) {
+    s32 i, j;
+    u8 *pairs;
+    u8 a, b;
+    s32 bit;
+
+    for (i = 0; i < 8; i++) {
+        g_junctionChars[i].availFlags = 0;
+        g_junctionChars[i].currentHp = 0;
+        g_junctionChars[i].junctedGfs = 0;
+        g_junctionChars[i].abilityCount[0] = 0;
+        g_junctionChars[i].abilityCount[1] = 0;
+        g_junctionChars[i].unk0A = 0;
+        g_junctionChars[i].gfCompat = 0;
+
+        pairs = (u8 *)g_gameState.chars[i].magic;
+        for (j = 0; j < 32; j++) {
+            a = *pairs++;
+            b = *pairs++;
+            if (a != 0 && b != 0) {
+                g_junctionChars[i].gfCompat++;
+            }
+        }
+
+        bit = 1 << i;
+        if (mask & bit) {
+            g_junctionChars[i].currentHp = g_gameState.chars[i].currentHp;
+            g_junctionChars[i].junctedGfs = g_gameState.chars[i].junctedGfs;
+        }
+    }
+}
 
 /**
  * @brief Render stat effectiveness indicator bar.
