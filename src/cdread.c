@@ -330,5 +330,4 @@ u8 func_800393C8(void) {
     return D_8008A3D8.status;
 }
 
-INCLUDE_ASM("asm/nonmatchings/cdread", D_80039418); /* LZSS coroutine state (BSS-in-text) */
 
