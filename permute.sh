@@ -16,14 +16,12 @@ PERMUTER_DIR="${SCRIPT_DIR}/tools/decomp-permuter"
 WORK_DIR="${SCRIPT_DIR}/permuter"
 
 # Toolchain (must match Makefile)
-WIBO="${SCRIPT_DIR}/tools/wibo"
-PSYQ41_DIR="${SCRIPT_DIR}/tools/psyq4.1"
-PSYQ43_DIR="${SCRIPT_DIR}/tools/psyq4.3"
-CCPSX_DRIVER="${WIBO} ${PSYQ41_DIR}/CCPSX.EXE"
+CPP="/usr/bin/cpp"
+PSYQ41_CC1="${SCRIPT_DIR}/tools/gcc-2.7.2-cdk/cc1"
+PSYQ43_CC1="${SCRIPT_DIR}/tools/gcc-2.8.0-psx/cc1"
 MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 AS="mipsel-linux-gnu-as"
 
-CCPSXFLAGS="-O2 -G0"
 ASFLAGS="-march=r3000 -mabi=32 -EL -no-pad-sections -O0 -Iinclude"
 
 # Sources compiled without -G0 (must match Makefile NO_G0_SRCS)
@@ -132,14 +130,14 @@ if [[ -z "${PSYQ_VER}" ]]; then
     done
 fi
 
-# Select toolchain based on PsyQ version
+# Select compiler based on PsyQ version
 case "${PSYQ_VER}" in
     4.1)
-        PSYQ_DIR="${PSYQ41_DIR}"
+        CC1="${PSYQ41_CC1}"
         ASPSX_VER="2.67"
         ;;
     4.3)
-        PSYQ_DIR="${PSYQ43_DIR}"
+        CC1="${PSYQ43_CC1}"
         ASPSX_VER="2.77"
         ;;
     *)
@@ -205,9 +203,8 @@ COMPILE_EOF
 # Append the toolchain paths using the resolved script dir
 cat >> "${FUNC_DIR}/compile.sh" <<EOF
 DIR="${SCRIPT_DIR}"
-WIBO="${WIBO}"
-PSYQ_DIR="${PSYQ_DIR}"
-CCPSX="${CCPSX_DRIVER}"
+CPP="/usr/bin/cpp"
+CC1="${CC1}"
 MASPSX="python3 ${SCRIPT_DIR}/tools/maspsx/maspsx.py"
 ASPSX_VER="${ASPSX_VER}"
 COMPILE_FLAGS="${COMPILE_FLAGS}"
@@ -217,15 +214,19 @@ EOF
 
 cat >> "${FUNC_DIR}/compile.sh" <<'COMPILE_EOF'
 
+# Resolve input/output to absolute paths before changing directories
+INPUT_ABS="$(realpath "${INPUT}")"
+OUTPUT_ABS="$(realpath -m "${OUTPUT}")"
+
 TMPDIR=$(mktemp -d)
 trap "rm -rf ${TMPDIR}" EXIT
 cd "${TMPDIR}"
 
-# Compile with CCPSX -S → maspsx → GAS → .o (matches build system)
-SN_PATH="${PSYQ_DIR}" ${CCPSX} -S -I"${DIR}/include" -DPERMUTER \
-    ${COMPILE_FLAGS} "${INPUT}" -o "out.s"
+# Compile with cpp → cc1 → maspsx → GAS → .o (matches build system)
+${CPP} -E -lang-c -nostdinc -I"${DIR}/include" -DPERMUTER "${INPUT_ABS}" -o "out.i"
+${CC1} -quiet ${COMPILE_FLAGS} "out.i" -o "out.s"
 cat out.s | ${MASPSX} --aspsx-version=${ASPSX_VER} --run-assembler \
-    ${ASFLAGS} -o "${OUTPUT}"
+    ${ASFLAGS} -o "${OUTPUT_ABS}"
 COMPILE_EOF
 
 chmod +x "${FUNC_DIR}/compile.sh"

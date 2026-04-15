@@ -2,10 +2,9 @@
 # Target: SLUS_008.92 (Final Fantasy VIII, USA)
 
 ### Toolchain ###
-WIBO       := tools/wibo
-PSYQ41_DIR := tools/psyq4.1
-PSYQ43_DIR := tools/psyq4.3
-CCPSX      := $(WIBO) $(PSYQ41_DIR)/CCPSX.EXE
+CPP        := /usr/bin/cpp
+PSYQ41_CC1 := tools/gcc-2.7.2-cdk/cc1
+PSYQ43_CC1 := tools/gcc-2.8.0-psx/cc1
 AS         := mipsel-linux-gnu-as
 LD         := mipsel-linux-gnu-ld
 OBJCOPY    := mipsel-linux-gnu-objcopy
@@ -23,7 +22,7 @@ TARGET     := original/SLUS_008.92
 LD_SCRIPT  := config/slus_008.92.ld
 
 ### Compiler flags ###
-CCPSXFLAGS := -O2 -G0
+CC_FLAGS := -O2 -G0
 
 # Set NON_MATCHING=1 to compile C decomps that don't byte-match yet
 # (e.g. due to ASPSX vs GAS assembler differences)
@@ -31,18 +30,10 @@ ifdef NON_MATCHING
 NON_MATCHING_FLAGS := -DNON_MATCHING
 endif
 
-### Per-toolchain settings ###
-# PsyQ 4.0: gcc 2.7.2-970404 + aspsx 2.56
-PSYQ40_SN_PATH   := $(PSYQ41_DIR)
-PSYQ40_MASPSXFLAGS := --aspsx-version=2.56
-
-# PsyQ 4.1: gcc 2.7.2-970404 + aspsx 2.67
-PSYQ41_SN_PATH   := $(PSYQ41_DIR)
-PSYQ41_MASPSXFLAGS := --aspsx-version=2.67
-
-# PsyQ 4.3: gcc 2.8.0 + aspsx 2.77
-PSYQ43_SN_PATH   := $(PSYQ43_DIR)
-PSYQ43_MASPSXFLAGS := --aspsx-version=2.77
+### Per-toolchain maspsx settings (aspsx-version controls pseudo-instruction expansion) ###
+PSYQ40_MASPSXFLAGS := --aspsx-version=2.56  # used by O0_SRCS
+PSYQ41_MASPSXFLAGS := --aspsx-version=2.67  # default for PsyQ 4.1 sources
+PSYQ43_MASPSXFLAGS := --aspsx-version=2.77  # used by PSYQ43_SRCS
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
 PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c src/snd_cmd.c
@@ -87,7 +78,7 @@ BUILT_EXE := $(BUILD_DIR)/SLUS_008.92
 ASM_SRCS := $(wildcard $(ASM_DIR)/*.s) $(wildcard $(ASM_DIR)/data/*.s)
 ASM_OBJS := $(patsubst $(ASM_DIR)/%.s,$(BUILD_DIR)/$(ASM_DIR)/%.o,$(ASM_SRCS))
 
-# C sources (compiled via CCPSX -S → maspsx → GAS)
+# C sources (compiled via cpp → cc1 → maspsx → GAS)
 C_SRCS := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/psxsdk/*.c) $(wildcard $(SRC_DIR)/psxsdk/*/*.c)
 C_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/$(SRC_DIR)/%.o,$(C_SRCS))
 
@@ -104,15 +95,16 @@ $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 	@mkdir -p $(dir $@)
 	$(AS) $(ASFLAGS) -o $@ $<
 
-# Compile C: CCPSX -S → maspsx → GAS → .o
-# Select PsyQ 4.1 or 4.3 based on whether the source is in PSYQ43_SRCS
-# Select -G0 or no -G0 based on whether the source is in NO_G0_SRCS
+# Compile C: cpp → cc1 → maspsx → GAS → .o
+# PsyQ 4.1 uses gcc-2.7.2-cdk (cygnus-2.7.2-970404 SN32.3.7)
+# PsyQ 4.3 uses gcc-2.8.0-psx (gcc 2.8.0)
 $(BUILD_DIR)/$(SRC_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
+	$(CPP) -E -lang-c -nostdinc -Iinclude $(NON_MATCHING_FLAGS) $< -o $(BUILD_DIR)/$(*F).i && \
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
-		SN_PATH=$(PSYQ43_SN_PATH) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS))) $< -o $(BUILD_DIR)/$(*F).s && \
+		$(PSYQ43_CC1) -quiet $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CC_FLAGS))) $(BUILD_DIR)/$(*F).i -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
-		SN_PATH=$(if $(filter $<,$(O0_SRCS)),$(PSYQ40_SN_PATH),$(PSYQ41_SN_PATH)) $(CCPSX) -S -Iinclude $(NON_MATCHING_FLAGS) $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CCPSXFLAGS)))) $< -o $(BUILD_DIR)/$(*F).s && \
+		$(PSYQ41_CC1) -quiet $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CC_FLAGS)))) $(BUILD_DIR)/$(*F).i -o $(BUILD_DIR)/$(*F).s && \
 		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(if $(filter $<,$(O0_EXPAND_LI_SRCS)),,$(if $(filter $<,$(O0_SRCS)),$(PSYQ40_MASPSXFLAGS),$(PSYQ41_MASPSXFLAGS))) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
@@ -188,16 +180,10 @@ ifndef FUNC
 endif
 	./permute.sh $(FUNC)
 
-# Download PsyQ toolchains (wibo + CCPSX binaries)
+# Download Linux-native PsyQ compilers from decomp.me's ghcr.io compiler images
 setup-toolchain:
-	curl -L -o tools/wibo https://github.com/decompals/wibo/releases/download/1.0.1/wibo-x86_64
-	chmod +x tools/wibo
-	curl -L -o /tmp/psyq4.1.tar.gz https://github.com/mkst/esa/releases/download/psyq-binaries/psyq4.1.tar.gz
-	mkdir -p tools/psyq4.1
-	tar xzf /tmp/psyq4.1.tar.gz --strip-components=1 -C tools/psyq4.1
-	curl -L -o /tmp/psyq4.3.tar.gz https://github.com/mkst/esa/releases/download/psyq-binaries/psyq4.3.tar.gz
-	mkdir -p tools/psyq4.3
-	tar xzf /tmp/psyq4.3.tar.gz --strip-components=1 -C tools/psyq4.3
+	python3 tools/download_compiler.py gcc2.7.2-cdk tools/gcc-2.7.2-cdk
+	python3 tools/download_compiler.py gcc2.8.0-psx tools/gcc-2.8.0-psx
 
 ### Overlays ###
 # Menu overlays (.ovl files in original/)
@@ -246,7 +232,8 @@ $$($(1)_DIR)/$$($(1)_ASM_DIR)/%.o: $$($(1)_ASM_DIR)/%.s
 
 $$($(1)_DIR)/src/ovl/$(1)/%.o: src/ovl/$(1)/%.c
 	@mkdir -p $$(dir $$@)
-	SN_PATH=$$(PSYQ41_SN_PATH) $$(CCPSX) -S -Iinclude $$(CCPSXFLAGS) $$< -o $$($(1)_DIR)/$$(*F).s && \
+	$$(CPP) -E -lang-c -nostdinc -Iinclude $$< -o $$($(1)_DIR)/$$(*F).i && \
+	$$(PSYQ41_CC1) -quiet $$(CC_FLAGS) $$($(1)_DIR)/$$(*F).i -o $$($(1)_DIR)/$$(*F).s && \
 	cat $$($(1)_DIR)/$$(*F).s | $$(MASPSX) $$(PSYQ41_MASPSXFLAGS) --run-assembler $$(ASFLAGS) -o $$@
 
 $$($(1)_DIR)/assets/%.o: assets/%.bin
