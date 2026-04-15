@@ -25,7 +25,7 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
    ```
    This verifies the disc SHA1, then extracts `SLUS_008.92`, all menu
    overlays, and code overlays (with LZSS decompression where needed)
-   to `original/`. The extracted `SLUS_008.92` SHA1 is also verified.
+   to `original/`.
 
 5. **Run splat** to split the executable and overlays into assembly:
    ```bash
@@ -38,4 +38,3 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
    ```
    This assembles, links, and checks that the output matches the original SHA1.
 
-PsyQ SDK libraries (`src/psxsdk/`, ~750 functions) are not tracked — they are third-party code.
