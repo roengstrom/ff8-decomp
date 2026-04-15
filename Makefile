@@ -180,11 +180,6 @@ ifndef FUNC
 endif
 	./permute.sh $(FUNC)
 
-# Download Linux-native PsyQ compilers from decomp.me's ghcr.io compiler images
-setup-toolchain:
-	python3 tools/download_compiler.py gcc2.7.2-cdk tools/gcc-2.7.2-cdk
-	python3 tools/download_compiler.py gcc2.8.0-psx tools/gcc-2.8.0-psx
-
 ### Overlays ###
 # Menu overlays (.ovl files in original/)
 MENU_OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
@@ -298,6 +293,6 @@ report: objdiff-config
 	@$(OBJDIFF) report generate -p . -o $(BUILD_DIR)/progress.json
 	@python3 tools/objdiff/progress_html.py $(BUILD_DIR)/progress.json $(BUILD_DIR)/progress.html
 
-.PHONY: all build verify setup setup-toolchain split clean permute build-overlays \
+.PHONY: all build verify setup split clean permute build-overlays \
         expected objdiff-config report \
         $(foreach ovl,$(OVERLAYS),split-$(ovl) build-$(ovl) verify-$(ovl))
