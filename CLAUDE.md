@@ -42,7 +42,7 @@ Automatically tries C source permutations to find a byte-matching decomp. Use th
 
 The permuter modifies variable ordering, casts, expression structure, etc. in `base.c` and compiles each variant, looking for one that matches `target.o`. When it finds a match (score 0), copy the winning C back into the source file.
 
-The compile pipeline uses **ASPSX + psyq-obj-parser** (not maspsx+GAS), so permuter scores match decomp.me. Requires `tools/psyq-obj-parser` (ECOFF→ELF converter, built from [pcsx-redux](https://github.com/grumpycoders/pcsx-redux/blob/main/tools/psyq-obj-parser/psyq-obj-parser.cc)).
+The compile pipeline uses `/usr/bin/cpp → tools/gcc-2.7.2-cdk/cc1 → maspsx → mipsel-linux-gnu-as`, matching the build system and decomp.me's `gcc2.7.2-cdk` preset.
 
 ### decomp-index (cross-project search)
 
