@@ -13,7 +13,7 @@ MENU_OVERLAYS = [
 ]
 CODE_OVERLAYS = [
     "field_init", "display_init", "field_engine",
-    "battle_engine", "battle_render", "battle_code", "field_engine_alt",
+    "battle_engine", "battle_render", "battle_code", "world_engine",
 ]
 
 OVERLAY_EXT = {name: "ovl" for name in MENU_OVERLAYS}

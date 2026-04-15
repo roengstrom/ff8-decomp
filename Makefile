@@ -188,7 +188,7 @@ MENU_OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
 
 # Code overlays (.bin files in original/)
 CODE_OVERLAYS := field_init display_init field_engine \
-                 battle_engine battle_render battle_code field_engine_alt
+                 battle_engine battle_render battle_code world_engine
 
 OVERLAYS := $(MENU_OVERLAYS) $(CODE_OVERLAYS)
 

@@ -35,7 +35,7 @@ transitions. Entries 1, 2, 23, and 26 are LZSS-compressed on disc.
 | 23 | 963 | 683,741 B | 1,092,672 B | LZSS | battle_engine.bin | Battle engine + data (134 functions + embedded data). Core battle state machine, damage calculation, ATB system. |
 | 24 | 98,935 | 80,376 B | — | Raw | battle_render.bin | Battle renderer (18 functions). Contains build timestamp "Jul 4 1999 21:03:43" and debug strings (SCENE, TIME, RATE100, AP*10, EXP*10, DOGOUT, ODIN, FORMATION, WITCH, etc.). |
 | 25 | 98,975 | 347,208 B | — | Raw | battle_code.bin | Battle code (854 functions). Starts with a pointer table into 0x8009xxxx address space. Contains battle AI, animations, command processing. |
-| 26 | 1,297 | 118,482 B | 198,197 B | LZSS | field_engine_alt.bin | Alternate field engine (226 functions). Used for specific field scenarios (possibly world map transitions or FMV-integrated fields). |
+| 26 | 1,297 | 118,482 B | 198,197 B | LZSS | world_engine.bin | Alternate field engine (226 functions). Used for specific field scenarios (possibly world map transitions or FMV-integrated fields). |
 
 ### Entry 3 — Scene Lighting Data
 
@@ -237,7 +237,7 @@ Sector       Size    Entry  Description
     882     31.9 KB   28    AKAO sound bank
     898    128.3 KB   29    AKAO music sequence
     963    667.7 KB   23    battle_engine.bin (LZSS)
-  1,297    115.7 KB   26    field_engine_alt.bin (LZSS)
+  1,297    115.7 KB   26    world_engine.bin (LZSS)
  33,241    100.1 KB    2    field_engine.bin (LZSS)
  33,292      1.7 KB    3    Scene lighting data
              ···           (gap: sectors 33,293–87,666)
@@ -251,7 +251,7 @@ Sector       Size    Entry  Description
 ```
 
 **Notable gaps:**
-- Sectors 1,355–33,240 (~62 MB) — between field_engine_alt and field_engine. Likely FMV/movie data not referenced by the file table.
+- Sectors 1,355–33,240 (~62 MB) — between world_engine and field_engine. Likely FMV/movie data not referenced by the file table.
 - Sectors 33,293–87,666 (~106 MB) — between scene lighting data and first field map. Another large FMV region.
 - Sectors 95,793–97,663 (~3.6 MB) — between last field map and menu overlays. Possible additional FMV or unused space.
 

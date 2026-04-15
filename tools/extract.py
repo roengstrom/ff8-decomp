@@ -16,7 +16,7 @@ Extracts:
   - battle_engine.bin        (LZSS-compressed)
   - battle_render.bin
   - battle_code.bin
-  - field_engine_alt.bin     (LZSS-compressed)
+  - world_engine.bin     (LZSS-compressed)
   - menumain.ovl .. menutest.ovl  (17 menu overlays)
   - mngrp.bin, init.out      (data files)
 """
@@ -82,7 +82,7 @@ IMG_FILES = [
     (23, "battle_engine.bin",    "lzss"),
     (24, "battle_render.bin",    "raw"),
     (25, "battle_code.bin",      "raw"),
-    (26, "field_engine_alt.bin", "lzss"),
+    (26, "world_engine.bin", "lzss"),
 ]
 
 

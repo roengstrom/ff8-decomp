@@ -1,0 +1,66 @@
+name: world_engine.bin
+sha1: b421bf83a307dcd41536b14dc81a3aa03f7c9ed0
+options:
+  basename: world_engine
+  target_path: original/world_engine.bin
+  elf_path: build/ovl/world_engine/world_engine.elf
+  base_path: ..
+  platform: psx
+  compiler: PSYQ
+
+  # Directory layout
+  asm_path: asm/ovl/world_engine
+  src_path: src/ovl/world_engine
+  build_path: build/ovl/world_engine
+
+  # Linker
+  ld_script_path: config/world_engine.ovl.ld
+  ld_dependencies: True
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+  # Analysis
+  find_file_boundaries: True
+  disassemble_all: True
+
+  # Symbols
+  symbol_addrs_path:
+    - config/symbol_addrs.world_engine.txt
+  undefined_funcs_auto_path: config/undefined_funcs_auto.world_engine.txt
+  undefined_syms_auto_path: config/undefined_syms_auto.world_engine.txt
+
+  # String detection
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  # Misc
+  section_order: [".text", ".rodata", ".data", ".bss"]
+  subalign: 1
+  o_as_suffix: True
+  use_legacy_include_asm: False
+  generate_asm_macros_files: False
+
+segments:
+  - name: world_engine
+    type: code
+    start: 0x0
+    vram: 0x80098000
+    subsegments:
+      - [0x0, asm, we_dispatch]
+      - [0x17E8, c, we_object1]
+      - [0x4CE8, c, we_object2]
+      - [0x81DC, c, we_object3]
+      - [0xE4DC, c, we_object4]
+      - [0x1336C, c, we_object5]
+      - [0x14C68, c, we_object6]
+      - [0x1B10C, c, we_object7]
+      - [0x20CE0, c, we_object8]
+      - [0x22870, c, we_object9]
+      - [0x256EC, c, we_object10]
+      - [0x275D4, c, we_object11]
+      - [0x2B898, c, we_object12]
+      - [0x2C0F8, c, we_object13]
+      - [0x2CCA4, bin]
+  - [0x30635]

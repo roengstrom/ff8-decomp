@@ -42,7 +42,7 @@ CATEGORIES = [
     {"id": "battle_engine", "name": "battle_engine.bin"},
     {"id": "battle_render", "name": "battle_render.bin"},
     {"id": "battle_code", "name": "battle_code.bin"},
-    {"id": "field_engine_alt", "name": "field_engine_alt.bin"},
+    {"id": "world_engine", "name": "world_engine.bin"},
 ]
 
 # Files/dirs to skip

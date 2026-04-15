@@ -85,7 +85,7 @@ due to back-reference expansion.
 | **23** | 683,741 B | **1,092,672 B** | 134 + data | LZSS | `battle_engine.bin` | Battle engine + data |
 | 24 | 80,376 B | 80,376 B | 18 | Raw | `battle_render.bin` | Battle render |
 | **25** | 347,208 B | 347,208 B | **854** | Raw | `battle_code.bin` | **Battle code** |
-| **26** | 118,482 B | **198,197 B** | **226** | LZSS | `field_engine_alt.bin` | Alt field engine |
+| **26** | 118,482 B | **198,197 B** | **226** | LZSS | `world_engine.bin` | Alt field engine |
 
 ### Menu Overlays (load to 0x801Exxxx)
 
@@ -202,7 +202,7 @@ original/field_engine.bin     →  Entry 2  (LZSS decompressed)
 original/battle_engine.bin    →  Entry 23 (LZSS decompressed)
 original/battle_render.bin    →  Entry 24 (raw)
 original/battle_code.bin      →  Entry 25 (raw)
-original/field_engine_alt.bin →  Entry 26 (LZSS decompressed)
+original/world_engine.bin →  Entry 26 (LZSS decompressed)
 ```
 
 These were extracted from disc using the LZSS decompressor that mirrors

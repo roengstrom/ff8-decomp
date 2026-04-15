@@ -11,9 +11,9 @@ void func_800C40F8(void) {
     func_800435A0(9, 0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4130);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4130);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C42D8);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C42D8);
 
 extern u8 D_800E3E70[];
 
@@ -28,9 +28,9 @@ s32 func_800C4450(void) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4480);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4480);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4558);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4558);
 
 extern s32 D_800E3E60;
 
@@ -61,15 +61,15 @@ void func_800C4644(void) {
     *(volatile u8 *)(base + 0x25) = 0;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4688);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4688);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C48C0);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C48C0);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C492C);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C492C);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C49CC);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C49CC);
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4A58);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4A58);
 
 extern s32 getPackedField2Bit(s32);
 extern s32 fieldRandom(void);
@@ -89,4 +89,4 @@ void func_800C4A74(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/field_engine_alt/nonmatchings/fea_object13", func_800C4AE4);
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4AE4);
