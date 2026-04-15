@@ -16,27 +16,23 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
    .venv/bin/pip install -e "tools/splat[mips]"
    ```
 
-3. **Provide your own disc image** — You need a BIN/CUE of FF8 Disc 1 (USA).
+3. **Provide your own disc image** — You need a Redump-verified BIN/CUE of
+   FF8 Disc 1 (USA, SLUS-00892).
 
-4. **Extract the executable from the disc**:
+4. **Extract game data from the disc**:
    ```bash
-   python3 tools/extract_psxexe.py /path/to/ff8-disc1.bin
+   python3 tools/extract.py /path/to/ff8-disc1.bin
    ```
-   This extracts `SLUS_008.92` to `original/` and verifies the SHA1.
+   This verifies the disc SHA1, then extracts `SLUS_008.92`, all menu
+   overlays, and code overlays (with LZSS decompression where needed)
+   to `original/`. The extracted `SLUS_008.92` SHA1 is also verified.
 
-5. **Extract overlay binaries** from the disc:
-   ```bash
-   python3 tools/extract_overlays.py /path/to/ff8-disc1.bin
-   ```
-   This extracts all menu overlays, code overlays (with LZSS decompression),
-   and data files to `original/`.
-
-6. **Run splat** to split the executable and overlays into assembly:
+5. **Run splat** to split the executable and overlays into assembly:
    ```bash
    make split
    ```
 
-7. **Build and verify**:
+6. **Build and verify**:
    ```bash
    make verify
    ```
