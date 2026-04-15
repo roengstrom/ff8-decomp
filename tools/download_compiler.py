@@ -68,29 +68,23 @@ def main():
             tmp.write(chunk)
         tmp_path = tmp.name
 
-    # Extract — the tarball has `compilers/ps1/<compiler_id>/...` layout; we want the
-    # contents of that directory flattened into dest_dir. We only need the compiler
-    # binary and gcc driver; skip bundled maspsx (we have our own), docs, tests, etc.
+    # Extract — the tarball has `compilers/ps1/<compiler_id>/...` layout. We only
+    # need cc1; /usr/bin/cpp handles preprocessing and maspsx handles assembly.
     os.makedirs(dest_dir, exist_ok=True)
-    prefix = f"compilers/ps1/{compiler_id}/"
-    wanted = {"cc1", "cc1plus", "cpp", "gcc", "g++"}
+    target = f"compilers/ps1/{compiler_id}/cc1"
     with tarfile.open(tmp_path, "r:gz") as tar:
         for member in tar.getmembers():
-            if not member.name.startswith(prefix):
+            if member.name != target or not member.isfile():
                 continue
-            rel = member.name[len(prefix):]
-            # Only install top-level binaries we care about
-            if "/" in rel or rel not in wanted:
-                continue
-            if not member.isfile():
-                continue
-            out = os.path.join(dest_dir, rel)
+            out = os.path.join(dest_dir, "cc1")
             with open(out, "wb") as f:
                 src = tar.extractfile(member)
                 if src is not None:
                     f.write(src.read())
-            if member.mode & 0o111:
-                os.chmod(out, 0o755)
+            os.chmod(out, 0o755)
+            break
+        else:
+            raise RuntimeError(f"cc1 not found in layer for {compiler_id}")
 
     os.unlink(tmp_path)
     print(f"  Installed to {dest_dir}/")
