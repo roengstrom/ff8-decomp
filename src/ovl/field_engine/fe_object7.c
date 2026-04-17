@@ -16,7 +16,11 @@ typedef struct {
     /* 0x175 */ u8 activeMask;      /**< Entity active bitmask. */
     /* 0x176 */ u8 pad176[0x0E];
     /* 0x184 */ s8 stackPtr;        /**< Bytecode stack pointer (signed, grows down). */
-    /* 0x185 */ u8 pad185[0x2F];
+    /* 0x185 */ u8 pad185[0x0B];
+    /* 0x190 */ s32 field_0x190;
+    /* 0x194 */ s32 field_0x194;
+    /* 0x198 */ s32 field_0x198;
+    /* 0x19C */ u8 pad19C[0x18];
     /* 0x1B4 */ s32 msgTextPtr;     /**< Message text pointer (fixed-point). */
     /* 0x1B8 */ s32 msgPosX;        /**< Message X position (fixed-point). */
     /* 0x1BC */ s32 msgPosY;        /**< Message Y position (fixed-point). */
@@ -46,13 +50,20 @@ typedef struct {
 
 /** @brief World map / field context pointed to by D_800562C4. */
 typedef struct {
-    /* 0x00 */ u8 pad000[0x68];
+    /* 0x00 */ u8 pad000[0x58];
+    /* 0x58 */ u8 field_0x58;
+    /* 0x59 */ u8 pad059[0x0F];
     /* 0x68 */ s32 field_0x68;
     /* 0x6C */ s32 field_0x6C;
     /* 0x70 */ u8 pad070[0x59];
     /* 0xC9 */ u8 field_0xC9;
     /* 0xCA */ u8 padCA[0x0C];
     /* 0xD6 */ u8 field_0xD6;
+    /* 0xD7 */ u8 padD7[0x19];
+    /* 0xF0 */ u8 field_0xF0;
+    /* 0xF1 */ u8 field_0xF1;
+    /* 0xF2 */ u8 padF2[0x01];
+    /* 0xF3 */ u8 field_0xF3;
 } WorldContext;
 
 /** @brief Fade/transition control (at D_800704A8). */
@@ -89,6 +100,7 @@ extern u8 D_8007737C[];
 extern u8 D_80082C0F;
 extern u8 D_80082C11;
 extern EncounterParams D_80082C90;
+extern u8 D_80082C10;
 extern u8 D_800DE8D0;
 extern s32 D_8005F13C;
 extern s16 D_8005F11C;
@@ -291,11 +303,55 @@ u8 *func_800B57E8(s32 maxCount, s32 abilityId) {
     return D_800DE880;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B5990);
+/**
+ * @brief Recalculate party stats and check if any member has fieldStatusByte bit 1 set.
+ *
+ * Sets D_80082C10 from WorldContext field_0xF3 (if flag 0x800 is active),
+ * calls recalcPartyStats(), then checks each party slot.
+ *
+ * @return 1 if any active party member has fieldStatusByte bit 1 set, 0 otherwise.
+ */
+s32 func_800B5990(void) {
+    s32 i;
+
+    if (D_800562C4->field_0x68 & 0x800) {
+        D_80082C10 = D_800562C4->field_0xF3;
+    } else {
+        D_80082C10 = 0;
+    }
+
+    recalcPartyStats();
+
+    for (i = 0; i < 3; i++) {
+        if (g_gameState.mainData.party.party[i] != 0xFF) {
+            if (g_battleChars.chars[i].fieldStatusByte & 2) {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B5A30);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6210);
+/**
+ * @brief Set up a scripted camera/effect using eline position data.
+ *
+ * Sets WorldContext field_0xF0 to 1 (active), pops a byte parameter
+ * into field_0xF1, then calls func_800A4500 with the eline's position
+ * fields and func_800A4550 with field_0xF1 | field_0x58.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B6210(Eline *eline) {
+    D_800562C4->field_0xF0 = 1;
+    D_800562C4->field_0xF1 = POP_BYTE(eline);
+    func_800A4500(eline->field_0x190, eline->field_0x194, eline->field_0x198);
+    func_800A4550(D_800562C4->field_0xF1 | D_800562C4->field_0x58);
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B629C);
 
