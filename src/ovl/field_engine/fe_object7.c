@@ -1,5 +1,32 @@
 #include "common.h"
 
+/** @brief Eline (event line) script context for field engine opcode handlers.
+ *  Total size: 416 bytes (0x1A0), confirmed by sizeof(eline) debug print.
+ */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x174];
+    /* 0x174 */ u8 scriptGroup;     /**< Script group index. */
+    /* 0x175 */ u8 activeMask;      /**< Entity active bitmask. */
+    /* 0x176 */ u8 pad176[0x0E];
+    /* 0x184 */ s8 stackPtr;        /**< Bytecode stack pointer (signed, grows down). */
+    /* 0x185 */ u8 pad185[0x2F];
+    /* 0x1B4 */ s32 msgTextPtr;     /**< Message text pointer (fixed-point). */
+    /* 0x1B8 */ s32 msgPosX;        /**< Message X position (fixed-point). */
+    /* 0x1BC */ s32 msgPosY;        /**< Message Y position (fixed-point). */
+    /* 0x1C0 */ u8 pad1C0[0x3E];
+    /* 0x1FE */ u16 savedChannel;   /**< Previous message channel. */
+    /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
+    /* 0x202 */ u8 pad202[0x18];
+    /* 0x21A */ u16 windowId;       /**< Message window ID. */
+    /* 0x21C */ u8 pad21C[0x02];
+    /* 0x21E */ s16 msgState;       /**< Message state (0=init, 2=complete). */
+    /* 0x220 */ u8 pad220[0x1C];
+    /* 0x23C */ u8 msgActive;       /**< Message active flag. */
+} Eline;
+
+/** @brief Pop one s32 from the eline's bytecode stack. */
+#define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
+
 /**
  * Pops a parameter, calls getKeyItemValue, stores result at offset 0x140.
  *
@@ -242,7 +269,43 @@ s32 func_800B68B8(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B68EC);
+/**
+ * @brief MES opcode 0x50 handler — show dialog message on screen.
+ *
+ * Checks if the entity is active, then pops window ID, Y position,
+ * X position, and message text pointer from the bytecode stack. Saves
+ * the current message channel, initializes message state, and calls
+ * func_800B6738 to set up the message display. If message state reaches
+ * 2 (complete), calls func_800B67F4 to finalize.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 if message display is complete, 1 otherwise (yield).
+ */
+s32 opHandler_MES(Eline *eline) {
+    s32 new_var;
+    u16 saved;
+
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        saved = eline->msgChannel;
+        eline->msgActive = 1;
+        eline->msgState = 0;
+
+        eline->windowId = POP(eline);
+        eline->msgPosY = POP(eline) << 12;
+        eline->msgPosX = POP(eline) << 12;
+        new_var = POP(eline);
+        eline->savedChannel = saved;
+        eline->msgTextPtr = new_var << 12;
+
+        func_800B6738(eline);
+    }
+
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        return 2;
+    }
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B69E8);
 
