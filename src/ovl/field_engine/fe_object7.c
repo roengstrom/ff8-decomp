@@ -58,7 +58,9 @@ typedef struct {
     /* 0x59 */ u8 pad059[0x0F];
     /* 0x68 */ s32 field_0x68;
     /* 0x6C */ s32 field_0x6C;
-    /* 0x70 */ u8 pad070[0x59];
+    /* 0x70 */ u8 pad070[0x46];
+    /* 0xB6 */ u16 field_0xB6;
+    /* 0xB8 */ u8 pad0B8[0x11];
     /* 0xC9 */ u8 field_0xC9;
     /* 0xCA */ u8 padCA[0x0C];
     /* 0xD6 */ u8 field_0xD6;
@@ -102,6 +104,7 @@ extern SystemState D_800704A8;
 extern u8 D_8007064C;
 extern u8 D_80070656[];
 extern s16 D_8007737C;
+extern u16 D_80082C0A;
 extern u8 D_80082C0F;
 extern u8 D_80082C11;
 extern EncounterParams D_80082C90;
@@ -457,9 +460,32 @@ s32 func_800B6448(Eline *eline) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6478);
+/**
+ * @brief Pop a value and store to both D_80082C0A and WorldContext field_0xB6.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B6478(Eline *eline) {
+    D_80082C0A = D_800562C4->field_0xB6 = POP(eline);
+    do {} while (0);
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B64B0);
+/**
+ * @brief Set system mode to 3 (if idle) and pop scene ID + counter.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 3 (special return — triggers mode transition).
+ */
+s32 func_800B64B0(Eline *eline) {
+    if (D_800704A8.mode == 0) {
+        D_800704A8.mode = 3;
+    }
+    D_80082C0A = POP(eline);
+    D_800704A8.counter = POP(eline);
+    return 3;
+}
 
 /**
  * Loads global byte D_80082C0F into the object result field at offset 0x140,
