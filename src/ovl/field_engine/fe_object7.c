@@ -15,23 +15,34 @@ typedef struct {
     /* 0x1B4 */ s32 msgTextPtr;     /**< Message text pointer (fixed-point). */
     /* 0x1B8 */ s32 msgPosX;        /**< Message X position (fixed-point). */
     /* 0x1BC */ s32 msgPosY;        /**< Message Y position (fixed-point). */
-    /* 0x1C0 */ u8 pad1C0[0x3E];
-    /* 0x1FE */ u16 savedChannel;   /**< Previous message channel. */
-    /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
-    /* 0x202 */ u8 pad202[0x18];
-    /* 0x21A */ u16 windowId;       /**< Message window ID. */
-    /* 0x21C */ u8 pad21C[0x02];
-    /* 0x21E */ s16 msgState;       /**< Message state (0=init, 2=complete). */
+    /* 0x1C0 */ s32 field_0x1C0;      /**< Saved message text pointer. */
+    /* 0x1C4 */ s32 field_0x1C4;      /**< Saved message X position. */
+    /* 0x1C8 */ s32 field_0x1C8;      /**< Saved message Y position. */
+    /* 0x1CC */ u8 pad1CC[0x0E];
+    /* 0x1DA */ u16 field_0x1DA;
+    /* 0x1DC */ u8 pad1DC[0x22];
+    /* 0x1FE */ s16 savedChannel;     /**< Previous message channel. */
+    /* 0x200 */ u16 msgChannel;       /**< Current message channel. */
+    /* 0x202 */ u16 field_0x202;      /**< Saved channel for async restore. */
+    /* 0x204 */ u8 pad204[0x16];
+    /* 0x21A */ u16 windowId;         /**< Message window ID. */
+    /* 0x21C */ u16 field_0x21C;      /**< Saved window ID for async restore. */
+    /* 0x21E */ s16 msgState;         /**< Message state (0=init, 2=complete). */
     /* 0x220 */ u8 pad220[0x1C];
     /* 0x23C */ u8 msgActive;       /**< Message active flag. */
     /* 0x23D */ u8 pad23D[0x03];
     /* 0x240 */ u8 field_0x240;
-    /* 0x241 */ u8 pad241[0x0E];
+    /* 0x241 */ u8 pad241[0x0D];
+    /* 0x24E */ u8 field_0x24E;
     /* 0x24F */ u8 field_0x24F;
+    /* 0x250 */ u8 field_0x250;
+    /* 0x251 */ u8 field_0x251;
 } Eline;
 
 /** @brief Pop one s32 from the eline's bytecode stack. */
 #define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
+
+extern s16 D_800704B2;
 
 /**
  * Pops a parameter, calls getKeyItemValue, stores result at offset 0x140.
@@ -229,9 +240,67 @@ void func_800B663C(u8 *a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B66A8);
+/**
+ * @brief Restore a pending async message display.
+ *
+ * If both the async-pending flag (0x10000000) and the deferred-message
+ * flag (0x10000) are set, restores the saved message parameters from
+ * the backup fields (field_0x1C0..0x1C8, field_0x21C, field_0x202),
+ * reactivates the message, and clears the deferred flag. If the
+ * async-message flag (0x40000) is still set, re-calls func_800B6738
+ * to reinitialize the display.
+ *
+ * @param eline Pointer to the event line (script context).
+ */
+void func_800B66A8(Eline *eline) {
+    if (!(eline->flags & 0x10000000)) {
+        return;
+    }
+    if (!(eline->flags & 0x10000)) {
+        return;
+    }
+    eline->msgTextPtr = eline->field_0x1C0;
+    eline->msgPosX = eline->field_0x1C4;
+    eline->msgPosY = eline->field_0x1C8;
+    eline->windowId = eline->field_0x21C;
+    eline->savedChannel = eline->field_0x202;
+    eline->msgActive = 1;
+    eline->msgState = 0;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6738);
+    if ((eline->flags = eline->flags & ~0x10000) & 0x40000) {
+        func_800B6738(eline);
+    }
+}
+
+/**
+ * @brief Initialize message display.
+ *
+ * Compares savedChannel against a threshold derived from D_800704B2
+ * to select between two message source indices (field_0x250 vs
+ * field_0x251). If the selected source differs from field_0x24E,
+ * calls func_800B912C to set it up and marks the 0x2000 flag.
+ * Clears field_0x1DA and sets the async-message flag (0x40000).
+ *
+ * @param eline Pointer to the event line (script context).
+ */
+void func_800B6738(Eline *eline) {
+    s32 threshold = (D_800704B2 * 69020) >> 9;
+
+    if (eline->savedChannel >= threshold) {
+        if (eline->field_0x24E != eline->field_0x251) {
+            func_800B912C(eline, eline->field_0x251);
+            eline->flags |= 0x2000;
+        }
+    } else {
+        if (eline->field_0x24E != eline->field_0x250) {
+            func_800B912C(eline, eline->field_0x250);
+            eline->flags |= 0x2000;
+        }
+    }
+
+    eline->field_0x1DA = 0;
+    eline->flags |= 0x40000;
+}
 
 /**
  * @brief Finalize message display.
