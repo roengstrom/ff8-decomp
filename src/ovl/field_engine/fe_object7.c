@@ -93,17 +93,13 @@ extern s16 D_8005F11C;
 extern s16 D_800704B2;
 
 /**
- * Pops a parameter, calls getKeyItemValue, stores result at offset 0x140.
+ * @brief Pop a key item ID and store its value.
  *
- * @param a0 Pointer to the script/object structure.
+ * @param eline Pointer to the event line (script context).
  * @return 2 (continue processing).
  */
-s32 func_800B542C(u8 *a0) {
-    u8 idx;
-
-    idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    *(s32 *)(a0 + 0x140) = getKeyItemValue(*(s32 *)(a0 + (s8)idx * 4));
+s32 func_800B542C(Eline *eline) {
+    eline->field_0x140 = getKeyItemValue(POP(eline));
     return 2;
 }
 
