@@ -46,6 +46,8 @@ typedef struct {
     /* 0x24F */ u8 field_0x24F;
     /* 0x250 */ u8 field_0x250;
     /* 0x251 */ u8 field_0x251;
+    /* 0x252 */ u8 pad252[0x04];
+    /* 0x256 */ u8 field_0x256;
 } Eline;
 
 /** @brief World map / field context pointed to by D_800562C4. */
@@ -66,12 +68,14 @@ typedef struct {
     /* 0xF3 */ u8 field_0xF3;
 } WorldContext;
 
-/** @brief Fade/transition control (at D_800704A8). */
+/** @brief System state block (at D_800704A8). */
 typedef struct {
-    /* 0x00 */ u8 mode;
-    /* 0x01 */ u8 pad;
-    /* 0x02 */ s16 counter;
-} FadeControl;
+    /* 0x000 */ u8 mode;
+    /* 0x001 */ u8 pad001;
+    /* 0x002 */ s16 counter;
+    /* 0x004 */ u8 pad004[0x18C];
+    /* 0x190 */ u8 slotActive[16];
+} SystemState;
 
 /** @brief Battle encounter setup parameters (at D_80082C90). */
 typedef struct {
@@ -93,7 +97,7 @@ typedef struct {
 #define POP_BYTE(eline) (*(u8 *)&POP(eline))
 
 extern WorldContext *D_800562C4;
-extern FadeControl D_800704A8;
+extern SystemState D_800704A8;
 extern u8 D_8007064C;
 extern u8 D_80070656[];
 extern u8 D_8007737C[];
@@ -365,11 +369,41 @@ s32 func_800B629C(Eline *eline) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B62E8);
+/**
+ * @brief Activate a system slot by index from the script stack.
+ *
+ * Pops a value, masks to 4 bits (0-15), and sets the corresponding
+ * slotActive entry in the system state to 1.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B62E8(Eline *eline) {
+    D_800704A8.slotActive[POP(eline) & 0xF] = 1;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6328);
+/**
+ * @brief Deactivate a system slot by index from the script stack.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B6328(Eline *eline) {
+    D_800704A8.slotActive[POP(eline) & 0xF] = 0;
+    return 2;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6364);
+/**
+ * @brief Activate a system slot with the eline's field_0x256 value | 0x80.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B6364(Eline *eline) {
+    D_800704A8.slotActive[POP(eline) & 0xF] = eline->field_0x256 | 0x80;
+    return 2;
+}
 
 /**
  * Pops a value; if nonzero calls func_800C0384 (set bit 0x20),
