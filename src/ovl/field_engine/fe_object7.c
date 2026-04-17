@@ -4,7 +4,10 @@
  *  Total size: 416 bytes (0x1A0), confirmed by sizeof(eline) debug print.
  */
 typedef struct {
-    /* 0x000 */ u8 pad000[0x160];
+    /* 0x000 */ u8 pad000[0x140];
+    /* 0x140 */ s32 field_0x140;
+    /* 0x144 */ s32 field_0x144;
+    /* 0x148 */ u8 pad148[0x18];
     /* 0x160 */ s32 flags;
     /* 0x164 */ u8 pad164[0x10];
     /* 0x174 */ u8 scriptGroup;     /**< Script group index. */
@@ -39,9 +42,54 @@ typedef struct {
     /* 0x251 */ u8 field_0x251;
 } Eline;
 
+/** @brief World map / field context pointed to by D_800562C4. */
+typedef struct {
+    /* 0x00 */ u8 pad000[0x68];
+    /* 0x68 */ s32 field_0x68;
+    /* 0x6C */ s32 field_0x6C;
+    /* 0x70 */ u8 pad070[0x59];
+    /* 0xC9 */ u8 field_0xC9;
+    /* 0xCA */ u8 padCA[0x0C];
+    /* 0xD6 */ u8 field_0xD6;
+} WorldContext;
+
+/** @brief Fade/transition control (at D_800704A8). */
+typedef struct {
+    /* 0x00 */ u8 mode;
+    /* 0x01 */ u8 pad;
+    /* 0x02 */ s16 counter;
+} FadeControl;
+
+/** @brief Battle encounter setup parameters (at D_80082C90). */
+typedef struct {
+    /* 0x00 */ s32 encounterPtr;
+    /* 0x04 */ u8 field_04;
+    /* 0x05 */ u8 field_05;
+    /* 0x06 */ u8 field_06;
+    /* 0x07 */ u8 field_07;
+    /* 0x08 */ u8 field_08;
+    /* 0x09 */ u8 field_09;
+    /* 0x0A */ u8 pad0A[2];
+    /* 0x0C */ u8 result;
+} EncounterParams;
+
 /** @brief Pop one s32 from the eline's bytecode stack. */
 #define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
 
+/** @brief Pop one s32 then read low byte only. */
+#define POP_BYTE(eline) (*(u8 *)&POP(eline))
+
+extern WorldContext *D_800562C4;
+extern FadeControl D_800704A8;
+extern u8 D_8007064C;
+extern u8 D_80070656[];
+extern u8 D_8007737C[];
+extern u8 D_80082C0F;
+extern u8 D_80082C11;
+extern EncounterParams D_80082C90;
+extern u8 D_800DE8D0;
+extern s32 D_8005F13C;
+extern s16 D_8005F11C;
 extern s16 D_800704B2;
 
 /**
@@ -59,7 +107,83 @@ s32 func_800B542C(u8 *a0) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B5480);
+/**
+ * @brief Table index 0x14C handler — initiate battle encounter.
+ *
+ * Pops encounter parameters from the bytecode stack, sets up the battle
+ * transition (fade, sound shutdown, animation cleanup), then waits for
+ * battle completion. On the return pass (entity inactive), reads the
+ * battle result.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 on first pass (battle started), 2 on return (result ready).
+ */
+s32 func_800B5480(Eline *eline) {
+    u8 *params;
+    s32 result;
+    s32 i;
+
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        EncounterParams *params = &D_80082C90;
+        params->field_08 = POP_BYTE(eline);
+        params->field_06 = POP_BYTE(eline);
+        params->field_07 = POP_BYTE(eline);
+        params->field_09 = POP_BYTE(eline);
+        params->field_04 = POP_BYTE(eline);
+        params->encounterPtr = POP(eline);
+        params->field_05 = POP_BYTE(eline);
+
+        result = sumItemQuantities(params);
+        eline->field_0x140 = result;
+        eline->field_0x144 = 0;
+
+        if (result >= 5) {
+            if (!(D_800562C4->field_0x68 & 0x10)) {
+                initBattleTransition();
+            }
+
+            D_800704A8.mode = 8;
+            D_800704A8.counter = 0;
+
+            while (sndGetStatus() == 2) {
+                func_800393C8();
+            }
+
+            for (i = 0; i < 2; i++) {
+                clearAnimEntryActive(i);
+            }
+
+            setCameraVibrateState(0);
+
+            if (D_800562C4->field_0x6C == -1) {
+                sndCmd11(0);
+            }
+
+            sndCmd40();
+            func_80037FB0(0, 0x46, D_8005F13C);
+
+            while (D_800562C4->field_0xD6 == 0) {
+                func_800393C8();
+            }
+
+            D_80082C11 = D_800562C4->field_0xC9;
+            D_8005F11C = sndCmd10(toggleSoundBank());
+            sndCmdC0(0, 0x7F);
+            sndStopPlayback();
+            sndCmdF1();
+            sndSetMasterVolume(0x7F);
+        }
+
+        return 1;
+    } else {
+        if (D_80082C90.result == 3) {
+            eline->field_0x144 = -1;
+        } else {
+            eline->field_0x144 = D_80082C90.result;
+        }
+        return 2;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B574C);
 
@@ -127,7 +251,6 @@ s32 func_800B6420(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B6448(u8 *a0) {
-    extern u8 D_8007737C[];
     u8 idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
     *(u16 *)D_8007737C = *(u16 *)(a0 + (s8)idx * 4);
@@ -146,7 +269,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B64B0);
  * @return 2 (continue processing).
  */
 s32 func_800B6524(u8 *a0) {
-    extern u8 D_80082C0F;
 
     *(s32 *)(a0 + 0x140) = D_80082C0F;
     return 2;
@@ -160,13 +282,10 @@ s32 func_800B6524(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B653C(u8 *a0) {
-    extern u8 D_800DE8D0;
-    extern u8 *D_800562C4;
-
     if (D_800DE8D0 != 0) {
-        *(s32 *)(D_800562C4 + 0x68) = *(s32 *)(D_800562C4 + 0x68) | 0x400;
+        D_800562C4->field_0x68 |= 0x400;
     } else {
-        *(u8 *)(D_800562C4 + 0xCF) = 0;
+        *(u8 *)((u8 *)D_800562C4 + 0xCF) = 0;
     }
     return 2;
 }
@@ -179,11 +298,10 @@ s32 func_800B653C(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B6588(u8 *a0) {
-    extern u8 *D_800562C4;
-    u8 *ptr = D_800562C4;
+    WorldContext *ctx = D_800562C4;
 
-    *(u8 *)(ptr + 0xCF) = 1;
-    *(s32 *)(ptr + 0x68) = *(s32 *)(ptr + 0x68) & ~0x400;
+    *(u8 *)((u8 *)ctx + 0xCF) = 1;
+    ctx->field_0x68 &= ~0x400;
     return 2;
 }
 
@@ -204,8 +322,7 @@ s32 func_800B65B0(u8 *a0) {
  * @return 1.
  */
 s32 func_800B65B8(u8 *a0) {
-    extern u8 D_800704A8;
-    D_800704A8 = 4;
+    D_800704A8.mode = 4;
     return 1;
 }
 
@@ -472,7 +589,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B84D8);
  * @return 2 (continue processing).
  */
 s32 func_800B85C8(u8 *a0) {
-    extern u8 D_80070656[];
     u8 idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
     *(u8 *)D_80070656 = *(volatile s32 *)(a0 + (s8)idx * 4);
@@ -521,7 +637,6 @@ s32 func_800B8F20(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B8F3C(u8 *a0) {
-    extern u8 D_8007064C;
     D_8007064C = 1;
     return 2;
 }
@@ -533,7 +648,6 @@ s32 func_800B8F3C(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B8F50(u8 *a0) {
-    extern u8 D_8007064C;
     D_8007064C = 0;
     return 2;
 }
@@ -551,8 +665,7 @@ s32 func_800B8F60(u8 *a0) {
 
 /** @brief Compare D_800704A8 entries. Returns 1 if different, 2 if same. */
 s32 func_800B8F80(u8 *a0) {
-    extern u8 D_800704A8[];
-    u8 *base = D_800704A8;
+    u8 *base = (u8 *)&D_800704A8;
     u16 val1 = *(u16 *)(base + 0x106);
     u16 val2 = *(u16 *)(base + 0x104);
     if (val1 == val2) {
