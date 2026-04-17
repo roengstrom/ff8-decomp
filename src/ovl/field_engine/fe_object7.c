@@ -62,7 +62,7 @@ typedef struct {
     /* 0xD7 */ u8 padD7[0x19];
     /* 0xF0 */ u8 field_0xF0;
     /* 0xF1 */ u8 field_0xF1;
-    /* 0xF2 */ u8 padF2[0x01];
+    /* 0xF2 */ u8 field_0xF2;
     /* 0xF3 */ u8 field_0xF3;
 } WorldContext;
 
@@ -353,7 +353,17 @@ s32 func_800B6210(Eline *eline) {
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B629C);
+/**
+ * @brief Pop a byte from the stack, decrement, and store to WorldContext field_0xF2.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B629C(Eline *eline) {
+    D_800562C4->field_0xF2 = POP_BYTE(eline);
+    D_800562C4->field_0xF2--;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B62E8);
 
