@@ -346,7 +346,9 @@ typedef struct {
     /* 0x1B4 */ u16 abilityValue;
     /* 0x1B6 */ u8 pad1B6[0x0D];
     /* 0x1C3 */ u8 characterId;
-    /* 0x1C4 */ u8 pad1C4[0x0C];
+    /* 0x1C4 */ u8 pad1C4[0x02];
+    /* 0x1C6 */ u8 fieldStatusByte;    /**< Status byte checked by field script (bit 1 = greyed out). */
+    /* 0x1C7 */ u8 pad1C7[0x09];
 } BattleCharData;
 
 /** @brief GF battle entry (12 bytes, used for GF HP in battle). */

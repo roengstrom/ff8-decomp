@@ -1,4 +1,6 @@
 #include "common.h"
+#include "battle.h"
+#include "gamestate.h"
 
 /** @brief Eline (event line) script context for field engine opcode handlers.
  *  Total size: 416 bytes (0x1A0), confirmed by sizeof(eline) debug print.
@@ -181,11 +183,113 @@ s32 func_800B5480(Eline *eline) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B574C);
+extern u8 D_800DE880[];
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B578C);
+/**
+ * @brief Copy a null-terminated string to the D_800DE880 buffer.
+ *
+ * @param src Source string.
+ * @return Pointer to D_800DE880 (the copied string).
+ */
+u8 *func_800B574C(u8 *src) {
+    u8 *dst = D_800DE880;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B57E8);
+    while (*src) {
+        *dst++ = *src++;
+    }
+    *dst = *src;
+
+    return D_800DE880;
+}
+
+/**
+ * @brief Search the D_800DE880 buffer for a marker byte and offset the
+ *        byte following each match.
+ *
+ * @param search Marker byte to search for (masked to u8).
+ * @param offset Value to add to the byte after each match.
+ * @return Pointer to D_800DE880.
+ */
+u8 *func_800B578C(s32 search, s32 offset) {
+    u8 *ptr = D_800DE880;
+
+    if (*ptr) {
+        search &= 0xFF;
+        do {
+            if (*ptr == search) {
+                ptr++;
+                *ptr += offset;
+            }
+            ptr++;
+        } while (*ptr);
+    }
+
+    return D_800DE880;
+}
+
+
+/**
+ * @brief Process message control codes for party member display.
+ *
+ * Scans the D_800DE880 buffer interpreting control codes:
+ *   - 0x02: count separator, truncate at maxCount+1
+ *   - 0x03: insert party member name offset, check junctioned ability
+ *   - 0x06: check ability ownership and status flag
+ *
+ * @param maxCount Maximum number of entries to show.
+ * @param abilityId Ability ID to check for junctioned/owned status.
+ * @return Pointer to D_800DE880.
+ */
+u8 *func_800B57E8(s32 maxCount, s32 abilityId) {
+    u8 *ptr = D_800DE880;
+    s32 count = 0;
+    s32 charId;
+    s32 memberIdx;
+    u8 *base;
+
+    if (*ptr) {
+        base = (u8 *)&g_gameState;
+        memberIdx = 0;
+
+        do {
+            switch (*ptr) {
+            case 2:
+                if (count >= maxCount + 1) {
+                    *ptr = 0;
+                    return D_800DE880;
+                }
+                count++;
+                break;
+            case 3:
+                ptr++;
+                *ptr += base[0xD38 + memberIdx];
+                charId = func_80037C6C(base[0xD38 + memberIdx]);
+                if (hasJunctionedAbility(charId, abilityId)) {
+                    ptr += 2;
+                    *ptr = 5;
+                    ptr++;
+                    *ptr = 0x41;
+                }
+                memberIdx++;
+                break;
+            case 6:
+                charId = func_80037C6C(base[0xD38 + memberIdx]) & 0xFF;
+                if (!func_80021108(base[0xAF4 + charId], abilityId)) {
+                    if (g_battleChars.chars[charId].fieldStatusByte & 2) {
+                        ptr++;
+                        *ptr = 0x27;
+                    }
+                }
+                break;
+            default:
+                break;
+            }
+            ptr++;
+        } while (*ptr);
+    }
+
+    return D_800DE880;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B5990);
 
