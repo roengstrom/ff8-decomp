@@ -4,7 +4,9 @@
  *  Total size: 416 bytes (0x1A0), confirmed by sizeof(eline) debug print.
  */
 typedef struct {
-    /* 0x000 */ u8 pad000[0x174];
+    /* 0x000 */ u8 pad000[0x160];
+    /* 0x160 */ s32 flags;
+    /* 0x164 */ u8 pad164[0x10];
     /* 0x174 */ u8 scriptGroup;     /**< Script group index. */
     /* 0x175 */ u8 activeMask;      /**< Entity active bitmask. */
     /* 0x176 */ u8 pad176[0x0E];
@@ -22,6 +24,10 @@ typedef struct {
     /* 0x21E */ s16 msgState;       /**< Message state (0=init, 2=complete). */
     /* 0x220 */ u8 pad220[0x1C];
     /* 0x23C */ u8 msgActive;       /**< Message active flag. */
+    /* 0x23D */ u8 pad23D[0x03];
+    /* 0x240 */ u8 field_0x240;
+    /* 0x241 */ u8 pad241[0x0E];
+    /* 0x24F */ u8 field_0x24F;
 } Eline;
 
 /** @brief Pop one s32 from the eline's bytecode stack. */
@@ -228,44 +234,52 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B66A8);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6738);
 
 /**
- * If flag 0x40000 is set in entity flags at 0x160, calls func_800B912C
- * with entity byte 0x24F, then sets bit 0x2000 and clears bit 0x40000.
- * Always clears byte at offset 0x240.
+ * @brief Finalize message display.
  *
- * @param a0 Pointer to the script/object structure.
+ * If the async-message flag (0x40000) is set, calls func_800B912C
+ * with field_0x24F, then sets bit 0x2000 and clears the async flag.
+ * Always clears field_0x240.
+ *
+ * @param eline Pointer to the event line (script context).
  */
-void func_800B67F4(u8 *a0) {
-    if (*(s32 *)(a0 + 0x160) & 0x40000) {
-        func_800B912C(a0, *(u8 *)(a0 + 0x24F));
-        *(s32 *)(a0 + 0x160) = (*(s32 *)(a0 + 0x160) | 0x2000) & ~0x40000;
+void func_800B67F4(Eline *eline) {
+    if (eline->flags & 0x40000) {
+        func_800B912C(eline, eline->field_0x24F);
+        eline->flags = (eline->flags | 0x2000) & ~0x40000;
     }
-    *(u8 *)(a0 + 0x240) = 0;
+    eline->field_0x240 = 0;
 }
 
 /**
- * If flag 0x20000 is set and halfword at 0x21E == 2, calls func_800B67F4
- * and clears flag 0x20000.
+ * @brief Check if message display is complete and clean up.
  *
- * @param a0 Pointer to the script/object structure.
+ * If the message-pending flag (0x20000) is set in the eline's flags
+ * and the message state has reached 2 (complete), calls func_800B67F4
+ * to finalize and clears the flag.
+ *
+ * @param eline Pointer to the event line (script context).
  */
-void func_800B6854(u8 *a0) {
-    if ((*(s32 *)(a0 + 0x160) & 0x20000) && *(s16 *)(a0 + 0x21E) == 2) {
-        func_800B67F4(a0);
-        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x20000;
+void func_800B6854(Eline *eline) {
+    if ((eline->flags & 0x20000) && eline->msgState == 2) {
+        func_800B67F4(eline);
+        eline->flags &= ~0x20000;
     }
 }
 
 /**
- * Pops a halfword from the stack and stores it to both offsets 0x1FE and 0x200.
+ * @brief Table index 0x04F handler — set message channel.
  *
- * @param a0 Pointer to the script/object structure.
+ * Pops a channel value from the bytecode stack and stores it to both
+ * savedChannel and msgChannel fields of the eline.
+ *
+ * @param eline Pointer to the event line (script context).
  * @return 2 (continue processing).
  */
-s32 func_800B68B8(u8 *a0) {
-    u8 idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    *(u16 *)(a0 + 0x1FE) = *(u16 *)(a0 + (s8)idx * 4);
-    *(u16 *)(a0 + 0x200) = *(u16 *)(a0 + 0x1FE);
+s32 func_800B68B8(Eline *eline) {
+    u16 channel = POP(eline);
+
+    eline->savedChannel = channel;
+    eline->msgChannel = channel;
     return 2;
 }
 
