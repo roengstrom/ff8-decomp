@@ -33,7 +33,8 @@ typedef struct {
     /* 0x1FE */ s16 savedChannel;     /**< Previous message channel. */
     /* 0x200 */ u16 msgChannel;       /**< Current message channel. */
     /* 0x202 */ u16 field_0x202;      /**< Saved channel for async restore. */
-    /* 0x204 */ u8 pad204[0x16];
+    /* 0x204 */ u16 field_0x204;
+    /* 0x206 */ u8 pad206[0x14];
     /* 0x21A */ u16 windowId;         /**< Message window ID. */
     /* 0x21C */ u16 field_0x21C;      /**< Saved window ID for async restore. */
     /* 0x21E */ s16 msgState;         /**< Message state (0=init, 2=complete). */
@@ -100,7 +101,7 @@ extern WorldContext *D_800562C4;
 extern SystemState D_800704A8;
 extern u8 D_8007064C;
 extern u8 D_80070656[];
-extern u8 D_8007737C[];
+extern s16 D_8007737C;
 extern u8 D_80082C0F;
 extern u8 D_80082C11;
 extern EncounterParams D_80082C90;
@@ -406,16 +407,14 @@ s32 func_800B6364(Eline *eline) {
 }
 
 /**
- * Pops a value; if nonzero calls func_800C0384 (set bit 0x20),
- * otherwise calls func_800C03A0 (clear bit 0x20).
+ * @brief Pop a value; if nonzero call func_800C0384 (set bit 0x20),
+ *        otherwise call func_800C03A0 (clear bit 0x20).
  *
- * @param a0 Pointer to the script/object structure.
+ * @param eline Pointer to the event line (script context).
  * @return 2 (continue processing).
  */
-s32 func_800B63A4(u8 *a0) {
-    u8 idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    if (*(s32 *)(a0 + (s8)idx * 4) != 0) {
+s32 func_800B63A4(Eline *eline) {
+    if (POP(eline)) {
         func_800C0384();
     } else {
         func_800C03A0();
@@ -424,36 +423,37 @@ s32 func_800B63A4(u8 *a0) {
 }
 
 /**
- * Calls func_800C03F4 and returns 2.
+ * @brief Delegate to func_800C03F4 and return.
  *
- * @param a0 Pointer to the script/object structure.
+ * @param eline Pointer to the event line (script context).
  * @return 2 (continue processing).
  */
-s32 func_800B6400(u8 *a0) {
-    func_800C03F4(a0);
+s32 func_800B6400(Eline *eline) {
+    func_800C03F4(eline);
     return 2;
 }
 
-/** @brief If animation bit set, clear halfword at 0x204. Returns 2. */
-s32 func_800B6420(u8 *a0) {
-    u8 bit = *(u8 *)(a0 + 0x175);
-    u8 shift = *(u8 *)(a0 + 0x174);
-    if ((bit >> shift) & 1) {
-        *(u16 *)(a0 + 0x204) = 0;
+/**
+ * @brief Clear field_0x204 if the entity's script group is active.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B6420(Eline *eline) {
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->field_0x204 = 0;
     }
     return 2;
 }
 
 /**
- * Pops a halfword from the stack and stores it to D_8007737C.
+ * @brief Pop a value from the stack and store to D_8007737C.
  *
- * @param a0 Pointer to the script/object structure.
+ * @param eline Pointer to the event line (script context).
  * @return 2 (continue processing).
  */
-s32 func_800B6448(u8 *a0) {
-    u8 idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    *(u16 *)D_8007737C = *(u16 *)(a0 + (s8)idx * 4);
+s32 func_800B6448(Eline *eline) {
+    D_8007737C = POP(eline);
     return 2;
 }
 
