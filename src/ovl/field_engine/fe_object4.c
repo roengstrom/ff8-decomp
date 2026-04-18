@@ -1,12 +1,6 @@
 #include "common.h"
+#include "field.h"
 
-/** @brief Eline (event line) script context. */
-typedef struct {
-    /* 0x000 */ u8 pad000[0x184];
-    /* 0x184 */ s8 stackPtr;
-} Eline;
-
-#define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
 
 extern s32 (*D_800C6760[])(u8 *);
 

@@ -65,4 +65,67 @@ typedef struct {
     /* 0xD6 */ u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
 } FieldEngineState;
 
+/**
+ * @brief Eline (event line) — opcode handler view of the script context.
+ *
+ * Same memory as FieldEntity, but with fields named for opcode handler usage.
+ * Total size: 416 bytes (0x1A0), confirmed by sizeof(eline) debug print.
+ */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x140];
+    /* 0x140 */ s32 field_0x140;
+    /* 0x144 */ s32 field_0x144;
+    /* 0x148 */ u8 pad148[0x18];
+    /* 0x160 */ s32 flags;
+    /* 0x164 */ u8 pad164[0x10];
+    /* 0x174 */ u8 scriptGroup;     /**< Script group index. */
+    /* 0x175 */ u8 activeMask;      /**< Entity active bitmask. */
+    /* 0x176 */ u8 pad176[0x0E];
+    /* 0x184 */ s8 stackPtr;        /**< Bytecode stack pointer (signed, grows down). */
+    /* 0x185 */ u8 pad185[0x0B];
+    /* 0x190 */ s32 field_0x190;
+    /* 0x194 */ s32 field_0x194;
+    /* 0x198 */ s32 field_0x198;
+    /* 0x19C */ u8 pad19C[0x18];
+    /* 0x1B4 */ s32 msgTextPtr;     /**< Message text pointer (fixed-point). */
+    /* 0x1B8 */ s32 msgPosX;        /**< Message X position (fixed-point). */
+    /* 0x1BC */ s32 msgPosY;        /**< Message Y position (fixed-point). */
+    /* 0x1C0 */ s32 field_0x1C0;    /**< Saved message text pointer. */
+    /* 0x1C4 */ s32 field_0x1C4;    /**< Saved message X position. */
+    /* 0x1C8 */ s32 field_0x1C8;    /**< Saved message Y position. */
+    /* 0x1CC */ u8 pad1CC[0x0E];
+    /* 0x1DA */ u16 field_0x1DA;
+    /* 0x1DC */ u8 pad1DC[0x22];
+    /* 0x1FE */ s16 savedChannel;   /**< Previous message channel. */
+    /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
+    /* 0x202 */ u16 field_0x202;    /**< Saved channel for async restore. */
+    /* 0x204 */ s16 field_0x204;
+    /* 0x206 */ u8 pad206[0x14];
+    /* 0x21A */ u16 windowId;       /**< Message window ID. */
+    /* 0x21C */ u16 field_0x21C;    /**< Saved window ID for async restore. */
+    /* 0x21E */ s16 msgState;       /**< Message state (0=init, 2=complete). */
+    /* 0x220 */ u8 pad220[0x1C];
+    /* 0x23C */ u8 msgActive;       /**< Message active flag. */
+    /* 0x23D */ u8 pad23D[0x03];
+    /* 0x240 */ u8 field_0x240;
+    /* 0x241 */ u8 pad241[0x0D];
+    /* 0x24E */ u8 field_0x24E;
+    /* 0x24F */ u8 field_0x24F;
+    /* 0x250 */ u8 field_0x250;
+    /* 0x251 */ u8 field_0x251;
+    /* 0x252 */ u8 pad252[0x04];
+    /* 0x256 */ u8 field_0x256;
+    /* 0x257 */ u8 pad257[0x0B];
+    /* 0x262 */ u8 field_0x262;
+} Eline;
+
+/** @brief Pop one s32 from the eline's bytecode stack. */
+#define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
+
+/** @brief Pop one s32 then read low byte only. */
+#define POP_BYTE(eline) (*(u8 *)&POP(eline))
+
+/** @brief Read the top s32 from the eline's bytecode stack without popping. */
+#define PEEK(eline) (((s32 *)(eline))[(eline)->stackPtr])
+
 #endif /* FIELD_H */

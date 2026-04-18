@@ -1,4 +1,8 @@
 #include "common.h"
+#include "field.h"
+
+extern u8 D_80070652;
+
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2348);
 
@@ -428,12 +432,14 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B3F9C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4074);
 
-/** @brief Pop byte, store to global D_80070652. Returns 2. */
-s32 func_800B414C(u8 *a0) {
-    extern u8 D_80070652[];
-    u8 idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    *(u8 *)D_80070652 = *(u8 *)(a0 + (s8)idx * 4);
+/**
+ * @brief Pop a byte from the stack and store to D_80070652.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B414C(Eline *eline) {
+    D_80070652 = POP_BYTE(eline);
     return 2;
 }
 
