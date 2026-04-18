@@ -62,7 +62,11 @@ typedef struct {
     /* 0xB6 */ u16 field_0xB6;
     /* 0xB8 */ u8 pad0B8[0x11];
     /* 0xC9 */ u8 field_0xC9;
-    /* 0xCA */ u8 padCA[0x0C];
+    /* 0xCA */ u8 pad0CA[0x02];
+    /* 0xCC */ u8 field_0xCC;
+    /* 0xCD */ u8 pad0CD[0x02];
+    /* 0xCF */ u8 field_0xCF;
+    /* 0xD0 */ u8 pad0D0[0x06];
     /* 0xD6 */ u8 field_0xD6;
     /* 0xD7 */ u8 padD7[0x19];
     /* 0xF0 */ u8 field_0xF0;
@@ -105,6 +109,7 @@ extern u8 D_8007064C;
 extern u8 D_80070656[];
 extern s16 D_8007737C;
 extern u16 D_80082C0A;
+extern u8 D_800773C0;
 extern u8 D_80082C0F;
 extern u8 D_80082C11;
 extern EncounterParams D_80082C90;
@@ -488,99 +493,102 @@ s32 func_800B64B0(Eline *eline) {
 }
 
 /**
- * Loads global byte D_80082C0F into the object result field at offset 0x140,
- * returns 2.
+ * @brief Store D_80082C0F into the eline result field.
  *
- * @param a0 Pointer to the script/object structure.
+ * @param eline Pointer to the event line (script context).
  * @return 2 (continue processing).
  */
-s32 func_800B6524(u8 *a0) {
-
-    *(s32 *)(a0 + 0x140) = D_80082C0F;
+s32 func_800B6524(Eline *eline) {
+    eline->field_0x140 = D_80082C0F;
     return 2;
 }
 
 /**
- * If D_800DE8D0 is nonzero, sets bit 0x400 in the flags at D_800562C4+0x68.
- * Otherwise, clears byte 0xCF of the entity. Returns 2.
+ * @brief If D_800DE8D0 is set, enable flag 0x400; otherwise clear field_0xCF.
  *
- * @param a0 Pointer to the script/object structure (unused).
  * @return 2 (continue processing).
  */
-s32 func_800B653C(u8 *a0) {
-    if (D_800DE8D0 != 0) {
+s32 func_800B653C(void) {
+    if (D_800DE8D0) {
         D_800562C4->field_0x68 |= 0x400;
     } else {
-        *(u8 *)((u8 *)D_800562C4 + 0xCF) = 0;
+        D_800562C4->field_0xCF = 0;
     }
     return 2;
 }
 
 /**
- * Sets byte 0xCF of the entity pointed to by D_800562C4 to 1,
- * and clears bit 0x400 in the flags at offset 0x68, returns 2.
+ * @brief Set field_0xCF to 1 and clear flag 0x400.
  *
- * @param a0 Pointer to the script/object structure (unused).
  * @return 2 (continue processing).
  */
-s32 func_800B6588(u8 *a0) {
+s32 func_800B6588(void) {
     WorldContext *ctx = D_800562C4;
 
-    *(u8 *)((u8 *)ctx + 0xCF) = 1;
+    ctx->field_0xCF = 1;
     ctx->field_0x68 &= ~0x400;
     return 2;
 }
 
-/**
- * Returns 2, indicating continue processing.
- *
- * @param a0 Pointer to the script/object structure (unused).
- * @return 2 (continue processing).
- */
-s32 func_800B65B0(u8 *a0) {
+/** @brief No-op handler. Returns 2 (continue). */
+s32 func_800B65B0(Eline *eline) {
     return 2;
 }
 
 /**
- * Sets the global byte D_800704A8 to 4, returns 1.
+ * @brief Set system mode to 4 (game render) and yield.
  *
- * @param a0 Pointer to the script/object structure (unused).
- * @return 1.
+ * @param eline Pointer to the event line (script context).
+ * @return 1 (yield).
  */
-s32 func_800B65B8(u8 *a0) {
+s32 func_800B65B8(Eline *eline) {
     D_800704A8.mode = 4;
     return 1;
 }
 
-/**
- * Returns 1, indicating wait/yield.
- *
- * @param a0 Pointer to the script/object structure (unused).
- * @return 1.
- */
-s32 func_800B65CC(u8 *a0) {
+/** @brief Yield handler. Returns 1 (wait). */
+s32 func_800B65CC(Eline *eline) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B65D4);
+/**
+ * @brief Pop disc number from stack, set WorldContext and global state.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B65D4(Eline *eline) {
+    D_800562C4->field_0xCC = POP_BYTE(eline);
+    D_800773C0 = D_800562C4->field_0xCC - 1;
+    setDiscNumber(D_800562C4->field_0xCC);
+    return 2;
+}
 
 /**
- * If flag 0x10000000 is set and byte at 0x23C is 1, copies position
- * fields (0x1B4/0x1B8/0x1BC to 0x1C0/0x1C4/0x1C8), copies 0x21A to
- * 0x21C and 0x1FE to 0x202, clears byte 0x23C, and sets flag 0x10000.
+ * @brief Save active message state for async restore.
  *
- * @param a0 Pointer to the script/object structure.
+ * If the async-pending flag (0x10000000) is set and msgActive is 1,
+ * backs up current message position/window/channel to the saved fields,
+ * clears msgActive, and sets the deferred flag (0x10000).
+ * Inverse of func_800B66A8 (restore).
+ *
+ * @param eline Pointer to the event line (script context).
  */
-void func_800B663C(u8 *a0) {
-    if ((*(s32 *)(a0 + 0x160) & 0x10000000) && *(u8 *)(a0 + 0x23C) == 1) {
-        *(s32 *)(a0 + 0x1C0) = *(s32 *)(a0 + 0x1B4);
-        *(u8 *)(a0 + 0x23C) = 0;
-        *(s32 *)(a0 + 0x1C4) = *(s32 *)(a0 + 0x1B8);
-        *(s32 *)(a0 + 0x1C8) = *(s32 *)(a0 + 0x1BC);
-        *(u16 *)(a0 + 0x21C) = *(u16 *)(a0 + 0x21A);
-        *(u16 *)(a0 + 0x202) = *(u16 *)(a0 + 0x1FE);
-        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) | 0x10000;
+void func_800B663C(Eline *eline) {
+    if (!(eline->flags & 0x10000000)) {
+        return;
     }
+    if (eline->msgActive != 1) {
+        return;
+    }
+
+    eline->field_0x1C0 = eline->msgTextPtr;
+    eline->field_0x1C4 = eline->msgPosX;
+    eline->field_0x1C8 = eline->msgPosY;
+    eline->field_0x21C = eline->windowId;
+    eline->field_0x202 = eline->savedChannel;
+    eline->msgActive = 0;
+    eline->flags |= 0x10000;
 }
 
 /**
