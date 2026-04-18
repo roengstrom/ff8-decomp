@@ -60,7 +60,9 @@ typedef struct {
     /* 0x6C */ s32 field_0x6C;
     /* 0x70 */ u8 pad070[0x46];
     /* 0xB6 */ u16 field_0xB6;
-    /* 0xB8 */ u8 pad0B8[0x11];
+    /* 0xB8 */ u8 pad0B8[0x0A];
+    /* 0xC2 */ u8 entityLookup[4];  /**< Maps party slot → entity index. */
+    /* 0xC6 */ u8 pad0C6[0x03];
     /* 0xC9 */ u8 field_0xC9;
     /* 0xCA */ u8 pad0CA[0x02];
     /* 0xCC */ u8 field_0xCC;
@@ -97,13 +99,16 @@ typedef struct {
     /* 0x0C */ u8 result;
 } EncounterParams;
 
-/** @brief Map entity with position data (for message positioning). */
+/** @brief Map entity with position data (for message positioning).
+ *  Total size: 612 bytes (0x264), matches sizeof(actor) from debug print.
+ */
 typedef struct {
     /* 0x000 */ u8 pad000[0x190];
     /* 0x190 */ s32 field_0x190;
     /* 0x194 */ s32 field_0x194;
     /* 0x198 */ s32 field_0x198;
-} MapEntity;
+    /* 0x19C */ u8 pad19C[0xC8];
+} MapEntity; /* 0x264 = 612 bytes */
 
 /** @brief Pop one s32 from the eline's bytecode stack. */
 #define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
@@ -120,6 +125,7 @@ extern u8 D_8007064C;
 extern u8 D_80070656[];
 extern s16 D_8007737C;
 extern u16 D_80082C0A;
+extern MapEntity *D_80085224;
 extern MapEntity *D_80085230[];
 extern u8 D_800773C0;
 extern u8 D_80082C0F;
@@ -786,7 +792,39 @@ s32 func_800B69E8(Eline *eline) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6B20);
+/**
+ * @brief Show a message tracking a party member entity's position.
+ *
+ * Like func_800B69E8 but looks up the entity index through
+ * D_800562C4->entityLookup[] first, then reads position from
+ * D_80085224[idx]. Updates message coordinates each frame.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while message is active, 2 when complete.
+ */
+s32 func_800B6B20(Eline *eline) {
+    u8 idx;
+
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->msgActive = 1;
+        eline->msgState = 0;
+        eline->windowId = POP(eline);
+        eline->savedChannel = eline->msgChannel;
+        func_800B6738(eline);
+    }
+
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        eline->stackPtr--;
+        return 2;
+    }
+
+    idx = D_800562C4->entityLookup[PEEK(eline)];
+    eline->msgTextPtr = D_80085224[idx].field_0x190;
+    eline->msgPosX = D_80085224[idx].field_0x194;
+    eline->msgPosY = D_80085224[idx].field_0x198;
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6C28);
 
