@@ -1334,7 +1334,47 @@ s32 func_800B76A4(Eline *self) {
     return func_8003F4A4(dx + dy);
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7718);
+/**
+ * @brief Scrolling positioned-message handler with per-frame channel advance.
+ *
+ * On the first pass, pops 5 values (field_0x204, window, Y, X, text pointer),
+ * initializes display state, and sets up prompt flags. Each subsequent frame,
+ * advances the sound channel toward the target (field_0x204) at a rate scaled
+ * by the distance travelled (via func_800B76A4) and the global tempo
+ * D_800704B2. When the message completes, saves the current channel to
+ * field_0x202 and finalizes via func_800B67F4.
+ *
+ * @param self Pointer to the event line (script context).
+ * @return 1 while message is animating, 2 when complete.
+ */
+s32 func_800B7718(Eline *self) {
+    s32 delta = 0;
+
+    if ((self->activeMask >> self->scriptGroup) & 1) {
+        self->msgActive = 1;
+        self->msgState = 0;
+        self->savedChannel = self->msgChannel;
+        self->field_0x204 = POP(self);
+        self->windowId = POP(self);
+        self->msgPosY = POP(self) << 12;
+        self->msgPosX = POP(self) << 12;
+        self->msgTextPtr = POP(self) << 12;
+        self->field_0x262 = 0;
+        self->field_0x240 = 1;
+    }
+
+    if (self->msgState == 2) {
+        self->field_0x202 = self->savedChannel;
+        func_800B67F4(self);
+        return 2;
+    }
+
+    delta = (s32)(self->field_0x204 - self->savedChannel) * D_800704B2;
+    delta = delta / func_800B76A4(self);
+    self->savedChannel += delta;
+    func_800B6738(self);
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B788C);
 
