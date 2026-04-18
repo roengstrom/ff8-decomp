@@ -1,5 +1,15 @@
 #include "common.h"
 
+/** @brief Eline (event line) script context. */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x184];
+    /* 0x184 */ s8 stackPtr;
+} Eline;
+
+#define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
+
+extern s32 (*D_800C6760[])(u8 *);
+
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADB68);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object4", func_800ADC04);
@@ -116,16 +126,18 @@ void func_800ADE44(u8 *a0) {
 }
 
 /**
- * Pops the stack index, compares [idx] < [idx+1], stores boolean at [idx].
+ * @brief Stack less-than comparison: stack[top-1] = stack[top-1] < stack[top].
  *
- * @param a0 Pointer to the script/object structure.
+ * @param eline Pointer to the event line (script context).
  */
-void func_800ADE7C(u8 *a0) {
-    u8 idx;
+void func_800ADE7C(Eline *eline) {
+    s32 *base;
+    s32 idx;
 
-    idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    *(s32 *)(a0 + (s8)(idx - 1) * 4) = *(s32 *)(a0 + (s8)(idx - 1) * 4) < *(s32 *)(a0 + (s8)(idx - 1) * 4 + 4);
+    eline->stackPtr--;
+    idx = (s8)eline->stackPtr;
+    base = (s32 *)((idx << 2) + (s32)eline);
+    base[0] = base[0] < base[1];
 }
 
 /**
@@ -222,15 +234,18 @@ void func_800AE014(u8 *a0) {
 }
 
 /**
- * Dispatches to a function from the D_800C6760 table based on index a1, returns 2.
+ * @brief Dispatch an extended opcode handler from the 391-entry table.
  *
- * @param a0 Pointer to the script/object structure.
- * @param a1 Table index.
+ * Indexes D_800C6760 by the given opcode index and calls the handler
+ * with the eline context. Used for multi-byte opcode dispatch — this
+ * function is itself at table index 0x13.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @param index Opcode handler table index (0..390).
  * @return 2 (continue processing).
  */
-s32 func_800AE048(u8 *a0, s32 a1) {
-    extern s32 (*D_800C6760[])(u8 *);
-    D_800C6760[a1](a0);
+s32 func_800AE048(u8 *eline, s32 index) {
+    D_800C6760[index](eline);
     return 2;
 }
 
