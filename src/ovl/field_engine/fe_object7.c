@@ -73,8 +73,8 @@ extern u8 D_8007064C;
 extern u8 D_80070656[];
 extern s16 D_8007737C;
 extern u16 D_80082C0A;
-extern MapEntity *D_80085224;
-extern MapEntity *D_80085230[];
+extern Eline *D_80085224;
+extern Eline *D_80085230[];
 extern u8 D_800773C0;
 extern u8 D_80082C0F;
 extern u8 D_80082C11;
@@ -1018,21 +1018,230 @@ s32 func_800B6C28(Eline *eline) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6D24);
+/**
+ * @brief Display a positioned message (variant without yes/no prompt setup).
+ *
+ * Like func_800B6C28 (ASK prompt) but without the field_0x262/field_0x240
+ * initialization. Pops window ID, Y position, X position, and message text
+ * pointer from the bytecode stack; saves the current message channel;
+ * resets message state. Then polls for completion.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while message is active, 2 when complete.
+ */
+s32 func_800B6D24(Eline *eline) {
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->msgActive = 1;
+        eline->msgState = 0;
+        eline->windowId = POP(eline);
+        eline->savedChannel = eline->msgChannel;
+        eline->msgPosY = POP(eline) << 12;
+        eline->msgPosX = POP(eline) << 12;
+        eline->msgTextPtr = POP(eline) << 12;
+        eline->field_0x1DA = 0;
+    }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6E18);
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        return 2;
+    }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6F4C);
+    return 1;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7050);
+/**
+ * @brief Position-tracking message variant (clears field_0x1DA, no display init).
+ *
+ * Like func_800B69E8 but clears field_0x1DA instead of calling func_800B6738.
+ * Pops window ID and saves the channel on the first pass; afterwards, updates
+ * the message coordinates from D_80085230[PEEK]'s position each frame.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while message is active, 2 when complete.
+ */
+s32 func_800B6E18(Eline *eline) {
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->msgActive = 1;
+        eline->msgState = 0;
+        eline->windowId = POP(eline);
+        eline->savedChannel = eline->msgChannel;
+        eline->field_0x1DA = 0;
+    }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B711C);
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        eline->stackPtr--;
+        return 2;
+    }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7228);
+    eline->msgTextPtr = D_80085230[PEEK(eline)]->field_0x190;
+    eline->msgPosX = D_80085230[PEEK(eline)]->field_0x194;
+    eline->msgPosY = D_80085230[PEEK(eline)]->field_0x198;
+    return 1;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7310);
+/**
+ * @brief Party-member position-tracking message variant (clears field_0x1DA).
+ *
+ * Like func_800B6B20 but clears field_0x1DA instead of calling func_800B6738.
+ * Looks up a party slot through D_800562C4->entityLookup[], then updates the
+ * message coordinates from D_80085224[idx]'s position each frame.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while message is active, 2 when complete.
+ */
+s32 func_800B6F4C(Eline *eline) {
+    u8 idx;
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B73D4);
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->msgActive = 1;
+        eline->msgState = 0;
+        eline->windowId = POP(eline);
+        eline->savedChannel = eline->msgChannel;
+        eline->field_0x1DA = 0;
+    }
+
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        eline->stackPtr--;
+        return 2;
+    }
+
+    idx = D_800562C4->entityLookup[PEEK(eline)];
+    eline->msgTextPtr = D_80085224[idx].field_0x190;
+    eline->msgPosX = D_80085224[idx].field_0x194;
+    eline->msgPosY = D_80085224[idx].field_0x198;
+    return 1;
+}
+
+/**
+ * @brief Pending-message MES variant — set flag 0x20000, init display, return 3.
+ *
+ * Unconditionally initializes the message with 4 stack values and sets the
+ * pending-message flag (0x20000). Unlike opHandler_MES, there is no activeMask
+ * guard or msgState==2 check — it schedules the display and yields with 3.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 3 (message scheduled, deferred completion).
+ */
+s32 func_800B7050(Eline *eline) {
+    s32 new_var;
+    u16 saved;
+
+    saved = eline->msgChannel;
+    eline->msgActive = 1;
+    eline->flags |= 0x20000;
+    eline->msgState = 0;
+
+    eline->windowId = POP(eline);
+    eline->msgPosY = POP(eline) << 12;
+    eline->msgPosX = POP(eline) << 12;
+    new_var = POP(eline);
+    eline->savedChannel = saved;
+    eline->msgTextPtr = new_var << 12;
+
+    func_800B6738(eline);
+    return 3;
+}
+
+/**
+ * @brief Pending message variant with entity-position tracking.
+ *
+ * Sets the pending-message flag, pops a window ID, then reads initial message
+ * coordinates from D_80085230[idx]'s position (two PEEKs + one POP for the
+ * final Y). Returns 3 to indicate deferred completion.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 3 (message scheduled, deferred completion).
+ */
+s32 func_800B711C(Eline *eline) {
+    eline->msgActive = 1;
+    eline->flags |= 0x20000;
+    eline->msgState = 0;
+    eline->windowId = POP(eline);
+    eline->savedChannel = eline->msgChannel;
+    func_800B6738(eline);
+
+    eline->msgTextPtr = D_80085230[PEEK(eline)]->field_0x190;
+    eline->msgPosX = D_80085230[PEEK(eline)]->field_0x194;
+    eline->msgPosY = D_80085230[POP(eline)]->field_0x198;
+    return 3;
+}
+
+/**
+ * @brief Pending message variant with party-member position tracking.
+ *
+ * Sets the pending-message flag, pops a window ID, looks up a party slot
+ * through D_800562C4->entityLookup[POP], then reads initial coordinates from
+ * D_80085224[idx]'s position. Returns 3 for deferred completion.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 3 (message scheduled, deferred completion).
+ */
+s32 func_800B7228(Eline *eline) {
+    u8 idx;
+
+    eline->msgActive = 1;
+    eline->flags |= 0x20000;
+    eline->msgState = 0;
+    eline->windowId = POP(eline);
+    eline->savedChannel = eline->msgChannel;
+    func_800B6738(eline);
+
+    idx = D_800562C4->entityLookup[POP(eline)];
+    eline->msgTextPtr = D_80085224[idx].field_0x190;
+    eline->msgPosX = D_80085224[idx].field_0x194;
+    eline->msgPosY = D_80085224[idx].field_0x198;
+    return 3;
+}
+
+/**
+ * @brief Pending ASK-prompt variant — leaf function, all 4 POPs, returns 3.
+ *
+ * Sets the pending-message flag and pops window ID, Y, X, and text pointer
+ * from the stack. Also initializes the prompt-specific state fields
+ * (field_0x262=0, field_0x240=1, field_0x1DA=0) like func_800B6C28, but
+ * unconditionally (no activeMask guard) and returns 3.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 3 (prompt scheduled, deferred completion).
+ */
+s32 func_800B7310(Eline *eline) {
+    eline->msgActive = 1;
+    eline->flags |= 0x20000;
+    eline->msgState = 0;
+    eline->windowId = POP(eline);
+    eline->savedChannel = eline->msgChannel;
+    eline->msgPosY = POP(eline) << 12;
+    eline->msgPosX = POP(eline) << 12;
+    eline->msgTextPtr = POP(eline) << 12;
+    eline->field_0x1DA = 0;
+    eline->field_0x262 = 0;
+    eline->field_0x240 = 1;
+    return 3;
+}
+
+/**
+ * @brief Pending MES variant — leaf function, all 4 POPs, returns 3.
+ *
+ * Sets the pending-message flag and pops window ID, Y, X, and text pointer
+ * from the stack. Returns 3 immediately (no display init call).
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 3 (message scheduled, deferred completion).
+ */
+s32 func_800B73D4(Eline *eline) {
+    eline->msgActive = 1;
+    eline->flags |= 0x20000;
+    eline->msgState = 0;
+    eline->windowId = POP(eline);
+    eline->savedChannel = eline->msgChannel;
+    eline->msgPosY = POP(eline) << 12;
+    eline->msgPosX = POP(eline) << 12;
+    eline->msgTextPtr = POP(eline) << 12;
+    eline->field_0x1DA = 0;
+    return 3;
+}
 
 /**
  * Returns 2 if the halfword at offset 0x21E equals 2, otherwise returns 1.
@@ -1047,9 +1256,52 @@ s32 func_800B7490(u8 *a0) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B74B0);
+/**
+ * @brief Clean up message state for a referenced entity (pops its index).
+ *
+ * Looks up an entity from D_80085230[POP], and if the pending-message flag
+ * (0x10000000) is set and the entity's message is currently active, clears
+ * it, tears down the display via func_800B912C, and repurposes the flags
+ * (clear 0xF800 range, set 0x2000).
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B74B0(Eline *eline) {
+    s32 idx = POP(eline);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7578);
+    if (D_80085230[idx]->flags & 0x10000000) {
+        if (D_80085230[idx]->msgActive != 1) {
+            return 2;
+        }
+        D_80085230[idx]->msgActive = 0;
+        func_800B912C(D_80085230[idx], D_80085230[idx]->field_0x24F);
+        D_80085230[idx]->flags &= 0xFFFF07FF;
+        D_80085230[idx]->flags |= 0x2000;
+    }
+    return 2;
+}
+
+/**
+ * @brief Clean up message state for a referenced party-member entity.
+ *
+ * Pops a party slot, looks up the entity through D_800562C4->entityLookup[],
+ * then (if the message is currently active) clears it, tears down the display,
+ * and marks the flags (clear 0xF800 range and set 0x2000).
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B7578(Eline *eline) {
+    u8 idx = D_800562C4->entityLookup[POP(eline)];
+
+    if (D_80085224[idx].msgActive == 1) {
+        D_80085224[idx].msgActive = 0;
+        func_800B912C(&D_80085224[idx], D_80085224[idx].field_0x24F);
+        D_80085224[idx].flags = (D_80085224[idx].flags & 0xFFFF07FF) | 0x2000;
+    }
+    return 2;
+}
 
 /** @brief If animation bit set, clear bit 0x10000 in flags. Returns 1. */
 s32 func_800B7640(u8 *a0) {
@@ -1101,10 +1353,6 @@ s32 func_800B85C8(u8 *a0) {
 }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B85F8);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8608);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8644);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B8710);
 
@@ -1190,5 +1438,3 @@ s32 func_800B9000(u8 *a0) {
 }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B9030);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B9034);
