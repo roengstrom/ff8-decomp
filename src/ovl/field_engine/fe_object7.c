@@ -1244,13 +1244,13 @@ s32 func_800B73D4(Eline *eline) {
 }
 
 /**
- * Returns 2 if the halfword at offset 0x21E equals 2, otherwise returns 1.
+ * @brief Poll whether the current message has finished displaying.
  *
- * @param a0 Pointer to the script/object structure.
- * @return 2 if value at 0x21E is 2, else 1.
+ * @param eline Pointer to the event line (script context).
+ * @return 2 if msgState == 2 (message complete), 1 otherwise (still displaying).
  */
-s32 func_800B7490(u8 *a0) {
-    if (*(s16 *)(a0 + 0x21E) == 2) {
+s32 func_800B7490(Eline *eline) {
+    if (eline->msgState == 2) {
         return 2;
     }
     return 1;
