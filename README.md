@@ -23,18 +23,20 @@ A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
    ```bash
    python3 tools/extract.py /path/to/ff8-disc1.bin
    ```
-   This verifies the disc SHA1, then extracts `SLUS_008.92`, all menu
-   overlays, and code overlays (with LZSS decompression where needed)
-   to `original/`.
+   This verifies the disc SHA1, then extracts `SLUS_008.92`, all executables and overlays.
 
-5. **Run splat** to split the executable and overlays into assembly:
+5. **Full build**:
    ```bash
-   make split
+   make full
    ```
+   This runs `clean`, `split` (runs splat on the executable + overlays),
+   `build-assets` (converts binary assets to C source), and `verify`
+   (assembles, links, and checks that each output matches the original SHA1).
 
-6. **Build and verify**:
+   For incremental work, the individual targets are also available:
    ```bash
-   make verify
+   make split          # re-run splat
+   make build-assets   # regenerate asset C source
+   make verify         # build and compare SHA1s
    ```
-   This assembles, links, and checks that the output matches the original SHA1.
 

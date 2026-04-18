@@ -90,6 +90,13 @@ ALL_OBJS := $(ASM_OBJS) $(C_OBJS)
 # Default: build and verify everything
 all: verify
 
+# Full rebuild: clean, split, build assets, and verify
+full:
+	$(MAKE) clean
+	$(MAKE) split
+	$(MAKE) build-assets
+	$(MAKE) verify
+
 # Assemble: .s -> .o
 $(BUILD_DIR)/$(ASM_DIR)/%.o: $(ASM_DIR)/%.s
 	@mkdir -p $(dir $@)
@@ -293,6 +300,6 @@ report: objdiff-config
 	@$(OBJDIFF) report generate -p . -o $(BUILD_DIR)/progress.json
 	@python3 tools/objdiff/progress_html.py $(BUILD_DIR)/progress.json $(BUILD_DIR)/progress.html
 
-.PHONY: all build verify setup split clean permute build-overlays \
+.PHONY: all full build verify setup split clean permute build-overlays \
         expected objdiff-config report \
         $(foreach ovl,$(OVERLAYS),split-$(ovl) build-$(ovl) verify-$(ovl))
