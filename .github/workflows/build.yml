@@ -48,3 +48,12 @@ jobs:
 
       - name: Build and verify
         run: make full
+
+      - name: Generate progress report
+        run: make report
+
+      - name: Upload progress report
+        uses: actions/upload-artifact@v4
+        with:
+          name: SLUS_008.92_report
+          path: build/report.json

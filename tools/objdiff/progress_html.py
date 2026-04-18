@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate an HTML progress report from objdiff's progress.json."""
+"""Generate an HTML progress report from objdiff's report.json."""
 
 import json
 import sys
@@ -179,7 +179,7 @@ def generate_html(report, out_path):
 
 
 def main():
-    json_path = sys.argv[1] if len(sys.argv) > 1 else "build/progress.json"
+    json_path = sys.argv[1] if len(sys.argv) > 1 else "build/report.json"
     out_path = sys.argv[2] if len(sys.argv) > 2 else "build/progress.html"
 
     with open(json_path) as f:
