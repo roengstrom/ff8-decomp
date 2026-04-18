@@ -1,0 +1,50 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Fetch originals
+        run: |
+          git clone --depth=1 \
+            https://x-access-token:${{ secrets.ORIGINALS_TOKEN }}@github.com/roengstrom/ff8-decomp-dependencies.git \
+            /tmp/deps
+          cp -r /tmp/deps/original ./
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            binutils-mips-linux-gnu \
+            cpp
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Create venv and install Python dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Make toolchain binaries executable
+        run: |
+          chmod +x tools/gcc-2.7.2-cdk/cc1
+          chmod +x tools/gcc-2.8.0-psx/cc1
+          chmod +x tools/objdiff/objdiff
+
+      - name: Full build
+        run: make full
