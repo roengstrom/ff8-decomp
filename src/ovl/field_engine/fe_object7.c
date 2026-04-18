@@ -97,11 +97,22 @@ typedef struct {
     /* 0x0C */ u8 result;
 } EncounterParams;
 
+/** @brief Map entity with position data (for message positioning). */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x190];
+    /* 0x190 */ s32 field_0x190;
+    /* 0x194 */ s32 field_0x194;
+    /* 0x198 */ s32 field_0x198;
+} MapEntity;
+
 /** @brief Pop one s32 from the eline's bytecode stack. */
 #define POP(eline) (((s32 *)(eline))[(s8)(eline)->stackPtr--])
 
 /** @brief Pop one s32 then read low byte only. */
 #define POP_BYTE(eline) (*(u8 *)&POP(eline))
+
+/** @brief Read the top s32 from the eline's bytecode stack without popping. */
+#define PEEK(eline) (((s32 *)(eline))[(eline)->stackPtr])
 
 extern WorldContext *D_800562C4;
 extern SystemState D_800704A8;
@@ -109,6 +120,7 @@ extern u8 D_8007064C;
 extern u8 D_80070656[];
 extern s16 D_8007737C;
 extern u16 D_80082C0A;
+extern MapEntity *D_80085230[];
 extern u8 D_800773C0;
 extern u8 D_80082C0F;
 extern u8 D_80082C11;
@@ -741,7 +753,38 @@ s32 opHandler_MES(Eline *eline) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B69E8);
+/**
+ * @brief Show a message positioned at a map entity's location.
+ *
+ * On the first pass (entity active): pops window ID, saves channel,
+ * calls func_800B6738 to init display. On subsequent ticks: reads
+ * the entity's position from D_80085230[PEEK] and updates the message
+ * coordinates each frame. When message state reaches 2, finalizes
+ * and drops the entity index from the stack.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while message is active, 2 when complete.
+ */
+s32 func_800B69E8(Eline *eline) {
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->msgActive = 1;
+        eline->msgState = 0;
+        eline->windowId = POP(eline);
+        eline->savedChannel = eline->msgChannel;
+        func_800B6738(eline);
+    }
+
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        eline->stackPtr--;
+        return 2;
+    }
+
+    eline->msgTextPtr = D_80085230[PEEK(eline)]->field_0x190;
+    eline->msgPosX = D_80085230[PEEK(eline)]->field_0x194;
+    eline->msgPosY = D_80085230[PEEK(eline)]->field_0x198;
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6B20);
 
