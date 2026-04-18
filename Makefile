@@ -279,7 +279,7 @@ $(FIELD_INIT_TIM): original/field_init.bin
 
 # Asset pipeline: convert binary assets to C source
 build-assets: $(FIELD_INIT_TIM)
-	python3 tools/assets.py build config/assets.yaml
+	$(PYTHON) tools/assets.py build config/assets.yaml
 
 # field_init font object depends on generated C
 build/ovl/field_init/src/ovl/field_init/field_init_tim.o: build-assets
