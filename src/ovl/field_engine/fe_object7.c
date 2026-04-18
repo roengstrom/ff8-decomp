@@ -33,7 +33,7 @@ typedef struct {
     /* 0x1FE */ s16 savedChannel;     /**< Previous message channel. */
     /* 0x200 */ u16 msgChannel;       /**< Current message channel. */
     /* 0x202 */ u16 field_0x202;      /**< Saved channel for async restore. */
-    /* 0x204 */ u16 field_0x204;
+    /* 0x204 */ s16 field_0x204;
     /* 0x206 */ u8 pad206[0x14];
     /* 0x21A */ u16 windowId;         /**< Message window ID. */
     /* 0x21C */ u16 field_0x21C;      /**< Saved window ID for async restore. */
@@ -68,7 +68,10 @@ typedef struct {
     /* 0xCC */ u8 field_0xCC;
     /* 0xCD */ u8 pad0CD[0x02];
     /* 0xCF */ u8 field_0xCF;
-    /* 0xD0 */ u8 pad0D0[0x06];
+    /* 0xD0 */ u8 pad0D0[0x02];
+    /* 0xD2 */ u8 field_0xD2;
+    /* 0xD3 */ u8 field_0xD3;
+    /* 0xD4 */ u8 pad0D4[0x02];
     /* 0xD6 */ u8 field_0xD6;
     /* 0xD7 */ u8 padD7[0x19];
     /* 0xF0 */ u8 field_0xF0;
@@ -132,10 +135,15 @@ extern u8 D_80082C0F;
 extern u8 D_80082C11;
 extern EncounterParams D_80082C90;
 extern u8 D_80082C10;
-extern u8 D_800DE8D0;
+extern u8 D_8005630C[];
 extern s32 D_8005F13C;
 extern s16 D_8005F11C;
 extern s16 D_800704B2;
+extern u8 D_800DE8D0;
+extern s16 D_800DE4D0;
+extern s8 D_800DE4D2;
+extern s8 D_800DE4D3;
+extern s8 D_800DE4D4;
 
 /**
  * @brief Pop a key item ID and store its value.
@@ -364,7 +372,214 @@ s32 func_800B5990(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B5A30);
+/**
+ * @brief Draw point interaction handler (8-state machine).
+ *
+ * Manages the full draw-point interaction: prompt, ability check,
+ * party member selection, magic draw, result display, and used-flag update.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while processing, 2 when complete.
+ */
+s32 func_800B5A30(Eline *eline) {
+    s32 fieldIdx;
+    s32 tableResult;
+    u8 *text;
+    u32 dims;
+    s32 i;
+    s16 rect[4];
+
+    fieldIdx = PEEK(eline) - 1;
+    tableResult = lookupFieldTable(fieldIdx);
+
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->field_0x204 = 0;
+    }
+
+    switch (eline->field_0x204) {
+    case 0:
+        D_800562C4->field_0xF2 = fieldIdx;
+        setSfxEntryVolume(6, 0x1000);
+        setSfxEntityType(6, 6);
+
+        if (func_800B5990()) {
+            i = getPackedField2Bit(fieldIdx);
+            if (i == 3 || getPackedField2Bit(fieldIdx) == 2) {
+                text = func_800B574C(func_8003974C(D_8005630C, 3));
+            } else {
+                text = func_800B574C(func_8003974C(D_8005630C, 2));
+                text = func_800B578C(0xC, tableResult & 0x3F);
+                sndPlaySfx(0x42, 0, 0x80, 0x7F);
+            }
+        } else {
+            text = func_800B574C(func_8003974C(D_8005630C, 7));
+        }
+
+        initSfxPlayback(6, text);
+        dims = func_8002E680(text);
+        rect[2] = (dims & 0xFFFF) + 0x10;
+        rect[3] = (dims >> 16) + 0x11;
+        rect[0] = 0xA0 - rect[2] / 2;
+        rect[1] = 0x70 - rect[3] / 2;
+        func_8002E064(6, rect);
+        startSfxSlow(6);
+        setSfxGlobalFlag(6);
+        D_800562C4->field_0xD3 |= 0x40;
+
+        if (tableResult & 0x80) {
+            D_800DE4D0 = 0x14;
+        } else {
+            D_800DE4D0 = 0xA;
+        }
+
+        if (getPackedField2Bit(fieldIdx) == 1) {
+            D_800DE4D0 /= 2;
+        }
+
+        i = fieldRandom() & 0xFF;
+        D_800DE4D0 = D_800DE4D0 * (i + 0x80) / 512 + 1;
+        eline->field_0x204++;
+        break;
+
+    case 1:
+        if (D_800562C4->field_0xD3 & 0x40) {
+            return 1;
+        }
+
+        i = getPackedField2Bit(fieldIdx);
+        if (i == 3 || getPackedField2Bit(fieldIdx) == 2) {
+            eline->field_0x140 = 0;
+            eline->stackPtr--;
+            return 2;
+        }
+
+        if (func_800B5990()) {
+            eline->field_0x204++;
+            break;
+        }
+
+        eline->field_0x140 = 0;
+        eline->stackPtr--;
+        return 2;
+
+    case 2:
+        for (D_800DE4D4 = 0; D_800DE4D4 < 3; D_800DE4D4++) {
+            if (g_gameState.battleParty[D_800DE4D4] == 0xFF) {
+                break;
+            }
+        }
+
+        text = func_800B574C(func_8003974C(D_8005630C, 4));
+        text = func_800B57E8(D_800DE4D4, tableResult & 0x3F);
+        dims = func_8002E680(text);
+        rect[2] = (dims & 0xFFFF) + 0x30;
+        rect[3] = (dims >> 16) + 0x11;
+        rect[0] = 0xA0 - rect[2] / 2;
+        rect[1] = 0x70 - rect[3] / 2;
+        func_8002E064(6, rect);
+        func_8002D784(6, text, 1, D_800DE4D4 + 1, 2, 1);
+        startSfxSlow(6);
+        setSfxGlobalFlag(6);
+        D_800562C4->field_0xD3 |= 0x40;
+        D_800562C4->field_0xD2 |= 0x40;
+        eline->field_0x204++;
+        break;
+
+    case 3:
+        setSfxGlobalFlag(6);
+        D_800DE4D2 = func_8002CE84(6);
+        if ((s8)D_800DE4D2 < 0) {
+            return 1;
+        }
+        fadeOutSfxSlow(6);
+        D_800562C4->field_0xD2 &= ~0x40;
+
+        if ((s8)D_800DE4D2 == 0) {
+            eline->field_0x140 = 0;
+            eline->stackPtr--;
+            return 2;
+        }
+
+        D_800DE4D2--;
+        eline->field_0x204++;
+        break;
+
+    case 4:
+        D_800DE4D3 = func_80037C6C(g_gameState.battleParty[D_800DE4D2]);
+        if (getSfxField1C(6)) {
+            return 1;
+        }
+
+        if (g_battleChars.chars[D_800DE4D3].fieldStatusByte & 2) {
+            func_800A455C(D_800562C4->entityLookup[D_800DE4D2]);
+            sndPlaySfx(0x43, 0, 0x80, 0x7F);
+            eline->field_0x204++;
+            break;
+        }
+
+        eline->field_0x204 += 2;
+        break;
+
+    case 5:
+        if (func_800A48CC()) {
+            return 1;
+        }
+        eline->field_0x204++;
+        break;
+
+    case 6:
+        if (g_battleChars.chars[D_800DE4D3].fieldStatusByte & 2) {
+            for (i = 0; i < D_800DE4D0; i++) {
+                if (func_800211B4(g_gameState.mainData.party.party[D_800DE4D3], tableResult & 0x3F)) {
+                    break;
+                }
+            }
+
+            func_8002E1B4(7, i);
+
+            if (i != 0) {
+                text = func_800B574C(func_8003974C(D_8005630C, 5));
+            } else {
+                text = func_800B574C(func_8003974C(D_8005630C, 6));
+                eline->field_0x204 = 0;
+            }
+        } else {
+            text = func_800B574C(func_8003974C(D_8005630C, 6));
+            eline->field_0x204 = 0;
+        }
+
+        func_800B578C(3, g_gameState.battleParty[D_800DE4D2]);
+        text = func_800B578C(0xC, tableResult & 0x3F);
+        initSfxPlayback(6, text);
+        dims = func_8002E680(text);
+        rect[2] = (dims & 0xFFFF) + 0x10;
+        rect[3] = (dims >> 16) + 0x11;
+        rect[0] = 0xA0 - rect[2] / 2;
+        rect[1] = 0x70 - rect[3] / 2;
+        func_8002E064(6, rect);
+        startSfxSlow(6);
+        setSfxGlobalFlag(6);
+        D_800562C4->field_0xD3 |= 0x40;
+        eline->field_0x204++;
+        break;
+
+    case 7:
+        if (D_800562C4->field_0xD3 & 0x40) {
+            return 1;
+        }
+
+        if (tableResult & 0x40) {
+            func_800383B8(fieldIdx, 2);
+        } else {
+            func_800383B8(fieldIdx, 3);
+        }
+
+        eline->stackPtr--;
+        return 2;
+    }
+
+    return 1;
+}
 
 /**
  * @brief Set up a scripted camera/effect using eline position data.
