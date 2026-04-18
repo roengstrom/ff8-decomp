@@ -27,7 +27,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            binutils-mips-linux-gnu \
+            binutils-mipsel-linux-gnu \
             cpp
 
       - name: Set up Python
