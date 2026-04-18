@@ -46,5 +46,5 @@ jobs:
           chmod +x tools/gcc-2.8.0-psx/cc1
           chmod +x tools/objdiff/objdiff
 
-      - name: Full build
+      - name: Build and verify
         run: make full
