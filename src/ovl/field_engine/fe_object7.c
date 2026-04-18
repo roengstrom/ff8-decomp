@@ -49,6 +49,8 @@ typedef struct {
     /* 0x251 */ u8 field_0x251;
     /* 0x252 */ u8 pad252[0x04];
     /* 0x256 */ u8 field_0x256;
+    /* 0x257 */ u8 pad257[0x0B];
+    /* 0x262 */ u8 field_0x262;
 } Eline;
 
 /** @brief World map / field context pointed to by D_800562C4. */
@@ -1041,7 +1043,37 @@ s32 func_800B6B20(Eline *eline) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6C28);
+/**
+ * @brief ASK opcode handler — display a yes/no prompt.
+ *
+ * Sets up the message display with position and window ID from
+ * the bytecode stack, initializes the prompt state fields,
+ * then polls for completion.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 while prompt is active, 2 when answered.
+ */
+s32 func_800B6C28(Eline *eline) {
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->msgActive = 1;
+        eline->msgState = 0;
+        eline->windowId = POP(eline);
+        eline->savedChannel = eline->msgChannel;
+        eline->msgPosY = POP(eline) << 12;
+        eline->msgPosX = POP(eline) << 12;
+        eline->msgTextPtr = POP(eline) << 12;
+        eline->field_0x262 = 0;
+        eline->field_0x240 = 1;
+        eline->field_0x1DA = 0;
+    }
+
+    if (eline->msgState == 2) {
+        func_800B67F4(eline);
+        return 2;
+    }
+
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B6D24);
 
