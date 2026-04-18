@@ -83,9 +83,9 @@ typedef struct {
     /* 0x176 */ u8 pad176[0x0E];
     /* 0x184 */ s8 stackPtr;        /**< Bytecode stack pointer (signed, grows down). */
     /* 0x185 */ u8 pad185[0x0B];
-    /* 0x190 */ s32 field_0x190;
-    /* 0x194 */ s32 field_0x194;
-    /* 0x198 */ s32 field_0x198;
+    /* 0x190 */ s32 posX;           /**< Entity X position (fixed-point). */
+    /* 0x194 */ s32 posY;           /**< Entity Y position (fixed-point). */
+    /* 0x198 */ s32 field_0x198;    /**< Third component (purpose TBD). */
     /* 0x19C */ u8 pad19C[0x18];
     /* 0x1B4 */ s32 msgTextPtr;     /**< Message text pointer (fixed-point). */
     /* 0x1B8 */ s32 msgPosX;        /**< Message X position (fixed-point). */

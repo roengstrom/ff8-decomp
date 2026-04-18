@@ -55,18 +55,6 @@ typedef struct {
     /* 0x0C */ u8 result;
 } EncounterParams;
 
-/** @brief Map entity with position data (for message positioning).
- *  Total size: 612 bytes (0x264), matches sizeof(actor) from debug print.
- */
-typedef struct {
-    /* 0x000 */ u8 pad000[0x190];
-    /* 0x190 */ s32 field_0x190;
-    /* 0x194 */ s32 field_0x194;
-    /* 0x198 */ s32 field_0x198;
-    /* 0x19C */ u8 pad19C[0xC8];
-} MapEntity; /* 0x264 = 612 bytes */
-
-
 extern WorldContext *D_800562C4;
 extern SystemState D_800704A8;
 extern u8 D_8007064C;
@@ -539,7 +527,7 @@ s32 func_800B5A30(Eline *eline) {
 s32 func_800B6210(Eline *eline) {
     D_800562C4->field_0xF0 = 1;
     D_800562C4->field_0xF1 = POP_BYTE(eline);
-    func_800A4500(eline->field_0x190, eline->field_0x194, eline->field_0x198);
+    func_800A4500(eline->posX, eline->posY, eline->field_0x198);
     func_800A4550(D_800562C4->field_0xF1 | D_800562C4->field_0x58);
     return 2;
 }
@@ -946,8 +934,8 @@ s32 func_800B69E8(Eline *eline) {
         return 2;
     }
 
-    eline->msgTextPtr = D_80085230[PEEK(eline)]->field_0x190;
-    eline->msgPosX = D_80085230[PEEK(eline)]->field_0x194;
+    eline->msgTextPtr = D_80085230[PEEK(eline)]->posX;
+    eline->msgPosX = D_80085230[PEEK(eline)]->posY;
     eline->msgPosY = D_80085230[PEEK(eline)]->field_0x198;
     return 1;
 }
@@ -980,8 +968,8 @@ s32 func_800B6B20(Eline *eline) {
     }
 
     idx = D_800562C4->entityLookup[PEEK(eline)];
-    eline->msgTextPtr = D_80085224[idx].field_0x190;
-    eline->msgPosX = D_80085224[idx].field_0x194;
+    eline->msgTextPtr = D_80085224[idx].posX;
+    eline->msgPosX = D_80085224[idx].posY;
     eline->msgPosY = D_80085224[idx].field_0x198;
     return 1;
 }
@@ -1074,8 +1062,8 @@ s32 func_800B6E18(Eline *eline) {
         return 2;
     }
 
-    eline->msgTextPtr = D_80085230[PEEK(eline)]->field_0x190;
-    eline->msgPosX = D_80085230[PEEK(eline)]->field_0x194;
+    eline->msgTextPtr = D_80085230[PEEK(eline)]->posX;
+    eline->msgPosX = D_80085230[PEEK(eline)]->posY;
     eline->msgPosY = D_80085230[PEEK(eline)]->field_0x198;
     return 1;
 }
@@ -1108,8 +1096,8 @@ s32 func_800B6F4C(Eline *eline) {
     }
 
     idx = D_800562C4->entityLookup[PEEK(eline)];
-    eline->msgTextPtr = D_80085224[idx].field_0x190;
-    eline->msgPosX = D_80085224[idx].field_0x194;
+    eline->msgTextPtr = D_80085224[idx].posX;
+    eline->msgPosX = D_80085224[idx].posY;
     eline->msgPosY = D_80085224[idx].field_0x198;
     return 1;
 }
@@ -1162,8 +1150,8 @@ s32 func_800B711C(Eline *eline) {
     eline->savedChannel = eline->msgChannel;
     func_800B6738(eline);
 
-    eline->msgTextPtr = D_80085230[PEEK(eline)]->field_0x190;
-    eline->msgPosX = D_80085230[PEEK(eline)]->field_0x194;
+    eline->msgTextPtr = D_80085230[PEEK(eline)]->posX;
+    eline->msgPosX = D_80085230[PEEK(eline)]->posY;
     eline->msgPosY = D_80085230[POP(eline)]->field_0x198;
     return 3;
 }
@@ -1189,8 +1177,8 @@ s32 func_800B7228(Eline *eline) {
     func_800B6738(eline);
 
     idx = D_800562C4->entityLookup[POP(eline)];
-    eline->msgTextPtr = D_80085224[idx].field_0x190;
-    eline->msgPosX = D_80085224[idx].field_0x194;
+    eline->msgTextPtr = D_80085224[idx].posX;
+    eline->msgPosX = D_80085224[idx].posY;
     eline->msgPosY = D_80085224[idx].field_0x198;
     return 3;
 }
@@ -1303,25 +1291,48 @@ s32 func_800B7578(Eline *eline) {
     return 2;
 }
 
-/** @brief If animation bit set, clear bit 0x10000 in flags. Returns 1. */
-s32 func_800B7640(u8 *a0) {
-    u8 bit = *(u8 *)(a0 + 0x175);
-    u8 shift = *(u8 *)(a0 + 0x174);
-    if ((bit >> shift) & 1) {
-        *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x10000;
+/**
+ * @brief Clear the 0x10000 flag bit if the entity is active.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 1 (continue processing).
+ */
+s32 func_800B7640(Eline *eline) {
+    if ((eline->activeMask >> eline->scriptGroup) & 1) {
+        eline->flags &= ~0x10000;
     }
     return 1;
 }
 
-/** @brief Pop byte from stack, store to offset 0x262. Returns 2. */
-s32 func_800B7674(u8 *a0) {
-    u8 idx = *(u8 *)(a0 + 0x184);
-    *(u8 *)(a0 + 0x184) = idx - 1;
-    *(u8 *)(a0 + 0x262) = *(u8 *)(a0 + (s8)idx * 4);
+/**
+ * @brief Pop a byte off the stack into field_0x262.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B7674(Eline *eline) {
+    eline->field_0x262 = POP_BYTE(eline);
     return 2;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B76A4);
+/**
+ * @brief 2D distance from the saved message position to the entity's current position.
+ *
+ * Both coordinate pairs are in fixed-point (Q20.12). The per-axis deltas
+ * are truncated toward zero via signed divide-by-4096 before being squared.
+ * Used by the scrolling-message handler to scale the channel advance by
+ * how far the entity has travelled since the message started.
+ *
+ * @param self Pointer to the event line (script context).
+ * @return Integer distance between the two positions.
+ */
+s32 func_800B76A4(Eline *self) {
+    s32 dx = (self->msgTextPtr - self->posX) / 4096;
+    s32 dy = (self->msgPosX - self->posY) / 4096;
+    dx = dx * dx;
+    dy = dy * dy;
+    return func_8003F4A4(dx + dy);
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B7718);
 
