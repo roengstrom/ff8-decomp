@@ -1,5 +1,51 @@
 #include "common.h"
 
+/** @brief Field entity (actor), 612 bytes (0x264). Same as "actor" in debug print. */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x190];
+    /* 0x190 */ s32 posX;
+    /* 0x194 */ s32 posY;
+    /* 0x198 */ s32 posZ;
+    /* 0x19C */ u8 pad19C[0xA5];
+    /* 0x241 */ u8 field_0x241;
+    /* 0x242 */ u8 pad242[0x0A];
+    /* 0x24C */ u8 field_0x24C;
+    /* 0x24D */ u8 pad24D[0x02];
+    /* 0x24F */ u8 field_0x24F;
+    /* 0x250 */ u8 field_0x250;
+    /* 0x251 */ u8 field_0x251;
+    /* 0x252 */ u8 field_0x252;
+    /* 0x253 */ u8 field_0x253;
+    /* 0x254 */ u8 field_0x254;
+    /* 0x255 */ u8 pad255[0x0F];
+} Entity; /* 0x264 = 612 bytes */
+
+/** @brief Animation parameter entry. */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x09];
+    /* 0x09 */ s8 field_09;
+    /* 0x0A */ u8 field_0A;
+    /* 0x0B */ u8 field_0B;
+} AnimParam;
+
+/** @brief System state block (at D_800704A8). */
+typedef struct {
+    /* 0x000 */ u8 mode;
+    /* 0x001 */ u8 pad001;
+    /* 0x002 */ s16 counter;
+    /* 0x004 */ u8 pad004[0x0E];
+    /* 0x012 */ u8 entityIndex[2];
+    /* 0x014 */ u8 pad014[0x17C];
+    /* 0x190 */ u8 slotActive[16];
+} SystemState;
+
+extern Entity *D_80085224;
+extern SystemState D_800704A8;
+extern u16 D_8005F118;
+extern u16 D_8005F11A;
+extern u16 D_8005F160;
+extern u16 D_8005F162;
+
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80098314);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800983F0);
@@ -8,9 +54,8 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800983F0);
  * Zero 0x40 bytes at D_800704A8+0x1B8 (backwards loop).
  */
 void func_80098934(void) {
-    extern u8 D_800704A8[];
     s32 i = 0x3F;
-    volatile u8 *base = D_800704A8;
+    volatile u8 *base = (u8 *)&D_800704A8;
     u8 *ptr = (u8 *)base + 0x3F;
     do {
         *(u8 *)(ptr + 0x1B8) = 0;
@@ -62,7 +107,67 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009AEC0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009B4A8);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009B74C);
+/**
+ * @brief Dispatch entity animation based on slot index and animation parameters.
+ *
+ * Looks up the entity by slot index, sets animation state, checks
+ * screen position thresholds, then dispatches to func_8009B4A8 with
+ * the appropriate animation field based on the parameter's field_0A value.
+ *
+ * @param slotIdx Slot index (0 or 1).
+ * @param paramIdx Index into the animation parameter array.
+ * @param params Animation parameter array.
+ * @param multiplier Speed/direction multiplier for the animation.
+ */
+void func_8009B74C(s16 slotIdx, u16 paramIdx, AnimParam *params, s16 multiplier) {
+    u8 entityIdx;
+
+    entityIdx = D_800704A8.entityIndex[slotIdx];
+
+    if (entityIdx == 0xFF) {
+        return;
+    }
+
+    D_80085224[D_800704A8.entityIndex[(s16)slotIdx]].field_0x241 = params[paramIdx].field_0B;
+    D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x24C = 1;
+
+    if (slotIdx == 1) {
+        if (D_8005F160 > D_8005F118) {
+            params[paramIdx].field_0A = 2;
+        }
+    } else {
+        if (D_8005F162 > D_8005F11A) {
+            params[paramIdx].field_0A = 2;
+        }
+    }
+
+    switch (params[paramIdx].field_0A) {
+    case 0:
+        entityIdx = D_800704A8.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x250, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        break;
+    case 1:
+        entityIdx = D_800704A8.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x251, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        break;
+    case 2:
+        entityIdx = D_800704A8.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x24F, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        break;
+    case 3:
+        entityIdx = D_800704A8.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x252, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        break;
+    case 4:
+        entityIdx = D_800704A8.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x253, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        break;
+    case 5:
+        entityIdx = D_800704A8.entityIndex[slotIdx];
+        func_8009B4A8(D_800704A8.entityIndex[slotIdx], D_80085224[entityIdx].field_0x254, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009BB18);
 

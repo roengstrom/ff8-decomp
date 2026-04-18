@@ -49,6 +49,8 @@ segments:
     vram: 0x80098000
     subsegments:
       - [0x0, rodata]
+      - [0x8, .rodata, fe_object1]
+      - [0x20, rodata]
       - [0x21C, .rodata, fe_object7]
       - [0x23C, rodata]
       - [0x314, c, fe_object1]
