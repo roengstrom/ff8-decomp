@@ -1376,7 +1376,44 @@ s32 func_800B7718(Eline *self) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B788C);
+/**
+ * @brief Start a proximity-triggered message anchored at another entity.
+ *
+ * Computes the planar distance from self to target (Q20.12 fixed-point),
+ * then picks one of two sound-channel scalings and one of two script-param
+ * byte offsets (field_0x250 vs field_0x251) based on whether the squared
+ * distance exceeds 0x3F47F (~509 units). Issues the chosen command via
+ * func_800B912C, primes the message at the target's position, and sets
+ * flag 0x2001.
+ *
+ * @param self Pointer to the event line (script context).
+ * @param target The entity whose position anchors the message.
+ */
+void func_800B788C(Eline *self, Entity *target) {
+    s32 dx, dy, distSq;
+
+    dx = (target->posX - self->posX) / 4096;
+    dy = (target->posY - self->posY) / 4096;
+    dx = dx * dx;
+    dy = dy * dy;
+    dx = dx + dy;
+    distSq = dx;
+
+    if (distSq > 0x3F47F) {
+        self->savedChannel = (u32)(D_800704B2 * 25375) >> 6;
+        func_800B912C(self, self->field_0x251);
+    } else {
+        self->savedChannel = (u32)(D_800704B2 * 17255) >> 7;
+        func_800B912C(self, self->field_0x250);
+    }
+    self->msgActive = 1;
+    self->msgState = 0;
+    self->windowId = 0x60;
+    self->msgTextPtr = target->posX;
+    self->msgPosX = target->posY;
+    self->msgPosY = target->posZ;
+    self->flags |= 0x2001;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object7", func_800B79C8);
 
