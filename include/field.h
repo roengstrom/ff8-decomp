@@ -66,20 +66,6 @@ typedef struct {
 } FieldEngineState;
 
 /**
- * @brief Minimal position view of a field entity.
- *
- * Same underlying memory as Eline, narrowed to the 3D position triple.
- * Used by distance/message-positioning helpers that only need the entity's
- * world coordinates.
- */
-typedef struct {
-    /* 0x000 */ u8 pad000[0x190];
-    /* 0x190 */ s32 posX;
-    /* 0x194 */ s32 posY;
-    /* 0x198 */ s32 posZ;
-} Entity;
-
-/**
  * @brief Eline (event line) — opcode handler view of the script context.
  *
  * Same memory as FieldEntity, but with fields named for opcode handler usage.
@@ -99,7 +85,7 @@ typedef struct {
     /* 0x185 */ u8 pad185[0x0B];
     /* 0x190 */ s32 posX;           /**< Entity X position (fixed-point). */
     /* 0x194 */ s32 posY;           /**< Entity Y position (fixed-point). */
-    /* 0x198 */ s32 field_0x198;    /**< Third component (purpose TBD). */
+    /* 0x198 */ s32 posZ;           /**< Entity Z position (fixed-point). */
     /* 0x19C */ u8 pad19C[0x18];
     /* 0x1B4 */ s32 msgTextPtr;     /**< Message text pointer (fixed-point). */
     /* 0x1B8 */ s32 msgPosX;        /**< Message X position (fixed-point). */

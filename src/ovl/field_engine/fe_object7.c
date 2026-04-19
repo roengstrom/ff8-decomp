@@ -527,7 +527,7 @@ s32 func_800B5A30(Eline *eline) {
 s32 func_800B6210(Eline *eline) {
     D_800562C4->field_0xF0 = 1;
     D_800562C4->field_0xF1 = POP_BYTE(eline);
-    func_800A4500(eline->posX, eline->posY, eline->field_0x198);
+    func_800A4500(eline->posX, eline->posY, eline->posZ);
     func_800A4550(D_800562C4->field_0xF1 | D_800562C4->field_0x58);
     return 2;
 }
@@ -936,7 +936,7 @@ s32 func_800B69E8(Eline *eline) {
 
     eline->msgTextPtr = D_80085230[PEEK(eline)]->posX;
     eline->msgPosX = D_80085230[PEEK(eline)]->posY;
-    eline->msgPosY = D_80085230[PEEK(eline)]->field_0x198;
+    eline->msgPosY = D_80085230[PEEK(eline)]->posZ;
     return 1;
 }
 
@@ -970,7 +970,7 @@ s32 func_800B6B20(Eline *eline) {
     idx = D_800562C4->entityLookup[PEEK(eline)];
     eline->msgTextPtr = D_80085224[idx].posX;
     eline->msgPosX = D_80085224[idx].posY;
-    eline->msgPosY = D_80085224[idx].field_0x198;
+    eline->msgPosY = D_80085224[idx].posZ;
     return 1;
 }
 
@@ -1064,7 +1064,7 @@ s32 func_800B6E18(Eline *eline) {
 
     eline->msgTextPtr = D_80085230[PEEK(eline)]->posX;
     eline->msgPosX = D_80085230[PEEK(eline)]->posY;
-    eline->msgPosY = D_80085230[PEEK(eline)]->field_0x198;
+    eline->msgPosY = D_80085230[PEEK(eline)]->posZ;
     return 1;
 }
 
@@ -1098,7 +1098,7 @@ s32 func_800B6F4C(Eline *eline) {
     idx = D_800562C4->entityLookup[PEEK(eline)];
     eline->msgTextPtr = D_80085224[idx].posX;
     eline->msgPosX = D_80085224[idx].posY;
-    eline->msgPosY = D_80085224[idx].field_0x198;
+    eline->msgPosY = D_80085224[idx].posZ;
     return 1;
 }
 
@@ -1152,7 +1152,7 @@ s32 func_800B711C(Eline *eline) {
 
     eline->msgTextPtr = D_80085230[PEEK(eline)]->posX;
     eline->msgPosX = D_80085230[PEEK(eline)]->posY;
-    eline->msgPosY = D_80085230[POP(eline)]->field_0x198;
+    eline->msgPosY = D_80085230[POP(eline)]->posZ;
     return 3;
 }
 
@@ -1179,7 +1179,7 @@ s32 func_800B7228(Eline *eline) {
     idx = D_800562C4->entityLookup[POP(eline)];
     eline->msgTextPtr = D_80085224[idx].posX;
     eline->msgPosX = D_80085224[idx].posY;
-    eline->msgPosY = D_80085224[idx].field_0x198;
+    eline->msgPosY = D_80085224[idx].posZ;
     return 3;
 }
 
@@ -1389,7 +1389,7 @@ s32 func_800B7718(Eline *self) {
  * @param self Pointer to the event line (script context).
  * @param target The entity whose position anchors the message.
  */
-void func_800B788C(Eline *self, Entity *target) {
+void func_800B788C(Eline *self, Eline *target) {
     s32 dx, dy, distSq;
 
     dx = (target->posX - self->posX) / 4096;
