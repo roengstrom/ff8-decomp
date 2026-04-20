@@ -1346,11 +1346,11 @@ s32 seekAndRead(s32 fd, s32 buf, s32 len, s32 offset)
  * @param offset Target file offset (arbitrary alignment).
  * @return `size` on success, -1 on any failure.
  */
-s32 func_80029850(int fd, u8 *src, int size, int offset) {
+s32 func_80029850(s32 fd, u8 *src, int size, s32 offset) {
     u8 *srcCopy;
     u8 tmpBuf[128];
     s32 headMisalign;
-    short neg1Short;
+    s16 neg1Short;
     u8 *bufAlias;
     s32 copyLen;
     s32 fullBlockSize;
