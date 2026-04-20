@@ -1088,7 +1088,7 @@ void buildCardPath(s32 cardId, char *filename, char *outBuf)
     s32 port;
     s32 slot;
 
-    btlStrcpy(templateBuf, (u8 *)"bu00:");
+    btlStrcpy(templateBuf, "bu00:");
     port = getCardPort(cardId);
     slot = getCardSlot(cardId);
     port += '0';
@@ -1230,7 +1230,7 @@ s32 sumCardFileSizes(s32 cardId)
     s32 dirEntry[10];
     s32 total = 0;
 
-    if (openFirstFileRetry(cardId, (u8 *)"*", dirEntry) != 0) {
+    if (openFirstFileRetry(cardId, "*", dirEntry) != 0) {
         do {
             total += ((dirEntry[6] + 0x1FFF) / 0x2000) * 0x2000;
         } while (cardNextFile(dirEntry) != 0);
