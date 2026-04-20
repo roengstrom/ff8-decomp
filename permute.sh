@@ -231,6 +231,24 @@ COMPILE_EOF
 
 chmod +x "${FUNC_DIR}/compile.sh"
 
+# --- diff.sh ---
+# Compiles base.c via compile.sh, then runs objdiff against target.o and
+# prints a side-by-side asm diff for this function.
+cat > "${FUNC_DIR}/diff.sh" <<DIFF_EOF
+#!/usr/bin/env bash
+# Compile base.c and diff against target.o for ${FUNC_NAME}.
+# Usage: ./diff.sh [base.c]   (defaults to ./base.c)
+set -euo pipefail
+HERE="\$(cd "\$(dirname "\$0")" && pwd)"
+PROJECT="${SCRIPT_DIR}"
+INPUT="\${1:-\${HERE}/base.c}"
+OUT="\${HERE}/current.o"
+"\${HERE}/compile.sh" "\${INPUT}" -o "\${OUT}"
+exec python3 "\${PROJECT}/.claude/skills/objdiff/diff.py" \\
+    --target "\${HERE}/target.o" --base "\${OUT}" "${FUNC_NAME}"
+DIFF_EOF
+chmod +x "${FUNC_DIR}/diff.sh"
+
 # --- target.s ---
 # Prepend macro.inc include + .set noreorder (matches INCLUDE_ASM wrapper)
 {
@@ -276,6 +294,7 @@ echo ""
 echo "Permuter directory ready: ${FUNC_DIR}"
 echo "  settings.toml  - permuter settings"
 echo "  compile.sh     - compilation pipeline"
+echo "  diff.sh        - compile base.c and diff vs target.o"
 echo "  target.s       - target assembly"
 echo "  target.o       - assembled target"
 echo "  base.c         - ${BASE_C_DESC}"
