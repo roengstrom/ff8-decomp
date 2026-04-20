@@ -1333,7 +1333,96 @@ s32 seekAndRead(s32 fd, s32 buf, s32 len, s32 offset)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029850);
+/**
+ * @brief Write a buffer to a file in 128-byte sector-aligned chunks.
+ *
+ * Handles three regions: (1) an unaligned head block, read-modify-written
+ * into the tmpBuf sector; (2) a run of fully-aligned 128-byte sectors
+ * written directly; (3) an unaligned tail block, again read-modify-written.
+ *
+ * @param fd File descriptor.
+ * @param src Source buffer.
+ * @param size Number of bytes to write.
+ * @param offset Target file offset (arbitrary alignment).
+ * @return `size` on success, -1 on any failure.
+ */
+s32 func_80029850(int fd, u8 *src, int size, int offset) {
+    u8 *srcCopy;
+    u8 tmpBuf[128];
+    s32 headMisalign;
+    short neg1Short;
+    u8 *bufAlias;
+    s32 copyLen;
+    s32 fullBlockSize;
+    s32 headOffset;
+    s32 alignedOffset;
+    s32 result;
+    s32 origSize;
+    u8 *tmpDst;
+
+    if (size == 0) {
+        return 0;
+    }
+    origSize = size;
+    headMisalign = offset & 0x7F;
+    if (headMisalign != 0) {
+        alignedOffset = (offset / 128) * 128;
+        result = seekAndRead(fd, (s32)tmpBuf, 128, alignedOffset);
+        if (result != 128) {
+            return -1;
+        }
+        copyLen = 128 - headMisalign;
+        srcCopy = src;
+        headOffset = alignedOffset;
+        tmpDst = tmpBuf + headMisalign;
+        copyLen = (copyLen < 0) ? 0 : ((copyLen > size) ? size : copyLen);
+        btlMemcpy(srcCopy, tmpDst, copyLen);
+        result = seekAndWrite(fd, (s32)tmpBuf, 128, headOffset);
+        if (result != 128) {
+            return -1;
+        }
+        size -= copyLen;
+        offset += copyLen;
+        src += copyLen;
+        if (size == 0) {
+            return origSize;
+        }
+    }
+
+    headMisalign = size & 0x7F;
+    fullBlockSize = size - headMisalign;
+    result = seekAndWrite(fd, (s32)src, fullBlockSize, offset);
+    if (result == -1) {
+        return -1;
+    }
+    if (result != fullBlockSize) {
+        return -1;
+    }
+    neg1Short = -1;
+    size -= result;
+    offset += result;
+    src += result;
+
+    if (headMisalign == 0) {
+        return origSize;
+    }
+    result = seekAndRead(fd, (s32)tmpBuf, 128, offset);
+    if (result == -1) {
+        return -1;
+    }
+    if (result != 128) {
+        return -1;
+    }
+    bufAlias = tmpBuf;
+    btlMemcpy(src, tmpBuf, size);
+    result = seekAndWrite(fd, (s32)bufAlias, 128, offset);
+    if (result == -1) {
+        return -1;
+    } else if (result != 128) {
+        return neg1Short;
+    }
+    return origSize;
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029A20);
