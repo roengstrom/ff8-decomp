@@ -1439,11 +1439,11 @@ s32 func_80029850(s32 fd, u8 *src, int size, s32 offset) {
  * @param offset Source file offset (arbitrary alignment).
  * @return `size` on success, -1 on any failure.
  */
-s32 func_80029A20(int fd, u8 *dst, int size, int offset) {
+s32 func_80029A20(s32 fd, u8 *dst, int size, s32 offset) {
     u8 *dstCopy;
     u8 tmpBuf[128];
     s32 headMisalign;
-    short neg1Short;
+    s16 neg1Short;
     s32 copyLen;
     s32 fullBlockSize;
     s32 alignedOffset;
