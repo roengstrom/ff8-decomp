@@ -1346,7 +1346,8 @@ s32 seekAndRead(s32 fd, s32 buf, s32 len, s32 offset)
  * @param offset Target file offset (arbitrary alignment).
  * @return `size` on success, -1 on any failure.
  */
-s32 func_80029850(s32 fd, u8 *src, int size, s32 offset) {
+s32 func_80029850(s32 fd, u8 *src, s32 size, s32 offset) {
+    s32 origSizeCopy;
     u8 *srcCopy;
     u8 tmpBuf[128];
     s32 headMisalign;
@@ -1373,9 +1374,10 @@ s32 func_80029850(s32 fd, u8 *src, int size, s32 offset) {
         }
         copyLen = 128 - headMisalign;
         srcCopy = src;
+        origSizeCopy = origSize;
         headOffset = alignedOffset;
         tmpDst = tmpBuf + headMisalign;
-        copyLen = (copyLen < 0) ? 0 : ((copyLen > size) ? size : copyLen);
+        copyLen = (copyLen >= 0) ? ((origSizeCopy < copyLen) ? origSize : copyLen) : 0;
         btlMemcpy(srcCopy, tmpDst, copyLen);
         result = seekAndWrite(fd, (s32)tmpBuf, 128, headOffset);
         if (result != 128) {
@@ -1439,7 +1441,8 @@ s32 func_80029850(s32 fd, u8 *src, int size, s32 offset) {
  * @param offset Source file offset (arbitrary alignment).
  * @return `size` on success, -1 on any failure.
  */
-s32 func_80029A20(s32 fd, u8 *dst, int size, s32 offset) {
+s32 func_80029A20(s32 fd, u8 *dst, s32 size, s32 offset) {
+    s32 origSizeCopy;
     u8 *dstCopy;
     u8 tmpBuf[128];
     s32 headMisalign;
@@ -1465,7 +1468,8 @@ s32 func_80029A20(s32 fd, u8 *dst, int size, s32 offset) {
         copyLen = 128 - headMisalign;
         tmpSrc = tmpBuf + headMisalign;
         dstCopy = dst;
-        copyLen = (copyLen < 0) ? 0 : ((copyLen > size) ? size : copyLen);
+        origSizeCopy = origSize;
+        copyLen = (copyLen >= 0) ? ((origSizeCopy < copyLen) ? origSize : copyLen) : 0;
         btlMemcpy(tmpSrc, dstCopy, copyLen);
         size -= copyLen;
         offset += copyLen;
