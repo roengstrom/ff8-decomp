@@ -1425,7 +1425,83 @@ s32 func_80029850(int fd, u8 *src, int size, int offset) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_anim", func_80029A20);
+/**
+ * @brief Read a file into a buffer in 128-byte sector-aligned chunks.
+ *
+ * Counterpart to func_80029850. Handles three regions: (1) an unaligned
+ * head portion (read whole sector, copy relevant bytes); (2) a run of
+ * fully-aligned 128-byte sectors read directly into dst; (3) an unaligned
+ * tail portion (read whole sector, copy leading bytes).
+ *
+ * @param fd File descriptor.
+ * @param dst Destination buffer.
+ * @param size Number of bytes to read.
+ * @param offset Source file offset (arbitrary alignment).
+ * @return `size` on success, -1 on any failure.
+ */
+s32 func_80029A20(int fd, u8 *dst, int size, int offset) {
+    u8 *dstCopy;
+    u8 tmpBuf[128];
+    s32 headMisalign;
+    short neg1Short;
+    s32 copyLen;
+    s32 fullBlockSize;
+    s32 alignedOffset;
+    s32 result;
+    s32 origSize;
+    u8 *tmpSrc;
+
+    if (size == 0) {
+        return 0;
+    }
+    origSize = size;
+    headMisalign = offset & 0x7F;
+    if (headMisalign != 0) {
+        alignedOffset = (offset / 128) * 128;
+        result = seekAndRead(fd, (s32)tmpBuf, 128, alignedOffset);
+        if (result != 128) {
+            return -1;
+        }
+        copyLen = 128 - headMisalign;
+        tmpSrc = tmpBuf + headMisalign;
+        dstCopy = dst;
+        copyLen = (copyLen < 0) ? 0 : ((copyLen > size) ? size : copyLen);
+        btlMemcpy(tmpSrc, dstCopy, copyLen);
+        size -= copyLen;
+        offset += copyLen;
+        dst += copyLen;
+        if (size == 0) {
+            return origSize;
+        }
+    }
+
+    headMisalign = size & 0x7F;
+    fullBlockSize = size - headMisalign;
+    result = seekAndRead(fd, (s32)dst, fullBlockSize, offset);
+    neg1Short = -1;
+    if (result == neg1Short) {
+        return -1;
+    }
+    if (result != fullBlockSize) {
+        return -1;
+    }
+    size -= result;
+    offset += result;
+    dst += result;
+
+    if (headMisalign == 0) {
+        return origSize;
+    }
+    result = seekAndRead(fd, (s32)tmpBuf, 128, offset);
+    if (result == neg1Short) {
+        return -1;
+    }
+    if (result == 128) {
+        btlMemcpy(tmpBuf, dst, size);
+        return origSize;
+    }
+    return -1;
+}
 
 
 /**
