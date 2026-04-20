@@ -22,6 +22,7 @@ options:
   # Analysis
   gp_value: 0x8005EC24
   find_file_boundaries: True
+  migrate_rodata_to_functions: True
 
   # Symbols
   symbol_addrs_path:
@@ -58,7 +59,7 @@ segments:
     vram: 0x80010000
     subsegments:
       - [0x800, rodata]
-      - [0x9D0, .rodata, btl_anim]
+      - [0x9C4, .rodata, btl_anim]
       - [0x9FC, rodata]
       - [0xF54, .rodata, btl_color]
       - [0xF80, rodata]

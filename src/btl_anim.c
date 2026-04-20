@@ -36,8 +36,6 @@ extern u8 g_cardFileType;    /* card/save type */
 extern u8 g_cardFileActive;
 extern u8 g_animCurveFadeOut[];
 extern u8 g_animCurveFadeIn[];
-extern u8 D_800101C4[];
-extern u8 D_800101CC[];
 extern DRAWENV *g_activeDrawEnv;
 extern BattleDisplayEntity g_battleEntities[];
 extern u8 g_paletteIndices[];
@@ -1090,7 +1088,7 @@ void buildCardPath(s32 cardId, char *filename, char *outBuf)
     s32 port;
     s32 slot;
 
-    btlStrcpy(templateBuf, D_800101C4);
+    btlStrcpy(templateBuf, (u8 *)"bu00:");
     port = getCardPort(cardId);
     slot = getCardSlot(cardId);
     port += '0';
@@ -1232,7 +1230,7 @@ s32 sumCardFileSizes(s32 cardId)
     s32 dirEntry[10];
     s32 total = 0;
 
-    if (openFirstFileRetry(cardId, D_800101CC, dirEntry) != 0) {
+    if (openFirstFileRetry(cardId, (u8 *)"*", dirEntry) != 0) {
         do {
             total += ((dirEntry[6] + 0x1FFF) / 0x2000) * 0x2000;
         } while (cardNextFile(dirEntry) != 0);
