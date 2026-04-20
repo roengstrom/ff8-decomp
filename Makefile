@@ -36,7 +36,11 @@ PSYQ41_MASPSXFLAGS := --aspsx-version=2.67  # default for PsyQ 4.1 sources
 PSYQ43_MASPSXFLAGS := --aspsx-version=2.77  # used by PSYQ43_SRCS
 
 # Source files compiled with PsyQ 4.3 (default is PsyQ 4.1)
-PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c src/snd_cmd.c
+PSYQ43_SRCS := src/snd_init.c src/snd_dma.c src/snd_voice.c src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c src/snd_cmd.c \
+               src/ovl/world_engine/we_object1.c src/ovl/world_engine/we_object2.c src/ovl/world_engine/we_object3.c \
+               src/ovl/world_engine/we_object4.c src/ovl/world_engine/we_object5.c src/ovl/world_engine/we_object6.c \
+               src/ovl/world_engine/we_object7.c src/ovl/world_engine/we_object8.c src/ovl/world_engine/we_object9.c \
+               src/ovl/world_engine/we_object10.c
 
 # Source files compiled without -G0 (default is -G0)
 NO_G0_SRCS := src/main.c src/snd_cmd.c
@@ -235,8 +239,11 @@ $$($(1)_DIR)/$$($(1)_ASM_DIR)/%.o: $$($(1)_ASM_DIR)/%.s
 $$($(1)_DIR)/src/ovl/$(1)/%.o: src/ovl/$(1)/%.c
 	@mkdir -p $$(dir $$@)
 	$$(CPP) -E -lang-c -nostdinc -Iinclude $$< -o $$($(1)_DIR)/$$(*F).i && \
-	$$(PSYQ41_CC1) -quiet $$(CC_FLAGS) $$($(1)_DIR)/$$(*F).i -o $$($(1)_DIR)/$$(*F).s && \
-	cat $$($(1)_DIR)/$$(*F).s | $$(MASPSX) $$(PSYQ41_MASPSXFLAGS) --run-assembler $$(ASFLAGS) -o $$@
+	$$(if $$(filter $$<,$$(PSYQ43_SRCS)), \
+		$$(PSYQ43_CC1) -quiet $$(CC_FLAGS) $$($(1)_DIR)/$$(*F).i -o $$($(1)_DIR)/$$(*F).s && \
+		cat $$($(1)_DIR)/$$(*F).s | $$(MASPSX) $$(PSYQ43_MASPSXFLAGS) --run-assembler $$(ASFLAGS) -o $$@, \
+		$$(PSYQ41_CC1) -quiet $$(CC_FLAGS) $$($(1)_DIR)/$$(*F).i -o $$($(1)_DIR)/$$(*F).s && \
+		cat $$($(1)_DIR)/$$(*F).s | $$(MASPSX) $$(PSYQ41_MASPSXFLAGS) --run-assembler $$(ASFLAGS) -o $$@)
 
 $$($(1)_DIR)/assets/%.o: assets/%.bin
 	@mkdir -p $$(dir $$@)

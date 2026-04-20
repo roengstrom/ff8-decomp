@@ -1,5 +1,42 @@
 #include "common.h"
 
+/* 4-byte slot read as either a full word or just the low halfword */
+typedef union {
+    u32 word;
+    u16 half;
+} AngleSlot;
+
+/* 16-byte position descriptor (first 12 bytes = vec3 used by spawner) */
+typedef struct {
+    u32       pad0;
+    AngleSlot pos;
+    u32       pad8;
+    u32       padC;
+} PosDesc;
+
+/* 8-byte unaligned velocity (copied via lwl/lwr to spawner's slot[0x18..0x1F]) */
+typedef struct {
+    u16 pad0;
+    u16 angle;
+    u16 height;
+    u16 pad6;
+} Velocity;
+
+/* Particle source: position + velocity (with 4-byte gap between). Stride 0x28. */
+typedef struct {
+    PosDesc  pos;
+    u32      pad10;
+    Velocity vel;
+} ParticleSource;
+
+extern AngleSlot D_800C97F4;
+
+extern s32 func_8009CC3C(void);
+extern s32 func_800AC0A0(s32 type, PosDesc *pos, Velocity *vel, s32 flags);
+
+#define SPAWN_FLAG_LIFETIME_JITTER 1
+#define SPAWN_FLAG_SIZE_JITTER     2
+
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BA870);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BAC84);
@@ -8,7 +45,54 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BB150);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BB4E8);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BBD74);
+/**
+ * @brief Spawn a mirrored particle pair (type 0x13) at ±0x320 angle offsets if visible.
+ *
+ * Reads world camera angle from D_800C97F4 and computes angular delta dx to the
+ * source's position.half. If (rnd + dx/4) < visRange AND |dx| < 0x258, emits two
+ * particles via func_800AC0A0 with symmetric angle offsets and per-axis RNG jitter.
+ * Overwrites the local copy's 4-byte pos slot with the current world camera word
+ * before each spawn, so emitted particles share the world's current frame.
+ *
+ * @param src Particle source (position descriptor + velocity template).
+ * @param visRange Visibility threshold (higher = farther allowed).
+ */
+void func_800BBD74(ParticleSource *src, s32 visRange) {
+    Velocity localVel;
+    PosDesc  localPos;
+    s32      jitter;
+    s32      absdx;
+    s16      dx;
+    u32      worldCam;
+
+    worldCam = D_800C97F4.word;
+    localPos = src->pos;
+    dx       = D_800C97F4.half - src->pos.pos.half;
+    localPos.pos.word = worldCam;
+    if ((func_8009CC3C() + (dx >> 2)) >= visRange) return;
+    absdx = (dx >= 0) ? dx : -dx;
+    if (absdx >= 0x258) return;
+
+    /* Left-side spawn: +0x320 angle offset + RNG jitter on angle/height */
+    localVel = src->vel;
+    localVel.angle += 0x320;
+    jitter = (func_8009CC3C() - 0x80) * 8;
+    localVel.angle += jitter;
+    jitter = (func_8009CC3C() - 0x80) * 4;
+    localVel.height += jitter;
+    func_800AC0A0(0x13, &localPos, &localVel,
+                  SPAWN_FLAG_SIZE_JITTER | SPAWN_FLAG_LIFETIME_JITTER);
+
+    /* Right-side spawn: -0x320 angle offset + RNG jitter on angle/height */
+    localVel = src->vel;
+    localVel.angle -= 0x320;
+    jitter = (func_8009CC3C() - 0x80) * 8;
+    localVel.angle += jitter;
+    jitter = (func_8009CC3C() - 0x80) * 4;
+    localVel.height += jitter;
+    func_800AC0A0(0x13, &localPos, &localVel,
+                  SPAWN_FLAG_SIZE_JITTER | SPAWN_FLAG_LIFETIME_JITTER);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BBF0C);
 
