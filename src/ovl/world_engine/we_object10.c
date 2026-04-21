@@ -1,4 +1,6 @@
 #include "common.h"
+#include "battle.h"
+#include "world.h"
 
 extern u8 D_800786D8;
 
@@ -6,7 +8,29 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD6EC);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD754);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD7A4);
+extern CmdDesc *D_800C4D64;
+
+/**
+ * @brief Scale @p amount based on the current command's type byte.
+ *
+ * Peeks the type byte of the current command descriptor (@c D_800C4D64):
+ *   - type == 0x1C: halve @p amount.
+ *   - type == 0x1B or type == 8: double @p amount.
+ *   - anything else: pass through unchanged.
+ *
+ * @param unused First arg register ignored by the implementation.
+ * @param amount Quantity to scale.
+ * @return Scaled @p amount.
+ */
+s32 func_800BD7A4(s32 unused, s32 amount) {
+    u8 type = D_800C4D64->type;
+    if (type == 0x1C) {
+        amount >>= 1;
+    } else if (type == 0x1B || type == 8) {
+        amount <<= 1;
+    }
+    return amount;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD7E4);
 
@@ -107,7 +131,36 @@ void func_800BE4D8(s32 *a, s32 *b, s32 t, s32 *out) {
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE578);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE5F8);
+/** @brief 32-byte record used by func_800BE5F8's table walker. */
+typedef struct {
+    s16 marker;         /**< 0x00: Scan terminator (-1 = end, -2 = continuation). */
+    u8 pad02[0x1E];     /**< 0x02: Rest of the record — payload not yet mapped. */
+} Record;
+
+/**
+ * @brief Walk a table of Records to the first -1/-2 marker and return context.
+ *
+ * Advances through a stride-0x20 record table while the current
+ * @c marker is neither -1 nor -2. When a marker is found:
+ *   - If @c marker == -2 (continuation), returns the *next* record's
+ *     @c marker minus 1 — likely a link/count follow.
+ *   - Otherwise (marker == -1, end-of-list), returns -2 as a sentinel.
+ *
+ * @param rec Pointer into the Record table.
+ * @return Adjusted continuation value, or -2 if terminator was hit.
+ */
+s32 func_800BE5F8(Record *rec) {
+    s16 val;
+    while (rec->marker != -1 && rec->marker != -2) {
+        rec++;
+    }
+    val = rec->marker;
+    if (val == -2) {
+        rec++;
+        return rec->marker - 1;
+    }
+    return -2;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE63C);
 
@@ -121,9 +174,51 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE8B0);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE958);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE9F8);
+extern void func_8009B358(s32 a0, s32 a1, s32 a2);
+extern void func_8009D8A8(s32 a0);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEA34);
+/**
+ * @brief Dispatch to one of two kind-2 handlers based on sign of @p arg.
+ *
+ * If @p arg is non-negative, calls @c func_8009B358(2, arg, 0).
+ * Otherwise calls @c func_8009D8A8(2) with no argument beyond the kind.
+ *
+ * @note Purpose uncertain — appears to route a slot index / handle to a
+ *       "present" handler when valid, and a "missing" handler when -1.
+ *
+ * @param arg Slot index (>=0) or sentinel (<0) indicating absence.
+ */
+void func_800BE9F8(s32 arg) {
+    if (arg >= 0) {
+        func_8009B358(2, arg, 0);
+    } else {
+        func_8009D8A8(2);
+    }
+}
+
+extern s32 D_800C5D54;
+extern void func_80048C50(s32 a0);
+extern void fadeOutSfxFast(s32 idx);
+extern void renderAndUpdateDisplay(s32 frameCount);
+extern s32 renderBattleDisplayList(s32 *colorTag);
+
+/**
+ * @brief Tear down the battle scene: clear state flag, fade SFX, render two frames.
+ *
+ * Typical end-of-battle / scene-transition cleanup sequence:
+ *  1. @c func_80048C50(0) — system/display reset.
+ *  2. Clear the @c D_800C5D54 flag.
+ *  3. @c fadeOutSfxFast(0) — stop channel 0 SFX.
+ *  4. @c renderAndUpdateDisplay(2) — push 2 frames.
+ *  5. Flush the battle scene's colorTag into the display list.
+ */
+void func_800BEA34(void) {
+    func_80048C50(0);
+    D_800C5D54 = 0;
+    fadeOutSfxFast(0);
+    renderAndUpdateDisplay(2);
+    renderBattleDisplayList(&D_800D244C->colorTag);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEA7C);
 

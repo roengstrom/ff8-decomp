@@ -59,9 +59,13 @@ typedef struct {
     /* 0x68 */ s32 stateFlags;          /**< Field state flags (bits 3-4 checked by getFieldStateFlags). */
     /* 0x6C */ s32 soundHandle0;        /**< Sound channel handle 0. */
     /* 0x70 */ s32 soundHandle1;        /**< Sound channel handle 1 (-1 = inactive). */
-    /* 0x74 */ u8 packedFlags[0x55];    /**< Packed 2-bit-per-entry flag table. */
+    /* 0x74 */ u8 packedFlags[0x40];    /**< Packed 2-bit-per-entry flag table (256 entries, indexed by 8-bit key). */
+    /* 0xB4 */ u8 padB4[0x13];
+    /* 0xC7 */ s8 audioChannel0State;   /**< Audio channel 0 state byte; -1 = reset/inactive. */
+    /* 0xC8 */ s8 audioChannel1State;   /**< Audio channel 1 state byte; -1 = reset/inactive. */
     /* 0xC9 */ u8 soundBankSelector;    /**< Sound bank toggle (0 or 1). */
-    /* 0xCA */ u8 padCA[0x0C];
+    /* 0xCA */ s8 audioChannel2State;   /**< Audio channel 2 state byte; -1 = reset/inactive. */
+    /* 0xCB */ u8 padCB[0x0B];
     /* 0xD6 */ u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
 } FieldEngineState;
 

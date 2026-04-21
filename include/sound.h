@@ -216,4 +216,31 @@ typedef struct {
     /* 0x5C */ u8 pad5C[0x04];
 } SoundStream; /* 0x60 = 96 bytes */
 
+/**
+ * @brief Sound sequence table entry (stride 20 bytes).
+ *
+ * Used by world_engine's sound dispatch wrappers to look up a sequence
+ * by index and feed the result to @c sndSeqStartPan and friends.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[4];
+    /* 0x04 */ s32 field04;     /**< Sequence handle / ID. */
+    /* 0x08 */ u8 pad08[8];
+    /* 0x10 */ s16 field10;     /**< Sequence track / priority. */
+    /* 0x12 */ s16 field12;     /**< Sequence runtime state (cleared by stop helper). */
+} SeqEntry; /* 0x14 = 20 bytes */
+
+/**
+ * @brief SFX slot entry (stride 16 bytes).
+ *
+ * Used by world_engine's SFX slot table to track active SFX with their
+ * associated signed index values.
+ */
+typedef struct {
+    /* 0x00 */ s8 field00;      /**< Slot enable flag; -1 = inactive. */
+    /* 0x01 */ u8 pad01;
+    /* 0x02 */ s8 field02;      /**< Signed SFX index. */
+    /* 0x03 */ u8 pad03[13];
+} SfxSlot; /* 0x10 = 16 bytes */
+
 #endif /* SOUND_H */

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "world.h"
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object3", func_800A01DC);
 
@@ -85,7 +86,20 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object3", func_800A5B48);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object3", func_800A5D10);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object3", func_800A5D8C);
+/**
+ * @brief Linear search a world-object list for a node with matching @p id.
+ *
+ * @param id Signed 16-bit id to match.
+ * @param head Head of the linked list (may be NULL).
+ * @return Matching WorldObject, or NULL if none found.
+ */
+WorldObject *func_800A5D8C(s16 id, WorldObject *head) {
+    while (head != NULL) {
+        if (id == head->id) return head;
+        head = head->next;
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object3", func_800A5DC8);
 

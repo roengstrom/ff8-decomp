@@ -377,4 +377,17 @@ typedef struct {
 
 extern BattleCharState g_battleChars;
 
+/**
+ * @brief Battle/scene context struct pointed to by D_800D244C.
+ *
+ * At least 0x4070 bytes based on observed accesses in world_engine.
+ */
+typedef struct {
+    /* 0x0000 */ u8 pad0000[0x74];
+    /* 0x0074 */ s32 colorTag;          /**< P_TAG consumed by renderBattleDisplayList. */
+    /* 0x0078 */ u8 pad0078[0x3FF4];
+} BattleSceneCtx;
+
+extern BattleSceneCtx *D_800D244C;
+
 #endif /* BATTLE_H */

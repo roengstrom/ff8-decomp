@@ -30,6 +30,7 @@ typedef struct {
 } ParticleSource;
 
 extern AngleSlot D_800C97F4;
+extern s32       D_800C4D4C;
 
 extern s32 func_8009CC3C(void);
 extern s32 func_800AC0A0(s32 type, PosDesc *pos, Velocity *vel, s32 flags);
@@ -100,7 +101,18 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC09C);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC218);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC44C);
+extern void func_800BFFEC(void);
+
+/**
+ * @brief Thin wrapper that forwards to func_800BFFEC with no arguments.
+ *
+ * @note Purpose uncertain — appears to be a dispatch hook into another
+ *       subsystem, possibly for resetting or (re)initializing state
+ *       owned by func_800BFFEC's module.
+ */
+void func_800BC44C(void) {
+    func_800BFFEC();
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC46C);
 
@@ -132,13 +144,41 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC7D0);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC82C);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC8B8);
+extern void func_800BC8D8(u8 *buf, s32 magicId);
+
+/**
+ * @brief Zero-terminate buf and fill it with a magic spell's display name.
+ *
+ * Clears the first byte of @p buf before delegating to func_800BC8D8, which
+ * resolves the magic name (via getMagicNamePtr) and copies glyphs into @p buf.
+ *
+ * @param buf Destination string buffer; first byte is zeroed before filling.
+ * @param magicId Magic spell ID whose name to look up.
+ */
+void func_800BC8B8(u8 *buf, s32 magicId) {
+    buf[0] = 0;
+    func_800BC8D8(buf, magicId);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC8D8);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC974);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCA54);
+extern void func_800BC974(u8 *buf, s32 id);
+
+/**
+ * @brief Zero-terminate buf and fill it with a name string via func_800BC974.
+ *
+ * Mirrors func_800BC8B8 but forwards to a different name resolver
+ * (func_800BC974 reads from the table referenced by D_800C97D4).
+ *
+ * @param buf Destination string buffer; first byte is zeroed before filling.
+ * @param id Identifier whose name to look up.
+ */
+void func_800BCA54(u8 *buf, s32 id) {
+    buf[0] = 0;
+    func_800BC974(buf, id);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCA74);
 
@@ -146,7 +186,21 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCC70);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCE74);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCF10);
+extern void func_800BCE74(u8 *buf, s32 statId);
+
+/**
+ * @brief Zero-terminate buf and fill it with a stat name via func_800BCE74.
+ *
+ * Mirrors func_800BC8B8 / func_800BCA54 but targets the stat-name resolver
+ * (func_800BCE74 dispatches to getStatName internally).
+ *
+ * @param buf Destination string buffer; first byte is zeroed before filling.
+ * @param statId Stat identifier whose name to look up.
+ */
+void func_800BCF10(u8 *buf, s32 statId) {
+    buf[0] = 0;
+    func_800BCE74(buf, statId);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCF30);
 
