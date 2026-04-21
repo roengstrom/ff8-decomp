@@ -89,7 +89,22 @@ s32 func_8009D16C(s32 idx) {
     return 1;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D1B8);
+/**
+ * @brief Stop sequence @p idx via sndCmd21 if it's running, and clear its state.
+ *
+ * If @c D_800C4FD8[idx].field12 is zero (sequence not running), returns 0.
+ * Otherwise dispatches @c sndCmd21(entry->field10, entry->field04),
+ * clears @c field12, and returns 1.
+ *
+ * @param idx Index into the @c D_800C4FD8 sequence table.
+ * @return 1 if the sequence was stopped, 0 if it wasn't running.
+ */
+s32 func_8009D1B8(s32 idx) {
+    if (D_800C4FD8[idx].field12 == 0) return 0;
+    sndCmd21(D_800C4FD8[idx].field10, D_800C4FD8[idx].field04);
+    D_800C4FD8[idx].field12 = 0;
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D214);
 
@@ -98,7 +113,6 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D2D8);
 extern SceneState D_80082C8C;
 extern u8 D_800C4D38;
 extern u8 *D_800D226C;
-extern void func_8009D630(void);
 extern void func_800B3FD4(u8 *a0, s32 a1);
 
 /**
@@ -123,7 +137,27 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D44C);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D510);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D630);
+extern s32 D_800C4D84;
+extern s32 D_800C4D88;
+extern void func_800C4450(void);
+
+/**
+ * @brief Tear down the active session tracked by D_800C4D84/D_800C4D88.
+ *
+ * If either @c D_800C4D84 is non-zero (active handle) or
+ * @c D_800C4D88 is non-negative (valid slot), calls @c func_800C4450
+ * to release the session, clears @c D_800C4D84, and marks
+ * @c D_800C4D88 as -1 (inactive).
+ *
+ * A no-op when both trackers already report inactive.
+ */
+void func_8009D630(void) {
+    if (D_800C4D84 != 0 || D_800C4D88 >= 0) {
+        func_800C4450();
+        D_800C4D84 = 0;
+        D_800C4D88 = -1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D688);
 
@@ -241,7 +275,31 @@ s32 func_8009DA10(void) {
     return -1;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009DA54);
+extern KeyBuffer *D_800C9880;
+
+/**
+ * @brief Linear-search the D_800C9880 key table for an entry with matching @p key.
+ *
+ * Walks the 12-byte records between the 4-byte length header and the
+ * buffer's end, comparing each entry's @c key against (@p key & 0xFF).
+ * Returns the matching Entry12 pointer on hit, or NULL if exhausted.
+ *
+ * @param key Lookup key (low 8 bits used).
+ * @return Matching Entry12*, or NULL if no match.
+ */
+Entry12 *func_8009DA54(u8 key) {
+    KeyBuffer *buf = D_800C9880;
+    Entry12 *entry = &buf->entries[0];
+    u8 *end = (u8 *)buf + buf->length;
+    key &= 0xFF;
+    if ((u8 *)entry < end) {
+        do {
+            if (key == entry->key) return entry;
+            entry++;
+        } while ((u8 *)entry < end);
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009DAA8);
 

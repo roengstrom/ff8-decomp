@@ -68,4 +68,27 @@ typedef struct {
     /* 0x03 */ s8 unk03;        /**< Marker — set to -1 on reset. */
 } SceneState;
 
+/**
+ * @brief 12-byte keyed record used by D_800C9880's packed lookup buffer.
+ *
+ * Only @c key at +0x02 is known; the surrounding bytes are likely a
+ * (key, value) descriptor but remain unmapped.
+ */
+typedef struct {
+    u8 pad00[2];
+    u8 key;
+    u8 pad03[9];
+} Entry12;
+
+/**
+ * @brief Packed length-prefixed buffer of Entry12 records.
+ *
+ * @c length is the total buffer length in bytes including the 4-byte
+ * header. Records start at @c entries[0] and run until @c length bytes.
+ */
+typedef struct {
+    u32 length;
+    Entry12 entries[1];
+} KeyBuffer;
+
 #endif /* WORLD_H */

@@ -140,7 +140,24 @@ void func_8009C738(s32 idx) {
     D_800C4FD8[idx].field12 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object1", func_8009C780);
+extern void sndSeqPlayPan7bit(s32 a0, s32 a1, s32 a2, s32 a3);
+
+/**
+ * @brief Start a panned sound sequence with a 7-bit-clamped pan value.
+ *
+ * Clamps @p pan into [0, 0x7F] (7-bit range) before calling
+ * @c sndSeqPlayPan7bit with the sequence-table entry's @c field10 and
+ * @c field04, plus the forwarded @p arg.
+ *
+ * @param idx Index into the @c D_800C4FD8 sequence table.
+ * @param arg Forwarded as the third arg of sndSeqPlayPan7bit.
+ * @param pan Pan value; clamped to [0, 0x7F].
+ */
+void func_8009C780(s32 idx, s32 arg, s32 pan) {
+    if (pan >= 0x80) pan = 0x7F;
+    if (pan < 0) pan = 0;
+    sndSeqPlayPan7bit(D_800C4FD8[idx].field10, D_800C4FD8[idx].field04, arg, pan);
+}
 
 /** Sets bit 0x20 on two related flag bytes. */
 void func_8009C7DC(void) {
