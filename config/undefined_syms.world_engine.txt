@@ -1,6 +1,12 @@
 /* Functions referenced in asm but missing from undefined_funcs_auto */
 func_800A5E40 = 0x800A5E40;
 
+/* PSX SDK aliases used by decomped C (main-exe functions). */
+SetDefDrawEnv = 0x800487E4;
+SetDefDispEnv = 0x80048898;
+PutDrawEnv = 0x800492B4;
+PutDispEnv = 0x80049480;
+
 /* Data blobs in bin section that are called/referenced by real code */
 func_800C4CA4 = 0x800C4CA4;
 func_800C5D58 = 0x800C5D58;

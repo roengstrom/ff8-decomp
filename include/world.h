@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 /**
  * @brief World-engine object node — singly-linked, keyed by s16 id.
@@ -29,5 +30,42 @@ typedef struct {
     u8 flag;        /**< 0x0E: Command flag byte. */
     u8 param;       /**< 0x0F: Command parameter byte. */
 } CmdDesc;
+
+/**
+ * @brief Slot entry in the D_800DBFB8 table (stride 40 bytes).
+ *
+ * Each entry describes one battle/world slot. Fields are added as
+ * usages are discovered.
+ */
+typedef struct {
+    /* 0x00 */ u8 unk_00[0x10];
+    /* 0x10 */ s8 marker;           /**< Scan terminator / type byte. */
+    /* 0x11 */ u8 pad11;
+    /* 0x12 */ s8 lookupIdx;        /**< Index into D_800DDB00 when >= 0. */
+    /* 0x13 */ u8 pad13[0x15];
+} SlotEntry; /* 0x28 = 40 bytes */
+
+/**
+ * @brief Lookup target reached via D_800DDB00[SlotEntry.lookupIdx].
+ *
+ * Only the @c field52 u16 is known so far.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x52];
+    /* 0x52 */ u16 field52;
+} LookupTarget;
+
+/**
+ * @brief 4-byte scene state block at D_80082C8C.
+ *
+ * Accessed by several world_engine and field_engine routines; stores
+ * the current scene mode, dispatch code, and two marker bytes.
+ */
+typedef struct {
+    /* 0x00 */ s8 mode;         /**< Scene mode / kind. */
+    /* 0x01 */ s8 cmd;          /**< Current dispatch code (copy of D_800C4D38). */
+    /* 0x02 */ s8 unk02;        /**< Marker — set to -1 on reset. */
+    /* 0x03 */ s8 unk03;        /**< Marker — set to -1 on reset. */
+} SceneState;
 
 #endif /* WORLD_H */

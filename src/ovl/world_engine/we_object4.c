@@ -1,4 +1,6 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
+#include "world.h"
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800A64DC);
 
@@ -24,7 +26,25 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800A8270);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800A8400);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800A84D0);
+extern DR_MODE D_800D4FB0[2][96];
+
+/**
+ * @brief Initialise two 96-slot DR_MODE pools with fixed tag fields.
+ *
+ * For each of the two pools at @c D_800D4FB0[0..1], walks 96 DR_MODE
+ * slots and sets @c len = 2 (2-word payload) and @c code = 0x6A via
+ * the PsyQ @c setlen/@c setcode macros. Used to prime the primitive
+ * templates before per-frame GPU command generation fills in the rest.
+ */
+void func_800A84D0(void) {
+    s32 s, i;
+    for (s = 0; s < 2; s++) {
+        for (i = 0; i < 96; i++) {
+            setlen(&D_800D4FB0[s][i], 2);
+            setcode(&D_800D4FB0[s][i], 0x6A);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800A8524);
 

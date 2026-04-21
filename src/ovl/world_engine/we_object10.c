@@ -1,12 +1,39 @@
 #include "common.h"
 #include "battle.h"
+#include "gamestate.h"
 #include "world.h"
 
 extern u8 D_800786D8;
+extern SlotEntry D_800DBFB8[];
+extern s32 D_800C5B50;
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD6EC);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD754);
+/**
+ * @brief Linear search D_800DBFB8 for the first SlotEntry whose marker matches @p target.
+ *
+ * Scans the first @c D_800C5B50 entries of @c D_800DBFB8, comparing each
+ * entry's @c marker byte against @p target. Returns the slot index on
+ * match or -1 if no match is found (including the empty case when
+ * @c D_800C5B50 <= 0).
+ *
+ * @param target Marker byte value to search for.
+ * @return Matching slot index, or -1 on no match.
+ */
+s32 func_800BD754(s32 target) {
+    s32 count = D_800C5B50;
+    if (count > 0) {
+        s32 i = 0;
+        s32 bound = count;
+        SlotEntry *entry = &D_800DBFB8[0];
+        do {
+            if (target == entry->marker) return i;
+            i++;
+            entry++;
+        } while (i < bound);
+    }
+    return -1;
+}
 
 extern CmdDesc *D_800C4D64;
 
@@ -32,7 +59,29 @@ s32 func_800BD7A4(s32 unused, s32 amount) {
     return amount;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD7E4);
+/**
+ * @brief Locate the active-party slot whose character matches battleParty[charIdx].
+ *
+ * Looks up the character id stored in @c g_gameState.battleParty[charIdx]
+ * and scans @c g_gameState.mainData.party.party[0..2] for the first slot
+ * whose id matches. Returns that slot index (0-2), or 0 if no match.
+ *
+ * @note A zero return is ambiguous — it's also returned on no-match.
+ *
+ * @param charIdx Battle-party index (0-3).
+ * @return Active-party slot (0-2) whose member matches, else 0.
+ */
+s32 func_800BD7E4(s32 charIdx) {
+    GameState *gs = &g_gameState;
+    u8 target = gs->battleParty[charIdx];
+    s32 i;
+    for (i = 0; i < 3; i++) {
+        if (gs->mainData.party.party[i] == target) {
+            return i;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD82C);
 
@@ -80,7 +129,28 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BDEF4);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE040);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE158);
+extern LookupTarget *D_800DDB00[];
+
+/**
+ * @brief Fetch the @c field52 halfword of the lookup target for slot @p idx.
+ *
+ * Uses the slot's @c lookupIdx to index into @c D_800DDB00, following the
+ * resulting pointer to the target struct and reading its @c field52.
+ * Returns -1 if @p idx is negative or the slot isn't mapped (lookupIdx < 0).
+ *
+ * @param idx Slot index into @c D_800DBFB8.
+ * @return @c field52 of the target, or -1 when the slot has no lookup.
+ */
+s32 func_800BE158(s32 idx) {
+    s32 result = -1;
+    if (idx >= 0) {
+        s8 lookup = D_800DBFB8[idx].lookupIdx;
+        if (lookup >= 0) {
+            result = D_800DDB00[lookup]->field52;
+        }
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BE1A8);
 
@@ -226,7 +296,25 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEAF4);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEB84);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEC1C);
+/**
+ * @brief Map a command-kind code to a duration/timeout in frames.
+ *
+ * Lookup table flattened into a small branch chain:
+ *   - kind 50:              528 frames
+ *   - kind 32..40:          256 frames
+ *   - kind 132:             256 frames
+ *   - kind 48:              700 frames
+ *   - anything else:        0
+ *
+ * @param kind Command type byte.
+ * @return Frame count for the command, or 0 if unrecognised.
+ */
+s32 func_800BEC1C(s32 kind) {
+    if (kind == 50) return 528;
+    if ((kind >= 32 && kind <= 40) || kind == 132) return 256;
+    if (kind == 48) return 700;
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEC60);
 
@@ -234,11 +322,10 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEC60);
  * @brief Search g_gameState array for an active entry with type 0xA2.
  */
 s32 func_800BED90(s32 *outIndex, s32 *outCount) {
-    extern u8 g_gameState[];
     s32 found = 0;
     s32 i = found;
     s32 target = 0xA2;
-    u8 *ptr = g_gameState;
+    u8 *ptr = (u8 *)&g_gameState;
     s32 type;
     s32 count;
 

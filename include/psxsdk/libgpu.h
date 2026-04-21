@@ -102,8 +102,38 @@ typedef struct {
 /** @brief Draw mode command (GP0(E1h)). Sets texture page, semi-transparency, dithering. */
 typedef struct {
     u32 tag;
-    u32 code[1];
+    u32 code[2];
 } DR_MODE;
+
+/** @brief Texture window command (GP0(E2h)). */
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_TWIN;
+
+/** @brief Drawing area command (GP0(E3h)/E4h). */
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_AREA;
+
+/** @brief Drawing offset command (GP0(E5h)). */
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_OFFSET;
+
+/** @brief Drawing STP mask command (GP0(E6h)). */
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_STP;
+
+/** @brief Drawing tpage command (single u32 payload). */
+typedef struct {
+    u32 tag;
+    u32 code[1];
+} DR_TPAGE;
 
 /** @brief Flat-shaded triangle. Code 0x20. */
 typedef struct {
@@ -267,6 +297,8 @@ void SetDispMask(s32 mask);
 void ClearOTag(u32 *ot, s32 n);
 void ClearOTagR(u32 *ot, s32 n);
 void DrawOTag(void *p);
+DRAWENV *SetDefDrawEnv(DRAWENV *env, s32 x, s32 y, s32 w, s32 h);
+DISPENV *SetDefDispEnv(DISPENV *env, s32 x, s32 y, s32 w, s32 h);
 void PutDrawEnv(void *env);
 void PutDispEnv(void *env);
 void ClearImage(void *rect, u8 r, u8 g, u8 b);

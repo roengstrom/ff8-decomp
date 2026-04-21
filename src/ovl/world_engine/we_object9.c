@@ -202,7 +202,42 @@ void func_800BCF10(u8 *buf, s32 statId) {
     func_800BCE74(buf, statId);
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCF30);
+/** @brief 3D vector used by func_800BCF30's angle-to-position conversion. */
+typedef struct { s32 x, y, z; } Vec3;
+
+/**
+ * @brief Convert a 16-bit angle into a Vec3 position on a 128x48 tile grid.
+ *
+ * Treats @p angle as a signed 16-bit value and splits it into a section
+ * index (angle / 128) and an offset within the section (angle % 128).
+ * Writes the resulting world-space coordinates to @p out:
+ *   - @c x = (offset - 0x40) * 2048     (centered, shifted by 11 bits)
+ *   - @c z = (0x30 - section) * 2048
+ *   - @c y = 0                          (flat on the XZ plane)
+ *
+ * Returns silently when @p out is NULL.
+ *
+ * @note @c angle is declared s32 (not s16) and the @c section=angle prelude
+ *       is deliberate — it steers gcc's register allocation to match the
+ *       target's @c v1/@c a0 pattern.
+ *
+ * @param angle s16-style angle (low 16 bits are significant).
+ * @param out Output position vector; no-op when NULL.
+ */
+void func_800BCF30(s32 angle, Vec3 *out) {
+    s32 section;
+    s32 a;
+    s16 offset;
+    section = angle;
+    if (out != 0) {
+        a = (s16)section;
+        section = a / 128;
+        offset = a - section * 128;
+        out->x = (offset - 0x40) << 11;
+        out->z = (0x30 - section) << 11;
+        out->y = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCF84);
 

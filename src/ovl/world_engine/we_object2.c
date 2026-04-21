@@ -1,6 +1,7 @@
 #include "common.h"
 #include "field.h"
 #include "sound.h"
+#include "world.h"
 
 extern u8 D_800780D8[];
 extern u8 D_800D23D8[];
@@ -94,7 +95,29 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D214);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D2D8);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D3F4);
+extern SceneState D_80082C8C;
+extern u8 D_800C4D38;
+extern u8 *D_800D226C;
+extern void func_8009D630(void);
+extern void func_800B3FD4(u8 *a0, s32 a1);
+
+/**
+ * @brief Reset the scene state block and kick off the scene loader.
+ *
+ * Chains:
+ *  1. @c func_8009D630() to tear down prior state.
+ *  2. Resets @c D_80082C8C — mode 5, current dispatch code, markers -1.
+ *  3. Calls @c func_800B3FD4 with the scene-data pointer @c D_800D226C
+ *     and sub-mode 5.
+ */
+void func_8009D3F4(void) {
+    func_8009D630();
+    D_80082C8C.mode = 5;
+    D_80082C8C.cmd = D_800C4D38;
+    D_80082C8C.unk02 = -1;
+    D_80082C8C.unk03 = -1;
+    func_800B3FD4(D_800D226C, 5);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D44C);
 
