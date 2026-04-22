@@ -1,6 +1,22 @@
 #include "common.h"
 #include "battle.h"
+#include "psxsdk/libc.h"
 
+typedef struct {
+    u32 type;
+    u32 size;
+    s32 offset;
+} ResHeader;
+
+typedef struct {
+    u8 active;
+    u8 pad01[3];
+    u8 data[8];
+    void *src;
+} PoolEntry;
+
+extern s32 D_801C2FD0;
+extern PoolEntry D_801C2ED0[];
 extern u8 *D_801D2FE0;
 extern u8 *D_801D3000;
 extern s16 D_80182B54;
@@ -96,11 +112,64 @@ void func_800988D4(void) {
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800988E0);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098A1C);
+/**
+ * @brief Register an inactive D_801C2ED0 pool entry with an 8-byte data copy.
+ *
+ * Takes the next slot in the D_801C2ED0 pool (indexed by D_801C2FD0),
+ * marks it inactive, copies 8 bytes from @p a0 into the slot's data
+ * region (offsets 4..0xB, via unaligned-safe copy), and stores @p a1
+ * as the callback at offset 0xC.
+ *
+ * @param a0 Source of 8 bytes to copy (may be unaligned).
+ * @param a1 Callback pointer stored at offset 0xC of the slot.
+ */
+void func_80098A1C(u8 *a0, u8 *a1) {
+    PoolEntry *entry = &D_801C2ED0[D_801C2FD0++];
+    entry->active = 0;
+    memcpy(entry->data, a0, 8);
+    entry->src = a1;
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098A6C);
+/**
+ * @brief Register a callback into D_801C2ED0 and advance into @p a0.
+ *
+ * Takes the next free slot in D_801C2ED0 (indexed by the counter at
+ * D_801C2FD0), marks it active, stores @p a0 as the callback pointer,
+ * then follows a two-step offset chain from @p a0:
+ *   1. Read an @c s32 offset at @c a0+8; advance @c a0 by 8 plus that offset.
+ *   2. Read an @c s32 offset at the new @c a0; return (@c a0 + that offset).
+ *
+ * @param a0 Pointer to a header whose byte-offset fields chain into another
+ *           location in the same record.
+ * @return The final address resulting from the two-step offset chain.
+ */
+u8 *func_80098A6C(ResHeader *res) {
+    PoolEntry *entry;
+    s32 *rel;
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098AB4);
+    entry = &D_801C2ED0[D_801C2FD0++];
+    entry->active = 1;
+    entry->src = res;
+
+    rel = &res->offset;
+    rel = (s32 *)((u8 *)rel + *rel);
+    return (u8 *)rel + *rel;
+}
+
+/**
+ * @brief Register a D_801C2ED0 slot with @c active=2 and an 8-byte data copy.
+ *
+ * Variant of @c func_80098A1C: takes the next pool slot, marks it with flag
+ * @c 2 (vs @c 0 in @c func_80098A1C), copies 8 bytes from @p a0 into the
+ * data region (offsets 4..0xB, unaligned-safe), and stores @p a1 as the
+ * callback at offset 0xC.
+ */
+void func_80098AB4(u8 *a0, u8 *a1) {
+    PoolEntry *entry = &D_801C2ED0[D_801C2FD0++];
+    entry->active = 2;
+    memcpy(entry->data, a0, 8);
+    entry->src = a1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B08);
 
