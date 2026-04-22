@@ -14,6 +14,21 @@ typedef int s32;
 #define NULL ((void *)0)
 #endif
 
+/**
+ * @brief 16-bit slot accessed as either a halfword or its two constituent bytes.
+ *
+ * Used to model struct fields that are read/written at different widths by
+ * different functions — e.g. a u16 counter that one function updates via a
+ * halfword store (@c sh) and another treats as two independent u8 flags via
+ * byte stores (@c sb). Access the full halfword as @c .hword, the low byte
+ * (little-endian @c byte[0]) as @c .b.lo, and the high byte (@c byte[1]) as
+ * @c .b.hi.
+ */
+typedef union {
+    u16 hword;
+    struct { u8 lo; u8 hi; } b;
+} U16Split;
+
 /* No-op barrier to control register allocation for decomp matching.
    Compiles to nothing; safe to remove if byte-matching is not needed. */
 #ifdef __GNUC__

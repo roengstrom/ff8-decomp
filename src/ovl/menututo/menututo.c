@@ -136,8 +136,7 @@ typedef struct {
     /* 0x16 */ u16 returnState;
     /* 0x18 */ u8 pad18[8];
     /* 0x20 */ u16 fadeAlpha;
-    /* 0x22 */ u8 overlayParam;
-    /* 0x23 */ u8 pad23;
+    /* 0x22 */ U16Split pageIndex;
     /* 0x24 */ s32 panelHandle;
     /* 0x28 */ s16 fadePos;
     /* 0x2A */ s16 scrollPos;
@@ -276,7 +275,7 @@ void func_801E2ABC(TutoState *output) {
         }
 
         output->fadeAlpha = mask;
-        output->pad23 = count;
+        output->pageIndex.b.hi = count;
         g_gameState.mainData.party.party[0] = 1;
         g_gameState.mainData.party.party[1] = 0;
         g_gameState.mainData.party.party[2] = 5;
@@ -867,7 +866,7 @@ top:
         entryIdx = ctx->availSlots[ctx->cursorPos];
         table = &table[entryIdx];
         func_801E2D3C();
-        ctx->overlayParam = table->overlayCmd;
+        ctx->pageIndex.b.lo = table->overlayCmd;
         D_801FABC7 = table->saveFlag;
 
         loadSubOverlay(table->subOvlId1, 0x801CD000);
@@ -889,7 +888,7 @@ top:
         table = &table[idx];
         D_801FABC7 = table->saveFlag;
         func_801E2D3C();
-        ctx->overlayParam = table->overlayCmd;
+        ctx->pageIndex.b.lo = table->overlayCmd;
 
         loadSubOverlay(table->subOvlId1, 0x801CD000);
         loadSubOverlay(table->subOvlId2, 0x801D1000);
@@ -1302,7 +1301,7 @@ void func_801E47F8(void) {
         func_801E3140(ctx);
         ctx->fadeAlpha = 0x1B;
         ctx->fadePos = 0;
-        ctx->pad23 = 3;
+        ctx->pageIndex.b.hi = 3;
     }
 
     p = (u8 *)0x801E5800;
@@ -1316,7 +1315,159 @@ void func_801E47F8(void) {
     } while (p != (u8 *)0x801E0000);
 }
 
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E48C0); /* 0x310 */
+/**
+ * @brief Tutorial page navigation state machine.
+ *
+ * Handles loading, displaying, and navigating tutorial pages.
+ * Uses D_801E4EAC as a page sequence table terminated by 0xFFFF.
+ * Button masks from D_801FAB1C control navigation:
+ *   0x8004 = previous page, 0x2008 = next page,
+ *   0x40 = confirm/advance, 0x10 = cancel/exit.
+ *
+ * @param self Pointer to tutorial callback context.
+ */
+void func_801E48C0(TutoState *self) {
+    extern u16 D_801FAB1C;
+    extern u16 D_801E4EAC[];
+
+    u16 buttons = D_801FAB1C;
+    u16 *state = &self->state;
+
+    switch (*state) {
+    case 0:
+        *state = 1;
+        break;
+
+    case 1:
+        if (pollCdReadStatus() != 0) {
+            break;
+        }
+        loadTimImage((u8 *)0x801CD000);
+        *state = 2;
+        break;
+
+    case 2:
+        *state = 3;
+        break;
+
+    case 3: {
+        u16 val;
+
+        val = self->fadeAlpha + 0x100;
+        self->fadeAlpha = val;
+        if ((s16)val >= 0x1000) {
+            self->fadeAlpha = 0x1000;
+        }
+
+        if (buttons & 0x8004) {
+            sendSpuCommand(2);
+            val = self->pageIndex.hword - 1;
+            self->pageIndex.hword = val;
+            if ((s16)val < 0) {
+                u16 prev;
+                do {
+                    prev = self->pageIndex.hword;
+                    val = prev + 1;
+                    self->pageIndex.hword = val;
+                } while (D_801E4EAC[(s16)val] != 0xFFFF);
+                self->pageIndex.hword = prev;
+            }
+            *state = 4;
+        }
+
+        if (buttons & 0x2008) {
+            sendSpuCommand(2);
+            val = self->pageIndex.hword + 1;
+            self->pageIndex.hword = val;
+            if (D_801E4EAC[(s16)val] == 0xFFFF) {
+                self->pageIndex.hword = 0;
+            }
+            *state = 4;
+        }
+
+        if (buttons & 0x40) {
+            sendSpuCommand(2);
+            val = self->pageIndex.hword + 1;
+            self->pageIndex.hword = val;
+            if (D_801E4EAC[(s16)val] == 0xFFFF) {
+                *state = 6;
+                break;
+            }
+            *state = 4;
+        }
+
+        if (buttons & 0x10) {
+            sendSpuCommand(3);
+            *state = 6;
+        }
+        break;
+    }
+
+    case 4:
+        loadSubOverlay(D_801E4EAC[(s16)self->pageIndex.hword], (u8 *)0x801CD000);
+        *state = 5;
+        break;
+
+    case 5: {
+        u16 fade = self->fadeAlpha - 0x100;
+        self->fadeAlpha = fade;
+        if ((s16)fade > 0) {
+            break;
+        }
+        self->fadeAlpha = 0;
+        *state = 1;
+        break;
+    }
+
+    case 6:
+        *state = 7;
+        break;
+
+    case 7: {
+        u16 fade = self->fadeAlpha - 0x100;
+        self->fadeAlpha = fade;
+        if ((s16)fade > 0) {
+            break;
+        }
+        self->fadeAlpha = 0;
+        *state = 8;
+        break;
+    }
+
+    case 8:
+        func_80048BB8(0);
+        *state = 9;
+        break;
+
+    case 9:
+        func_801F010C(0x180);
+        *state = 10;
+        break;
+
+    case 10:
+        *state = 11;
+        break;
+
+    case 11:
+        func_80048BB8(1);
+        loadOverlayWithTimCallback(9, (u8 *)0x801CD000);
+        loadOverlayWithTimCallback(10, (u8 *)0x801D5000);
+        *state = 12;
+        break;
+
+    case 12:
+        if (pollCdReadStatus() != 0) {
+            break;
+        }
+        *state = 13;
+        break;
+
+    case 13:
+        func_801F18FC((u8 *)self);
+        func_801F0BB0();
+        break;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0); /* 0xE0 */
 
@@ -1350,7 +1501,7 @@ void func_801E4CE4(void) {
 
     if (ctx != NULL) {
         ctx->fadeAlpha = 0;
-        *(u16 *)&ctx->overlayParam = 0;
+        ctx->pageIndex.hword = 0;
         func_801F010C(0x140);
         func_801E48C0(ctx);
     }
