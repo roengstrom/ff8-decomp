@@ -339,7 +339,9 @@ typedef struct {
     /* 0x02E */ u8 pad02E[0x54];
     /* 0x082 */ BattleMagicSlot magicSlots[32];
     /* 0x122 */ BattleItemSlot itemSlots[16];
-    /* 0x172 */ u8 pad172[0x1A];
+    /* 0x172 */ u8 pad172[2];
+    /* 0x174 */ s16 hpRegenCap;        /**< HP regen cap (field-walk tick stops when currentHp reaches this). */
+    /* 0x176 */ u8 pad176[0x16];
     /* 0x18C */ s32 abilityFlags;
     /* 0x190 */ s32 statusFlags;
     /* 0x194 */ u8 pad194[0x20];
@@ -389,5 +391,16 @@ typedef struct {
 } BattleSceneCtx;
 
 extern BattleSceneCtx *D_800D244C;
+
+/**
+ * @brief Callback-node in the battle_engine list at D_801D3C68.
+ *
+ * Minimal view: a header followed by a list-head pointer. Other fields
+ * (byte flags at 0x0E, 0x22; s16 at 0x20; etc.) are not yet modeled.
+ */
+typedef struct {
+    u8 pad00[0xC];
+    u8 *listPtr;    /* 0x0C: pointer to an inner list head */
+} CallbackNode;
 
 #endif /* BATTLE_H */

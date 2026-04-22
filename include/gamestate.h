@@ -153,7 +153,7 @@ typedef struct {
     /* 0x08 */ u8 grieverName[12];     /**< Player-chosen name for Griever. */
     /* 0x14 */ u16 unknown14;          /**< Unknown (often 7966?). */
     /* 0x16 */ u8 unknown16;           /**< Unknown (changes per disc). */
-    /* 0x17 */ u8 unknown17;           /**< Unknown (zeroed on save init). */
+    /* 0x17 */ u8 trickLearning;       /**< Index (0-7) of Angelo trick currently being learned. */
     /* 0x18 */ u32 gil;                /**< Current gil. */
     /* 0x1C */ u32 dreamGil;           /**< Gil held during Laguna dream sequences. */
 } PartyData; /* 0x20 = 32 bytes */

@@ -1,4 +1,19 @@
 #include "common.h"
+#include "battle.h"
+
+extern u8 *D_801D2FE0;
+extern u8 *D_801D3000;
+extern s16 D_80182B54;
+extern s16 D_80182B5A;
+extern s16 D_80182B56;
+extern s16 D_80182B58;
+extern u8 D_801D2FF0[2][8];
+extern u8 D_801C2FE0[2][0x8000];
+
+extern void func_8004D724(u8 *, s32, s32, s32);
+extern void func_8004D584(u8 *, u8 *);
+extern void func_80049244(u8 *);
+extern void func_80049074(u8 *, s32);
 
 /**
  * @brief Initialize the battle engine subsystems and build the object lookup table.
@@ -393,11 +408,60 @@ u8 *func_800991AC(s32 a0, u8 *a1) {
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099204);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_800993F4);
+extern s32 func_80099204(s32 a0, s32 *args);
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099424);
+/**
+ * @brief Variadic forwarder: passes @p a0 and a pointer to the variadic
+ *        args to @c func_80099204.
+ *
+ * The `...` is load-bearing — it triggers gcc's varargs prologue that
+ * saves a1-a3 to the caller's shadow area, letting @c &a1 act as the
+ * start of a variadic argument list.
+ */
+s32 func_800993F4(s32 a0, s32 a1, ...) {
+    return func_80099204(a0, &a1);
+}
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80099464);
+/**
+ * @brief Printf-style wrapper: formats variadic args into a 256-byte stack
+ *        buffer via @c func_80099204, then outputs the result via
+ *        @c func_80098FD8.
+ *
+ * The `...` triggers gcc's varargs prologue, saving a1-a3 to the caller's
+ * shadow save area so @c &a0 can act as the start of a variadic arg list.
+ */
+void func_80099424(s32 a0, ...) {
+    s8 buf[0x100];
+    func_80099204((s32)buf, &a0);
+    func_80098FD8(buf);
+}
+
+/**
+ * @brief Flip the battle double-buffer and reinitialize per-frame state.
+ *
+ * Performs end-of-frame teardown on the current framebuffer/drawenv,
+ * then toggles the active buffer index in @c D_80182B54 (0 <-> 1),
+ * starts the new frame, resets viewport fields to 8, and rebases the
+ * framebuffer (32 KB per buffer) and drawenv (8 bytes per buffer)
+ * pointers to the new slot.
+ */
+void func_80099464(void) {
+    u8 *fb = D_801D2FE0;
+
+    func_8004D724(fb, 0, 1, 3);
+    func_8004D584(D_801D3000, fb);
+    func_80049244(D_801D3000);
+
+    D_80182B54 = D_80182B54 ^ 1;
+    func_80049074(D_801D2FF0[D_80182B54], 2);
+
+    D_80182B5A = 8;
+    D_80182B56 = 8;
+    D_80182B58 = 8;
+
+    D_801D2FE0 = D_801C2FE0[D_80182B54];
+    D_801D3000 = D_801D2FF0[D_80182B54];
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009953C);
 
@@ -424,9 +488,14 @@ s32 func_8009A2F4(s32 a0) {
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A314);
 
 /**
- * @brief Load pointer at a0+0xC, call func_80098D28, return (result == 0) << 1.
+ * @brief Query the list at @p node->listPtr; return 2 if empty, 0 otherwise.
+ *
+ * Calls @c func_80098D28 on the node's @c listPtr (a list-head pointer at
+ * offset 0x0C) and returns @c 2 when that returns 0 (empty list), else 0.
  */
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A4E0);
+s32 func_8009A4E0(CallbackNode *node) {
+    return (func_80098D28(node->listPtr) == 0) << 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A508);
 

@@ -40,6 +40,10 @@ typedef struct {
     s16 x, y, w, h;
 } RECT;
 
+/** @brief Populate a RECT with position (x,y) and size (w,h). */
+#define setRECT(r, _x, _y, _w, _h) \
+    ((r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h))
+
 /**
  * @brief GPU TILE primitive (flat-shaded rectangle).
  *
@@ -297,6 +301,8 @@ void SetDispMask(s32 mask);
 void ClearOTag(u32 *ot, s32 n);
 void ClearOTagR(u32 *ot, s32 n);
 void DrawOTag(void *p);
+void DrawPrim(void *p);
+void LoadImage(RECT *rect, u32 *data);
 DRAWENV *SetDefDrawEnv(DRAWENV *env, s32 x, s32 y, s32 w, s32 h);
 DISPENV *SetDefDispEnv(DISPENV *env, s32 x, s32 y, s32 w, s32 h);
 void PutDrawEnv(void *env);

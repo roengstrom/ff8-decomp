@@ -59,7 +59,11 @@ void func_8009EB98(void) {
 /**
  * @brief Call func_80098D28 with D_801D3C68 and store result in D_801D3D08.
  */
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBCC);
+void func_8009EBCC(void) {
+    extern u8 D_801D3C68[];
+    extern s32 D_801D3D08;
+    D_801D3D08 = func_80098D28(D_801D3C68);
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBF4);
 

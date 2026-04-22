@@ -6,6 +6,13 @@ SetDefDrawEnv = 0x800487E4;
 SetDefDispEnv = 0x80048898;
 PutDrawEnv = 0x800492B4;
 PutDispEnv = 0x80049480;
+DrawSync = 0x80048C50;
+DrawPrim = 0x800491E8;
+LoadImage = 0x80048EFC;
+ResetGraph = 0x800488D4;
+SetGeomOffset = 0x800408C4;
+SetBackColor = 0x80040884;
+SetColorMatrix = 0x80040704;
 
 /* Data blobs in bin section that are called/referenced by real code */
 func_800C4CA4 = 0x800C4CA4;

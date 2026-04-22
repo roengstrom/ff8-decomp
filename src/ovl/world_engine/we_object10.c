@@ -360,7 +360,25 @@ void func_800BEECC(void) {
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEED4);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BEF6C);
+/**
+ * @brief Return 1 if any active slot's marker is 0x4F, else 0.
+ *
+ * Scans the first @c D_800C5B50 entries of @c D_800DBFB8 for a slot
+ * whose @c marker byte equals 0x4F. Early-exits on first hit.
+ *
+ * @return 1 if a 0x4F-marker slot exists, 0 otherwise.
+ */
+s32 func_800BEF6C(void) {
+    SlotEntry *entry = &D_800DBFB8[0];
+    SlotEntry *end = entry + D_800C5B50;
+    if (entry < end) {
+        do {
+            if (entry->marker == 0x4F) return 1;
+            entry++;
+        } while (entry < end);
+    }
+    return 0;
+}
 
 /** Checks two flag bits and returns status. */
 s32 func_800BEFC4(void) {

@@ -18,6 +18,25 @@ typedef struct WorldObject {
 } WorldObject;
 
 /**
+ * @brief One 0x9000-byte section of the world data region table.
+ *
+ * Pointed-to by @c D_800C4D5C as an array indexed by @c sectionIdx.
+ * The section begins with a 1-byte @c key (used by lookup helpers to
+ * match sections), followed by a u32 offset/handle array starting at
+ * offset 4. The rest of the section contains the data that the offsets
+ * index into.
+ *
+ * Known fields:
+ *   - @c key at offset 0x00 — section type/key byte (0xFF when empty).
+ *   - @c offsets[] at offset 0x04 — u32 array; low 2 bits may carry flags.
+ */
+typedef struct {
+    /* 0x00 */ u8 key;               /**< Section type/key byte. */
+    /* 0x01 */ u8 pad01[3];
+    /* 0x04 */ u32 offsets[9215];    /**< Fills section up to 0x9000 total. */
+} WorldSection;
+
+/**
  * @brief World-engine command descriptor (16 bytes).
  *
  * Used by dispatch functions that peek the current command's
