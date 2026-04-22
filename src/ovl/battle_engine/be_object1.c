@@ -171,7 +171,21 @@ void func_80098AB4(u8 *a0, u8 *a1) {
     entry->src = a1;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098B08);
+/**
+ * @brief Register a D_801C2ED0 slot with @c active=3, data copy, and a
+ *        packed 16-bit pair at offset 0xC.
+ *
+ * Same pool-registration pattern as @c func_80098A1C /
+ * @c func_80098AB4, but stores a packed 32-bit value at offset 0xC
+ * formed from two 16-bit args (@p a2 as the upper 16 bits, sign-extended
+ * @p a1 as the lower 16 bits).
+ */
+void func_80098B08(u8 *a0, s16 a1, u16 a2) {
+    PoolEntry *entry = &D_801C2ED0[D_801C2FD0++];
+    entry->active = 3;
+    memcpy(entry->data, a0, 8);
+    entry->src = (void *)(((s32)a2 << 16) | a1);
+}
 
 void func_80098B68(void) {
 }
@@ -354,7 +368,23 @@ s32 func_80098D28(u8 *a0) {
     return count;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098DD4);
+extern ResHeader D_800B71D8;
+
+/**
+ * @brief Register @c D_800B71D8 and set up the current frame's draw targets.
+ *
+ * Registers the @c D_800B71D8 resource into the D_801C2ED0 pool via
+ * @c func_80098A6C, kicks off @c func_80049074 for the current buffer's
+ * drawenv slot, then rebases the framebuffer (@c D_801D2FE0) and drawenv
+ * (@c D_801D3000) pointers to the slot indexed by @c D_80182B54. Unlike
+ * @c func_80099464, this does not flip the buffer index first.
+ */
+void func_80098DD4(void) {
+    func_80098A6C(&D_800B71D8);
+    func_80049074(D_801D2FF0[D_80182B54], 2);
+    D_801D2FE0 = D_801C2FE0[D_80182B54];
+    D_801D3000 = D_801D2FF0[D_80182B54];
+}
 
 /**
  * @brief Set battle viewport dimensions if non-negative.
