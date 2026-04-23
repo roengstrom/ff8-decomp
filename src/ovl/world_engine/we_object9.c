@@ -135,7 +135,27 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC570);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC5E0);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC688);
+/**
+ * @brief Linear scan of @c D_800DBFB8 starting at @p start for a slot whose
+ *        @c marker equals @p key.
+ *
+ * Returns the matching slot index on hit, or -1 on miss / when @p start is
+ * already past @c D_800C5B50.
+ *
+ * @param key Marker byte value to search for.
+ * @param start First index to scan.
+ * @return Matching slot index, or -1 on no match.
+ */
+s32 func_800BC688(s32 key, s32 start) {
+    s32 i;
+
+    for (i = start; i < D_800C5B50; i++) {
+        if (key == D_800DBFB8[i].marker) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 /**
  * @brief Two back-to-back offset arrays at the start of the string-table blob
