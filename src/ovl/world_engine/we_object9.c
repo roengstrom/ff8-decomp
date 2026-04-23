@@ -438,11 +438,112 @@ u8 *func_800BCA74(u8 *dst, s32 idx, u8 *p1, u8 *p2, u8 *p3, u8 *p4) {
     return dst;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCC70);
+/**
+ * @brief Variant of @c func_800BCA74 that clears @c dst[0] before formatting.
+ *
+ * Identical to @c func_800BCA74 except it writes @c '\0' to @p dst before
+ * walking the template, so the destination starts empty regardless of any
+ * prior contents.
+ */
+u8 *func_800BCC70(u8 *dst, s32 idx, u8 *p1, u8 *p2, u8 *p3, u8 *p4) {
+    TemplateTable *tpl;
+    s32 *toff;
+    u8 *src;
+    s32 i = 0;
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCE74);
+    dst[0] = 0;
+    tpl = D_800C9FE8;
+    toff = (s32 *)tpl;
+    src = (u8 *)tpl + toff[idx];
 
-extern void func_800BCE74(u8 *buf, s32 statId);
+    while (src[i] != 0x0A || src[i + 1] != 0xFF) {
+        if (src[i] == 0x0A) {
+            i++;
+            if (src[i] >= 0x20) {
+                s32 code = src[i] - 0x20;
+                if (code == 0) {
+                    if (p1 != 0) func_80047C74(dst, p1);
+                } else if (code == 1) {
+                    if (p2 != 0) func_80047C74(dst, p2);
+                } else if (code == 2) {
+                    if (p3 != 0) func_80047C74(dst, p3);
+                } else if (code == 3) {
+                    if (p4 != 0) func_80047C74(dst, p4);
+                }
+            }
+        } else {
+            u8 c = src[i];
+            StringTable *chtable = D_800C97D4;
+            s32 *offsets = chtable->first;
+            u8 *s = (u8 *)chtable + offsets[c];
+            s32 len = 0;
+            s32 j;
+            u8 ch;
+            if (dst[0] != 0) {
+                len = 1;
+                len--;
+                do {
+                    len++;
+                } while (dst[len] != 0);
+            }
+            j = 0;
+            do {
+                ch = s[j];
+                dst[len] = s[j];
+                if (ch == 0) break;
+                len++;
+                j++;
+            } while (1);
+        }
+        i++;
+    }
+    return dst;
+}
+
+extern u8 *getStatName(s32 statId);
+
+/**
+ * @brief Append a stat-name string to @p dst (strcat variant).
+ *
+ * Looks up the stat name via @c getStatName and appends it (including the
+ * terminating null) to the existing null-terminated string in @p dst.
+ *
+ * @param dst    Destination buffer with an existing null-terminated string.
+ * @param statId Stat ID passed to @c getStatName.
+ * @return @p dst (unchanged).
+ */
+u8 *func_800BCE74(u8 *dst, s32 statId) {
+    u8 new_var;
+    u8 *src = getStatName(statId);
+    s32 len;
+    s32 i;
+    u8 c;
+
+    len = 0;
+    if (dst[0] != 0) {
+        do {
+            len++;
+        } while (dst[len] != 0);
+    }
+
+    c = src[0];
+    dst[len] = c;
+    new_var = c != 0;
+    i = 0;
+    if (c != 0) {
+        do {
+            len++;
+            i++;
+            new_var = src[i];
+            c = new_var;
+            dst[len] = c;
+        } while (new_var);
+        len--;
+    }
+    return dst;
+}
+
+extern u8 *func_800BCE74(u8 *buf, s32 statId);
 
 /**
  * @brief Zero-terminate buf and fill it with a stat name via func_800BCE74.
@@ -495,7 +596,71 @@ void func_800BCF30(s32 angle, Vec3 *out) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCF84);
+/** Lookup table entry: matches an (id, param) pair. */
+typedef struct {
+    s16 id;
+    u8 param;
+    u8 pad3;
+} LookupEntry;
+
+/** Range into the lookup-entry pool (offsets from blob base). */
+typedef struct {
+    s32 start_off;
+    s32 end_off;
+} SubRange;
+
+/** Scatter table: 5-bit scatter key -> up to 4 sub-range indices. */
+typedef struct {
+    s8 ranges[4];
+} ScatterEntry;
+
+/** Lookup blob at @c D_800C96F8: range directory, entry-pool offset, then pool. */
+typedef struct {
+    SubRange ranges[5];       /* 0x00: table ranges, indexed by scatter entry */
+    s32      entry_base_off;  /* 0x28: offset from blob base to first pool entry */
+} LookupBlob;
+
+extern u8 D_800D2440;                 /* scatter key (5 bits) */
+extern ScatterEntry D_800C5D70[];     /* scatter table, 32 entries */
+extern LookupBlob *D_800C96F8;        /* pointer to lookup blob */
+
+/**
+ * @brief Look up an (id, param) pair in a scattered multi-subtable index.
+ *
+ * Uses the 5-bit scatter key at @c D_800D2440 to select up to 4 sub-ranges
+ * from @c D_800C5D70. For each non-negative sub-range index, searches the
+ * corresponding entry pool for a matching (id, param) pair.
+ *
+ * @param id Entry id to match (compared as halfword).
+ * @param param Entry param byte to match.
+ * @return Entry index (offset from pool base, divided by entry stride) on match,
+ *         or -1 if no matching entry was found in any scanned sub-range.
+ */
+s32 func_800BCF84(s32 id, s32 param) {
+    s8 *scatter = D_800C5D70[D_800D2440 & 0x1F].ranges;
+    LookupBlob *blob = D_800C96F8;
+    u8 *pool_base;
+    u8 *entry_base = (u8 *)blob + blob->entry_base_off;
+    s32 i;
+    s32 t;
+    LookupEntry *e;
+    LookupEntry *e_end;
+
+    pool_base = (u8 *)blob;
+    for (i = 0; i < 4; i++) {
+        t = scatter[i];
+        if (t < 0) break;
+        e = (LookupEntry *)(pool_base + (&blob->ranges[t])->start_off);
+        e_end = (LookupEntry *)(pool_base + (&blob->ranges[t])->end_off);
+        while (e < e_end) {
+            if (id == e->id && param == e->param) {
+                return ((u8 *)e - entry_base) >> 2;
+            }
+            e++;
+        }
+    }
+    return -1;
+}
 
 extern u32 D_80077E84;
 
