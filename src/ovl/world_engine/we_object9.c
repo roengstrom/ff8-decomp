@@ -795,7 +795,27 @@ void func_800BD180(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD22C);
+/**
+ * @brief Arm scene state: stash source data into @c D_800DD680.. for later apply.
+ *
+ * Counterpart to @c func_800BD180. Sets the "armed" flag at @c D_800C4DC8,
+ * copies the caller's 16-byte vector block into @c D_800DD680, the 8-byte
+ * rotation blob into @c D_800DD690 (unaligned), and the two cmd bytes into
+ * @c D_800DD698 / @c D_800DD69C. @c func_800BD180 consumes this state on
+ * its next call.
+ *
+ * @param src 16-byte vector block (@c x, @c y, @c z, @c pad0C).
+ * @param rot 8-byte rotation blob (caller may pass an unaligned address).
+ * @param cmd Primary cmd byte, stored at @c D_800DD698.
+ * @param cmd2 Secondary cmd byte, stored at @c D_800DD69C.
+ */
+void func_800BD22C(WorldVec *src, u8 *rot, s32 cmd, s32 cmd2) {
+    D_800C4DC8 = 1;
+    D_800DD698 = cmd;
+    D_800DD680 = *src;
+    memcpy(D_800DD690, rot, 8);
+    D_800DD69C = cmd2;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD2A0);
 
