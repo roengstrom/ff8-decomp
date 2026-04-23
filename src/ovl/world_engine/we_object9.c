@@ -994,4 +994,46 @@ void func_800BD540(Entity *e) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD640);
+/**
+ * @brief 32-byte record with two signed sentinel bytes near its tail.
+ */
+typedef struct {
+    u8  pad00[3];
+    u8  byte3;          /**< 0x03: zone byte, must be 1 or 2 for a match. */
+    u8  pad04[0x1A];
+    s8  sb1E;           /**< 0x1E: signed sentinel byte (-1 = open slot). */
+    s8  sb1F;           /**< 0x1F: signed marker byte (0, 1, ...). */
+} SlotTarget;
+
+/**
+ * @brief Classify a @c SlotTarget against an expected @p kind.
+ *
+ * Returns a small result code:
+ *   - -1: @p kind is 0xFF, mismatch, or out-of-zone.
+ *   - For @p kind == 0: 0 when @c sb1F == 1; 1 when @c sb1E == -1 && @c sb1F == 0.
+ *   - For @p kind == 1: 2 when @c sb1F == 1.
+ *   - Any other @p kind: -1.
+ *
+ * The @c byte3 "zone" byte must be 1 or 2 for any non-default return.
+ */
+s32 func_800BD640(u8 kind, SlotTarget *t) {
+    s32 result = -1;
+
+    if (kind == 0xFF) {
+        return -1;
+    }
+    if (kind == 0) {
+        if ((u32)(t->byte3 - 1) < 2) {
+            if (t->sb1F == 1) {
+                result = 0;
+            } else if (t->sb1E == -1 && t->sb1F == 0) {
+                result = 1;
+            }
+        }
+    } else if (kind == 1) {
+        if ((u32)(t->byte3 - 1) < 2 && t->sb1F == 1) {
+            result = 2;
+        }
+    }
+    return result;
+}
