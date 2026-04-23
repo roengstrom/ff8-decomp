@@ -1,4 +1,5 @@
 #include "common.h"
+#include "world.h"
 
 /* 4-byte slot read as either a full word or just the low halfword */
 typedef union {
@@ -689,7 +690,54 @@ s32 func_800BD058(s32 amount) {
     return amount;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD09C);
+extern s32 D_800C4D38;
+
+extern s32 func_800A4670(u32 a, s32 b);
+extern s32 func_800A358C(s32 a, SlotEntry *b, u8 *c, s32 d);
+extern s32 func_800B00D8(s32 a);
+
+/**
+ * @brief Test if a candidate slot fits the current command and insert it.
+ *
+ * Rejects the slot early when its @c angle is more than 0xC8 away from the
+ * world camera @p worldAngle. Then requires both cmd-tag checks (against
+ * @p arg1 and @c D_800C4D38) to pass via @c func_800A4670. On all checks
+ * passing, dispatches @c func_800B00D8 on the slot's marker and forwards
+ * the result to @c func_800A358C for insertion. Returns 1 when insertion
+ * reports "not already present" (negative), 0 otherwise.
+ *
+ * @note Purpose uncertain — the return semantic is inverted from the
+ * surrounding early-exit 0s, suggesting @c func_800A358C returns a
+ * negative sentinel for "new".
+ *
+ * @param slot Candidate slot entry (read-only in this function).
+ * @param arg1 First tag selector passed to the cmd check.
+ * @param cmd Command descriptor (type/flag/param packed into 24-bit key).
+ * @param worldAngle Current world camera angle for proximity test.
+ * @return 1 if the slot was newly inserted, 0 otherwise or on rejection.
+ */
+s32 func_800BD09C(SlotEntry *slot, s32 arg1, CmdDesc *cmd, s32 worldAngle) {
+    s32 delta = slot->angle - worldAngle;
+    s32 insertResult;
+    s32 trigger;
+
+    if (delta > 0) {
+        if (delta >= 0xC8) return 0;
+    } else if (worldAngle - slot->angle >= 0xC8) {
+        return 0;
+    }
+
+    trigger = 1;
+    if (func_800A4670(cmd->type | (cmd->flag << 8) | (cmd->param << 16), arg1) == 0) {
+        return 0;
+    }
+    if (func_800A4670(cmd->type | (cmd->flag << 8) | (cmd->param << 16), D_800C4D38) == 0) {
+        if (trigger) return 0;
+    }
+    insertResult = func_800A358C(func_800B00D8(slot->marker), slot, slot->data14, trigger);
+    if (insertResult < 0) return trigger;
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD180);
 

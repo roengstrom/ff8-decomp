@@ -57,11 +57,14 @@ typedef struct {
  * usages are discovered.
  */
 typedef struct {
-    /* 0x00 */ u8 unk_00[0x10];
+    /* 0x00 */ u8 pad00[4];
+    /* 0x04 */ s32 angle;           /**< Slot angular position (compared to world camera angle). */
+    /* 0x08 */ u8 pad08[8];
     /* 0x10 */ s8 marker;           /**< Scan terminator / type byte. */
     /* 0x11 */ u8 pad11;
     /* 0x12 */ s8 lookupIdx;        /**< Index into D_800DDB00 when >= 0. */
-    /* 0x13 */ u8 pad13[0x15];
+    /* 0x13 */ u8 pad13;
+    /* 0x14 */ u8 data14[0x14];     /**< Tail buffer passed to dispatcher. */
 } SlotEntry; /* 0x28 = 40 bytes */
 
 /**
