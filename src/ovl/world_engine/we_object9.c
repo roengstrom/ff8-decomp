@@ -993,6 +993,56 @@ s32 func_800BD460(s16 *outLow, s16 *outHigh) {
     return result;
 }
 
+/*
+ * func_800BD540: entity mode selector (INCLUDE_ASM pending jtbl placement).
+ *
+ * Populates @c Entity.field46 from one of two selector tables based on
+ * mode. When @c D_800C971C is non-zero, picks from a 4-entry table using
+ * @c (sel69 & 3); otherwise picks from a 5-entry table using
+ * @c (sel68 & 0x1F). The final post-pass ORs in 0x40 when the matching
+ * @c flag66 bit is set (0x10 in mode A, 0x08 in mode B).
+ *
+ * The reference C below produces byte-identical assembly EXCEPT for one
+ * relocation: the 5-case switch in the `D_800C971C == 0` branch emits a
+ * local .rodata jump table, while the target binary's jtbl_80098770 is
+ * embedded mid-.text inside we_dispatch.s at a fixed address (0x80098770).
+ * To match we would need to split we_dispatch into before/after-jtbl asm
+ * subsegments and pin we_object9.o's .rodata at 0x80098770 via linker
+ * script — not done yet. Kept as INCLUDE_ASM until the splat/linker
+ * surgery is ready.
+ *
+ *   typedef struct {
+ *       u8  pad00[0x46];
+ *       u16 field46;
+ *       u8  pad48[0x66 - 0x48];
+ *       u8  flag66;
+ *       u8  pad67;
+ *       u8  sel68;
+ *       u8  sel69;
+ *   } Entity;
+ *
+ *   extern s32 D_800C971C;
+ *
+ *   void func_800BD540(Entity *e) {
+ *       if (D_800C971C != 0) {
+ *           switch (e->sel69 & 3) {
+ *               case 0: e->field46 = 0x3F;  break;
+ *               case 1: e->field46 = 0x23E; break;
+ *               case 2: e->field46 = 0x3E;  break;
+ *           }
+ *           if ((e->flag66 & 0x10) != 0) e->field46 |= 0x40;
+ *       } else {
+ *           switch (e->sel68 & 0x1F) {
+ *               case 0: e->field46 = 0x11D; break;
+ *               case 1: e->field46 = 0x10D; break;
+ *               case 2: e->field46 = 0x101; break;
+ *               case 3: e->field46 = 0x100; break;
+ *               case 4: e->field46 = 0x180; break;
+ *           }
+ *           if ((e->flag66 & 0x8) != 0) e->field46 |= 0x40;
+ *       }
+ *   }
+ */
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD540);
 
 /**
