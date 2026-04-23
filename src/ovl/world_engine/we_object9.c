@@ -717,7 +717,7 @@ extern s32 func_800B00D8(s32 a);
  * @return 1 if the slot was newly inserted, 0 otherwise or on rejection.
  */
 s32 func_800BD09C(SlotEntry *slot, s32 arg1, CmdDesc *cmd, s32 worldAngle) {
-    s32 delta = slot->angle - worldAngle;
+    s32 delta = slot->y - worldAngle;
     s32 insertResult;
     s32 trigger;
 
@@ -817,7 +817,52 @@ void func_800BD22C(WorldVec *src, u8 *rot, s32 cmd, s32 cmd2) {
     D_800DD69C = cmd2;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD2A0);
+extern s32 D_800C5C2C;
+extern SlotEntry D_800DBFB8[];
+
+extern s32 func_800A5DC8(s32 x, s32 y);
+
+/**
+ * @brief Compute two coarse-angle outputs for the current active slot.
+ *
+ * Looks up the active slot index at @c D_800C5C2C; returns 0 if no slot
+ * is active (index < 0). Otherwise converts the slot's (x, -z) pair to an
+ * angle via @c func_800A5DC8, then splits the s16 result into a "fine"
+ * (mod 128, doubled) and "coarse" (div 128, doubled) halfword output.
+ * Either output pointer may be NULL to skip that write.
+ *
+ * @param outLow  Destination for the fine angle component (may be NULL).
+ * @param outHigh Destination for the coarse angle component (may be NULL).
+ * @return 1 when the slot is active, 0 otherwise.
+ */
+s32 func_800BD2A0(s16 *outLow, s16 *outHigh) {
+    s32 slotIdx = D_800C5C2C;
+    s32 vec[3];
+    s32 angle;
+    s16 s16angle;
+    s32 result = 0;
+
+    if (slotIdx >= 0) {
+        SlotEntry *slot = &D_800DBFB8[slotIdx];
+        s32 *vp;
+        vec[0] = slot->x;
+        vp = vec;
+        vp[1] = -slot->z;
+        vp[2] = slot->y;
+        angle = func_800A5DC8(vec[0], vec[1]);
+
+        s16angle = (s16)angle;
+        if (outLow != 0) {
+            s16angle = (s16)angle;
+            *outLow = (s16angle % 128) << 1;
+        }
+        if (outHigh != 0) {
+            *outHigh = (s16angle / 128) << 1;
+        }
+        result = 1;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD380);
 

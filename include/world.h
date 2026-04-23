@@ -57,9 +57,10 @@ typedef struct {
  * usages are discovered.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[4];
-    /* 0x04 */ s32 angle;           /**< Slot angular position (compared to world camera angle). */
-    /* 0x08 */ u8 pad08[8];
+    /* 0x00 */ s32 x;               /**< Slot world X coordinate. */
+    /* 0x04 */ s32 y;               /**< Slot world Y (compared to world camera angle). */
+    /* 0x08 */ s32 z;               /**< Slot world Z coordinate. */
+    /* 0x0C */ s32 pad0C;
     /* 0x10 */ s8 marker;           /**< Scan terminator / type byte. */
     /* 0x11 */ u8 pad11;
     /* 0x12 */ s8 lookupIdx;        /**< Index into D_800DDB00 when >= 0. */
