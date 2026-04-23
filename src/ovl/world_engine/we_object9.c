@@ -739,7 +739,61 @@ s32 func_800BD09C(SlotEntry *slot, s32 arg1, CmdDesc *cmd, s32 worldAngle) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD180);
+/**
+ * @brief World-space 3-vector used for translation/position state.
+ */
+typedef struct {
+    s32 x;             /* 0x00 */
+    s32 y;             /* 0x04: source z, negated (PS1 y-down convention) */
+    s32 z;             /* 0x08: source y */
+} WorldPos;
+
+/**
+ * @brief Source-side 16-byte vector blob at @c D_800DD680.
+ */
+typedef struct {
+    s32 x;             /* 0x00 */
+    s32 y;             /* 0x04 */
+    s32 z;             /* 0x08 */
+    s32 pad0C;         /* 0x0C */
+} WorldVec;
+
+extern s32      D_800C4DC8;
+extern s32      D_800C4D38;
+extern s32      D_800C4D3C;
+extern u8       D_800C9770[0x10];
+extern WorldPos D_800C9868;
+extern WorldVec D_800DD680;
+extern u8       D_800DD690[8];
+extern s32      D_800DD698;
+extern s32      D_800DD69C;
+
+extern void func_800A40F8(WorldVec *src, u8 *dst);
+extern void *memcpy(void *dst, const void *src, u32 n);
+
+/**
+ * @brief Initialize scene-relative state from the template at @c D_800DD680 et al.
+ *
+ * No-op when the @c D_800C4DC8 flag is zero. Otherwise copies:
+ *   - @c D_800DD698 → @c D_800C4D38 (primary cmd byte)
+ *   - @c D_800DD680.x → @c D_800C9868.x
+ *   - @c D_800DD680.y → @c D_800C9868.z  (Y/Z swap for PS1 coord system)
+ *   - -@c D_800DD680.z → @c D_800C9868.y (Z negated)
+ *   - @c D_800DD690[0..8] → @c D_800C9770[8..0xF] (unaligned 8 bytes)
+ *   - @c D_800DD69C → @c D_800C4D3C (secondary cmd byte)
+ * and calls @c func_800A40F8 with the source vector and @c D_800C9770 buffer.
+ */
+void func_800BD180(void) {
+    if (D_800C4DC8 != 0) {
+        D_800C4D38 = D_800DD698;
+        D_800C9868.x = D_800DD680.x;
+        D_800C9868.z = D_800DD680.y;
+        D_800C9868.y = -D_800DD680.z;
+        func_800A40F8(&D_800DD680, D_800C9770);
+        memcpy(&D_800C9770[0x8], D_800DD690, 8);
+        D_800C4D3C = D_800DD69C;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD22C);
 
