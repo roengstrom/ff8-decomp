@@ -136,15 +136,106 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC5E0);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC688);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC6E8);
+/**
+ * @brief Two back-to-back offset arrays at the start of the string-table blob
+ *        @c D_800C97D4 points to. Each entry in @c first / @c second is a
+ *        byte offset (from the table base) to a null-terminated string stored
+ *        later in the same blob.
+ */
+typedef struct {
+    s32 first[30];
+    s32 second[1];
+} StringTable;
+
+extern StringTable *D_800C97D4;
+
+/**
+ * @brief Copy a null-terminated string from the first offset table to @p dst.
+ *
+ * Looks up the byte offset for string @p idx in @c table->first, computes the
+ * string's address (@c table + offset), and copies the null-terminated bytes
+ * into @p dst.
+ *
+ * @param dst Destination buffer (must have room for the string + null).
+ * @param idx Index into @c table->first.
+ * @return @p dst (unchanged).
+ */
+u8 *func_800BC6E8(u8 *dst, s32 idx) {
+    StringTable *table = D_800C97D4;
+    s32 *offsets = table->first;
+    u8 *src = (u8 *)table + offsets[idx];
+    s32 i;
+
+    i = 0;
+    while ((dst[i] = src[i]) != 0) {
+        i++;
+    }
+    return dst;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC744);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC7D0);
+/**
+ * @brief Copy a null-terminated string from the second offset table to @p dst.
+ *
+ * Variant of @c func_800BC6E8 that indexes @c table->second (the second
+ * offset array, starting 0x78 bytes into the blob) instead of @c first.
+ */
+u8 *func_800BC7D0(u8 *dst, s32 idx) {
+    StringTable *table = D_800C97D4;
+    u8 *src = (u8 *)table + *(table->second + idx);
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC82C);
+    i = 0;
+    while ((dst[i] = src[i]) != 0) {
+        i++;
+    }
+    return dst;
+}
 
-extern void func_800BC8D8(u8 *buf, s32 magicId);
+/**
+ * @brief Append a string from the second offset table to @p dst (strcat variant).
+ *
+ * Computes the length of the existing null-terminated string in @p dst, looks
+ * up the source string at @c table->second[idx], and appends it (including the
+ * terminating null) to @p dst.
+ *
+ * @param dst Destination buffer with an existing null-terminated string.
+ * @param idx Index into @c table->second.
+ * @return @p dst (unchanged).
+ */
+u8 *func_800BC82C(u8 *dst, s32 idx) {
+    u8 new_var;
+    StringTable *table = D_800C97D4;
+    u8 *src = (u8 *)table + *(table->second + idx);
+    s32 len;
+    s32 i;
+    u8 c;
+
+    len = 0;
+    if (dst[0] != 0) {
+        do {
+            len++;
+        } while (dst[len] != 0);
+    }
+
+    c = src[0];
+    dst[len] = c;
+    new_var = c != 0;
+    if (c != 0) {
+        i = 0;
+        do {
+            len++;
+            i++;
+            new_var = src[i];
+            c = new_var;
+            dst[len] = c;
+        } while (new_var);
+    }
+    return dst;
+}
+
+extern u8 *func_800BC8D8(u8 *buf, s32 magicId);
 
 /**
  * @brief Zero-terminate buf and fill it with a magic spell's display name.
@@ -160,11 +251,96 @@ void func_800BC8B8(u8 *buf, s32 magicId) {
     func_800BC8D8(buf, magicId);
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC8D8);
+/**
+ * @brief Append a magic-name string to @p dst (strcat variant).
+ *
+ * Looks up the magic name pointer via @c getMagicNamePtr and appends it
+ * (including terminating null) to the existing null-terminated string in
+ * @p dst.
+ *
+ * @param dst     Destination buffer with an existing null-terminated string.
+ * @param magicId Magic ID to look up via @c getMagicNamePtr.
+ * @return @p dst (unchanged).
+ */
+u8 *func_800BC8D8(u8 *dst, s32 magicId) {
+    u8 new_var;
+    u8 *src = getMagicNamePtr(magicId);
+    s32 len;
+    s32 i;
+    u8 c;
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC974);
+    len = 0;
+    if (dst[0] != 0) {
+        do {
+            len++;
+        } while (dst[len] != 0);
+    }
 
-extern void func_800BC974(u8 *buf, s32 id);
+    c = src[0];
+    dst[len] = c;
+    new_var = c != 0;
+    i = 0;
+    if (c != 0) {
+        do {
+            len++;
+            i++;
+            new_var = src[i];
+            c = new_var;
+            dst[len] = c;
+        } while (new_var);
+        len--;
+    }
+    return dst;
+}
+
+/**
+ * @brief Append the decimal string of @p num to @p dst.
+ *
+ * Converts @p num to its decimal digits, looks up the digit-0 character from
+ * @c table->first[29] (the game's digit-character base), and appends the
+ * digits (most significant first) to the null-terminated string in @p dst.
+ * Null-terminates the result.
+ *
+ * @param dst Destination buffer with an existing null-terminated string.
+ * @param num Integer to convert to decimal.
+ * @return @p dst (unchanged).
+ */
+u8 *func_800BC974(u8 *dst, s32 num) {
+    StringTable *table = D_800C97D4;
+    u8 *digitBase = (u8 *)table + table->first[29];
+    u8 digits[8];
+    s32 len;
+    s32 count;
+
+    len = 0;
+    if (dst[0] != 0) {
+        do {
+            len++;
+        } while (dst[len] != 0);
+    }
+
+    count = 0;
+    if (num != 0) {
+        do {
+            digits[count++] = num % 10;
+            num /= 10;
+        } while (num != 0);
+    }
+
+    if (count == 0) {
+        digits[0] = 0;
+        count = 1;
+    }
+
+    for (count--; count >= 0; count--, len++) {
+        dst[len] = digitBase[0] + digits[count];
+    }
+
+    dst[len] = 0;
+    return dst;
+}
+
+extern u8 *func_800BC974(u8 *buf, s32 id);
 
 /**
  * @brief Zero-terminate buf and fill it with a name string via func_800BC974.
@@ -180,7 +356,87 @@ void func_800BCA54(u8 *buf, s32 id) {
     func_800BC974(buf, id);
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCA74);
+/**
+ * @brief Second relocatable offset-table pointing at template strings.
+ *
+ * Same layout as @c StringTable but used by @c func_800BCA74 for template
+ * format strings containing @c 0x0A marker bytes.
+ */
+typedef struct {
+    s32 offsets[1];
+} TemplateTable;
+
+extern TemplateTable *D_800C9FE8;
+
+extern void func_80047C74(u8 *dst, u8 *src);
+
+/**
+ * @brief Format a template string with up to four parameter substitutions.
+ *
+ * Fetches the template at @c D_800C9FE8 index @p idx and walks it character
+ * by character. Each byte that isn't an @c 0x0A marker is looked up in the
+ * @c D_800C97D4 character table and appended to @p dst. The two-byte sequence
+ * @c 0x0A/0xFF terminates the template. When the byte following an @c 0x0A
+ * is in the range @c 0x20..0x23, the corresponding parameter
+ * (@p p1 / @p p2 / @p p3 / @p p4) is appended via @c func_80047C74.
+ *
+ * @param dst Destination buffer.
+ * @param idx Template index into @c D_800C9FE8.
+ * @param p1  Substitution string for marker @c 0x0A @c 0x20.
+ * @param p2  Substitution string for marker @c 0x0A @c 0x21.
+ * @param p3  Substitution string for marker @c 0x0A @c 0x22.
+ * @param p4  Substitution string for marker @c 0x0A @c 0x23.
+ * @return @p dst (unchanged).
+ */
+u8 *func_800BCA74(u8 *dst, s32 idx, u8 *p1, u8 *p2, u8 *p3, u8 *p4) {
+    TemplateTable *tpl = D_800C9FE8;
+    s32 *toff = (s32 *)tpl;
+    u8 *src = (u8 *)tpl + toff[idx];
+    s32 i = 0;
+
+    while (src[i] != 0x0A || src[i + 1] != 0xFF) {
+        if (src[i] == 0x0A) {
+            i++;
+            if (src[i] >= 0x20) {
+                s32 code = src[i] - 0x20;
+                if (code == 0) {
+                    if (p1 != 0) func_80047C74(dst, p1);
+                } else if (code == 1) {
+                    if (p2 != 0) func_80047C74(dst, p2);
+                } else if (code == 2) {
+                    if (p3 != 0) func_80047C74(dst, p3);
+                } else if (code == 3) {
+                    if (p4 != 0) func_80047C74(dst, p4);
+                }
+            }
+        } else {
+            u8 c = src[i];
+            StringTable *chtable = D_800C97D4;
+            s32 *offsets = chtable->first;
+            u8 *s = (u8 *)chtable + offsets[c];
+            s32 len = 0;
+            s32 j;
+            u8 ch;
+            if (dst[0] != 0) {
+                len = 1;
+                len--;
+                do {
+                    len++;
+                } while (dst[len] != 0);
+            }
+            j = 0;
+            do {
+                ch = s[j];
+                dst[len] = s[j];
+                if (ch == 0) break;
+                len++;
+                j++;
+            } while (1);
+        }
+        i++;
+    }
+    return dst;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BCC70);
 
