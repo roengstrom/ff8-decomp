@@ -131,7 +131,36 @@ void func_800BC544(s32 *src, s32 *dst) {
     dst[2] = -src[1];
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC570);
+/** Two-word state blob assembled from @c D_800C9718 / @c D_800C9710. */
+typedef struct {
+    s32 a;
+    s32 b;
+} U64;
+
+extern s32 D_800C9718;
+extern s32 D_800C9710;
+extern s32 D_800C96CC;
+
+extern void func_800C2C00(s32 a, s32 b, s32 c, s32 d, s32 e, U64 *f, s32 g, U64 *h);
+
+/**
+ * @brief Dispatch to @c func_800C2C00 with the current two-word state blob.
+ *
+ * Packs @c D_800C9718 / @c D_800C9710 into a pair of 8-byte buffers on the
+ * caller stack; forwards @p arg1..@p arg3 alongside @c D_800C96CC and the
+ * magic @c 0x80122000 command code. The same pointer is passed as @c arg6
+ * and @c arg8, with @c 0 as @c arg7 — @c func_800C2C00 reads both slots.
+ */
+void func_800BC570(s32 arg1, s32 arg2, s32 arg3) {
+    U64 buf;
+    U64 tmp;
+
+    tmp.a = D_800C9718;
+    tmp.b = D_800C9710;
+    buf = tmp;
+
+    func_800C2C00(arg3, D_800C96CC, 0x80122000, arg2, arg1, &buf, 0, &buf);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC5E0);
 
