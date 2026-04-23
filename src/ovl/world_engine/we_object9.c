@@ -32,6 +32,8 @@ typedef struct {
 
 extern AngleSlot D_800C97F4;
 extern s32       D_800C4D4C;
+extern s32       D_800C5B50;
+extern SlotEntry D_800DBFB8[];
 
 extern s32 func_8009CC3C(void);
 extern s32 func_800AC0A0(s32 type, PosDesc *pos, Velocity *vel, s32 flags);
@@ -772,7 +774,7 @@ s32 func_800BD09C(SlotEntry *slot, s32 arg1, CmdDesc *cmd, s32 worldAngle) {
 
     if (delta > 0) {
         if (delta >= 0xC8) return 0;
-    } else if (worldAngle - slot->angle >= 0xC8) {
+    } else if (worldAngle - slot->y >= 0xC8) {
         return 0;
     }
 
@@ -867,7 +869,6 @@ void func_800BD22C(WorldVec *src, u8 *rot, s32 cmd, s32 cmd2) {
 }
 
 extern s32 D_800C5C2C;
-extern SlotEntry D_800DBFB8[];
 
 extern s32 func_800A5DC8(s32 x, s32 y);
 
@@ -992,56 +993,7 @@ s32 func_800BD460(s16 *outLow, s16 *outHigh) {
     return result;
 }
 
-/**
- * @brief Large struct (~0x6A bytes) holding per-entity flags and state.
- *
- * Only the fields touched by @c func_800BD540 are known; remaining bytes
- * are padding.
- */
-typedef struct {
-    u8  pad00[0x46];
-    u16 field46;        /**< 0x46: packed-word state flags (low bits = mode). */
-    u8  pad48[0x66 - 0x48];
-    u8  flag66;         /**< 0x66: mode-selector flags consulted after write. */
-    u8  pad67;
-    u8  sel68;          /**< 0x68: 5-bit selector consumed when D_800C971C == 0. */
-    u8  sel69;          /**< 0x69: 2-bit selector consumed when D_800C971C != 0. */
-} Entity;
-
-extern s32 D_800C971C;
-
-/**
- * @brief Populate @c field46 from one of two selector tables based on mode.
- *
- * When @c D_800C971C is non-zero, picks from a 4-entry "zone" table using
- * @c (sel69 & 3); otherwise picks from a 5-entry table using
- * @c (sel68 & 0x1F). The final post-pass ORs in 0x40 when the matching
- * @c flag66 bit is set (0x10 in mode A, 0x08 in mode B). Entries outside
- * the covered range leave @c field46 untouched.
- */
-void func_800BD540(Entity *e) {
-    if (D_800C971C != 0) {
-        switch (e->sel69 & 3) {
-            case 0: e->field46 = 0x3F;  break;
-            case 1: e->field46 = 0x23E; break;
-            case 2: e->field46 = 0x3E;  break;
-        }
-        if ((e->flag66 & 0x10) != 0) {
-            e->field46 |= 0x40;
-        }
-    } else {
-        switch (e->sel68 & 0x1F) {
-            case 0: e->field46 = 0x11D; break;
-            case 1: e->field46 = 0x10D; break;
-            case 2: e->field46 = 0x101; break;
-            case 3: e->field46 = 0x100; break;
-            case 4: e->field46 = 0x180; break;
-        }
-        if ((e->flag66 & 0x8) != 0) {
-            e->field46 |= 0x40;
-        }
-    }
-}
+INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD540);
 
 /**
  * @brief 32-byte record with two signed sentinel bytes near its tail.
