@@ -864,7 +864,47 @@ s32 func_800BD2A0(s16 *outLow, s16 *outHigh) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD380);
+extern s32 D_800C5C28;
+
+/**
+ * @brief Twin of @c func_800BD2A0 that reads the secondary slot index.
+ *
+ * Identical logic to @c func_800BD2A0 except the slot index is sourced
+ * from @c D_800C5C28 (vs @c D_800C5C2C). Used for the companion slot in
+ * the dual-slot tracking scheme.
+ *
+ * @param outLow  Destination for the fine angle component (may be NULL).
+ * @param outHigh Destination for the coarse angle component (may be NULL).
+ * @return 1 when the slot is active, 0 otherwise.
+ */
+s32 func_800BD380(s16 *outLow, s16 *outHigh) {
+    s32 slotIdx = D_800C5C28;
+    s32 vec[3];
+    s32 angle;
+    s16 s16angle;
+    s32 result = 0;
+
+    if (slotIdx >= 0) {
+        SlotEntry *slot = &D_800DBFB8[slotIdx];
+        s32 *vp;
+        vec[0] = slot->x;
+        vp = vec;
+        vp[1] = -slot->z;
+        vp[2] = slot->y;
+        angle = func_800A5DC8(vec[0], vec[1]);
+
+        s16angle = (s16)angle;
+        if (outLow != 0) {
+            s16angle = (s16)angle;
+            *outLow = (s16angle % 128) << 1;
+        }
+        if (outHigh != 0) {
+            *outHigh = (s16angle / 128) << 1;
+        }
+        result = 1;
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD460);
 
