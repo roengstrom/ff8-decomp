@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 
 /**
  * @brief Render ability entry at computed grid position with table lookup.
@@ -145,7 +146,41 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
  * @param stackArg Display list pointer (5th arg on stack).
  * @return Updated display list pointer.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3580);
+extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
+extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
+
+/**
+ * @brief Render an ability-list entry's name from @c g_menuDisplayCfg.dataPtr.
+ *
+ * Loads @c dataPtr[idx] from the list config (offset @c 0x20). If non-NULL,
+ * decodes the name string via @c decodeMessage into a local buffer, then
+ * renders it via @c func_801F0FEC at @c (cfg.x + yOff + 0xA, cfg.y + 9).
+ * Returns the new display state from @c func_801F0FEC, or @p state unchanged
+ * if the entry was NULL.
+ *
+ * @param ctx   Rendering context.
+ * @param state Current display state (returned unchanged on NULL).
+ * @param idx   Entry index into @c dataPtr.
+ * @param unk3  Unused 4th register arg.
+ * @param yOff  Extra Y offset (5th arg, passed on stack).
+ */
+s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
+    extern u8 g_menuDisplayCfg[];
+    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    u8 **table = (u8 **)cfg->dataPtr;
+    u8  buf[0x80];
+    u8 *entry = table[idx];
+    s32 result = state;
+    s32 x, y;
+    if (entry != NULL) {
+        s32 adj = yOff + 0xA;
+        x = cfg->x + adj;
+        y = cfg->y + 9;
+        decodeMessage(entry, buf, -1);
+        result = func_801F0FEC(ctx, state, x, y, buf, 7);
+    }
+    return result;
+}
 
 /**
  * @brief Configure and draw an ability list panel with scrolling.
@@ -162,7 +197,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3580);
  */
 void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     extern u8 g_menuDisplayCfg[];
-    extern void func_801E3580();
 
     s32 cfg = (s32)g_menuDisplayCfg;
 
