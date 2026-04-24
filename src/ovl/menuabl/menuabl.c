@@ -148,14 +148,14 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
  * @param a3 Y position
  */
 void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
-    s32 cfg = (s32)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
 
-    *(u8 *)(cfg + 0x10) = 0;
-    *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)cfg = a2;
-    *(s16 *)(cfg + 0x4) = 0xF4;
-    *(s16 *)(cfg + 0x6) = 0x12;
-    *(s16 *)(cfg + 0x2) = a3;
+    cfg->iconType    = 0;
+    cfg->iconSubType = 0;
+    cfg->x           = a2;
+    cfg->w           = 0xF4;
+    cfg->h           = 0x12;
+    cfg->y           = a3;
     func_801EF9AC(a0, a1, 0x1000, g_menuColor);
 }
 
