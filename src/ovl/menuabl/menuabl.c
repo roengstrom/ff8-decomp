@@ -1,6 +1,20 @@
 #include "common.h"
 #include "menu.h"
 
+extern u8  D_801E3D84[];
+extern u8  D_801E3D9C;
+extern u8  D_801E3DA4[];
+extern u8  D_801E3DB8;
+extern u8  g_menuDisplayCfg[];
+extern s32 g_menuColor;
+
+extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
+extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
+
+extern void func_801E2A34();
+extern void func_801E36AC();
+extern void func_801E3AE0();
+
 /**
  * @brief Render ability entry at computed grid position with table lookup.
  *
@@ -96,7 +110,6 @@ AbilityEntry *func_801E2920(s32 idx) {
  * @return Value of D_801E3DB8.
  */
 s32 func_801E2934(void) {
-    extern u8 D_801E3DB8;
     return D_801E3DB8;
 }
 
@@ -111,8 +124,6 @@ s32 func_801E2934(void) {
  * @return Pointer to ability name string, or NULL if index out of bounds.
  */
 s32 func_801E2944(s32 a0) {
-    extern u8 D_801E3D9C;
-    extern u8 D_801E3D84[];
     if (a0 >= D_801E3D9C) {
         return 0;
     }
@@ -154,9 +165,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
  * @param a3 Y position
  */
 void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
-    extern u8 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
-
     s32 cfg = (s32)g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0;
@@ -183,9 +191,6 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
  * @param stackArg Display list pointer (5th arg on stack).
  * @return Updated display list pointer.
  */
-extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
-extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
-
 /**
  * @brief Render an ability-list entry's name from @c g_menuDisplayCfg.dataPtr.
  *
@@ -202,7 +207,6 @@ extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
  * @param yOff  Extra Y offset (5th arg, passed on stack).
  */
 s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
-    extern u8 g_menuDisplayCfg[];
     MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
     u8 **table = (u8 **)cfg->dataPtr;
     u8  buf[0x80];
@@ -233,8 +237,6 @@ s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
  * @param stackArg Panel Y position (5th arg on stack)
  */
 void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    extern u8 g_menuDisplayCfg[];
-
     s32 cfg = (s32)g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
@@ -286,11 +288,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
  * @param stackArg Panel Y position (5th arg on stack).
  */
 void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    extern u8 g_menuDisplayCfg[];
-    extern u8 D_801E3D9C;
-    extern s32 g_menuColor;
-    extern void func_801E36AC();
-
     s32 src = a0;
     s32 cfg = (s32)g_menuDisplayCfg;
 
@@ -399,9 +396,6 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3AE0);
  * increments the count in D_801E3D9C.
  */
 void func_801E3C28(void) {
-    extern u8 D_801E3D84[];
-    extern u8 D_801E3D9C;
-
     s32 mask = func_801F72B4();
     u8 *dst = D_801E3D84;
     D_801E3D9C = 0;
@@ -429,8 +423,6 @@ void func_801E3C28(void) {
  * list, initializes data, and enters via func_801E2A34.
  */
 void func_801E3C9C(void) {
-    extern void func_801E2A34();
-    extern void func_801E3AE0();
     s32 result = func_801F179C((s32)func_801E2A34, (s32)func_801E3AE0);
 
     if (result != 0) {
