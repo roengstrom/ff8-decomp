@@ -13,6 +13,22 @@ typedef struct {
     u8 data[8];
 } AbilityEntry;
 
+/**
+ * @brief Context passed to the ability-list panel configurators.
+ *
+ * Layout pieced together from @c func_801E3630 (uses @c items as dataPtr)
+ * and @c func_801E381C (uses the whole ctx as dataPtr, plus @c pageStart
+ * / @c pageEnd for scroll bookkeeping).
+ */
+typedef struct {
+    u8  pad00[0x20];
+    u8  items[0x12];   /**< 0x20: item table (strings/pointers, passed as cfg.dataPtr). */
+    u16 scrollOff;     /**< 0x32: scroll offset source (copied to cfg.scrollOffset). */
+    u8  pad34[2];
+    u8  pageStart;     /**< 0x36 */
+    u8  pageEnd;       /**< 0x37 */
+} AbilityListCtx;
+
 extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;
 extern u8            D_801E3DA4[];
@@ -206,6 +222,7 @@ s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
  */
 void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
     cfg->iconType     = 0x55;
     cfg->iconSubType  = 0;
@@ -216,8 +233,8 @@ void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     cfg->pageStart    = 0;
     cfg->pageEnd      = 1;
     cfg->y            = stackArg;
-    cfg->scrollOffset = *(u16 *)(a0 + 0x32);
-    cfg->dataPtr      = a0 + 0x20;
+    cfg->scrollOffset = ctx->scrollOff;
+    cfg->dataPtr      = (s32)ctx->items;
     func_801EFBB4(a1, a2, (s32)func_801E3580);
 }
 
@@ -256,23 +273,23 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
  * @param stackArg Panel Y position (5th arg on stack).
  */
 void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    s32 src = a0;
-    s32 cfg = (s32)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
-    *(u8 *)(cfg + 0x10) = 0x5E;
-    *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)cfg = a3;
-    *(s16 *)(cfg + 0x4) = 0x8A;
-    *(s16 *)(cfg + 0x6) = 0xA0;
-    *(u8 *)(cfg + 0x13) = 0xB;
-    *(s16 *)(cfg + 0x2) = stackArg;
-    *(u8 *)(cfg + 0x16) = *(u8 *)(src + 0x36);
-    *(u8 *)(cfg + 0x17) = *(u8 *)(src + 0x37);
-    *(s16 *)(cfg + 0x14) = *(u16 *)(src + 0x32);
-    *(s32 *)(cfg + 0x20) = src;
+    cfg->iconType     = 0x5E;
+    cfg->iconSubType  = 0;
+    cfg->x            = a3;
+    cfg->w            = 0x8A;
+    cfg->h            = 0xA0;
+    cfg->columnCount  = 0xB;
+    cfg->y            = stackArg;
+    cfg->pageStart    = ctx->pageStart;
+    cfg->pageEnd      = ctx->pageEnd;
+    cfg->scrollOffset = ctx->scrollOff;
+    cfg->dataPtr      = (s32)ctx;
 
     if (D_801E3D9C >= 0xC) {
-        s32 scrollbar = func_801F5F30(a1, a2, a3 + 0x28, stackArg, g_menuColor, *(u8 *)(src + 0x36));
+        s32 scrollbar = func_801F5F30(a1, a2, a3 + 0x28, stackArg, g_menuColor, ctx->pageStart);
         a2 = func_801F5F60(a1, scrollbar, g_menuColor, 3);
     }
     func_801EFBB4(a1, a2, (s32)func_801E36AC);
