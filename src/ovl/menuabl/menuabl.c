@@ -29,6 +29,18 @@ typedef struct {
     u8  pageEnd;       /**< 0x37 */
 } AbilityListCtx;
 
+/**
+ * @brief Ability menu state struct registered via @c func_801F179C.
+ */
+typedef struct {
+    u8  pad00[0x20];
+    s32 dataPtr;       /**< 0x20: cleared at init, filled by state machine. */
+    u8  pad24[4];
+    s32 abilityMask;   /**< 0x28: result of @c func_801F72B4. */
+    s16 state;         /**< 0x2C */
+    s16 displaySize;   /**< 0x2E: fixed to 0x1000 at init. */
+} AbilityMenuState;
+
 extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;
 extern u8            D_801E3DA4[];
@@ -380,15 +392,16 @@ void func_801E3C28(void) {
  * list, initializes data, and enters via func_801E2A34.
  */
 void func_801E3C9C(void) {
-    s32 result = func_801F179C((s32)func_801E2A34, (s32)func_801E3AE0);
+    AbilityMenuState *st = (AbilityMenuState *)func_801F179C(
+        (s32)func_801E2A34, (s32)func_801E3AE0);
 
-    if (result != 0) {
-        *(s16 *)(result + 0x2C) = 0;
-        *(s32 *)(result + 0x20) = 0;
-        *(s32 *)(result + 0x28) = func_801F72B4();
-        *(s16 *)(result + 0x2E) = 0x1000;
+    if (st != NULL) {
+        st->state       = 0;
+        st->dataPtr     = 0;
+        st->abilityMask = func_801F72B4();
+        st->displaySize = 0x1000;
         func_801E3C28();
         func_801E2990();
-        func_801E2A34(result);
+        func_801E2A34(st);
     }
 }
