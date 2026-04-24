@@ -14,7 +14,39 @@
  * @param a2 Unused (passed through to func_801F0A78).
  * @param a3 Pointer to data (reads halfword at offset 0x2E).
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2800);
+typedef struct {
+    u8  pad00[0x2E];
+    s16 angle;
+} MenuSlot;
+
+extern u16  D_801FA3C8[];
+extern void func_801F0A78(s32 ctx, s32 idx, s32 unused, s32 x, s32 y);
+
+/**
+ * @brief Render one cell of an ability grid at a per-slot X offset.
+ *
+ * Computes the cell's screen Y from its list index (row = @p i % 11;
+ * @c y = row*13 + 0x42). Reads @p slot->angle, divides by 64 to index
+ * @c D_801FA3C8 for a half-width, scales that by @c 240/4096 into MDC pixel
+ * space (here written as @c 120*(w*2) to match the compiler's preferred
+ * strength-reduction order), and offsets by @c 0xAD to get the final X.
+ * Dispatches the cell to @c func_801F0A78 with @c (ctx, 0, unused, x, y).
+ *
+ * @param ctx    Rendering context, forwarded.
+ * @param i      Zero-based list index; row is @c i%11.
+ * @param unused Forwarded to @c func_801F0A78 untouched.
+ * @param slot   Source object; @c slot->angle drives the X shift.
+ */
+void func_801E2800(s32 ctx, s32 i, s32 unused, MenuSlot *slot) {
+    s32 lookup;
+    s32 tableIdx;
+    s32 y = (i % 11) * 13 + 0x42;
+
+    lookup   = slot->angle;
+    tableIdx = lookup / 64;
+    lookup   = D_801FA3C8[tableIdx];
+    func_801F0A78(ctx, 0, unused, 120 * (lookup * 2) / 4096 + 0xAD, y);
+}
 
 /**
  * @brief Render ability entry label at computed grid position (simple variant).
