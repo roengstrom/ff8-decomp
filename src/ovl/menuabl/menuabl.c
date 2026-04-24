@@ -205,19 +205,19 @@ s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
  * @param stackArg Panel Y position (5th arg on stack)
  */
 void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    s32 cfg = (s32)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
 
-    *(u8 *)(cfg + 0x10) = 0x55;
-    *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)cfg = a3;
-    *(s16 *)(cfg + 0x4) = 0x144;
-    *(s16 *)(cfg + 0x6) = 0x1A;
-    *(u8 *)(cfg + 0x13) = 1;
-    *(u8 *)(cfg + 0x16) = 0;
-    *(u8 *)(cfg + 0x17) = 1;
-    *(s16 *)(cfg + 0x2) = stackArg;
-    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x32);
-    *(s32 *)(cfg + 0x20) = a0 + 0x20;
+    cfg->iconType     = 0x55;
+    cfg->iconSubType  = 0;
+    cfg->x            = a3;
+    cfg->w            = 0x144;
+    cfg->h            = 0x1A;
+    cfg->columnCount  = 1;
+    cfg->pageStart    = 0;
+    cfg->pageEnd      = 1;
+    cfg->y            = stackArg;
+    cfg->scrollOffset = *(u16 *)(a0 + 0x32);
+    cfg->dataPtr      = a0 + 0x20;
     func_801EFBB4(a1, a2, (s32)func_801E3580);
 }
 
