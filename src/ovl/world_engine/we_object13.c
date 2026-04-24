@@ -13,19 +13,105 @@ void func_800C40F8(void) {
     func_800435A0(9, 0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4130);
+/**
+ * @brief Multi-sector CD streaming controller.
+ *
+ * Drives the block-based read pipeline used by the world engine for streaming
+ * data off disc. @c buffers points at a NULL-terminated array of destination
+ * buffers (one per buffer slot); @c blocksPerBuf is the per-buffer block
+ * count (reloaded into @c remaining when advancing to the next buffer). Each
+ * tick decrements @c remaining while reading the @c blockIdx-th block of the
+ * current buffer.
+ */
+typedef struct StreamState {
+    u8 **buffers;                /* 0x00: NULL-terminated array of destination buffers */
+    u32 pad_04;
+    volatile s32 blocksPerBuf;   /* 0x08: blocks to read into each buffer (reload for remaining) */
+    u32 pad_0C;
+    volatile s32 remaining;      /* 0x10: blocks remaining in current buffer */
+    u32 pad_14[2];
+    volatile s32 expectedSeq;    /* 0x1C: expected sequence number */
+    volatile s32 blockIdx;       /* 0x20: current block index within buffer */
+    u8  bufIdx;                  /* 0x24: current buffer index */
+    volatile u8 status;          /* 0x25: status flag (0 idle, 2 error/done) */
+} StreamState;
+
+extern StreamState D_800E3E70;
+extern void (*D_800E3E60)(s32, void *);
+
+extern void func_8004397C(void *dst, s32 size);
+extern s32  func_80043B04(void *buf);
+extern void func_80047C3C(u8 *msg);
+extern u8   D_800987C0;
+
+/**
+ * @brief Per-frame tick of the multi-sector CD streaming engine.
+ *
+ * On @p event == 1: services the in-flight read pipeline. While
+ * @c D_800E3E70.remaining is positive, pulls the just-finished sector's
+ * header via @c func_8004397C and validates the decoded sequence number
+ * (from @c func_80043B04) against @c expectedSeq. On mismatch, logs
+ * "CdRead: sector error" and aborts the buffer by setting @c remaining to
+ * -1. After verify, if @c remaining is still positive, queues the next
+ * block read at @c buffers[bufIdx] + blockIdx*0x800 (0x200 words = one
+ * sector), decrements @c remaining, and advances the sequence/block indices.
+ *
+ * On any other @p event: aborts the in-flight buffer by setting
+ * @c remaining to -1.
+ *
+ * Trailing bookkeeping: if @c remaining went negative, transitions
+ * @c status to 2 (error/done). If @c remaining hit zero, advances
+ * @c bufIdx; if the next slot is @c NULL the stream is exhausted so it
+ * resets the reader via @c func_800C4450 and fires the registered
+ * completion callback with @c (2, ctx). Otherwise reloads @c remaining from
+ * @c blocksPerBuf and starts the next buffer.
+ */
+void func_800C4130(u8 event, void *ctx) {
+    if (event == 1) {
+        StreamState *s = &D_800E3E70;
+        u8 header[0x10];
+
+        if (s->remaining > 0) {
+            func_8004397C(header, 3);
+            if (func_80043B04(header) != s->expectedSeq) {
+                func_80047C3C(&D_800987C0);
+                s->remaining = -1;
+            }
+            if (s->remaining > 0) {
+                func_8004397C(s->buffers[s->bufIdx] + s->blockIdx * 0x800, 0x200);
+                s->remaining--;
+                s->expectedSeq++;
+                s->blockIdx++;
+            }
+        }
+    } else {
+        D_800E3E70.remaining = -1;
+    }
+
+    if (D_800E3E70.remaining < 0) {
+        D_800E3E70.status = 2;
+    } else if (D_800E3E70.remaining == 0) {
+        D_800E3E70.bufIdx++;
+        if (D_800E3E70.buffers[D_800E3E70.bufIdx] == NULL) {
+            func_800C4450();
+            if (D_800E3E60 != NULL) {
+                D_800E3E60(2, ctx);
+            }
+        } else {
+            D_800E3E70.blockIdx = 0;
+            D_800E3E70.remaining = D_800E3E70.blocksPerBuf;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C42D8);
-
-extern u8 D_800E3E70[];
 
 /** Resets playback state and reinitializes subsystem.
  * @return Always returns 1.
  */
 s32 func_800C4450(void) {
-    s32 base = (s32)D_800E3E70;
-    *(s32 *)(base + 0x10) = 0;
-    *(volatile u8 *)(base + 0x25) = 0;
+    D_800E3E70.remaining = 0;
+    D_800E3E70.status = 0;
     func_800C40F8();
     return 1;
 }
@@ -34,33 +120,30 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4480);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4558);
 
-extern s32 D_800E3E60;
-
 /** Exchanges the callback pointer, returning the previous value.
  * @param newVal New callback value to store.
  * @return Previous callback value.
  */
 s32 func_800C4634(s32 newVal) {
-    s32 old = D_800E3E60;
-    D_800E3E60 = newVal;
+    s32 old = (s32)D_800E3E60;
+    D_800E3E60 = (void (*)(s32, void *))newVal;
     return old;
 }
 
 /** Clears all playback state and callback pointer. */
 void func_800C4644(void) {
-    s32 base = (s32)D_800E3E70;
-    D_800E3E60 = 0;
-    *(s32 *)(base + 0x00) = 0;
-    *(s32 *)(base + 0x04) = 0;
-    *(s32 *)(base + 0x08) = 0;
-    *(s32 *)(base + 0x0C) = 0;
-    *(s32 *)(base + 0x10) = 0;
-    *(s32 *)(base + 0x14) = 0;
-    *(s32 *)(base + 0x18) = 0;
-    *(s32 *)(base + 0x1C) = 0;
-    *(s32 *)(base + 0x20) = 0;
-    *(u8 *)(base + 0x24) = 0;
-    *(volatile u8 *)(base + 0x25) = 0;
+    D_800E3E60 = NULL;
+    D_800E3E70.buffers = NULL;
+    D_800E3E70.pad_04 = 0;
+    D_800E3E70.blocksPerBuf = 0;
+    D_800E3E70.pad_0C = 0;
+    D_800E3E70.remaining = 0;
+    D_800E3E70.pad_14[0] = 0;
+    D_800E3E70.pad_14[1] = 0;
+    D_800E3E70.expectedSeq = 0;
+    D_800E3E70.blockIdx = 0;
+    D_800E3E70.bufIdx = 0;
+    D_800E3E70.status = 0;
 }
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object13", func_800C4688);

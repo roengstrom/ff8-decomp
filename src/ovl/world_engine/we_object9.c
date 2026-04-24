@@ -45,6 +45,113 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BA870);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BAC84);
 
+/*
+ * func_800BB150: message dispatch with counter + template expansion.
+ *
+ * Behavior:
+ *  1. Decrement @c D_800C5D84 timer (conditional on @c D_800C4D4C), or call
+ *     @c func_8009D8A8(1) when the timer hit zero.
+ *  2. Gate on @c D_800C4D38 being in [0x22, 0x28] or == 0x20.
+ *  3. Early-return if @c D_800D23D8 flag is set.
+ *  4. If @c entity->field70 > 0x1FFFF: scan inventory for an item with id
+ *     @c 0xA2 and non-zero count; decrement that count, then either expand
+ *     a message template and emit it (@c func_8009B358) or emit a
+ *     placeholder.
+ *  5. Otherwise: call @c func_800BED90 and apply @c func_800BD7A4 scaling.
+ *
+ * The reference C below — written as a 1998 author would have — matches
+ * at ~77% (base score ~4860, after permuter exploration ~2300). Remaining
+ * gaps are gcc basic-block ordering and stack-frame allocation choices
+ * that don't yield to clean source-level refactoring. Kept as INCLUDE_ASM
+ * until a non-hacky approach is found.
+ *
+ *   void func_800BB150(Entity *entity) {
+ *       s32 cmd, i;
+ *       ItemSlot *items;
+ *
+ *       // Decrement message-display timer; reinit when it expires.
+ *       if (D_800C5D84 > 0) {
+ *           if (D_800C4D4C != 0) D_800C5D84--;
+ *       } else {
+ *           func_8009D8A8(1);
+ *       }
+ *
+ *       // Only run for valid command types.
+ *       cmd = D_800C4D38;
+ *       if ((u32)(cmd - 0x22) >= 7 && cmd != 0x20) return;
+ *       if (D_800D23D8 != 0) return;
+ *
+ *       if (entity->field70 > 0x1FFFF) {
+ *           func_800B00D8(D_800DBFB8[D_800C5C18].marker);
+ *
+ *           // Find first inventory slot holding item 0xA2.
+ *           items = g_gameState.mainData.itemSlots;
+ *           D_800DBFA4 = -1;
+ *           D_800DBFA8 = 0;
+ *           for (i = 0; i < ITEM_SLOT_COUNT; i++) {
+ *               if (items[i].id == 0xA2 && (s8)items[i].count > 0) {
+ *                   D_800DBFA4 = i;
+ *                   items[i].count--;
+ *                   D_800DBFA8 = items[i].count;
+ *                   break;
+ *               }
+ *           }
+ *
+ *           if (D_800DBFA8 > 0) {
+ *               u8 *itemName = D_800DCC78;
+ *               u8 *qtyStr   = D_800DCCF8;
+ *               u8 *msgBuf   = D_800DCB78;
+ *               TemplateTable *tpl;
+ *               u8 *src;
+ *               s32 j;
+ *
+ *               // Build the two substitution strings.
+ *               itemName[0] = 0;
+ *               func_800BCE74(itemName, 0xA2);
+ *               qtyStr[0] = 0;
+ *               func_800BC974(qtyStr, D_800DBFA8);
+ *               msgBuf[0] = 0;
+ *
+ *               // Walk the template, expanding 0x0A-prefixed substitutions.
+ *               tpl = D_800C9FE8;
+ *               src = (u8 *)tpl + ((s32 *)tpl)[0];
+ *               j = 0;
+ *               while (src[j] != 0x0A || src[j + 1] != 0xFF) {
+ *                   if (src[j] == 0x0A) {
+ *                       j++;
+ *                       if (src[j] >= 0x20) {
+ *                           s32 code = src[j] - 0x20;
+ *                           if (code == 0 && itemName[0] != 0)
+ *                               func_80047C74(msgBuf, itemName);
+ *                           else if (code == 1 && qtyStr[0] != 0)
+ *                               func_80047C74(msgBuf, qtyStr);
+ *                       }
+ *                   } else {
+ *                       // Append a glyph from the global character table.
+ *                       u8 c = src[j];
+ *                       StringTable *chtable = D_800C97D4;
+ *                       u8 *charStr = (u8 *)chtable + chtable->first[c];
+ *                       s32 len = 0, k;
+ *                       if (msgBuf[0] != 0) {
+ *                           do { len++; } while (msgBuf[len] != 0);
+ *                       }
+ *                       for (k = 0; (msgBuf[len] = charStr[k]) != 0; k++, len++);
+ *                   }
+ *                   j++;
+ *               }
+ *
+ *               func_8009B358(1, -2, msgBuf);
+ *           } else {
+ *               func_8009B358(1, 0x2B, NULL);
+ *           }
+ *
+ *           entity->field70 = 0;
+ *           D_800C5D84 = 30;
+ *       } else if (func_800BED90(0, 0) != 0) {
+ *           entity->field70 += func_800BD7A4(D_800C4D38, D_800C4D4C);
+ *       }
+ *   }
+ */
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BB150);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BB4E8);
@@ -98,9 +205,103 @@ void func_800BBD74(ParticleSource *src, s32 visRange) {
                   SPAWN_FLAG_SIZE_JITTER | SPAWN_FLAG_LIFETIME_JITTER);
 }
 
+/*
+ * func_800BBF0C: mirrored particle spawn (type 0xF), near-match.
+ *
+ * Sibling of @c func_800BBD74 but uses @c D_800C4D4C as threshold (vs
+ * caller-supplied visRange), @c 0x1A4 as absdx bound, type @c 0xF, and a
+ * simpler height jitter (just @c rand - 0x80, no @c *4 scaling).
+ *
+ * The reference C below produces 102-instruction asm that differs from the
+ * target at two places (~95.8% match): gcc 2.8.0's scheduler chooses to
+ * emit @c addiu -0x80 on the @c v0 (rand) register rather than on the
+ * @c v1 (height) register. Algebraically identical (@c height - 0x80 +
+ * rand vs @c height + (rand - 0x80)) but one `addiu`/`addu` instruction
+ * pair swaps sides. No C-level expression I've found flips the scheduler's
+ * associativity choice — this is a deep scheduling/RTL pass artifact.
+ * Permuter best score is 140 over thousands of iterations; kept as
+ * INCLUDE_ASM with this reference C until a cleaner fix is found.
+ *
+ *   void func_800BBF0C(ParticleSource *src) {
+ *       Velocity localVel;
+ *       PosDesc  localPos;
+ *       s32      jitter;
+ *       s32      absdx;
+ *       s16      dx;
+ *       u32      worldCam;
+ *
+ *       worldCam = D_800C97F4.word;
+ *       localPos = src->pos;
+ *       dx       = D_800C97F4.half - src->pos.pos.half;
+ *       localPos.pos.word = worldCam;
+ *       if (D_800C4D4C <= (func_8009CC3C() + (dx >> 2))) return;
+ *       absdx = (dx >= 0) ? dx : -dx;
+ *       if (absdx >= 0x1A4) return;
+ *
+ *       localVel = src->vel;
+ *       localVel.angle += 0x320;
+ *       jitter = (func_8009CC3C() - 0x80) * 8;
+ *       localVel.angle += jitter;
+ *       localVel.height += func_8009CC3C() - 0x80;
+ *       func_800AC0A0(0xF, &localPos, &localVel, 3);
+ *
+ *       localVel = src->vel;
+ *       localVel.angle -= 0x320;
+ *       jitter = (func_8009CC3C() - 0x80) * 8;
+ *       localVel.angle += jitter;
+ *       localVel.height += func_8009CC3C() - 0x80;
+ *       func_800AC0A0(0xF, &localPos, &localVel, 3);
+ *   }
+ */
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BBF0C);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC09C);
+/**
+ * @brief Spawn a mirrored particle pair (type 0x14) gated on a word-angle delta.
+ *
+ * Sibling of @c func_800BBD74 but with word-scale angle math instead of
+ * halfword: computes @c (D_800C97F4.word - src->pos.pos.word) >> 4 and
+ * rejects the spawn when @c (rnd + delta) >= @c (D_800C4D4C / 2). When
+ * the visibility gate opens, emits two particles via @c func_800AC0A0
+ * with symmetric ±0x320 angle offsets and RNG jitter on angle/height.
+ *
+ * @note Purpose uncertain — differs from @c func_800BBD74 in particle type
+ *       (0x14 vs 0x13), delta scaling (word >> 4 vs half >> 2), threshold
+ *       source (global @c D_800C4D4C/2 vs caller-supplied @c visRange), and
+ *       the absence of an absolute-delta bound check.
+ *
+ * @param src Particle source (position descriptor + velocity template).
+ */
+void func_800BC09C(ParticleSource *src) {
+    Velocity localVel;
+    PosDesc  localPos;
+    s32      jitter;
+    s32      threshold;
+    u32      worldCam;
+
+    worldCam = D_800C97F4.word;
+    localPos = src->pos;
+    threshold = D_800C4D4C >> 1;
+    localPos.pos.word = worldCam;
+    if ((func_8009CC3C() + ((s32)(D_800C97F4.word - src->pos.pos.word) >> 4)) >= threshold) return;
+
+    /* Left-side spawn: +0x320 angle offset + RNG jitter on angle/height */
+    localVel = src->vel;
+    localVel.angle += 0x320;
+    jitter = (func_8009CC3C() - 0x80) * 8;
+    localVel.angle += jitter;
+    jitter = (func_8009CC3C() - 0x80) * 4;
+    localVel.height += jitter;
+    func_800AC0A0(0x14, &localPos, &localVel, 3);
+
+    /* Right-side spawn: -0x320 angle offset + RNG jitter on angle/height */
+    localVel = src->vel;
+    localVel.angle -= 0x320;
+    jitter = (func_8009CC3C() - 0x80) * 8;
+    localVel.angle += jitter;
+    jitter = (func_8009CC3C() - 0x80) * 4;
+    localVel.height += jitter;
+    func_800AC0A0(0x14, &localPos, &localVel, 3);
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC218);
 
@@ -117,7 +318,44 @@ void func_800BC44C(void) {
     func_800BFFEC();
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC46C);
+extern CmdDesc *D_800C4D64;
+extern u8      *D_800C96D0;
+extern u16     *func_800AF004(u8 *base, s32 arg1);
+
+/**
+ * @brief Walk the cmd-stream at @c D_800C96D0 to extract a halfword into @p out.
+ *
+ * Gated on @c (D_800C4D64->flag & 0x8): returns 0 immediately if the flag
+ * is clear. Calls @c func_800AF004(D_800C96D0, 0) to get a pointer into
+ * the stream, then interprets each halfword opcode:
+ *   - @c 0xFF05 — end of stream; stop.
+ *   - @c 0xFF0E — follow a link: jump to @c (D_800C96D0 + stream[1]).
+ *   - otherwise — record @c stream[1] into @c *out, set @c found, advance.
+ *
+ * Returns 1 if any value was recorded, 0 otherwise.
+ */
+s32 func_800BC46C(u16 *out) {
+    u16 *stream;
+    s32 found = 0;
+
+    if ((D_800C4D64->flag & 0x8) == 0) return 0;
+
+    stream = func_800AF004(D_800C96D0, 0);
+    if (stream != 0) {
+        while (1) {
+            u16 op = stream[0];
+            if (op == 0xFF05) break;
+            if (op == 0xFF0E) {
+                stream = (u16 *)(D_800C96D0 + stream[1]);
+            } else {
+                found = 1;
+                *out = stream[1];
+                stream += 2;
+            }
+        }
+    }
+    return found;
+}
 
 /** Copies and negates vector components (rotation variant A). */
 void func_800BC51C(s32 *src, s32 *dst) {
@@ -164,7 +402,35 @@ void func_800BC570(s32 arg1, s32 arg2, s32 arg3) {
     func_800C2C00(arg3, D_800C96CC, 0x80122000, arg2, arg1, &buf, 0, &buf);
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC5E0);
+/**
+ * @brief Map an @p arg0 slot kind (via @c func_800B00D8) into a hover/offset value.
+ *
+ * Runs the arg through @c func_800B00D8 to get an inner code, then returns
+ * one of: @c -0x800, @c -0x400, @c 0x400, @c 0x800, or @c 0 based on
+ * combined @p arg0 / inner-code membership:
+ *   - inner code < 10 → @c -0x800 (too low)
+ *   - inner code == 0x80 or @p arg0 in {2, 3} → @c -0x800
+ *   - inner code in [0x20, 0x28] or == 0x84 → @c -0x400
+ *   - inner code == 0x32 → @c 0x800
+ *   - inner code == 0x30 or @p arg0 == 0x4F → @c 0x400
+ *   - @p arg0 == 0x50 → @c 0x800
+ *   - otherwise → @c 0
+ *
+ * @note Purpose uncertain — appears to be a UI hover-offset or similar
+ *       lookup that shifts display based on slot type.
+ */
+s32 func_800BC5E0(s32 arg0) {
+    s32 v = func_800B00D8(arg0);
+
+    if ((u32)v < 0xA) return -0x800;
+    if (v == 0x80 || arg0 == 2 || arg0 == 3) return -0x800;
+    if ((u32)(v - 0x20) < 9 || v == 0x84) return -0x400;
+    if (v == 0x32) return 0x800;
+    if (v != 0x30 && arg0 != 0x4F) {
+        return (arg0 == 0x50) << 11;
+    }
+    return 0x400;
+}
 
 /**
  * @brief Linear scan of @c D_800DBFB8 starting at @p start for a slot whose
@@ -225,7 +491,44 @@ u8 *func_800BC6E8(u8 *dst, s32 idx) {
     return dst;
 }
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC744);
+/**
+ * @brief Append the string at @c table->first[idx] to the end of @p dst.
+ *
+ * Finds the null terminator of the existing @p dst string, then copies the
+ * table-indexed string over it. Mirrors the idiom used by @c func_800BCE74.
+ */
+u8 *func_800BC744(u8 *dst, s32 idx) {
+    StringTable *table = D_800C97D4;
+    s32 *offsets = table->first;
+    u8 *src = (u8 *)table + offsets[idx];
+    s32 len;
+    s32 i;
+    u8 c;
+    u8 new_var;
+
+    len = 0;
+    if (dst[0] != 0) {
+        do {
+            len++;
+        } while (dst[len] != 0);
+    }
+
+    c = src[0];
+    dst[len] = c;
+    new_var = c != 0;
+    i = 0;
+    if (c != 0) {
+        do {
+            len++;
+            i++;
+            new_var = src[i];
+            c = new_var;
+            dst[len] = c;
+        } while (new_var);
+        len--;
+    }
+    return dst;
+}
 
 /**
  * @brief Copy a null-terminated string from the second offset table to @p dst.
@@ -993,57 +1296,60 @@ s32 func_800BD460(s16 *outLow, s16 *outHigh) {
     return result;
 }
 
-/*
- * func_800BD540: entity mode selector (INCLUDE_ASM pending jtbl placement).
+/**
+ * @brief Large struct (~0x6A bytes) holding per-entity flags and state.
  *
- * Populates @c Entity.field46 from one of two selector tables based on
- * mode. When @c D_800C971C is non-zero, picks from a 4-entry table using
+ * Only the fields touched by @c func_800BD540 are known; remaining bytes
+ * are padding.
+ */
+typedef struct {
+    u8  pad00[0x46];
+    u16 field46;        /**< 0x46: packed-word state flags (low bits = mode). */
+    u8  pad48[0x66 - 0x48];
+    u8  flag66;         /**< 0x66: mode-selector flags consulted after write. */
+    u8  pad67;
+    u8  sel68;          /**< 0x68: 5-bit selector consumed when D_800C971C == 0. */
+    u8  sel69;          /**< 0x69: 2-bit selector consumed when D_800C971C != 0. */
+} Entity;
+
+extern s32 D_800C971C;
+
+/**
+ * @brief Populate @c field46 from one of two selector tables based on mode.
+ *
+ * When @c D_800C971C is non-zero, picks from a 4-entry "zone" table using
  * @c (sel69 & 3); otherwise picks from a 5-entry table using
  * @c (sel68 & 0x1F). The final post-pass ORs in 0x40 when the matching
- * @c flag66 bit is set (0x10 in mode A, 0x08 in mode B).
+ * @c flag66 bit is set (0x10 in mode A, 0x08 in mode B). Entries outside
+ * the covered range leave @c field46 untouched.
  *
- * The reference C below produces byte-identical assembly EXCEPT for one
- * relocation: the 5-case switch in the `D_800C971C == 0` branch emits a
- * local .rodata jump table, while the target binary's jtbl_80098770 is
- * embedded mid-.text inside we_dispatch.s at a fixed address (0x80098770).
- * To match we would need to split we_dispatch into before/after-jtbl asm
- * subsegments and pin we_object9.o's .rodata at 0x80098770 via linker
- * script — not done yet. Kept as INCLUDE_ASM until the splat/linker
- * surgery is ready.
- *
- *   typedef struct {
- *       u8  pad00[0x46];
- *       u16 field46;
- *       u8  pad48[0x66 - 0x48];
- *       u8  flag66;
- *       u8  pad67;
- *       u8  sel68;
- *       u8  sel69;
- *   } Entity;
- *
- *   extern s32 D_800C971C;
- *
- *   void func_800BD540(Entity *e) {
- *       if (D_800C971C != 0) {
- *           switch (e->sel69 & 3) {
- *               case 0: e->field46 = 0x3F;  break;
- *               case 1: e->field46 = 0x23E; break;
- *               case 2: e->field46 = 0x3E;  break;
- *           }
- *           if ((e->flag66 & 0x10) != 0) e->field46 |= 0x40;
- *       } else {
- *           switch (e->sel68 & 0x1F) {
- *               case 0: e->field46 = 0x11D; break;
- *               case 1: e->field46 = 0x10D; break;
- *               case 2: e->field46 = 0x101; break;
- *               case 3: e->field46 = 0x100; break;
- *               case 4: e->field46 = 0x180; break;
- *           }
- *           if ((e->flag66 & 0x8) != 0) e->field46 |= 0x40;
- *       }
- *   }
+ * @note The 5-case switch emits @c jtbl_80098770 at overlay offset 0x770
+ *       (mid-rodata between @c we_dispatch and @c we_dispatch2 subsegments
+ *       — see @c world_engine.ovl.yaml).
  */
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BD540);
+void func_800BD540(Entity *e) {
+    if (D_800C971C != 0) {
+        switch (e->sel69 & 3) {
+            case 0: e->field46 = 0x3F;  break;
+            case 1: e->field46 = 0x23E; break;
+            case 2: e->field46 = 0x3E;  break;
+        }
+        if ((e->flag66 & 0x10) != 0) {
+            e->field46 |= 0x40;
+        }
+    } else {
+        switch (e->sel68 & 0x1F) {
+            case 0: e->field46 = 0x11D; break;
+            case 1: e->field46 = 0x10D; break;
+            case 2: e->field46 = 0x101; break;
+            case 3: e->field46 = 0x100; break;
+            case 4: e->field46 = 0x180; break;
+        }
+        if ((e->flag66 & 0x8) != 0) {
+            e->field46 |= 0x40;
+        }
+    }
+}
 
 /**
  * @brief 32-byte record with two signed sentinel bytes near its tail.

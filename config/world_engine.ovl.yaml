@@ -36,7 +36,7 @@ options:
   data_string_guesser_level: 2
 
   # Misc
-  section_order: [".text", ".rodata", ".data", ".bss"]
+  section_order: [".rodata", ".text", ".data", ".bss"]
   subalign: 1
   o_as_suffix: True
   use_legacy_include_asm: False
@@ -48,7 +48,11 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, asm, we_dispatch]
+      - [0x0, rodata, we_dispatch]
+      - [0x3F0, .rodata, we_object6]
+      - [0x760, rodata, we_dispatch_mid]
+      - [0x770, .rodata, we_object9]
+      - [0x784, rodata, we_dispatch2]
       - [0x17E8, c, we_object1]
       - [0x4CE8, c, we_object2]
       - [0x81DC, c, we_object3]
