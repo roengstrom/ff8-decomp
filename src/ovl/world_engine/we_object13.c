@@ -29,7 +29,8 @@ typedef struct StreamState {
     volatile s32 blocksPerBuf;   /* 0x08: blocks to read into each buffer (reload for remaining) */
     u32 pad_0C;
     volatile s32 remaining;      /* 0x10: blocks remaining in current buffer */
-    u32 pad_14[2];
+    s32 field_14;                /* 0x14 */
+    s32 field_18;                /* 0x18: VSync() snapshot */
     volatile s32 expectedSeq;    /* 0x1C: expected sequence number */
     volatile s32 blockIdx;       /* 0x20: current block index within buffer */
     u8  bufIdx;                  /* 0x24: current buffer index */
@@ -138,8 +139,8 @@ void func_800C4644(void) {
     D_800E3E70.blocksPerBuf = 0;
     D_800E3E70.pad_0C = 0;
     D_800E3E70.remaining = 0;
-    D_800E3E70.pad_14[0] = 0;
-    D_800E3E70.pad_14[1] = 0;
+    D_800E3E70.field_14 = 0;
+    D_800E3E70.field_18 = 0;
     D_800E3E70.expectedSeq = 0;
     D_800E3E70.blockIdx = 0;
     D_800E3E70.bufIdx = 0;

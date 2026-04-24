@@ -303,6 +303,77 @@ void func_800BC09C(ParticleSource *src) {
     func_800AC0A0(0x14, &localPos, &localVel, 3);
 }
 
+
+/*
+ * func_800BC218: project a world-space glyph into screen-space and return a
+ * clamped half-angle gating visibility. GTE-heavy — sets rotation/translation
+ * matrices, applies RotTrans (mvmva sf=1, mx=rot, v=V0, cv=tr), then projects
+ * through a secondary world-to-screen matrix at @c D_800C9838.
+ *
+ * Currently @c INCLUDE_ASM: reaches ~90% near-match under gcc-2.7.2-cdk, but
+ * the last 10% needs non-1998 hacks (@c volatile on a dead-store local,
+ * @c register @c asm for @c gte_ldtr reg-alloc, @c u8 @c _pad42[14] for
+ * stack layout, @c (s32) casts to block symbol+constant folding).
+ *
+ * Reference C (clean 1998-style, requires the inline GTE macros in
+ * @c include/psxsdk/libgte.h):
+ *
+ *     typedef struct { u8 pad[0xD]; u8 keyLo, keyMid, keyHi; } GlyphHeader;
+ *
+ *     extern u16    D_800C5C44[];   // per-kind 8-byte entries
+ *     extern MATRIX D_800C9838;     // secondary world-to-screen matrix
+ *     extern void   RotMatrix(SVECTOR *angles, MATRIX *out);  // = func_80040FE4
+ *     extern s32    ratan2(s32 y, s32 x);                     // = func_80041E84
+ *     extern void  *memset(void *dst, s32 val, s32 n);        // = func_80047CE4
+ *     extern s32    project(VECTOR *src, VECTOR *out);        // = func_800A40F8
+ *     extern GlyphHeader *glyphAt(VECTOR *v, DVECTOR *out);   // = func_800A3870
+ *     extern s32    lookupKey(u32 key);                       // = func_800A45D8
+ *
+ *     s32 func_800BC218(s32 kind, VECTOR *trans, SVECTOR *angles) {
+ *         SVECTOR offset;
+ *         SVECTOR localOff;
+ *         VECTOR  rotated;
+ *         VECTOR  projected;
+ *         MATRIX  rotation;
+ *         DVECTOR screen;
+ *         GlyphHeader *glyph;
+ *         s16 projY;
+ *         s32 dy, angle, clamped;
+ *         u32 key;
+ *
+ *         memset(&offset, 0, sizeof(offset));
+ *         offset.vx = (s16)D_800C5C44[(kind - 0x40) * 4] >> 1;
+ *         localOff  = offset;
+ *
+ *         RotMatrix(angles, &rotation);
+ *         gte_SetRotMatrix(&rotation);
+ *         gte_SetTransVector(trans);
+ *         gte_ldv0(&localOff);
+ *         gte_mvmva(1, 0, 0, 0, 0);
+ *         gte_stlvnl(&rotated);
+ *
+ *         projY = (s16)project(&rotated, &projected);
+ *         gte_ldtr(0, 0, 0);
+ *         glyph = glyphAt(&rotated, &screen);
+ *
+ *         gte_SetRotMatrix(&D_800C9838);
+ *         gte_SetTransMatrix(&D_800C9838);
+ *
+ *         dy = (s16)trans->vy - screen.vx;
+ *         if (dy < 0 ? -dy : dy) >= 0xC8) return 0;
+ *
+ *         key = (u32)glyph->keyLo
+ *             | ((u32)glyph->keyMid << 8)
+ *             | ((u32)glyph->keyHi  << 16);
+ *         if (lookupKey(key) == 0) return 0;
+ *
+ *         angle   = ratan2(-dy, offset.vx);
+ *         clamped = angle >> 1;
+ *         if      (clamped < -0x80) clamped = -0x80;
+ *         else if (clamped >  0x80) clamped =  0x80;
+ *         return (s16)clamped;
+ *     }
+ */
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object9", func_800BC218);
 
 extern void func_800BFFEC(void);
