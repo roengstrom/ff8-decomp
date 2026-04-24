@@ -1,40 +1,42 @@
 #include "common.h"
 #include "menu.h"
 
-extern u8  D_801E3D84[];
-extern u8  D_801E3D9C;
-extern u8  D_801E3DA4[];
-extern u8  D_801E3DB8;
-extern u8  g_menuDisplayCfg[];
-extern s32 g_menuColor;
-
-extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
-extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
-
-extern void func_801E2A34();
-extern void func_801E36AC();
-extern void func_801E3AE0();
-
-/**
- * @brief Render ability entry at computed grid position with table lookup.
- *
- * Divides index by 11 to get column and remainder. Computes y = rem * 13 + 0x42.
- * Looks up a value from D_801FA3C8 table using a3->0x2E divided by 64,
- * multiplies by 240/4096 to compute x position, adds 0xAD. Draws via
- * func_801F0A78.
- *
- * @param a0 Display context pointer.
- * @param a1 Ability list index.
- * @param a2 Unused (passed through to func_801F0A78).
- * @param a3 Pointer to data (reads halfword at offset 0x2E).
- */
+/** 48-byte ability-menu slot; only @c angle at @c +0x2E is read here. */
 typedef struct {
     u8  pad00[0x2E];
     s16 angle;
 } MenuSlot;
 
-extern u16  D_801FA3C8[];
+/** 8-byte ability-menu entry record; the byte at @c +5 is an id/flag
+ *  (0xFF = empty, 0x80/0x81 = state-specific — see @c func_801E36AC). */
+typedef struct {
+    u8 data[8];
+} AbilityEntry;
+
+extern u8            D_801E3D84[];
+extern u8            D_801E3D9C;
+extern u8            D_801E3DA4[];
+extern u8            D_801E3DB8;
+extern u8            g_menuDisplayCfg[];
+extern s32           g_menuColor;
+extern u16           D_801FA3C8[];
+extern AbilityEntry  D_8007CEE0[];
+
+extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
+extern s32  getAbilityDesc(s32 id);
+extern s32  func_801EF9AC(s32 dl, s32 ot, s32 opaque, s32 color);
+extern void func_801EFBB4(s32 dl, s32 ot, s32 callback);
 extern void func_801F0A78(s32 ctx, s32 idx, s32 unused, s32 x, s32 y);
+extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
+extern s32  func_801F179C(s32 tickCb, s32 drawCb);
+extern s32  func_801F5F30(s32 dl, s32 ot, s32 x, s32 y, s32 color, s32 pageStart);
+extern s32  func_801F5F60(s32 dl, s32 ot, s32 color, s32 arrows);
+extern s32  func_801F72B4(void);
+
+extern void func_801E2990(void);
+extern void func_801E2A34();
+extern void func_801E36AC();
+extern void func_801E3AE0();
 
 /**
  * @brief Render one cell of an ability grid at a per-slot X offset.
@@ -71,17 +73,6 @@ void func_801E2800(s32 ctx, s32 i, s32 unused, MenuSlot *slot) {
  * @param a0 Display context pointer.
  * @param a1 Ability list index.
  * @param a2 Unused.
- * @param a3 Unused.
- */
-/**
- * @brief Render ability entry label at computed grid position (simple variant).
- *
- * Divides index by 11 to get remainder, computes y = remainder * 13 + 0x42,
- * then calls func_801F0A78 to draw.
- *
- * @param a0 Display context pointer.
- * @param a1 Ability list index.
- *
  */
 void func_801E28B4(s32 a0, s32 a1, s32 a2) {
     s32 col = a1 / 11;
@@ -89,14 +80,6 @@ void func_801E28B4(s32 a0, s32 a1, s32 a2) {
     s32 y = rem * 13 + 0x42;
     func_801F0A78(a0, 0, a2, 0x23, y);
 }
-
-/** 8-byte ability-menu entry record; the byte at @c +5 is an id/flag
- *  (0xFF = empty, 0x80/0x81 = state-specific — see @c func_801E36AC). */
-typedef struct {
-    u8 data[8];
-} AbilityEntry;
-
-extern AbilityEntry D_8007CEE0[];
 
 /**
  * @brief Address of the ability entry at index @p idx.
@@ -176,21 +159,6 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
     func_801EF9AC(a0, a1, 0x1000, g_menuColor);
 }
 
-/**
- * @brief Render ability list entry callback for scrolling panel.
- *
- * Called by the panel rendering system for each visible entry. Loads
- * a pointer from g_menuDisplayCfg+0x20, decodes it via decodeMessage into
- * a text buffer, then draws the text using func_801F0FEC with
- * color code 7.
- *
- * @param a0 Display context pointer.
- * @param a1 OT pointer.
- * @param a2 X position.
- * @param a3 Y position.
- * @param stackArg Display list pointer (5th arg on stack).
- * @return Updated display list pointer.
- */
 /**
  * @brief Render an ability-list entry's name from @c g_menuDisplayCfg.dataPtr.
  *
@@ -343,36 +311,8 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
  * @param a3 Panel X position.
  * @param stackArg Panel Y position (5th arg on stack).
  */
-/**
- * @brief Configure GF ability list panel with scroll support and render.
- *
- * Sets up g_menuDisplayCfg with icon type 0x49, size 0xC6 x 0xA0, 11 rows,
- * copies scroll parameters from source data (offsets 0x38, 0x39),
- * stores the GF ability count and source pointer. If the count exceeds
- * 12, renders scrollbar via func_801F5F30/func_801F5F60.
- * Registers func_801E3904 as the rendering callback.
- *
- * @param a0 Source data pointer (GF ability state).
- * @param a1 OT pointer for rendering.
- * @param a2 Column position parameter.
- * @param a3 Panel X position.
- * @param stackArg Panel Y position (5th arg on stack).
- */
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E39E0);
 
-/**
- * @brief Render complete ability menu page with panels and scrollbars.
- *
- * Called when the menu state is 0xE (active display). Saves GPU state,
- * loads character data, draws three panels (header, ability list, GF list),
- * with optional GF ability scrollbar if the GF ability count is under 0x1000.
- * Restores GPU state after rendering.
- *
- * @param a0 Menu state pointer (reads 0x2C, 0x2E offsets).
- * @param a1 OT/display list pointer.
- * @param a2 Column offset parameter.
- * @return Updated display list pointer, or a2 if state != 0xE.
- */
 /**
  * @brief Render complete ability menu page with panels and scrollbars.
  *
