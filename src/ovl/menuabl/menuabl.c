@@ -76,14 +76,19 @@ void func_801E28B4(s32 a0, s32 a1, s32 a2) {
     func_801F0A78(a0, 0, a2, 0x23, y);
 }
 
+/** 8-byte ability-menu entry record; the byte at @c +5 is an id/flag
+ *  (0xFF = empty, 0x80/0x81 = state-specific — see @c func_801E36AC). */
+typedef struct {
+    u8 data[8];
+} AbilityEntry;
+
+extern AbilityEntry D_8007CEE0[];
+
 /**
- * @brief Compute pointer to ability data entry by index.
- * @param a0 Ability entry index (stride 8).
- * @return Address of D_8007CEE0 + a0 * 8.
+ * @brief Address of the ability entry at index @p idx.
  */
-s32 func_801E2920(s32 a0) {
-    extern u8 D_8007CEE0[];
-    return D_8007CEE0 + a0 * 8;
+AbilityEntry *func_801E2920(s32 idx) {
+    return &D_8007CEE0[idx];
 }
 
 /**
