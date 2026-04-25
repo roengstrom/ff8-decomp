@@ -1,5 +1,6 @@
 #include "common.h"
 #include "menu.h"
+#include "gamestate.h"
 
 /** 48-byte ability-menu slot; only @c angle at @c +0x2E is read here. */
 typedef struct {
@@ -40,6 +41,7 @@ typedef struct {
     s16 state;         /**< 0x2C */
     s16 displaySize;   /**< 0x2E: fixed to 0x1000 at init. */
 } AbilityMenuState;
+
 
 extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;

@@ -114,4 +114,46 @@ typedef struct {
     Entry12 entries[1];
 } KeyBuffer;
 
+/* world_engine globals (we_object7) */
+extern s32 D_800C4D2C;
+extern s32 D_800C4D40;
+extern s32 D_800C4D44;
+extern s32 D_800C4D58;
+extern s32 D_800C4D70;
+extern s32 D_800C4D98;
+extern s32 D_800C4D9C;
+extern s32 D_800C4DC0;
+extern s32 D_800C4DC4;
+extern s32 D_800C4DC8;
+extern s32 D_800C5924;
+extern s32 D_800C5B50;
+extern s32 D_800C5B54;
+extern s32 D_800C5B58;
+extern s32 D_800C5BFC;
+extern s32 D_800C5C04;
+extern s32 D_800C5C18;
+extern s32 D_800C5C1C;
+extern s32 D_800C5C20;
+extern s32 D_800C5C24;
+extern s32 D_800C5C28;
+extern s32 D_800C5C2C;
+extern s32 D_800C5C30;
+extern s32 D_800C5C38;
+extern s32 D_800C5C3C;
+extern s32 D_800C5C40;
+extern s32 D_800C5D54;
+/**
+ * @brief Pointer to the dialogue/action table buffer.
+ *
+ * The buffer begins with a u32 byte-offset table indexed by subject id;
+ * each offset points (within the same buffer) to a 0-terminated list of
+ * u32 byte-offsets to the actual entry payloads.
+ */
+extern u8 *D_800C976C;
+extern s32 D_800C97A4;
+extern s32 D_800C9878;
+extern s16 D_800C987C;
+extern s8  D_800D23D8;
+extern s32 D_800DCB48;
+
 #endif /* WORLD_H */
