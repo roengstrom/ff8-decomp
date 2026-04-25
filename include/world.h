@@ -150,10 +150,12 @@ extern s32 D_800C5D54;
  * u32 byte-offsets to the actual entry payloads.
  */
 extern u8 *D_800C976C;
+extern u8  D_800C5984[];
+extern u16 D_800C5C44[];
 extern s32 D_800C97A4;
 extern s32 D_800C9878;
 extern s16 D_800C987C;
-extern s8  D_800D23D8;
+extern u8  D_800D23D8[];
 extern s32 D_800DCB48;
 
 #endif /* WORLD_H */
