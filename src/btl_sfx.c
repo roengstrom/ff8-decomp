@@ -11,6 +11,11 @@ extern s32 g_menuColor[2];
 extern u8 D_800834D8[];
 void func_8002D970(void);
 void func_8002DBF8(void);
+void func_8002CDE4(RECT *rect, s16 offsetX, s16 offsetY);
+void setBattleEntityBoundRect(s32 idx, RECT *src);
+void setBattleEntityRectClamp(s32 idx, RECT *src);
+void func_8002E064(s32 index, RECT *srcRect);
+void func_8002E1B4(s32 index, s32 value);
 
 
 /**
@@ -450,12 +455,12 @@ void initSfxSlot(s32 idx) {
     setSfxRateDelta(idx, 0);
     setSfxEntityType(idx, 6);
     {
-        s16 buf[4];
-        buf[0] = 0x40;
-        buf[1] = 0x40;
-        buf[2] = 0x80;
-        buf[3] = 0x80;
-        func_8002E064(idx, buf);
+        RECT buf;
+        buf.x = 0x40;
+        buf.y = 0x40;
+        buf.w = 0x80;
+        buf.h = 0x80;
+        func_8002E064(idx, &buf);
     }
     setSfxEntryVolume(idx, 0x1000);
 }
@@ -502,10 +507,68 @@ void getSfxRect(s32 idx, RECT *dst) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E064);
+/**
+ * @brief Configure an SFX entry's rectangle and propagate it to its battle entity.
+ *
+ * Inflates the source rect inwards by 6 on each side (width/height shrink by 12),
+ * derives field23 as the inset height divided by 16 (minimum 1), copies the
+ * original source rect into the entry, and forwards the original rect (offset by
+ * the entry's stored offsets) to the entity's bound rect. The inset rect is then
+ * passed to the entity's clamp rect.
+ *
+ * @param index SFX entry index.
+ * @param srcRect Source rectangle.
+ */
+void func_8002E064(s32 index, RECT *srcRect) {
+    SfxEntry *entry = &g_sfxEntries.entries[index];
+    RECT rect;
+    s32 entityId;
+    SfxEntry *ep = entry;
+
+    entityId = ep->entityIdx;
+
+    rect.x = srcRect->x;
+    rect.y = srcRect->y;
+    rect.w = srcRect->w;
+    rect.h = srcRect->h;
+    rect.x += 6;
+    rect.y += 6;
+    rect.w -= 12;
+    rect.h -= 12;
+
+    ep->field23 = rect.h / 16;
+    if (ep->field23 == 0) {
+        ep->field23 = 1;
+    }
+
+    ep->rect = *srcRect;
+    rect = *srcRect;
+
+    func_8002CDE4(&rect, ep->field1C, ep->rateDelta);
+    setBattleEntityBoundRect(entityId, &rect);
+
+    rect.x += 6;
+    rect.y += 6;
+    rect.w -= 12;
+    rect.h -= 12;
+    setBattleEntityRectClamp(entityId, &rect);
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E1B4);
+/**
+ * @brief Store a numeric value into one of the 8 message-value slots.
+ *
+ * The index is clamped to [0, 7]. Used by message formatting to pass
+ * numeric arguments into decodeMessage.
+ *
+ * @param index Slot index (clamped to 0..7).
+ * @param value Value to store.
+ */
+void func_8002E1B4(s32 index, s32 value) {
+    SfxSystem *data = &g_sfxEntries;
+    s32 clamped = CLAMP(index, 0, 7);
+    data->msgValues[clamped] = value;
+}
 
 
 /**
