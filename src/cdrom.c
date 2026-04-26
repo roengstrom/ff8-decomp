@@ -4,6 +4,8 @@
 #include "cd.h"
 
 extern CdReadState D_8008A3D8;
+extern u8 D_8008A3DC[];
+extern CdDriveState D_8008A3C8;
 extern u8 D_8001092C[];
 extern u8 D_8001093C[];
 extern u8 D_8001094C[];
@@ -12,9 +14,15 @@ extern s16 D_8008A3D0;
 extern s8 D_8008A3DA;
 extern u16 D_8008A3D2;
 extern u8 D_8008A3D9;
+extern s32 D_8008A3B8;
+extern u8 D_800853B8[];
+
+s32 func_80039444(u8 *buf, u8 *dest);
 
 void resetCdDrive(void);
 void setDiscNumber(s32 a0);
+s32 func_800393C8(void);
+void CdIntToPos(s32 lba, u8 *pos);
 
 /**
  * @brief Detect the disc number by searching for disc-specific files.
@@ -113,10 +121,49 @@ void flushCdAndWait(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038760);
+/**
+ * @brief Stage a CD-ROM read request into the global CD read state.
+ *
+ * Waits for any in-flight CD operation, converts the LBA to (m,s,sector)
+ * directly into the CD parameter buffer, then populates the read state
+ * with sector count, destination buffer, callback, and the requested
+ * mode/state byte. The drive timeout is reset.
+ *
+ * @param mode     Mode/state byte to install (typically 3 for cdRead).
+ * @param lba      Linear block address of the read.
+ * @param size     Read size in bytes (rounded up to 2048-byte sectors).
+ * @param dest     Destination buffer pointer (stored at readBuffer/0x1C).
+ * @param callback Completion callback (stored at callback/0x20, may be NULL).
+ */
+void func_80038760(s32 mode, s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
+    CdReadState *req;
+
+    while (func_800393C8()) {}
+
+    CdIntToPos(lba, &D_8008A3DC[0]);
+    req = (CdReadState *)(&D_8008A3DC[0] - 4);
+    req->sectorCount = (size + 0x7FF) >> 11;
+    req->readBuffer = dest;
+    req->callback = callback;
+    req->status = mode;
+    D_8008A3C8.timeout = 0;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/cdrom", func_800387F8);
+/**
+ * @brief Stage a CD-ROM read request with mode 2 and a completion callback.
+ *
+ * Thin wrapper around func_80038760 that issues a mode-2 read with no
+ * size, no destination buffer, and the supplied callback.
+ *
+ * @param lba      Linear block address of the read.
+ * @param callback Completion callback (may be NULL).
+ * @return Always 0.
+ */
+s32 func_800387F8(s32 lba, void (*callback)(void)) {
+    func_80038760(2, lba, 0, 0, callback);
+    return 0;
+}
 
 
 /**
@@ -125,19 +172,37 @@ INCLUDE_ASM("asm/nonmatchings/cdrom", func_800387F8);
  * Delegates to func_80038760 with mode=3, passing through all four
  * parameters (sector, count, destination, etc.).
  *
- * @param a0 First CD read parameter (e.g. sector number).
- * @param a1 Second CD read parameter (e.g. sector count).
- * @param a2 Third CD read parameter (e.g. destination address).
- * @param a3 Fourth CD read parameter.
+ * @param lba       Linear block address.
+ * @param size      Read size in bytes.
+ * @param dest      Destination buffer.
+ * @param callback  Completion callback (may be NULL).
  * @return Always 0.
  */
-s32 cdRead(s32 a0, s32 a1, s32 a2, s32 a3) {
-    func_80038760(3, a0, a1, a2, a3);
+s32 cdRead(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
+    func_80038760(3, lba, size, dest, callback);
     return 0;
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038868);
+/**
+ * @brief Stage a CD-ROM read request with mode 7, recording the LBA and
+ *        priming a downstream handler.
+ *
+ * Issues a mode-7 read via func_80038760, then stores the LBA into
+ * D_8008A3B8 (used by cdread's sector pump as the rolling read cursor),
+ * and primes func_80039444 with the staging buffer D_800853B8 and the
+ * caller-supplied destination.
+ *
+ * @param lba      Linear block address of the read.
+ * @param size     Read size in bytes.
+ * @param dest     Destination buffer.
+ * @param callback Completion callback (may be NULL).
+ */
+s32 func_80038868(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
+    func_80038760(7, lba, size, dest, callback);
+    D_8008A3B8 = lba;
+    return func_80039444(D_800853B8, dest);
+}
 
 
 /**
@@ -146,13 +211,13 @@ INCLUDE_ASM("asm/nonmatchings/cdrom", func_80038868);
  * Calls func_800387F8(a0, a1) in a busy-wait loop until it returns 0,
  * then waits for func_800393C8 to complete.
  *
- * @param a0 First CD read parameter.
- * @param a1 Second CD read parameter.
+ * @param lba      Linear block address.
+ * @param callback Completion callback (may be NULL).
  * @return Always 0.
  */
-s32 cdReadRetry(s32 a0, s32 a1) {
+s32 cdReadRetry(s32 lba, void (*callback)(void)) {
     do {
-    } while (func_800387F8(a0, a1) != 0);
+    } while (func_800387F8(lba, callback) != 0);
     do {
     } while (func_800393C8() != 0);
     return 0;
@@ -171,9 +236,9 @@ s32 cdReadRetry(s32 a0, s32 a1) {
  * @param a3 Fourth CD read parameter.
  * @return Always 0.
  */
-s32 cdReadSync(s32 a0, s32 a1, s32 a2, s32 a3) {
+s32 cdReadSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
     do {
-    } while (cdRead(a0, a1, a2, a3) != 0);
+    } while (cdRead(lba, size, dest, callback) != 0);
     do {
     } while (func_800393C8() != 0);
     return 0;
@@ -188,8 +253,8 @@ s32 cdReadSync(s32 a0, s32 a1, s32 a2, s32 a3) {
  *
  * @return The value returned by func_80038868 (async read handle/status).
  */
-s32 cdReadAsyncSync(void) {
-    s32 saved = func_80038868();
+s32 cdReadAsyncSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
+    s32 saved = func_80038868(lba, size, dest, callback);
     do {
     } while (func_800393C8() != 0);
     return saved;
