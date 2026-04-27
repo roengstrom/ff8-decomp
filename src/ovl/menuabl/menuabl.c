@@ -96,7 +96,6 @@ extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
 extern s32  func_801F179C(s32 tickCb, s32 drawCb);
 extern void func_801F1AFC(void);
 extern void func_801F1B10(void);
-extern void func_801E3904();
 extern s32  func_801F5F30(s32 dl, s32 ot, s32 x, s32 y, s32 color, s32 pageStart);
 extern s32  func_801F5F60(s32 dl, s32 ot, s32 color, s32 arrows);
 extern s32  func_801F72B4(void);
@@ -826,21 +825,39 @@ s32 func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
 }
 
 /**
- * @brief Render GF ability name at computed position in ability list.
+ * @brief Render a GF/secondary ability list cell at the given column/row.
  *
- * Computes x/y position from g_menuDisplayCfg base coordinates plus column/row
- * offsets. If the computed index is within bounds (D_801E3DB8), looks up
- * the ability ID from D_801E3DA4, gets the name via func_801F6AA4,
- * and draws it using func_801F0FEC.
+ * Computes the cell's screen position from @c g_menuDisplayCfg.{x,y} plus
+ * @p col*11 (X stride) and @p row*13 (Y stride), with @p scrollOffset
+ * applied to the X axis. If the resulting grid index is within bounds
+ * (@c D_801E3DB8), looks up the GF id from @c D_801E3DA4[index], resolves
+ * the name string via @c func_801F6AA4 (with @c +1 to adjust to the GF
+ * descriptor pool), and renders it via @c func_801F0FEC at the cell origin
+ * with color 7 (normal). Out-of-bounds cells return @p pkt unchanged.
  *
- * @param a0 Display context pointer.
- * @param a1 OT pointer.
- * @param a2 Column index.
- * @param a3 Row index (multiplied by 13 for y offset).
- * @param stackArg X base offset added to g_menuDisplayCfg.x.
- * @return Updated display list pointer.
+ * @param ctx          Display context pointer.
+ * @param pkt          Current GPU packet pointer.
+ * @param col          Column index (multiplied by 11 for grid stride).
+ * @param row          Row index (multiplied by 13 for Y stride).
+ * @param scrollOffset Horizontal scroll offset added to base X.
+ * @return             Updated GPU packet pointer.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
+s32 func_801E3904(s32 ctx, s32 pkt, s32 col, s32 row, s32 scrollOffset) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 adj = scrollOffset + 0xB;
+    s32 x = cfg->x + adj;
+    s32 y = cfg->y + 0xA;
+    s32 index;
+
+    y = y + (row * 13);
+    index = (col * 11) + row;
+
+    if (index < D_801E3DB8) {
+        u8 *name = func_801F6AA4(D_801E3DA4[index] + 1);
+        pkt = func_801F0FEC(ctx, pkt, x, y, name, 7);
+    }
+    return pkt;
+}
 
 /**
  * @brief Configure and draw the GF/secondary ability list panel with scrollbar.
