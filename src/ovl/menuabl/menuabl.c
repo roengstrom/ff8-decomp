@@ -73,6 +73,8 @@ typedef struct {
 } SoundMenuState;
 
 
+extern u8            D_80077CC8[];
+extern u8            D_801E3D70[];
 extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;
 extern u8            D_801E3DA4[];
@@ -198,15 +200,57 @@ s32 func_801E2944(s32 a0) {
 }
 
 /**
- * @brief Build list of equipped GF abilities for display.
+ * @brief Build list of GF slots whose ability lists are visible.
  *
- * Scans 20 GF slots. For each slot, checks if the GF is unlocked
- * (D_80077CC8 offset 0xD22 bit 0) and whether the ability filter
- * (D_801E3D70) allows it. If valid and the ability count (offset 0x10)
- * is non-zero, adds the slot index to D_801E3DA4 and increments
- * the count in D_801E3DB8.
+ * Scans all 20 GF slots and emits an index list (@c D_801E3DA4) of those
+ * slots that should be visible in the GF ability submenu. A slot is visible
+ * when its abilityCount (at @c +0x10 of the per-GF struct, stride @c 0x14)
+ * is non-zero AND the per-slot filter (@c D_801E3D70[i]) is "in sync" with
+ * the global junction-mode bit (@c D_80077CC8[+0x3D2] bit 0): both set or
+ * both clear. The total count is stored in @c D_801E3DB8.
+ *
+ * @note The bit-check pointer is computed as @c (D_80077CC8 - 0x950) so
+ *       that the per-iteration byte access lands on @c +0xD22; this matches
+ *       the original codegen which keeps the bit pointer separate from the
+ *       per-GF struct pointer that advances each iteration.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2990);
+void func_801E2990(void) {
+    u8 *out = D_801E3DA4;
+    D_801E3DB8 = 0;
+    {
+        u8 *gf     = D_80077CC8;
+        s32 i      = 0;
+        u8 *bitPtr = (u8 *)((s32)gf - 0x950);
+        u8 *filter = D_801E3D70;
+
+        do {
+            u8 unlocked = bitPtr[0xD22] & 1;
+            u8 f;
+            if (unlocked) {
+                f = *filter;
+                if (f == 0) {
+                    filter++;
+                    goto next;
+                }
+            } else {
+                f = *filter;
+                if (f != 0) {
+                    goto inc_filter;
+                }
+            }
+            if (*(u16 *)(gf + 0x10) != 0) {
+                *out = i;
+                out++;
+                D_801E3DB8++;
+            }
+        inc_filter:
+            filter++;
+        next:
+            i++;
+            gf += 0x14;
+        } while (i < 0x14);
+    }
+}
 
 /**
  * @brief Main sound/music menu state machine handler.
