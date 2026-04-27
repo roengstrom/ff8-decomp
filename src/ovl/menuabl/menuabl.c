@@ -85,19 +85,24 @@ extern AbilityEntry  D_8007CEE0[];
 extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
 extern s32  getAbilityDesc(s32 id);
 extern u8  *getAbilityName(s32 abilityId);
+extern s32  getDisplayListHead(void);
+extern void storeGpuPacket(u32 pkt);
+extern void setMenuColorIntensity(s32 intensity);
 extern s32  func_8002FF34(s32 ctx, s32 a1, s32 a2, s32 x, s32 y, s32 color);
 extern s32  func_801EF9AC(s32 dl, s32 ot, s32 opaque, s32 color);
-extern void func_801EFBB4(s32 dl, s32 ot, s32 callback);
+extern s32  func_801EFBB4(s32 dl, s32 ot, s32 callback);
 extern void func_801F0A78(s32 ctx, s32 idx, s32 unused, s32 x, s32 y);
 extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
 extern s32  func_801F179C(s32 tickCb, s32 drawCb);
+extern void func_801F1AFC(void);
+extern void func_801F1B10(void);
+extern s32  func_801E39E0(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg);
 extern s32  func_801F5F30(s32 dl, s32 ot, s32 x, s32 y, s32 color, s32 pageStart);
 extern s32  func_801F5F60(s32 dl, s32 ot, s32 color, s32 arrows);
 extern s32  func_801F72B4(void);
 
 extern void func_801E2990(void);
 extern void func_801E2A34(SoundMenuState *s);
-extern void func_801E3AE0();
 
 extern u8 D_8007809A;
 
@@ -654,7 +659,7 @@ restart:
  * @param a2 X position
  * @param a3 Y position
  */
-void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
+s32 func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
 
     cfg->iconType    = 0;
@@ -663,7 +668,7 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
     cfg->w           = 0xF4;
     cfg->h           = 0x12;
     cfg->y           = a3;
-    func_801EF9AC(a0, a1, 0x1000, g_menuColor);
+    return func_801EF9AC(a0, a1, 0x1000, g_menuColor);
 }
 
 /**
@@ -711,7 +716,7 @@ s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
  * @param a3 Panel X position
  * @param stackArg Panel Y position (5th arg on stack)
  */
-void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
+s32 func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
@@ -726,7 +731,7 @@ void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     cfg->y            = stackArg;
     cfg->scrollOffset = ctx->scrollOff;
     cfg->dataPtr      = (s32)ctx->items;
-    func_801EFBB4(a1, a2, (s32)func_801E3580);
+    return func_801EFBB4(a1, a2, (s32)func_801E3580);
 }
 
 /**
@@ -797,7 +802,7 @@ s32 func_801E36AC(s32 ctx, s32 pkt, s32 col, s32 row, s32 scrollOffset) {
  * @param a3 Panel X position.
  * @param stackArg Panel Y position (5th arg on stack).
  */
-void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
+s32 func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
@@ -817,7 +822,7 @@ void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
         s32 scrollbar = func_801F5F30(a1, a2, a3 + 0x28, stackArg, g_menuColor, ctx->pageStart);
         a2 = func_801F5F60(a1, scrollbar, g_menuColor, 3);
     }
-    func_801EFBB4(a1, a2, (s32)func_801E36AC);
+    return func_801EFBB4(a1, a2, (s32)func_801E36AC);
 }
 
 /**
@@ -856,19 +861,66 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E39E0);
 
 /**
- * @brief Render complete ability menu page with panels and scrollbars.
+ * @brief Sound menu draw callback — composites all panels for the active frame.
  *
- * Called when the menu state is 0xE (active display). Saves GPU state,
- * loads character data, draws three panels (header, ability list, GF list),
- * with optional GF ability scrollbar if the GF ability count is under 0x1000.
- * Restores GPU state after rendering.
+ * Only draws when func_801F0D84() reports state 0xE (active display); otherwise
+ * returns @p a2 unchanged. When active: takes a fresh GPU display list, primes
+ * the menu draw state via func_801F1AFC + setMenuColorIntensity (using the
+ * menu's fade level at @c s->field_2C), then composites four panels — title
+ * border (func_801E3530), track list (func_801E3630), main ability grid
+ * (func_801E381C), and an optional waveform/animation strip (func_801E39E0).
  *
- * @param a0 Menu state pointer (reads 0x2C, 0x2E offsets).
- * @param a1 OT/display list pointer.
- * @param a2 Column offset parameter.
- * @return Updated display list pointer, or a2 if state != 0xE.
+ * The waveform's X position is scaled from a sine-table lookup
+ * (@c D_801FA3C8) indexed by @c s->field_2E divided by 64, then multiplied by
+ * @c 240/4096 and offset by @c 0xA2. The waveform only renders when the
+ * looked-up half-width is below 0x1000 (the maximum scale).
+ *
+ * Finally calls func_801F1B10 to finalize and storeGpuPacket to commit.
+ *
+ * @param s  Sound menu state (reads field_2C = fade scale, field_2E = wave angle).
+ * @param a1 OT pointer for compositing.
+ * @param a2 Initial display state, returned on early exit.
+ * @return Updated display state from the last drawn panel.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3AE0);
+s32 func_801E3AE0(SoundMenuState *s, s32 a1, s32 a2) {
+    s32 dl;
+    s32 dl2;
+    s32 angle;
+    s32 width;
+    s32 x;
+    s32 stackArg;
+    SoundMenuState *new_var;
+    s32 result;
+
+    if (func_801F0D84() != 0xE) {
+        return a2;
+    }
+
+    dl = getDisplayListHead();
+    func_801F1AFC();
+    setMenuColorIntensity(s->field_2C);
+
+    dl2 = func_801E3530(a1, dl, 0x18, 0xA);
+    stackArg = 0x1D;
+    dl = func_801E3630((s32)s, a1, dl2, 0x1E, stackArg);
+    new_var = s;
+    stackArg = 0x38;
+    result = func_801E381C((s32)s, a1, a2, 0x18, stackArg);
+
+    angle = new_var->field_2E;
+    width = D_801FA3C8[angle / 64];
+    angle = width;
+    dl++;
+    dl--;
+    x = ((120 * (angle * 2)) / 4096) + 0xA2;
+    if (angle < 0x1000) {
+        result = func_801E39E0((s32)s, a1, result, x, stackArg);
+    }
+
+    func_801F1B10();
+    storeGpuPacket(dl);
+    return result;
+}
 
 /**
  * @brief Scan ability bitmask and build list of available ability indices.
