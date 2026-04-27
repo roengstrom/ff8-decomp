@@ -6,6 +6,21 @@
 
 extern u8 D_80078DF8;
 extern u8 D_80082C10;
+extern CharacterData g_characters[];
+
+extern s32 getXpToNextLevel(u32 exp, s32 charIdx);
+extern s32 findCharXpLevel(u32 exp, s32 charIdx);
+extern s32 func_80021A64(s32 level, s32 charIdx);
+extern s32 func_80021C10(s32 level, s32 charIdx, s32 kind);
+extern s32 func_80022228(s32 charIdx, s32 idx);
+extern s32 func_8002247C(s32 charIdx, s32 idx);
+extern s32 calcHitStat(s32 charIdx);
+extern s32 calcEvaStat(s32 charIdx, s32 hit);
+extern s32 getAtkElemBase(s32 charIdx);
+extern s32 getAtkElemBonus(s32 charIdx);
+extern s32 decodeAtkStatusMask(s32 charIdx);
+extern s32 getAtkStatusFlags(s32 charIdx);
+extern s32 calcAtkStatusHit(s32 charIdx);
 
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
 
@@ -204,7 +219,80 @@ s32 clampToMaxHp(s32 a0) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800231E0);
+/**
+ * @brief Refresh battle render data for one party slot from save data.
+ *
+ * Copies a character's magic inventory, level/XP, derived stats, element
+ * resistances, and status data from g_characters[charIdx] into the battle
+ * character render block at g_battleChars.chars[battleSlot]. Returns
+ * immediately if charIdx is 0xFF (empty slot). Finally toggles bit 4 of a
+ * matching command slot's status byte based on bit 0x60000 of field188.
+ *
+ * @param charIdx    Character ID (0-7) into g_characters[], or 0xFF if empty.
+ * @param battleSlot Party slot (0-2) into g_battleChars.chars[].
+ */
+void func_800231E0(s32 charIdx, s32 battleSlot)
+{
+    CharacterData *cd = &g_characters[charIdx];
+    BattleCharData *bc = &g_battleChars.chars[battleSlot];
+    s32 i;
+    s32 hp;
+
+    if (charIdx == 0xFF) return;
+
+    for (i = 0; i < 32; i++) {
+        bc->magicSlots[i].field0 = cd->magic[i].magicId;
+        bc->magicSlots[i].field1 = cd->magic[i].quantity;
+    }
+
+    func_800229FC(battleSlot);
+
+    bc->xpToNext = getXpToNextLevel(cd->experience, charIdx);
+    bc->level = findCharXpLevel(cd->experience, charIdx);
+
+    hp = clampToMaxHp(bc->statCoefs[0] * func_80021A64(bc->level, charIdx) / 100);
+    bc->hpRegenCap = hp;
+    if ((s16)hp < (s32)cd->currentHp) {
+        cd->currentHp = hp;
+        bc->field172 = hp;
+    }
+
+    bc->stats[0] = clampToByte(bc->statCoefs[1] * func_80021C10(bc->level, charIdx, 1) / 100);
+    bc->stats[1] = clampToByte(bc->statCoefs[2] * func_80021C10(bc->level, charIdx, 2) / 100);
+    bc->stats[2] = clampToByte(bc->statCoefs[3] * func_80021C10(bc->level, charIdx, 3) / 100);
+    bc->stats[3] = clampToByte(bc->statCoefs[4] * func_80021C10(bc->level, charIdx, 4) / 100);
+    bc->stats[4] = clampToByte(bc->statCoefs[5] * func_80021C10(bc->level, charIdx, 5) / 100);
+    bc->stats[5] = clampToByte(bc->statCoefs[8] * func_80021C10(bc->level, charIdx, 8) / 100);
+    bc->stats[7] = clampToByte(bc->statCoefs[7] * calcHitStat(charIdx) / 100);
+    bc->stats[6] = clampToByte(bc->statCoefs[6] * calcEvaStat(charIdx, bc->stats[4]) / 100);
+
+    bc->atkElemBase = getAtkElemBase(charIdx);
+    bc->atkElemBonus = getAtkElemBonus(charIdx);
+
+    for (i = 0; i < 8; i++) {
+        bc->elemResistances[i] = func_80022228(charIdx, i);
+    }
+
+    bc->abilityFlags = decodeAtkStatusMask(charIdx);
+    bc->abilityValue = getAtkStatusFlags(charIdx);
+    bc->atkStatusHit = calcAtkStatusHit(charIdx);
+
+    for (i = 0; i < 13; i++) {
+        bc->statusResistances[i] = func_8002247C(charIdx, i);
+    }
+
+    if (bc->field188 & 0x60000) {
+        s32 idx;
+        if (findCommandSlot((u8 *)bc, 2) == 0xFF) return;
+        idx = findCommandSlot((u8 *)bc, 2);
+        bc->cmdSlots[idx].field3 |= 0x10;
+    } else {
+        s32 idx;
+        if (findCommandSlot((u8 *)bc, 2) == 0xFF) return;
+        idx = findCommandSlot((u8 *)bc, 2);
+        bc->cmdSlots[idx].field3 &= ~0x10;
+    }
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/gf_anim", func_8002363C);

@@ -339,18 +339,27 @@ typedef struct {
     /* 0x02E */ u8 pad02E[0x54];
     /* 0x082 */ BattleMagicSlot magicSlots[32];
     /* 0x122 */ BattleItemSlot itemSlots[16];
-    /* 0x172 */ u8 pad172[2];
+    /* 0x172 */ u16 field172;          /**< Mirrored HP cap (set with hpRegenCap when battle HP is reduced). */
     /* 0x174 */ s16 hpRegenCap;        /**< HP regen cap (field-walk tick stops when currentHp reaches this). */
-    /* 0x176 */ u8 pad176[0x16];
+    /* 0x176 */ u8 pad176[0x06];
+    /* 0x17C */ s32 xpToNext;          /**< XP needed to reach next level. */
+    /* 0x180 */ u8 pad180[0x08];
+    /* 0x188 */ s32 field188;          /**< Status/ability mask checked for bit 0x60000. */
     /* 0x18C */ s32 abilityFlags;
     /* 0x190 */ s32 statusFlags;
-    /* 0x194 */ u8 pad194[0x20];
+    /* 0x194 */ u16 elemResistances[8];/**< Element resistance values (8 × s16). */
+    /* 0x1A4 */ u8 statusResistances[13];/**< Status resistance values (13 × u8). */
+    /* 0x1B1 */ u8 pad1B1[0x03];
     /* 0x1B4 */ u16 abilityValue;
-    /* 0x1B6 */ u8 pad1B6[0x0D];
+    /* 0x1B6 */ u16 atkStatusHit;      /**< Attack status hit chance. */
+    /* 0x1B8 */ u8 level;              /**< Battle level (from findCharXpLevel). */
+    /* 0x1B9 */ u8 pad1B9[0x02];
+    /* 0x1BB */ u8 stats[8];           /**< Battle stats: STR, VIT, MAG, SPR, SPD, ?, hit (0x1C0), eva (0x1C1). 0x1C2 = ? */
     /* 0x1C3 */ u8 characterId;
-    /* 0x1C4 */ u8 pad1C4[0x02];
+    /* 0x1C4 */ u8 atkElemBase;        /**< Attack element base. */
+    /* 0x1C5 */ u8 atkElemBonus;       /**< Attack element bonus. */
     /* 0x1C6 */ u8 fieldStatusByte;    /**< Status byte checked by field script (bit 1 = greyed out). */
-    /* 0x1C7 */ u8 pad1C7[0x09];
+    /* 0x1C7 */ u8 statCoefs[9];       /**< Stat coefficient table (HP, str, vit, mag, spr, spd, ?, eva, hit). */
 } BattleCharData;
 
 /** @brief GF battle entry (12 bytes, used for GF HP in battle). */
