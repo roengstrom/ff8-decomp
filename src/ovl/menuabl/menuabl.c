@@ -73,7 +73,6 @@ typedef struct {
 } SoundMenuState;
 
 
-extern u8            D_80077CC8[];
 extern u8            D_801E3D70[];
 extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;
@@ -202,31 +201,25 @@ s32 func_801E2944(s32 a0) {
 /**
  * @brief Build list of GF slots whose ability lists are visible.
  *
- * Scans all 20 GF slots and emits an index list (@c D_801E3DA4) of those
- * slots that should be visible in the GF ability submenu. A slot is visible
- * when its abilityCount (at @c +0x10 of the per-GF struct, stride @c 0x14)
- * is non-zero AND the per-slot filter (@c D_801E3D70[i]) is "in sync" with
- * the global junction-mode bit (@c D_80077CC8[+0x3D2] bit 0): both set or
- * both clear. The total count is stored in @c D_801E3DB8.
- *
- * @note The bit-check pointer is computed as @c (D_80077CC8 - 0x950) so
- *       that the per-iteration byte access lands on @c +0xD22; this matches
- *       the original codegen which keeps the bit pointer separate from the
- *       per-GF struct pointer that advances each iteration.
+ * Scans all 20 shop slots in @c g_gameState and emits an index list
+ * (@c D_801E3DA4) of those whose @c visited flag is set AND whose per-slot
+ * filter (@c D_801E3D70[i]) is "in sync" with the party-lock bit
+ * (@c g_gameState.mainData.partyLockFlag bit 0): both set or both clear.
+ * The total count is stored in @c D_801E3DB8.
  */
 void func_801E2990(void) {
     u8 *out = D_801E3DA4;
     D_801E3DB8 = 0;
     {
-        u8 *gf     = D_80077CC8;
-        s32 i      = 0;
-        u8 *bitPtr = (u8 *)((s32)gf - 0x950);
-        u8 *filter = D_801E3D70;
+        ShopData   *gf     = g_gameState.shops;
+        s32         i      = 0;
+        GameState  *gs     = &g_gameState;
+        u8         *filter = D_801E3D70;
 
         do {
-            u8 unlocked = bitPtr[0xD22] & 1;
+            u8 lockBit = gs->mainData.partyLockFlag & 1;
             u8 f;
-            if (unlocked) {
+            if (lockBit) {
                 f = *filter;
                 if (f == 0) {
                     filter++;
@@ -238,7 +231,7 @@ void func_801E2990(void) {
                     goto inc_filter;
                 }
             }
-            if (*(u16 *)(gf + 0x10) != 0) {
+            if (*(u16 *)((u8 *)gf + 0x10) != 0) {
                 *out = i;
                 out++;
                 D_801E3DB8++;
@@ -247,7 +240,7 @@ void func_801E2990(void) {
             filter++;
         next:
             i++;
-            gf += 0x14;
+            gf++;
         } while (i < 0x14);
     }
 }
