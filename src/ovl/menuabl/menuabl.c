@@ -96,7 +96,7 @@ extern s32  func_801F0FEC(s32 ctx, s32 state, s32 x, s32 y, u8 *buf, s32 mode);
 extern s32  func_801F179C(s32 tickCb, s32 drawCb);
 extern void func_801F1AFC(void);
 extern void func_801F1B10(void);
-extern s32  func_801E39E0(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg);
+extern void func_801E3904();
 extern s32  func_801F5F30(s32 dl, s32 ot, s32 x, s32 y, s32 color, s32 pageStart);
 extern s32  func_801F5F60(s32 dl, s32 ot, s32 color, s32 arrows);
 extern s32  func_801F72B4(void);
@@ -843,22 +843,54 @@ s32 func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E3904);
 
 /**
- * @brief Configure GF ability list panel with scroll support and render.
+ * @brief Configure and draw the GF/secondary ability list panel with scrollbar.
  *
  * Sets up g_menuDisplayCfg with icon type 0x49, size 0xC6 x 0xA0, 11 rows,
- * copies scroll parameters from source data (offsets 0x38, 0x39),
- * stores the GF ability count and source pointer. If the count exceeds
- * 12, renders scrollbar via func_801F5F30/func_801F5F60. Scrollbar
- * arrow count depends on whether src+0x38 is zero (2 arrows) or not (1).
- * Registers func_801E3904 as the rendering callback.
+ * copies the secondary scroll/page state from @p s (field_34/field_38/field_39)
+ * and stores @p s as the data pointer. When the GF ability count
+ * (@c D_801E3DB8) is 12 or more, renders a scrollbar via
+ * func_801F5F30 + func_801F5F60; the scrollbar's arrow count is 2 when
+ * @c field_38 is zero (top of list) and 1 otherwise. Registers
+ * func_801E3904 as the per-cell rendering callback.
  *
- * @param a0 Source data pointer (GF ability state).
- * @param a1 OT pointer for rendering.
- * @param a2 Column position parameter.
- * @param a3 Panel X position.
+ * @param s        Sound menu state (provides field_34/_38/_39).
+ * @param ot       OT pointer for rendering.
+ * @param a2       Display state forwarded to scrollbar/callback (chain).
+ * @param a3       Panel X position.
  * @param stackArg Panel Y position (5th arg on stack).
+ * @return         Updated display state from func_801EFBB4.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E39E0);
+s32 func_801E39E0(SoundMenuState *s, s32 ot, s32 a2, s32 a3, s32 stackArg) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 callback;
+
+    cfg->iconType     = 0x49;
+    cfg->iconSubType  = 0;
+    cfg->x            = a3;
+    cfg->w            = 0xC6;
+    cfg->h            = 0xA0;
+    cfg->columnCount  = 0xB;
+    cfg->y            = stackArg;
+    cfg->pageStart    = s->field_38;
+    cfg->pageEnd      = s->field_39;
+    cfg->scrollOffset = s->field_34;
+    cfg->dataPtr      = (s32)s;
+
+    if (D_801E3DB8 >= 0xC) {
+        s32 scrollbar = func_801F5F30(ot, a2, a3 + 0x20, stackArg, g_menuColor, s->field_38);
+        s32 mode;
+        if (s->field_38 == 0) {
+            mode = 2;
+        } else {
+            mode = 1;
+            scrollbar++;
+            scrollbar--;
+        }
+        a2 = func_801F5F60(ot, scrollbar, g_menuColor, mode);
+    }
+    callback = (s32)func_801E3904;
+    return func_801EFBB4(ot, a2, callback);
+}
 
 /**
  * @brief Sound menu draw callback — composites all panels for the active frame.
@@ -914,7 +946,7 @@ s32 func_801E3AE0(SoundMenuState *s, s32 a1, s32 a2) {
     dl--;
     x = ((120 * (angle * 2)) / 4096) + 0xA2;
     if (angle < 0x1000) {
-        result = func_801E39E0((s32)s, a1, result, x, stackArg);
+        result = func_801E39E0(s, a1, result, x, stackArg);
     }
 
     func_801F1B10();
