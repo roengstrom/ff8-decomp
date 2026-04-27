@@ -49,5 +49,5 @@ segments:
     vram: 0x801E2800
     subsegments:
       - [0x0, c, menuabl]
-      - [0x1508, rodata]
+      - [0x1570, rodata]
   - [0x1584]

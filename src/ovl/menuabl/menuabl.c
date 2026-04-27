@@ -42,6 +42,35 @@ typedef struct {
     s16 displaySize;   /**< 0x2E: fixed to 0x1000 at init. */
 } AbilityMenuState;
 
+/**
+ * @brief Sound/music selection menu state used by @c func_801E2A34.
+ *
+ * 26-state machine handling track navigation, audio playback, and
+ * page transitions. field_3A is the primary grid index, field_3B the
+ * secondary; both are computed via div/mod by 11 throughout.
+ */
+typedef struct {
+    u8  pad_00[0x10];
+    u16 state;        /**< 0x10: state machine state (0-25). */
+    u8  pad_12[0xE];
+    s32 field_20;     /**< 0x20 */
+    s32 field_24;     /**< 0x24 */
+    u8  pad_28[0x4];
+    s16 field_2C;     /**< 0x2C: fade scale (0..0x1000). */
+    s16 field_2E;     /**< 0x2E: fade scale (secondary). */
+    s16 field_30;     /**< 0x30: countdown timer. */
+    s16 field_32;     /**< 0x32: page-scroll accumulator. */
+    s16 field_34;     /**< 0x34: secondary scroll accumulator. */
+    u8  field_36;     /**< 0x36: current page (primary). */
+    u8  field_37;     /**< 0x37: previous page (primary). */
+    u8  field_38;     /**< 0x38: current page (secondary). */
+    u8  field_39;     /**< 0x39: previous page (secondary). */
+    u8  field_3A;     /**< 0x3A: grid index (primary). */
+    u8  field_3B;     /**< 0x3B: grid index (secondary). */
+    u8  field_3C;     /**< 0x3C: mode/sub-state. */
+    u8  field_3D;     /**< 0x3D: last track id. */
+} SoundMenuState;
+
 
 extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;
@@ -64,9 +93,28 @@ extern s32  func_801F5F60(s32 dl, s32 ot, s32 color, s32 arrows);
 extern s32  func_801F72B4(void);
 
 extern void func_801E2990(void);
-extern void func_801E2A34();
+extern void func_801E2A34(SoundMenuState *s);
 extern void func_801E36AC();
 extern void func_801E3AE0();
+
+extern u8 D_8007809A;
+
+extern s32  func_801F6768(u16 flags, s32 max, s32 current);
+extern void func_801EFFE4(s32 trackId);
+extern void func_801F0BF8(s32 mode);
+extern void func_801F0C5C(u8 mode, void *ctx);
+extern s32  func_801F0D84(void);
+extern void func_801F18FC(s32 *ctx);
+extern s32  func_801F0BB0(void);
+extern void func_801F7BEC(s32 cfg);
+extern void func_801F23D0(s32 a0, s32 size, void *buf);
+extern void *func_801F6AA4(s32 id);
+extern void *func_801F6AFC(s32 id);
+extern void initSfxPlayback(s32 ch, u8 *buf);
+extern void sendSpuCommand(s32 cmd);
+extern void setSfxPitch(s32 ch, s32 pitch);
+extern void startSfxNormal(s32 ch);
+extern void fadeOutSfxFast(s32 ch);
 
 /**
  * @brief Render one cell of an ability grid at a per-slot X offset.
@@ -155,16 +203,443 @@ s32 func_801E2944(s32 a0) {
 INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2990);
 
 /**
- * @brief Main ability menu state machine handler.
+ * @brief Main sound/music menu state machine handler.
  *
- * Handles a 26-case switch for ability menu states including navigation,
- * selection, GF ability assignment, and menu transitions. Uses division
- * by 11 for grid position calculations throughout. Manages cursor
- * movement, ability equip/unequip, and input processing.
+ * Handles a 26-case switch for sound menu states including navigation,
+ * selection, audio playback, and menu transitions. Uses division by 11
+ * for grid position calculations throughout. Manages cursor movement,
+ * track preview, and input processing.
  *
- * @param a0 Menu state pointer.
+ * @param s Sound menu state pointer.
+ *
+ * @note Contains 4 inline asm statements (FIXME below) needed to force a
+ *       specific register-allocation pattern in cases 10 and 19. The
+ *       compiler's default allocation chose `$a0` for case 10's slot
+ *       result and `$s3` for case 19's sign-extend source; target uses
+ *       `$a2` and `$v0` respectively. The asm statements pin the addu's
+ *       destination to `$a2` and keep `slot`/`newSlot` alive across the
+ *       cast/comparison instructions to prevent register clobbering.
+ *       After 134K+ permuter generations no pure-C alternative was
+ *       found.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2A34);
+void func_801E2A34(SoundMenuState *s) {
+    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    u16 *statePtr = &s->state;
+    u16 btnFlags = cfg->inputNew;
+    u32 cfgFlags = cfg->inputRepeat;
+    u16 state = s->state;
+    s32 newSel;
+    s32 slot;
+    u8 *ptr;
+    u8 trackId;
+    u8 trackType;
+
+restart:
+    switch (state & 0xFFFF) {
+    case 0:
+        *statePtr = 1;
+        break;
+
+    case 1:
+        s->field_2C += 0x100;
+        if (s->field_2C >= 0x1000) {
+            s->field_2C = 0x1000;
+            *statePtr = 2;
+        }
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        break;
+
+    case 2:
+        *statePtr = 3;
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        break;
+
+    case 3: {
+        s32 page = s->field_3A / 11;
+        slot = s->field_3A % 11;
+        if (btnFlags & 0x8000) {
+            if (D_801E3D9C >= 12) {
+                state = 4;
+                goto restart;
+            }
+        }
+        if (btnFlags & 0x2000) {
+            if (D_801E3D9C >= 12) {
+                state = 6;
+                goto restart;
+            }
+        }
+        newSel = func_801F6768(btnFlags, 11, slot);
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        s->field_20 = func_801E2944(s->field_3A);
+        s->field_3A = (page * 11) + newSel;
+        if (cfgFlags & 0x40) {
+            s32 cur = s->field_3A;
+            if (cur < D_801E3D9C) {
+                u8 *trackPtr = &D_801E3D84[cur];
+                trackId = *trackPtr;
+                ptr = (u8 *)func_801E2920(trackId);
+                trackType = ptr[5];
+                if (trackType != 0xFF) {
+                    if (trackType == 0x81) {
+                        if (D_8007809A & 1) {
+                            ptr = (u8 *)func_801F6AA4(0x4F);
+                            func_801F23D0(0, 0x68, (void *)ptr);
+                            initSfxPlayback(0, ptr);
+                            *statePtr = 0x10;
+                            break;
+                        }
+                        sendSpuCommand(2);
+                        s->field_3C = 0xC;
+                        *statePtr = 0x12;
+                        break;
+                    }
+                    if (trackType == 0x80) {
+                        if (func_801E2934() == 0) {
+                            ptr = (u8 *)func_801F6AFC(0x36);
+                            func_801F23D0(0, 0x68, (void *)ptr);
+                            initSfxPlayback(0, ptr);
+                            *statePtr = 0x10;
+                            break;
+                        }
+                        sendSpuCommand(2);
+                        *statePtr = 8;
+                        break;
+                    }
+                    sendSpuCommand(2);
+                    s->field_3D = *trackPtr;
+                    *statePtr = 0x17;
+                    break;
+                }
+            }
+            sendSpuCommand(5);
+        }
+        if (cfgFlags & 0x10) {
+            sendSpuCommand(3);
+            *statePtr = 0x18;
+        }
+        break;
+    }
+
+    case 4: {
+        s32 page;
+        s32 newPage;
+        s32 maxPages;
+        s32 slot;
+        sendSpuCommand(1);
+        s->field_37 = s->field_36;
+        s->field_24 = s->field_20;
+        page = s->field_3A / 11;
+        newPage = page & 0xFF;
+        newPage = newPage - 1;
+        slot = s->field_3A % 11;
+        maxPages = (D_801E3D9C + 10) / 11;
+        if (newPage < 0) {
+            newPage = maxPages - 1;
+        }
+        s->field_3A = (newPage * 11) + slot;
+        s->field_36 = newPage;
+        s->field_32 = -0xE67;
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        s->field_20 = func_801E2944(s->field_3A);
+        *statePtr = 5;
+        break;
+    }
+
+    case 5:
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        s->field_32 += 0x199;
+        if (s->field_32 >= 0) {
+            s->field_32 = 0;
+            *statePtr = 3;
+        }
+        if (cfgFlags & 0x8000) {
+            *statePtr = 4;
+        }
+        if (cfgFlags & 0x2000) {
+            *statePtr = 6;
+        }
+        break;
+
+    case 6: {
+        s32 page;
+        s32 newPage;
+        s32 maxPages;
+        s32 slot;
+        sendSpuCommand(1);
+        s->field_37 = s->field_36;
+        s->field_24 = s->field_20;
+        page = s->field_3A / 11;
+        newPage = page & 0xFF;
+        newPage = newPage + 1;
+        slot = s->field_3A % 11;
+        maxPages = (D_801E3D9C + 10) / 11;
+        if (newPage >= maxPages) {
+            newPage = 0;
+        }
+        s->field_3A = (newPage * 11) + slot;
+        s->field_36 = newPage;
+        s->field_32 = 0xE67;
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        s->field_20 = func_801E2944(s->field_3A);
+        *statePtr = 7;
+        break;
+    }
+
+    case 7:
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        s->field_32 -= 0x199;
+        if (s->field_32 <= 0) {
+            s->field_32 = 0;
+            *statePtr = 3;
+        }
+        if (cfgFlags & 0x8000) {
+            *statePtr = 4;
+        }
+        if (cfgFlags & 0x2000) {
+            *statePtr = 6;
+        }
+        break;
+
+    case 8:
+        s->field_2E = 0x1000;
+        *statePtr = 9;
+        /* fall through */
+    case 9:
+        s->field_2E -= 0x100;
+        if (s->field_2E <= 0) {
+            s->field_2E = 0;
+            *statePtr = 0xA;
+        }
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        break;
+
+    case 10: {
+        s32 page = s->field_3B / 11;
+        slot = s->field_3B % 11;
+        if (D_801E3DB8 >= 12) {
+            if (btnFlags & 0x8000) {
+                if (page != 0) {
+                    state = 0xC;
+                    goto restart;
+                }
+            }
+            if (btnFlags & 0x2000) {
+                if (page == 0) {
+                    state = 0xE;
+                    goto restart;
+                }
+            }
+        }
+        newSel = func_801F6768(btnFlags, 11, slot);
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        {
+            /* FIXME: Inline asm needed to force `addu` destination to $a2.
+             *        Without this pin, GCC 2.7.2 picks $a0, breaking the
+             *        match. The explicit asm("addu...") prevents the
+             *        page*11 calculation from cascading through $a2. */
+            register s32 newSlot asm("$6");
+            asm("addu %0, %1, %2"
+                : "=r"(newSlot)
+                : "r"(page * 11), "r"(newSel));
+            s->field_3B = newSlot;
+            if (cfgFlags & 0x40) {
+                if (((u8)newSlot) < D_801E3DB8) {
+                    /* FIXME: Keep newSlot live past the andi (for the
+                     *        upcoming `(u8)newSlot` cast) so the andi
+                     *        writes to $v0 instead of clobbering $a2. */
+                    asm volatile("" : : "r"(newSlot));
+                    sendSpuCommand(2);
+                    trackId = D_801E3DA4[s->field_3B];
+                    func_801EFFE4(trackId);
+                    s->field_3C = 0xB;
+                    *statePtr = 0x12;
+                    break;
+                }
+                sendSpuCommand(5);
+            }
+        }
+        if (cfgFlags & 0x10) {
+            sendSpuCommand(3);
+            *statePtr = 0xB;
+            break;
+        }
+        break;
+    }
+
+    case 11:
+        s->field_2E += 0x100;
+        if (s->field_2E >= 0x1000) {
+            s->field_2E = 0x1000;
+            *statePtr = 3;
+        }
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        break;
+
+    case 12: {
+        s32 page;
+        s32 newPage;
+        s32 maxPages;
+        s32 slot;
+        sendSpuCommand(1);
+        s->field_39 = s->field_38;
+        page = s->field_3B / 11;
+        newPage = page & 0xFF;
+        newPage = newPage - 1;
+        slot = s->field_3B % 11;
+        maxPages = (D_801E3DB8 + 10) / 11;
+        if (newPage < 0) {
+            newPage = maxPages - 1;
+        }
+        s->field_3B = (newPage * 11) + slot;
+        s->field_38 = newPage;
+        s->field_34 = -0xE67;
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        *statePtr = 0xD;
+        break;
+    }
+
+    case 13:
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        s->field_34 += 0x199;
+        if (s->field_34 < 0) {
+            break;
+        }
+        s->field_34 = 0;
+        *statePtr = 0xA;
+        break;
+
+    case 14: {
+        s32 page;
+        s32 newPage;
+        s32 maxPages;
+        s32 slot;
+        sendSpuCommand(1);
+        s->field_39 = s->field_38;
+        page = s->field_3B / 11;
+        newPage = page & 0xFF;
+        newPage = newPage + 1;
+        slot = s->field_3B % 11;
+        maxPages = (D_801E3DB8 + 10) / 11;
+        if (newPage >= maxPages) {
+            newPage = 0;
+        }
+        s->field_3B = (newPage * 11) + slot;
+        s->field_38 = newPage;
+        s->field_34 = 0xE67;
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        *statePtr = 0xF;
+        break;
+    }
+
+    case 15:
+        func_801E28B4(0, s->field_3A, s->field_2C);
+        func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        s->field_34 -= 0x199;
+        if (s->field_34 > 0) {
+            break;
+        }
+        s->field_34 = 0;
+        *statePtr = 0xA;
+        break;
+
+    case 16:
+        sendSpuCommand(5);
+        s->field_30 = 0x258;
+        setSfxPitch(0, 0);
+        startSfxNormal(0);
+        *statePtr = 0x11;
+        /* fall through */
+    case 17:
+        s->field_30 -= 1;
+        if (cfgFlags & 0x50) {
+            func_801F7BEC(cfgFlags);
+            s->field_30 = 0;
+        }
+        if (s->field_30 <= 0) {
+            fadeOutSfxFast(0);
+            *statePtr = 3;
+            break;
+        }
+        break;
+
+    case 18:
+        func_801F0BF8(s->field_3C);
+        *statePtr = 0x13;
+        /* fall through */
+    case 19:
+        /* FIXME: Keep `slot` alive in $s3 across the function so cases 3
+         *        and 10 retain their `addu a2, s3, zero` arg-pass copies.
+         *        Without this barrier the compiler eliminates slot's
+         *        s-reg allocation and folds it into a temp register. */
+        asm volatile("" : : "r"(slot));
+        s->field_2C -= 0x100;
+        if (s->field_2C <= 0) {
+            s->field_2C = 0;
+            *statePtr = 0x14;
+        }
+        if (s->field_3C == 0xB) {
+            func_801E28B4(0, s->field_3A, s->field_2C);
+            func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+            break;
+        }
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        break;
+
+    case 20:
+        func_801F0C5C(s->field_3C, (void *)s);
+        *statePtr = 0x15;
+        break;
+
+    case 21:
+        if (func_801F0D84() == 0xE) {
+            *statePtr = 0x16;
+        }
+        break;
+
+    case 22:
+        s->field_2C = s->field_2C + 0x100;
+        if (s->field_3C != 0xB) {
+            func_801E28B4(1, s->field_3A, s->field_2C);
+        } else {
+            func_801E28B4(0, s->field_3A, s->field_2C);
+            func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
+        }
+        if (s->field_2C >= 0x1000) {
+            s->field_2C = 0x1000;
+            if (s->field_3C != 0xB) {
+                *statePtr = 3;
+            } else {
+                *statePtr = 0xA;
+            }
+        }
+        break;
+
+    case 23:
+        s->field_3C = 0x13;
+        state = 0x12;
+        goto restart;
+
+    case 24:
+        *statePtr = 0x19;
+        /* fall through */
+    case 25:
+        s->field_2C -= 0x100;
+        if (s->field_2C <= 0) {
+            s->field_2C = 0;
+            func_801F18FC((s32 *)s);
+            func_801F0BB0();
+        }
+        func_801E28B4(1, s->field_3A, s->field_2C);
+        break;
+    }
+}
 
 /**
  * @brief Configure and draw an ability menu panel border.
