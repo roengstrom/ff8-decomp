@@ -8,11 +8,12 @@ typedef struct {
     s16 angle;
 } MenuSlot;
 
-/** 8-byte ability-menu entry record; the byte at @c +5 is an id/flag
- *  (0xFF = empty, 0x80/0x81 = state-specific — see @c func_801E36AC). */
+/** 8-byte ability-menu entry record. */
 typedef struct {
-    u8 data[8];
-} AbilityEntry;
+    u8 pad00[5];
+    u8 status;     /**< 0xFF = empty, 0x80/0x81 = state-specific (see @c func_801E36AC). */
+    u8 pad06[2];
+} AbilityEntry; /* 8 bytes */
 
 /**
  * @brief Context passed to the ability-list panel configurators.
@@ -76,13 +77,15 @@ extern u8            D_801E3D84[];
 extern u8            D_801E3D9C;
 extern u8            D_801E3DA4[];
 extern u8            D_801E3DB8;
-extern u8            g_menuDisplayCfg[];
+extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32           g_menuColor;
 extern u16           D_801FA3C8[];
 extern AbilityEntry  D_8007CEE0[];
 
 extern void decodeMessage(u8 *src, u8 *dst, s32 mode);
 extern s32  getAbilityDesc(s32 id);
+extern u8  *getAbilityName(s32 abilityId);
+extern s32  func_8002FF34(s32 ctx, s32 a1, s32 a2, s32 x, s32 y, s32 color);
 extern s32  func_801EF9AC(s32 dl, s32 ot, s32 opaque, s32 color);
 extern void func_801EFBB4(s32 dl, s32 ot, s32 callback);
 extern void func_801F0A78(s32 ctx, s32 idx, s32 unused, s32 x, s32 y);
@@ -94,7 +97,6 @@ extern s32  func_801F72B4(void);
 
 extern void func_801E2990(void);
 extern void func_801E2A34(SoundMenuState *s);
-extern void func_801E36AC();
 extern void func_801E3AE0();
 
 extern u8 D_8007809A;
@@ -223,7 +225,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E2990);
  *       found.
  */
 void func_801E2A34(SoundMenuState *s) {
-    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     u16 *statePtr = &s->state;
     u16 btnFlags = cfg->inputNew;
     u32 cfgFlags = cfg->inputRepeat;
@@ -653,7 +655,7 @@ restart:
  * @param a3 Y position
  */
 void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
-    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
 
     cfg->iconType    = 0;
     cfg->iconSubType = 0;
@@ -680,7 +682,7 @@ void func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
  * @param yOff  Extra Y offset (5th arg, passed on stack).
  */
 s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
-    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     u8 **table = (u8 **)cfg->dataPtr;
     u8  buf[0x80];
     u8 *entry = table[idx];
@@ -710,7 +712,7 @@ s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
  * @param stackArg Panel Y position (5th arg on stack)
  */
 void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
     cfg->iconType     = 0x55;
@@ -730,21 +732,55 @@ void func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
 /**
  * @brief Render ability entry with conditional highlight in ability list.
  *
- * Computes x/y position from g_menuDisplayCfg base coordinates plus column/row
- * offsets derived from a2 (column * 11) and a3 (row * 13). If the computed
- * index is within bounds (D_801E3D9C), looks up the ability from D_801E3D84,
- * checks its type (0xFF = disabled, 0x80 = conditional, 0x81 = flag-based),
- * and determines the color code. Draws the entry via func_801F0FEC with
- * the ability name from getAbilityName.
+ * Draws an icon at column @p col, row @p row offset from g_menuDisplayCfg's
+ * base coordinates (with @p scrollOffset applied to the X axis). If the
+ * computed grid index is within bounds, looks up the ability id from
+ * D_801E3D84[index] and resolves the highlight color from the entry's
+ * status byte:
+ *   - 0xFF (empty) → highlight (color 1)
+ *   - 0x80 + func_801E2934() returns 0 → highlight
+ *   - 0x81 + low bit of D_8007809A set → highlight (blink)
+ *   - otherwise → normal (color 7)
  *
- * @param a0 Display context pointer.
- * @param a1 OT pointer.
- * @param a2 Column offset.
- * @param a3 Row offset.
- * @param stackArg X base offset.
- * @return Updated display list pointer.
+ * Renders the ability name via func_801F0FEC at (x + 24, y).
+ *
+ * @param ctx          Display context pointer.
+ * @param pkt          Current GPU packet pointer.
+ * @param col          Column offset (multiplied by 11 for grid stride).
+ * @param row          Row offset (multiplied by 13 for grid stride).
+ * @param scrollOffset Horizontal scroll offset added to base X.
+ * @return Updated GPU packet pointer.
  */
-INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
+s32 func_801E36AC(s32 ctx, s32 pkt, s32 col, s32 row, s32 scrollOffset) {
+    s32 x;
+    s32 y;
+    s32 index;
+    u8 abilityId;
+    AbilityEntry *entry;
+    s32 color;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 adj = scrollOffset + 11;
+
+    x = cfg->x + adj;
+    y = cfg->y + 10;
+    y = y + (row * 13);
+    index = (col * 11) + row;
+    if (index < D_801E3D9C) {
+        pkt = func_8002FF34(ctx, pkt, 0xDE, x, y - 2, g_menuColor);
+        x += 13;
+        abilityId = D_801E3D84[index];
+        entry = func_801E2920(abilityId);
+        if (entry->status == 0xFF
+            || (entry->status == 0x80 && func_801E2934() == 0)
+            || (entry->status == 0x81 && (D_8007809A & 1))) {
+            color = 1;
+        } else {
+            color = 7;
+        }
+        pkt = func_801F0FEC(ctx, pkt, x, y, getAbilityName(abilityId), color);
+    }
+    return pkt;
+}
 
 /**
  * @brief Configure ability list panel with character ability data and render.
@@ -762,7 +798,7 @@ INCLUDE_ASM("asm/ovl/menuabl/nonmatchings/menuabl", func_801E36AC);
  * @param stackArg Panel Y position (5th arg on stack).
  */
 void func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
-    MenuDisplayConfig *cfg = (MenuDisplayConfig *)g_menuDisplayCfg;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
     cfg->iconType     = 0x5E;
