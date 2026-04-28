@@ -27,7 +27,65 @@ void func_80098788(void) {
 void func_80098790(void) {
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098798);
+/**
+ * @brief Update animation frame state with timer-based debounce.
+ *
+ * Calls func_800275D4 then samples getAnimFrameParam for slot @p a0.
+ * If the frame param is unchanged from the previous tick, decrements
+ * D_800AB9F8 (timer1) or D_800ABA00 (timer2) until both expire, at
+ * which point the new state is committed (D_800ABA00 = 0 if bit 0x40
+ * set, else 2). On a change, timer1 is reset to 8 and timer2 set per
+ * the bit 0x40 flag.
+ *
+ * @param a0 Animation slot index (0 or 1).
+ * @return Last-committed previous-state value (caller may ignore).
+ */
+s32 func_80098798(s32 a0) {
+    extern s32 D_8009B54C[];
+    extern s32 D_800AB9F8[];
+    extern s32 D_800ABA00[];
+    extern void func_800275D4(s32 a0);
+    extern s32 getAnimFrameParam(s32 idx, s32 offset);
+
+    s32 prevArr[2];
+    s32 currArr[2];
+    s32 prevVal;
+    s32 v;
+
+    func_800275D4(a0);
+    v = getAnimFrameParam(a0, 0);
+    currArr[a0] = v;
+    prevVal = D_8009B54C[a0];
+
+    if (prevVal == v) {
+        if (D_800AB9F8[a0] == 0) {
+            if (D_800ABA00[a0] == 0) {
+                prevArr[a0] = prevVal;
+                if (currArr[a0] & 0x40) {
+                    D_800ABA00[a0] = 0;
+                } else {
+                    D_800ABA00[a0] = 2;
+                }
+            } else {
+                D_800ABA00[a0] = D_800ABA00[a0] - 1;
+                prevArr[a0] = 0;
+            }
+        } else {
+            D_800AB9F8[a0] = D_800AB9F8[a0] - 1;
+            prevArr[a0] = 0;
+        }
+    } else {
+        D_800AB9F8[a0] = 8;
+        if (currArr[a0] & 0x40) {
+            D_800ABA00[a0] = 0;
+        } else {
+            D_800ABA00[a0] = 2;
+        }
+        prevArr[a0] = currArr[a0];
+    }
+    D_8009B54C[a0] = currArr[a0];
+    return prevArr[a0];
+}
 
 /**
  * @brief Copy a null-terminated string into the name table.
