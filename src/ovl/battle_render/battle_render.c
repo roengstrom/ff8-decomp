@@ -1,6 +1,6 @@
 #include "common.h"
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098000);
+INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098688);
 
@@ -21,10 +21,10 @@ void func_80098768(u8 *a0) {
 void func_80098780(void) {
 }
 
-/**
- * @brief Two adjacent void stubs merged by splat.
- */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098788);
+
+void func_80098790(void) {
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098798);
 
@@ -240,6 +240,9 @@ void func_8009A60C(void) {
  * @return Byte sum of the buffer.
  */
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A630);
+
+void func_8009A664(void) {
+}
 
 /**
  * @brief Process render object and dispatch collision checks.
