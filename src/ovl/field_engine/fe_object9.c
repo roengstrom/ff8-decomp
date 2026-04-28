@@ -55,7 +55,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BB9A8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBA3C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBB14);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object9", func_800BBB20);
 

@@ -68,7 +68,7 @@ segments:
       - [0x37F2C, c, bc_object17]
       - [0x3B25C, c, bc_object18]
       - [0x3EAF4, c, bc_object19]
-      - [0x40FA4, c, bc_object20]
+      - [0x40F90, c, bc_object20]
       - [0x451B0, c, bc_object21]
       - [0x4860C, c, bc_object22]
       - [0x499B4, bin]

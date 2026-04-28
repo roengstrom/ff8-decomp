@@ -50,7 +50,6 @@ void func_800E073C(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E075C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E07E4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object22", func_800E07F8);
 

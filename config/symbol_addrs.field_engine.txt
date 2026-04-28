@@ -789,7 +789,6 @@ func_800BB90C = 0x800BB90C; // type:func
 func_800BB958 = 0x800BB958; // type:func
 func_800BB9A8 = 0x800BB9A8; // type:func
 func_800BBA3C = 0x800BBA3C; // type:func
-func_800BBB14 = 0x800BBB14; // type:func
 func_800BBB20 = 0x800BBB20; // type:func
 func_800BBBB4 = 0x800BBBB4; // type:func
 func_800BBC08 = 0x800BBC08; // type:func

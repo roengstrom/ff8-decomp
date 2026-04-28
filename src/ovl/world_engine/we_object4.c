@@ -84,7 +84,6 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800AB02C);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800AB06C);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800AB07C);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object4", func_800AB100);
 

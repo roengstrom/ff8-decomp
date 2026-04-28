@@ -521,7 +521,6 @@ void func_800C4764(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C4784);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object13", func_800C47BC);
 
 /**
  * @brief Wrapper for func_800C44E4.

@@ -16,7 +16,6 @@ s32 func_800B2C58(s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B872C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8740);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8754);
 
@@ -239,7 +238,6 @@ void func_800B8F98(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8FE4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9034);
 
 /**
  * @brief Initialize sound entry fields if D_800E3DA8 pointer is non-null.
