@@ -113,8 +113,6 @@ s32 func_800DA61C(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA62C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA634);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DA650);
 
 /**

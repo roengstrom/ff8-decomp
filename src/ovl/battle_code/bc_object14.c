@@ -266,8 +266,6 @@ void func_800C674C(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C675C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6764);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6784);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C67A4);

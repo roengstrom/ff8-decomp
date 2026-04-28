@@ -14,8 +14,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B91D8);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9288);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9290);
-
 /**
  * Copies several entity fields: 0x160->0x20E, 0x24E->0x24D,
  * 0x206->0x210, 0x208->0x212, 0x20A->0x214, 0x20C->0x216.

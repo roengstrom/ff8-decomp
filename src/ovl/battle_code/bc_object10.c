@@ -239,8 +239,6 @@ void func_800B8F98(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8FE4);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8FEC);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B9034);
 
 /**
