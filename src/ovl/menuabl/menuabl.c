@@ -1,83 +1,8 @@
 #include "common.h"
 #include "menu.h"
 #include "gamestate.h"
+#include "menuabl.h"
 
-/** 48-byte ability-menu slot; only @c angle at @c +0x2E is read here. */
-typedef struct {
-    u8  pad00[0x2E];
-    s16 angle;
-} MenuSlot;
-
-/** 8-byte ability-menu entry record. */
-typedef struct {
-    u8 pad00[5];
-    u8 status;     /**< 0xFF = empty, 0x80/0x81 = state-specific (see @c func_801E36AC). */
-    u8 pad06[2];
-} AbilityEntry; /* 8 bytes */
-
-/**
- * @brief Context passed to the ability-list panel configurators.
- *
- * Layout pieced together from @c func_801E3630 (uses @c items as dataPtr)
- * and @c func_801E381C (uses the whole ctx as dataPtr, plus @c pageStart
- * / @c pageEnd for scroll bookkeeping).
- */
-typedef struct {
-    u8  pad00[0x20];
-    u8  items[0x12];   /**< 0x20: item table (strings/pointers, passed as cfg.dataPtr). */
-    u16 scrollOff;     /**< 0x32: scroll offset source (copied to cfg.scrollOffset). */
-    u8  pad34[2];
-    u8  pageStart;     /**< 0x36 */
-    u8  pageEnd;       /**< 0x37 */
-} AbilityListCtx;
-
-/**
- * @brief Ability menu state struct registered via @c func_801F179C.
- */
-typedef struct {
-    u8  pad00[0x20];
-    s32 dataPtr;       /**< 0x20: cleared at init, filled by state machine. */
-    u8  pad24[4];
-    s32 abilityMask;   /**< 0x28: result of @c func_801F72B4. */
-    s16 state;         /**< 0x2C */
-    s16 displaySize;   /**< 0x2E: fixed to 0x1000 at init. */
-} AbilityMenuState;
-
-/**
- * @brief Sound/music selection menu state used by @c func_801E2A34.
- *
- * 26-state machine handling track navigation, audio playback, and
- * page transitions. field_3A is the primary grid index, field_3B the
- * secondary; both are computed via div/mod by 11 throughout.
- */
-typedef struct {
-    u8  pad_00[0x10];
-    u16 state;        /**< 0x10: state machine state (0-25). */
-    u8  pad_12[0xE];
-    s32 field_20;     /**< 0x20 */
-    s32 field_24;     /**< 0x24 */
-    u8  pad_28[0x4];
-    s16 field_2C;     /**< 0x2C: fade scale (0..0x1000). */
-    s16 field_2E;     /**< 0x2E: fade scale (secondary). */
-    s16 field_30;     /**< 0x30: countdown timer. */
-    s16 field_32;     /**< 0x32: page-scroll accumulator. */
-    s16 field_34;     /**< 0x34: secondary scroll accumulator. */
-    u8  field_36;     /**< 0x36: current page (primary). */
-    u8  field_37;     /**< 0x37: previous page (primary). */
-    u8  field_38;     /**< 0x38: current page (secondary). */
-    u8  field_39;     /**< 0x39: previous page (secondary). */
-    u8  field_3A;     /**< 0x3A: grid index (primary). */
-    u8  field_3B;     /**< 0x3B: grid index (secondary). */
-    u8  field_3C;     /**< 0x3C: mode/sub-state. */
-    u8  field_3D;     /**< 0x3D: last track id. */
-} SoundMenuState;
-
-
-extern const u8      D_801E3D70[20];
-extern u8            D_801E3D84[];
-extern u8            D_801E3D9C;
-extern u8            D_801E3DA4[];
-extern u8            D_801E3DB8;
 extern MenuDisplayConfig g_menuDisplayCfg;
 extern s32           g_menuColor;
 extern u16           D_801FA3C8[];
