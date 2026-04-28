@@ -1,5 +1,11 @@
 #include "common.h"
 
+extern s32 D_8009B54C[];
+extern s32 D_800AB9F8[];
+extern s32 D_800ABA00[];
+extern void func_800275D4(s32 a0);
+extern s32 getAnimFrameParam(s32 idx, s32 offset);
+
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098688);
@@ -41,12 +47,6 @@ void func_80098790(void) {
  * @return Last-committed previous-state value (caller may ignore).
  */
 s32 func_80098798(s32 a0) {
-    extern s32 D_8009B54C[];
-    extern s32 D_800AB9F8[];
-    extern s32 D_800ABA00[];
-    extern void func_800275D4(s32 a0);
-    extern s32 getAnimFrameParam(s32 idx, s32 offset);
-
     s32 prevArr[2];
     s32 currArr[2];
     s32 prevVal;
