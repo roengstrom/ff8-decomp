@@ -140,7 +140,6 @@ void func_800D08E4(void) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0904);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0920);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object17", func_800D0970);
 

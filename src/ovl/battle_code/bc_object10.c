@@ -184,7 +184,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8B98);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8BEC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8C08);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object10", func_800B8C6C);
 

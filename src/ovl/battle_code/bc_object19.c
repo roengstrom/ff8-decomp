@@ -15,7 +15,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6BAC);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6D00);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6D64);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D6D80);
 
@@ -140,7 +139,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D85B4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D868C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D86A4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object19", func_800D8734);
 
