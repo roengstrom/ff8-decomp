@@ -21,7 +21,8 @@ void func_80098768(u8 *a0) {
 void func_80098780(void) {
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098788);
+void func_80098788(void) {
+}
 
 void func_80098790(void) {
 }
