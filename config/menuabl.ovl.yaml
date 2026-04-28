@@ -21,7 +21,6 @@ options:
 
   # Analysis
   find_file_boundaries: True
-  disassemble_all: True
 
   # Symbols
   symbol_addrs_path:
@@ -49,4 +48,5 @@ segments:
     vram: 0x801E2800
     subsegments:
       - [0x0, c, menuabl]
+      - [0x1570, .rodata, menuabl_data]
   - [0x1584]
