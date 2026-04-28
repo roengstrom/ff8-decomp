@@ -26,9 +26,6 @@ extern s32  func_801F5F30(s32 dl, s32 ot, s32 x, s32 y, s32 color, s32 pageStart
 extern s32  func_801F5F60(s32 dl, s32 ot, s32 color, s32 arrows);
 extern s32  func_801F72B4(void);
 
-extern void func_801E2990(void);
-extern void func_801E2A34(SoundMenuState *s);
-
 extern u8 D_8007809A;
 
 extern s32  func_801F6768(u16 flags, s32 max, s32 current);
