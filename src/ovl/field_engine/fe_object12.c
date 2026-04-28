@@ -60,13 +60,3 @@ void func_800C0448(void) {
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C048C);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0634);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C06A0);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C2150);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C2834);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C292C);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C33A0);

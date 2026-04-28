@@ -65,5 +65,6 @@ segments:
       - [0x251F4, c, fe_object10]
       - [0x275D4, c, fe_object11]
       - [0x28098, c, fe_object12]
+      - [0x286A0, data, fe_object12_data]
       - [0x2B898, bin]
   - [0x2ED80]
