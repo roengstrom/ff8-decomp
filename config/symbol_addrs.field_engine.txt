@@ -845,7 +845,6 @@ func_800BFEF8 = 0x800BFEF8; // type:func
 func_800BFF38 = 0x800BFF38; // type:func
 func_800C0098 = 0x800C0098; // type:func
 func_800C00C8 = 0x800C00C8; // type:func
-func_800C03DC = 0x800C03DC; // type:func
 func_800C0448 = 0x800C0448; // type:func
 func_800C0634 = 0x800C0634; // type:func
 D_800C06A0 = 0x800C06A0; // type:u32

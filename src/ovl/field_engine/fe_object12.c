@@ -1,47 +1,33 @@
 #include "common.h"
+#include "gamestate.h"
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0098);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C00C8);
 
-/**
- * Sets bit 0x20 in the byte at g_gameState+0xD22.
- */
+/** @brief Sets bit 0x20 of the partyLockFlag. */
 void func_800C0384(void) {
-    extern u8 g_gameState[];
-
-    g_gameState[0xD22] = g_gameState[0xD22] | 0x20;
+    g_gameState.mainData.partyLockFlag |= 0x20;
 }
 
-/**
- * Clears bit 0x20 in the byte at g_gameState+0xD22.
- */
+/** @brief Clears bit 0x20 of the partyLockFlag. */
 void func_800C03A0(void) {
-    extern u8 g_gameState[];
-
-    g_gameState[0xD22] = g_gameState[0xD22] & ~0x20;
+    g_gameState.mainData.partyLockFlag &= ~0x20;
 }
 
-/**
- * Sets bit 0x10 in the byte at g_gameState+0xD22.
- */
+/** @brief Sets bit 0x10 of the partyLockFlag. */
 void func_800C03BC(void) {
-    extern u8 g_gameState[];
-
-    g_gameState[0xD22] = g_gameState[0xD22] | 0x10;
+    g_gameState.mainData.partyLockFlag |= 0x10;
 }
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03D8);
+/** @brief Clears bit 0x10 of the partyLockFlag. */
+void func_800C03D8(void) {
+    g_gameState.mainData.partyLockFlag &= ~0x10;
+}
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C03DC);
-
-/**
- * Sets bit 0x02 in the byte at g_gameState+0xD22.
- */
+/** @brief Sets bit 0x02 of the partyLockFlag. */
 void func_800C03F4(void) {
-    extern u8 g_gameState[];
-
-    g_gameState[0xD22] = g_gameState[0xD22] | 0x02;
+    g_gameState.mainData.partyLockFlag |= 0x02;
 }
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0410);
