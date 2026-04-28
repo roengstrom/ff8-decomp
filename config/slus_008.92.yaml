@@ -64,7 +64,9 @@ segments:
       - [0xF54, .rodata, btl_color]
       - [0xF80, rodata]
       - [0x116C, rodata]
-      - [0x1D2C, c, main]
+      - [0x1D2C, c, crt0]
+      - { start: 0x1DDC, type: data, name: start_data, linker_section_order: .text }
+      - [0x1DF0, c, main]
       - [0x34C8, c, snd_init]
       - [0x4EF0, c, snd_dma]
       - [0x57FC, c, snd_voice]
