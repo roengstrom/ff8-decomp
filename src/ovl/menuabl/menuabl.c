@@ -3,8 +3,6 @@
 #include "gamestate.h"
 #include "menuabl.h"
 
-extern MenuDisplayConfig g_menuDisplayCfg;
-extern s32           g_menuColor;
 extern u16           D_801FA3C8[];
 extern AbilityEntry  D_8007CEE0[];
 
