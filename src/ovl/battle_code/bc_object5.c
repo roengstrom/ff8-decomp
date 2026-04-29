@@ -1,5 +1,6 @@
 #include "common.h"
 #include "battle.h"
+#include "gamestate.h"
 
 extern u8 D_800ED148[];
 extern u8 D_800E3CEC[];
@@ -10,7 +11,6 @@ void func_800AB1AC(void);
 s32 func_8009B3D0(void *);
 s32 func_800B0398(s32);
 extern u8 D_80078E00[];
-extern u8 g_gameState[];
 extern u8 D_8007809A[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
@@ -534,16 +534,25 @@ s32 func_800AA9C8(s32 a0, s32 a1) {
 }
 
 /**
- * @brief Check battle state flag at g_gameState+0xCD4.
+ * @brief Test battleStateFlag, optionally inverted.
  *
- * If a0 == 0, returns 1 when the flag is zero (sltiu pattern).
- * If a0 == 3, returns 1 when the flag is nonzero (sltu pattern).
- * Otherwise returns 0.
+ * If a0 == 0, returns 1 when battleStateFlag is zero (no battle active).
+ * If a0 == 3, returns 1 when battleStateFlag is nonzero (battle active).
+ * Other values fall through with no explicit return.
  *
- * @param a0 Query mode (0 or 3).
- * @return Boolean result based on the flag value.
+ * @param a0 Query mode (0 = test no-battle, 3 = test in-battle).
+ * @return 1 or 0 based on the flag value.
  */
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAA10);
+s32 func_800AAA10(s32 a0) {
+    if (a0 == 0) {
+        volatile GameState *gs = &g_gameState;
+        return gs->mainData.battleStateFlag == 0;
+    }
+    if (a0 == 3) {
+        volatile GameState *gs = &g_gameState;
+        return gs->mainData.battleStateFlag != 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800AAA50);
 
