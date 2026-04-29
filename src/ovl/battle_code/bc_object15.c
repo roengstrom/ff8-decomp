@@ -46,48 +46,27 @@ u8 *func_800C749C(void) {
     return buf;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C74E0); /* 0x1A8 */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C7688); /* 0x44 */
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C74E0); /* 0x1EC */
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C76CC); /* 0xC0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C778C); /* 0x96C */
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C778C); /* 0x998 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C80F8); /* 0x2C */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8124); /* 0x124 */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8248); /* 0x2D0 */
-
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8124); /* 0x404 */
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8528); /* 0x18C */
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C86B4); /* 0x114 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C87C8); /* 0xE8 */
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C87C8); /* 0x2B0 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C88B0); /* 0x8C */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C893C); /* 0x13C */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8A78); /* 0xB0 */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8B2C); /* 0xA8 */
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8A78); /* 0x15C */
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8BD4); /* 0x138 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D0C); /* 0x3C */
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D0C); /* 0x148 */
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8D48); /* 0x68 */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8DB0); /* 0xA4 */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8E54); /* 0xBC */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8F10); /* 0xCC */
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8FDC); /* 0x38 */
+INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C8E54); /* 0x1C0 */
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object15", func_800C9014); /* 0xBC */
 
