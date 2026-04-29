@@ -1,14 +1,69 @@
 #include "common.h"
+#include "psxsdk/libetc.h"
 
+/** @brief Battle render command block (linked-list node, 0x10 bytes). */
+typedef struct CmdBlk_ {
+    struct CmdBlk_ *next;   /**< 0x00: next command in queue. */
+    u16 unk04;              /**< 0x04: command param (often x coordinate). */
+    u16 cmdId;              /**< 0x06: command ID/opcode. */
+    u16 unk08;              /**< 0x08: flags or count. */
+    u16 unk0A;              /**< 0x0A: padding/unused. */
+    void *dataPtr;          /**< 0x0C: command-specific data pointer. */
+} CmdBlk;
+
+/** @brief Battle render context (D_800D3C58 target), command queue at 0x4070. */
+typedef struct {
+    u8 padHeader[0x4070];
+    CmdBlk cmdQueueHead;
+} BattleRenderCtx;
+
+extern BattleRenderCtx *D_800D3C58;
 extern s32 D_8009B54C[];
 extern s32 D_800AB9F8[];
 extern s32 D_800ABA00[];
+extern u8 D_80098000[];
+extern u8 D_8009800C[];
+extern u8 D_80098018[];
+extern s32 D_800ABA08;
 extern void func_800275D4(s32 a0);
 extern s32 getAnimFrameParam(s32 idx, s32 offset);
+extern void func_8009AF64(void *cmd, ...);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098688);
+/**
+ * @brief Emit three debug-string render commands for the build banner.
+ *
+ * Stages three CmdBlk entries through the scratchpad and dispatches each
+ * via func_8009AF64. The commands draw the build date string ("Jul  4
+ * 1999"), the build time ("21:03:43"), and a formatted version field
+ * (" %x" with D_800ABA08) into the battle render queue at
+ * D_800D3C58->cmdQueueHead.
+ */
+void func_80098688(void) {
+    CmdBlk *cmd = (CmdBlk *)getScratchAddr(0);
+
+    cmd->unk04 = 0x1A;
+    cmd->cmdId = 0x16;
+    cmd->unk08 = 1;
+    cmd->next = &D_800D3C58->cmdQueueHead;
+    cmd->dataPtr = &D_80098000;
+    func_8009AF64(cmd);
+
+    cmd->unk04 = 0x1D;
+    cmd->cmdId = 0x17;
+    cmd->unk08 = 1;
+    cmd->next = &D_800D3C58->cmdQueueHead;
+    cmd->dataPtr = &D_8009800C;
+    func_8009AF64(cmd);
+
+    cmd->unk04 = 0x1A;
+    cmd->cmdId = 0x1A;
+    cmd->next = &D_800D3C58->cmdQueueHead;
+    cmd->unk08 = 1;
+    cmd->dataPtr = &D_80098018;
+    func_8009AF64(cmd, D_800ABA08);
+}
 
 /**
  * @brief Initialize render state flags.
