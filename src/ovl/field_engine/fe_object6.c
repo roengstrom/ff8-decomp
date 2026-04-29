@@ -1,5 +1,6 @@
 #include "common.h"
 #include "field.h"
+#include "gamestate.h"
 
 extern u8 D_80070652;
 
@@ -445,7 +446,17 @@ s32 func_800B414C(Eline *eline) {
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B417C);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B41B0);
+/**
+ * @brief Copy the global battle state flag into the script result register.
+ *
+ * @param eline Pointer to the event line (script context).
+ * @return 2 (continue processing).
+ */
+s32 func_800B41B0(Eline *eline) {
+    volatile GameState *gs = &g_gameState;
+    eline->field_0x140 = gs->mainData.battleStateFlag;
+    return 2;
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B41CC);
 
