@@ -54,7 +54,7 @@ segments:
       - [0x21C, .rodata, fe_object7]
       - [0x23C, rodata]
       - [0x314, c, fe_object1]
-      - [0x13188, c, fe_object2]
+      - [0x14B10, c, fe_object2]
       - [0x157AC, c, fe_object3]
       - [0x15B68, c, fe_object4]
       - [0x1885C, c, fe_object5]

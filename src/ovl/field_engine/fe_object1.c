@@ -563,33 +563,3 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AA5F8);
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AA870);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AA8A0);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AA8F8);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAD5C);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAE04);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAE40);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAEAC);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAED4);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAEFC);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAF30);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAF50);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAF84);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAFBC);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AAFEC);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AB02C);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AB07C);
-
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800AB100);
