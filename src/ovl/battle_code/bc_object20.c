@@ -162,7 +162,28 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DAA30);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DAD34);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DAD78);
+/**
+ * @brief Walk a bitmask high-to-low (start at 0x10000) and return the
+ *        first set bit ANDed with @p a0 (truncated to 16 bits).
+ *
+ * If @p a0 is zero, walking starts at bit 0x10000 and shifts right; once
+ * the walker reaches 0 it restarts at 0x8000. The caller is responsible
+ * for ensuring @p a1 has at least one bit set in 0x0..0xFFFF, otherwise
+ * the loop never terminates.
+ *
+ * @param a0 Initial bit-walker value (or 0 to start from 0x10000).
+ * @param a1 Bitmask to scan.
+ * @return First matching bit (low 16 bits), or 0 if @p a1 is zero.
+ */
+u32 func_800DAD78(u32 a0, u32 a1) {
+    if (a1 == 0) return a0 & 0xFFFF;
+    if (a0 == 0) a0 = 0x10000;
+    while (1) {
+        if (a0 & a1) return a0 & 0xFFFF;
+        a0 >>= 1;
+        if (a0 == 0) a0 = 0x8000;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object20", func_800DADB4);
 
