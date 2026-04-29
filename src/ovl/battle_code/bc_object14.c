@@ -29,13 +29,9 @@ void func_80049A94(s32, s32);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4A64);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4ABC);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4B78);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4D70);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C4E68);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5188);
 
@@ -146,8 +142,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C550C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C561C);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C56AC);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5758);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5848);
@@ -191,28 +185,16 @@ s32 func_800C5B88(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5BC8);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5CF4);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5D28);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5D58);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5D78);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5E68);
 
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C5F98);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6028);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6064);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C60A0);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6198);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C61E8);
 
 /**
  * @brief Update animation frame counter with optional palette reset.
@@ -264,12 +246,6 @@ void func_800C674C(void) {
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C675C);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C6784);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C67A4);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object14", func_800C68DC);
 
 /**
  * @brief Compute the difference between D_800FA4FC and D_800FA5F0.
