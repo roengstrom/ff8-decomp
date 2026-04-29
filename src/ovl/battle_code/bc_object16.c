@@ -16,10 +16,6 @@ u32 func_8009A2E0(void);
 void func_800D13CC(void);
 void func_800D5E48(void);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F50);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800C9F68);
-
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CA078);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CA344);
@@ -31,8 +27,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CA9F0);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CADD4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CB0DC);
-
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CB0F4);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object16", func_800CB31C);
 
