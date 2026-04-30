@@ -1,5 +1,28 @@
 #include "common.h"
 
+extern s16 D_801D49E2;
+extern s16 D_801D4B18;
+extern s16 D_801D4B1A;
+extern s32 D_801A2C74;
+extern s32 D_801D4560;
+extern s32 D_801D4B20[];
+extern s32 D_801D4B28[];
+extern s32 D_801D4B30[];
+extern s32 g_menuColor[];
+extern u8 D_8012E66C[];
+extern u8 D_80182E70[];
+extern u8 D_80182EC8[];
+extern u8 D_801C2DCA;
+extern u8 D_801C2DD0[];
+extern u8 D_801D4500[];
+extern u8 D_801D4568[];
+extern u8 D_801D4968[];
+extern u8 D_801D4978[];
+extern u8 D_801D49C8[];
+extern u8 D_801D49EC;
+extern s32 func_800A238C();
+extern s32 func_800A279C();
+
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1BE0);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1C6C);
@@ -15,7 +38,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A1D68);
  * @param a0 Object index.
  */
 void func_800A2054(s32 a0) {
-    extern u8 D_80182E70[];
     u8 *base = D_80182E70;
     u8 *entry;
 
@@ -68,7 +90,6 @@ void func_800A21C4(void) {
  * @brief Clear D_801D4560 to zero.
  */
 void func_800A2208(void) {
-    extern s32 D_801D4560;
     D_801D4560 = 0;
 }
 
@@ -87,8 +108,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2214);
  * @param a3 Parameter 3 (stored at word offset 4).
  */
 void func_800A22E8(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern s32 D_801D4560;
-    extern u8 D_801D4500[];
     s32 count = D_801D4560;
     if (count < 7) {
         u8 *entry;
@@ -122,8 +141,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A238C);
  * Clears the node's fields at offsets 0xC and 0xE.
  */
 void func_800A247C(void) {
-    extern u8 D_80182EC8[];
-    extern s32 func_800A238C();
     u8 *node;
     sndProcessAudio(D_80182EC8, 0);
     node = (u8 *)func_8009E248((s32)func_800A238C);
@@ -140,8 +157,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A24B4);
  * with mode 4. Finally sets bit 2 (0x4) in D_801A2C74.
  */
 void func_800A26C8(void) {
-    extern u8 D_801D4568[];
-    extern s32 D_801A2C74;
     u8 *base = D_801D4568;
     func_800A24B4(base);
     func_800A1D68(4, base, 0);
@@ -154,7 +169,6 @@ void func_800A26C8(void) {
  * Calls func_800A2054 with mode 4, then clears bit 2 (0x4) in D_801A2C74.
  */
 void func_800A271C(void) {
-    extern s32 D_801A2C74;
     func_800A2054(4);
     D_801A2C74 &= ~0x4;
 }
@@ -169,9 +183,6 @@ void func_800A271C(void) {
  * @return Always 0.
  */
 s32 func_800A274C(void) {
-    extern u8 D_801C2DCA;
-    extern u8 D_801C2DD0[];
-    extern u8 D_8012E66C[];
     s32 idx = D_801C2DCA ^ 1;
     func_80098A1C(D_801C2DD0 + idx * 92, D_8012E66C);
     return 0;
@@ -189,9 +200,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A279C);
  * @return Pointer to D_801D4968 list header.
  */
 u8 *func_800A2968(void) {
-    extern u8 D_801D4968[];
-    extern u8 D_801D4978[];
-    extern s32 func_800A279C();
     u8 *list = D_801D4968;
     u8 *node;
     func_80098BC0(list, D_801D4978, 0x10, 4);
@@ -213,7 +221,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A2A8C);
  * @return Value at D_801D4B20[a0].
  */
 s32 func_800A2B84(s32 a0) {
-    extern s32 D_801D4B20[];
     return D_801D4B20[a0];
 }
 
@@ -224,7 +231,6 @@ s32 func_800A2B84(s32 a0) {
  * @return Value at D_801D4B30[a0].
  */
 s32 func_800A2BA0(s32 a0) {
-    extern s32 D_801D4B30[];
     return D_801D4B30[a0];
 }
 
@@ -235,7 +241,6 @@ s32 func_800A2BA0(s32 a0) {
  * @return Value at D_801D4B28[a0].
  */
 s32 func_800A2BBC(s32 a0) {
-    extern s32 D_801D4B28[];
     return D_801D4B28[a0];
 }
 
@@ -316,7 +321,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object4", func_800A3EE0);
  * @param stack0 Index parameter; if >= 8, adjusted by -8 and table index 1 is used.
  */
 void func_800A4098(s32 a0, s32 a1, s32 a2, s32 a3, s32 stack0) {
-    extern s32 g_menuColor[];
     s32 idx;
     if (stack0 >= 8) {
         stack0 -= 8;
@@ -357,7 +361,6 @@ s32 func_800A443C(s32 a0) {
  * @param a0 Brightness value (scaled by 32).
  */
 void func_800A4478(s32 a0) {
-    extern u8 D_801D49C8[];
     u8 *base = D_801D49C8;
     s32 val;
     *(s16 *)(base + 0x1C) = a0;
@@ -377,7 +380,6 @@ void func_800A4478(s32 a0) {
  * @param a0 Byte value to store.
  */
 void func_800A44B0(s32 a0) {
-    extern u8 D_801D49EC;
     D_801D49EC = a0;
 }
 
@@ -385,7 +387,6 @@ void func_800A44B0(s32 a0) {
  * @brief Set D_801D49E2 to -256 (0xFF00).
  */
 void func_800A44BC(void) {
-    extern s16 D_801D49E2;
     D_801D49E2 = -256;
 }
 
@@ -396,7 +397,6 @@ void func_800A44BC(void) {
  * then calls func_800A2E44 for further reset.
  */
 void func_800A44CC(void) {
-    extern u8 D_801D49C8[];
     u8 *base = D_801D49C8;
     *(s16 *)(base + 0x1A) = 0x100;
     base[0x22] = 0;
@@ -416,9 +416,6 @@ void func_800A44CC(void) {
  * @param a1 Y position (stored at offset 2).
  */
 void func_800A4504(s32 a0, s32 a1) {
-    extern u8 D_801D49C8[];
-    extern s16 D_801D4B18;
-    extern s16 D_801D4B1A;
     u8 *base;
     *(s16 *)D_801D49C8 = a0;
     base = D_801D49C8;

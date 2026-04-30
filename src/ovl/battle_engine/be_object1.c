@@ -16,6 +16,9 @@ typedef struct {
 } PoolEntry;
 
 extern s32 D_801C2FD0;
+extern s32 D_801C2FD8;
+extern s32 D_801A2C6C;
+extern s32 D_801A2C74;
 extern PoolEntry D_801C2ED0[];
 extern u8 *D_801D2FE0;
 extern u8 *D_801D3000;
@@ -25,6 +28,20 @@ extern s16 D_80182B56;
 extern s16 D_80182B58;
 extern u8 D_801D2FF0[2][8];
 extern u8 D_801C2FE0[2][0x8000];
+extern u16 D_801C2EB8[];
+extern u16 D_801C2EC0[];
+extern u16 D_801C2EC8[];
+extern u8 D_800A45B8[];
+extern u8 D_800B7638[];
+extern u8 D_80182B84[];
+extern u8 D_801A2C78[];
+extern u8 D_801A2CE6;
+extern u8 D_801D3028[];
+extern u8 D_801D3038[];
+extern u8 D_801D31C0[];
+extern s32 func_80099C78();
+extern s32 func_8009A314();
+extern s32 func_8009A508();
 
 extern void func_8004D724(u8 *, s32, s32, s32);
 extern void func_8004D584(u8 *, u8 *);
@@ -39,12 +56,6 @@ extern void func_80049074(u8 *, s32);
  * func_80023B14 for each of the 110 (0x6E) object indices.
  */
 void func_8009822C(void) {
-    extern u8 D_800B7638[];
-    extern u8 D_800A45B8[];
-    extern s32 D_801A2C74;
-    extern s32 D_801A2C6C;
-    extern u8 D_801A2CE6;
-    extern u8 D_801A2C78[];
     s32 i;
 
     func_800A2D34();
@@ -85,9 +96,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_80098690);
  * and fills their respective 3-element history arrays with the initial values.
  */
 void func_80098828(void) {
-    extern u16 D_801C2EB8[];
-    extern u16 D_801C2EC0[];
-    extern u16 D_801C2EC8[];
     s32 i;
 
     func_800A2BD8();
@@ -106,7 +114,6 @@ void func_80098828(void) {
  * @brief Clear D_801C2FD0 to zero.
  */
 void func_800988D4(void) {
-    extern s32 D_801C2FD0;
     D_801C2FD0 = 0;
 }
 
@@ -194,7 +201,6 @@ void func_80098B68(void) {
  * @brief Set D_801C2FD8 to 0x1F800000 (scratchpad RAM base address).
  */
 void func_80098B70(void) {
-    extern s32 D_801C2FD8;
     D_801C2FD8 = 0x1F800000;
 }
 
@@ -208,7 +214,6 @@ void func_80098B70(void) {
  * @return The previous value of D_801C2FD8 (start of allocated block).
  */
 s32 func_80098B80(s32 a0) {
-    extern s32 D_801C2FD8;
     s32 old = D_801C2FD8;
     D_801C2FD8 = old + ((a0 + 3) & ~3);
     return old;
@@ -222,7 +227,6 @@ s32 func_80098B80(s32 a0) {
  * @param a0 Size to allocate (will be aligned up to 4).
  */
 void func_80098BA0(s32 a0) {
-    extern s32 D_801C2FD8;
     D_801C2FD8 -= (a0 + 3) & ~3;
 }
 
@@ -396,9 +400,6 @@ void func_80098DD4(void) {
  * @param a1 Height value (stored if >= 0).
  */
 void func_80098E54(s32 a0, s32 a1) {
-    extern s16 D_80182B5A;
-    extern s16 D_80182B56;
-    extern s16 D_80182B58;
     if (a0 >= 0) {
         D_80182B5A = a0;
         D_80182B56 = a0;
@@ -451,7 +452,6 @@ u8 *func_800990A0(s32 a0, u8 *a1) {
  * @return Pointer to the end of the written string.
  */
 u8 *func_80099134(s32 a0, u8 *a1) {
-    extern u8 D_80182B84[];
     u8 buf[20];
     u8 *dst = a1;
     u8 *p;
@@ -610,11 +610,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A508);
  * @return Pointer to D_801D3028 list header.
  */
 u8 *func_8009A650(void) {
-    extern u8 D_801D3028[];
-    extern u8 D_801D3038[];
-    extern s32 func_80099C78();
-    extern s32 func_8009A314();
-    extern s32 func_8009A508();
     u8 *list;
     u8 *node;
     func_8009C6D8();
@@ -696,7 +691,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object1", func_8009A7A4);
  * @param a1 Secondary parameter passed as third arg to func_8009A7A4.
  */
 void func_8009A878(s32 a0, s32 a1) {
-    extern u8 D_801D31C0[];
     s32 idx = func_8009A7A4(a0, 0, a1);
     if (idx >= 0) {
         s32 base = (s32)D_801D31C0;
