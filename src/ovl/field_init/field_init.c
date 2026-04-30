@@ -59,7 +59,6 @@ typedef struct {
 /* --- Externs (sorted by address) --- */
 
 extern s8 D_8005F170;
-extern u8 D_80078E00[];
 extern BattleConfig g_battleConfig;
 extern CardDataBlock g_cardData;
 extern u8 D_8008369C[];
@@ -102,7 +101,7 @@ void func_80098028(void) {
     }
 
     cdReadSync(D_80097800.sector, D_80097800.size, 0x801A0000, 0);
-    memcopy((u8 *)0x801A0000, D_80078E00, D_80097800.size);
+    memcopy((u8 *)0x801A0000, (u8 *)&D_80078E00, D_80097800.size);
 }
 
 /**

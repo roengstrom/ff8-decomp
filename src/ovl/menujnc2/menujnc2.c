@@ -8,7 +8,6 @@
 extern u8 *g_autoJunctionPriority[];
 
 extern u8 D_801EEAC0[];
-extern u8 D_80078E00[];
 extern JunctionMenuEntry g_junctionChars[];
 extern JunctionGfEntry g_junctionGfTable[];
 extern u8 g_junctionBackup[20];
@@ -1519,7 +1518,7 @@ s32 getAbilityNamePtr(s32 type, s32 index) {
     case 1:
         if (index < D_801EEF38) {
             u8 cmdId = D_801EEF10[index * 2];
-            gfData = D_80078E00;
+            gfData = (u8 *)&D_80078E00;
             stride = 8;
             /* g_gfData ability range J: typeField at offset 0x4180 + 5 = 0x4185 */
             result = getAbilityEntryDesc(gfData[(cmdId - 0x14) * stride + 0x4185]);

@@ -10,7 +10,6 @@ void func_800AB054(void);
 void func_800AB1AC(void);
 s32 func_8009B3D0(void *);
 s32 func_800B0398(s32);
-extern u8 D_80078E00[];
 extern u8 D_8007809A[];
 s32 func_800B0F9C(s32);
 s32 func_800B0F7C(s32);
@@ -44,7 +43,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A8EFC);
  */
 void func_800A8F98(s32 a0, s32 a1, s32 a2) {
     s32 entry = a0 + a2 * 5;
-    s32 tbl = (s32)D_80078E00;
+    s32 tbl = (s32)&D_80078E00;
     s32 lookup = a1 * 8;
     s32 b;
     *(u8 *)(entry + 0x32) = a1;
@@ -147,7 +146,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object5", func_800A960C);
  * @return Combined result from both lookups, masked to u16.
  */
 s32 func_800A972C(s32 a0) {
-    s32 addr = (s32)D_80078E00;
+    s32 addr = (s32)&D_80078E00;
     s32 base = addr + a0 * 20;
     s32 result = func_800B0F9C(*(u8 *)(base + 0x3EE7));
     result |= func_800B0F7C(*(u8 *)(base + 0x3EE7));

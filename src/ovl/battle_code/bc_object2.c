@@ -13,7 +13,6 @@ extern u8 D_800EEBC4[];
 extern u8 D_800EEBBB[];
 extern u8 D_800EE456[];
 extern u8 D_800EE4C0[];
-extern u8 D_80078E00[];
 extern u8 D_800EE476[];
 extern u8 D_800ED70C[];
 extern u8 D_800EEBBC[];
@@ -61,7 +60,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BAC4);
  * @return Combined ability flags (u16).
  */
 s32 func_8009BB3C(s32 a0) {
-    s32 addr = (s32)D_80078E00;
+    s32 addr = (s32)&D_80078E00;
     s32 base = addr + (a0 - 0x40) * 132;
     s32 result = func_800B0F9C(*(u8 *)(base + 0xF81));
     result |= func_800B0F7C(*(u8 *)(base + 0xF81));
@@ -430,7 +429,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F65C);
  * @return Byte at offset 0x228 within the table entry.
  */
 s32 func_8009F6F4(s32 idx) {
-    u8 *base = D_80078E00;
+    u8 *base = (u8 *)&D_80078E00;
     u8 *entry;
     asm("");
     entry = base + idx * 0x3C;

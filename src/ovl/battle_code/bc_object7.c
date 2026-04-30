@@ -3,7 +3,6 @@
 
 extern u8 D_800ED148[];
 extern u8 D_800EE490[];
-/* D_80078E00 is declared in battle.h as `extern BattleSceneData D_80078E00`. */
 extern u8 D_80082C10[];
 extern u8 D_80077EBC[];
 extern u8 D_800EE9E8[];
@@ -512,14 +511,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0D8C);
  *
  * @param a0 Entity parameter for func_800B0D8C and func_800B0CC4.
  */
-void func_800B0DDC(s32 a0) {
+s32 func_800B0DDC(s32 a0) {
     s32 val;
     if (*(u8 *)D_80082C10 & 2) {
         val = 0xFF;
     } else {
         val = func_800B0D8C(a0, 2);
     }
-    func_800B0CC4(a0, val);
+    return func_800B0CC4(a0, val);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0E30);
@@ -533,14 +532,14 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0E30);
  *
  * @param a0 Entity parameter for func_800B0D8C.
  */
-void func_800B0F3C(s32 a0) {
+s32 func_800B0F3C(s32 a0) {
     s32 val;
     if (*(u8 *)D_80082C10 & 1) {
         val = 0xFF;
     } else {
         val = func_800B0D8C(a0, 4);
     }
-    func_800B0E30(val);
+    return func_800B0E30(val);
 }
 
 /**
@@ -609,7 +608,7 @@ u16 func_800B1104(s32 a0) {
  * @return The command type that was dispatched, or 0 if no match / lookup failed.
  */
 s32 func_800B115C(s32 selfIdx, s32 cmdIdx, s32 *outId, u16 *outFlags) {
-    char m = func_8009B15C() % 3;
+    u8 m = func_8009B15C() % 3;
     s32 cmd = g_battleChars.chars[selfIdx].cmdSlots[cmdIdx].cmdType;
     s32 a;
     s32 v1;
