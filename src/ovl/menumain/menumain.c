@@ -58,6 +58,12 @@ extern MenuDisplayConfig g_menuDisplayCfg;
 extern u8 D_801F7FB0[];
 extern u8 D_801F7F74[];
 extern u8 D_80078D38[];
+extern u8 D_801FAB7C;
+extern u8 D_800562A4;
+extern u8 D_801F7DF4;
+extern u8 D_801F7E00;
+extern u8 D_801F7E0C;
+extern u8 D_801F87B8;
 
 u8 *func_801F08AC(u8 *, s32);
 s32 getGlyphWidthA(s32);
@@ -1340,12 +1346,6 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6888);
  * context structure with GF availability, character masks, and defaults.
  */
 void func_801F6934(void) {
-    extern u8 D_801FAB7C;
-    extern u8 D_800562A4;
-    extern u8 D_801F7DF4;
-    extern u8 D_801F7E00;
-    extern u8 D_801F7E0C;
-    extern u8 D_801F87B8;
     u8 *ctx;
 
     D_801FAB7C = 0;

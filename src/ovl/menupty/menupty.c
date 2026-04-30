@@ -1,5 +1,10 @@
 #include "common.h"
 
+extern u8 D_801E9528[];
+extern u8 D_801E9530[];
+extern u8 D_801E9540;
+extern u8 D_80077808[];
+
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5800);
 
 /**
@@ -13,7 +18,6 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5800);
  * @param a1 Render context pointer.
  */
 void func_801E58EC(u8 *a0, s32 a1) {
-    extern u8 D_801E9528[];
     s16 buf[36];
     func_801F5984(D_801E9528, buf, 4);
     func_801F0A34(a1, 0, buf[a0[0x40]] + 0x32, 0xD);
@@ -141,7 +145,6 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7318);
  * @return Filtered bitmask of characters matching the criteria.
  */
 s32 func_801E74DC(s32 a0) {
-    extern u8 D_80077808[];
     u8 *ptr = D_80077808;
     s32 result = 0;
     s32 i = 0;
@@ -169,7 +172,6 @@ s32 func_801E74DC(s32 a0) {
  * @return Filtered bitmask of characters matching the criteria.
  */
 s32 func_801E7530(s32 a0) {
-    extern u8 D_80077808[];
     u8 *ptr = D_80077808;
     s32 result = 0;
     s32 i = 0;
@@ -199,7 +201,6 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7584);
  * @param a0 Party context pointer.
  */
 void func_801E77AC(u8 *a0) {
-    extern u8 D_801E9540;
     s32 result;
     D_801E9540 = 0;
     result = func_801EFFB8();
@@ -219,7 +220,6 @@ void func_801E77AC(u8 *a0) {
  * @param a0 Menu context pointer
  */
 void func_801E77F8(s32 a0) {
-    extern u8 D_801E9540;
 
     func_801F1DBC(0x35);
     func_801E2ABC(a0);
@@ -251,7 +251,6 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E78BC);
  * @param a1 Party context pointer.
  */
 void func_801E7990(s32 a0, u8 *a1) {
-    extern u8 D_801E9530[];
     s32 ctx = a0;
     u8 *party = a1;
     s16 buf[36];

@@ -1,5 +1,10 @@
 #include "common.h"
 
+extern u32 D_800990B8[];
+extern s32 D_8009928C;
+extern s32 D_80099290;
+extern s32 D_80099294;
+
 INCLUDE_ASM("asm/ovl/display_init/nonmatchings/display_init", func_80098000);
 
 INCLUDE_ASM("asm/ovl/display_init/nonmatchings/display_init", func_8009818C);
@@ -17,8 +22,6 @@ INCLUDE_ASM("asm/ovl/display_init/nonmatchings/display_init", func_80098440);
  * calls cdReadAsyncSync to load it to address 0x8017D000.
  */
 void func_800985B4(void) {
-    extern u32 D_800990B8[];
-
     u32 *base = D_800990B8;
 
     cdReadAsyncSync(*(u32 *)((u8 *)base + 0x110),
@@ -34,7 +37,6 @@ void func_800985B4(void) {
  * until y >= 0x1BC.
  */
 void func_800985EC(void) {
-    extern u32 D_8009928C;
     s16 rect[4];
     s32 val;
     s16 y;
@@ -66,9 +68,6 @@ void func_800985EC(void) {
  * D_80099290 state flag and D_8009928C/D_80099294 during the transition.
  */
 void func_8009869C(void) {
-    extern s32 D_80099290;
-    extern s32 D_8009928C;
-    extern s32 D_80099294;
     s16 rect[4];
     s32 brightness;
     s32 i;
@@ -127,7 +126,6 @@ INCLUDE_ASM("asm/ovl/display_init/nonmatchings/display_init", func_80098974);
  *             1 for the alternate intro sequence (func_8009879C).
  */
 void func_80098FD4(s32 mode) {
-    extern s32 D_80099290;
     s16 rect[4];
 
     func_800488D4(1);

@@ -1,5 +1,11 @@
 #include "common.h"
 
+extern u8 D_801E764C[];
+extern u8 D_801E63EC[];
+extern u8 D_801E63F8[];
+extern u16 g_menuDisplayCfg[];
+extern s32 g_menuColor;
+
 void func_801E5800(s32 a0);
 void func_801E6170(s32 a0, s32 a1, s32 a2);
 
@@ -17,7 +23,6 @@ INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5AF0);
  * @return Pointer into D_801E764C data.
  */
 s32 func_801E5C0C(s32 a0) {
-    extern u8 D_801E764C[];
     u16 *table = (u16 *)D_801E764C;
     return table[a0 + 1] + (s32)D_801E764C;
 }
@@ -73,8 +78,6 @@ void func_801E5F5C(s32 ctx, s32 a1, s32 display, s32 colorData, s32 src) {
  * @param src Pointer to source coordinate/size struct (4 halfwords).
  */
 void func_801E6008(s32 a0, s32 a1, s32 xOff, s32 yOff, u16 *src) {
-    extern u16 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
 
     g_menuDisplayCfg[0] = src[0] + xOff;
     g_menuDisplayCfg[1] = src[1] + yOff;
@@ -106,9 +109,6 @@ INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6170);
  * the main state machine (func_801E5800).
  */
 void func_801E6290(void) {
-    extern u8 D_801E63EC[];
-    extern u8 D_801E63F8[];
-    extern u8 D_801E764C[];
 
     s32 ctx;
     s32 entryIdx;
