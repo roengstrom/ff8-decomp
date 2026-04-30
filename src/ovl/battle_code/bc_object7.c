@@ -3,7 +3,7 @@
 
 extern u8 D_800ED148[];
 extern u8 D_800EE490[];
-extern u8 D_80078E00[];
+/* D_80078E00 is declared in battle.h as `extern BattleSceneData D_80078E00`. */
 extern u8 D_80082C10[];
 extern u8 D_80077EBC[];
 extern u8 D_800EE9E8[];
@@ -125,7 +125,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFD0C);
  * @param a0 Entity index (stride 20).
  */
 void func_800AFF30(s32 a0) {
-    s32 base = (s32)D_80078E00;
+    s32 base = (s32)&D_80078E00;
     u8 *entry = (u8 *)(base + a0 * 20);
     resolveKernelPtr(*(u16 *)(entry + 0x3EE0), *(s32 *)(base + 0xA4));
 }
@@ -139,7 +139,7 @@ void func_800AFF30(s32 a0) {
  * @param a0 Entity index (offset by 0x40, stride 132).
  */
 void func_800AFF70(s32 a0) {
-    s32 base = (s32)D_80078E00;
+    s32 base = (s32)&D_80078E00;
     u8 *entry;
     a0 -= 0x40;
     entry = (u8 *)(base + a0 * 132);
@@ -155,7 +155,7 @@ void func_800AFF70(s32 a0) {
  * @param a0 Entity index (stride 20).
  */
 void func_800AFFB4(s32 a0) {
-    s32 base = (s32)D_80078E00;
+    s32 base = (s32)&D_80078E00;
     u8 *entry = (u8 *)(base + a0 * 20);
     resolveKernelPtr(*(u16 *)(entry + 0x17B8), *(s32 *)(base + 0x8C));
 }
@@ -303,7 +303,7 @@ u8 *func_800B0328(u8 *src) {
  * @param a0 Entity index (stride 8 in table).
  */
 void func_800B0360(s32 a0) {
-    u8 *base = D_80078E00;
+    u8 *base = (u8 *)&D_80078E00;
     u16 val = *(u16 *)(base + a0 * 8 + 0x4A5E);
     s32 arg = *(s32 *)(base + 0xD4);
     resolveKernelPtr(val, arg);
@@ -583,14 +583,81 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B1050);
  * @return Combined 16-bit ability flags.
  */
 u16 func_800B1104(s32 a0) {
-    BattleSceneSpells *buf = (BattleSceneSpells *)D_80078E00;
     s32 result;
-    result = func_800B1050(buf->spells[a0].magicId);
-    result |= func_800B0F7C(buf->spells[a0].magicId);
+    result = func_800B1050(D_80078E00.spells[a0].magicId);
+    result |= func_800B0F7C(D_80078E00.spells[a0].magicId);
     return (u16)result;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B115C);
+/**
+ * @brief Resolve the action ID and flags for one of the player's command slots.
+ *
+ * Picks a deterministic-but-pseudorandom variant via func_8009B15C() % 3 and
+ * dispatches on the command type stored at g_battleChars.chars[selfIdx].cmdSlots[cmdIdx].
+ *
+ * - cmd 1 / 12 (Attack-like): writes only *outFlags (no ID resolved).
+ * - cmd 2 (Magic): resolves a spell ID via func_800B0DDC; combined element/status flags
+ *   are read from D_80078E00.spells[id].magicId via func_800B0F9C/F7C/1104.
+ * - cmd 4 (GF/Item): resolves an ability ID via func_800B0F3C, calls func_800AF4BC(id, 1)
+ *   to consume a charge, then reads flags from D_80078E00.abilities[id].abilityId via
+ *   func_800B1050/F9C/F7C.
+ *
+ * @param selfIdx     Party slot index into g_battleChars.chars (0..2).
+ * @param cmdIdx      Command slot index (0..3) within the chosen char.
+ * @param outId       Output: resolved action ID, or 0xFF on lookup failure.
+ * @param outFlags    Output: combined 16-bit element/status flags.
+ * @return The command type that was dispatched, or 0 if no match / lookup failed.
+ */
+s32 func_800B115C(s32 selfIdx, s32 cmdIdx, s32 *outId, u16 *outFlags) {
+    char m = func_8009B15C() % 3;
+    s32 cmd = g_battleChars.chars[selfIdx].cmdSlots[cmdIdx].cmdType;
+    s32 a;
+    s32 v1;
+
+    *outId = 0;
+
+    switch (cmd) {
+    case 1:
+    case 12:
+        if ((m & 0xFF) != 0) {
+            *outFlags = func_800A980C();
+        } else {
+            *outFlags = func_800A9888();
+        }
+        return cmd;
+    case 2:
+        a = func_800B0DDC(selfIdx);
+        *outId = a;
+        if (a == 0xFF) {
+            return 0;
+        }
+        if ((m & 0xFF) != 0) {
+            *outFlags = func_800B1104(a);
+        } else {
+            v1 = func_800B0F9C(D_80078E00.spells[a].magicId);
+            v1 |= func_800B0F7C(D_80078E00.spells[*outId].magicId);
+            *outFlags = v1;
+        }
+        return cmd;
+    case 4:
+        a = func_800B0F3C(selfIdx);
+        *outId = a;
+        if (a == 0xFF) {
+            return 0;
+        }
+        func_800AF4BC(a, 1);
+        if ((m & 0xFF) != 0) {
+            v1 = func_800B1050(D_80078E00.abilities[*outId].abilityId);
+            v1 |= func_800B0F7C(D_80078E00.abilities[*outId].abilityId);
+        } else {
+            v1 = func_800B0F9C(D_80078E00.abilities[*outId].abilityId);
+            v1 |= func_800B0F7C(D_80078E00.abilities[*outId].abilityId);
+        }
+        *outFlags = v1;
+        return cmd;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B13A0);
 

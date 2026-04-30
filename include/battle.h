@@ -413,10 +413,9 @@ typedef struct {
 } CallbackNode;
 
 /**
- * @brief Spell record in the battle scene buffer (D_80078E00, stride 60).
+ * @brief Spell record in the battle scene buffer (D_80078E00.spells, stride 60).
  *
- * Array begins at offset 0x226 within D_80078E00. Only byte 0 of each
- * record is read by the known callers (treated as a magic ID byte).
+ * Only byte 0 (magicId) is read by the known callers.
  */
 typedef struct {
     u8 magicId;          /**< [0x00] Magic/spell ID byte (input to ability flag funcs) */
@@ -424,10 +423,9 @@ typedef struct {
 } BattleSpellRow; /* 60 bytes */
 
 /**
- * @brief Ability record in the battle scene buffer (D_80078E00, stride 24).
+ * @brief Ability record in the battle scene buffer (D_80078E00.abilities, stride 24).
  *
- * Array begins at offset 0x3939 within D_80078E00. Only byte 0 of each
- * record is read by the known callers (treated as an ability ID byte).
+ * Only byte 0 (abilityId) is read by the known callers.
  */
 typedef struct {
     u8 abilityId;        /**< [0x00] Ability ID byte (input to ability flag funcs) */
@@ -435,22 +433,18 @@ typedef struct {
 } BattleAbilityRow; /* 24 bytes */
 
 /**
- * @brief Spell-table view of D_80078E00 (BattleSpellRow array at offset 0x226).
+ * @brief Battle scene data buffer at D_80078E00 (loaded from disc, ~0x9E08 bytes).
  *
- * Cast D_80078E00 (a u8[]) to this struct to access the spell array
- * via D_80078E00->spells[id].magicId.
+ * Contains kernel-data pointers and various sub-arrays. Many regions remain
+ * unidentified — fields will be added as more code is decompiled.
  */
 typedef struct {
-    u8 pad0000[0x226];
-    BattleSpellRow spells[1];   /**< [0x226] Spell records (size unknown, index past) */
-} BattleSceneSpells;
+    /* 0x0000 */ u8 pad0000[0x226];
+    /* 0x0226 */ BattleSpellRow spells[1];     /**< 60-byte stride (size unknown, index past) */
+    /* 0x0262 */ u8 pad0262[0x36D7];
+    /* 0x3939 */ BattleAbilityRow abilities[1]; /**< 24-byte stride (size unknown, index past) */
+} BattleSceneData;
 
-/**
- * @brief Ability-table view of D_80078E00 (BattleAbilityRow array at offset 0x3939).
- */
-typedef struct {
-    u8 pad0000[0x3939];
-    BattleAbilityRow abilities[1];  /**< [0x3939] Ability records (size unknown, index past) */
-} BattleSceneAbilities;
+extern BattleSceneData D_80078E00;
 
 #endif /* BATTLE_H */
