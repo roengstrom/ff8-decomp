@@ -75,6 +75,19 @@ extern s16 D_8005F148;
 extern u16 D_8005F160;
 extern u16 D_8005F162;
 extern u8 D_80085388;
+extern u8 D_800C32A0[];
+extern u8 D_800C3320[];
+extern u8 D_800C3520[];
+extern s32 D_8005F0F8;
+extern s32 D_800C71E4;
+extern u8 D_800D5F50[];
+extern u8 D_800D61A8[];
+extern u8 D_8005F168[];
+extern s16 D_8005F122;
+extern s16 D_8005F14A;
+extern s16 D_8005F100;
+extern s16 D_8005F142;
+extern u8 D_8005F103;
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80098314);
 
@@ -214,7 +227,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009CEE8);
  * @return The halfword value at D_800C32A0[a0].
  */
 s16 func_8009D234(s32 a0) {
-    extern u8 D_800C32A0[];
     a0 &= 0xFF;
     return *(s16 *)(D_800C32A0 + a0 * 2);
 }
@@ -226,7 +238,6 @@ s16 func_8009D234(s32 a0) {
  * @return The halfword value at D_800C3320[a0].
  */
 s16 func_8009D254(s32 a0) {
-    extern u8 D_800C3320[];
     a0 &= 0xFF;
     return *(s16 *)(D_800C3320 + a0 * 2);
 }
@@ -381,8 +392,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A1BB8);
  * (0x200 x 0xF0 at 0x100, 0x10) and calls func_80048EFC.
  */
 void func_800A1C64(void) {
-    extern s32 D_8005F0F8;
-    extern s32 D_800C71E4;
     u8 *data = (u8 *)D_8005F0F8;
 
     if (*(u8 *)(data + 0xE) == 1) {
@@ -397,8 +406,6 @@ void func_800A1C64(void) {
 
 /** @brief Initialize 3 entries in D_800D5F50 and D_800D61A8 arrays to -1. */
 void func_800A1CC0(void) {
-    extern u8 D_800D5F50[];
-    extern u8 D_800D61A8[];
     s32 i = 0;
     s32 val = -1;
     u8 *a = D_800D5F50;
@@ -562,7 +569,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A42EC);
  * Zero 8 bytes of D_8005F168 (backwards loop).
  */
 void func_800A44D8(void) {
-    extern u8 D_8005F168[];
     s32 i = 7;
     volatile u8 *base = D_8005F168;
     u8 *ptr = (u8 *)base + 7;
@@ -581,7 +587,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A4500);
  * @param a0 The value to store.
  */
 void func_800A4550(s16 a0) {
-    extern s16 D_8005F122;
     D_8005F122 = a0;
 }
 
@@ -631,8 +636,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5898);
  * @param a0 Pointer to the script/object structure (unused).
  */
 void func_800A59D0(u8 *a0) {
-    extern s16 D_8005F14A;
-    extern s16 D_8005F100;
 
     if (D_8005F14A == 1) {
         resetCdDrive();
@@ -647,7 +650,6 @@ void func_800A59D0(u8 *a0) {
  * @param a0 The value to store.
  */
 void func_800A5A14(s16 a0) {
-    extern s16 D_8005F142;
     D_8005F142 = a0;
 }
 
@@ -662,8 +664,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A5C9C);
  * @return The byte from the D_800C3520 lookup table.
  */
 u8 func_800A5CF8(void) {
-    extern u8 D_8005F103;
-    extern u8 D_800C3520[];
 
     D_8005F103++;
     return D_800C3520[D_8005F103];

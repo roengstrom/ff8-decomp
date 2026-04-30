@@ -1,5 +1,17 @@
 #include "common.h"
 
+extern u8 D_801EC294;
+extern u8 D_801EC301;
+extern s32 D_8005620C;
+extern u8 D_80097424[];
+extern u8 D_800773C8[];
+extern u8 D_801EBD5C[];
+extern u16 D_801EBD24[];
+extern s32 D_801EC2E4;
+extern u8 g_gameState[];
+extern u16 g_menuDisplayCfg[];
+extern s32 g_menuColor;
+
 /**
  * @brief Compute save slot data address.
  *
@@ -16,7 +28,6 @@ s32 func_801E2800(s32 a0) {
  * @brief Set D_801EC294 flag to 1.
  */
 void func_801E2814(void) {
-    extern u8 D_801EC294;
     D_801EC294 = 1;
 }
 
@@ -35,7 +46,6 @@ s32 func_801E2824(void) {
  * @return Value of D_8005620C.
  */
 s32 func_801E282C(void) {
-    extern s32 D_8005620C;
     return D_8005620C;
 }
 
@@ -60,8 +70,6 @@ void func_801E283C(void) {
  * the game state region using table entry 0x12 from D_80097424.
  */
 void func_801E2860(void) {
-    extern u8 D_80097424[];
-    extern u8 D_800773C8[];
     s32 v0;
     s32 idx = 0x12;
 
@@ -433,7 +441,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E613C); /* 0x84 */
  * @param a3 Height value (0x1F added).
  */
 void func_801E61C0(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern s32 g_menuColor;
     s32 buf[2];
     *(u16 *)((u8 *)buf + 0) = a2 + 0x80;
     *(u16 *)((u8 *)buf + 2) = a3 + 0x1F;
@@ -493,7 +500,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268); /* 0x158 */
 
 /** @brief Call memzero16 with g_gameState and 0x13A. */
 void func_801E73C0(void) {
-    extern u8 g_gameState[];
     memzero16(g_gameState, 0x13A);
 }
 
@@ -555,7 +561,6 @@ void func_801E7428(void) {
  * @return Value of D_801EC2E4.
  */
 s32 func_801E74BC(void) {
-    extern s32 D_801EC2E4;
     return D_801EC2E4;
 }
 
@@ -598,7 +603,6 @@ s32 func_801E7524(s32 a0) {
  * @return XOR checksum value.
  */
 s32 func_801E7550(void) {
-    extern u8 g_gameState[];
     s32 base = g_gameState;
     s32 s0 = *(s32 *)(base + 0xCD0);
     s32 v1 = *(s32 *)(base + 0xB0C);
@@ -719,7 +723,6 @@ void func_801E7B18(u8 *a0) {
  *
  */
 s32 func_801E7B40(s32 a0) {
-    extern u8 D_801EBD5C[];
     s32 base = D_801EBD5C;
     return base + a0 * 68;
 }
@@ -818,8 +821,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4); /* 0xB0 */
  * @param src Pointer to source rectangle (4 halfwords: x, y, w, h).
  */
 void func_801E9D84(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
-    extern s32 g_menuColor;
-    extern u16 g_menuDisplayCfg[];
     g_menuDisplayCfg[0] = src[0] + a2;
     g_menuDisplayCfg[1] = src[1] + a3;
     g_menuDisplayCfg[2] = src[2];
@@ -863,7 +864,6 @@ void func_801EAE4C(void) {
  * @brief Call func_801EAE4C then clear D_801EC301.
  */
 void func_801EAE74(void) {
-    extern u8 D_801EC301;
     func_801EAE4C();
     D_801EC301 = 0;
 }
@@ -1099,7 +1099,6 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EB334); /* 0xD4 */
  * @return Result of func_801EB1DC
  */
 s32 func_801EB408(s32 a0, s32 a1) {
-    extern u16 D_801EBD24[];
     s32 v0;
     s32 a0_new;
 
