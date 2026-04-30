@@ -7,6 +7,9 @@ extern s32 getMagicNamePtr(s32 a0);
 extern s32 getCharNamePtr(s32 a0);
 extern void copyString(s32 a0, s32 a1);
 extern s32 func_801F79F8(s32 a0);
+extern u8 D_801EC814[];
+extern u8 g_menuDisplayCfg[];
+extern void func_801EB1A0();
 
 typedef struct {
     u8 flags;
@@ -446,7 +449,6 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801E6940);
  * @param a2 Index into the stat table (0-7).
  */
 void func_801E69EC(u8 *a0, s32 a1, s32 a2) {
-    extern u8 D_801EC814[];
     s16 buf[32];
     s32 stat;
 
@@ -573,8 +575,6 @@ INCLUDE_ASM("asm/ovl/menumgc/nonmatchings/menumgc", func_801EB1A0);
  * @param arg4 Y2 position for menu display.
  */
 void func_801EB250(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 g_menuDisplayCfg[];
-    extern void func_801EB1A0();
     u8 *cfg = g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;

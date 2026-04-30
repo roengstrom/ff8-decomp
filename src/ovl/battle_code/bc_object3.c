@@ -164,7 +164,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A20AC);
  * @return Number of active displayed party members (0-3).
  */
 s32 func_800A2150(void) {
-    extern u8 g_battleChars[];
     s32 count = 0;
     s32 i = 0;
     u8 *display = g_battleChars;
@@ -634,8 +633,6 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object3", func_800A5688);
  * @param idx Entity index.
  */
 void func_800A5778(s32 idx) {
-    extern u8 D_800ED158[];
-    extern u8 g_battleChars[];
     u8 *src = D_800ED158 + idx * 0xD0;
     u8 *dst = g_battleChars + idx * 0x1D0;
 
