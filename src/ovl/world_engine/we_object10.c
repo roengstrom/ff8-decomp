@@ -4,6 +4,7 @@
 #include "world.h"
 
 extern u8 D_800786D8;
+extern u8 D_800780D8[];
 extern SlotEntry D_800DBFB8[];
 extern s32 D_800C5B50;
 
@@ -94,7 +95,6 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object10", func_800BD82C);
  * @param dst Destination buffer pointer.
  */
 void func_800BD918(u8 *dst) {
-    extern u8 D_800780D8[];
     u8 *src = D_800780D8;
 
     dst[0x66] = src[0x108];

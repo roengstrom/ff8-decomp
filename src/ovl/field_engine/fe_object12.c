@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gamestate.h"
 
+extern u8 D_80077BA8[];
+
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0098);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C00C8);
@@ -37,8 +39,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object12", func_800C0410);
  * then calls memzero16 with D_80077BA8 and mode 4.
  */
 void func_800C0448(void) {
-    extern u8 D_80077BA8[];
-
     memcopy(D_80077BA8, D_80077BA8 - 0x98, 0x40);
     memzero16(D_80077BA8, 4);
 }

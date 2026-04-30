@@ -1,6 +1,8 @@
 #include "common.h"
 #include "world.h"
 
+extern u8 g_gameState[];
+
 /* 4-byte slot read as either a full word or just the low halfword */
 typedef union {
     u32 word;
@@ -1099,7 +1101,6 @@ s32 func_800BD040(void) {
  * @brief Subtract a clamped value from the HP-like counter at g_gameState+0xB0C.
  */
 s32 func_800BD058(s32 amount) {
-    extern u8 g_gameState[];
     s32 base = (s32)g_gameState;
     s32 max;
 

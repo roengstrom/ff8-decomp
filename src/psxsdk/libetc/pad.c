@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern s32 D_8005E97C;
+
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc/pad", SetInitPadFlag);
 
 /**
@@ -12,7 +14,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc/pad", SetInitPadFlag);
  * @return Non-zero if pad has been initialized, 0 otherwise.
  */
 s32 ReadInitPadFlag(void) {
-    extern s32 D_8005E97C;
     return D_8005E97C;
 }
 

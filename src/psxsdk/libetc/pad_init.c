@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern u32 D_8008A6D0;
+
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc/pad_init", PadInit);
 
 /**
@@ -13,7 +15,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc/pad_init", PadInit);
  * @return Bitmask of currently pressed buttons (active-high).
  */
 u32 PadRead(void) {
-    extern u32 D_8008A6D0;
     PAD_dr();
     return ~D_8008A6D0;
 }

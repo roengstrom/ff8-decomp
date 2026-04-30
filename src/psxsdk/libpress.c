@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern s32 *D_8005DB10;
+
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", DecDCTReset);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", DecDCTGetEnv);
@@ -80,7 +82,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", LIBPRESS_OBJ_5E4);
  * @return The current MDEC status word.
  */
 s32 LIBPRESS_OBJ_5F4(void) {
-    extern s32 *D_8005DB10;
     return *D_8005DB10;
 }
 

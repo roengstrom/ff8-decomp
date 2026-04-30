@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern u8 D_80085230[];
+
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9078);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B90C0);
@@ -161,7 +163,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object8", func_800B9F88);
  * @return 2 (continue processing).
  */
 s32 func_800BA034(u8 *a0) {
-    extern u8 D_80085230[];
     u8 idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
     *(u8 *)(a0 + 0x241) = func_8009E604(a0, *(s32 *)(D_80085230 + *(s32 *)(a0 + (s8)idx * 4) * 4));
