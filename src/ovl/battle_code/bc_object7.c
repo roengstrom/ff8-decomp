@@ -1,4 +1,5 @@
 #include "common.h"
+#include "battle.h"
 
 extern u8 D_800ED148[];
 extern u8 D_800EE490[];
@@ -572,23 +573,20 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0F9C);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B1050);
 
 /**
- * @brief Compute combined ability flags for entity at given index.
+ * @brief Compute combined ability flags for the spell record at the given ID.
  *
- * Computes entity address at D_80078E00 + a0 * 60, reads the ability
- * byte at entity offset 0x226, passes it to func_800B1050 and
- * func_800B0F7C, and returns the OR of both results masked to 16 bits.
+ * Indexes into the spell array at offset 0x226 of D_80078E00 (stride 60),
+ * reads the magicId byte, passes it to func_800B1050 and func_800B0F7C,
+ * and returns the OR of both results masked to 16 bits.
  *
- * @param a0 Entity index (stride 60).
+ * @param a0 Spell ID (index into BattleSceneSpells.spells).
  * @return Combined 16-bit ability flags.
  */
 u16 func_800B1104(s32 a0) {
-    u8 *base;
-    u8 *entity;
+    BattleSceneSpells *buf = (BattleSceneSpells *)D_80078E00;
     s32 result;
-    base = D_80078E00;
-    entity = base + a0 * 60;
-    result = func_800B1050(entity[0x226]);
-    result |= func_800B0F7C(entity[0x226]);
+    result = func_800B1050(buf->spells[a0].magicId);
+    result |= func_800B0F7C(buf->spells[a0].magicId);
     return (u16)result;
 }
 

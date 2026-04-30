@@ -412,4 +412,45 @@ typedef struct {
     u8 *listPtr;    /* 0x0C: pointer to an inner list head */
 } CallbackNode;
 
+/**
+ * @brief Spell record in the battle scene buffer (D_80078E00, stride 60).
+ *
+ * Array begins at offset 0x226 within D_80078E00. Only byte 0 of each
+ * record is read by the known callers (treated as a magic ID byte).
+ */
+typedef struct {
+    u8 magicId;          /**< [0x00] Magic/spell ID byte (input to ability flag funcs) */
+    u8 unk01[0x3B];      /**< [0x01..0x3F] Remaining record bytes */
+} BattleSpellRow; /* 60 bytes */
+
+/**
+ * @brief Ability record in the battle scene buffer (D_80078E00, stride 24).
+ *
+ * Array begins at offset 0x3939 within D_80078E00. Only byte 0 of each
+ * record is read by the known callers (treated as an ability ID byte).
+ */
+typedef struct {
+    u8 abilityId;        /**< [0x00] Ability ID byte (input to ability flag funcs) */
+    u8 unk01[0x17];      /**< [0x01..0x17] Remaining record bytes */
+} BattleAbilityRow; /* 24 bytes */
+
+/**
+ * @brief Spell-table view of D_80078E00 (BattleSpellRow array at offset 0x226).
+ *
+ * Cast D_80078E00 (a u8[]) to this struct to access the spell array
+ * via D_80078E00->spells[id].magicId.
+ */
+typedef struct {
+    u8 pad0000[0x226];
+    BattleSpellRow spells[1];   /**< [0x226] Spell records (size unknown, index past) */
+} BattleSceneSpells;
+
+/**
+ * @brief Ability-table view of D_80078E00 (BattleAbilityRow array at offset 0x3939).
+ */
+typedef struct {
+    u8 pad0000[0x3939];
+    BattleAbilityRow abilities[1];  /**< [0x3939] Ability records (size unknown, index past) */
+} BattleSceneAbilities;
+
 #endif /* BATTLE_H */
