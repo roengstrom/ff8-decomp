@@ -7,6 +7,8 @@
 /** @brief Auto-junction priority tables (Atk/Mag/Def), each a 0xFF-terminated slot type list. */
 extern u8 *g_autoJunctionPriority[];
 
+extern u8 D_801EEAC0[];
+extern u8 D_80078E00[];
 extern JunctionMenuEntry g_junctionChars[];
 extern JunctionGfEntry g_junctionGfTable[];
 extern u8 g_junctionBackup[20];
@@ -588,7 +590,6 @@ void renderStatListEntry(s32 renderCtx, s32 slotIdx) {
  * @return Masked flags value, or 0 if type >= 19.
  */
 s32 getJunctionSlotFlags(s32 charIdx, s32 slotOffset) {
-    extern u8 D_801EEAC0[];
     u32 flags;
 
     flags = g_junctionChars[charIdx].availFlags;
@@ -696,7 +697,6 @@ s32 getJunctionSlotCount(s32 charIdx, s32 slotType) {
  * @return 32-bit bitmask of available magic slots.
  */
 s32 buildMagicAvailMask(s32 charIdx, s32 slotOffset) {
-    extern u8 D_801EEAC0[];
     u8 *magic = (u8 *)g_gameState.chars[charIdx].magic;
     s32 result = 0;
     u32 type = D_801EEAC0[slotOffset];
@@ -1508,8 +1508,6 @@ void previewJunctionChange(s32 charIdx, s32 gfIdx, s32 slot, s32 abilityId) {
  * @return Name string pointer, or 0 if not found.
  */
 s32 getAbilityNamePtr(s32 type, s32 index) {
-    extern u8 D_801EEAC0[];
-    extern u8 D_80078E00[];
     s32 result;
     u8 *gfData;
     s32 stride;

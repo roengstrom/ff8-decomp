@@ -1,6 +1,8 @@
 #include "common.h"
 #include "field.h"
 
+extern u8 D_800DE4FD[];
+
 /**
  * @brief Pop value from script stack and branch to one of two handlers.
  *
@@ -70,13 +72,11 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object10", func_800BD9C4);
  * @return The value of D_800DE4FD.
  */
 u8 func_800BE264(void) {
-    extern u8 D_800DE4FD;
-    return D_800DE4FD;
+    return D_800DE4FD[0];
 }
 
 /** @brief Call func_801E8B84 if D_800DE4FD bit 1 is set. Returns result or 0. */
 s32 func_800BE274(void) {
-    extern u8 D_800DE4FD[];
     if (*(u8 *)D_800DE4FD & 2) {
         return func_801E8B84();
     }
@@ -85,7 +85,6 @@ s32 func_800BE274(void) {
 
 /** @brief Call func_801E8804 if D_800DE4FD bit 1 is set. */
 void func_800BE2AC(void) {
-    extern u8 D_800DE4FD[];
     if (*(u8 *)D_800DE4FD & 2) {
         func_801E8804();
     }
@@ -93,7 +92,6 @@ void func_800BE2AC(void) {
 
 /** @brief Call func_801E888C if D_800DE4FD bit 1 is set. */
 void func_800BE2DC(void) {
-    extern u8 D_800DE4FD[];
     if (*(u8 *)D_800DE4FD & 2) {
         func_801E888C();
     }

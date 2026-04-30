@@ -1,5 +1,10 @@
 #include "common.h"
 
+extern u8 D_8005D674;
+extern u8 D_8005D680;
+extern u8 D_8005D684;
+extern u8 D_8005D685;
+
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", CdInit);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", EVENT_OBJ_74);
@@ -35,7 +40,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", EVENT_OBJ_D4);
  * @return The CD-ROM status byte.
  */
 u8 CdStatus(void) {
-    extern u8 D_8005D674;
     return D_8005D674;
 }
 
@@ -49,7 +53,6 @@ u8 CdStatus(void) {
  * @return The CD-ROM mode byte.
  */
 u8 CdMode(void) {
-    extern u8 D_8005D684;
     return D_8005D684;
 }
 
@@ -62,7 +65,6 @@ u8 CdMode(void) {
  * @return The last CD-ROM command code.
  */
 u8 CdLastCom(void) {
-    extern u8 D_8005D685;
     return D_8005D685;
 }
 
@@ -75,7 +77,6 @@ u8 CdLastCom(void) {
  * @return Pointer to the internal CdlLOC position structure.
  */
 u8 *CdLastPos(void) {
-    extern u8 D_8005D680;
     return &D_8005D680;
 }
 
