@@ -98,14 +98,12 @@ void func_800B3868(TrackObj *obj) {
     func_800406A4(&D_800C9838);
     func_80040734(&D_800C9838);
 
-    current = obj->entries;
-    for (i = 0; i < obj->count; i++, current++) {
+    for (i = 0, current = obj->entries; i < obj->count; i++, current++) {
         current->status = -1;
         current->unk30 = -1;
     }
 
-    current = obj->entries;
-    for (i = 0; i < obj->count; i++, current++) {
+    for (i = 0, current = obj->entries; i < obj->count; i++, current++) {
         if (current->status == -1) {
             current->status = func_800B01A0(viewY, viewX, current, &current->posX, &current->unk30, current->unk2C);
         }
