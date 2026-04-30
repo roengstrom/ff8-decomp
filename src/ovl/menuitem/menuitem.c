@@ -1,4 +1,38 @@
 #include "common.h"
+#include "menu.h"
+
+typedef struct {
+    u8 b0, b1, b2, b3;
+} ItemEntry4;
+
+extern ItemEntry4 D_801F889C[];
+extern s32 D_80083850;
+extern s32 D_801ECC10;
+extern s32 D_801ECE20;
+extern s32 D_801ECE24;
+extern s32 D_801ECE28;
+extern s32 D_801ECE2C;
+extern s32 D_801ECE30;
+extern s32 D_801ECE34;
+extern s32 D_801ECE38;
+extern s32 D_801ECEDC;
+extern s32 D_801ECEE0;
+extern s32 D_801ECEE4;
+extern s32 D_801ECEE8;
+extern u8 D_801EB17C[];
+extern u8 D_801EB188[];
+extern u8 D_801EB194[];
+extern u8 D_801EB1D8[];
+extern u8 D_801EB330[];
+extern u8 D_801EB4BC[];
+extern u8 D_801EC710[];
+extern u8 D_801ECB20[];
+extern u8 D_801ECB60[];
+extern u8 g_gameState[];
+extern s32 func_801E2EA8(s32);
+extern s32 func_801EFFD4(void);
+extern s32 func_801F79F8(s32);
+extern void func_801E80D0();
 
 void func_801E4EA4(s32);
 void func_801E95C4(void);
@@ -8,7 +42,6 @@ s32 func_801EAC54(s32, s32, s32);
 
 /** @brief Store item menu state pointer. */
 void func_801E2800(s32 a0) {
-    extern s32 D_801ECE20;
     D_801ECE20 = a0;
 }
 
@@ -18,7 +51,6 @@ void func_801E2800(s32 a0) {
  * @return Value of D_801ECE20.
  */
 s32 func_801E280C(void) {
-    extern s32 D_801ECE20;
     return D_801ECE20;
 }
 
@@ -31,7 +63,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2848);
 
 /** @brief Store a2 to D_801ECE24 and call func_801E2848. */
 void func_801E2BA4(s32 a0, s32 a1, s32 a2) {
-    extern s32 D_801ECE24;
     D_801ECE24 = a2;
     func_801E2848();
 }
@@ -46,10 +77,6 @@ void func_801E2BA4(s32 a0, s32 a1, s32 a2) {
  * @param arg6 Value stored to D_801ECE28
  */
 void func_801E2BC8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
-    extern s32 D_801ECE30;
-    extern s32 D_801ECE2C;
-    extern s32 D_801ECE28;
-    extern s32 D_801ECE38;
 
     D_801ECE30 = a2;
     D_801ECE2C = a3;
@@ -67,9 +94,6 @@ void func_801E2BC8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
  * @param arg5 Value stored to D_801ECE38
  */
 void func_801E2C0C(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern s32 D_801ECE28;
-    extern s32 D_801ECE34;
-    extern s32 D_801ECE38;
 
     D_801ECE28 = a2;
     D_801ECE34 = a3;
@@ -112,8 +136,6 @@ s32 func_801E2C44(u8 *a0, s32 a1, s32 a2) {
  * @return Pointer to item name string, or NULL if index out of bounds.
  */
 s32 func_801E2C80(s32 a0) {
-    extern s32 D_801ECC10;
-    extern u8 D_801ECB60[];
     if (a0 < D_801ECC10) {
         return getAbilityDesc(D_801ECB60[a0 * 8]);
     }
@@ -134,7 +156,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2D54);
  * @param a0 Base address for storing iteration indices.
  */
 void func_801E2E04(s32 a0) {
-    extern u8 D_801ECB20[];
     s32 i = 0;
     u8 *tbl = D_801ECB20;
 
@@ -151,13 +172,8 @@ void func_801E2E04(s32 a0) {
  * @return First byte of the 4-byte entry.
  */
 s32 func_801E2E38(s32 a0) {
-    extern u8 D_801F889C[];
-    return D_801F889C[a0 * 4];
+    return D_801F889C[a0].b0;
 }
-
-typedef struct {
-    u8 b0, b1, b2, b3;
-} ItemEntry4;
 
 /**
  * @brief Read byte 1 of item entry at index a0 from D_801F889C.
@@ -165,7 +181,6 @@ typedef struct {
  * @return Second byte of the 4-byte entry.
  */
 s32 func_801E2E54(s32 a0) {
-    extern ItemEntry4 D_801F889C[];
     return D_801F889C[a0].b1;
 }
 
@@ -175,7 +190,6 @@ s32 func_801E2E54(s32 a0) {
  * @return Third byte of the 4-byte entry.
  */
 s32 func_801E2E70(s32 a0) {
-    extern ItemEntry4 D_801F889C[];
     return D_801F889C[a0].b2;
 }
 
@@ -185,7 +199,6 @@ s32 func_801E2E70(s32 a0) {
  * @return Fourth byte of the 4-byte entry.
  */
 s32 func_801E2E8C(s32 a0) {
-    extern ItemEntry4 D_801F889C[];
     return D_801F889C[a0].b3;
 }
 
@@ -203,11 +216,7 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E2EA8);
  * @return 0 for certain types, or bit 0 of func_801E2EA8 result.
  */
 s32 func_801E2F88(s32 a0) {
-    extern u8 D_801F889C[];
-    extern s32 func_801F79F8(s32);
-    extern s32 func_801EFFD4(void);
-    extern s32 func_801E2EA8(s32);
-    s32 type = D_801F889C[a0 * 4];
+    s32 type = D_801F889C[a0].b0;
 
     if (func_801F79F8(0x40) != 0) {
         if (type == 1) {
@@ -345,10 +354,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E3C1C);
  * Sets D_801ECEDC, D_801ECEE4, D_801ECEE8, and D_801ECEE0 all to -1.
  */
 void func_801E3E94(void) {
-    extern s32 D_801ECEDC;
-    extern s32 D_801ECEE4;
-    extern s32 D_801ECEE8;
-    extern s32 D_801ECEE0;
 
     D_801ECEDC = -1;
     D_801ECEE4 = -1;
@@ -454,7 +459,6 @@ void func_801E46B8(s32 a0, s32 a1) {
  * @param a1 Index into the Y-offset table (0-8).
  */
 void func_801E4708(s32 a0, s32 a1) {
-    extern u8 D_801EB1D8[];
     s16 buf[36];
 
     func_801F5984(D_801EB1D8, buf, 9);
@@ -598,21 +602,17 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E80D0);
  * @param arg4 Y position for display config.
  */
 void func_801E8180(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 g_menuDisplayCfg[];
-    extern void func_801E80D0();
-    u8 *cfg = g_menuDisplayCfg;
-
-    *(u8 *)(cfg + 0x10) = 0x55;
-    *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&g_menuDisplayCfg[0] = a3;
-    *(s16 *)(cfg + 0x04) = 0x144;
-    *(s16 *)(cfg + 0x06) = 0x1A;
-    *(u8 *)(cfg + 0x13) = 1;
-    *(u8 *)(cfg + 0x16) = 0;
-    *(u8 *)(cfg + 0x17) = 1;
-    *(s16 *)(cfg + 0x02) = arg4;
-    *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x48) + *(u16 *)(a0 + 0x4C) + *(u16 *)(a0 + 0x50);
-    *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x28);
+    g_menuDisplayCfg.iconType = 0x55;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = a3;
+    g_menuDisplayCfg.w = 0x144;
+    g_menuDisplayCfg.h = 0x1A;
+    g_menuDisplayCfg.columnCount = 1;
+    g_menuDisplayCfg.pageStart = 0;
+    g_menuDisplayCfg.pageEnd = 1;
+    g_menuDisplayCfg.y = arg4;
+    g_menuDisplayCfg.scrollOffset = *(u16 *)(a0 + 0x48) + *(u16 *)(a0 + 0x4C) + *(u16 *)(a0 + 0x50);
+    g_menuDisplayCfg.dataPtr = (s32)(a0 + 0x28);
     func_801EFBB4(a1, a2, (s32)func_801E80D0);
 }
 
@@ -680,7 +680,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E8FA8);
  * @param arg5 Item data pointer.
  */
 void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 g_gameState[];
     s32 ctx = a0;
     s32 cfg = a2;
     s32 ot = a3;
@@ -721,14 +720,11 @@ void func_801E90D8(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
  * @param arg5 Pointer to 4-halfword rectangle template.
  */
 void func_801E91E4(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
-    extern u16 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
-
-    g_menuDisplayCfg[0] = src[0] + a2;
-    g_menuDisplayCfg[1] = src[1] + a3;
-    g_menuDisplayCfg[2] = src[2];
-    g_menuDisplayCfg[3] = src[3];
-    func_801E90D8(a0, a1, g_menuDisplayCfg, g_menuColor, src);
+    g_menuDisplayCfg.x = src[0] + a2;
+    g_menuDisplayCfg.y = src[1] + a3;
+    g_menuDisplayCfg.w = src[2];
+    g_menuDisplayCfg.h = src[3];
+    func_801E90D8(a0, a1, &g_menuDisplayCfg, g_menuColor, src);
 }
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9248);
@@ -747,18 +743,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9AAC);
  * returned a context pointer, initializes it with item data and renders.
  */
 void func_801E9B98(void) {
-    extern u8 D_801EB17C[];
-    extern u8 D_801EB188[];
-    extern u8 D_801EB194[];
-    extern u8 D_801EB330[];
-    extern u8 D_801EB4BC[];
-    extern u8 D_801EC710[];
-    extern s32 D_801ECE24;
-    extern s32 D_801ECE28;
-    extern s32 D_801ECE2C;
-    extern s32 D_801ECE30;
-    extern s32 D_801ECE34;
-    extern s32 D_801ECE38;
     s32 ctx;
 
     ctx = func_801F179C(func_801E4EA4, func_801E95C4);
@@ -856,7 +840,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9F94);
  * @param arg5 Becomes 3rd argument to callee
  */
 s32 func_801EA500(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern s32 g_menuColor;
 
     return func_800375A0(a0, a1, arg5, a2, a3, g_menuColor);
 }
@@ -886,19 +869,15 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAA04);
  * @param arg5 Y position for panel.
  */
 s32 func_801EAB00(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
     s32 result;
-    s32 cfg;
 
     result = func_801EAA04(a0, a1, a2, a3 + 8, arg5 + 0xA);
-    cfg = g_menuDisplayCfg;
-    *(u8 *)(cfg + 0x10) = 0;
-    *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)(cfg) = a3;
-    *(s16 *)(cfg + 4) = 0x102;
-    *(s16 *)(cfg + 2) = arg5;
-    *(s16 *)(cfg + 6) = 0x7D;
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = a3;
+    g_menuDisplayCfg.w = 0x102;
+    g_menuDisplayCfg.y = arg5;
+    g_menuDisplayCfg.h = 0x7D;
     return func_801EF9AC(a1, result, 0x1000, g_menuColor);
 }
 
@@ -919,7 +898,6 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801EAB8C);
  * @return Updated rendering state after all panels are drawn.
  */
 s32 func_801EAC54(s32 a0, s32 a1, s32 a2) {
-    extern s32 D_80083850;
     s32 ctx = a0;
     s32 render = a1;
     s32 state = a2;
