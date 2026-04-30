@@ -1,8 +1,12 @@
 #include "common.h"
 
+extern u16 D_801FA3C8[];
+extern u8 g_menuDisplayCfg[];
+extern s32 g_menuColor;
+extern s32 D_801E961C[];
+
 /** @brief Look up value from D_801FA3C8 table by dividing input by 64. */
 u16 func_801E5800(s32 a0) {
-    extern u16 D_801FA3C8[];
     return D_801FA3C8[a0 / 64];
 }
 
@@ -91,8 +95,6 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E68A4);
  * @param a3 Y position
  */
 void func_801E6994(s32 a0, s32 a1, s16 a2, s16 a3) {
-    extern u8 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
 
     s32 cfg = (s32)g_menuDisplayCfg;
 
@@ -239,8 +241,6 @@ void func_801E8950(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6) {
  * @param stackArg2 Passed as stack arg to table function, then as a2 to func_801EF9AC
  */
 void func_801E8990(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg5, s32 arg6, s32 arg7) {
-    extern s32 D_801E961C[];
-    extern s32 g_menuColor;
     s32 (*fn)(s32, s32, s32, s32, s32, s32) = (void *)D_801E961C[a1];
     s32 result = fn(a0, a2, a3, arg5, arg6, arg7);
     func_801EF9AC(a2, result, arg7, g_menuColor);

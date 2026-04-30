@@ -218,10 +218,6 @@ void func_8009CC34(void) {
 
 /** @brief Advance D_800C4FD4 index, add 0xD to D_800C4FD3 on wraparound, return table diff. */
 s32 func_8009CC3C(void) {
-    extern u8 D_800C4FD4;
-    extern u8 D_800C4FD3;
-    extern u8 D_800C4DCC[];
-
     D_800C4FD4++;
     if ((u8)D_800C4FD4 == 0) {
         D_800C4FD3 += 0xD;
@@ -231,9 +227,6 @@ s32 func_8009CC3C(void) {
 
 /** @brief Increment D_800C4FD7 index, return D_800C4DCC table value at new index. */
 s32 func_8009CC98(void) {
-    extern u8 D_800C4FD7;
-    extern u8 D_800C4DCC[];
-
     D_800C4FD7++;
     return D_800C4DCC[D_800C4FD7];
 }
