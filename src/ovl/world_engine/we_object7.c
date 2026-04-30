@@ -16,7 +16,51 @@ typedef struct {
     /* 0x24 */
 } ActorRecord;
 
+/**
+ * @brief 0x34-byte tracking entry — one world-space target with screen-space
+ * projection state and a relative neighbour link.
+ *
+ * Populated by @c func_800B01A0 (which fills the screen-space @c posX/Y/Z
+ * fields plus @c unk30 and @c unk2C from the world transform pipeline) and
+ * consumed by @c func_800B3868 to compute pitch/yaw to a chained target.
+ */
+typedef struct {
+    u8 pad00[0x10];
+    u16 posX;            /**< 0x10: projected screen-space X. */
+    u16 posY;            /**< 0x12: projected screen-space Y. */
+    u16 posZ;            /**< 0x14: projected screen-space Z. */
+    u8 pad16[0x02];
+    s16 unk18;           /**< 0x18: roll/twist angle — zeroed when target valid. */
+    s16 yaw;             /**< 0x1A: yaw angle to target (atan2 + 0x800 bias). */
+    s16 pitch;           /**< 0x1C: pitch angle to target. */
+    u8 pad1E[0x0E];
+    u8 unk2C[0x02];      /**< 0x2C: scratch byte pair filled by func_800B01A0. */
+    s8 targetIdx;        /**< 0x2E: relative index of the chained target entry (0 = none). */
+    s8 status;           /**< 0x2F: -1 = uninitialized, 1 = visible/active. */
+    s8 unk30;            /**< 0x30: secondary status byte. */
+    u8 pad31[0x03];
+} TrackEntry;
+
+/** @brief Header for a TrackEntry array — count plus pointer-to-entries. */
+typedef struct {
+    u8 pad00[0x02];
+    s8 count;            /**< 0x02: number of entries pointed to by @c entries. */
+    u8 pad03[0x15];
+    TrackEntry *entries; /**< 0x18: pointer to the entry array. */
+} TrackObj;
+
 extern ActorRecord D_800DD6A8[];
+
+extern WorldPos D_800D23C0;
+extern WorldPos D_800C9868;
+extern MATRIX D_800C9838;
+
+extern s32 func_800A5DC8(s32 x, s32 y);
+extern void func_800406A4(MATRIX *m);
+extern void func_80040734(MATRIX *m);
+extern s8 func_800B01A0(s16 viewY, s16 viewX, TrackEntry *e, u16 *posOut, s8 *unk30Out, u8 *unk2COut);
+extern s32 func_8003F4A4(s32 x);
+extern s32 func_80041E84(s32 y, s32 x);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B310C);
 
@@ -24,7 +68,62 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B33D8);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B368C);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B3868);
+/**
+ * @brief Update screen-space projection and chained-target pitch/yaw for
+ * each entry in @p obj.
+ *
+ * Two-pass: the first loop marks all entries as uninitialized (status and
+ * @c unk30 set to -1). The second loop, for each entry, lazily resolves its
+ * screen-space position via @c func_800B01A0; then if the entry chains to
+ * a relative neighbour (@c targetIdx != 0) and is currently visible, it
+ * also resolves the target's projection, computes the screen-space delta,
+ * and stores pitch (atan2 of -dy / horizDist) and yaw (atan2 of -dz / dx
+ * plus a 0x800 bias) back into the entry. View-space angles are computed
+ * once at function entry from the global camera position vectors.
+ *
+ * @param obj Tracking object array header.
+ */
+void func_800B3868(TrackObj *obj) {
+    TrackEntry *current;
+    TrackEntry *target;
+    s32 viewX;
+    s32 viewY;
+    SVECTOR diff;
+    s32 horizDist;
+    s32 i;
+
+    viewX = func_800A5DC8(D_800D23C0.x, D_800D23C0.y);
+    viewY = func_800A5DC8(D_800C9868.x, D_800C9868.y);
+
+    func_800406A4(&D_800C9838);
+    func_80040734(&D_800C9838);
+
+    current = obj->entries;
+    for (i = 0; i < obj->count; i++, current++) {
+        current->status = -1;
+        current->unk30 = -1;
+    }
+
+    current = obj->entries;
+    for (i = 0; i < obj->count; i++, current++) {
+        if (current->status == -1) {
+            current->status = func_800B01A0(viewY, viewX, current, &current->posX, &current->unk30, current->unk2C);
+        }
+        if (current->targetIdx != 0 && current->status == 1) {
+            target = current + current->targetIdx;
+            if (target->status == -1) {
+                target->status = func_800B01A0(viewY, viewX, target, &target->posX, &target->unk30, target->unk2C);
+            }
+            diff.vx = target->posX - current->posX;
+            diff.vy = target->posY - current->posY;
+            diff.vz = target->posZ - current->posZ;
+            current->unk18 = 0;
+            horizDist = func_8003F4A4(diff.vz * diff.vz + diff.vx * diff.vx);
+            current->pitch = func_80041E84(-diff.vy, horizDist);
+            current->yaw = func_80041E84(-diff.vz, diff.vx) + 0x800;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B3AB8);
 

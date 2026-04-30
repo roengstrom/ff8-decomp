@@ -1165,15 +1165,6 @@ s32 func_800BD09C(SlotEntry *slot, s32 arg1, CmdDesc *cmd, s32 worldAngle) {
 }
 
 /**
- * @brief World-space 3-vector used for translation/position state.
- */
-typedef struct {
-    s32 x;             /* 0x00 */
-    s32 y;             /* 0x04: source z, negated (PS1 y-down convention) */
-    s32 z;             /* 0x08: source y */
-} WorldPos;
-
-/**
  * @brief Source-side 16-byte vector blob at @c D_800DD680.
  */
 typedef struct {

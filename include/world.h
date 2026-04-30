@@ -3,6 +3,20 @@
 
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
+
+/**
+ * @brief World-space 3-vector used for translation/position state.
+ *
+ * Stores a world-space integer position. Some callers use the y/z axes
+ * with a sign flip to account for the PS1 y-down screen convention
+ * (see @c we_object9 for the source-side mapping).
+ */
+typedef struct {
+    s32 x;             /* 0x00 */
+    s32 y;             /* 0x04 */
+    s32 z;             /* 0x08 */
+} WorldPos;
 
 /**
  * @brief World-engine object node — singly-linked, keyed by s16 id.
