@@ -29,6 +29,33 @@ extern void func_800275D4(s32 a0);
 extern s32 getAnimFrameParam(s32 idx, s32 offset);
 extern void func_8009AF64(void *cmd, ...);
 
+extern s16 D_800D3C70;
+extern u8 D_80077E5F;
+extern u8 D_80077E92;
+extern u8 D_8007809A;
+extern u8 D_8009801C[];
+extern u8 D_80098020[];
+extern u8 D_8009B5B4[];
+extern u8 D_800A37D4[];
+extern u8 D_800ABA0C;
+extern u8 D_800D3C30[];
+extern u8 D_800D3C35;
+extern u8 D_800D3C36;
+extern u8 D_800D3C38;
+extern u8 D_800D3C39;
+extern u8 D_800D3C3A;
+extern u8 D_800D3C3B;
+extern u8 D_800D3C3C;
+extern u8 D_800D3C3D;
+extern u8 D_800D3C3E;
+extern u8 D_800D3C3F;
+extern u8 D_800D3C44;
+extern u8 D_800D3C45;
+extern u8 D_800D3C46;
+extern u8 D_800D3C47;
+extern u8 D_800D3C48;
+extern u8 D_800D3C49;
+
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
 
 /**
@@ -163,8 +190,6 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_800988EC);
  * @param flag Selects which default string to use.
  */
 void func_80098920(s32 idx, s32 flag) {
-    extern u8 D_8009801C[];
-    extern u8 D_80098020[];
     if (flag == 0) {
         func_800988EC(idx, D_8009801C);
     } else {
@@ -181,26 +206,6 @@ void func_80098920(s32 idx, s32 flag) {
  * from D_800D3C30.
  */
 void func_80098958(void) {
-    extern u8 D_8007809A;
-    extern u8 D_80077E5F;
-    extern u8 D_80077E92;
-    extern u8 D_800D3C35;
-    extern u8 D_800D3C36;
-    extern u8 D_800D3C38;
-    extern u8 D_800D3C39;
-    extern u8 D_800D3C3A;
-    extern u8 D_800D3C3B;
-    extern u8 D_800D3C3C;
-    extern u8 D_800D3C3D;
-    extern u8 D_800D3C3E;
-    extern u8 D_800D3C3F;
-    extern u8 D_800D3C44;
-    extern u8 D_800D3C45;
-    extern u8 D_800D3C46;
-    extern u8 D_800D3C47;
-    extern u8 D_800D3C48;
-    extern u8 D_800D3C49;
-    extern u8 D_800D3C30[];
     s32 i;
 
     if (D_8007809A & 0x10) {
@@ -310,8 +315,6 @@ void func_80098958(void) {
  * Sets D_800ABA0C to 1 and D_800D3C70 to -0x18.
  */
 void func_80098C68(void) {
-    extern u8 D_800ABA0C;
-    extern s16 D_800D3C70;
     D_800ABA0C = 1;
     D_800D3C70 = -0x18;
 }
@@ -322,8 +325,6 @@ void func_80098C68(void) {
  * Clears D_800ABA0C and sets D_800D3C70 to 2.
  */
 void func_80098C84(void) {
-    extern u8 D_800ABA0C;
-    extern s16 D_800D3C70;
     D_800ABA0C = 0;
     D_800D3C70 = 2;
 }
@@ -380,8 +381,6 @@ void func_8009A66C(u8 *a0) {
 
 /** @brief Call func_8009A66C with D_800A37D4 then D_8009B5B4. */
 void func_8009A6CC(void) {
-    extern u8 D_800A37D4[];
-    extern u8 D_8009B5B4[];
     func_8009A66C(D_800A37D4);
     func_8009A66C(D_8009B5B4);
 }
