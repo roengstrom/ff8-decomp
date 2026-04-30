@@ -1,4 +1,21 @@
 #include "common.h"
+#include "menu.h"
+
+extern u8 D_801ED430[];
+extern s16 D_801ED630;
+extern s16 D_801EC410;
+extern u8 D_801EC310[];
+extern u8 D_801EC420[];
+extern u16 D_801EC412;
+extern u16 D_801EC414;
+extern u16 D_801EC416;
+extern u8 D_801E7B10[];
+extern u8 D_801E8310[];
+extern s16 D_801ED420;
+extern s16 D_801ED422;
+extern s8 D_801E6B0C;
+extern s8 D_801E6B10[];
+extern s32 g_menuColor;
 
 /**
  * @brief Render a tips panel entry.
@@ -23,8 +40,6 @@ s32 func_801E5800(s32 a0) {
  * @param arg1 Second value of the pair to push.
  */
 void func_801E582C(s32 arg0, s32 arg1) {
-    extern u8 D_801ED430[];
-    extern s16 D_801ED630;
     s32 i;
     s32 new_var;
     s32 next;
@@ -68,8 +83,6 @@ void func_801E582C(s32 arg0, s32 arg1) {
  * @return Packed value pair, or -1 if empty.
  */
 s32 func_801E58C0(void) {
-    extern u8 D_801ED630[];
-    extern u8 D_801ED430[];
     s16 sv;
     u16 uv;
     s32 off;
@@ -78,8 +91,8 @@ s32 func_801E58C0(void) {
     s32 lo;
     s32 hi;
 
-    sv = *(s16 *)D_801ED630;
-    uv = *(u16 *)D_801ED630;
+    sv = D_801ED630;
+    uv = D_801ED630;
     if (sv <= 0) {
         return -1;
     }
@@ -89,7 +102,7 @@ s32 func_801E58C0(void) {
     entry = (s16 *)(base + off);
     lo = *(s16 *)entry;
     hi = *(s16 *)(entry + 1);
-    *(u16 *)D_801ED630 = uv;
+    D_801ED630 = uv;
     return lo | (hi << 16);
 }
 
@@ -114,8 +127,6 @@ s32 func_801E58C0(void) {
  * @param a1 Index into the coordinate table.
  */
 void func_801E590C(s32 a0, s32 a1) {
-    extern s16 D_801EC410;
-    extern u8 D_801EC310[];
     s32 base;
     int new_var3;
     s16 new_var2;
@@ -144,7 +155,6 @@ void func_801E590C(s32 a0, s32 a1) {
  * @return Pointer to tips data (as s32).
  */
 s32 func_801E5958(s32 a0) {
-    extern u8 D_801EC420[];
     s32 base = (s32)D_801EC420;
     return *(u16 *)(base + a0 * 4 + 4) + 0x801D1000;
 }
@@ -168,13 +178,6 @@ typedef struct {
 } TipsBufHeader;
 
 void func_801E597C(s32 a0) {
-    extern s16 D_801EC410;
-    extern u16 D_801EC412;
-    extern u16 D_801EC414;
-    extern u16 D_801EC416;
-    extern u8 D_801E7B10[];
-    extern u8 D_801E8310[];
-    extern u8 D_801EC310[];
     TipsBufHeader *ret;
     s32 buf;
 
@@ -294,8 +297,6 @@ INCLUDE_ASM("asm/ovl/menutips/nonmatchings/menutips", func_801E6018);
  * @return 1 if tips system was not ready (selection saved), 0 otherwise.
  */
 s32 func_801E6474(void) {
-    extern u16 D_801ED422;
-    extern u16 D_801ED420;
     if (pollCdReadStatus() == 0) {
         D_801ED420 = D_801ED422;
         return 1;
@@ -314,9 +315,6 @@ s32 func_801E6474(void) {
  * @param a0 Page index into the tips entry table.
  */
 void func_801E64B0(s32 a0) {
-    extern u8 D_801EC420[];
-    extern s16 D_801ED420;
-    extern u16 D_801ED422;
     s32 base = (s32)D_801EC420;
     u16 *entry;
     u16 id;
@@ -337,18 +335,13 @@ void func_801E64B0(s32 a0) {
  * @return Updated OT pointer from func_801EF9AC.
  */
 s32 func_801E6514(s32 a0, s32 a1) {
-    extern u8 g_menuDisplayCfg[];
-    extern s16 D_801EC410;
-    extern u16 D_801EC414;
-    extern u16 D_801EC416;
-    extern s32 g_menuColor;
     s32 ot = a1;
     s32 resource;
     s32 tw;
     s32 width;
     s32 xPos = 0x18;
     s32 yPos;
-    u8 *cfg = g_menuDisplayCfg;
+    u8 *cfg = (u8 *)&g_menuDisplayCfg;
     yPos = 0xC4;
     if (D_801EC410 != 0) {
         resource = func_801E5800(0xE);
@@ -378,16 +371,6 @@ s32 func_801E6514(s32 a0, s32 a1) {
     return func_801EF9AC(a0, ot, 0x1000, g_menuColor);
 }
 
-typedef struct {
-    s16 unk0;
-    s16 unk2;
-    s16 unk4;
-    s16 unk6;
-    u8 pad8[8];
-    u8 unk10;
-    u8 unk11;
-} WorkData;
-
 /**
  * @brief Render the tips content panel with scroll state.
  *
@@ -401,11 +384,6 @@ typedef struct {
  * @return Updated OT pointer from func_801EF9AC.
  */
 s32 func_801E6668(s32 arg0, s32 arg1) {
-    extern WorkData g_menuDisplayCfg;
-    extern s8 D_801E8310;
-    extern u16 D_801EC414;
-    extern u16 D_801EC416;
-    extern s32 g_menuColor;
     s32 temp_s0;
     s32 var_a3;
     s32 var_s1;
@@ -413,15 +391,15 @@ s32 func_801E6668(s32 arg0, s32 arg1) {
     var_s1 = arg1;
     temp_s0 = getDisplayListHead();
     storeGpuPacket(var_s1);
-    func_8002EAD0(arg0, 0x22, 0x23, &D_801E8310);
+    func_8002EAD0(arg0, 0x22, 0x23, D_801E8310);
     var_s1 = getDisplayListHead();
     storeGpuPacket(temp_s0);
-    g_menuDisplayCfg.unk10 = 0;
-    g_menuDisplayCfg.unk11 = 0;
-    g_menuDisplayCfg.unk0 = 0x18;
-    g_menuDisplayCfg.unk2 = 0x1D;
-    g_menuDisplayCfg.unk4 = 0x150;
-    g_menuDisplayCfg.unk6 = 0xA7;
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = 0x18;
+    g_menuDisplayCfg.y = 0x1D;
+    g_menuDisplayCfg.w = 0x150;
+    g_menuDisplayCfg.h = 0xA7;
     var_a3 = D_801EC414 != 0xFFFF;
     if (D_801EC416 != 0xFFFF) {
         var_a3 |= 2;
@@ -444,26 +422,21 @@ s32 func_801E6668(s32 arg0, s32 arg1) {
  * @return Updated OT pointer from func_801EF9AC.
  */
 s32 func_801E6768(s32 a0, s32 a1) {
-    extern u8 D_801E7B10[];
-    extern u8 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
     u8 *new_var;
     s32 ot;
     s32 disp;
-    s32 cfg;
     if (1) {
         disp = a0;
         ot = a1;
         new_var = D_801E7B10;
         func_8002EAD0(disp, 0x24, 0xC, (((s32)new_var) + ot) - ot);
-        cfg = (s32)g_menuDisplayCfg;
-        *(u8 *)(cfg + 0x10) = 0;
-        *(u8 *)(cfg + 0x11) = 0;
-        *(s16 *)&g_menuDisplayCfg[0] = 0x18;
-        *(s16 *)(cfg + 2) = 6;
+        g_menuDisplayCfg.iconType = 0;
+        g_menuDisplayCfg.iconSubType = 0;
+        g_menuDisplayCfg.x = 0x18;
+        g_menuDisplayCfg.y = 6;
     }
-    *(s16 *)(cfg + 4) = 0xF4;
-    *(s16 *)(cfg + 6) = 0x16;
+    g_menuDisplayCfg.w = 0xF4;
+    g_menuDisplayCfg.h = 0x16;
     return func_801EF9AC(disp, ot, 0x1000, g_menuColor);
 }
 
@@ -577,15 +550,6 @@ typedef struct {
  * state variables and starts the main work function.
  */
 void func_801E696C(void) {
-    extern s8 D_801E6B0C;
-    extern s8 D_801E6B10[];
-    extern s8 D_801E7B10;
-    extern s8 D_801E8310;
-    extern s16 D_801EC410;
-    extern u8 D_801EC420;
-    extern s16 D_801ED420;
-    extern s16 D_801ED422;
-    extern s16 D_801ED630;
     WorkStruct *work;
     s32 i;
 
@@ -607,9 +571,9 @@ void func_801E696C(void) {
     if (work == 0) {
         return;
     }
-    D_801E7B10 = 0;
-    D_801E8310 = 0;
-    loadSubOverlay(0x7F, &D_801EC420);
+    *(s8 *)D_801E7B10 = 0;
+    *(s8 *)D_801E8310 = 0;
+    loadSubOverlay(0x7F, D_801EC420);
     work->unk24 = (work->unk28 = 0);
     work->unk26 = 0;
     work->unk2A = 0;
