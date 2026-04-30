@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u16 *D_8005D554;
+extern s32 D_8005D56C[];
+
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc", VSync);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc", VSYNC_OBJ_A4);
@@ -103,7 +106,6 @@ u16 CheckCallback() { return D_8005C4C6; }
  * @return The 16-bit interrupt mask value.
  */
 u16 GetIntrMask(void) {
-    extern u16 *D_8005D554;
     return *D_8005D554;
 }
 
@@ -142,7 +144,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc", INTR_VB_OBJ_58);
  * @param a1 New handler value (callback pointer or flag) to store.
  */
 void INTR_VB_OBJ_C4(s32 a0, s32 a1) {
-    extern s32 D_8005D56C[];
     if (a1 != D_8005D56C[a0]) {
         D_8005D56C[a0] = a1;
     }

@@ -1,5 +1,8 @@
 #include "common.h"
 
+extern u8 D_8005E9EE;
+extern s32 *D_8005EAF4;
+
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", LoadTPage);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", EXT_OBJ_A8);
@@ -35,7 +38,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetGraphQueue);
  * @return The current debug level (0 = no debug output).
  */
 u8 GetGraphDebug(void) {
-    extern u8 D_8005E9EE;
     return D_8005E9EE;
 }
 
@@ -140,7 +142,6 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SYS_OBJ_18F0);
  * @return The current GPU system state word.
  */
 s32 SYS_OBJ_18F8(void) {
-    extern s32 *D_8005EAF4;
     return *D_8005EAF4;
 }
 

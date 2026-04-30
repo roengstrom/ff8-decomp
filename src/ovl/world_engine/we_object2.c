@@ -6,6 +6,8 @@
 extern u8 D_800780D8[];
 extern u8 D_800D23D8[];
 extern FieldEngineState *D_800562C4;
+extern s32 D_800C9E68;
+extern s32 D_800C9E70;
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009CCE8);
 
@@ -165,8 +167,6 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object2", func_8009D760);
 
 /** @brief Compare input against two entity IDs, return 0x29, 0x18, or -1. */
 s32 func_8009D7D8(s32 a0) {
-    extern s32 D_800C9E68;
-    extern s32 D_800C9E70;
     s32 result = -1;
 
     if (D_800C9E68 == a0) {
