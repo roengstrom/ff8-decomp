@@ -2,7 +2,13 @@
 
 A decompilation of Final Fantasy VIII (PS1, USA — `SLUS_008.92`).
 
-## Setup
+## Contact
+
+[Discord server](https://discord.gg/cUrPXfnh)
+
+## Development
+
+Any help is greatly appreciated. Below are some basic steps to get started and building the project.
 
 1. **Clone the repo with submodules**:
    ```bash
