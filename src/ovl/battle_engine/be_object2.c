@@ -1,5 +1,18 @@
 #include "common.h"
 
+extern u8 D_801D3110[];
+extern u8 D_801D31C0[];
+extern u8 D_801D3340[];
+extern u8 D_801D3360[];
+extern u8 D_801D3380[];
+extern u8 D_801D3798[];
+extern u8 D_801D3C58[];
+extern u8 D_801D3359;
+extern s16 D_801D335C;
+extern s32 D_801D3328;
+extern u16 D_801D332E;
+extern s32 func_8009BDC0();
+
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009A8CC);
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009A970);
@@ -10,7 +23,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009AA68);
  * @brief Call func_80098D28 with D_801D3110.
  */
 void func_8009AD00(void) {
-    extern u8 D_801D3110[];
     func_80098D28(D_801D3110);
 }
 
@@ -27,9 +39,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B3EC);
  * halfwords at +6, +0xA, +0x10, +0x14 to 0, and +0xC, +0xE to 1.
  */
 void func_8009B494(void) {
-    extern s32 D_801D3328;
-    extern u8 D_801D3359;
-    extern u8 D_801D3340[];
     u8 *base;
     D_801D3328 = 0;
     D_801D3359 = 0;
@@ -51,7 +60,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B4CC);
  * the object type from D_801D31C0 (stride 36) and passes it to func_800A2114.
  */
 void func_8009B644(void) {
-    extern u8 D_801D31C0[];
     s32 idx = func_8009A7A4();
     if (idx >= 0) {
         u8 *base = D_801D31C0;
@@ -77,8 +85,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009B8D8);
  * @param a0 Pointer to a halfword value to adjust.
  */
 void func_8009BA4C(u16 *a0) {
-    extern u16 D_801D332E;
-    extern s16 D_801D335C;
     u16 val;
 
     if (D_801D332E & 0x8000) {
@@ -120,10 +126,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009BDC0);
  * @return Pointer to D_801D3380 list header.
  */
 u8 *func_8009C010(s32 a0, s32 a1) {
-    extern u8 D_801D3380[];
-    extern u8 D_801D3360[];
-    extern u8 D_801D3340[];
-    extern s32 func_8009BDC0();
     u8 *list = D_801D3380;
     u8 *node;
 
@@ -151,7 +153,6 @@ u8 *func_8009C010(s32 a0, s32 a1) {
  * @param a1 Entity type.
  */
 void func_8009C0A0(s32 a0, s32 a1) {
-    extern u8 D_801D31C0[];
     u8 *base = D_801D31C0;
     u8 *entry = base + a0 * 36;
     entry[1] = a1;
@@ -171,7 +172,6 @@ void func_8009C0A0(s32 a0, s32 a1) {
  * @return 1 if any entity has non-zero type, 0 otherwise.
  */
 s32 func_8009C0F4(void) {
-    extern u8 D_801D31C0[];
     s32 i = 0;
     u8 *entry = D_801D31C0;
     do {
@@ -206,7 +206,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009C890);
  * @param a3 Additional parameter (passed as 5th stack arg to handler).
  */
 void func_8009C978(s32 a0, s32 a1, s32 a2, s32 a3) {
-    extern u8 D_801D31C0[];
     u8 *base = D_801D31C0;
     u8 *entry;
     u8 *result;
@@ -242,8 +241,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object2", func_8009DECC);
  * Sets up a linked list with node size 0x4C and capacity 0x10.
  */
 void func_8009E1F0(void) {
-    extern u8 D_801D3C58[];
-    extern u8 D_801D3798[];
     func_80098BC0(D_801D3C58, D_801D3798, 0x4C, 0x10);
 }
 
@@ -251,6 +248,5 @@ void func_8009E1F0(void) {
  * @brief Call func_80098D28 with D_801D3C58.
  */
 void func_8009E224(void) {
-    extern u8 D_801D3C58[];
     func_80098D28(D_801D3C58);
 }

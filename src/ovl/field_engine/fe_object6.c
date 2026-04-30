@@ -3,6 +3,14 @@
 #include "gamestate.h"
 
 extern u8 D_80070652;
+extern u8 *D_800562C4;
+extern u8 D_800704A8[];
+extern u8 D_800704CA;
+extern u8 D_8007064A;
+extern u8 D_8007064B;
+extern u8 D_8007064D;
+extern u8 D_8007064F[];
+extern u8 D_8007065C[];
 
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B2348);
@@ -178,7 +186,6 @@ s32 func_800B273C(u8 *a0) {
 
 /** @brief Pop value, bitwise-NOT, store to D_8007065C. Returns 2. */
 s32 func_800B2790(u8 *a0) {
-    extern u8 D_8007065C[];
     u8 idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
     *(s32 *)D_8007065C = ~*(s32 *)(a0 + (s8)idx * 4);
@@ -363,7 +370,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B33B8);
  * @return 2 (continue processing).
  */
 s32 func_800B3474(u8 *a0) {
-    extern u8 D_800704A8[];
 
     D_800704A8[0x122] = 0;
     D_800704A8[0x130] = 0;
@@ -395,7 +401,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B37F8);
  * @return 2 if D_800704CA is 2, else 1.
  */
 s32 func_800B3868(u8 *a0) {
-    extern u8 D_800704CA;
 
     if (D_800704CA == 2) {
         return 2;
@@ -483,7 +488,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B43FC);
 
 /** @brief Pop byte, store to global D_8007064F. Returns 2. */
 s32 func_800B448C(u8 *a0) {
-    extern u8 D_8007064F[];
     u8 idx = *(u8 *)(a0 + 0x184);
     *(u8 *)(a0 + 0x184) = idx - 1;
     *(u8 *)D_8007064F = *(u8 *)(a0 + (s8)idx * 4);
@@ -522,7 +526,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B48EC);
  * @return 2 (continue processing).
  */
 s32 func_800B497C(u8 *a0) {
-    extern u8 D_8007064A;
     D_8007064A = 0;
     return 2;
 }
@@ -534,7 +537,6 @@ s32 func_800B497C(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B498C(u8 *a0) {
-    extern u8 D_8007064A;
     D_8007064A = 1;
     return 2;
 }
@@ -546,7 +548,6 @@ s32 func_800B498C(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B49A0(u8 *a0) {
-    extern u8 D_8007064D;
     D_8007064D = 1;
     return 2;
 }
@@ -558,7 +559,6 @@ s32 func_800B49A0(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B49B4(u8 *a0) {
-    extern u8 D_8007064D;
     D_8007064D = 0;
     return 2;
 }
@@ -570,7 +570,6 @@ s32 func_800B49B4(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B49C4(u8 *a0) {
-    extern u8 D_8007064B;
     D_8007064B = 1;
     return 2;
 }
@@ -582,15 +581,12 @@ s32 func_800B49C4(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B49D8(u8 *a0) {
-    extern u8 D_8007064B;
     D_8007064B = 0;
     return 2;
 }
 
 /** @brief Set D_800704A8 command to 5, clear halfword, copy entity byte 0xD1. Returns 3. */
 s32 func_800B49E8(void) {
-    extern u8 D_800704A8[];
-    extern s32 D_800562C4;
     *(u8 *)D_800704A8 = 5;
     *(u16 *)(D_800704A8 + 2) = 0;
     *(u8 *)(D_800704A8 + 0x1AB) = *(u8 *)(D_800562C4 + 0xD1);
@@ -605,7 +601,6 @@ s32 func_800B49E8(void) {
  * @return 3.
  */
 s32 func_800B4A18(u8 *a0) {
-    extern u8 D_800704A8[];
 
     D_800704A8[0] = 5;
     *(u16 *)(D_800704A8 + 2) = 1;
@@ -625,7 +620,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4A88);
  * @return 3.
  */
 s32 func_800B4D0C(u8 *a0) {
-    extern u8 D_800704A8[];
 
     D_800704A8[0] = 5;
     *(u16 *)(D_800704A8 + 2) = 0x1A;
@@ -684,7 +678,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object6", func_800B4E60);
  * @return 3.
  */
 s32 func_800B4EB0(u8 *a0) {
-    extern u8 D_800704A8[];
 
     D_800704A8[0] = 5;
     *(u16 *)(D_800704A8 + 2) = 0x18;
@@ -700,7 +693,6 @@ s32 func_800B4EB0(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B4ED8(u8 *a0) {
-    extern u8 *D_800562C4;
     u8 idx;
     s32 val;
 
@@ -723,7 +715,6 @@ s32 func_800B4ED8(u8 *a0) {
  * Otherwise, sets bit 2.
  */
 void func_800B4F40(void) {
-    extern u8 *D_800562C4;
     u8 *ptr = D_800562C4;
 
     if (*(s32 *)(ptr + 0x68) & 0x200) {
