@@ -1,12 +1,18 @@
 #include "common.h"
 
+extern u8 D_801E8C10[];
+extern u8 D_801E8C20[];
+extern u8 D_801E9600[];
+extern u8 D_80077818[];
+extern u8 g_menuDisplayCfg[];
+extern s32 func_801E7D88;
+
 /**
  * @brief Clear 8 bytes of extension state at D_801E8C10.
  *
  * Iterates backwards from index 7 to 0, setting each byte to zero.
  */
 void func_801E5800(void) {
-    extern u8 D_801E8C10[];
     s32 i = 7;
     s32 base = (s32)D_801E8C10;
     u8 *ptr = (u8 *)(base + 7);
@@ -21,7 +27,6 @@ top:
  * @brief Clear D_801E8C20 array (0x6E entries of 2 bytes each) to zero.
  */
 void func_801E5828(s32 a0) {
-    extern u8 D_801E8C20[];
     s32 i;
     u8 *ptr;
 
@@ -59,7 +64,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E5A1C);
  * @return Address of D_801E9600.
  */
 s32 func_801E5A88(void) {
-    extern u8 D_801E9600[];
     return (s32)D_801E9600;
 }
 
@@ -163,7 +167,6 @@ void func_801E5EF0(u8 *a0) {
  * @return Value byte after matched id, or 0 if not found
  */
 s32 func_801E5F48(s32 a0, s32 a1) {
-    extern u8 D_80077818[];
     u8 *ptr = D_80077818 + a0 * 152;
     s32 i = 0;
 top:
@@ -228,7 +231,6 @@ skip:
  * @return Number of valid entries found.
  */
 s32 func_801E5FE8(void) {
-    extern u8 D_801E8C20[];
     u8 *ptr = D_801E8C20;
     s32 count = 0;
     s32 i = count;
@@ -409,7 +411,6 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
  * @param arg5 Y position for the display configuration
  */
 void func_801E7E38(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 g_menuDisplayCfg[];
     s32 cfg = (s32)g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
@@ -423,7 +424,6 @@ void func_801E7E38(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x3A);
     *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x28);
     {
-        extern s32 func_801E7D88;
         func_801EFBB4(a1, a2, (s32)&func_801E7D88);
     }
 }

@@ -1,5 +1,11 @@
 #include "common.h"
 
+extern u8 D_800DE8CC[];
+extern u8 D_800D9630[];
+extern u8 D_80085230[];
+extern u8 D_800DE878[];
+extern u8 D_800C5FB0[];
+
 /**
  * Pop mask, clear those bits from D_800562C4->0xF3, copy to globals, call recalcPartyStats.
  *
@@ -38,8 +44,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object5", func_800B0924);
  * @return 2 (continue processing).
  */
 s32 func_800B0A08(u8 *a0) {
-    extern u8 D_800DE8CC[];
-    extern u8 D_800D9630[];
 
     *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) & ~0x8;
     if (!(*(s32 *)D_800DE8CC & 0x2)) {
@@ -65,8 +69,6 @@ s32 func_800B0A08(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B0A7C(u8 *a0) {
-    extern u8 D_800DE8CC[];
-    extern u8 D_800D9630[];
 
     *(s32 *)(a0 + 0x160) = *(s32 *)(a0 + 0x160) | 0x8;
     if (!(*(s32 *)D_800DE8CC & 0x2)) {
@@ -163,7 +165,6 @@ s32 func_800B0C58(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B0C64(u8 *a0) {
-    extern u8 D_80085230[];
     u8 idx;
     s32 val;
 
@@ -268,8 +269,6 @@ s32 func_800B1730(u8 *a0) {
  * @return 2 (continue processing).
  */
 s32 func_800B1738(u8 *a0) {
-    extern u8 D_800DE878[];
-    extern u8 D_800C5FB0[];
     u8 idx;
     s32 val1, val2;
 
