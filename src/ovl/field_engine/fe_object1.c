@@ -1,8 +1,22 @@
 #include "common.h"
+#include "psxsdk/libgte.h"
+
+/** @brief Animation slot record (one of four per actor). */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x10];
+    /* 0x10 */ s16 id;          /**< Animation ID, -1 = empty slot. */
+} AnimRec; /* 0x12 = 18 bytes */
 
 /** @brief Field entity (actor), 612 bytes (0x264). Same as "actor" in debug print. */
 typedef struct {
-    /* 0x000 */ u8 pad000[0x190];
+    /* 0x000 */ u8 pad000[0x80];
+    /* 0x080 */ AnimRec rows[4];      /**< Four animation slots, stride 0x12. */
+    /* 0x0C8 */ s16 timers[4];        /**< Per-slot tick counters. */
+    /* 0x0D0 */ u8 padD0[0x24];
+    /* 0x0F4 */ s16 animOffset;       /**< Byte offset from rows[] to source row table. */
+    /* 0x0F6 */ u8 padF6[6];
+    /* 0x0FC */ s16 mode;             /**< Dispatch mode (1/2/3 = different sources). */
+    /* 0x0FE */ u8 padFE[0x92];
     /* 0x190 */ s32 posX;
     /* 0x194 */ s32 posY;
     /* 0x198 */ s32 posZ;
@@ -397,7 +411,79 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A3488);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A3534);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A355C);
+extern void func_800A303C(s32 id, s32 a2, SVECTOR *pos, s32 ratio);
+extern void func_800A327C(Entity *actor, SVECTOR *out);
+extern void func_800A3488(Entity *actor, SVECTOR *out);
+
+/**
+ * @brief Animation slot tick & dispatch — runs the per-frame update for the
+ * actor's four animation slots.
+ *
+ * For each of the 4 slots:
+ *   - Skip if slot id is -1 (empty).
+ *   - Read a "rate" byte from the source-row table (located at
+ *     `&actor->rows[i] + actor->animOffset`); when the slot's tick counter
+ *     reaches `rate / 8`, reset the counter and pick a `ratio` value
+ *     (`rate` itself if rate < 8, else 1).
+ *   - Increment the tick counter.
+ *   - Dispatch to func_800A303C with one of three position sources, chosen
+ *     by `D_800704A8.slotActive[slot]`:
+ *       - kind == 1: select by actor->mode — pass the actor itself
+ *         (mode 1), or fill `pos` via func_800A3488 (mode 2) or
+ *         func_800A327C (mode 3).
+ *       - kind != 1: read entity (kind & 0x7F) from D_80085224, divide
+ *         posX/Y/Z by 4096, pass as `pos`.
+ *
+ * @param actor Field entity (with rows[4]/timers[4]/animOffset/mode).
+ * @param slot  Index into D_800704A8.slotActive (0..15).
+ * @param a2    Second arg passed through to func_800A303C.
+ */
+void func_800A355C(Entity *actor, s32 slot, s32 a2) {
+    SVECTOR pos;
+    s32 i;
+
+    for (i = 0; i < 4; i++) {
+        u8 srcByte;
+        s32 ratio;
+
+        if (actor->rows[i].id == -1) {
+            continue;
+        }
+
+        srcByte = *((u8 *)&actor->rows[i] + actor->animOffset);
+        ratio = 0;
+        if (actor->timers[i] >= (s32)((u32)srcByte >> 3)) {
+            actor->timers[i] = 0;
+            if (*((u8 *)&actor->rows[i] + actor->animOffset) < 8) {
+                ratio = *((u8 *)&actor->rows[i] + actor->animOffset);
+            } else {
+                ratio = 1;
+            }
+        }
+        actor->timers[i] = (u16)actor->timers[i] + 1;
+
+        if (D_800704A8.slotActive[slot] == 1) {
+            switch (actor->mode) {
+            case 1:
+                func_800A303C(actor->rows[i].id, a2, (SVECTOR *)actor, ratio);
+                break;
+            case 2:
+                func_800A3488(actor, &pos);
+                func_800A303C(actor->rows[i].id, a2, &pos, ratio);
+                break;
+            case 3:
+                func_800A327C(actor, &pos);
+                func_800A303C(actor->rows[i].id, a2, &pos, ratio);
+                break;
+            }
+        } else {
+            pos.vx = (s16)(D_80085224[D_800704A8.slotActive[slot] & 0x7F].posX / 4096);
+            pos.vy = (s16)(D_80085224[D_800704A8.slotActive[slot] & 0x7F].posY / 4096);
+            pos.vz = (s16)(D_80085224[D_800704A8.slotActive[slot] & 0x7F].posZ / 4096);
+            func_800A303C(actor->rows[i].id, a2, &pos, ratio);
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A37A8);
 
