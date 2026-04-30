@@ -1,6 +1,13 @@
 #include "common.h"
 #include "psxsdk/libgte.h"
 
+/** @brief 12-byte signed integer 3D position (x, y, z). */
+typedef struct {
+    s32 x;
+    s32 y;
+    s32 z;
+} Vec3i;
+
 /** @brief Animation slot record (one of four per actor). */
 typedef struct {
     /* 0x00 */ u8 pad00[0x10];
@@ -20,9 +27,16 @@ typedef struct {
     /* 0x190 */ s32 posX;
     /* 0x194 */ s32 posY;
     /* 0x198 */ s32 posZ;
-    /* 0x19C */ u8 pad19C[0xA5];
+    /* 0x19C */ u8 pad19C[0x5A];
+    /* 0x1F6 */ u16 radius;            /**< Collision radius (used by func_8009E468 overlap test). */
+    /* 0x1F8 */ u8 pad1F8[0x20];
+    /* 0x218 */ s16 unk218;            /**< -1 = inactive (skipped by collision tests). */
+    /* 0x21A */ u8 pad21A[0x27];
     /* 0x241 */ u8 field_0x241;
-    /* 0x242 */ u8 pad242[0x0A];
+    /* 0x242 */ u8 pad242[0x06];
+    /* 0x248 */ u8 unk248;             /**< Set to 1 by func_8009E468 when colliding with self entity. */
+    /* 0x249 */ u8 unk249;             /**< 0 = enable unk248 update path in func_8009E468. */
+    /* 0x24A */ u8 pad24A[0x02];
     /* 0x24C */ u8 field_0x24C;
     /* 0x24D */ u8 pad24D[0x02];
     /* 0x24F */ u8 field_0x24F;
@@ -57,8 +71,10 @@ extern Entity *D_80085224;
 extern SystemState D_800704A8;
 extern u16 D_8005F118;
 extern u16 D_8005F11A;
+extern s16 D_8005F148;
 extern u16 D_8005F160;
 extern u16 D_8005F162;
+extern u8 D_80085388;
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_80098314);
 
@@ -238,7 +254,54 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009DF18);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009E338);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_8009E468);
+/**
+ * @brief Test if @p selfIdx overlaps with any other active entity at world @p pos.
+ *
+ * Iterates over the @c D_80085224 entity table, skipping @p selfIdx itself
+ * and any entity with @c unk218 == -1 (inactive). For each remaining entity,
+ * a quick z-axis bounding-band check is applied (|dz| < 0x7E after shifting
+ * the entity's @c posZ down by 12 fixed-point bits and subtracting @p pos->z),
+ * then a 2D radius overlap test against the average of the two radii.
+ *
+ * Side effects:
+ *   - When @p selfIdx matches the global player slot at @c D_8005F148, any
+ *     overlapping entity with @c unk249 == 0 has its @c unk248 byte set to 1.
+ *   - Whenever an overlap is found and the other entity's @c field_0x24C is
+ *     zero, the function returns 1.
+ *
+ * @return 1 if any overlap was found, 0 otherwise (also 0 if @p selfIdx is
+ *         itself inactive).
+ */
+s32 func_8009E468(s16 selfIdx, Vec3i *pos) {
+    s32 selfRadius;
+    s32 found = 0;
+    s32 dx, dy, dz;
+    s32 distSq, avgRadius;
+    s16 i;
+
+    selfRadius = D_80085224[selfIdx].radius;
+    if (D_80085224[selfIdx].unk218 != -1) {
+        for (i = 0; i < D_80085388; i++) {
+            if (i == selfIdx) continue;
+            if (D_80085224[i].unk218 == -1) continue;
+            dz = (D_80085224[i].posZ >> 12) - pos->z;
+            if ((u32)(dz + 0x7E) >= 0xFE) continue;
+            dx = (D_80085224[i].posX - pos->x) >> 12;
+            dy = (D_80085224[i].posY - pos->y) >> 12;
+            avgRadius = (selfRadius + D_80085224[i].radius) >> 1;
+            distSq = dx * dx + dy * dy;
+            avgRadius *= avgRadius;
+            if (distSq >= avgRadius) continue;
+            if (selfIdx == D_8005F148) {
+                if (D_80085224[i].unk249 == 0) {
+                    D_80085224[i].unk248 = 1;
+                }
+            }
+            if (D_80085224[i].field_0x24C == 0) found = 1;
+        }
+    }
+    return found;
+}
 
 /**
  * Extracts position data from two entity structures (offsets 0x190/0x194,
