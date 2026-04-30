@@ -1,8 +1,19 @@
 #include "common.h"
 
+extern u8 D_801D3C58[];
+extern u8 D_801D3C68[];
+extern u8 D_801D3C78[];
+extern u8 D_801D3EC0[];
+extern u8 D_801D4308[];
+extern s32 D_801D3D08;
+extern s32 D_80182E4C[];
+extern u8 D_801C2DCA;
+extern u8 D_801C2DD0[];
+extern u8 D_8012E66C[];
+extern u8 D_80158680[];
+
 /** @brief Call func_80098C44 with D_801D3C58 and a0. */
 void func_8009E248(s32 a0) {
-    extern u8 D_801D3C58[];
     func_80098C44(D_801D3C58, a0);
 }
 
@@ -23,8 +34,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009E904);
  * @param a0 Index into the D_80182E4C callback table.
  */
 void func_8009EB30(s32 a0) {
-    extern u8 D_801D3C68[];
-    extern s32 D_80182E4C[];
     u8 *node = (u8 *)func_80098CC0(D_801D3C68, D_80182E4C[a0]);
     if (node != 0) {
         node[0xE] = a0;
@@ -51,8 +60,6 @@ void func_8009EB90(u8 *a0, s32 a1) {
  * Sets up a linked list with node size 0x24 and capacity 0x4.
  */
 void func_8009EB98(void) {
-    extern u8 D_801D3C68[];
-    extern u8 D_801D3C78[];
     func_80098BC0(D_801D3C68, D_801D3C78, 0x24, 0x4);
 }
 
@@ -60,8 +67,6 @@ void func_8009EB98(void) {
  * @brief Call func_80098D28 with D_801D3C68 and store result in D_801D3D08.
  */
 void func_8009EBCC(void) {
-    extern u8 D_801D3C68[];
-    extern s32 D_801D3D08;
     D_801D3D08 = func_80098D28(D_801D3C68);
 }
 
@@ -77,7 +82,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBF4);
  * @return 1 if a pending action was found, 0 otherwise.
  */
 s32 func_8009EF68(void) {
-    extern u8 D_801D3EC0[];
     s32 row = 0;
     u8 *base = D_801D3EC0;
     s32 marker = 0xFF;
@@ -125,9 +129,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FAF8);
  * @return Always 0.
  */
 s32 func_8009FC40(void) {
-    extern u8 D_801C2DCA;
-    extern u8 D_801C2DD0[];
-    extern u8 D_8012E66C[];
     s32 idx = D_801C2DCA ^ 1;
     func_80098A1C(D_801C2DD0 + idx * 92, D_8012E66C);
     return 0;
@@ -157,7 +158,6 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_800A03DC);
  * @return 1 if any active object has a pending action, 0 otherwise.
  */
 s32 func_800A0A88(void) {
-    extern u8 D_801D4308[];
     s32 i = 0;
     u8 *entry = D_801D4308;
 
@@ -182,9 +182,6 @@ s32 func_800A0A88(void) {
  * @return Always 0.
  */
 s32 func_800A0AD4(void) {
-    extern u8 D_801C2DCA;
-    extern u8 D_801C2DD0[];
-    extern u8 D_80158680[];
     s32 idx = D_801C2DCA ^ 1;
     func_80098A1C(D_801C2DD0 + idx * 92, D_80158680);
     return 0;

@@ -16,6 +16,14 @@ extern void decodeMessage(u8 *, u8 *, s32);
 extern u8 D_800780AB;
 extern u16 D_801FA3C8[];
 extern u8 D_801E4EA8;
+extern u8 D_801E4EB4[];
+extern u8 D_801E4EC0;
+extern u8 D_801E4EC1;
+extern u8 D_801E4EC2;
+extern u8 D_801FABC7;
+extern u16 D_801FAB1C;
+extern u16 D_801E4EAC[];
+extern void func_801E48C0();
 
 /**
  * @brief Read tutorial column index 1.
@@ -23,7 +31,6 @@ extern u8 D_801E4EA8;
  * @return Byte value of D_801E4EC1.
  */
 s32 func_801E2800(void) {
-    extern u8 D_801E4EC1;
     return D_801E4EC1;
 }
 
@@ -33,7 +40,6 @@ s32 func_801E2800(void) {
  * @return Byte value of D_801E4EC2.
  */
 s32 func_801E2810(void) {
-    extern u8 D_801E4EC2;
     return D_801E4EC2;
 }
 
@@ -83,9 +89,6 @@ void func_801E2820(s32 index, u8 *base) {
  * @param a0 Tutorial page table index.
  */
 void func_801E28A8(s32 a0) {
-    extern u8 D_801E4EB4[];
-    extern u8 D_801E4EC1;
-    extern u8 D_801E4EC2;
     u8 *entry;
 
     entry = D_801E4EB4;
@@ -100,7 +103,6 @@ void func_801E28A8(s32 a0) {
  * @return Byte value of D_801E4EC0.
  */
 s32 func_801E28D4(void) {
-    extern u8 D_801E4EC0;
     return D_801E4EC0;
 }
 
@@ -161,6 +163,8 @@ typedef struct {
     u8 loadCmd;
     u8 pad03;
 } TutoEntry;
+
+extern TutoEntry D_801E4E18[];
 
 /** @brief Tutorial section entry (12 bytes). */
 typedef struct {
@@ -230,7 +234,6 @@ void func_801E29F8(s32 a0, TutoState *data) {
  * @param output Tutorial state receiving character availability data.
  */
 void func_801E2ABC(TutoState *output) {
-    extern u8 D_801FABC7;
 
     s32 nameSrc = 0x801D9000;
     CharacterData *charSrc = (CharacterData *)0x801DB000;
@@ -400,11 +403,7 @@ void func_801E30C4(u8 *a0) {
  * @param ctx Tutorial state context.
  */
 void func_801E3140(TutoState *ctx) {
-    extern TutoEntry D_801E4E18[];
-    extern u8 D_801E4EC0;
-    extern u16 D_801E4EAC;
     volatile extern s32 D_8008514C;
-    extern u8 D_801FABC7;
 
     u16 inputNew = g_menuDisplayCfg.inputNew;
     u16 inputRepeat = g_menuDisplayCfg.inputRepeat;
@@ -669,7 +668,7 @@ top:
             func_801E28A8(2);
             break;
         case 0x16:
-            loadSubOverlay(D_801E4EAC, 0x801CD000);
+            loadSubOverlay(D_801E4EAC[0], 0x801CD000);
             break;
         case 0x17:
             loadSubOverlay(0x5F, 0x801CD000);
@@ -1028,7 +1027,6 @@ u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
  * @return Updated OT cursor position.
  */
 u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
-    extern TutoEntry D_801E4E18[];
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     TutoEntry *table = D_801E4E18;
     s32 xOff = x + 0xA;
@@ -1327,8 +1325,6 @@ void func_801E47F8(void) {
  * @param self Pointer to tutorial callback context.
  */
 void func_801E48C0(TutoState *self) {
-    extern u16 D_801FAB1C;
-    extern u16 D_801E4EAC[];
 
     u16 buttons = D_801FAB1C;
     u16 *state = &self->state;
@@ -1496,7 +1492,6 @@ s32 func_801E4CB0(TutoState *state, s32 renderCtx, s32 cursorY) {
  * calls func_801F010C(0x140) for display setup, then enters via func_801E48C0.
  */
 void func_801E4CE4(void) {
-    extern void func_801E48C0();
     TutoState *ctx = (TutoState *)func_801F179C((s32)func_801E48C0, (s32)func_801E4CB0);
 
     if (ctx != NULL) {
