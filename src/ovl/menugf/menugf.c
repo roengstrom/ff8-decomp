@@ -1,5 +1,14 @@
 #include "common.h"
 
+extern u8 D_801E7DD0[];
+extern u8 D_801E7E88;
+extern u8 g_menuDisplayCfg[];
+extern u8 g_gameState[];
+extern s32 g_menuColor;
+extern void func_801E5A60();
+extern void func_801E6A8C();
+extern void func_801E7988();
+
 INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E5800);
 
 /**
@@ -13,7 +22,6 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E5800);
  * @param a1 Index into the stat table (0-7).
  */
 void func_801E58C8(u8 *a0, s32 a1) {
-    extern u8 D_801E7DD0[];
     s16 buf[32];
     func_801F5984(D_801E7DD0, buf, 8);
     func_801F0A34(a0, 0, buf[a1] + 0x32, 0xD);
@@ -72,8 +80,6 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6A8C);
  * @param arg4 Y position for display config.
  */
 void func_801E6B3C(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 g_menuDisplayCfg[];
-    extern void func_801E6A8C();
     u8 *cfg = g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
@@ -104,8 +110,6 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6BB8);
  * @param a1 Render context.
  */
 void func_801E6C84(s32 a0, s32 a1) {
-    extern u8 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
     s32 ctx = a0;
     s32 renderCtx = a1;
     s32 result;
@@ -145,8 +149,6 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     int new_var5;
     s32 new_var;
     s32 new_var4;
-    extern u8 g_gameState[];
-    extern s32 g_menuColor;
     unsigned char new_var3;
     s32 base;
     s32 new_var2;
@@ -197,8 +199,6 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E7988);
  * callback.
  */
 void func_801E7C20(s32 unused) {
-    extern void func_801E5A60();
-    extern void func_801E7988();
     s32 ctx;
 
     ctx = func_801F179C((s32)func_801E5A60, (s32)func_801E7988);
@@ -231,7 +231,6 @@ void func_801E7C20(s32 unused) {
  * @param a0 Pointer to GF menu context.
  */
 void func_801E7CB8(u8 *a0) {
-    extern u8 D_801E7E88;
     func_801F1DBC(4);
     D_801E7E88 = 0;
     func_801E7C20(a0);
@@ -247,7 +246,6 @@ void func_801E7CB8(u8 *a0) {
  * @param a0 Pointer to GF menu context.
  */
 void func_801E7CF4(u8 *a0) {
-    extern u8 D_801E7E88;
     func_801F1DBC(4);
     D_801E7E88 = 1;
     func_801E2ABC(a0);

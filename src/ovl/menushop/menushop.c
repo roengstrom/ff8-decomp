@@ -1,5 +1,15 @@
 #include "common.h"
 
+extern u8 D_801EA70C[];
+extern u8 D_801F7F98[];
+extern u8 D_801E9B64[];
+extern u8 D_801E9B6C[];
+extern u8 g_menuDisplayCfg[];
+extern s32 g_menuColor;
+extern s32 D_80077E70;
+extern s32 func_801E6EB0;
+extern s32 func_801E8AB0;
+
 /**
  * @brief Look up a shop item byte from a table or item data.
  *
@@ -59,8 +69,6 @@ s32 func_801E58A0(s32 a0, s32 a1, s32 a2) {
  * @return Property byte value.
  */
 s32 func_801E5904(s32 a0) {
-    extern u8 D_801EA70C[];
-    extern u8 D_801F7F98[];
     u8 idx = *(u8 *)(D_801EA70C + a0 * 4);
     return D_801F7F98[idx];
 }
@@ -82,7 +90,6 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5A8C);
  * @param a1 Index into the decoded position table.
  */
 void func_801E5BA4(s32 a0, s32 a1) {
-    extern u8 D_801E9B64[];
     s16 buf[36];
     func_801E59D8(D_801E9B64, buf, 3);
     func_801F0A34(a0, 0, buf[a1] + 0x24, 0x22);
@@ -126,7 +133,6 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6EB0);
  * @param arg5 X position for the display configuration.
  */
 void func_801E6F60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 g_menuDisplayCfg[];
     s32 cfg = (s32)g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
@@ -140,7 +146,6 @@ void func_801E6F60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x3A);
     *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x20);
     {
-        extern s32 func_801E6EB0;
         func_801EFBB4(a1, a2, (s32)&func_801E6EB0);
     }
 }
@@ -174,7 +179,6 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7B9C);
  * @param a0 Shop context parameter passed to the handler.
  */
 void func_801E7C8C(s32 a0) {
-    extern u8 D_801E9B6C[];
     s32 off;
     func_801F0948(0);
     func_801F7B60();
@@ -207,7 +211,6 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E1C);
  * @return 1 if bit is set, 0 otherwise.
  */
 s32 func_801E7E4C(s32 a0) {
-    extern s32 D_80077E70;
     s32 mask = 1 << a0;
     s32 val = D_80077E70 & mask;
     return val != 0;
@@ -263,7 +266,6 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8AB0);
  * @param arg5 X position for the display configuration.
  */
 void func_801E8B60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    extern u8 g_menuDisplayCfg[];
     s32 cfg = (s32)g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
@@ -277,7 +279,6 @@ void func_801E8B60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     *(s16 *)(cfg + 0x14) = *(u16 *)(a0 + 0x36);
     *(s32 *)(cfg + 0x20) = (s32)(a0 + 0x20);
     {
-        extern s32 func_801E8AB0;
         func_801EFBB4(a1, a2, (s32)&func_801E8AB0);
     }
 }
@@ -324,8 +325,6 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90F8);
  * @param arg4 Y position for display config.
  */
 void func_801E9554(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    extern u8 g_menuDisplayCfg[];
-    extern s32 g_menuColor;
     s32 result;
     u8 *cfg;
 
