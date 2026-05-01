@@ -48,7 +48,9 @@ segments:
     start: 0x0
     vram: 0x80098000
     subsegments:
-      - [0x0, c, be_dispatch]
+      - [0x0, asm, be_dispatch]
+      - { start: 0x164, type: .rodata, name: be_object3, linker_section_order: .text }
+      - { start: 0x178, type: data, name: be_dispatch_post, linker_section_order: .text }
       - [0x22C, c, be_object1]
       - [0x28CC, c, be_object2]
       - [0x6248, c, be_object3]

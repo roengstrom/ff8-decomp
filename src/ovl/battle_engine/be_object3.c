@@ -1,9 +1,43 @@
 #include "common.h"
 
+/**
+ * @brief Script-action entry in the D_801D3EC0 2x5 table.
+ *
+ * Initialized in func_800A00EC. Used by func_8009FC90's state-2 sweep
+ * to mark queued actions complete and by func_8009EF68 to scan for
+ * pending actions.
+ */
+typedef struct {
+    /* 0x00 */ u8 marker;       /**< Sentinel; set to 0xFF on init. */
+    /* 0x01 */ u8 status;       /**< Action status (set to 3 to mark "complete"). */
+    /* 0x02 */ u8 field02;      /**< Cleared when action marked complete. */
+    /* 0x03 */ u8 row;          /**< Row index (cached on init). */
+    /* 0x04 */ u8 col;          /**< Column index (cached on init). */
+    /* 0x05 */ u8 pad05;
+    /* 0x06 */ u16 field06;
+    /* 0x08 */ s16 actionId;    /**< Pending action ID; non-zero means action queued. */
+    /* 0x0A */ u16 field0A;
+    /* 0x0C */ u8 pad0C[10];
+} ScriptEntry; /* 0x16 = 22 bytes */
+
+/**
+ * @brief Callback context for state-machine handlers (e.g. func_8009FC90).
+ *
+ * Allocated via func_80098C44 / func_80098CC0 with state byte at +0x10.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x0C];
+    /* 0x0C */ s32 cachedResult;
+    /* 0x10 */ u8 state;
+    /* 0x11 */ u8 subState;
+    /* 0x12 */ u8 counter;
+    /* 0x13 */ u8 pad13;
+} ScriptCtx;
+
 extern u8 D_801D3C58[];
 extern u8 D_801D3C68[];
 extern u8 D_801D3C78[];
-extern u8 D_801D3EC0[];
+extern ScriptEntry D_801D3EC0[2][5];
 extern u8 D_801D4308[];
 extern s32 D_801D3D08;
 extern s32 D_80182E4C[];
@@ -11,6 +45,8 @@ extern u8 D_801C2DCA;
 extern u8 D_801C2DD0[];
 extern u8 D_8012E66C[];
 extern u8 D_80158680[];
+extern u8 D_801A2CE6;
+extern s32 D_801A2C54;
 
 /** @brief Call func_80098C44 with D_801D3C58 and a0. */
 void func_8009E248(s32 a0) {
@@ -83,7 +119,7 @@ INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009EBF4);
  */
 s32 func_8009EF68(void) {
     s32 row = 0;
-    u8 *base = D_801D3EC0;
+    u8 *base = (u8 *)D_801D3EC0;
     s32 marker = 0xFF;
     s32 rowOff = row;
     s32 col;
@@ -134,7 +170,107 @@ s32 func_8009FC40(void) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FC90);
+extern void func_800A030C(s32 a0);
+extern s32 func_8009FAF8(s32 a0);
+
+/**
+ * @brief Battle-script callback: 5-state machine driving an intro/setup sequence.
+ *
+ * Registered via func_800A00EC. Each invocation advances the state machine
+ * one tick; returns 0 while running, returns from any case.
+ *
+ * State 0: warmup. Calls func_800A030C(0xF) once, ticks 15 frames.
+ * State 1: setup. Calls func_8009FAF8(counter) per counter, polls
+ *          func_80098D28 until ready; tries counter 0..1, then branches
+ *          to state 2 (if D_801A2C54 & 1) or state 4.
+ * State 2: clear sweep. Every 5 ticks, marks queued actions in
+ *          D_801D3EC0[row][col] complete for column = 4 down to 0;
+ *          transitions to state 3 once column 0 is processed.
+ * State 3: wait. Calls func_8009EF68 once, idles 0x1E frames.
+ * State 4: done. Sets D_801A2CE6 = 3 and exits.
+ *
+ * @param ctx Callback context (state at +0x10, subState at +0x11).
+ * @return 0 while progressing, 0 on completion.
+ */
+s32 func_8009FC90(ScriptCtx *ctx) {
+    while (1) {
+        switch (ctx->state) {
+        case 0:
+            if (ctx->subState == 0) {
+                func_800A030C(0xF);
+            }
+            ctx->subState++;
+            if (ctx->subState < 0xF) {
+                return 0;
+            }
+            ctx->counter = 0;
+            ctx->state = 1;
+            ctx->subState = 0;
+            break;
+
+        case 1:
+            if (ctx->subState == 0) {
+                ctx->cachedResult = func_8009FAF8(ctx->counter);
+                ctx->subState++;
+            }
+            if (func_80098D28(ctx->cachedResult) != 0) {
+                return 0;
+            }
+            ctx->counter++;
+            if (ctx->counter < 2) {
+                ctx->state = 1;
+                ctx->subState = 0;
+                break;
+            }
+            if (D_801A2C54 & 1) {
+                ctx->state = 2;
+                ctx->subState = 0;
+                break;
+            }
+            ctx->state = 4;
+            ctx->subState = 0;
+            break;
+
+        case 2: {
+            s32 row;
+            s32 col;
+            if ((u8)(ctx->subState % 5) == 0) {
+                col = 4 - (u8)(ctx->subState / 5);
+                for (row = 0; row < 2; row++) {
+                    if (D_801D3EC0[row][col].actionId != 0) {
+                        D_801D3EC0[row][col].status = 3;
+                        D_801D3EC0[row][col].field02 = 0;
+                    }
+                }
+                if (col == 0) {
+                    ctx->state = 3;
+                    ctx->subState = 0;
+                }
+            }
+            ctx->subState++;
+            return 0;
+        }
+
+        case 3:
+            if (ctx->subState == 0) {
+                if (func_8009EF68() != 0) {
+                    return 0;
+                }
+            }
+            ctx->subState++;
+            if (ctx->subState < 0x1E) {
+                return 0;
+            }
+            ctx->state = 4;
+            ctx->subState = 0;
+            break;
+
+        case 4:
+            D_801A2CE6 = 3;
+            return 0;
+        }
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle_engine/nonmatchings/be_object3", func_8009FED0);
 

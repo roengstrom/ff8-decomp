@@ -888,3 +888,4 @@ func_80180CB8 = 0x80180CB8; // type:u32
 func_80181D78 = 0x80181D78; // type:u32
 func_80182A80 = 0x80182A80; // type:u32
 g_menuDisplayCfg = 0x801FAB00;
+jtbl_80098164 = 0x80098164; // type:jtbl size:0x14
