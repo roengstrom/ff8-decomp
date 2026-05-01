@@ -243,7 +243,67 @@ s32 func_8009CF18(void) {
     return func_8009B7BC(0x21) + 0xEF;
 }
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009CF38);
+/**
+ * @brief Compute damage for a battle action based on type and route to dispatcher.
+ *
+ *   - case 0/19: scale formula using attacker @c fieldCD (squared), defense,
+ *                power, and the @c func_8009CF18 modifier. Case 19 forces
+ *                @c defense to 0 first.
+ *   - case 1:    if target's @c controlFlags bit 0x10000 is set, mark
+ *                @c D_800EE4C0[6] (bit 2) and report 0; else scale @c field28.
+ *   - case 3:    multiply attacker's @c field2C by 5.
+ *   - case 16:   active party member's kill count (selected via the party
+ *                slot at @c targetIdx) times power. If @c targetIdx >= 3,
+ *                the damage is forced to 0.
+ *
+ * @param attackerIdx Battle entity index of the attacker (case 0/3 path).
+ * @param targetIdx   Battle entity index of the target (case 1) or party slot (case 16).
+ * @param power       Damage multiplier.
+ * @param type        Action type, indexes the case dispatch.
+ */
+void func_8009CF38(s32 attackerIdx, s32 targetIdx, s32 power, s32 type) {
+    s32 defense;
+    s32 dmg;
+    s32 stat, mod, sq;
+
+    defense = func_8009C300(targetIdx, 0);
+
+    if ((u32)type < 20) {
+        switch (type) {
+        case 19:
+            defense = 0;
+        case 0:
+            mod = func_8009CF18();
+            stat = D_800ED148.entities[attackerIdx].fieldCD;
+            sq = stat * stat / 16 + stat;
+            dmg = sq * (0x109 - defense) / 256 * power / 16 * mod / 256;
+            break;
+
+        case 1:
+            if (D_800ED148.entities[targetIdx].controlFlags & 0x10000) {
+                dmg = 0;
+                D_800EE4C0[6] |= 4;
+            } else {
+                dmg = D_800ED148.entities[targetIdx].field28 * power / 16;
+            }
+            break;
+
+        case 3:
+            dmg = D_800ED148.entities[attackerIdx].field2C * 5;
+            break;
+
+        case 16:
+            if (targetIdx < 3) {
+                dmg = g_gameState.chars[g_gameState.mainData.party.party[targetIdx]].kills * power;
+            } else {
+                dmg = 0;
+            }
+            break;
+        }
+    }
+
+    func_8009CD78(attackerIdx, targetIdx, power, dmg);
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009D174);
 

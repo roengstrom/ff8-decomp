@@ -49,6 +49,8 @@ segments:
     vram: 0x80098000
     subsegments:
       - [0x0, asm, bc_dispatch]
+      - { start: 0x130, type: .rodata, name: bc_object2, linker_section_order: .text }
+      - { start: 0x180, type: data, name: bc_dispatch_post, linker_section_order: .text }
       - [0x1FE8, c, bc_object1]
       - [0x3AC4, c, bc_object2]
       - [0x98E0, c, bc_object3]

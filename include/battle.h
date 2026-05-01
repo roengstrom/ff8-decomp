@@ -236,7 +236,8 @@ typedef struct {
     s32 flagsBackup;
     u8 pad20[0x08];
     s32 field28;
-    u8 pad2C[0x58];
+    s32 field2C;
+    u8 pad30[0x54];
     u16 animParam1;
     u16 animParam2;
     u16 animParam3;
@@ -249,7 +250,9 @@ typedef struct {
     u8 linkedIdx2;
     u8 padBC[0x0F];
     u8 linkedIdx;
-    u8 padCC[0x04];
+    u8 padCC[0x01];
+    u8 fieldCD;        /* 0xCD: stat byte used in case-0 damage formula (squared). */
+    u8 padCE[0x02];
 } BattleEntity;
 
 /**
