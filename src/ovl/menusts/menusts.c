@@ -1,9 +1,27 @@
 #include "common.h"
+#include "battle.h"
+#include "menu.h"
+
+/** @brief Status display table entry (used by func_801E72D8). */
+typedef struct {
+    u16 statusId;     /**< Status text ID (terminator: 0xFF). */
+    u16 padOrType;    /**< Type/position byte. */
+} StatusEntry;
 
 extern u16 D_801FA3C8[];
-extern u8 g_menuDisplayCfg[];
-extern s32 g_menuColor;
 extern s32 D_801E961C[];
+extern StatusEntry D_801E95CC[];
+extern BattleCharData D_801E9EE4;
+extern u8 D_80083858;
+
+extern void *func_801F6AFC(s32 a0);
+extern s32 func_8002FF34(s32 displayList, s32 ot, s32 textId, s32 x, s32 y, s32 color);
+extern s32 func_8002C56C(s32 displayList, s32 ot, s32 x, s32 y, void *data, s32 size);
+extern s32 func_801EF9AC(s32 displayList, s32 ot, s32 mode, s32 color);
+extern void intToDecStringShort(s32 num, u8 *buf, s32 digitBase);
+extern void replaceLeadingZeros(u8 *buf, s32 count, s32 digitBase, s32 replacement);
+extern u8 *getMenuString(s32 id);
+extern s32 isMcBusy(void);
 
 /** @brief Look up value from D_801FA3C8 table by dividing input by 64. */
 u16 func_801E5800(s32 a0) {
@@ -96,7 +114,7 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E68A4);
  */
 void func_801E6994(s32 a0, s32 a1, s16 a2, s16 a3) {
 
-    s32 cfg = (s32)g_menuDisplayCfg;
+    s32 cfg = (s32)&g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0;
     *(u8 *)(cfg + 0x11) = 0;
@@ -118,9 +136,9 @@ INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E6EA0);
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E709C);
 
 /** @brief Build status bitfield from character data flags. */
-s32 func_801E7278(u8 *a0) {
-    s32 result = *(u16 *)(a0 + 0x1B4) & 0x7F;
-    s32 flags = *(s32 *)(a0 + 0x18C);
+s32 func_801E7278(BattleCharData *cd) {
+    s32 result = cd->abilityValue & 0x7F;
+    s32 flags = cd->abilityFlags;
 
     if (flags & 0x1) result |= 0x80;
     if (flags & 0x4) result |= 0x100;
@@ -131,7 +149,78 @@ s32 func_801E7278(u8 *a0) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E72D8);
+/**
+ * @brief Render character status icons + atkStatusHit values.
+ *
+ * Walks D_801E95CC (status entry table, sentinel 0xFF) and for each
+ * status flag set in the character's bitfield, draws the status text
+ * icon and the (atkStatusHit - 100) numeric value, up to 3 entries.
+ * Then draws the surrounding panel via func_801EF9AC if any entries
+ * were drawn.
+ *
+ * @param displayList GPU display list pointer.
+ * @param ot          Ordering table pointer (returned chained).
+ * @param x           Panel base X position.
+ * @param y           Panel base Y position.
+ * @param mode        Render mode passed to func_801EF9AC.
+ * @return Updated OT pointer.
+ */
+s32 func_801E72D8(s32 displayList, s32 ot, s32 x, s32 y, s32 mode) {
+    u8 strBuf[16];
+    StatusEntry *entry = D_801E95CC;
+    s32 i = 0;
+    s32 digitBase = D_80083858;
+    s32 drawn;
+    s32 yStep;
+    MenuDisplayConfig *cfgPtr;
+    u8 *strBuf2;
+    void *bgBuf;
+    s32 statusFlags;
+    s32 yPos;
+
+    cfgPtr = &g_menuDisplayCfg;
+    bgBuf = func_801F6AFC(0x14);
+    drawn = i;
+    statusFlags = func_801E7278(&D_801E9EE4);
+    strBuf2 = &strBuf[2];
+    yStep = 0xA;
+
+    while (1) {
+        s32 mask;
+        if (entry->statusId == 0xFF) break;
+        mask = 1 << i;
+        if (statusFlags & mask) {
+            if (drawn >= 3) break;
+            yPos = y + yStep;
+            ot = func_8002FF34(displayList, ot, entry->statusId, x + 0xA, yPos, g_menuColor);
+            drawn++;
+            yPos += 4;
+            intToDecStringShort(D_801E9EE4.atkStatusHit - 100, strBuf, digitBase);
+            replaceLeadingZeros(strBuf2, 2, digitBase, *getMenuString(0xB));
+            ot = func_8002C56C(displayList, ot, x + 0x5A, yPos, strBuf2, 7);
+            ot = func_8002C56C(displayList, ot, x + 0x72, yPos + 1, bgBuf, 7);
+            yStep += 0xE;
+        }
+        i++;
+        entry++;
+    }
+
+    if (drawn != 0) {
+        if (isMcBusy() == 4) {
+            *(u8 *)((s32)cfgPtr + 0x10) = 0xFC;
+        } else {
+            *(u8 *)((s32)cfgPtr + 0x10) = 0xD0;
+        }
+        cfgPtr->iconSubType = 0;
+        cfgPtr->x = x;
+        cfgPtr->y = y;
+        cfgPtr->w = 0x82;
+        cfgPtr->h = 0x38;
+        ot = func_801EF9AC(displayList, ot, mode, g_menuColor);
+    }
+
+    return ot;
+}
 
 INCLUDE_ASM("asm/ovl/menusts/nonmatchings/menusts", func_801E750C);
 
