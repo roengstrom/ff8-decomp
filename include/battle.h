@@ -244,12 +244,25 @@ typedef struct {
     ControlFlags controlFlags;
     u16 status;
     u16 statusBackup;
-    u8 pad94[0x27];
+    u16 hpDisplay;     /* 0x94: HP value mirrored from BattleCharData.currentHp. */
+    u8 pad96[0x25];
     u8 linkedIdx2;
     u8 padBC[0x0F];
     u8 linkedIdx;
     u8 padCC[0x04];
 } BattleEntity;
+
+/**
+ * @brief Battle system block at D_800ED148.
+ *
+ * Top-level view: 16 BattleEntity slots followed by a region of misc state
+ * fields (only @c effectMult mapped here so far).
+ */
+typedef struct {
+    /* 0x0000 */ BattleEntity entities[16];     /**< 16 × 0xD0 = 0xD00 bytes. */
+    /* 0x0D00 */ u8 padD00[0x623];              /**< Misc state fields not yet mapped. */
+    /* 0x1323 */ u8 effectMult;                 /**< Damage/effect multiplier (percent). */
+} BattleSystem;
 
 /** @brief Battle magic slot entry (5 bytes). */
 typedef struct {
@@ -332,7 +345,9 @@ typedef struct {
 typedef struct {
     /* 0x000 */ u8 pad000[0x14];
     /* 0x014 */ u16 field014;
-    /* 0x016 */ u8 pad016[6];
+    /* 0x016 */ u8 pad016[2];
+    /* 0x018 */ u16 currentHp;          /**< Current HP in battle. */
+    /* 0x01A */ u8 pad01A[2];
     /* 0x01C */ u8 field01C;
     /* 0x01D */ u8 field01D;
     /* 0x01E */ BattleCmdSlot cmdSlots[4];
@@ -364,8 +379,9 @@ typedef struct {
 
 /** @brief GF battle entry (12 bytes, used for GF HP in battle). */
 typedef struct {
-    u8 pad00[0x0A];
-    u16 hp;             /* 0x0A */
+    u8 pad00[0x08];
+    u16 maxHp;          /* 0x08: max HP cap (used to restore hp on revive) */
+    u16 hp;             /* 0x0A: current HP */
 } BattleGfEntry;
 
 /** @brief GF battle level entry (12 bytes). */

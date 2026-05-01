@@ -7,8 +7,9 @@
  */
 #include "common.h"
 #include "battle.h"
+#include "gamestate.h"
 
-extern u8 D_800ED148[];
+extern BattleSystem D_800ED148;
 extern u8 D_800EEBC4[];
 extern u8 D_800EEBBB[];
 extern u8 D_800EE456[];
@@ -21,7 +22,6 @@ extern u8 D_800EEBB8[];
 extern u8 D_800EEBBA[];
 extern u8 D_800EEBC2[];
 extern u8 D_800ED160[];
-extern u8 g_gameState[];
 extern u8 D_800786D9[];
 
 s32 func_8009B79C(s32, s32);
@@ -105,7 +105,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009BDD0);
  * @param a0 Entity index (stride 0xD0).
  */
 void func_8009BE24(s32 a0) {
-    volatile u8 *base = D_800ED148;
+    volatile u8 *base = (volatile u8 *)&D_800ED148;
     u8 *entity = (u8 *)base + a0 * 0xD0;
     s32 val = *(u8 *)(entity + 0xD2) + *(u8 *)D_800EEBBC;
     if (func_8009B79C(val, 0xFF)) {
@@ -260,7 +260,7 @@ s32 func_8009D420(s32 a0, s32 a1) {
     s32 base;
     s32 flags;
     if (!(*(s32 *)D_800EEBC4 & 0x4000000)) {
-        base = (s32)D_800ED148;
+        base = (s32)&D_800ED148;
         flags = *(u16 *)(base + a1 * 0xD0 + 0x90);
         if (flags & 0x4) {
             return 1;
@@ -319,7 +319,56 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009E95C);
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009EA08);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009EAEC);
+/**
+ * @brief Apply damage-over-time tick to GF targets and clear pending flag.
+ *
+ * If the entity's @c controlFlags bit 0x20000 is set, queries the current
+ * target list (up to 16) and for each target:
+ *   - Scales their @c gfs[].hp by @c effectMult % of their battle hp,
+ *   - Triggers a battle event via @c func_8002363C,
+ *   - Clears bit 1 in the matching itemSlot flag byte.
+ *
+ * After the pass, if @c flags is negative, the entity is restored from its
+ * GF max HP (via @c characterId − 0x40 lookup), and the value is mirrored
+ * into @c hpDisplay. The pending bit (0x20000) is then cleared.
+ *
+ * @param charIdx Battle entity index.
+ */
+void func_8009EAEC(s32 charIdx) {
+    u8 targets[16];
+    BattleEntity *entry;
+    s32 count, i, j;
+    s32 id, amount;
+
+    if (!(D_800ED148.entities[charIdx].controlFlags & 0x20000)) {
+        return;
+    }
+
+    count = func_800AF918(charIdx, targets);
+
+    if (count != 0) {
+        for (i = 0; i < count; i++) {
+            g_gameState.gfs[targets[i]].hp +=
+                (D_800ED148.effectMult * (s16)g_battleChars.gfEntries[targets[i]].hp) / 100;
+
+            func_8002363C(targets[i]);
+
+            for (j = 0; j < 16; j++) {
+                if (g_battleChars.chars[charIdx].itemSlots[j].field0 == targets[i] + 0x40) {
+                    g_battleChars.chars[charIdx].itemSlots[j].field4 &= 0xFD;
+                    break;
+                }
+            }
+        }
+
+        if (D_800ED148.entities[charIdx].flags < 0) {
+            id = g_battleChars.chars[charIdx].field01D - 0x40;
+            g_battleChars.chars[charIdx].currentHp = g_battleChars.gfEntries[id].maxHp;
+            D_800ED148.entities[charIdx].hpDisplay = g_battleChars.chars[charIdx].currentHp;
+        }
+    }
+    D_800ED148.entities[charIdx].controlFlags &= ~0x20000;
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009ED2C);
 
@@ -345,7 +394,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F350);
  * @return Pending damage value divided by 4.
  */
 s32 func_8009F3F8(s32 entityIdx) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     u8 *entity;
     s32 val;
     asm("");
@@ -365,7 +414,7 @@ s32 func_8009F3F8(s32 entityIdx) {
  * @return Entity field value divided by 5.
  */
 s32 func_8009F428(s32 a0) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     s32 val = *(s32 *)(base + a0 * 208 + 0x2C);
     return val / 10;
 }
@@ -384,7 +433,7 @@ s32 func_8009F46C(s32 entityIdx) {
     u8 *base;
     u8 *entity;
     *(u8 *)(ctrl + 5) |= 1;
-    base = D_800ED148;
+    base = (u8 *)&D_800ED148;
     asm("");
     entity = base + entityIdx * 0xD0;
     *(s32 *)(entity + 0x18) |= 0x10000;
@@ -415,7 +464,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F52C);
 void func_8009F570(s32 bitIndex) {
     s32 wordIdx = bitIndex / 32;
     s32 bitPos = bitIndex % 32;
-    s32 base = (s32)g_gameState;
+    s32 base = (s32)&g_gameState;
     *(s32 *)(base + wordIdx * 4 + 0xD0C) |= (1 << bitPos);
 }
 
@@ -452,7 +501,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_8009F930);
  * @param cmd Command byte value.
  */
 void func_8009FCF4(s32 cmd) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     s32 idx = base[0x12F3];
     base[0x130E] = cmd;
     cmd &= 3;
@@ -483,7 +532,7 @@ s32 func_8009FDD4(s32 val) {
 s32 func_8009FDE0(s32 a0, s32 a1) {
     s32 base;
     a1 = a1 * 4;
-    base = (s32)D_800ED148;
+    base = (s32)&D_800ED148;
     a1 -= 1;
     return a1 + *(u8 *)(base + a0 * 208 + 0xDA);
 }
@@ -516,7 +565,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object2", func_800A08E0);
  * @param entityIdx Index into the battle entity array.
  */
 void func_800A0978(s32 entityIdx) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     u8 *entity;
     asm("");
     entity = base + entityIdx * 0xD0;
