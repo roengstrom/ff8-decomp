@@ -473,7 +473,126 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A2FE0);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A3018);
 
-INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A303C);
+/**
+ * @brief Particle emitter record (one of an array within ParticleSystem).
+ *
+ * Stride 0x174 bytes. Indexed by emitter id from the start of @c sys.
+ * Holds the emitter's spawn-rate counters and the velocity/position
+ * jitter ranges used to seed each particle.
+ */
+typedef struct {
+    /* 0x000 */ u8 pad000[0x14E];
+    /* 0x14E */ u8 unk14E;          /**< Reset to 0 on each call. */
+    /* 0x14F */ u8 pad14F[0x0B];
+    /* 0x15A */ s16 maxCount;       /**< Cap on simultaneously-active particles. */
+    /* 0x15C */ s16 curCount;       /**< Currently active particle count. */
+    /* 0x15E */ u8 pad15E[0x02];
+    /* 0x160 */ s16 unk160;         /**< Velocity-Z bias (added * 32). */
+    /* 0x162 */ s16 unk162;         /**< Velocity-Z jitter half-range. */
+    /* 0x164 */ s16 unk164;         /**< unk16 jitter half-range. */
+    /* 0x166 */ s16 unk166;         /**< Position-X jitter (* 256). */
+    /* 0x168 */ s16 unk168;         /**< Position-Y jitter (* 256). */
+    /* 0x16A */ u16 unk16A;         /**< Position-Z jitter (low 7 bits). */
+    /* 0x16C */ s16 unk16C;         /**< Velocity-X jitter half-range. */
+    /* 0x16E */ s16 unk16E;         /**< Velocity-Y jitter half-range. */
+    /* 0x170 */ s16 unk170;         /**< Velocity-Z jitter half-range. */
+    /* 0x172 */ u8 pad172[0x02];
+} Emitter; /* 0x174 = 372 bytes */
+
+/**
+ * @brief Particle "view" — overlay struct positioned at @c &sys->slots[slot].
+ *
+ * The view's fields are at the absolute byte offsets (0x2720..0x273B) where
+ * each particle's data actually lives. Indexing @c sys->slots[slot] gives a
+ * 32-byte slot stride; casting that address to @c Particle* lets field
+ * accesses (e.g. @c p->posX) compile to @c sw v0,0x2720(s0) — the original
+ * "keep @c sys+slot*32 in a register, full immediate offsets" pattern.
+ */
+typedef struct {
+    /* 0x0000 */ u8 pad0000[0x2720];
+    /* 0x2720 */ s32 posX;
+    /* 0x2724 */ s32 posY;
+    /* 0x2728 */ s32 posZ;
+    /* 0x272C */ s16 velX;
+    /* 0x272E */ s16 velY;
+    /* 0x2730 */ s16 velZ;
+    /* 0x2732 */ s16 unk12;
+    /* 0x2734 */ u8 pad2734[0x02];
+    /* 0x2736 */ s16 unk16;
+    /* 0x2738 */ u8 emitterIdx;
+    /* 0x2739 */ u8 unk19;
+    /* 0x273A */ u8 unk1A;
+    /* 0x273B */ u8 active;
+} Particle;
+
+/** @brief 32-byte slot stride for indexing into a particle system buffer. */
+typedef struct {
+    u8 b[32];
+} ParticleBlock;
+
+/**
+ * @brief Particle system buffer.
+ *
+ * Modeled as a flat array of 32-byte slots: the first ~313 slots hold the
+ * emitter table and other buffer metadata; particle records overlay the
+ * remaining slots starting at slot index 313 (byte offset 0x2720).
+ * Casting a slot's address to @c Particle* gives access to that slot's
+ * particle data via the absolute-offset view above.
+ */
+typedef struct {
+    ParticleBlock slots[1];
+} ParticleSystem;
+
+extern s16 func_800A2EA4(s16 range);
+extern s16 func_800A2FE0(ParticleSystem *sys);
+
+/**
+ * @brief Spawn up to @p count particles for emitter @p emIdx around @p pos.
+ *
+ * Loops while @p count is positive and the emitter has free slots, calling
+ * @c func_800A2FE0 to allocate a particle slot, then seeding its position,
+ * velocity, and per-particle counters from the emitter's ranges plus the
+ * spawn position. Each lookup uses @c func_800A2EA4 for a signed random
+ * value in a half-range about zero.
+ *
+ * @param emIdx  Emitter index (stride 0x174 within @p sys).
+ * @param sys    Particle system buffer.
+ * @param pos    Spawn anchor position (3 s16 components: x, y, z).
+ * @param count  Maximum particles to spawn this call.
+ */
+void func_800A303C(s16 emIdx, ParticleSystem *sys, s16 *pos, s16 count) {
+    Emitter *em = (Emitter *)sys + emIdx;
+    Particle *p;
+    s16 slot;
+
+    em->unk14E = 0;
+
+    while (1) {
+        if (count <= 0) return;
+        if (em->curCount >= em->maxCount) return;
+
+        slot = func_800A2FE0(sys);
+        if (slot == -1) return;
+
+        em->curCount++;
+        p = (Particle *)&sys->slots[slot];
+
+        p->emitterIdx = emIdx;
+        p->active = 1;
+
+        p->unk12 = func_800A2EA4(em->unk162 * 32) + em->unk160 * 32 - em->unk162 * 16;
+        p->unk16 = func_800A2EA4(em->unk164 * 2) - em->unk164;
+        count--;
+        p->posX = pos[0] * 16 + (func_800A2EA4(em->unk166) << 8) - em->unk166 * 128;
+        p->posY = pos[1] * 16 + (func_800A2EA4(em->unk168) << 8) - em->unk168 * 128;
+        p->posZ = pos[2] * 16 + (func_800A2EA4(em->unk16A & 0x7F) << 8) - (em->unk16A & 0x7F) * 128;
+        p->velX = func_800A2EA4(em->unk16C * 32) - em->unk16C * 16;
+        p->velY = func_800A2EA4(em->unk16E * 32) - em->unk16E * 16;
+        p->velZ = func_800A2EA4(em->unk170 * 32) - em->unk170 * 16;
+        p->unk19 = 0;
+        p->unk1A = 0;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A327C);
 
@@ -481,7 +600,6 @@ INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A3488);
 
 INCLUDE_ASM("asm/ovl/field_engine/nonmatchings/fe_object1", func_800A3534);
 
-extern void func_800A303C(s32 id, s32 a2, SVECTOR *pos, s32 ratio);
 extern void func_800A327C(Entity *actor, SVECTOR *out);
 extern void func_800A3488(Entity *actor, SVECTOR *out);
 
