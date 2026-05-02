@@ -126,19 +126,14 @@ void func_800AFF30(s32 a0) {
 }
 
 /**
- * @brief Look up entity field and call resolveKernelPtr (stride 132).
+ * @brief Resolve the kernel pointer keyed by @c rows132[a0-0x40].lookupId.
  *
- * Subtracts 0x40 from a0, computes D_80078E00 + adjusted * 132,
- * reads halfword at offset 0xF78 and word at D_80078E00 + 0x88.
- *
- * @param a0 Entity index (offset by 0x40, stride 132).
+ * @param a0 Index into @c D_80078E00.rows132, offset by @c 0x40.
  */
 void func_800AFF70(s32 a0) {
-    s32 base = (s32)&D_80078E00;
-    u8 *entry;
+    BattleSceneData *scene = &D_80078E00;
     a0 -= 0x40;
-    entry = (u8 *)(base + a0 * 132);
-    resolveKernelPtr(*(u16 *)(entry + 0xF78), *(s32 *)(base + 0x88));
+    resolveKernelPtr(scene->rows132[a0].lookupId, scene->rows132Arg);
 }
 
 /**
