@@ -248,7 +248,100 @@ INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B8230);
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B83B4);
 
-INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B85DC);
+/** @brief Two-halfword script opcode entry. */
+typedef struct {
+    u16 op;
+    u16 param;
+} ScriptOp;
+
+/** @brief Slot-state record at *D_800D226C (used by 0xFF28 / 0xFF2E handlers). */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x74];
+    /* 0x74 */ u32 flags[2];      /**< 64-bit flag set, split into low/high u32. */
+    /* 0x7C */ u8 bytes[2];       /**< Action bytes selectable by 0xFF2E. */
+    /* 0x7E */ u8 pad7E[2];
+} Slot;
+
+extern u8 *D_800C96C8;
+extern Slot *D_800D226C;
+extern s32 D_800C4DBC;
+
+extern ScriptOp *func_800AF004(u8 *base, s32 arg1);
+extern void func_8009B358(s32 a0, s32 a1, s32 a2);
+extern void func_8009B550(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5, s32 a6);
+extern void func_8009D8A8(s32 a0);
+extern void addItemToInventory(s32 itemId, s32 count);
+
+/**
+ * @brief Walk the cmd-stream at @c D_800C96C8 (variant for object slot 1).
+ *
+ * Mirrors @c func_800BC46C but with a richer opcode set: in addition to
+ * end / link / store, dispatches a number of side-effect opcodes (call
+ * wrappers, bit ops on the @c D_800D226C slot, scene/inventory pokes).
+ *
+ * @param out  Output halfword captured by 0xFF08 (returns 1) or 0xFF2B (returns 3).
+ * @return     1 if 0xFF08 fired, 3 if 0xFF2B fired, 0 otherwise.
+ */
+s32 func_800B85DC(s16 *out) {
+    ScriptOp *op;
+    s32 result;
+
+    result = 0;
+    op = func_800AF004(D_800C96C8, 1);
+
+    if (op != 0) {
+        while (1) {
+            if (op->op == 0xFF05) break;
+
+            if (op->op == 0xFF0E) {
+                op = (ScriptOp *)&D_800C96C8[op->param];
+                continue;
+            } else if (op->op == 0xFF08) {
+                *out = op->param;
+                result = 1;
+                break;
+            } else if (op->op == 0xFF2B) {
+                *out = op->param;
+                result = 3;
+                break;
+            } else if (op->op == 0xFF1F) {
+                s8 lo = op->param;
+                u8 hi = op->param >> 8;
+                func_8009B358(lo, hi, 0);
+            } else if (op->op == 0xFF26) {
+                D_800D23D8[0] = (u8)op->param;
+            } else if (op->op == 0xFF28) {
+                u8 enable = op->param >> 8;
+                s8 bitPos = op->param;
+                if (enable) {
+                    SET_FLAG(D_800D226C->flags, bitPos);
+                } else {
+                    CLEAR_FLAG(D_800D226C->flags, bitPos);
+                }
+            } else if (op->op == 0xFF23) {
+                s8 lo = op->param;
+                s8 hi = op->param >> 8;
+                func_8009B550(lo, hi, 0, 1, 2, 1, 2);
+            } else if (op->op == 0xFF2E) {
+                u8 byteIdx = op->param;
+                u8 byteVal = op->param >> 8;
+                if (byteIdx < 2) {
+                    D_800D226C->bytes[(s8)byteIdx] = byteVal;
+                }
+            } else if (op->op == 0xFF24) {
+                func_8009D8A8(op->param);
+            } else if (op->op == 0xFF36) {
+                D_800C4DBC = 1;
+            } else if (op->op == 0xFF37) {
+                s8 lo = op->param;
+                u8 hi = op->param >> 8;
+                addItemToInventory(lo, hi);
+            }
+            op++;
+        }
+    }
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/world_engine/nonmatchings/we_object7", func_800B881C);
 

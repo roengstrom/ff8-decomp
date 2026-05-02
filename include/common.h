@@ -42,6 +42,15 @@ typedef union {
 /* Clamp value to [lo, hi] range. */
 #define CLAMP(val, lo, hi) ((val) < (lo) ? (lo) : (val) > (hi) ? (hi) : (val))
 
+/*
+ * Set/clear bit @c bitPos in a 64-bit flag set stored as @c u32 flags[2].
+ * @c bitPos must be a signed type (s8 / s32) — this lets gcc 2.8.0 compile
+ * the slot index `(bitPos > 0x1F)` as `sll, lui, slt` (without sra), matching
+ * the natural codegen for signed-byte comparisons.
+ */
+#define SET_FLAG(flags, bitPos)   ((flags)[(bitPos) > 0x1F] |=  (1U << ((bitPos) & 0x1F)))
+#define CLEAR_FLAG(flags, bitPos) ((flags)[(bitPos) > 0x1F] &= ~(1U << ((bitPos) & 0x1F)))
+
 /* Keep a variable alive to prevent the compiler from optimizing it away. */
 #define KEEP_ALIVE(x) asm volatile("" :: "r"(x))
 
