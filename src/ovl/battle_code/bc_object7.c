@@ -117,18 +117,12 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFB5C);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AFD0C);
 
 /**
- * @brief Look up entity field and call resolveKernelPtr.
+ * @brief Resolve the kernel pointer keyed by @c entriesA0[a0].lookupId.
  *
- * Computes D_80078E00 + a0 * 20 to find the entity entry, reads
- * the halfword at offset 0x3EE0 and the word at D_80078E00 + 0xA4,
- * then calls resolveKernelPtr with them.
- *
- * @param a0 Entity index (stride 20).
+ * @param a0 Index into @c D_80078E00.entriesA0.
  */
 void func_800AFF30(s32 a0) {
-    s32 base = (s32)&D_80078E00;
-    u8 *entry = (u8 *)(base + a0 * 20);
-    resolveKernelPtr(*(u16 *)(entry + 0x3EE0), *(s32 *)(base + 0xA4));
+    resolveKernelPtr(D_80078E00.entriesA0[a0].lookupId, D_80078E00.entriesA0Arg);
 }
 
 /**
