@@ -1,6 +1,20 @@
 #include "common.h"
 #include "battle.h"
 
+/**
+ * @brief 5-byte slot in the stride-5 view of @c D_800EE9E8 (first 32 slots).
+ *
+ * @note @c D_800EE9E8 is a heterogeneous block — other code reaches a
+ *       stride-0x47 sub-array starting at offset 0xA3. The extern decl
+ *       therefore stays as a flat @c u8[] and this typed view is taken
+ *       per-call via cast.
+ */
+typedef struct {
+    u8 id;          /* 0x00: lookup key / command byte. */
+    s8 value;       /* 0x01: signed value byte. */
+    u8 unk2[3];     /* 0x02..0x04: unknown. */
+} BattleAnimSlot;
+
 extern BattleSystem D_800ED148;
 extern u8 D_800EE490[];
 extern u8 D_80082C10[];
@@ -25,21 +39,17 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF4BC);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF5E0);
 
 /**
- * @brief Initialize 32 entity entries by calling func_800AF5E0.
- *
- * Iterates over 32 entries at stride 5 in D_800EE9E8, passing the
- * unsigned byte at offset 0 and signed byte at offset 1 along with
- * D_80077EBC to func_800AF5E0.
+ * @brief Re-init the 32-slot anim init table at @c D_800EE9E8 by feeding
+ *        each slot's @c (id, value) pair plus @c D_80077EBC into
+ *        @c func_800AF5E0.
  */
 void func_800AF654(void) {
+    BattleAnimSlot *slots = (BattleAnimSlot *)D_800EE9E8;
     u8 *constPtr = D_80077EBC;
-    s32 i = 0;
-    u8 *base = D_800EE9E8;
-    do {
-        func_800AF5E0(base[0], *(s8 *)(base + 1), constPtr);
-        base += 5;
-        i++;
-    } while (i < 0x20);
+    s32 i;
+    for (i = 0; i < 0x20; i++) {
+        func_800AF5E0(slots[i].id, slots[i].value, constPtr);
+    }
 }
 
 /**
