@@ -267,6 +267,8 @@ typedef struct {
     /* 0x1323 */ u8 effectMult;                 /**< Damage/effect multiplier (percent). */
 } BattleSystem;
 
+extern BattleSystem D_800ED148;
+
 /** @brief Battle magic slot entry (5 bytes). */
 typedef struct {
     u8 field0;
@@ -367,7 +369,8 @@ typedef struct {
     /* 0x190 */ s32 statusFlags;
     /* 0x194 */ u16 elemResistances[8];/**< Element resistance values (8 × s16). */
     /* 0x1A4 */ u8 statusResistances[13];/**< Status resistance values (13 × u8). */
-    /* 0x1B1 */ u8 pad1B1[0x03];
+    /* 0x1B1 */ u8 pad1B1;
+    /* 0x1B2 */ u16 displayStatus;       /**< Mirror of BattleEntity.status; bit-flag display state. */
     /* 0x1B4 */ u16 abilityValue;
     /* 0x1B6 */ u16 atkStatusHit;      /**< Attack status hit chance. */
     /* 0x1B8 */ u8 level;              /**< Battle level (from findCharXpLevel). */

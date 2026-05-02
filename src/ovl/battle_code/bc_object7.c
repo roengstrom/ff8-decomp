@@ -1,7 +1,6 @@
 #include "common.h"
 #include "battle.h"
 
-extern u8 D_800ED148[];
 extern u8 D_800EE490[];
 extern u8 D_80082C10[];
 extern u8 D_80077EBC[];
@@ -55,7 +54,29 @@ void func_800AF654(void) {
  */
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF6BC);
 
-INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF740);
+extern void func_800AF6BC(s32 a0);
+
+/**
+ * @brief For each of the 3 party slots, mirror the entity's display status
+ *        into the matching @c BattleCharData and refresh its anim table entry.
+ *
+ * Walks @c D_800ED148.entities[0..2] (BattleSystem block) — for any slot whose
+ * @c linkedIdx is not 0xFF, calls @c func_800AF6BC(i) (which copies the
+ * entity's animation halfwords into the per-character anim cache) and then
+ * mirrors @c entity->status into @c g_battleChars.chars[i].displayStatus.
+ * Finishes by calling @c func_800AF654 to rebuild the global anim list.
+ */
+void func_800AF740(void) {
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        if (D_800ED148.entities[i].linkedIdx != 0xFF) {
+            func_800AF6BC(i);
+            g_battleChars.chars[i].displayStatus = D_800ED148.entities[i].status;
+        }
+    }
+    func_800AF654();
+}
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF7C4);
 
@@ -71,7 +92,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF7C4);
 void func_800AF8A4(s32 a0) {
     func_800A565C(a0);
     {
-        volatile u8 *base = D_800ED148;
+        volatile u8 *base = (volatile u8 *)&D_800ED148;
         volatile s32 *flags = (volatile s32 *)((u8 *)base + a0 * 0xD0 + 0x8C);
         *flags &= ~0x8;
         *flags &= ~0x4;
@@ -91,7 +112,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF918);
  * @return Byte value at the end of the pointer chain.
  */
 s32 func_800AF988(s32 a0) {
-    s32 base = (s32)D_800ED148;
+    s32 base = (s32)&D_800ED148;
     s32 entry = base + a0 * 208;
     s32 ptr = *(s32 *)(entry + 0x10);
     ptr = *(s32 *)ptr;
@@ -194,7 +215,7 @@ void func_800B0054(void) {
  * @return First word of the data pointed to by entity[0x10].
  */
 s32 func_800B0074(s32 idx) {
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     u8 *entity;
     asm("");
     entity = base + idx * 0xD0;
@@ -359,7 +380,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0574);
 void func_800B0600(s32 a0, s32 a1) {
     s32 bitPos = func_800B054C(a1);
     if (bitPos < 14) {
-        volatile u8 *base = D_800ED148;
+        volatile u8 *base = (volatile u8 *)&D_800ED148;
         u8 *entity = (u8 *)base + a0 * 0xD0;
         *(s16 *)(entity + bitPos * 2 + 0x64) = -0x457;
     }
@@ -379,7 +400,7 @@ void func_800B0600(s32 a0, s32 a1) {
 s32 func_800B0668(s32 a0, s32 a1) {
     s32 bitPos = func_800B054C(a1);
     if (bitPos < 14) {
-        volatile u8 *base = D_800ED148;
+        volatile u8 *base = (volatile u8 *)&D_800ED148;
         u8 *entity = (u8 *)base + a0 * 0xD0;
         if (*(s16 *)(entity + bitPos * 2 + 0x64) == -0x457) {
             return 1;
@@ -402,7 +423,7 @@ void func_800B06DC(s32 a0) {
     volatile u8 *base;
     a0 &= 0xFFFF;
     func_800A4C84(a0);
-    base = D_800ED148;
+    base = (volatile u8 *)&D_800ED148;
     if (base[0xE] != 0) {
         return;
     }
@@ -452,7 +473,7 @@ s32 func_800B0794(s32 a0, s32 a1) {
         return 1;
     }
     if (a1 & 0x1000) {
-        volatile u8 *base = D_800ED148;
+        volatile u8 *base = (volatile u8 *)&D_800ED148;
         u8 *entity = (u8 *)base + a0 * 0xD0;
         *(u16 *)(entity + 0x90) |= 4;
         func_800A2520(a0);
@@ -486,7 +507,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B09F0);
  */
 void func_800B0C08(void) {
     s32 i = 0;
-    u8 *base = D_800ED148;
+    u8 *base = (u8 *)&D_800ED148;
     do {
         if ((*(u16 *)(base + 0x90) & 5) == 0) {
             func_800B09F0(i);
