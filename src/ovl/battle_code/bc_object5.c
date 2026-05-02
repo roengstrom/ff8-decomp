@@ -4,7 +4,6 @@
 
 extern u8 D_800ED148[];
 extern u8 D_800E3CEC[];
-extern u8 D_800EE9E8[];
 extern u8 D_800EE28C[];
 void func_800AB054(void);
 void func_800AB1AC(void);

@@ -1,25 +1,10 @@
 #include "common.h"
 #include "battle.h"
 
-/**
- * @brief 5-byte slot in the stride-5 view of @c D_800EE9E8 (first 32 slots).
- *
- * @note @c D_800EE9E8 is a heterogeneous block — other code reaches a
- *       stride-0x47 sub-array starting at offset 0xA3. The extern decl
- *       therefore stays as a flat @c u8[] and this typed view is taken
- *       per-call via cast.
- */
-typedef struct {
-    u8 id;          /* 0x00: lookup key / command byte. */
-    s8 value;       /* 0x01: signed value byte. */
-    u8 unk2[3];     /* 0x02..0x04: unknown. */
-} BattleAnimSlot;
-
 extern BattleSystem D_800ED148;
 extern u8 D_800EE490[];
 extern u8 D_80082C10[];
 extern u8 D_80077EBC[];
-extern u8 D_800EE9E8[];
 extern u8 D_800EEBE8[];
 extern u8 D_80077E58[];
 s32 func_800B0204(u8 *, s32, s32, s32);
@@ -44,11 +29,10 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF5E0);
  *        @c func_800AF5E0.
  */
 void func_800AF654(void) {
-    BattleAnimSlot *slots = (BattleAnimSlot *)D_800EE9E8;
     u8 *constPtr = D_80077EBC;
     s32 i;
     for (i = 0; i < 0x20; i++) {
-        func_800AF5E0(slots[i].id, slots[i].value, constPtr);
+        func_800AF5E0(D_800EE9E8.animSlots[i].id, D_800EE9E8.animSlots[i].value, constPtr);
     }
 }
 

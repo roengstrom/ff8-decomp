@@ -274,6 +274,28 @@ typedef struct {
     /* 0x1323 */ u8 effectMult;                 /**< Damage/effect multiplier (percent). */
 } BattleSystem;
 
+/** @brief 5-byte slot in @c BattleAnimTable.animSlots. */
+typedef struct {
+    u8 id;          /* 0x00: lookup key / command byte. */
+    s8 value;       /* 0x01: signed value byte. */
+    u8 unk2[3];     /* 0x02..0x04: unknown. */
+} BattleAnimSlot;
+
+/** @brief 0x47-byte sub-entry in @c BattleAnimTable.subEntries. */
+typedef struct {
+    u8 charId;          /* 0x00: char/scene byte, mirrored from g_gameState[+0xAF4..]. */
+    u8 unk01[0x46];     /* 0x01..0x46: unknown. */
+} BattleAnimSubEntry;   /* 0x47 */
+
+/** @brief Battle anim/scene lookup table at @c D_800EE9E8. */
+typedef struct {
+    /* 0x000 */ BattleAnimSlot animSlots[32];      /**< 32 × 5 = 0xA0 bytes. */
+    /* 0x0A0 */ u8 padA0[3];                       /**< 0xA0..0xA2 unknown. */
+    /* 0x0A3 */ BattleAnimSubEntry subEntries[3];  /**< 3 × 0x47 = 0xD5 bytes. */
+} BattleAnimTable;
+
+extern BattleAnimTable D_800EE9E8;
+
 /** @brief Battle magic slot entry (5 bytes). */
 typedef struct {
     u8 field0;
