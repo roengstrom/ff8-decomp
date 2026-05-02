@@ -279,15 +279,12 @@ u8 *func_800B0328(u8 *src) {
 }
 
 /**
- * @brief Look up a halfword from entity table and call resolveKernelPtr.
+ * @brief Resolve the kernel pointer keyed by @c rows8[a0].lookupId.
  *
- * @param a0 Entity index (stride 8 in table).
+ * @param a0 Index into @c D_80078E00.rows8.
  */
 void func_800B0360(s32 a0) {
-    u8 *base = (u8 *)&D_80078E00;
-    u16 val = *(u16 *)(base + a0 * 8 + 0x4A5E);
-    s32 arg = *(s32 *)(base + 0xD4);
-    resolveKernelPtr(val, arg);
+    resolveKernelPtr(D_80078E00.rows8[a0].lookupId, D_80078E00.rows8Arg);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0398);

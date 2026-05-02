@@ -521,6 +521,14 @@ typedef struct {
 } BattleSceneRow;       /* 132 bytes */
 
 /**
+ * @brief 8-byte scene row indexed by func_800B0360.
+ */
+typedef struct {
+    u16 lookupId;       /**< 0x00: u16 passed to resolveKernelPtr. */
+    u8 unk02[6];        /**< 0x02..0x07: unknown. */
+} BattleSceneRow8;      /* 8 bytes */
+
+/**
  * @brief Battle scene data buffer at D_80078E00 (loaded from disc, ~0x9E08 bytes).
  *
  * Contains kernel-data pointers and various sub-arrays. Many regions remain
@@ -532,7 +540,9 @@ typedef struct {
     /* 0x008C */ s32 entries17Arg;              /**< resolveKernelPtr arg paired with entries17[]. */
     /* 0x0090 */ u8 pad0090[0x14];
     /* 0x00A4 */ s32 entriesA0Arg;              /**< resolveKernelPtr arg paired with entriesA0[]. */
-    /* 0x00A8 */ u8 pad00A8[0x17E];
+    /* 0x00A8 */ u8 pad00A8[0x2C];
+    /* 0x00D4 */ s32 rows8Arg;                  /**< resolveKernelPtr arg paired with rows8[]. */
+    /* 0x00D8 */ u8 pad00D8[0x14E];
     /* 0x0226 */ BattleSpellRow spells[1];      /**< 60-byte stride (size unknown, index past). */
     /* 0x0262 */ u8 pad0262[0xD16];
     /* 0x0F78 */ BattleSceneRow rows132[1];     /**< 132-byte stride (size unknown, index past). */
@@ -542,6 +552,8 @@ typedef struct {
     /* 0x3939 */ BattleAbilityRow abilities[1]; /**< 24-byte stride (size unknown, index past). */
     /* 0x3951 */ u8 pad3951[0x58F];
     /* 0x3EE0 */ BattleSceneEntry entriesA0[1]; /**< stride 20 (size unknown, index past). */
+    /* 0x3EF4 */ u8 pad3EF4[0xB6A];
+    /* 0x4A5E */ BattleSceneRow8 rows8[1];      /**< stride 8 (size unknown, index past). */
 } BattleSceneData;
 
 extern BattleSceneData D_80078E00;
