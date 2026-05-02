@@ -230,7 +230,7 @@ typedef struct {
     u8 control;
     u8 pad0E;
     u8 entityRef;
-    s32 linkedPtr;
+    s32 *linkedPtr;
     u8 pad14[0x04];
     s32 flags;
     s32 flagsBackup;

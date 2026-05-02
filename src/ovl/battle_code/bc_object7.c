@@ -209,17 +209,13 @@ void func_800B0054(void) {
 }
 
 /**
- * @brief Read a pointer from entity data and dereference it.
+ * @brief Return the first word of the data linked from a battle entity.
  *
- * @param idx Entity index (stride 0xD0).
- * @return First word of the data pointed to by entity[0x10].
+ * @param idx Entity index into D_800ED148.entities.
+ * @return First s32 word at @c entities[idx].linkedPtr.
  */
 s32 func_800B0074(s32 idx) {
-    u8 *base = (u8 *)&D_800ED148;
-    u8 *entity;
-    asm("");
-    entity = base + idx * 0xD0;
-    return **(s32 **)(entity + 0x10);
+    return *D_800ED148.entities[idx].linkedPtr;
 }
 
 /**
