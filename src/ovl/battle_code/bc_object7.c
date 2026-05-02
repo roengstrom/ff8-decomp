@@ -82,13 +82,9 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF7C4);
  * @param a0 Entity index into @c D_800ED148.entities.
  */
 void func_800AF8A4(s32 a0) {
-    BattleEntity *base;
-    volatile s32 *flags;
     func_800A565C(a0);
-    base = D_800ED148.entities;
-    flags = (volatile s32 *)&base[a0].controlFlags;
-    *flags &= ~0x8;
-    *flags &= ~0x4;
+    D_800ED148.entities[a0].controlFlags &= ~0x8;
+    D_800ED148.entities[a0].controlFlags &= ~0x4;
     func_800A5778(a0);
 }
 

@@ -244,7 +244,7 @@ typedef struct {
     u16 animParam2;
     u16 animParam3;
     u8 pad8A[0x02];
-    ControlFlags controlFlags;
+    volatile ControlFlags controlFlags;
     u16 status;
     u16 statusBackup;
     u16 hpDisplay;     /* 0x94: HP value mirrored from BattleCharData.currentHp. */
