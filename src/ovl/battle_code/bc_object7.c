@@ -368,6 +368,7 @@ s32 func_800B0668(s32 a0, s32 a1) {
  */
 void func_800B06DC(s32 a0) {
     volatile u8 *base;
+    s32 idx;
     a0 &= 0xFFFF;
     func_800A4C84(a0);
     base = (volatile u8 *)&D_800ED148;
@@ -376,11 +377,8 @@ void func_800B06DC(s32 a0) {
     }
     func_8009AE08(5);
     func_800AE524(base[0x5C0] - 1);
-    {
-        s32 idx = base[0x5C0] - 1;
-        u8 *entry = (u8 *)base + idx * 20;
-        entry[0x5D5] = 0;
-    }
+    idx = base[0x5C0] - 1;
+    ((u8 *)base)[idx * 20 + 0x5D5] = 0;
     func_8009AE08(6);
 }
 
