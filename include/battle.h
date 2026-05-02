@@ -230,14 +230,16 @@ typedef struct {
     u8 control;
     u8 pad0E;
     u8 entityRef;
-    s32 *linkedPtr;
+    u8 **linkedPtr;
     u8 pad14[0x04];
     s32 flags;
     s32 flagsBackup;
     u8 pad20[0x08];
     s32 field28;
     s32 field2C;
-    u8 pad30[0x54];
+    u8 pad30[0x34];
+    s16 field64[14];     /* 0x64: per-bit halfword slots indexed by lowest set bit. */
+    u8 pad80[0x04];
     u16 animParam1;
     u16 animParam2;
     u16 animParam3;
@@ -260,14 +262,17 @@ typedef struct {
  *
  * Top-level view: 16 BattleEntity slots followed by a region of misc state
  * fields (only @c effectMult mapped here so far).
+ *
+ * @note Some files alias the same memory through a different struct
+ *       (e.g. @c BattleState in bc_object1.c). The @c D_800ED148 extern
+ *       therefore lives at file scope in each translation unit so each
+ *       can pick the view it needs.
  */
 typedef struct {
     /* 0x0000 */ BattleEntity entities[16];     /**< 16 × 0xD0 = 0xD00 bytes. */
     /* 0x0D00 */ u8 padD00[0x623];              /**< Misc state fields not yet mapped. */
     /* 0x1323 */ u8 effectMult;                 /**< Damage/effect multiplier (percent). */
 } BattleSystem;
-
-extern BattleSystem D_800ED148;
 
 /** @brief Battle magic slot entry (5 bytes). */
 typedef struct {

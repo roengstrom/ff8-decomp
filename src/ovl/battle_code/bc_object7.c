@@ -1,6 +1,7 @@
 #include "common.h"
 #include "battle.h"
 
+extern BattleSystem D_800ED148;
 extern u8 D_800EE490[];
 extern u8 D_80082C10[];
 extern u8 D_80077EBC[];
@@ -81,42 +82,32 @@ void func_800AF740(void) {
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF7C4);
 
 /**
- * @brief Clear bits 3 and 2 of entity's 0x8C word and call func_800A5778.
+ * @brief Clear two flag bits in the entity's @c controlFlags and bracket
+ *        the update with @c func_800A565C / @c func_800A5778 calls.
  *
- * Calls func_800A565C with entity index, then clears bit 3 (0x8) and
- * bit 2 (0x4) of the word at D_800ED148 + a0*0xD0 + 0x8C. Finally
- * calls func_800A5778 with the entity index.
- *
- * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ * @param a0 Entity index into @c D_800ED148.entities.
  */
 void func_800AF8A4(s32 a0) {
+    BattleEntity *base;
+    volatile s32 *flags;
     func_800A565C(a0);
-    {
-        volatile u8 *base = (volatile u8 *)&D_800ED148;
-        volatile s32 *flags = (volatile s32 *)((u8 *)base + a0 * 0xD0 + 0x8C);
-        *flags &= ~0x8;
-        *flags &= ~0x4;
-    }
+    base = D_800ED148.entities;
+    flags = (volatile s32 *)&base[a0].controlFlags;
+    *flags &= ~0x8;
+    *flags &= ~0x4;
     func_800A5778(a0);
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF918);
 
 /**
- * @brief Get a byte field from an entity's nested pointer chain.
+ * @brief Read the byte at offset 0x14F of the entity's linked data block.
  *
- * Looks up D_800ED148[a0] (stride 208), follows the pointer at +0x10,
- * dereferences it, then returns the byte at offset +0x14F.
- *
- * @param a0 Entity index.
- * @return Byte value at the end of the pointer chain.
+ * @param a0 Entity index into @c D_800ED148.entities.
+ * @return Byte at @c (*entities[a0].linkedPtr)[0x14F].
  */
 s32 func_800AF988(s32 a0) {
-    s32 base = (s32)&D_800ED148;
-    s32 entry = base + a0 * 208;
-    s32 ptr = *(s32 *)(entry + 0x10);
-    ptr = *(s32 *)ptr;
-    return *(u8 *)(ptr + 0x14F);
+    return (*D_800ED148.entities[a0].linkedPtr)[0x14F];
 }
 
 /**
@@ -215,7 +206,7 @@ void func_800B0054(void) {
  * @return First s32 word at @c entities[idx].linkedPtr.
  */
 s32 func_800B0074(s32 idx) {
-    return *D_800ED148.entities[idx].linkedPtr;
+    return (s32)*D_800ED148.entities[idx].linkedPtr;
 }
 
 /**
@@ -363,42 +354,31 @@ s32 func_800B054C(s32 a0) {
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0574);
 
 /**
- * @brief Store animation reset value at entity's bit position offset.
+ * @brief Store the reset sentinel @c -0x457 in the entity's per-bit
+ *        halfword slot indexed by the lowest set bit of @p a1.
  *
- * Calls func_800B054C to find the lowest set bit in a1. If the result
- * is less than 14, computes the entity at D_800ED148 + a0 * 208 and
- * stores -0x457 (0xFBA9) as a signed halfword at entity + bitPos * 2 + 0x64.
- *
- * @param a0 Entity index (stride 208).
- * @param a1 Bitmask to find lowest set bit.
- *
+ * @param a0 Entity index into @c D_800ED148.entities.
+ * @param a1 Bitmask whose lowest set bit selects the slot in @c field64.
  */
 void func_800B0600(s32 a0, s32 a1) {
     s32 bitPos = func_800B054C(a1);
     if (bitPos < 14) {
-        volatile u8 *base = (volatile u8 *)&D_800ED148;
-        u8 *entity = (u8 *)base + a0 * 0xD0;
-        *(s16 *)(entity + bitPos * 2 + 0x64) = -0x457;
+        D_800ED148.entities[a0].field64[bitPos] = -0x457;
     }
 }
 
 /**
- * @brief Check if an entity's bit slot contains the sentinel value -0x457.
+ * @brief Test whether the entity's per-bit halfword slot (selected by the
+ *        lowest set bit of @p a1) currently holds the reset sentinel.
  *
- * Calls func_800B054C to find the lowest set bit in a1. If the result
- * is less than 14, loads the halfword at entity[result * 2 + 0x64] and
- * returns 1 if it equals -0x457, 0 otherwise.
- *
- * @param a0 Entity index (stride 0xD0).
- * @param a1 Bitmask to find lowest set bit.
- * @return 1 if the slot matches -0x457, 0 otherwise.
+ * @param a0 Entity index into @c D_800ED148.entities.
+ * @param a1 Bitmask whose lowest set bit selects the slot in @c field64.
+ * @return 1 if @c field64[bitPos] == -0x457, 0 otherwise.
  */
 s32 func_800B0668(s32 a0, s32 a1) {
     s32 bitPos = func_800B054C(a1);
     if (bitPos < 14) {
-        volatile u8 *base = (volatile u8 *)&D_800ED148;
-        u8 *entity = (u8 *)base + a0 * 0xD0;
-        if (*(s16 *)(entity + bitPos * 2 + 0x64) == -0x457) {
+        if (D_800ED148.entities[a0].field64[bitPos] == -0x457) {
             return 1;
         }
     }
@@ -454,14 +434,13 @@ void func_800B0754(s32 a0, s32 a1, s32 a2, s32 a3) {
 /**
  * @brief Handle special battle action flags for an entity.
  *
- * If a1 has bit 0x400 set, calls func_800A59AC with mode 5 and returns 1.
- * If a1 has bit 0x1000 set, sets bit 2 of the entity's status halfword
- * at offset 0x90 in D_800ED148 and calls func_800A2520, returns 0.
- * Otherwise returns 0.
+ * If @p a1 has bit @c 0x400 set, calls @c func_800A59AC with mode 5 and
+ * returns 1. If @p a1 has bit @c 0x1000 set, sets bit 2 in the entity's
+ * @c status field and calls @c func_800A2520. Otherwise returns 0.
  *
- * @param a0 Entity index (stride 0xD0 in D_800ED148).
+ * @param a0 Entity index into @c D_800ED148.entities.
  * @param a1 Action flags bitmask.
- * @return 1 if bit 0x400 action taken, 0 otherwise.
+ * @return 1 if bit @c 0x400 action taken, 0 otherwise.
  */
 s32 func_800B0794(s32 a0, s32 a1) {
     if (a1 & 0x400) {
@@ -469,9 +448,7 @@ s32 func_800B0794(s32 a0, s32 a1) {
         return 1;
     }
     if (a1 & 0x1000) {
-        volatile u8 *base = (volatile u8 *)&D_800ED148;
-        u8 *entity = (u8 *)base + a0 * 0xD0;
-        *(u16 *)(entity + 0x90) |= 4;
+        D_800ED148.entities[a0].status |= 4;
         func_800A2520(a0);
     }
     return 0;
@@ -495,22 +472,18 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0980);
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B09F0);
 
 /**
- * @brief Process entities that are not busy or disabled.
+ * @brief Process entities whose @c status has neither bit 0 nor bit 2 set.
  *
- * Iterates over 7 entities at stride 0xD0 from D_800ED148.
- * For each entity, checks if bits 0 and 2 of the halfword at
- * offset 0x90 are clear. If so, calls func_800B09F0 with the index.
+ * Walks @c D_800ED148.entities[0..6]; for each slot whose @c status & 5
+ * is zero, calls @c func_800B09F0(i).
  */
 void func_800B0C08(void) {
-    s32 i = 0;
-    u8 *base = (u8 *)&D_800ED148;
-    do {
-        if ((*(u16 *)(base + 0x90) & 5) == 0) {
+    s32 i;
+    for (i = 0; i < 7; i++) {
+        if ((D_800ED148.entities[i].status & 5) == 0) {
             func_800B09F0(i);
         }
-        i++;
-        base += 0xD0;
-    } while (i < 7);
+    }
 }
 
 INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800B0C68);
