@@ -223,15 +223,25 @@ typedef enum {
 } ControlFlags;
 
 /**
- * @brief Data block referenced indirectly via @c BattleEntity.linkedPtr.
+ * @brief Data block reached two indirections away through
+ *        @c BattleEntity.linkedPtr->data.
  *
- * Size and most fields are unknown. The current decomp only maps a
- * single byte at offset 0x14F (read by @c func_800AF988); pad before it
- * is a placeholder until more is decomped.
+ * Size and most fields are unknown; only the byte at offset 0x14F
+ * (read by @c func_800AF988) is mapped so far.
  */
-typedef struct BattleEntityLinked {
+typedef struct {
     u8 unk00[0x14F];
     u8 unk14F;          /* 0x14F: byte read by func_800AF988. */
+} BattleEntityData;
+
+/**
+ * @brief Handle wrapping a pointer to @c BattleEntityData.
+ *
+ * @c BattleEntity.linkedPtr points at one of these. The first word is
+ * the actual data pointer that callers ultimately dereference.
+ */
+typedef struct {
+    BattleEntityData *data;  /* 0x00: pointer to the entity's linked data block. */
 } BattleEntityLinked;
 
 typedef struct {
@@ -242,7 +252,7 @@ typedef struct {
     u8 control;
     u8 pad0E;
     u8 entityRef;
-    BattleEntityLinked **linkedPtr;
+    BattleEntityLinked *linkedPtr;
     u8 pad14[0x04];
     s32 flags;
     s32 flagsBackup;
