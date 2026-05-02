@@ -1,10 +1,10 @@
 #include "common.h"
+#include "menu.h"
 
 extern u8 D_801E8C10[];
 extern u8 D_801E8C20[];
 extern u8 D_801E9600[];
 extern u8 D_80077818[];
-extern u8 g_menuDisplayCfg[];
 extern s32 func_801E7D88;
 
 /**
@@ -411,10 +411,10 @@ INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7D88);
  * @param arg5 Y position for the display configuration
  */
 void func_801E7E38(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    s32 cfg = (s32)g_menuDisplayCfg;
+    s32 cfg = (s32)&g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&g_menuDisplayCfg[0] = a3;
+    *(s16 *)&g_menuDisplayCfg = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x1A;
     *(u8 *)(cfg + 0x13) = 1;
@@ -428,7 +428,93 @@ void func_801E7E38(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E7EB4);
+/** @brief Per-character cached menu data (stride 0x98, 8 entries). */
+typedef struct {
+    /* 0x00 */ u8 pad00[8];
+    /* 0x08 */ u8 charId;        /**< Character id (input to getCharNamePtr). */
+    /* 0x09 */ u8 pad09[0x8B];
+    /* 0x94 */ u16 status;        /**< Character status flags (bit 1 = ready, bit 2 = available). */
+    /* 0x96 */ u8 pad96[2];
+} CharRecord;  /* 0x98 = 152 bytes */
+
+/** @brief Extension menu context — character/magic IDs plus state byte. */
+typedef struct {
+    /* 0x00 */ u8 pad00[0x48];
+    /* 0x48 */ u8 charIdx;        /**< Character index into D_80077808. */
+    /* 0x49 */ u8 pad49[2];
+    /* 0x4B */ u8 magicId;        /**< Magic id (input to getMagicNamePtr). */
+    /* 0x4C */ u8 pad4C[7];
+    /* 0x53 */ u8 state;          /**< Render state (0xFF = inactive). */
+} ExtMenuCtx;
+
+extern CharRecord D_80077808[];
+extern s32 g_menuColor;
+
+extern u32 func_801F57A4(s32 a0);
+extern s32 func_801F3FB4(s32 a0);
+extern u8 *getCharNamePtr(s32 charId);
+extern u8 *getMagicNamePtr(s32 magicId);
+extern u32 func_801F0FEC(s32 renderCtx, s32 cursorY, s32 x, s32 y, u8 *text, s32 attr);
+extern s32 drawColorByMenuPalette(s32 renderCtx, s32 cursorY, s32 packedYX, s32 byteVal, s32 attr);
+extern s32 func_801EF9AC(s32 renderCtx, s32 cursorY, s32 width, s32 color);
+
+/**
+ * @brief Render a character/magic equipment row + selection highlight.
+ *
+ * If @p ctx->state is < 0xFF, draws the character name, the equipped
+ * magic name, and a colored count indicator pulled from D_801E8C10
+ * (treated as 0 when 0xFF). Always finishes by configuring the panel
+ * box (size 0xA8 × 0x28 at @p x,@p y) and dispatching the draw via
+ * func_801EF9AC with the current g_menuColor.
+ *
+ * @param ctx        Extension menu context (charIdx/magicId at +0x48/0x4B).
+ * @param renderCtx  Render context handle.
+ * @param cursorY    Current OT cursor position.
+ * @param x          Panel X position.
+ * @param y          Panel Y position (5th arg, on stack).
+ * @return           Final OT cursor position from func_801EF9AC.
+ */
+s32 func_801E7EB4(ExtMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+
+    if (ctx->state < 0xFF) {
+        CharRecord *charEntry;
+        s32 byteVal;
+        s32 textY;
+        s32 textX;
+        s32 textAttr;
+
+        textAttr = func_801F3FB4(func_801F57A4(ctx->charIdx) & 0xFFFF);
+        textX = x + 8;
+        textY = y + 8;
+        charEntry = &D_80077808[ctx->charIdx];
+        cursorY = func_801F0FEC(renderCtx, cursorY, textX, textY,
+                                getCharNamePtr(charEntry->charId), textAttr);
+
+        textAttr = 7;
+        textX = x + 0x22;
+        textY = y + 0x18;
+        cursorY = func_801F0FEC(renderCtx, cursorY, textX, textY,
+                                getMagicNamePtr(ctx->magicId), textAttr);
+
+        byteVal = D_801E8C10[ctx->charIdx];
+        textX = x + 0x88;
+        if (byteVal == 0xFF) {
+            byteVal = 0;
+        }
+        cursorY = drawColorByMenuPalette(renderCtx, cursorY,
+                                         ((textY << 15) << 1) | (textX & 0xFFFF),
+                                         byteVal, textAttr);
+    }
+
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 0xA8;
+    cfg->h = 0x28;
+    return func_801EF9AC(renderCtx, cursorY, 0x1000, g_menuColor);
+}
 
 INCLUDE_ASM("asm/ovl/menuext/nonmatchings/menuext", func_801E8058);
 
