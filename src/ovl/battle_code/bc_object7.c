@@ -97,7 +97,7 @@ INCLUDE_ASM("asm/ovl/battle_code/nonmatchings/bc_object7", func_800AF918);
  * @return Byte at @c (*entities[a0].linkedPtr)[0x14F].
  */
 s32 func_800AF988(s32 a0) {
-    return (*D_800ED148.entities[a0].linkedPtr)[0x14F];
+    return (*D_800ED148.entities[a0].linkedPtr)->unk14F;
 }
 
 /**

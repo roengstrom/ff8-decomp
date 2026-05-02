@@ -222,6 +222,18 @@ typedef enum {
     CTRL_FLAG_100   = 0x100
 } ControlFlags;
 
+/**
+ * @brief Data block referenced indirectly via @c BattleEntity.linkedPtr.
+ *
+ * Size and most fields are unknown. The current decomp only maps a
+ * single byte at offset 0x14F (read by @c func_800AF988); pad before it
+ * is a placeholder until more is decomped.
+ */
+typedef struct BattleEntityLinked {
+    u8 unk00[0x14F];
+    u8 unk14F;          /* 0x14F: byte read by func_800AF988. */
+} BattleEntityLinked;
+
 typedef struct {
     u8 pad00[0x04];
     s32 state;
@@ -230,7 +242,7 @@ typedef struct {
     u8 control;
     u8 pad0E;
     u8 entityRef;
-    u8 **linkedPtr;
+    BattleEntityLinked **linkedPtr;
     u8 pad14[0x04];
     s32 flags;
     s32 flagsBackup;
