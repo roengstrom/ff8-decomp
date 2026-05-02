@@ -528,14 +528,17 @@ typedef struct {
  */
 typedef struct {
     /* 0x0000 */ u8 pad0000[0x88];
-    /* 0x0088 */ s32 rows132Arg;               /**< resolveKernelPtr arg paired with rows132[]. */
-    /* 0x008C */ u8 pad008C[0x18];
-    /* 0x00A4 */ s32 entriesA0Arg;             /**< resolveKernelPtr arg paired with entriesA0[]. */
+    /* 0x0088 */ s32 rows132Arg;                /**< resolveKernelPtr arg paired with rows132[]. */
+    /* 0x008C */ s32 entries17Arg;              /**< resolveKernelPtr arg paired with entries17[]. */
+    /* 0x0090 */ u8 pad0090[0x14];
+    /* 0x00A4 */ s32 entriesA0Arg;              /**< resolveKernelPtr arg paired with entriesA0[]. */
     /* 0x00A8 */ u8 pad00A8[0x17E];
-    /* 0x0226 */ BattleSpellRow spells[1];     /**< 60-byte stride (size unknown, index past). */
+    /* 0x0226 */ BattleSpellRow spells[1];      /**< 60-byte stride (size unknown, index past). */
     /* 0x0262 */ u8 pad0262[0xD16];
-    /* 0x0F78 */ BattleSceneRow rows132[1];    /**< 132-byte stride (size unknown, index past). */
-    /* 0x0FFC */ u8 padFFC[0x293D];
+    /* 0x0F78 */ BattleSceneRow rows132[1];     /**< 132-byte stride (size unknown, index past). */
+    /* 0x0FFC */ u8 padFFC[0x7BC];
+    /* 0x17B8 */ BattleSceneEntry entries17[1]; /**< stride 20 (size unknown, index past). */
+    /* 0x17CC */ u8 pad17CC[0x216D];
     /* 0x3939 */ BattleAbilityRow abilities[1]; /**< 24-byte stride (size unknown, index past). */
     /* 0x3951 */ u8 pad3951[0x58F];
     /* 0x3EE0 */ BattleSceneEntry entriesA0[1]; /**< stride 20 (size unknown, index past). */

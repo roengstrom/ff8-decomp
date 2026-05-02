@@ -137,17 +137,12 @@ void func_800AFF70(s32 a0) {
 }
 
 /**
- * @brief Look up entity field and call resolveKernelPtr (alternate offsets).
+ * @brief Resolve the kernel pointer keyed by @c entries17[a0].lookupId.
  *
- * Same pattern as func_800AFF30 but reads halfword at offset 0x17B8
- * and word at D_80078E00 + 0x8C.
- *
- * @param a0 Entity index (stride 20).
+ * @param a0 Index into @c D_80078E00.entries17.
  */
 void func_800AFFB4(s32 a0) {
-    s32 base = (s32)&D_80078E00;
-    u8 *entry = (u8 *)(base + a0 * 20);
-    resolveKernelPtr(*(u16 *)(entry + 0x17B8), *(s32 *)(base + 0x8C));
+    resolveKernelPtr(D_80078E00.entries17[a0].lookupId, D_80078E00.entries17Arg);
 }
 
 /**
