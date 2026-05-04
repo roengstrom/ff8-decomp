@@ -16,11 +16,26 @@ extern s32 D_80085220;
 typedef struct {
     /* 0x000 */ u8 pad000[0x160];
     /* 0x160 */ u32 flags;
-    /* 0x164 */ u8 pad164[0x100];
+    /* 0x164 */ u8 pad164[0xF1];
+    /* 0x255 */ u8 partyId;            /**< Character ID this entity represents. */
+    /* 0x256 */ u8 pad256[0xE];
 } BattleFieldEntity; /* 0x264 */
+
+/**
+ * @brief Field-side player entity view (g_fieldEntity at 0x800704A8).
+ *
+ * Distinct from the script VM `FieldEntity` in field.h — this view is
+ * the player-state struct (position, party member mapping, etc.), not
+ * the opcode-handler stack/VM context.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad000[0x12];
+    /* 0x12 */ u8 memberSlot[3];       /**< BattleFieldEntity index per active party slot (0xFF = none). */
+} FieldPartyEntity;
 
 extern BattleFieldEntity *D_80085224;
 extern u8 D_80085388;
+extern FieldPartyEntity g_fieldEntity;
 extern u8 D_8005644B[];
 extern u8 D_80077E5A;
 extern u16 D_800562C8[];
@@ -424,7 +439,49 @@ INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037FB0);
 INCLUDE_ASM("asm/nonmatchings/gamestate", func_80038030);
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_800381BC);
+/**
+ * @brief Refresh the active-party ↔ battle-entity slot mapping in field state.
+ *
+ * Part 1: For each of the 3 active party slots, search the battle field
+ * entity table for one whose @c partyId matches and record its index in
+ * both g_fieldEntity.memberSlot and D_800562C4->memberSlot. Defaults to
+ * 0xFF when no entity matches.
+ *
+ * Part 2: When the bench-list flag (stateFlags & 0x800) is set, build the
+ * list of character IDs *not* currently in the active battle party
+ * (partyOrderA/B at 0xBC/0xBF — initialized identically here).
+ */
+void func_800381BC(void) {
+    s32 i;
+    s32 j;
+    BattleFieldEntity *ent;
+
+    for (i = 0; i < 3; i++) {
+        g_fieldEntity.memberSlot[i] = 0xFF;
+        D_800562C4->memberSlot[i] = 0xFF;
+
+        ent = D_80085224;
+        for (j = 0; j < D_80085388; j++) {
+            if (g_gameState.battleParty[i] == ent->partyId) {
+                D_800562C4->memberSlot[i] = j;
+                g_fieldEntity.memberSlot[i] = j;
+                break;
+            }
+            ent++;
+        }
+    }
+
+    if (D_800562C4->stateFlags & 0x800) {
+        j = 0;
+        for (i = 0; i < 6; i++) {
+            if (findBattlePartySlot(i) == 0xFF) {
+                D_800562C4->partyOrderA[j] = i;
+                D_800562C4->partyOrderB[j] = i;
+                j++;
+            }
+        }
+    }
+}
 
 
 /**
