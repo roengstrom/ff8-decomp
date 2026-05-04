@@ -308,6 +308,12 @@ typedef struct {
  *
  * Same memory as @c BattleSystem; pick whichever view fits the access
  * pattern via a cast on @c &D_800ED148.
+ *
+ * @todo FIXME: this view (≈7 real entities + a 170-entry action queue)
+ *       is probably more faithful to what @c D_800ED148 actually is than
+ *       the @c BattleSystem.entities[16] placeholder. Consider flipping
+ *       the primary type once more of bc_object1/2/5/7's entity-style
+ *       accesses are revisited.
  */
 typedef struct {
     /* 0x0000 */ u8 pad00[0x0E];
