@@ -286,15 +286,38 @@ typedef struct {
  * fields (only @c effectMult mapped here so far).
  *
  * @note Some files alias the same memory through a different struct
- *       (e.g. @c BattleState in bc_object1.c). The @c D_800ED148 extern
- *       therefore lives at file scope in each translation unit so each
- *       can pick the view it needs.
+ *       (e.g. @c BattleState in bc_object1.c, @c BattleSystemFlat in
+ *       bc_object7.c). The @c D_800ED148 extern therefore lives at file
+ *       scope in each translation unit so each can pick the view it needs.
  */
 typedef struct {
     /* 0x0000 */ BattleEntity entities[16];     /**< 16 × 0xD0 = 0xD00 bytes. */
     /* 0x0D00 */ u8 padD00[0x623];              /**< Misc state fields not yet mapped. */
     /* 0x1323 */ u8 effectMult;                 /**< Damage/effect multiplier (percent). */
 } BattleSystem;
+
+/** @brief 20-byte slot in @c BattleSystemFlat.entries. */
+typedef struct {
+    u8 unk_00;
+    u8 pad01[0x13];
+} BattleEntry; /* 0x14 */
+
+/**
+ * @brief Alternate flat view of the @c D_800ED148 block exposing the
+ *        stride-0x14 @c entries[] sub-array at offset 0x5D5.
+ *
+ * Same memory as @c BattleSystem; pick whichever view fits the access
+ * pattern via a cast on @c &D_800ED148.
+ */
+typedef struct {
+    /* 0x0000 */ u8 pad00[0x0E];
+    /* 0x000E */ u8 unkE;
+    /* 0x000F */ u8 padF[0x5B1];
+    /* 0x05C0 */ u8 unk5C0;
+    /* 0x05C1 */ u8 pad5C1[0x14];
+    /* 0x05D5 */ BattleEntry entries[170];
+    /* 0x131D */ u8 pad131D[7];
+} BattleSystemFlat;                             /* 0x1324 */
 
 /** @brief 5-byte slot in @c BattleAnimTable.animSlots. */
 typedef struct {

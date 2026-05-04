@@ -359,27 +359,25 @@ s32 func_800B0668(s32 a0, s32 a1) {
 /**
  * @brief Process entity ability and trigger state transitions.
  *
- * Masks a0 to 16 bits and calls func_800A4C84. If byte at
- * D_800ED148[0xE] is zero, transitions to state 5, processes
- * the entity ability, clears a table entry, then transitions
- * to state 6.
+ * Masks @p arg0 to 16 bits and calls @c func_800A4C84. If @c sys->unkE
+ * is zero, transitions to state 5, calls @c func_800AE524 with the
+ * preceding entry index (@c sys->unk5C0 - 1), clears that entry's
+ * @c unk_00 byte, then transitions to state 6.
  *
- * @param a0 Entity bitmask (16-bit).
+ * @param arg0 Entity bitmask (16-bit).
  */
-void func_800B06DC(s32 a0) {
-    volatile u8 *base;
+void func_800B06DC(s32 arg0) {
+    BattleSystemFlat *sys;
     s32 idx;
-    a0 &= 0xFFFF;
-    func_800A4C84(a0);
-    base = (volatile u8 *)&D_800ED148;
-    if (base[0xE] != 0) {
-        return;
+    func_800A4C84(arg0 & 0xFFFF);
+    sys = (BattleSystemFlat *)&D_800ED148;
+    if (sys->unkE == 0) {
+        func_8009AE08(5);
+        func_800AE524(sys->unk5C0 - 1);
+        idx = sys->unk5C0 - 1;
+        sys->entries[idx].unk_00 = 0;
+        func_8009AE08(6);
     }
-    func_8009AE08(5);
-    func_800AE524(base[0x5C0] - 1);
-    idx = base[0x5C0] - 1;
-    ((u8 *)base)[idx * 20 + 0x5D5] = 0;
-    func_8009AE08(6);
 }
 
 /**
