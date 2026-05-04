@@ -29,10 +29,11 @@ void func_80099D30(void);
 void func_80098304(void);
 void func_80035360(void);
 
-/** @brief Empty stub at the end of the sound engine region.
- *  Followed by ~4KB of zero padding before the game code resumes.
+/**
+ * @brief Empty stub at the start of game.c (no-op return).
  */
-INCLUDE_ASM("asm/nonmatchings/game", func_8001F5C8);
+void func_800205C8(void) {
+}
 
 /**
  * @brief Game code VSync handler. Clears render mode if getRenderCompleteFlag signals completion.

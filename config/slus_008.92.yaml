@@ -74,7 +74,8 @@ segments:
       - [0xA118, c, snd_param]
       - [0xAD5C, c, snd_note]
       - [0xC9A8, c, snd_track]
-      - [0xFDC8, c, game]
+      - { start: 0xFDC8, type: bss, name: snd_track, linker_section_order: .text }
+      - [0x10DC8, c, game]
       - [0x11D3C, c, gf_curve]
       - [0x12FF4, c, ability]
       - [0x131FC, c, gf_anim]
