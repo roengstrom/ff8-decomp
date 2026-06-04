@@ -30,7 +30,19 @@ void func_8009DD2C(s32 a0, s32 a1, u16 a2, s32 a3);
  * @param a1 Default return value if bit 15 not set.
  * @return Combined ability flags (u16) or a1 (u16).
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BAC4);
+s16 func_8009BAC4(s32 arg0, s16 arg1) {
+    s16 temp_s0_3;
+    
+    D_800EE476 = arg0;
+    temp_s0_3 = func_800B0F9C(D_80078E00.abilities[arg0].val) 
+              | func_800B0F7C(D_80078E00.abilities[arg0].val);
+    
+    if (temp_s0_3 & 0x8000) {
+        return temp_s0_3;
+    }
+    
+    return arg1;
+}
 
 /**
  * @brief Look up entity ability flags with adjusted index.
@@ -58,7 +70,14 @@ s32 func_8009BB3C(s32 a0) {
  *
  * @return Index of matching entry (0-31), or 0 if none found.
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BB98);
+s32 func_8009BB98(void) {
+    s32 i;
+    for (i = 0; i < 32; i++) {
+        if (D_800ED148.entries[i].unk_00 == 0xFA) {
+            return i;
+        }
+    }
+}
 
 /**
  * @brief Look up entity status and store it to D_800EE4C0 buffer.
@@ -67,7 +86,18 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BB98);
  * D_800ED70C (stride 20), copies entry[0] and D_800ED70C[0xD6A]
  * into D_800EE4C0 buffer with command byte 0xF9.
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BBD0);
+BattleEntry* func_8009BBD0(void) {
+    s32 idx;
+    BattleEntry* entry;
+
+    idx = func_8009BB98();
+    entry = &D_800ED70C[idx];
+
+    D_800EE4C0.unk0 = entry->unk0;
+    D_800EE4C0.unk1 = 249;
+    D_800EE4C0.unk3 = ((u8*)D_800ED70C)[0xD6A];
+    return entry;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BC28);
 
@@ -123,7 +153,15 @@ s32 func_8009BF50(s32 newFlags, s32 *flagsPtr, s32 mask) {
     return current;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BF70);
+void func_8009BF70(s32 newFlags, s32 *flagsPtr) {
+    s32 current = *flagsPtr;
+    if (current != newFlags) {
+        s32 masked = current & ~(0xE | 0x300);
+        *flagsPtr = masked
+                  | func_8009BF50(newFlags, flagsPtr, 0xE)
+                  | func_8009BF50(newFlags, flagsPtr, 0x300);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BFE0);
 
@@ -142,11 +180,48 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BFE0);
  * @param a3 Proposed status flag to apply.
  * @return 1 if flag was applied, 0 if rejected.
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C090);
+s32 func_8009C090(s32 arg0, s32 arg1, s32* arg2, u32 arg3) {
+    s32 a1 = arg1;
+
+    if ((arg3 & 0x800) && (arg0 >= 3)) {
+        return 0;
+    }
+    
+    if ((a1 & 0x40) && (arg3 & 0x400)) {
+        return 0;
+    
+    }
+    
+    if ((*arg2 & 0x02000000) && (arg3 & 0x4000)) {
+        return 0;
+    }
+    
+    *arg2 |= arg3;
+    func_800B0574(arg0, arg3);
+    
+    return 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C104);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C300);
+u8 func_8009C300(s32 arg0, s32 arg1) {
+    u8 var_a1;
+    s32 index = 1;
+    
+    if (arg1 == 0) {
+        var_a1 = (D_800ED148.entities + arg0)->unkCE;
+    } 
+    
+    else {
+        var_a1 = (D_800ED148.entities + arg0 + index)->unk0;
+    }
+    
+    if (D_800ED148.entities[arg0].flags & 0x01000000) {
+        var_a1 = 0;
+    }
+    
+    return var_a1;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C390);
 
@@ -181,7 +256,31 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C6E4);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C798);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C8B8);
+void func_8009C8B8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    D_800EEBC4 &= 0xFBFFFFFF;
+    
+    if (D_800EEBC4 & 0x8000) {
+        func_8009C6E4(arg1, arg2, arg4);
+        D_800EEBC4 &= 0xFFFF7FFF;
+    }
+    
+    if (D_800ED148.entities[arg2].flags & 0x400000) {
+        if (D_800ED148.entities[arg1].controlFlags & 0x1000) {
+            if (arg0 == 0) {
+                func_8009C798(arg1, arg2, arg3);
+            }
+        }
+    }
+    
+    if (!(func_8009C390(arg1, arg2, arg0) & 0xFF)) {
+        if (arg3 == 0) {
+            D_800EE4C0.unk6 |= 4;
+        }
+        
+    } else if (arg3 == 0) {
+        D_800EE4C0.unk5 |= 1;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009CA14);
 
@@ -743,7 +842,20 @@ s32 func_8009FDE0(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009FE14);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_800A085C);
+s32 func_800A085C(void) {
+    s32 i;
+    u16 total = 0;
+    s32 count = 0;
+
+    for (i = 0; i < 16; i++) {
+        if (g_gameState.chars[i].flags & 1) {
+            count++;
+            total += g_battleChars.levelEntries[i].level;
+        }
+    }
+
+    return total / count;
+}
 
 /**
  * @brief Get the active entity count, defaulting to 1 if unset.
@@ -758,7 +870,28 @@ s32 func_800A08C0(void) {
     return val;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_800A08E0);
+void func_800A08E0(void) {
+    u8 temp_a0;
+
+    if (D_800ED148.unk1319 != 0xFF) {
+        temp_a0 = D_800EE4C0.flags6 & 0x3F;
+    
+        switch (D_800ED148.unk1319) {
+            case 0:
+                D_800EE4C0.flags6 = temp_a0;
+                break;
+            case 1:
+                D_800EE4C0.flags6 = temp_a0 | CTRL_FLAG_40;
+                break;
+            case 2:
+                D_800EE4C0.flags6 = temp_a0 | CTRL_FLAG_80;
+                break;
+        }
+        
+        D_800EE4C0.unk4 = 22;
+        D_800EE4C0.flags6 |= 8;
+    }
+}
 
 /**
  * @brief Apply 1.5x multiplier to battle control value if entity has status bit 0x20.
@@ -782,7 +915,41 @@ void func_800A0978(s32 entityIdx) {
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_800A09D0);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_800A1760);
+void func_800A1760(s32 arg0, BattleCharData* arg1) {
+    s32 i;
+    
+    for (i = 0; i < 4; i++) {
+        switch (arg1->cmdSlots[i].cmdType) {
+            case 2:
+                if (arg0 == 0) {
+                    if (!(g_battleConfig.unk8 & 2)) {
+                        arg1->cmdSlots[i].field3 &= ~2;
+                    }
+                } else {
+                    arg1->cmdSlots[i].field3 |= 2;
+                }
+            break;
+            case 3:
+                if (arg0 == 0) {
+                    if (!(g_battleConfig.unk8 & 4)) {
+                        arg1->cmdSlots[i].field3 &= ~2;
+                    }
+                } else {
+                    arg1->cmdSlots[i].field3 |= 2;
+                }
+            break;
+            case 6:
+                if (arg0 == 0) {
+                    if (!(g_battleConfig.unk8 & 8)) {
+                        arg1->cmdSlots[i].field3 &= ~2;
+                    }
+                } else {
+                    arg1->cmdSlots[i].field3 |= 2;
+                }
+            break;
+        }
+    }
+}
 
 /**
  * @brief Set masked attribute values on a g_battleChars table entry (stride 0x1D0).
@@ -806,15 +973,16 @@ void func_800A184C(s32 idx, s32 attr, s32 flags) {
  * halfword at offset 0x1B2. Calls func_800A1760 with 1 if the
  * bit is set, or 0 if clear.
  *
- * @param a0 Entity index (stride 0x1D0).
- *
- * @code
- * void func_800A1888(s32 a0) {
- *     u8 *entry = (u8 *)((s32)g_battleChars + a0 * 0x1D0);
- *     s32 flag = 0;
- *     if (*(u16 *)(entry + 0x1B2) & 0x10) flag = 1;
- *     func_800A1760(flag);
- * }
- * @endcode
+ * @param arg0 Entity index (stride 0x1D0).
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_800A1888);
+ void func_800A1888(s32 arg0) {
+    BattleCharData* temp_a1 = &g_battleChars.chars[arg0];
+    
+    if (temp_a1->displayStatus & 0x10) {
+        func_800A1760(1, temp_a1);
+    }
+        
+    else {
+        func_800A1760(0, temp_a1);
+    }   
+}

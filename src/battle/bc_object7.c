@@ -319,7 +319,16 @@ s32 func_800B054C(s32 a0) {
  * @param a0 Entity index (stride 0xD0).
  * @param a1 Bitmask to find lowest set bit.
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0574);
+void func_800B0574(s32 arg0, u32 arg1) {
+    s32 temp_v0;
+    
+    temp_v0 = func_800B054C(arg1);
+    if (temp_v0 < 14) {
+        u8 val = D_80078E00.unk_4CCC[temp_v0];
+        s32 temp = ((D_80077E58 + 1) * 4);
+        D_800ED148.entities[arg0].field64.perBit[temp_v0] = val * temp;
+    }
+}
 
 /**
  * @brief Store the reset sentinel @c -0x457 in the entity's per-bit

@@ -618,6 +618,7 @@ typedef struct {
     /* 0x1C5 */ u8 atkElemBonus;       /**< Attack element bonus. */
     /* 0x1C6 */ u8 fieldStatusByte;    /**< Status byte checked by field script (bit 1 = greyed out). */
     /* 0x1C7 */ u8 statCoefs[9];       /**< Stat coefficient table (HP, str, vit, mag, spr, spd, ?, eva, hit). */
+    /* 0x1D0 */
 } BattleCharData;
 
 /** @brief GF battle entry (12 bytes, used for GF HP in battle). */
@@ -823,9 +824,11 @@ extern u8 D_800EE476[];     /**< 0x800EE476: entity index latch. */
  * that haven't been mapped yet.
  */
 typedef struct {
-    /* 0x00 */ u8 unk00;         /**< Command byte 0 (copied from status[0] during init). */
-    /* 0x01 */ u8 unk01;         /**< Command byte 1 (copied from status[1] during init). */
-    /* 0x02 */ u8 pad02[3];
+    /* 0x00 */ u8 unk0;         /**< Command byte 0 (copied from status[0] during init). */
+    /* 0x01 */ u8 unk1;         /**< Command byte 1 (copied from status[1] during init). */
+    /* 0x02 */ u8 unk2;         
+    /* 0x03 */ u8 unk3;         /**< used in func_8009BBD0*/
+    /* 0x04 */ u8 unk4;
     /* 0x05 */ u8 flags5;        /**< Flag byte; bits 0x01 and 0x20 are set by various paths. */
     /* 0x06 */ u8 flags6;        /**< Flag byte; bits 0x01/0x02/0x04/0x10 mark command-completion states. */
     /* 0x07 */ u8 pad07[5];
@@ -833,7 +836,8 @@ typedef struct {
     /* 0x10 */ u8 pad10[0xC];
     /* 0x1C */ u16 statusCode;   /**< Status/command code; compared against 0x49 in func_8009D68C. */
     /* 0x1E */ u8 pad1E[0x22];
-} BattleCmdBuf;                  /* 0x40 */
+    /* 0x40 */
+} BattleCmdBuf;
 
 extern BattleCmdBuf D_800EE4C0; /**< 0x800EE4C0: command queue buffer. */
 extern u8 D_800EE4C1[];     /**< 0x800EE4C1: misc state byte. */
