@@ -375,14 +375,17 @@ typedef struct {
     u16 status;
     u16 statusBackup;
     u16 hpDisplay;     /* 0x94: HP value mirrored from BattleCharData.currentHp. */
-    u8 pad96[0x25];
+    u8 pad96[0x21];
+    u8 unkB7;
+    u8 padB8[0x03];
     u8 linkedIdx2;
     u8 padBC[0x0F];
     u8 linkedIdx;
-    u8 padCC[0x01];
+    u8 unkCC;
     u8 fieldCD;        /* 0xCD: stat byte used in case-0 damage formula (squared). */
     u8 padCE;
     u8 fieldCF;        /* 0xCF: stat byte averaged with arg2 in func_8009DEF0 mode-7. */
+    /* 0xD0 */
 } BattleEntity;
 
 /**

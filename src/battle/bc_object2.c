@@ -73,7 +73,7 @@ s32 func_8009BB3C(s32 a0) {
 s32 func_8009BB98(void) {
     s32 i;
     for (i = 0; i < 32; i++) {
-        if (D_800ED148.entries[i].unk_00 == 0xFA) {
+        if (D_800ED148.entries[i].unk_00 == 250) {
             return i;
         }
     }
@@ -163,7 +163,24 @@ void func_8009BF70(s32 newFlags, s32 *flagsPtr) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009BFE0);
+s32 func_8009BFE0(s32 arg0, u16* arg1, s32* arg2, s32 arg3) {
+    if ((D_800EE471 == 0) && (*arg1 & 0x40) && (arg3 & 1)) {
+        return 0;
+    }
+        
+    
+    if((*arg2 & 0x02000000) && (arg3 & 0x30) != 0) {
+        return 0;
+    }
+    
+    if ((*arg2 & 0x400) && (arg3 & 0x40)) {
+            *arg2 = *arg2 & ~0x400;
+            func_800B0600(arg0, 0x400);
+    }
+    
+    *arg1 |= arg3;
+    return 1;
+}
 
 /**
  * @brief Apply a status flag to an entity if not blocked by guards.
@@ -252,7 +269,23 @@ s32 func_8009C6CC(s32 val) {
     return val;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C6E4);
+void func_8009C6E4(s32 arg0, s32 arg1, s32 arg2) {
+    s32 temp_v1;
+    s32 temp_v2;
+    s32 temp_v3;
+    
+    D_800EE4C0.unk7 = arg0;
+    temp_v1 = D_800EEBBA - D_800ED148.entities[arg1].unkB7;
+    if (temp_v1 > 0) {
+        temp_v2 = (arg2 * temp_v1) / 100;
+        temp_v3 = func_8009C610(arg0, arg1, temp_v2);
+        D_800EE4C0.unk14 = func_8009C6CC(temp_v3);
+        return;
+    }
+    
+    D_800EE4C0.unk14 = 0;
+    D_800EE4C0.unkA |= 1;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009C798);
 
