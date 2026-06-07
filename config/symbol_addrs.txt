@@ -840,6 +840,7 @@ SetDQB = 0x80040858;
 ReadGeomOffset = 0x80040864;
 SetBackColor = 0x80040884;
 SetFarColor = 0x800408A4;
+SetGeomScreen = 0x800408E4;
 LocalLight = 0x800408F4;
 DpqColor = 0x80040918;
 NormalColor = 0x80040934;

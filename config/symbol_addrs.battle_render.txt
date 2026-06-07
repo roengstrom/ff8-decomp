@@ -1,3 +1,4 @@
+SetGeomScreen = 0x800408E4;
 preInitStub = 0x8001152C;
 flushGpuOt = 0x800115F0;
 loadFieldDataA = 0x80011A60;

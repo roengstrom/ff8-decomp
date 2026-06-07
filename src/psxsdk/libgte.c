@@ -151,7 +151,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", SetFarColor);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", func_800408C4);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", func_800408E4);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", SetGeomScreen);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", LocalLight);
 

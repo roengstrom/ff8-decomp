@@ -31,7 +31,11 @@ def scan(root):
             path = os.path.join(dirpath, fn)
             try:
                 with open(path) as f:
+                    # Skip leading comment lines (splat prepends
+                    # "/* Handwritten function */" for GTE/COP2 funcs).
                     head = f.readline()
+                    while head.lstrip().startswith('/*'):
+                        head = f.readline()
             except OSError:
                 continue
             m = HEADER_RE.match(head)

@@ -7,6 +7,10 @@
 #include "battle.h"
 #include "sound.h"
 
+/** View of the sentinel ctx exposing the DISPENV template that sits past the
+ *  tracked @c BattleSceneCtx body (at @c +0x40CC). */
+typedef struct { u8 pad[0x40CC]; DISPENV disp; } CtxDispView;
+
 /** @brief World-map tile size in world units (one tile = 2048 units). */
 #define WORLD_TILE_SIZE 2048
 
@@ -117,13 +121,15 @@ typedef struct {
 /**
  * @brief 12-byte keyed record used by D_800C9880's packed lookup buffer.
  *
- * Only @c key at +0x02 is known; the surrounding bytes are likely a
- * (key, value) descriptor but remain unmapped.
+ * @c val0 / @c val1 are the descriptor pair emitted by collectActiveKeyEntries for an
+ * active entry; @c key at +0x02 indexes the script offset table @c D_800C9728.
+ * The trailing 9 bytes remain unmapped.
  */
 typedef struct {
-    u8 pad00[2];
-    u8 key;
-    u8 pad03[9];
+    u8 val0;        /* 0x00 */
+    u8 val1;        /* 0x01 */
+    u8 key;         /* 0x02 */
+    u8 pad03[9];    /* 0x03 */
 } Entry12;
 
 /**
@@ -144,6 +150,8 @@ extern s32 D_800C4D44;
 extern s32 D_800C4D58;
 extern s32 D_800C4D70;
 extern s32 D_800C4D98;
+extern s32 D_800C4DA0;        /* = Entry12.val0 >> 1 (set by collectActiveKeyEntries) */
+extern s32 D_800C4DA4;        /* = Entry12.val1 >> 1 (set by collectActiveKeyEntries) */
 extern s32 D_800C4D9C;
 extern s32 D_800C4DC0;
 extern s32 D_800C4DC4;
@@ -185,7 +193,7 @@ extern s32 D_800DCB48;
  * @brief 8-byte world-transform block — four packed halfwords.
  *
  * Every field is read/written as @c lh / @c sh at a fixed offset. Only
- * @c angle has an identified role (input to rotation helper @c func_800A00B4).
+ * @c angle has an identified role (input to rotation helper @c getAngleDelta).
  */
 typedef struct {
     /* 0x00 */ s16 unk0;
@@ -212,6 +220,7 @@ typedef struct {
 extern s32            D_8005F138;        /**< Active display-env window (holds a DISPENV*). */
 extern SceneState     D_80082C8C;       /**< Scene-state block (mode/cmd/markers). */
 extern s32            D_800C4D20;
+extern s32            D_800C4D30;        /**< World-map zoom/scale constant (set by setupWorldMapView). */
 extern s32            D_800C4D38;        /**< World dispatch code / map id. */
 extern s32            D_800C4D3C;
 extern s32            D_800C4D4C;
@@ -280,6 +289,12 @@ typedef struct {
     u32 *    data2;
     u8       flag;
 } ImageDesc;
+
+/* Parses a streaming-image record at @p src into @p desc. */
+extern s32  func_8009CA34(s32 *src, ImageDesc *desc);
+/* Blits @p data through scratch rect @p r (typically &D_800C8640). */
+extern void func_80048EFC(RECT *r, u32 *data);
+extern RECT D_800C8640;            /**< Scratch RECT used by func_80048EFC blits. */
 
 /**
  * @brief Two-halfword script opcode entry (4 bytes).

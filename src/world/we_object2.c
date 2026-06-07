@@ -7,7 +7,41 @@
 #include "world.h"
 #include "world/we_object2.h"
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009CCE8);
+/**
+ * @brief Walk a world-engine image script and blit each record to VRAM.
+ *
+ * @p script begins with a 0-terminated table of @c s32 byte-offsets; each
+ * non-zero entry points to a streaming-image record at @c (u8*)script+offset.
+ * Each record is parsed by @c func_8009CA34 into an @ref ImageDesc, then
+ * @c rect1 / @c data1 are blitted through the scratch rect @c D_800C8640 (via
+ * @c func_80048EFC). When bit 3 of @c desc.flag is set, @c rect2 / @c data2
+ * are blitted the same way.
+ *
+ * @param script World-engine image script (offset table + image records).
+ */
+void loadImageScript(s32 *script) {
+    s32 i = 0;
+    s32 off = script[0];
+
+    while (off != 0) {
+        ImageDesc desc;
+        func_8009CA34((s32 *)((u8 *)script + off), &desc);
+        D_800C8640.x = desc.rect1.x;
+        D_800C8640.y = desc.rect1.y;
+        D_800C8640.w = desc.rect1.w;
+        D_800C8640.h = desc.rect1.h;
+        func_80048EFC(&D_800C8640, desc.data1);
+        if ((desc.flag >> 3) & 1) {
+            D_800C8640.x = desc.rect2.x;
+            D_800C8640.y = desc.rect2.y;
+            D_800C8640.w = desc.rect2.w;
+            D_800C8640.h = desc.rect2.h;
+            func_80048EFC(&D_800C8640, desc.data2);
+        }
+        i++;
+        off = script[i];
+    }
+}
 
 
 /**
@@ -60,9 +94,95 @@ void func_8009CE40(void) {
     g_fieldVars->audioChannel0State = -1;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009CE70);
+/* Defined later in this file. */
+s32 lookupScrollBounds(s8 cmd, s32 *outBase, s32 *outLimit, s32 *outSpan, s32 *outFlag);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009CFB4);
+/**
+ * @brief Query scroll bounds for @p cmd plus a scene-mode bank selector and
+ *        the matching data table, distributing the results to out-params.
+ *
+ * Derives a bank-selector flag (@c outBankSel) from the scene: for scene mode
+ * @c 2 it's @c D_80082C11, otherwise it's @c (g_fieldVars->soundBankSelector
+ * == 0). It then runs @ref lookupScrollBounds for the (base, limit, span, set)
+ * tuple; on a hit it selects a data table (@c D_80063388 when the bank flag is
+ * set, else @c D_8005F388). Each non-NULL out-param receives its value and the
+ * scroll base is returned.
+ *
+ * @param cmd       Command / key code.
+ * @param outBankSel Receives the bank-selector flag.
+ * @param outReady  Receives the lookupScrollBounds "matched" flag.
+ * @param outLimit  Receives the scroll limit.
+ * @param outTable  Receives the selected data-table pointer (or 0).
+ * @param outSpan   Receives the scroll span (limit - base).
+ * @return The scroll base.
+ */
+s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
+                   s32 *outTable, s32 *outSpan) {
+    s32 base, limit, span, set;
+    s32 bankSel;
+    s32 table = 0;
+
+    span = 0;
+    base = 0;
+    limit = 0;
+    set = 0;
+
+    if (D_80082C8C.mode == 2) {
+        bankSel = D_80082C11;
+    } else {
+        bankSel = (g_fieldVars->soundBankSelector == 0);
+    }
+
+    if (lookupScrollBounds(cmd, &base, &limit, &span, &set) != 0) {
+        table = (bankSel == 0) ? (s32)D_8005F388 : (s32)D_80063388;
+    }
+
+    if (outLimit)   *outLimit   = limit;
+    if (outBankSel) *outBankSel = bankSel;
+    if (outReady)   *outReady   = set;
+    if (outTable)   *outTable   = table;
+    if (outSpan)    *outSpan    = span;
+    return base;
+}
+
+/**
+ * @brief Look up per-command screen-scroll bounds for the current scene cmd.
+ *
+ * For a recognised @p cmd / scene-command (@c D_80082C8C.cmd) pair, fills the
+ * requested out-params with a (base, limit, span) triple and a mode flag,
+ * returning 1; otherwise leaves them untouched and returns 0. Two cases:
+ *  - "set A" (cmd @c 0x29 on most maps, or @c 0x59 / @c 0x51 on the common map
+ *    set) → @c D_800C9E68 / @c D_800C97EC / their difference, flag @c 1;
+ *  - "set B" (cmd @c 0x18) → @c D_800C9E70 / @c D_800C97F0 / their difference,
+ *    flag @c 0.
+ *
+ * @param cmd     Command / key code (signed).
+ * @param outBase Receives the base value (if non-NULL).
+ * @param outLimit Receives the limit value (if non-NULL).
+ * @param outSpan Receives @c limit-base (if non-NULL).
+ * @param outFlag Receives the set flag, @c 1 (A) or @c 0 (B) (if non-NULL).
+ * @return @c 1 if @p cmd was recognised, else @c 0.
+ */
+s32 lookupScrollBounds(s8 cmd, s32 *outBase, s32 *outLimit, s32 *outSpan, s32 *outFlag) {
+    s32 map = D_80082C8C.cmd;
+    s32 ret = 0;
+
+    if ((cmd == 0x29 && map != 0x31 && map != 0x32) ||
+        (((u32)map < 0xA || map == 0x80 || map == 0x30) && (cmd == 0x59 || cmd == 0x51))) {
+        if (outBase)  *outBase  = D_800C9E68;
+        if (outLimit) *outLimit = D_800C97EC;
+        if (outSpan)  *outSpan  = D_800C97EC - D_800C9E68;
+        if (outFlag)  *outFlag  = 1;
+        ret = 1;
+    } else if (cmd == 0x18) {
+        if (outBase)  *outBase  = D_800C9E70;
+        if (outLimit) *outLimit = D_800C97F0;
+        if (outSpan)  *outSpan  = D_800C97F0 - D_800C9E70;
+        if (outFlag)  *outFlag  = 0;
+        ret = 1;
+    }
+    return ret;
+}
 
 
 /**
@@ -137,7 +257,43 @@ s32 func_8009D1B8(s32 idx) {
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009D214);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009D2D8);
+/**
+ * @brief Collect the descriptor pairs of all currently-active key entries.
+ *
+ * Walks every @ref Entry12 in the packed @c D_800C9880 buffer. For an entry
+ * whose @c key indexes a non-empty script record (via the @c D_800C9728 offset
+ * table), it publishes @c val0>>1 / @c val1>>1 to @c D_800C4DA0 / @c D_800C4DA4,
+ * runs @c func_800BEDF0, and — when that reports an active script whose current
+ * key equals the entry's @c key — appends the entry's @c val0 and @c val1 (as
+ * halfwords) to @p out and counts it.
+ *
+ * @param out Destination halfword array; receives (val0, val1) pairs.
+ * @return Number of active entries written (low 8 bits).
+ */
+u8 collectActiveKeyEntries(s16 *out) {
+    KeyBuffer *buf = D_800C9880;
+    Entry12 *e   = &buf->entries[0];
+    Entry12 *end = (Entry12 *)((u8 *)buf + buf->length);
+    s32 count = 0;
+    u8  keyOut;
+
+    while (e < end) {
+        u32 *t   = D_800C9728;
+        u8  *rec = (u8 *)t + t[e->key];
+        if (rec[0] != 0) {
+            D_800C4DA0 = e->val0 >> 1;
+            D_800C4DA4 = e->val1 >> 1;
+            if (func_800BEDF0(&keyOut) != 0 && keyOut == e->key) {
+                out[0] = e->val0;
+                out[1] = e->val1;
+                count++;
+                out += 2;
+            }
+        }
+        e++;
+    }
+    return count;
+}
 
 
 /**
@@ -193,7 +349,33 @@ void func_8009D44C(s32 marker) {
     renderBattleDisplayList(&D_800D244C->primList[BSC_COLORTAG_IDX]);
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009D510);
+/**
+ * @brief World-map sound/display setup: enable reverb, publish the active
+ *        display environment, and register the world render callback.
+ *
+ * After the per-frame display reset (@c func_8009D630 / @c func_80048C50 /
+ * @c func_800488D4) and enabling reverb, it copies the scene's disp-env
+ * template into @c D_80082C18 and publishes its address via @c D_8005F138 —
+ * taking the sentinel's secondary disp (@c CtxDispView at @c +0x40CC) when the
+ * active context @c D_800D244C is the no-battle sentinel @c D_800CA040, else
+ * the context's own @c disp at @c +0x5C. Finally it installs the world render
+ * callback @c func_800A47A4 and disables reverb.
+ */
+void setupWorldRender(void) {
+    func_8009D630();
+    func_80048C50(0);
+    func_800488D4(3);
+    sndEnableReverb(0);
+    if (D_800D244C == &D_800CA040) {
+        D_80082C18 = ((CtxDispView *)&D_800CA040)->disp;
+        D_8005F138 = (s32)&D_80082C18;
+    } else {
+        D_80082C18 = D_800CA040.disp;
+        D_8005F138 = (s32)&D_80082C18;
+    }
+    func_800C3DB0(func_800A47A4);
+    sndDisableReverb(0);
+}
 
 
 /**
@@ -427,7 +609,51 @@ Entry12 *func_8009DA54(u8 key) {
     return NULL;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009DAA8);
+/**
+ * @brief Pick an audio-sequence transition code for a (map, command) pair.
+ *
+ * Compares @p cmd against the current audio-channel-0 state
+ * (@c g_fieldVars->audioChannel0State) and classifies @p mapId against the
+ * world-map "common" area set, returning a small transition selector:
+ *  - @c 2 for map @c 0x31;
+ *  - @c 3 / @c 4 for @p cmd @c 0x23 / @c 0x3B (unless it already matches the
+ *    current state, which yields @c -1);
+ *  - in the common area set: @c 0 unless the current state is @c 0x29;
+ *  - @c 5 for map @c 0x32 when the current state is not @c 0x59.
+ * Returns @c -1 for a no-op / unhandled case (including @p cmd @c == @c 0).
+ *
+ * @param mapId World-map area identifier.
+ * @param cmd   Requested audio sequence/command code.
+ * @return Transition selector (@c 0, @c 2..5), or @c -1 for no transition.
+ * @note Exact transition-code semantics are inferred.
+ */
+s32 pickAudioTransition(s32 mapId, s32 cmd) {
+    s32 cur  = g_fieldVars->audioChannel0State;
+    s32 same = (cmd == cur);
+
+    if (cmd == 0)      return -1;
+    if (mapId == 0x31) return 2;
+    if (cmd == 0x23) {
+        if (same) return -1;
+        return 3;
+    }
+    if (cmd == 0x3B) {
+        if (same) return -1;
+        return 4;
+    }
+    if ((u32)mapId < 0xA || mapId == 0x80 || mapId == 0x30 ||
+        (u32)(mapId - 0x20) < 9 || mapId == 0x84 || (u32)(mapId - 0x10) < 7) {
+        if (same) {
+            if (cmd == 0x29) return -1;
+        }
+        if (cur != 0x29) return 0;
+        return -1;
+    }
+    if (mapId == 0x32) {
+        if (cur != 0x59) return 5;
+    }
+    return -1;
+}
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009DB88);
 
@@ -450,60 +676,54 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009E5C8);
  * @param threshold large-step / small-step decision threshold.
  * @return          0 if snapped, 1 if still moving toward target.
  *
- * @note Decompiled at 99.65% in @c permuter/func_8009F594/base.c — the
- *       permuter found two helpful tricks (stash sign-extended limit
- *       through @c t and the @c *current double-store / @c changed
- *       hoist) but plateaued at score 30. Remaining bytes differ in
- *       reg allocation: @c sra targets @c $a2 vs @c $v1, and the
- *       @c lim_s*2 step lands in @c $v0 vs @c $t1.
+ * @note Decompiled to 99.77% in @c permuter/func_8009F594/base.c with a
+ *       clean structure (no double-store / hoist hacks). Reusing the
+ *       consumed wrapped-target register for @c limit, and reusing the
+ *       wrapped-delta register for the magnitude, pins every register but
+ *       one: the sole remaining diff is the @c (s16)delta narrow, which
+ *       gcc emits in place (@c sra @c $v1) where the target casts into the
+ *       freed @c $a2 then copies @c $a2->$v1 for the magnitude. The net
+ *       register state past the abs is identical — a pure cast-destination
+ *       reg-alloc tie-break (permuter territory).
  *
  * @verbatim
- * s32 func_8009F594(s32 target, s16 *current, s32 limit, s32 threshold) {
- *     s32 lim_s, delta_s, abs_d, cur_now, delta;
- *     s32 t = (s16)target;
- *     s32 c = *current;
+ * s32 func_8009F594(s16 target, s16 *current, s16 limit, s16 threshold) {
+ *     s32 t = target;          // wrapped target; reused for limit once consumed
+ *     s32 d = *current;        // wrapped current, then the wrapped delta
  *     s32 changed = 0;
  *
  *     while (t >= 0x1000) t -= 0x1000;
  *     while (t < 0)       t += 0x1000;
- *     while (c >= 0x1000) c -= 0x1000;
- *     while (c < 0)       c += 0x1000;
+ *     while (d >= 0x1000) d -= 0x1000;
+ *     while (d < 0)       d += 0x1000;
  *
- *     delta = t - c;
- *     if (delta < -0x7FF) {
- *         while (delta < 0) delta += 0x1000;
- *     } else if (delta >= 0x801) {
- *         while (delta >= 0) delta -= 0x1000;
+ *     d = t - d;               // shortest-turn delta
+ *     if (d <= -0x800) {
+ *         while (d < 0)  d += 0x1000;
+ *     } else if (d > 0x800) {
+ *         while (d >= 0) d -= 0x1000;
  *     }
  *
- *     // permuter trick: route lim_s sign-ext through (now-dead) t
- *     t       = (s16)limit;
- *     lim_s   = t;
- *     delta_s = (s16)delta;
- *     abs_d   = delta_s;
- *     if (abs_d < 0) abs_d = -abs_d;
+ *     t = limit;               // reuse the (now-dead) wrapped-target reg for limit
+ *     {
+ *         s32 delta = (s16)d;  // signed delta
+ *         s32 mag = delta;     // |delta|
+ *         if (delta < 0) mag = -delta;
  *
- *     if (lim_s < abs_d) {
- *         if (delta_s > 0) {
- *             cur_now = *current;
- *             if ((s16)threshold < abs_d) {
- *                 *current = cur_now;          // double-store trick
- *                 *current = *current + lim_s * 2;
+ *         if (t < mag) {
+ *             if (delta > 0) {
+ *                 s32 c = *current;
+ *                 if (threshold < mag) *current = c + t * 2;
+ *                 else                 *current = c + t;
  *             } else {
- *                 *current = cur_now + lim_s;
+ *                 s32 c = *current;
+ *                 if (threshold < mag) *current = c - t * 2;
+ *                 else                 *current = c - t;
  *             }
+ *             changed = 1;
  *         } else {
- *             cur_now = *current;
- *             if ((s16)threshold < abs_d) {
- *                 changed = lim_s * 2;          // hoist *2 through changed
- *                 *current = cur_now - changed;
- *             } else {
- *                 *current = cur_now - lim_s;
- *             }
+ *             *current = target;
  *         }
- *         changed = 1;
- *     } else {
- *         *current = (s16)target;
  *     }
  *     return changed;
  * }
@@ -511,9 +731,293 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009E5C8);
  */
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009F594);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009F6EC);
+/* Map-id classifiers used to pick per-map targets. The three variants differ
+   only in whether map 0x30 / 0x32 fall into the "common" set or are handled
+   as dedicated cases by the caller. */
+#define MAP_COMMON(m)      ((u32)((m) - 0x20) < 9 || (m) == 0x84 || \
+                            (u32)((m) - 0x10) < 7 || (u32)((m) - 0x40) < 3)
+#define MAP_COMMON_30(m)   ((u32)((m) - 0x20) < 9 || (m) == 0x84 || (m) == 0x30 || \
+                            (u32)((m) - 0x10) < 7 || (u32)((m) - 0x40) < 3)
+#define MAP_COMMON_3032(m) ((u32)((m) - 0x20) < 9 || (m) == 0x84 || (m) == 0x30 || \
+                            (u32)((m) - 0x10) < 7 || (u32)((m) - 0x40) < 3 || (m) == 0x32)
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009FDA4);
+/**
+ * @brief World-map camera/projection state machine — one settle step per active flag bit.
+ *
+ * @c D_800C4D2C holds a bitmask of pending camera adjustments; if zero, returns
+ * immediately. The two high bits act as presets: bit 31 reloads the mask with
+ * @c 0xB7, bit 30 with @c 0x11. Each remaining low bit then advances one camera
+ * value toward a map-id-dependent target by a fixed step, snapping and clearing
+ * its own bit on arrival:
+ *  - @c 0x1:  projection distance @c D_800C9730 (±8), then @c SetGeomScreen.
+ *  - @c 0x2:  zoom/scale @c D_800C4D30 (±0x80).
+ *  - @c 0x4:  set @c D_800C4D40 / @c D_800C4D44 from the map id (immediate, no step).
+ *  - @c 0x8:  yaw @c D_800D2390.tail.angle — shortest-arc angle step (±0x20).
+ *  - @c 0x10: pitch @c D_800D2390.tail.unk0 (±0x10); for map 0x32 the target is
+ *             @c -D_800C97F4.word / 24 - 0x100.
+ *  - @c 0x20: per-map scroll triple element [2] → @c D_800D2390.head.unk4 (±0x200).
+ *  - @c 0x80: per-map scroll triple element [1] → @c D_800D2390.head.angle (±0x200).
+ *
+ * @c D_800C4D38 is the map id selecting targets; @c D_800C4D3C is a secondary
+ * selector. Field roles are partly inferred.
+ */
+void func_8009F6EC(void) {
+    s32 flags = D_800C4D2C;
+    u16 sp10[4];
+    u16 sp18[4];
+
+    if (flags == 0) {
+        return;
+    }
+    if (flags < 0) {
+        D_800C4D2C = 0xB7;
+    } else if (flags & 0x40000000) {
+        D_800C4D2C = 0x11;
+    }
+
+    /* bit 0x1: step projection distance toward target, then SetGeomScreen. */
+    if (D_800C4D2C & 0x1) {
+        s32 mode = D_800C4D38;
+        s32 d3c = D_800C4D3C;
+        s32 target;
+        s32 cur;
+        s32 delta;
+        if (MAP_COMMON_3032(mode) || d3c == 0) {
+            target = 0x400;
+        } else if (d3c == 1) {
+            target = 0x280;
+        }
+        cur = D_800C9730;
+        delta = cur - target;
+        if (delta < -8) {
+            D_800C9730 = cur + 8;
+        } else if (delta >= 9) {
+            D_800C9730 = cur - 8;
+        } else {
+            D_800C9730 = target;
+            D_800C4D2C ^= 0x1;
+        }
+        SetGeomScreen(D_800C9730);
+    }
+
+    /* bit 0x2: step zoom/scale toward target. */
+    if (D_800C4D2C & 0x2) {
+        s32 target;
+        s32 cur;
+        s32 delta;
+        target = (D_800C4D38 == 0x32) ? 0x1800 : 0x1460;
+        cur = D_800C4D30;
+        delta = cur - target;
+        if (delta < -0x80) {
+            D_800C4D30 = cur + 0x80;
+        } else if (delta >= 0x81) {
+            D_800C4D30 = cur - 0x80;
+        } else {
+            D_800C4D30 = target;
+            D_800C4D2C ^= 0x2;
+        }
+    }
+
+    /* bit 0x4: set D_800C4D40 / D_800C4D44 from the map id (immediate). */
+    if (D_800C4D2C & 0x4) {
+        D_800C4D40 = 0;
+        if ((u32)D_800C4D38 < 0xA || D_800C4D38 == 0x80) {
+            D_800C4D44 = 0x10;
+        }
+        {
+            s32 mode = D_800C4D38;
+            if ((u32)(mode - 0x20) < 9 || mode == 0x84) {
+                D_800C4D44 = 0x20;
+            } else if (mode == 0x32) {
+                D_800C4D44 = 0x78;
+            } else if (mode == 0x31) {
+                D_800C4D44 = 0x78;
+            } else if (mode == 0x30) {
+                D_800C4D44 = 0x20;
+            } else {
+                D_800C4D44 = 0x78;
+            }
+        }
+        D_800C4D2C ^= 0x4;
+    }
+
+    /* bit 0x8: shortest-arc yaw step. */
+    if (D_800C4D2C & 0x8) {
+        u16 target;
+        s32 raw;
+        s32 d;
+        u16 cur;
+        if (D_800C4D3C == 1) {
+            target = D_800C5346;
+        } else {
+            target = D_800D239A;
+        }
+        cur = D_800D2390.tail.angle;
+        raw = target - cur;
+        d = (s16)raw;
+        if ((d < 0 ? -d : d) >= 0x21) {
+            if ((u16)(raw - 1) < 0x7FF || d < -0x7FF) {
+                D_800D2390.tail.angle = cur + 0x20;
+            } else {
+                D_800D2390.tail.angle = cur - 0x20;
+            }
+        } else {
+            D_800D2390.tail.angle = target;
+            D_800C4D2C ^= 0x8;
+        }
+    }
+
+    /* bit 0x10: step pitch toward target. */
+    if (D_800C4D2C & 0x10) {
+        s32 mode = D_800C4D38;
+        s32 d3c = D_800C4D3C;
+        s32 t = D_800C97F4.word;
+        s32 target;
+        u16 cur;
+        s32 d;
+        if (MAP_COMMON_30(mode)) {
+            target = D_800C534C;
+        } else if (mode == 0x32) {
+            target = (-t) / 24 - 0x100;
+        } else if (d3c == 0) {
+            target = D_800C534C;
+        } else if (d3c == 1) {
+            target = D_800C5344;
+        }
+        cur = D_800D2390.tail.unk0;
+        d = (s16)(cur - target);
+        if (d < -0x10) {
+            D_800D2390.tail.unk0 = cur + 0x10;
+        } else if (d >= 0x11) {
+            D_800D2390.tail.unk0 = cur - 0x10;
+        } else {
+            D_800D2390.tail.unk0 = target;
+            D_800C4D2C ^= 0x10;
+        }
+        if ((u32)D_800C4D38 < 0xA || D_800C4D38 == 0x80) {
+            if (D_800C4D3C == 0 && D_800D2448 != 0) {
+                D_800C4D2C ^= 0x10;
+            }
+        }
+    }
+
+    /* bit 0x20: copy per-map scroll triple, step element [2] toward target. */
+    if (D_800C4D2C & 0x20) {
+        u16 *buf = sp10;
+        s32 mode = D_800C4D38;
+        u16 cur;
+        s32 d;
+        u16 target;
+        if (MAP_COMMON(mode)) {
+            buf[0] = D_800C5354[0];
+            buf[1] = D_800C5354[1];
+            buf[2] = D_800C5354[2];
+        } else if (mode == 0x30) {
+            sp10[0] = D_800C5364[0];
+            buf[1] = D_800C5364[1];
+            buf[2] = D_800C5364[2];
+        } else if (mode == 0x32) {
+            sp10[0] = D_800C535C[0];
+            buf[1] = D_800C535C[1];
+            buf[2] = D_800C535C[2];
+        } else {
+            sp10[0] = D_800C5354[0];
+            buf[1] = D_800C5354[1];
+            buf[2] = D_800C5354[2];
+        }
+        target = sp10[2];
+        cur = D_800D2390.head.unk4;
+        d = (s16)(cur - target);
+        if (d < -0x200) {
+            D_800D2390.head.unk4 = cur + 0x200;
+        } else if (d >= 0x201) {
+            D_800D2390.head.unk4 = cur - 0x200;
+        } else {
+            D_800D2390.head.unk4 = target;
+            D_800C4D2C ^= 0x20;
+        }
+    }
+
+    /* bit 0x80: copy per-map scroll triple, step element [1] toward target. */
+    if (D_800C4D2C & 0x80) {
+        s32 mode = D_800C4D38;
+        u16 cur;
+        s32 d;
+        u16 target;
+        if (MAP_COMMON(mode)) {
+            sp18[0] = D_800C5354[0];
+            sp18[1] = D_800C5354[1];
+            sp18[2] = D_800C5354[2];
+        } else if (mode == 0x30) {
+            sp18[0] = D_800C5364[0];
+            sp18[1] = D_800C5364[1];
+            sp18[2] = D_800C5364[2];
+        } else if (mode == 0x32) {
+            sp18[0] = D_800C535C[0];
+            sp18[1] = D_800C535C[1];
+            sp18[2] = D_800C535C[2];
+        } else {
+            sp18[0] = D_800C5354[0];
+            sp18[1] = D_800C5354[1];
+            sp18[2] = D_800C5354[2];
+        }
+        target = sp18[1];
+        cur = D_800D2390.head.angle;
+        d = (s16)(cur - target);
+        if (d < -0x200) {
+            D_800D2390.head.angle = cur + 0x200;
+        } else if (d >= 0x201) {
+            D_800D2390.head.angle = cur - 0x200;
+        } else {
+            D_800D2390.head.angle = target;
+            D_800C4D2C ^= 0x80;
+        }
+    }
+}
+
+#undef MAP_COMMON
+#undef MAP_COMMON_30
+#undef MAP_COMMON_3032
+
+/* Per-map view helpers, defined later in this file. */
+s32  func_8009FF0C(s32 mapId, s32 mode);
+s32  func_800A009C(s32 mapId, s32 mode);
+void func_8009FF70(s32 mapId, s32 mode, u16 *out);
+s32  func_800A0000(s32 mapId, s32 mode, s32 scroll);
+
+/**
+ * @brief Set up the world-map camera projection and per-map view parameters.
+ *
+ * Converts the camera position @p pos into GTE space (swap Y/Z and negate the
+ * new Z for the PS1 y-down convention) and projects it into @p proj via
+ * @c func_800A40F8. Then, keyed by the current map id @c D_800C4D38 and mode
+ * @c D_800C4D3C, it latches the projection-plane distance (@c D_800C9730), a
+ * zoom constant (@c D_800C4D30), copies a per-map parameter triple into
+ * @p view, derives a scroll offset from the projected Y, clears the two view
+ * flags, and finally programs the GTE screen distance via @c SetGeomScreen.
+ *
+ * @param pos  Camera/source position (vx,vy,vz).
+ * @param proj Receives the projected screen position; its @c [0x2] feeds the
+ *             scroll computation. Flag/scroll fields are cleared here.
+ * @param view Receives the per-map parameter triple plus the scroll offset.
+ */
+void setupWorldMapView(VECTOR *pos, WorldView *proj, WorldView *view) {
+    VECTOR vec;
+
+    vec.vx = pos->vx;
+    vec.vy = pos->vz;
+    vec.vz = -pos->vy;
+    func_800A40F8(&vec, (VECTOR *)proj);
+
+    D_800C9730 = func_8009FF0C(D_800C4D38, D_800C4D3C);
+    D_800C4D30 = func_800A009C(D_800C4D38, D_800C4D3C);
+    func_8009FF70(D_800C4D38, D_800C4D3C, (u16 *)view);
+    view->scroll = func_800A0000(D_800C4D38, D_800C4D3C, proj->unk02);
+    view->flag   = 0;
+    proj->flag   = 0;
+    proj->scroll = 0;
+    SetGeomScreen(D_800C9730);
+}
 
 /**
  * @brief Build a rotation matrix from angles, multiply by another, and set
@@ -676,15 +1180,48 @@ s32 func_800A0000(s32 mapId, s32 mode, s32 scroll) {
     return 1;
 }
 
-/** Returns a value based on input comparison. */
-s32 func_800A009C(s32 val) {
-    if (val == 0x32) {
+/**
+ * @brief Per-map zoom/scale constant: @c 0x1800 for map @c 0x32, else @c 0x1460.
+ *
+ * @param mapId World-map area identifier.
+ * @param mode  Unused — kept for the uniform @c (mapId,mode) map-helper ABI;
+ *              @c setupWorldMapView passes it the same argument pair as the sibling
+ *              helpers (the value is ignored here).
+ * @return Selected zoom constant.
+ */
+s32 func_800A009C(s32 mapId, s32 mode) {
+    if (mapId == 0x32) {
         return 0x1800;
     }
     return 0x1460;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_800A00B4);
+/**
+ * @brief Shortest signed angular difference between two angles.
+ *
+ * Both inputs are first wrapped into @c [0,0x1000) (where @c 0x1000 is one
+ * full revolution), then the difference @c a-b is wrapped into the
+ * half-revolution window @c [-0x7FF,0x800] so the result is the shortest
+ * turn — in either direction — from @p b to @p a.
+ *
+ * @param a Target angle (@c 0x1000 == 360°).
+ * @param b Reference angle.
+ * @return Signed angular delta in @c [-0x7FF,0x800].
+ */
+s32 getAngleDelta(s32 a, s32 b) {
+    while (a >= 0x1000) a -= 0x1000;
+    while (a < 0)       a += 0x1000;
+    while (b >= 0x1000) b -= 0x1000;
+    while (b < 0)       b += 0x1000;
+
+    a -= b;
+    if (a <= -0x800) {
+        while (a < 0)  a += 0x1000;
+    } else if (a > 0x800) {
+        while (a >= 0)  a -= 0x1000;
+    }
+    return a;
+}
 
 /**
  * @brief Wrap @c vx into @c [0, 0x7FF] and @c vz into @c [-0x7FF, 0] by ±0x800.

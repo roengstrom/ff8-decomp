@@ -4,6 +4,7 @@
 #include "field.h"
 #include "world.h"
 #include "world/we_object1.h"
+#include "world/we_object2.h"   /* getAngleDelta */
 #include "psxsdk/libapi.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libc.h"
@@ -73,7 +74,7 @@ void func_80099B48(Entity *entity, s32 *script) {
  * Decides whether to reload the current sequence: it skips the reload (just issuing
  * @c sndCmdC1(0,0x1E,0x7F)) only when the scatter key @c D_800D2442 already matches
  * @c g_fieldVars->audioChannel0State AND the scene is not mode 2. Otherwise it parses
- * the sequence for @c (s8)D_800D2442 via @c func_8009CE70 (which fills bank selector,
+ * the sequence for @c (s8)D_800D2442 via @c getScrollState (which fills bank selector,
  * a "ready" flag, and three handles), wires it up with @c func_80039678, records the
  * bank selector, and then either — for an active mode-2 scene — drains the audio
  * engine and pushes the new sequence (@c sndProcessAudio + @c func_8009CDC4), or stops
@@ -100,7 +101,7 @@ void func_80099C84(void) {
     mode2 = (D_80082C8C.mode == 2);
     key = D_800D2442;
     if (key != g_fieldVars->audioChannel0State || mode2) {
-        result = func_8009CE70((s8)key, &b18, &w1C, &w20, &w24, &w28);
+        result = getScrollState((s8)key, &b18, &w1C, &w20, &w24, &w28);
         if (result != 0) {
             func_80039678(w24, result, w28);
             g_fieldVars->soundBankSelector = b18;
@@ -640,7 +641,7 @@ void func_8009BFA0(DVECTOR *coords, s16 count) {
  * local vector. The matrix is normally the global @c D_800C9838, but a per-frame
  * matrix from @c func_800ACD38 is used instead when a special mode is active:
  * @c D_800C4D38 == 0x32, @c D_800C4D3C == 0, @c D_800D23D8[0] == 0, and the angle
- * from @c func_800A00B4(D_800C977A, D_800D239A) is within @c ±0x241.
+ * from @c getAngleDelta(D_800C977A, D_800D239A) is within @c ±0x241.
  *
  * The transformed offset's X and Z are added to the base position @c D_800C9868
  * to form @c D_800D23C0 (Z cleared), then the rotation and translation matrices
@@ -654,7 +655,7 @@ void func_8009C070(void) {
     s32 v;
 
     localA = D_800980DC;
-    angle = func_800A00B4(D_800C977A, D_800D239A);
+    angle = getAngleDelta(D_800C977A, D_800D239A);
     /* Special mode when the three flags hold and the angle's absolute value (in
        @c v) is within ±0x241 of zero — build a per-frame matrix; else use the
        global one. @c v is assigned in the condition so the lazy @c abs() compares

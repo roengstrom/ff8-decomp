@@ -666,7 +666,7 @@ extern BattleCharState g_battleChars;
  */
 typedef struct {
     /* 0x0000 */ DRAWENV drawEnv;       /**< Draw-env template, copied to the active env. */
-    /* 0x005C */ u8  pad005C[0x14];
+    /* 0x005C */ DISPENV disp;          /**< Display-env template; copied to D_80082C18 in setupWorldRender. */
     /* 0x0070 */ s32 primList[4];
     /* 0x0080 */ u8  pad0080[0x3FF0];
 } BattleSceneCtx;                       /* 0x4070 */

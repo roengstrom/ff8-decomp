@@ -1,5 +1,6 @@
 SetRotMatrix = 0x800406A4;
 SetTransMatrix = 0x80040734;
+SetGeomScreen = 0x800408E4;
 RotMatrix = 0x80040FE4;
 preInitStub = 0x8001152C;
 flushGpuOt = 0x800115F0;

@@ -10,7 +10,7 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800ACC68);
  *        halfword, then forward to @c func_800ACC68.
  *
  * Steps:
- *  1. Compute @c delta = @c func_800A00B4(@c D_800C977A,
+ *  1. Compute @c delta = @c getAngleDelta(@c D_800C977A,
  *     @c D_800D2390.tail.angle) @c >> @c 1 — half the signed result.
  *  2. Snapshot @c D_800D2390.tail into a local @ref WorldXformBlock via
  *     @c memcpy. The source is cast to @c (u8 @c *) so the compiler
@@ -30,7 +30,7 @@ void func_800ACD38(s32 arg) {
     WorldXformBlock buf;
     s32 delta;
 
-    delta = func_800A00B4(D_800C977A, D_800D2390.tail.angle) >> 1;
+    delta = getAngleDelta(D_800C977A, D_800D2390.tail.angle) >> 1;
 
     memcpy(&buf, (u8 *)&D_800D2390.tail, sizeof(buf));
 

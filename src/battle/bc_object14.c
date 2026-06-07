@@ -16,7 +16,6 @@ s32 func_800C5B1C(u8 *a0);
 s32 func_800B853C(void *);
 s32 func_800C5A94(s32, s32);
 void func_800408C4(s32, s32);
-void func_800408E4(s32);
 void func_800C5338(s32);
 void func_800472E4(void);
 void func_800472F4(void);
@@ -230,7 +229,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C65A8);
  *
  * Calls InitGeom to reset state, clears D_800FA504 (2 halfwords),
  * calls func_800408C4 with dimensions 0xA0 x 0x6C, stores 0x200 to
- * D_800FA500, calls func_800408E4 with 0x200, sets D_800FA4F8 to 0x11,
+ * D_800FA500, calls SetGeomScreen with 0x200, sets D_800FA4F8 to 0x11,
  * and sets bit 2 of D_800EEC5C.
  */
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C66E4);

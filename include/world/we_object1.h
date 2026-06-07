@@ -6,10 +6,6 @@
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libgte.h"
 
-/** View of the sentinel ctx exposing the DISPENV template that sits past the
- *  tracked @c BattleSceneCtx body (at @c +0x40CC). */
-typedef struct { u8 pad[0x40CC]; DISPENV disp; } CtxDispView;
-
 /* Projection scratch: func_800A40F8 writes @c proj and returns @c angle. The
    trailing @c pad keeps the buffer 0x20 bytes (gcc reserves the full slot). */
 typedef struct {
@@ -43,7 +39,7 @@ extern u8        D_800C4FD4;
 extern u8        D_800C4FD5;
 extern u8        D_800C4FD6;
 extern u8        D_800C4FD7;
-extern s32       D_800C4FBC;       /* current sequence handle (set from func_8009CE70 out) */
+extern s32       D_800C4FBC;       /* current sequence handle (set from getScrollState out) */
 extern s32       D_800C4FC0;       /* current sequence id */
 extern s32      *D_800C97A8;       /* sample-bank header (offset table + data) */
 extern s32       D_800C97AC;       /* first sample-bank data pointer */
@@ -51,7 +47,6 @@ extern s32       D_800C9EDC;       /* default sample-bank handle */
 extern s32       D_800C9EE0;       /* alt sample-bank handle (scene cmd 0x40..0x42) */
 extern u8        D_800D2442;       /* audio scatter key (vs FieldVars.audioChannel0State) */
 extern FieldVars *g_fieldVars;     /* field-engine variables (in gamestate.h) */
-extern RECT      D_800C8640;
 extern POLY_F4   D_800C89A8[];    /* dim-overlay quad buffer (sentinel ctx)  */
 extern POLY_F4   D_800C86A8[];    /* dim-overlay quad buffer (normal ctx)    */
 extern DR_TPAGE  D_800C8CA8[2];   /* draw-mode tpage paired with each buffer  */
@@ -59,7 +54,6 @@ extern s16       D_800C4D04;
 extern s32       D_800C4D18;
 extern s32       D_800C4D1C;
 extern s32       D_800C4D24;
-extern s32       D_800C4D30;
 extern s32       D_800C4D34;
 extern s16       D_800C4D48;
 extern s32       D_800C4D50;          /* external trigger flag */
@@ -85,8 +79,6 @@ extern DRAWENV   D_80082C30;      /* active draw environment */
 extern DISPENV   D_80082C18;      /* active display environment */
 extern DRAWENV  *g_activeDrawEnv;
 extern u32       D_800D2278[];
-extern s32       D_800C4DA0;
-extern s32       D_800C4DA4;
 extern VECTOR    D_800980DC;   /* constant view offset {0, 0, -0x1800, 0} */
 extern VECTOR    D_800C9748;   /* mirrored copy of the transformed position */
 extern CmdDesc  *D_800C4D6C;
@@ -96,8 +88,6 @@ extern RECT      D_800C8698;
 extern u8        D_800980CC[]; /* "x:\USPC\WORLD" — dev-filesystem prefix (13 chars + NUL) */
 extern POLY_FT4  D_800C8648[2]; /* double-buffered worldmap quad primitive */
 
-extern s32 func_8009CA34(s32 *src, ImageDesc *desc);
-extern void func_80048EFC(RECT *r, u32 *data);
 extern void func_80048DD4(RECT *r, s32 a, s32 b, s32 c);
 extern void func_8009FEDC(u8 *work, u8 type);
 extern void func_80042634(s32 a);
@@ -120,12 +110,11 @@ extern void fadeOutSfxSlow(s32 idx);
 extern void initSfxPlayback(s32 index, u8 *data);
 extern s32  sndProcessAudio(s32 a, s32 b);
 extern s32  sndGetStatus(void);
-extern s32  func_8009CE70(s32 key, u8 *p18, s32 *p1C, s32 *p20, s32 *p24, s32 *p28);
+extern s32  getScrollState(s32 key, u8 *p18, s32 *p1C, s32 *p20, s32 *p24, s32 *p28);
 extern void func_80039678(s32 a, s32 b, s32 c);
 extern void func_8009CDC4(s32 a, s32 b);
 extern void func_8009CE40(void);
 extern s32  func_8009D7D8(s32 a);
-extern s32 func_800A00B4(s32 a, s32 b);
 extern s32 func_800ACD38(MATRIX *out);
 extern void func_8003FD84(MATRIX *xform, VECTOR *in, VECTOR *out);
 extern void func_800BC544(VECTOR *src, VECTOR *dst);
