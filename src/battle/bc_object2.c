@@ -9,6 +9,9 @@
 #include "battle.h"
 #include "gamestate.h"
 
+/* Inconsistent-ABI symbol: bc_object4.c views D_800EEBC8 as u8[]; here scalar u8. */
+extern u8 D_800EEBC8;
+
 #define BATTLE_ENTITY_FLAG_BIT_11  (1 << 11) /* 0x800     */
 #define BATTLE_ENTITY_FLAG_BIT_13  (1 << 13) /* 0x2000    */
 #define BATTLE_ENTITY_FLAG_BIT_14  (1 << 14) /* 0x4000    */
@@ -366,7 +369,7 @@ u8 func_8009C390(s32 arg0, s32 arg1, s32 arg2) {
  * @param id Entity identifier (masked to 16 bits).
  * @return First byte of the resolved table entry.
  */
-s32 func_8009C570(s32 id) {
+u8 func_8009C570(s32 id) {
     u8 buf[8];
     func_800A4FC4(id & 0xFFFF, buf);
     return buf[0];
@@ -919,7 +922,119 @@ s32 func_8009D6C4(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009D7D8);
+s32 func_8009D7D8(s32 arg0, s32 arg1, s32 arg2, u32 arg3) {
+    s32 var_s0;
+    s32 var_a0;
+    s32 var_v0_2;
+    s32 var_v1;
+    s32 temp_v1;
+
+    if (func_8009D594(arg0, arg1) != 0) {
+        return 0;
+    }
+
+    if (func_8009D420(arg0, arg1) != 0 || func_8009D474(arg0, arg1) != 0) {
+        D_800EE4C0.flags6 |= 4;
+        return 0;
+    }
+
+    var_s0 = func_8009C300(arg1, 1);
+    
+    switch (arg3) {
+        
+    case 10:
+        if ((D_800ED148.entities[arg1].unkCC % D_800EEBBB) != 0) {
+            D_800EE4C0.flags6 |= 4;
+            return 0;
+        }
+        
+        goto case_0;
+    case 6:
+        
+        var_s0 = 0;
+        /* Fallthrough */
+    case 0: case_0:
+    
+        temp_v1 = func_8009CF18();
+        
+        var_a0 = (D_800ED148.entities[arg0].fieldCF + arg2) * (265 - var_s0);
+        
+        var_v0_2 = ((var_a0 / 4 )* arg2) / 256;
+
+        var_v1 = var_v0_2 * temp_v1 / 256;
+
+        var_s0 = var_v1;
+        if (arg0 >= 3) {
+            var_s0 = var_v1 >> 1;
+        }
+        break;
+
+    case 1:
+        
+        if (!(D_800ED148.entities[arg1].controlFlags & 0x10000)) {
+            var_s0 = (D_800ED148.entities[arg1].field28 * arg2) / 16;
+            break;
+        } 
+        
+        var_s0 = 0;
+        D_800EE4C0.flags6 |= 4;
+        break;
+
+
+
+    case 5:
+        
+        var_s0 = 0;
+        /* Fallthrough */
+    case 2:
+
+       var_s0 = (((((((((D_800EEBBD + ((D_800EEBBE * D_800EEBBF) / 10) + arg2) * (265 - var_s0)) / 8) * arg2) / 256) * D_800EEBC8) / 100) * (D_800EEBC0 + 100) / 100) * func_8009CF18()) / 256;
+        
+        func_8009D68C();
+        break;    
+
+    case 4:
+        
+        if (D_800ED148.entities[arg1].controlFlags & 0x10000) {
+            var_s0 = 0;
+            D_800EE4C0.flags6 |= 4;
+            break;
+        }
+        
+        var_s0 = (D_800ED148.entities[arg1].field2C * D_800EEBBF) / ((D_800EEBBD + 100) - D_800EEBBE);
+        break;
+
+    case 17:
+        var_s0 = ((u32)D_80082C14 / 1000) * arg2;
+        break;
+
+    default: 
+        var_s0 = 0; 
+        break;
+    }
+    
+    if (((D_800ED148.unk130E & 3) == 1) && (var_s0 != 0) && (D_800ED148.entities[arg1].flags & CTRL_FLAG_40)) {
+        var_s0 = var_s0 >> 1;
+        D_800EE4C0.flags5 |= CTRL_FLAG_20;
+    }
+    
+    if (D_800ED148.entities[arg1].flags & 0x80000) {
+        var_s0 = var_s0 >> 1;
+    }
+    
+    if (D_800EEBB9 != 0) {
+        var_s0 = (var_s0 * (900 - func_8009C598(arg1, func_8009C570(D_800EEBB9)))) / 100;
+    }
+
+    func_8009C8B8(1, arg0, arg1, arg2, var_s0);
+    
+    if (var_s0 < 0) {
+        D_800EE4C0.flags6 |= 1;
+        var_s0 = ~var_s0 + 1;
+    }
+    
+    return var_s0;
+}
 
 s32 func_8009DCCC(s32 unused, s32 arg1, s32 arg2) {
     if (D_800ED148.entities[arg1].status & CTRL_FLAG_40) {
@@ -1423,7 +1538,7 @@ s32 func_8009EF64(s32 arg0, s32 unused, s32 unused2, s32 arg3) {
     return 1; 
 }
 
-u8 func_8009F040(s32 arg0, s32 arg1, s32 unused) {
+s32 func_8009F040(s32 arg0, s32 arg1, s32 unused) {
     s32 entity0;
     s32 entity1;
     
@@ -1726,7 +1841,159 @@ void func_8009F824(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009F930);
+s32 func_8009F930(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+    s32 var_s1;
+    
+    func_8009CD10(arg2);
+    switch (arg0) {     
+        case 10:
+            var_s1 = func_8009D228(arg1, arg2, arg3);
+            break;
+        
+        case 1:
+            var_s1 = func_8009D174(arg1, arg2, arg3, 0);
+            break;
+            
+        case 2:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 0);
+            break;
+            
+        case 3:
+            var_s1 = func_8009DEF0(arg1, arg2, arg3, 7);
+            break;
+            
+        case 4:
+            var_s1 = func_8009E110(arg1, arg2, arg3, 14);
+            break;
+            
+        case 5:
+            var_s1 = func_8009E418(arg1, arg2, arg3);
+            break;
+            
+        case 6:
+            var_s1 = func_8009E528(arg1, arg2, arg3);
+            break;
+            
+        case 7:
+            var_s1 = func_8009D174(arg1, arg2, arg3, 1);
+            break;
+            
+        case 8:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 1);
+            break;
+            
+        case 22:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 6);
+            break;
+            
+        case 9:
+            var_s1 = func_8009D174(arg1, arg2, arg3, 0);
+            break;
+            
+        case 20:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 4);
+            break;
+            
+        case 11:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 2);
+            break;
+            
+        case 15:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 5);
+            break;
+            
+        case 12:
+            func_8009F5B4(arg2);
+            /* fallthrough */
+        case 0:
+            var_s1 = 0;
+            D_800EE4C0.flags5 |= 1;
+            break;
+            
+        case 13:
+            var_s1 = func_8009E684(arg1, arg2, arg3, 0);
+            break;
+            
+        case 16:  
+            var_s1 = D_800ED148.entities[arg2].field2C - D_800ED148.entities[arg2].field28;
+            func_8009E684(arg1, arg2, arg3, 1);
+            D_800ED148.entities[arg2].field28 = D_800ED148.entities[arg2].field2C - var_s1;
+            var_s1 = 0;
+            break;
+            
+        case 18:
+            var_s1 = func_8009D174(arg1, arg2, arg3, 3);
+            break;
+            
+        case 19:
+            var_s1 = func_8009F040(arg1, arg2, arg3);
+            break;
+            
+        case 21:
+            var_s1 = func_8009DEF0(arg1, arg2, arg3, 8);
+            break;
+            
+        case 17:
+            var_s1 = 0;
+            func_8009EE44(arg1, arg2);
+            break;
+            
+        case 23:
+            var_s1 = func_8009E95C();
+            break;
+            
+        case 25:
+            var_s1 = func_8009E110(arg1, arg2, arg3, 9);
+            break;
+            
+        case 24:
+            var_s1 = func_8009EA08(arg1, arg2);
+            break;
+    
+        case 26:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 10);
+            break;
+            
+        case 27:
+            var_s1 = func_8009D6C4(arg1, arg2, arg3, 11);
+            break;
+            
+        case 28:
+            var_s1 = func_8009D6C4(arg1, arg2, arg3, 12);
+            break;
+            
+        case 29:
+            var_s1 = func_8009D6C4(arg1, arg2, arg3, 13);
+            break;
+            
+        case 32:
+            var_s1 = func_8009E110(arg1, arg2, arg3, 15);
+            break;
+            
+        case 33:
+            var_s1 = func_8009D7D8(arg1, arg2, arg3, 17);
+            break;
+            
+        case 34:
+            var_s1 = func_8009D174(arg1, arg2, arg3, 16);
+            break;
+            
+        case 35:
+            var_s1 = func_8009D6C4(arg1, arg2, arg3, 18);
+            break;
+            
+        case 36:
+            var_s1 = func_8009D174(arg1, arg2, arg3, 19);
+            break;
+            
+        default:
+            var_s1 = 0;
+            break;      
+    }
+    
+    func_8009CD44(arg2);
+    return var_s1;
+}
 
 /**
  * @brief Store a command byte to entity data.
@@ -1745,13 +2012,13 @@ void func_8009FCF4(s32 cmd) {
     *(u8 *)(base + idx * 0xD0 + 0x99) = cmd;
 }
 
-void func_8009FD28(s32 arg0, s32 arg1) {
+s32 func_8009FD28(s32 arg0, s32 arg1) {
     u8 var;
 
     func_8009FCF4(D_80078E00.spells[D_800EE4C0.statusCode].unk7);
     var = D_80078E00.spells[D_800EE4C0.statusCode].unk4;
     D_800EE4C0.unk4 = D_80078E00.spells[D_800EE4C0.statusCode].unk2;
-    func_8009F930(D_80078E00.spells[D_800EE4C0.statusCode].unk3, arg1, arg0, var);
+    return func_8009F930(D_80078E00.spells[D_800EE4C0.statusCode].unk3, arg1, arg0, var);
 }
 
 /**
@@ -1781,7 +2048,203 @@ s32 func_8009FDE0(s32 a0, s32 a1) {
     return a1 + *(u8 *)(base + a0 * 208 + 0xDA);
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_8009FE14); 
+void func_8009FE14(s32 arg0) {
+    BattleEntity* temp_v0_2;
+    BattleSystem* bs;
+    s32 index;
+    
+    D_800EEBBB = 255;
+    D_800EEBBC = 0;
+    D_800EEBB8 = 0;
+    
+    switch (D_800EE4C1) {
+    case 239:
+        D_800EEBB8 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C6;
+        D_800EEBB9 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C5;
+        D_800EEBBA = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C7;
+        D_800EEBC2 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48D2;
+        D_800EEBC4 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48D4;
+        break;
+
+    case 241:
+    {
+        s32 val_min = 65530;
+        s32 val_max = 65532;
+        if ((D_800EE4DC <= val_max) && (D_800EE4DC >= val_min)) {
+            D_800EEBB8 = 0;
+            D_800EEBB9 = 0;
+            D_800EEBBA = 0;
+            D_800EEBC2 = 0;
+            D_800EEBC4 = 0;
+        }
+            
+        else { 
+            D_800EEBB8 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C6;
+            D_800EEBB9 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C5;
+            D_800EEBBA = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C7;
+            D_800EEBC2 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48D2;
+            D_800EEBC4 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48D4;
+        }
+        
+        break;
+    }
+        
+    case 240:
+    case 244:
+    case 245:
+        D_800EEBC0 = 0;
+        D_800EEBBB = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk13;
+        D_800EEBB9 = D_80078E00.entriesA0[D_800EE4C0.statusCode].unkB;
+        D_800EEBBA = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk6;
+        D_800EEBC2 = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk10;
+        D_800EEBC4 = D_80078E00.entriesA0[D_800EE4C0.statusCode].unkC;
+        break;
+        
+    case 254:
+        D_800EEBC0 = g_battleChars.levelEntries[D_800EE4C0.statusCode - 64].unk1;
+        D_800EEBB9 = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unkD;
+        D_800EEBBA = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk1B;
+        D_800EEBC2 = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unkE;
+        D_800EEBC4 = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk10;
+        break;
+        
+    case 7:  
+    case 23: 
+    case 24: 
+    case 25: 
+    case 26: 
+    case 27: 
+    case 29: 
+    case 30: 
+    case 31: 
+    case 32: 
+    case 33: 
+    case 34: 
+    case 38: 
+        D_800EEBB9 = D_80078E00.array4020[D_800EE4C0.statusCode].unk0;
+        D_800EEBBA = D_80078E00.array4020[D_800EE4C0.statusCode].unk1;
+        D_800EEBC2 = D_80078E00.array4020[D_800EE4C0.statusCode].unk2;
+        D_800EEBC4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk4;
+        break;
+        
+    case 2:
+    case 6:
+    case 16:
+    case 247:
+        D_800EEBB9 = D_80078E00.spells[D_800EE4C0.statusCode].unkA;
+        D_800EEBBA = D_80078E00.spells[D_800EE4C0.statusCode].unk12;
+        D_800EEBC2 = D_80078E00.spells[D_800EE4C0.statusCode].unk10;
+        D_800EEBC4 = D_80078E00.spells[D_800EE4C0.statusCode].unkC;
+        break;
+        
+    case 19:
+        D_800EEBB8 = D_80078E00.array4A70[D_800EE4C0.unk3].unk4;
+        D_800EEBB9 = D_80078E00.array4A70[D_800EE4C0.unk3].unk3;
+        D_800EEBBA = D_80078E00.array4A70[D_800EE4C0.unk3].unk5;
+        D_800EEBC2 = D_80078E00.array4A70[D_800EE4C0.unk3].unk6;
+        D_800EEBC4 = D_80078E00.array4A70[D_800EE4C0.unk3].unk8;
+        break;
+        
+    case 17:
+    case 18:
+    case 20:
+    case 21:
+    case 22:
+        D_800EEBB8 = D_80078E00.array4484[D_800EE4C0.statusCode].unk2;
+        D_800EEBB9 = D_80078E00.array4484[D_800EE4C0.statusCode].unk1;
+        D_800EEBBA = D_80078E00.array4484[D_800EE4C0.statusCode].unk3;
+        D_800EEBC2 = D_80078E00.array4484[D_800EE4C0.statusCode].unk4;
+        D_800EEBC4 = D_80078E00.array4484[D_800EE4C0.statusCode].unk8;
+        break;
+        
+    case 15:
+        D_800EEBB9 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk0;
+        D_800EEBBA = D_80078E00.array44FC[D_800EE4C0.statusCode].unk1;
+        index = func_8009FDE0(arg0, D_800EE4C0.statusCode);
+        D_800EEBC2 = D_80078E00.array45F8[index].unk4;
+        D_800EEBC4 = D_80078E00.array45F8[index].unk0;
+        D_800EEBBB = D_80078E00.array45F8[index].unk7;
+        D_800EEBBC = D_80078E00.array44FC[D_800EE4C0.statusCode].unk2;
+        break;
+        
+    case 14:
+    case 237:
+    case 238:
+        D_800EEBB8 = D_80078E00.array47FC[D_800ED148.unk1324].unk2;
+        D_800EEBB9 = D_80078E00.array47FC[D_800ED148.unk1324].unk1;
+        D_800EEBBA = D_80078E00.array47FC[D_800ED148.unk1324].unk3; 
+        D_800EEBC2 = D_80078E00.array47FC[D_800ED148.unk1324].unk4;
+        D_800EEBC4 = D_80078E00.array47FC[D_800ED148.unk1324].unk8;
+        D_800EEBBC = D_80078E00.array47FC[D_800ED148.unk1324].unk7;
+        break;
+        
+    case 4:
+    case 13:
+        D_800EEBBB = D_80078E00.abilities[D_800EE4C0.statusCode].unkC;
+        D_800EEBB9 = D_80078E00.abilities[D_800EE4C0.statusCode].unk11;
+        D_800EEBBA = D_80078E00.abilities[D_800EE4C0.statusCode].unk5;
+        D_800EEBC2 = D_80078E00.abilities[D_800EE4C0.statusCode].unk09;
+        D_800EEBC4 = D_80078E00.abilities[D_800EE4C0.statusCode].unkA;
+        break;
+        
+    case 8:
+    case 236:
+        D_800EEBB9 = D_80078E00.entries17[D_800EE4C0.statusCode].unkA;
+        D_800EEBBA = D_80078E00.entries17[D_800EE4C0.statusCode].unkC; 
+        D_800EEBC2 = D_80078E00.entries17[D_800EE4C0.statusCode].unkE;       
+        D_800EEBC4 = D_80078E00.entries17[D_800EE4C0.statusCode].unk10;
+        D_800EEBBB = D_80078E00.entries17[D_800EE4C0.statusCode].unkD;
+        D_800EEBBC = D_80078E00.entries17[D_800EE4C0.statusCode].unkB;
+        break;
+    
+    case 0:
+        switch (D_800EE4DC) {
+        case 10:
+            D_800EEBB9 = 0;    
+            D_800EEBBA = 200;
+            D_800EEBC2 = D_80078E00.unk4C0C[D_800ED148.unk1327].unk8;
+            D_800EEBC4 = D_80078E00.unk4C0C[D_800ED148.unk1327].unk5;
+            break;
+            
+        case 8:
+            D_800EEBB9 = 0;
+            D_800EEBBA = 255;
+            D_800EEBC2 = 1;
+            D_800EEBC4 = 0;
+            break;
+            
+        }
+        
+        break;
+        
+    case 249:
+        D_800EEBB8 = D_80078E00.array3750[D_800EE4C0.unk3].unk2;
+        D_800EEBB9 = D_80078E00.array3750[D_800EE4C0.unk3].unk1;
+        D_800EEBBA = D_80078E00.array3750[D_800EE4C0.unk3].unk3;
+        D_800EEBC2 = D_80078E00.array3750[D_800EE4C0.unk3].unk6;
+        D_800EEBC4 = D_80078E00.array3750[D_800EE4C0.unk3].unk8;
+        break;
+
+    case 251:
+        D_800EEBB9 = 0;
+        D_800EEBBA = 0;
+        D_800EEBC2 = 0;
+        D_800EEBC4 = 0;
+        break;
+        
+    default:
+        bs = &D_800ED148;
+        temp_v0_2 = &bs->entities[arg0];
+        D_800EEBB8 = temp_v0_2[1].state.bytes.b2;
+        D_800EEBB9 = temp_v0_2[1].state.bytes.b1;
+        D_800EEBBA = temp_v0_2[0].unkCA;
+        D_800EEBC2 = temp_v0_2[0].unk96;
+        D_800EEBC4 = temp_v0_2[0].unk30;
+        D_800EEBBB = temp_v0_2[1].state.bytes.b0;
+        D_800EEBBC = D_80078E00.array35BD[g_battleChars.chars[arg0].classId].unk0;
+        break;
+    }
+}
 
 s32 func_800A085C(void) {
     s32 i;
@@ -1811,7 +2274,7 @@ s32 func_800A08C0(void) {
     return val;
 }
 
-void func_800A08E0(void) {
+void func_800A08E0(s32 a0, s32 a1) {
     u8 temp_a0;
 
     if (D_800ED148.unk1319 != 0xFF) {
@@ -1854,7 +2317,357 @@ void func_800A0978(s32 entityIdx) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object2", func_800A09D0);
+void func_800A09D0(u32 arg0) {
+    BattleSystem* bs;
+    BattleEntity* temp_a0;
+    s32 temp_s4;
+    u8 var_a0;
+    u8 var_s3;
+
+    bs = &D_800ED148;
+    temp_a0 = &bs->entities[arg0];
+    temp_a0->controlFlags &= ~0x4000;
+    if (temp_a0[1].slot8.byteView.unk09 != 0) {
+        temp_a0[1].slot8.byteView.unk09-= 1;
+    }
+    
+    D_800ED148.unk1329 = 0;
+    D_800ED148.unk12F3 = arg0;
+    func_8009FCF4(3);
+    D_800EE4C0.unk18 = 0;
+    D_800EE4C0.unk20 = 0;
+    D_800EE4C0.unkA = 0;
+    D_800EE4C0.unk09 = 0;
+    D_800EE4C0.unk14 = 0;
+    D_800EE4C0.unk08 = 0;
+    D_800EE4C0.unk4 = 0;
+    D_800EE4C0.unk10 = 0;
+    D_800EE4C0.unk1E = 0;
+    D_800EE4C0.flags6 = 0;
+    D_800EE4C0.flags5 = 0;
+    D_800EE4C0.unk0C = 0;
+    temp_s4 = D_800EE4C0.unk0;
+    D_800EE4C0.unk7 = 255;
+    func_8009FE14(temp_s4);
+    
+    switch (D_800EE4C0.unk1) {
+    case 0x0:        
+        D_800EE43D = 1;
+        switch (D_800EE4DC) {
+        case 10:
+            D_800EE4CC = func_8009F23C(temp_s4, arg0);
+            break;
+            
+        case 8:
+            D_800EE4CC = func_8009E418(temp_s4, arg0, 0);
+            break;
+            
+        case 4:
+            D_800EE4CC = func_8009F4BC(arg0);
+            break;
+            
+        case 2:
+            D_800EE4CC = func_8009F350(arg0);
+            break;
+            
+        case 5:
+            D_800EE4CC = func_8009F3F8(arg0);
+            break;
+            
+        case 6:
+            D_800EE4CC = func_8009F428(arg0);
+            break;
+            
+        case 7:
+            D_800EE4CC = func_8009F46C(arg0);
+            break;
+            
+        case 3:
+            D_800EE4C0.flags5 |= 1;
+            D_800EE4C0.unk4 = D_800EE4C0.unk2;
+            break;         
+        }
+        
+    default:         
+        break;
+        
+    case 0x5:        
+    case 0xB:        
+    case 0xFA:       
+        D_800EE448 = 1;
+        break;
+        
+    case 0xEF:       
+        D_800EE448 = 0;
+        goto not_another_goto;
+        
+    case 0xF1:       
+        switch (D_800EE4C0.statusCode) {     
+        case 0xFFFA:
+            D_800EE448 = 1;
+            D_800EE4C0.flags5 |= 1;
+            break;
+            
+        case 0xFFFC:
+            D_800EE4C0.unk7 = temp_s4;
+            D_800EE448 = 0;
+            D_800EE4C0.flags5 |= 1;
+            D_800EE4C0.unk09 |= 1;
+            break;
+            
+        default:    
+            D_800EE448 = 1;
+            goto not_another_goto;
+        }       
+        break;
+        
+        not_another_goto:
+        func_8009FCF4(D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C3);
+        var_s3 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48BF;
+    
+        D_800EE4C0.unk4 = D_80078E00.array48BC[D_800EE4C0.statusCode].unk48C0;
+        D_800EE4C0.unk0C = func_8009F930(D_80078E00.array48BC[D_800EE4C0.statusCode].unk48BE, temp_s4, arg0, var_s3);
+        break;
+    
+    case 0xC:        
+        func_8009CAD8(temp_s4, arg0);
+        /* fallthrough */
+    case 0x1:        
+    case 0x1C:
+        if (D_800ED148.entities[temp_s4].linkedIdx != 0 && D_800ED148.entities[temp_s4].linkedIdx != 6) {
+            func_8009FCF4(0);
+            var_s3 = D_80078E00.array35BD[g_battleChars.chars[temp_s4].classId].unk2;
+            D_800EE4C0.unk4 = 4;
+            var_a0 = D_80078E00.array35BD[g_battleChars.chars[temp_s4].classId].unk1;
+            D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        } 
+            
+        else {
+            D_800EE448 = 1;
+        }
+        
+        func_800A0978(temp_s4);
+        break;
+        
+    case 0x1D:       
+        func_8009FCF4(D_80078E00.array4020[D_800EE4C0.statusCode].unk13);
+        var_s3 = D_80078E00.array4020[D_800EE4C0.statusCode].unk12;
+        D_800EE4C0.unk4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk10;
+        var_a0 = D_80078E00.array4020[D_800EE4C0.statusCode].unk11;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0x6:        
+        switch (D_800EE4C0.unk3) {           
+        case 9:     
+            D_800EE4C0.unk0C = (func_8009FD28(arg0, temp_s4) * (func_8009B15C() + 0xA)) / 150;
+            break;
+            
+        case 10:    
+            D_800EE4C0.unk0C = 0;
+            D_800EE4C0.flags5 |= 1;
+            break;
+        }
+        break;
+        
+    case 0xF4:       
+        if (D_800EE469 != 0) {
+            D_800EEBBF = func_800A08C0();
+        } 
+        
+        else {
+        case 0x26:   
+        case 0xF0:   
+        case 0xF5:   
+            D_800EEBBF = func_800A085C();
+        }
+        
+        D_800EEBC8 = 100;
+        D_800EEBBD = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk12;
+        D_800EEBBE = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk13;
+        func_8009FCF4(D_80078E00.entriesA0[D_800EE4C0.statusCode].unk8);
+        var_s3 = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk5;
+        D_800EE4C0.unk4 = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk9;
+        var_a0 = D_80078E00.entriesA0[D_800EE4C0.statusCode].unk4;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0xF6:       
+        D_800ED148.entities[arg0].status |= 1;
+        D_800EE4C0.unk0C = 0;
+        D_800EE4C0.flags5 |= 1;
+        break;
+        
+    case 0x2:        
+    case 0x10:       
+    case 0xF7:       
+        D_800EE4CC = func_8009FD28(arg0, temp_s4);
+        break;
+        
+    case 0x13:       
+        func_8009FCF4(D_80078E00.array4A70[D_800EE4C0.unk3].unkunk);
+        var_s3 = D_80078E00.array4A70[D_800EE4C0.unk3].unk1;
+        D_800EE4C0.unk4 = D_80078E00.array4A70[D_800EE4C0.unk3].unk2;
+        var_a0 = D_80078E00.array4A70[D_800EE4C0.unk3].unk0;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0x11:       
+    case 0x12:       
+    case 0x14:       
+    case 0x15:       
+    case 0x16:       
+        func_8009FCF4(D_80078E00.array4484[D_800EE4C0.statusCode].var3);
+        var_s3 = D_80078E00.array4484[D_800EE4C0.statusCode].var1;
+        D_800EE4C0.unk4 = D_80078E00.array4484[D_800EE4C0.statusCode].var2;
+        var_a0 = D_80078E00.array4484[D_800EE4C0.statusCode].var;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0xF:        
+        func_8009FCF4(D_80078E00.array44FC[D_800EE4C0.statusCode].unk13);
+        var_s3 = D_80078E00.array45F8[func_8009FDE0(temp_s4, D_800EE4C0.statusCode)].unk6;
+        D_800EE4C0.unk4 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk09;
+        var_a0 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk10;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0x4:        
+    case 0xD:        
+        func_8009FCF4(D_80078E00.abilities[D_800EE4C0.statusCode].unk2);
+        var_s3 = D_80078E00.array3920[D_800EE4C0.statusCode].unk18;
+        D_800EE4C0.unk4 = D_80078E00.abilities[D_800EE4C0.statusCode].unk3;
+        var_a0 = D_80078E00.array3920[D_800EE4C0.statusCode].unk17;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0x7:        
+    case 0x17:       
+    case 0x18:       
+    case 0x19:       
+    case 0x1A:       
+    case 0x1B:       
+    case 0x1E:       
+    case 0x1F:       
+    case 0x20:       
+    case 0x21:       
+    case 0x22:       
+        func_8009FCF4(D_80078E00.array4020[D_800EE4C0.statusCode].unk13);
+        var_s3 = D_80078E00.array4020[D_800EE4C0.statusCode].unk12;
+        D_800EE4C0.unk4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk10;
+        var_a0 = D_80078E00.array4020[D_800EE4C0.statusCode].unk11;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0xE:        
+        D_800ED148.unk1300 = 1;
+        D_800EE4C4 = 0;
+        D_800ED148.unk12F5 = 1;
+        goto ohno_plz_halp;
+
+    case 0xEE:       
+        D_800ED148.unk1300 = 0;
+        if (D_800ED148.entities[arg0].status & 1) {
+            D_800EE4C4 = D_80078E00.array47FC[D_800ED148.unk1324].var2;
+        } 
+        
+        else {
+            D_800EE4C4 = 0;
+        }
+        
+        ohno_plz_halp:
+        D_800EE4C0.unk0C = 0;
+        D_800EE4C0.flags5 |= 1;
+        break;
+        
+    case 0xED:       
+        D_800ED148.unk1300 = 1;
+        func_8009FCF4(D_80078E00.array47FC[D_800ED148.unk1324].var3);
+        var_s3 = D_80078E00.array47FC[D_800ED148.unk1324].var1;
+        D_800EE4C0.unk4 = D_80078E00.array47FC[D_800ED148.unk1324].var2;
+        var_a0 = D_80078E00.array47FC[D_800ED148.unk1324].var;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3); 
+        break;
+        
+    case 0x8:        
+    case 0xEC:       
+        func_8009FCF4(D_80078E00.entries17[D_800EE4C0.statusCode].unk8);
+        var_s3 = D_80078E00.entries17[D_800EE4C0.statusCode].unk7;
+        D_800EE4C0.unk4 = D_80078E00.entries17[D_800EE4C0.statusCode].unk5;
+        var_a0 = D_80078E00.entries17[D_800EE4C0.statusCode].unk6;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3);
+        break;
+        
+    case 0xFC:       
+        D_800EE4C0.flags5 |= 1;
+        break;
+        
+    case 0xFE:       
+        if (D_800EE466 != 0) {
+            D_800EEBBD = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk83;
+            D_800EEBBE = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk84;
+            D_800EEBBF = g_battleChars.levelEntries[D_800EE4C0.statusCode - 64].level;
+            func_8009FCF4(D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk8);
+            var_s3 = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk5;
+            D_800EE4C0.unk4 = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk9;
+            var_a0 = D_80078E00.rows132[D_800EE4C0.statusCode - 64].unk4;
+            D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3); 
+            break; 
+        }       
+        break;
+        
+    case 0xF9:       
+        D_800EE448 = 0;
+        func_8009FCF4(D_80078E00.unk3738[D_800EE4C0.unk3].unk18);
+        var_s3 = D_80078E00.unk3738[D_800EE4C0.unk3].unk15;
+        D_800EE4C0.unk4 = D_80078E00.unk3738[D_800EE4C0.unk3].unk16;
+        var_a0 = D_80078E00.unk3738[D_800EE4C0.unk3].unk13;
+        D_800EE4C0.unk0C = func_8009F930(var_a0, temp_s4, arg0, var_s3); 
+        break;
+        
+    case 0xFB:       
+        var_s3 = D_80078E00.array37A9[g_gameState.chars[g_gameState.mainData.party.party[temp_s4]].characterId].unk0;
+        goto wait_oh_god_make_it_stop;
+        
+    case 0xF3:       
+    case 0xF8:       
+    case 0xFD:       
+        var_s3 = D_80078E00.array35BD[g_battleChars.chars[temp_s4].classId].unk2;
+        wait_oh_god_make_it_stop:
+        func_8009FCF4(0);
+        D_800EE4C0.unk4 = 4;
+        if (func_8009FDD4(D_800EE3DC) != 0) {
+            D_800EE4C0.flags6 |= 2;
+        }
+        
+        D_800EE4C0.unk0C = func_8009F930(10, temp_s4, arg0, var_s3);
+        func_800A0978(temp_s4);
+        break;   
+    }
+    
+    if ((D_800EE4C0.unk1 == 243) || (D_800EE4C0.unk1 == 28)) {
+        D_800EE4C0.unk0C *= 3;
+    }
+    
+    if (D_800ED148.entities[temp_s4].flags & 0x02000000) {
+        if (D_800EE4C0.unk1 == 2) {
+            D_800EE4C0.unk0C *= 5;
+        }
+    }
+    
+    if (D_800EE461 != 255) {
+        D_800EE4C0.unk0C = D_800EE4C0.unk0C / 2;
+    }
+    
+    func_8009F824();
+    D_800EE4C0.unk0C = func_8009B7F4(D_800EE4C0.unk0C, arg0);
+    func_800A08E0(temp_s4, arg0);
+    func_800A2724(arg0, D_800EE4C0.unk0C, &D_800EE4C0.flags6, &D_800EE4C0.flags5, D_800EE4C0.unk0, &D_800EE4C0.unk4, &D_800EE4C0.unk1E, &D_800EE4C0.unk10, 0);
+    
+    if (D_800EE4C0.unk7 != 255) {
+        func_800A2724(temp_s4, D_800EE4C0.unk14, &D_800EE4C0.unkA, &D_800EE4C0.unk09, D_800EE4C0.unk0, &D_800EE4C0.unk08, &D_800EE4C0.unk20, &D_800EE4C0.unk18, 1);
+    }
+}
 
 void func_800A1760(s32 arg0, BattleCharData* arg1) {
     s32 i;

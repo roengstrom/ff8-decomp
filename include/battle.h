@@ -389,7 +389,8 @@ typedef struct {
     /* 0x12EE */ u8 unk12EE;                    /**< Misc state byte. */
     /* 0x12EF */ u8 pad12EF[0x4];               /**< Misc state. */
     /* 0x12F3 */ u8 unk12F3;                    /* used as index in func_8009F824 */
-    /* 0x12F4 */ u8 pad12F4[0x2];               /**< Misc state. */
+    /* 0x12F4 */ u8 pad12F4;                    /**< Misc state. */
+    /* 0x12F5 */ u8 unk12F5;                    /**< Misc state. */
     /* 0x12F6 */ u8 taskHead;                   /**< Head index of the task queue linked list. */
     /* 0x12F7 */ u8 pad12F7[0x1];               /**< Pad. */
     /* 0x12F8 */ u8 unk12F8;                    /**< Misc state counter. */
@@ -888,21 +889,24 @@ typedef struct {
     /* 0x35C9 */ u8 pad35C9[0x3738 - 0x35C9];
     /* 0x3738 */ BattleAbilityRow unk3738[1];
     /* 0x3750 */ Struct_3750 array3750[1];
-    /* 0x3768 */ u8 pad3768[0x3938 - 0x3768];
+    /* 0x3768 */ u8 pad3768[0x37A9 - 0x3768];
+    /* 0x37A9 */ Struct_37A9 array37A9[1];
+    /* 0x37CD */ u8 pad37CD[0x3920 - 0x37CD];
+    /* 0x3920 */ Struct_3750 array3920[1];
     /* 0x3938 */ BattleAbilityRow abilities[1]; /**< 24-byte stride (size unknown, index past). */
     /* 0x3950 */ u8 pad3950[0x3EE0 - 0x3950];
     /* 0x3EE0 */ BattleSceneEntry2 entriesA0[1]; /**< stride 20 (size unknown, index past). */
     /* 0x3EF4 */ u8 pad3EF4[0x4020 - 0x3EF4];
     /* 0x4020 */ Struct_4020 array4020[1];
-    /* 0x4030 */ u8 pad4034[0x448C - 0x4030];
-    /* 0x448C */ Struct_3750 array448C[1]; 
-    /* 0x44A4 */ u8 pad44A4[0x44FC - 0x44A4];
+    /* 0x4030 */ u8 pad4034[0x4484 - 0x4030];
+    /* 0x4484 */ Struct_446C array4484[1];
+    /* 0x449C */ u8 pad449C[0x44FC - 0x449C];
     /* 0x44FC */ Struct_4020 array44FC[1];
     /* 0x450C */ u8 pad4510[0x45F8 - 0x450C];
     /* 0x45F8 */ Struct_45F8 array45F8[1];      /**< stride 8 */
-    /* 0x4600 */ u8 pad4600[0x4804 - 0x4600];
-    /* 0x4804 */ Struct_3750 array4804[1];
-    /* 0x481D */ u8 pad481D[0x48BC - 0x481D];
+    /* 0x4600 */ u8 pad4600[0x47FC - 0x4600];
+    /* 0x47FC */ Struct_446C array47FC[1];
+    /* 0x4814 */ u8 pad4814[0x48BC - 0x4814];
     /* 0x48BC */ Struct_48BC array48BC[1];
     /* 0x48DC */ u8 pad48DC[0x4A5E - 0x48DC];
     /* 0x4A5E */ BattleSceneRow8 rows8[1];      /**< stride 8 (size unknown, index past). */
@@ -1022,6 +1026,15 @@ extern u8  D_800EE470;      /*   0x800EE470: used in func_8009F040*/
 extern u8  D_800EE471;
 extern u8  D_800EE4C4;
 extern u16 D_800EE4DC;
+extern s32 D_800EE4CC;
+extern u8  D_800EE469;
+extern u8  D_800EE466;
+extern u8  D_800EE461;
+extern s8  D_800EE448;
+extern s8  D_800EE43D;
+extern s16 D_800EE3DC;
+extern u8  D_800EEBBD;
+extern u8  D_800EEBBE;
 extern u16 D_80077E5C;
 /* ---------------------------------------------------------------- *
  *  Battle-overlay function prototypes (battle internals).
@@ -1070,7 +1083,7 @@ s32 func_8009B7BC(s32 entityIdx);
 void func_8009B924(s32 a0, s32 a1, s32 a2);
 
 /** @brief Resolve a battle scene entry pointer by index. */
-s32 func_800A09D0(s32 idx);
+void func_800A09D0(u32 idx);
 
 /** @brief Count bits in @p mask, writing each bit's index into @p dst. Returns count. */
 s32 func_800A4FC4(s32 mask, u8 *dst);
