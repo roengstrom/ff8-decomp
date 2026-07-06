@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libetc.h"
 #include "psxsdk/libgte.h"
 #include "psxsdk/libc.h"
 #include "battle.h"
@@ -494,7 +495,7 @@ void btlMemcpy(u8 *src, u8 *dst, s32 numBytes) {
  * @brief Wait for vertical sync (VSync wrapper).
  * @param mode VSync mode parameter (passed to VSync).
  */
-void waitVSync(s32 mode) { VSync(); }
+void waitVSync(s32 mode) { VSync(mode); }
 
 
 /**
@@ -2255,7 +2256,7 @@ s32 renderBattleDisplayList(s32 *colorTag) {
     s32 savedGp;
     s32 result;
 
-    GP_SAVE_SCRATCH(savedGp);
+    GP_SAVE_SCRATCH(savedGp, getScratchAddr(0xC0));
 
     swapDisplayList();
     buf = g_battleAnims.active;
@@ -2291,7 +2292,7 @@ s32 addPrimitive(s32 *prim) {
     s32 savedGp;
     s32 result;
 
-    GP_SAVE_SCRATCH(savedGp);
+    GP_SAVE_SCRATCH(savedGp, getScratchAddr(0xC0));
 
     ot = g_battleAnims.active->ot;
     head = getDisplayListHead();

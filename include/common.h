@@ -75,14 +75,14 @@ typedef union {
     asm volatile("addi $gp, $gp, -%0" : : "i"(size))
 
 /*
- * Combined GP save+set scratchpad macro — saves $gp to `saved`, sets $gp to
- * scratchpad (0x1F800300) via $a2. Used by btl_anim display list functions.
+ * Save $gp into `saved`, then point $gp at `addr`. `addr` is an input operand,
+ * so the compiler both materializes it and picks the staging register from
+ * pressure — no fixed temp register is baked in. Pass @c getScratchAddr(n) for
+ * the scratchpad. Used by the btl_anim display-list and SFX-callback functions.
  */
-#define GP_SAVE_SCRATCH(saved) \
+#define GP_SAVE_SCRATCH(saved, addr) \
     asm volatile("addu %0, $gp, $zero" : "=r"(saved)); \
-    asm volatile("lui $a2, 0x1F80"); \
-    asm volatile("ori $a2, $a2, 0x0300"); \
-    asm volatile("addu $gp, $a2, $zero")
+    asm volatile("addu $gp, %0, $zero" : : "r"(addr))
 
 /*
  * Combined GP get return + restore macro — captures $gp (scratchpad pointer)

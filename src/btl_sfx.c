@@ -1,5 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libetc.h"
 #include "battle.h"
 #include "btl_sfx.h"
 #include "btl_entity.h"
@@ -12,7 +13,7 @@ extern s32 D_80083850;
 extern s32 g_menuColor[2];
 extern u8 D_800834D8[];
 void func_8002D970(void);
-void func_8002DBF8(void);
+void func_8002D040(s32 sfxId, s32 arg1, s32 arg2);
 void func_8002CC4C(s32 idx, s32 arg0);
 void func_8002CDE4(RECT *rect, s32 scale, s32 arg2);
 void setBattleEntityBoundRect(s32 idx, RECT *src);
@@ -426,7 +427,7 @@ void func_8002D8CC(s32 arg0, s32 index) {
         s16 saved;
         s32 ret;
 
-        GP_SAVE_SCRATCH(savedGp);
+        GP_SAVE_SCRATCH(savedGp, getScratchAddr(0xC0));
         /* Narrowing the saved GP to s16 here (it never leaves a register, so no
          * truncation happens) forces the same GP-save register routing the
          * original compiler emitted. */
@@ -444,7 +445,43 @@ void func_8002D8CC(s32 arg0, s32 index) {
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002D970);
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002DBF8);
+/**
+ * @brief Per-frame update callback for an active SFX battle entity.
+ *
+ * Installed as the entity's field00 callback by @ref func_8002DF5C, and run with
+ * @c $gp pointed at the scratchpad. The linked SFX entry index is held in the
+ * entity's @c subFields[0]; if that entry is active (@ref getSfxState), its
+ * @c field38 callback is invoked when present, then the entry is processed via
+ * @c func_8002D040. Restores @c $gp before returning.
+ *
+ * @param entity Battle display entity; its @c subFields[0] holds the SFX index.
+ * @param arg1   Passed through to the entry callback and @c func_8002D040.
+ * @param arg2   Passed through to the entry callback and @c func_8002D040.
+ */
+void func_8002DBF8(BattleDisplayEntity *entity, s32 arg1, s32 arg2) {
+    s32 savedGp;
+    s16 saved;
+    s32 ret;
+    s32 sfxId;
+
+    GP_SAVE_SCRATCH(savedGp, getScratchAddr(0xC0));
+
+    sfxId = entity->subFields[0];
+    /* Narrowing the saved GP to s16 (it never leaves a register, so nothing is
+     * truncated) forces the v0->s1 GP-save routing the original compiler emitted,
+     * matching the sibling func_8002D8CC. */
+    saved = savedGp;
+
+    if (getSfxState(sfxId) != 0) {
+        SfxEntry *entry = &g_sfxEntries.entries[sfxId];
+        if (entry->field38 != 0) {
+            ((void (*)(SfxEntry *, s32, s32)) entry->field38)(entry, arg1, arg2);
+        }
+        func_8002D040(sfxId, arg1, arg2);
+    }
+
+    GP_RESTORE_RET(saved, ret);
+}
 
 
 /**
