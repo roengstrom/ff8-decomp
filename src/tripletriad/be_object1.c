@@ -594,8 +594,9 @@ void drawText(u8 *str) {
             s32 digit = next & 0xFF;
             if (digit < '9') {
                 if (digit >= '0') {
-                    /* Set color from palette entry indexed by ASCII digit. */
-                    memcpy(&g_textColor, &g_textPalette[digit], 4);
+                    /* Set color from palette entry indexed by ASCII digit
+                       (the - '0' folds into the relocation: %lo(sym - 0xC0)). */
+                    memcpy(&g_textColor, &g_textPalette[digit - '0'], 4);
                 } else {
                     drawTextChar(next);
                 }

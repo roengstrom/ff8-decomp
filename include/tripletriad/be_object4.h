@@ -97,7 +97,7 @@ extern void func_800A44BC(void);   /**< Tear down the claim UI at the end of the
 
 /* ───────────────────── be_object4-internal typedefs ───────────────────── */
 
-/** @brief One 0x0C-byte entry of the D_80182E70 per-SFX configuration table. */
+/** @brief One 0x0C-byte entry of the g_sfxConfigs per-SFX configuration table. */
 typedef struct {
     /* 0x00 */ u8 flags;     /**< bit0 stop/start fade (func_800A2054); bit1 offset-params, bit2 center (func_800A1D68). */
     /* 0x01 */ u8 field2F;   /**< Value written to each SFX entry's field 0x2F. */
@@ -201,7 +201,7 @@ extern s32 D_801D4B30[]; /**< Per-controller newly-pressed mask. */
 extern s32 D_801D4B24;   /**< = D_801D4B20[1] (player 2); split symbol for the readPads write. */
 extern s32 D_801D4B2C;   /**< = D_801D4B28[1] (player 2). */
 extern s32 D_801D4B34;   /**< = D_801D4B30[1] (player 2). */
-extern SfxConfig D_80182E70[];
+extern SfxConfig g_sfxConfigs[];
 extern u8 D_80182EC8[];
 extern u8 D_801D4568[];
 extern u8 D_801D4968[];

@@ -914,9 +914,9 @@ void animateCardEffect(TripleTriadCardObject *entity) {
             t = ((field02 + 1) * 4096) / 25;
             entity->offZ = -((rsin(t / 2) * 128) >> 12);
             entity->offSort = -9;
-            entity->posData[0] = (D_80182D10[state].vx * t) >> 12;
-            entity->posData[1] = (D_80182D10[state].vy * t) >> 12;
-            entity->field18   = (D_80182D10[state].vz * t) >> 12;
+            entity->posData[0] = (g_cardSlideDirs[state].vx * t) >> 12;
+            entity->posData[1] = (g_cardSlideDirs[state].vy * t) >> 12;
+            entity->field18   = (g_cardSlideDirs[state].vz * t) >> 12;
         } else {
             field02 -= 25;
             if (field02 < 5) {
@@ -966,9 +966,9 @@ u8 *drawCardEffectQuad(CardAnimNode *node, s32 angle, void *ot, u8 *primBuf) {
         s32 sinVal;
         s32 i;
         for (i = 0; i < 4; i++) {
-            sinVal = rsin(angle + D_80182D30[i]);
+            sinVal = rsin(angle + g_flickerPhases[i]);
             if (sinVal < 0) sinVal = 0;
-            DpqColor(&D_80182D40, sinVal, D_801D3390);
+            DpqColor(&g_flickerBaseColor, sinVal, D_801D3390);
             D_801D3390 += 2;
         }
     }

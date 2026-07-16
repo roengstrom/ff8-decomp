@@ -22,7 +22,7 @@
  *
  * Resets all sound effects, runs a (60, 32) init via @c func_800A4504, then for
  * each of the seven channels applies the per-channel settings from the
- * @c D_80182E70 config table: reverb mode = channel index, field 0x2F and pitch
+ * @c g_sfxConfigs config table: reverb mode = channel index, field 0x2F and pitch
  * from the table entry, and zeroed entry params.
  */
 void func_800A1BE0(void)
@@ -33,8 +33,8 @@ void func_800A1BE0(void)
     func_800A4504(0x3C, 0x20);
     for (i = 0; i < 7; i++) {
         setSfxReverbMode(i, i);
-        setSfxField2F(i, D_80182E70[i].field2F);
-        setSfxPitch(i, D_80182E70[i].pitch);
+        setSfxField2F(i, g_sfxConfigs[i].field2F);
+        setSfxPitch(i, g_sfxConfigs[i].pitch);
         setSfxEntryParams(i, 0, 0);
     }
 }
@@ -65,10 +65,10 @@ void func_800A1C6C(void)
     func_800A443C((s32)&g_otBase[1]);
 
     for (i = 0; i < 7; i++) {
-        if (D_80182E70[i].fadeTimer != 0) {
-            D_80182E70[i].fadeTimer--;
-            if (D_80182E70[i].fadeTimer == 0) {
-                if (D_80182E70[i].flags & 1) {
+        if (g_sfxConfigs[i].fadeTimer != 0) {
+            g_sfxConfigs[i].fadeTimer--;
+            if (g_sfxConfigs[i].fadeTimer == 0) {
+                if (g_sfxConfigs[i].flags & 1) {
                     fadeOutSfxFast(i);
                 } else {
                     fadeOutSfxSlow(i);
@@ -82,14 +82,14 @@ void func_800A1C6C(void)
  * @brief Lay out a Triple Triad message-banner box and trigger its SFX/animation.
  *
  * Measures @p str (and, for @p id 5, the appended "Play / Quit" suffix) to size the
- * box, copies the box rect from @c D_80182E70[id], applies defaults ("size to text"
+ * box, copies the box rect from @c g_sfxConfigs[id], applies defaults ("size to text"
  * when w/h are 0), then either centers it (flag bit 2) or pulls it in from the
  * right/bottom edge for negative origins.  Registers the rect (func_8002E064),
  * dispatches the banner's audio by @p id (5 = multi-line, 6 = fixed, otherwise the
  * generic path), optionally offsets the SFX entry (flag bit 1), starts it
  * normal/slow (flag bit 0), and records @p param as the entry's fade timer.
  *
- * @param id    Message/SFX slot index into @c D_80182E70.
+ * @param id    Message/SFX slot index into @c g_sfxConfigs.
  * @param str   FF8-encoded message string.
  * @param param Fade-timer / display-duration value stored into the entry.
  */
@@ -110,14 +110,14 @@ void func_800A1D68(s32 id, u8 *str, s32 param) {
         }
     }
 
-    rect = D_80182E70[id].rect;
+    rect = g_sfxConfigs[id].rect;
     if (rect.w == 0) {
         rect.w = (u16)dim.wh[0] + 0x10;
     }
     if (rect.h == 0) {
         rect.h = (u16)dim.wh[1] + 0x10;
     }
-    if (D_80182E70[id].flags & 4) {
+    if (g_sfxConfigs[id].flags & 4) {
         rect.x = (u16)rect.x - rect.w / 2;
         rect.y = (u16)rect.y - rect.h / 2;
     } else {
@@ -150,30 +150,30 @@ sfxDefault:
     initSfxPlayback(id, str);
 sfxDone:;
 
-    if (D_80182E70[id].flags & 2) {
+    if (g_sfxConfigs[id].flags & 2) {
         s32 px = rect.w - 0x10;
         s32 py = rect.h - 0x10;
         setSfxEntryParams(id, (px - dim.wh[0]) / 2, (py - dim.wh[1]) / 2);
     }
-    if (D_80182E70[id].flags & 1) {
+    if (g_sfxConfigs[id].flags & 1) {
         startSfxNormal(id);
     } else {
         startSfxSlow(id);
     }
 
-    D_80182E70[id].fadeTimer = param;
+    g_sfxConfigs[id].fadeTimer = param;
 }
 
 /**
  * @brief Start or stop an SFX entry based on its type flag.
  *
- * Looks up the entry at D_80182E70[a0 * 12], checks bit 0 of byte 0.
+ * Looks up the entry at g_sfxConfigs[a0 * 12], checks bit 0 of byte 0.
  * If set, calls fadeOutSfxFast (stop). Otherwise calls fadeOutSfxSlow (start).
  *
  * @param a0 Object index.
  */
 void func_800A2054(s32 a0) {
-    u8 *base = (u8 *)D_80182E70;
+    u8 *base = (u8 *)g_sfxConfigs;
     u8 *entry;
 
     entry = base + a0 * 12;

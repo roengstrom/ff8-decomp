@@ -8,11 +8,6 @@
  * Each entry: edge ranks {top, bottom, left, right} (1..10), element bitmask
  * (0 = none), and three metadata bytes (byte 0 rises with card strength —
  * likely the AI's card-valuation weight; bytes 1-2 are always 0 here).
- *
- * @note The '0'..'8' text-colour escape palette (@c g_textPalette) resolves to
- *       0x2BC bytes into this table in the original binary — the colour data
- *       overlaps entries 87-92. Preserved via a linker alias in
- *       config/undefined_syms.tripletriad.txt.
  */
 TripleTriadCard g_tripleTriadCardStats[110] = {
     {{ 1,  1,  5,  4}, 0x00, { 21, 0, 0}}, /*   0 L1  Geezard */

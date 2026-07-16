@@ -264,6 +264,12 @@ typedef struct {
     /* 0x23 */ u8  pad23;
 } GradientFadeNode; /* 0x24 */
 
+/* g_gradFadeCallbacks entries (be_object3.c). */
+extern s32 updateCardScaleSprite(ScriptStateNode *node);
+extern s32 updateCardScaleSpriteShort(ScriptStateNode *node);
+extern s32 updateCardColorFade(ScriptStateNode *node);
+extern s32 buildGradientFade(GradientFadeNode *node);
+
 /**
  * @brief Two-layer screen gradient-fade primitive (0x34 bytes), built by buildGradientFade.
  *

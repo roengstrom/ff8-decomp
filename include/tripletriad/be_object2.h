@@ -215,7 +215,7 @@ extern u8 g_taskPool[];
 extern s32 g_substateMask;
 
 /* Data — menu/cursor substate (be_object2-private) */
-extern SVECTOR D_80182D10[]; /**< 4-entry direction-vector table for animateCardEffect (CARD_FX_SLIDE_*). */
+extern SVECTOR g_cardSlideDirs[]; /**< 4-entry direction-vector table for animateCardEffect (CARD_FX_SLIDE_*). */
 extern u16 g_padHeldLatch;       /**< Latched held mask (from g_padHeld). */
 extern u16 g_padRepeatLatch;       /**< Latched repeat mask (from g_padRepeat). */
 extern u16 g_padPressedLatch;       /**< Latched pressed mask (bits 0xC0/0x10 trigger completion). */
@@ -240,13 +240,13 @@ extern ObjList        g_aiTurnList[];     /* AI turn-node list head */
 extern SVECTOR g_cardFaceQuad[4];   /* main card-face quad corners */
 extern SVECTOR g_cardBorderQuad[4];   /* outer border quad corners */
 extern SVECTOR g_cardDigitOffsets[4];   /* per-corner offsets used per rank digit */
-extern SVECTOR g_cardDigitCenters[4];   /* per-rank digit center positions */
+extern SVECTOR g_cardDigitCenters[8];   /* per-rank digit center positions (rows 4-7 appear unused) */
 extern SVECTOR g_cardElementQuad[4];   /* element marker quad corners */
 extern SVECTOR g_cardShadowQuad[4];   /* shadow quad corners (card drop-shadow) */
 
 /* Data — card-effect gouraud quad (drawCardEffectQuad) */
-extern s32     D_80182D30[];    /**< Per-corner phase offsets for the gouraud flicker. */
-extern CVECTOR D_80182D40;       /**< Base colour passed to @c DpqColor. */
+extern s32     g_flickerPhases[];    /**< Per-corner phase offsets for the gouraud flicker. */
+extern CVECTOR g_flickerBaseColor;       /**< Base colour passed to @c DpqColor. */
 extern CVECTOR *D_801D3390;      /**< Scratch walker: current vertex-colour slot in the @c POLY_G4. */
 
 /** @brief Card scale constant {0x1000, 0x1000, 0, 0} (1.0 in 12-bit fixed point),

@@ -169,7 +169,7 @@ extern s16           g_textCursorY;
 extern s16           g_textCursorX;
 extern u8            g_vsyncMode;        /**< VSync() wait mode (0 = wait one vblank). */
 extern RGB           g_textColor;        /**< Debug-text rgb color. */
-extern u32           g_textPalette[];      /**< Color palette table, indexed by ASCII byte '0'..'8'. */
+extern u32           g_textPalette[9];      /**< '#0'..'#8' escape colors, indexed digit - '0'. */
 
 /* Private prototypes (be_object1.c entry points forward-declared for earlier callers) */
 extern void resetVramQueue(void);

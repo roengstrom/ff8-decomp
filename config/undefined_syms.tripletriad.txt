@@ -8,12 +8,6 @@ g_addCardEdge  = 0x801D3E76;
 /* Result-screen SFX node handle (be_object1b.c matchFlowHandler). */
 g_resultSfxHandle = 0x801D3018;
 
-/* The '0'..'8' text-colour escape palette. In the original binary this address
-   falls 0x2BC bytes INTO the card stats table (entries 87-92 reinterpreted as
-   colours) — likely a stale pointer kept from an earlier data layout. Expressed
-   relative to the C-owned table so the overlap is explicit. */
-g_textPalette = g_tripleTriadCardStats + 0x2BC;
-
 /* Shared battle-animation state (main RAM). The Triple Triad board reuses the
    battle-animation entities to drive its card animations, so be_object4.c's
    decompiled C references it by its canonical name. The auto symbol list still
