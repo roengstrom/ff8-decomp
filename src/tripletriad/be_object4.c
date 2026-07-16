@@ -1386,7 +1386,7 @@ u32 func_800A3C7C(u32 ot, SPRT *prim, s32 tileIdx, s32 palArg, u32 xy) {
     s32 rem;
 
     ((u8 *)&prim->tag)[3] = 4; /* SPRT length = 4 words */
-    __asm__ __volatile__("" : : : "memory"); /* keep the head shift after the len store */
+    memBarrier(); /* keep the head shift after the len store */
     head = (u32)prim << 8;     /* new OT head */
     setAddrFast(prim, ot);     /* link: prim's OT-next = old head */
     ot = head;
@@ -1585,7 +1585,8 @@ void *func_800A3EE0(void *ot, SPRT *prim, s32 x, s32 number, u32 color, s32 clut
 
     glyphs = D_8008371C;
     glyphs = glyphs - 1;
-    __asm__ __volatile__("" : : : "memory");
+    memBarrier(); /* keeps the color/clutPage home loads and number's $a0 home up here
+                     (blocks the merge/sinking that would glue them to the call) */
     y = x >> 16;
     x <<= 16;
     x >>= 16;

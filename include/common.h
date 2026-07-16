@@ -140,6 +140,14 @@ typedef union {
         : "memory", #treg);                               \
 } while (0)
 
+/** @brief Compiler fence: emits no code, but gcc 2.7.2 treats the volatile asm as a
+ *  barrier — it will not move loads/stores across it, schedule around it, or fold a
+ *  register copy from one side into the other. The original code demonstrably relied
+ *  on such fences (e.g. the number renderers' entry blocks, where it keeps the
+ *  stack-parameter home loads and the number argument's $a0 home-copy in the prologue
+ *  instead of glued to the intToDecString call). */
+#define memBarrier() __asm__ __volatile__("" : : : "memory")
+
 /* Read / write just the 24-bit P_TAG.addr field (the OT-next pointer) at offset 2 —
  * the same lwl/swl idiom as addPrimFast, but split so a spread-out splice (read at the
  * top of a function, glyph chain in between, write at the end) can use it without raw
