@@ -186,6 +186,7 @@ extern u8  D_80082C11;         /**< Sound-bank selector flag (same byte as g_bat
 extern s16 D_8005F11C;
 extern s32 g_menuColor[];
 extern u8  D_801A1B88[];       /**< Start of the Triple Triad sound region uploaded to a bank. */
+extern u8  D_801D49B8[];       /**< Digit-glyph string buffer filled by intToDecString (func_800A3EE0). */
 extern s16 D_801D49E2;
 extern s16 D_801D49F8[];
 extern u16 D_801D4B18;
@@ -211,7 +212,7 @@ extern u16 D_801C2EBC;  /**< Idle-state input snapshot fed to the cursor state m
 extern u16 D_801C2EC4;  /**< Slide-state input snapshot fed to the cursor state machine. */
 
 /* Private prototypes — functions defined in be_object4.c. */
-extern void *func_800A3EE0(void *a0, void *a1, s32 a2, s32 a3, s32 a4, s32 a5); /**< Tail-called by func_800A4098. */
+extern void *func_800A3EE0(void *ot, SPRT *prim, s32 x, s32 number, u32 color, s32 clutPage); /**< Right-aligned decimal SPRT renderer; tail-called by func_800A4098. */
 extern void *func_800A3D2C(void *otBase, void *pkt, s32 x, s32 y, s32 cardImg, s32 col); /**< Card-image primitive. */
 extern void *func_800A3528(void *otBase, void *pkt, void *(*drawCell)(void *, void *, s32, s32, s32)); /**< Per-cell slide-render iterator. */
 extern s32 func_800A238C();

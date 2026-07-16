@@ -1500,6 +1500,40 @@ void *func_800A3D2C(void *otBase, void *pkt, s32 x, s32 y, s32 cardImg, s32 col)
     return pkt;
 }
 
+/* OT splices for func_800A3EE0. Unlike the hand-picked-register sites served by
+ * common.h's addPrimFast (register-name argument + clobber), these two link temps
+ * are genuine compiler-allocated asm operands: the loop site's in-out operand and
+ * the tail site's input-only operand are what rank the temps into $s4/$s7 (the
+ * names record where they land). A treg-clobber form instead frees those registers
+ * as "free saves" for other pseudos and mismatches. */
+#define addPrimFastS4(ot, p) do {                        \
+    __asm__ __volatile__(                                \
+        ".set push\n"                                    \
+        ".set noat\n"                                    \
+        "sll $at, %2, 8\n"                               \
+        "lwl %0, 2(%1)\n"                                \
+        "swl $at, 2(%1)\n"                               \
+        "swl %0, 2(%2)\n"                                 \
+        ".set pop\n"                                     \
+        : "+r"(s4)                                        \
+        : "r"(ot), "r"(p)                                 \
+        : "memory");                                      \
+} while (0)
+
+#define addPrimFastS7(ot, p) do {                        \
+    __asm__ __volatile__(                                \
+        ".set push\n"                                    \
+        ".set noat\n"                                    \
+        "sll $at, %2, 8\n"                               \
+        "lwl %0, 2(%1)\n"                                \
+        "swl $at, 2(%1)\n"                               \
+        "swl %0, 2(%2)\n"                                 \
+        ".set pop\n"                                     \
+        :                                                \
+        : "r"(s7), "r"(ot), "r"(p)                       \
+        : "memory");                                      \
+} while (0)
+
 /**
  * @brief Render a right-aligned decimal number (e.g. a Triple Triad score/count)
  *        as a row of 12x12 textured SPRTs, linked into @p ot.
@@ -1508,32 +1542,104 @@ void *func_800A3D2C(void *otBase, void *pkt, s32 x, s32 y, s32 cardImg, s32 col)
  * @ref intToDecString, then:
  *  - Skips leading '1'-valued glyphs (the formatter's leading-zero placeholder),
  *    advancing @c str, capped at ~9.
- *  - Sums the per-glyph widths (low nibble of byte 0 of each char-table entry,
- *    table = `&D_8008371C - 4`, 1-indexed) over the remaining digits.
+ *  - Sums the per-glyph widths (low nibble of each @ref FontGlyph entry,
+ *    table = `D_8008371C - 1`, 1-indexed) over the remaining digits.
  *  - Subtracts that total from the x-coordinate to right-align the number.
  *  - Emits one 12x12 SPRT per glyph: colour = @p color, len = 4, w/h = 0xC000C,
- *    u/v from the char-table entry's `+2` halfword, x/y from @p xy (low s16 = x,
+ *    u/v from the glyph entry's `uv` halfword, x/y from @p x (low s16 = x,
  *    high s16 = y), clut = `(clutPage << 6) + 0x3812` (getClut(288, 224+pal)).
  *    Glyphs at or left of the clip edge @ref D_801D4B18 are written but not
- *    linked (skipped). Each linked SPRT splices into @p ot via @c addPrimFast
- *    ($s4 temp); x advances by the glyph width after each.
- *  - Appends a trailing 0xE100041F tpage primitive ($s7 temp) and returns the
- *    next packet slot (prim + 8).
+ *    linked (skipped). Each linked SPRT splices into @p ot via @c addPrimFastS4;
+ *    x advances by the glyph width after each.
+ *  - Appends a trailing 0xE100041F tpage primitive (@c addPrimFastS7) and
+ *    returns the next packet slot (prim + 8).
  *
- * @param ot       OT slot the SPRT chain links into (addPrimFast head).
+ * @param ot       OT slot the SPRT chain links into (splice head).
  * @param prim     Packet buffer cursor (SPRT-sized, 0x14 bytes/glyph).
- * @param xy       Packed position: low s16 = x, high s16 = y.
+ * @param x        Packed position: low s16 = x, high s16 = y (unpacked in place).
  * @param number   Value to format and render.
  * @param color    Packed r/g/b/code stored into each SPRT (arg4, on stack).
  * @param clutPage Palette page; clut = (clutPage << 6) + 0x3812 (arg5, on stack).
  * @return Pointer to the next free packet slot (`(u8 *)prim + 8`).
  *
- * @note Decompiled to exact-instruction-count clean C (132/132); not yet
- *       byte-matched — the residual is register allocation (the prim/x s-reg
- *       priority and gcc's `prim + 0x10` IV-base choice). Permuter seed +
- *       ot_inline.h are in permuter/func_800A3EE0/. Purpose inferred from the code.
+ * @note Matching notes: the memory barrier after the glyph-table setup is the
+ *       compiler fence the original demonstrably had (battle-module clone
+ *       func_800330F4 shares the byte-identical prologue) — it keeps the two
+ *       stack-parameter home loads (color/clutPage) out of the call cluster and
+ *       stops gcc folding number's a3 home-copy into the call, which is what
+ *       homes @p number in $a0 at the top. Passing @ref D_801D49B8 to the call
+ *       and assigning @c str afterwards makes the address's %hi temp cross the
+ *       call so it lands in $s0. The `c = *scan++` loads put the increment in
+ *       each loop's branch delay slot (leaving the glyph-width load stall as a
+ *       nop), matching the original loop shape.
  */
-INCLUDE_ASM("asm/ovl/tripletriad/nonmatchings/be_object4", func_800A3EE0);
+void *func_800A3EE0(void *ot, SPRT *prim, s32 x, s32 number, u32 color, s32 clutPage) {
+    u32 s4;
+    u32 s7;
+    FontGlyph *glyphs;
+    u8 *str;
+    u8 *scan;
+    s32 y;
+    s32 width;
+    s32 count;
+
+    glyphs = D_8008371C;
+    glyphs = glyphs - 1;
+    __asm__ __volatile__("" : : : "memory");
+    y = x >> 16;
+    x <<= 16;
+    x >>= 16;
+    intToDecString(number, D_801D49B8, 1);
+    str = D_801D49B8;
+
+    /* Drop up to 9 leading pad glyphs (id 1). */
+    for (count = 0; count < 9; count++) {
+        if (*str != 1) {
+            break;
+        }
+        str++;
+    }
+
+    /* Sum the glyph widths, then right-align. */
+    width = 0;
+    scan = str;
+    for (;;) {
+        u32 c = *scan++;
+        if (c == 0) {
+            break;
+        }
+        width += glyphs[c].width & 0xF;
+    }
+    x -= width;
+
+    scan = str;
+    for (;;) {
+        FontGlyph *g;
+        u32 c = *scan++;
+        if (c == 0) {
+            break;
+        }
+        g = &glyphs[c];
+        *(u16 *)&prim->u0 = g->uv;
+        *(u32 *)&prim->r0 = color;
+        ((u8 *)&prim->tag)[3] = 4;    /* SPRT length = 4 words */
+        prim->x0 = x;
+        prim->y0 = y;
+        prim->clut = (clutPage << 6) + 0x3812;
+        *(u32 *)&prim->w = 0xC000C;   /* 12 x 12 */
+        if (D_801D4B18 < x) {         /* left clip: emit but don't link */
+            addPrimFastS4(ot, prim);
+            prim++;
+        }
+        x += g->width & 0xF;
+    }
+
+    /* Cap the list with a texture-page restore primitive. */
+    ((u8 *)&prim->tag)[3] = 1;
+    *(u32 *)&prim->r0 = 0xE100041F;
+    addPrimFastS7(ot, prim);
+    return (u8 *)prim + 8;
+}
 
 /**
  * @brief Wrapper for func_800A3EE0 that selects a lookup table entry based on the 5th argument.
