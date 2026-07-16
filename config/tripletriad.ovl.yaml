@@ -63,5 +63,7 @@ segments:
       - [0x95C8, c, be_object3b]
       - [0x9BE0, c, be_object4]
       - { start: 0xC58C, type: .data, name: be_state_table, linker_section_order: .text }
-      - [0xC5A0, asm, be_data]             # data tables: jump tables, animation data, etc. (not code)
+      - { start: 0xC5A0, type: data, name: be_state_table_pad, linker_section_order: .text }  # 8 bytes of inter-object filler (not alignment; 0xC5A0 is already 8-aligned)
+      - { start: 0xC5A8, type: .data, name: be_object1_data, linker_section_order: .text }
+      - [0xC5B8, asm, be_data]             # data tables: jump tables, animation data, etc. (not code)
   - [0x10AC40]
