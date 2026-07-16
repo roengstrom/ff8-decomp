@@ -272,7 +272,8 @@ void hangForever(void) {
 }
 
 /**
- * @brief Triple Triad state-5 handler (@c g_tripleTriadStateHandlers[5]).
+ * @brief Triple Triad state-5 handler (the @c TT_STATE_RESTART entry of
+ *        @c g_tripleTriadStateHandlers).
  *
  * Sets the next state to @c TT_STATE_SCRIPT and returns 0 so the
  * state-dispatch loop keeps running.

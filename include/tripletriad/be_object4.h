@@ -70,6 +70,8 @@ extern u16 D_801826E2;   /**< Rule-table offset: post-game "Play / Quit" suffix 
 
 /* ───────────────────────── Public prototypes ───────────────────────── */
 
+/** @brief TT_STATE_INIT handler: build the render list (g_tripleTriadStateHandlers entry). */
+extern u8 *initTripleTriadRenderList(void);
 /** @brief Build the active Triple Triad rules description string into @p dst. */
 extern void func_800A24B4(u8 *dst);
 /** @brief Queue a Triple Triad sound effect (center pan, full volume). */

@@ -13,6 +13,7 @@
    address from @c g_tripleTriadStateHandlers). */
 extern s32  setupTripleTriadCardClaim(void);
 extern s32  tripleTriadRestartScript(void);
+extern u8  *initTripleTriadScripts(void); /**< TT_STATE_SCRIPT handler (be_object3.c). */
 extern void hangForever(void);
 
 /* ───────── Private (only used in be_object3b.c; may move into the .c) ────── */

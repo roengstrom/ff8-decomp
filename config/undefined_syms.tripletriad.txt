@@ -14,12 +14,6 @@ g_resultSfxHandle = 0x801D3018;
    carries the D_80082DD0 alias at the same address for func_800A29D4's INCLUDE_ASM. */
 g_battleAnims = 0x80082DD0;
 
-/* Triple Triad state-handler dispatch table. The base (0x800A4588) overlaps
-   func_800A4504's last word, so it can't be a symbol_addrs label (splat would
-   split the function); a linker assignment defines it without touching the
-   disassembly. Entries [1..5] are the .word handler pointers at 0x800A458C. */
-g_tripleTriadStateHandlers = 0x800A4588;
-
 VSync          = 0x80042634;
 SetDefDrawEnv  = 0x800487E4;
 SetDefDispEnv  = 0x80048898;

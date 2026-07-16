@@ -62,5 +62,6 @@ segments:
       - [0x6248, c, be_object3]
       - [0x95C8, c, be_object3b]
       - [0x9BE0, c, be_object4]
-      - [0xC58C, asm, be_data]             # data tables: jump tables, animation data, etc. (not code)
+      - { start: 0xC58C, type: .data, name: be_state_table, linker_section_order: .text }
+      - [0xC5A0, asm, be_data]             # data tables: jump tables, animation data, etc. (not code)
   - [0x10AC40]

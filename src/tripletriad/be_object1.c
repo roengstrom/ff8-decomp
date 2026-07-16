@@ -67,7 +67,7 @@ s32 tripleTriadMainLoop(void) {
         }
 
         while (g_tripleTriadState != TT_STATE_IDLE && g_tripleTriadState != TT_STATE_EXIT) {
-            g_tripleTriadActiveList = g_tripleTriadStateHandlers[g_tripleTriadState]();
+            g_tripleTriadActiveList = g_tripleTriadStateHandlers[g_tripleTriadState - 1]();
             if (g_tripleTriadActiveList != 0) {
                 g_tripleTriadState = TT_STATE_IDLE;
             }
