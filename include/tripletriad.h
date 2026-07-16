@@ -347,6 +347,9 @@ extern TripleTriadCard      g_tripleTriadCardStats[];          /**< Card stats t
 extern TripleTriadDirection g_tripleTriadDirectionOffsets[4];  /**< UP, DOWN, LEFT, RIGHT (see TripleTriadDirection). */
 extern s32                  g_tripleTriadRules;                /**< Active rule flags (TT_RULE_*). */
 
+/** @brief Latch @ref D_80082C90 encounter params into the Triple Triad globals (be_dispatch.c). */
+extern void func_800981BC(void);
+
 /* ── Object-list system ──────────────────────────────────────────────────────
  * A per-frame callback list whose nodes are carved from a fixed pool. Every
  * be_objectN TU drives its objects through this (initObjList / allocObjNode /

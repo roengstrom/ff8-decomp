@@ -51,11 +51,10 @@ segments:
       - { start: 0x0, type: .rodata, name: be_object1, linker_section_order: .text }
       - { start: 0xDC, type: .rodata, name: be_object1b, linker_section_order: .text }
       - { start: 0x104, type: .rodata, name: be_object2, linker_section_order: .text }
-      - [0x154, asm, be_dispatch_mid]
       - { start: 0x164, type: .rodata, name: be_object3, linker_section_order: .text }
       - { start: 0x178, type: .rodata, name: be_object3b, linker_section_order: .text }
       - { start: 0x1A4, type: .rodata, name: be_object4, linker_section_order: .text }
-      - { start: 0x1BC, type: data, name: be_dispatch_post, linker_section_order: .text }
+      - [0x1BC, c, be_dispatch]
       - [0x22C, c, be_object1]
       - [0x1C78, c, be_object1b]
       - [0x28CC, c, be_object2]

@@ -2004,3 +2004,8 @@ void initTriadTaskPool(void) {
 void processTriadTasks(void) {
     updateObjectList(g_taskList);
 }
+
+/** @brief Unit card scale (GTE ONE in x/y): the base scale vector
+ *  @ref transformCardEffect starts each card effect from. Defined after the
+ *  functions so it lands past this unit's jump tables in .rodata. */
+const VECTOR g_cardScaleVec = {0x1000, 0x1000, 0, 0};
