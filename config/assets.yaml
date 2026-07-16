@@ -4,3 +4,18 @@ assets:
     symbol: g_fieldFontTim
     header: field_init_font.h
     output: src/ovl/field_init/field_init_tim.c
+  - name: tripletriad_card_frames
+    source: assets/tripletriad_card_frames.tim
+    symbol: g_tripleTriadCardFrames
+    header: be_tim.h
+    output: src/tripletriad/be_tim_frames.c
+  - name: tripletriad_text_buffer
+    source: assets/tripletriad_text_buffer.tim
+    symbol: g_textBufferRes
+    header: be_tim.h
+    output: src/tripletriad/be_tim_textbuf.c
+  - name: tripletriad_card_art
+    source: assets/tripletriad_card_art.tim
+    symbol: g_tripleTriadCardArt
+    header: be_tim.h
+    output: src/tripletriad/be_tim_cardart.c

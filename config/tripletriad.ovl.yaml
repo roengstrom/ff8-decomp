@@ -65,5 +65,8 @@ segments:
       - { start: 0xC58C, type: .data, name: be_state_table, linker_section_order: .text }
       - { start: 0xC5A0, type: data, name: be_state_table_pad, linker_section_order: .text }  # 8 bytes of inter-object filler (not alignment; 0xC5A0 is already 8-aligned)
       - { start: 0xC5A8, type: .data, name: be_object1_data, linker_section_order: .text }
-      - [0xC5B8, asm, be_data]             # data tables: jump tables, animation data, etc. (not code)
+      - { start: 0xC5B8, type: .data, name: be_tim_frames, linker_section_order: .text }   # 4bpp card frame TIM (assets/tripletriad_card_frames.tim)
+      - { start: 0x1F1D8, type: .data, name: be_tim_textbuf, linker_section_order: .text } # text-buffer TIM (assets/tripletriad_text_buffer.tim)
+      - { start: 0x1F638, type: .data, name: be_tim_cardart, linker_section_order: .text } # 8bpp card art TIM (assets/tripletriad_card_art.tim)
+      - { start: 0x96658, type: data, name: be_data, linker_section_order: .text }  # data tables: animation data, sound bank, etc. (no code)
   - [0x10AC40]
