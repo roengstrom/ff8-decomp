@@ -103,15 +103,15 @@ func_8C840000 = 0x8C840000;
 
 /* Offset slots of the rule/banner string block (see RuleStrTable in
    be_object4.h): the code recovers the block base from each slot's own
-   address, so the slots are aliases into g_tripleTriadRuleStrings. */
-D_80182686 = g_tripleTriadRuleStrings + 0x06;
-D_8018268A = g_tripleTriadRuleStrings + 0x0A;
-D_8018268E = g_tripleTriadRuleStrings + 0x0E;
-D_80182692 = g_tripleTriadRuleStrings + 0x12;
-D_80182696 = g_tripleTriadRuleStrings + 0x16;
-D_8018269E = g_tripleTriadRuleStrings + 0x1E;
-D_801826A6 = g_tripleTriadRuleStrings + 0x26;
-D_801826C2 = g_tripleTriadRuleStrings + 0x42;
-D_801826C6 = g_tripleTriadRuleStrings + 0x46;
-D_801826CA = g_tripleTriadRuleStrings + 0x4A;
-D_801826E2 = g_tripleTriadRuleStrings + 0x62;
+   address, so the slots are aliases into g_tripleTriadRuleStrOffsets. */
+D_80182686 = g_tripleTriadRuleStrOffsets + 0x06;
+D_8018268A = g_tripleTriadRuleStrOffsets + 0x0A;
+D_8018268E = g_tripleTriadRuleStrOffsets + 0x0E;
+D_80182692 = g_tripleTriadRuleStrOffsets + 0x12;
+D_80182696 = g_tripleTriadRuleStrOffsets + 0x16;
+D_8018269E = g_tripleTriadRuleStrOffsets + 0x1E;
+D_801826A6 = g_tripleTriadRuleStrOffsets + 0x26;
+D_801826C2 = g_tripleTriadRuleStrOffsets + 0x42;
+D_801826C6 = g_tripleTriadRuleStrOffsets + 0x46;
+D_801826CA = g_tripleTriadRuleStrOffsets + 0x4A;
+D_801826E2 = g_tripleTriadRuleStrOffsets + 0x62;
