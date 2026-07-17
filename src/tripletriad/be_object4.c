@@ -326,7 +326,7 @@ void playTriadSfxParam(s32 sfxId, s32 param) {
  * Two-state task callback driven off @c node->state:
  *  - 0: wait until the sound engine is idle (@c sndGetEngineState), then issue
  *       @c sndCmd11(0) and advance to state 1.
- *  - 1: copy the Triple Triad sound region @c [D_801A1B88, g_tripleTriadActiveList)
+ *  - 1: copy the Triple Triad sound region @c [g_tripleTriadSoundBank, g_tripleTriadActiveList)
  *       into the inactive bank buffer (@c D_8005F388 / @c D_80063388, chosen by
  *       @c D_80082C11), flip the bank selector @c g_battleConfig[9], then play the
  *       uploaded bank via @c sndCmd10 / @c sndCmdC0.
@@ -353,7 +353,7 @@ s32 func_800A238C(SndTaskNode *node) {
             buf = D_80063388;
         }
         g_battleConfig[9] ^= 1;
-        func_800485C4(buf, D_801A1B88, (s32)&g_tripleTriadActiveList - (s32)D_801A1B88);
+        func_800485C4(buf, g_tripleTriadSoundBank, (s32)&g_tripleTriadActiveList - (s32)g_tripleTriadSoundBank);
         sample = sndCmd10((s32)buf);
         D_8005F11C = sample;
         sndCmdC0(sample, 0x7F);
@@ -365,13 +365,13 @@ s32 func_800A238C(SndTaskNode *node) {
 /**
  * @brief Spawn the sound-bank swap task and seed its state.
  *
- * Loads the Triple Triad audio data from @c D_80182EC8 via @c sndProcessAudio,
+ * Loads the Triple Triad audio data from @c g_tripleTriadAkao via @c sndProcessAudio,
  * then allocates a @c g_taskList node driven by @c func_800A238C with its state
  * and field0E cleared.
  */
 void func_800A247C(void) {
     SndTaskNode *node;
-    sndProcessAudio((s32)D_80182EC8, 0);
+    sndProcessAudio((s32)g_tripleTriadAkao, 0);
     node = (SndTaskNode *)spawnTaskNode((ObjNodeFn)func_800A238C);
     node->state = 0;
     node->field0E = 0;

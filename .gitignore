@@ -23,6 +23,10 @@ src/ovl/field_init/field_init_tim.c
 src/tripletriad/be_tim_frames.c
 src/tripletriad/be_tim_textbuf.c
 src/tripletriad/be_tim_cardart.c
+src/tripletriad/be_tim_bg0.c
+src/tripletriad/be_tim_bg1.c
+src/tripletriad/be_snd_akao.c
+src/tripletriad/be_snd_bank.c
 objdiff.json
 expected/
 

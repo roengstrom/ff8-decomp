@@ -73,5 +73,6 @@ segments:
       - { start: 0xEA680, type: data, name: be_data, linker_section_order: .text }  # rule-description string block (RuleStrTable + FF8-encoded labels)
       - { start: 0xEA7E4, type: .data, name: be_card_stats, linker_section_order: .text }  # the 110-card stats table (g_tripleTriadCardStats)
       - { start: 0xEAB54, type: .data, name: be_tables, linker_section_order: .text }       # text/render/AI/sfx-config tables
-      - { start: 0xEAEC8, type: data, name: be_data2, linker_section_order: .text } # remaining data (AKAO sound region etc.)
+      - { start: 0xEAEC8, type: .data, name: be_snd_akao, linker_section_order: .text }  # AKAO audio block (assets/tripletriad_akao.bin)
+      - { start: 0x109B88, type: .data, name: be_snd_bank, linker_section_order: .text } # sound-bank image (assets/tripletriad_sound_bank.bin)
   - [0x10AC40]

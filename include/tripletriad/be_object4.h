@@ -187,7 +187,7 @@ extern u8  g_battleConfig[];   /**< Shared battle config; [9] bit 0 = sound-bank
 extern u8  D_80082C11;         /**< Sound-bank selector flag (same byte as g_battleConfig[9]). */
 extern s16 D_8005F11C;
 extern s32 g_menuColor[];
-extern u8  D_801A1B88[];       /**< Start of the Triple Triad sound region uploaded to a bank. */
+extern u8  g_tripleTriadSoundBank[];       /**< Start of the Triple Triad sound region uploaded to a bank. */
 extern u8  D_801D49B8[];       /**< Digit-glyph string buffer filled by intToDecString (func_800A3EE0). */
 extern s16 D_801D49E2;
 extern s16 D_801D49F8[];
@@ -202,7 +202,7 @@ extern s32 D_801D4B24;   /**< = D_801D4B20[1] (player 2); split symbol for the r
 extern s32 D_801D4B2C;   /**< = D_801D4B28[1] (player 2). */
 extern s32 D_801D4B34;   /**< = D_801D4B30[1] (player 2). */
 extern SfxConfig g_sfxConfigs[];
-extern u8 D_80182EC8[];
+extern u8 g_tripleTriadAkao[];
 extern u8 D_801D4568[];
 extern u8 D_801D4968[];
 extern u8 D_801D4978[];

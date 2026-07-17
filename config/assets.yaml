@@ -29,3 +29,13 @@ assets:
     symbol: g_tripleTriadBgTim1
     header: be_tim.h
     output: src/tripletriad/be_tim_bg1.c
+  - name: tripletriad_akao
+    source: assets/tripletriad_akao.bin
+    symbol: g_tripleTriadAkao
+    header: be_tim.h
+    output: src/tripletriad/be_snd_akao.c
+  - name: tripletriad_sound_bank
+    source: assets/tripletriad_sound_bank.bin
+    symbol: g_tripleTriadSoundBank
+    header: be_tim.h
+    output: src/tripletriad/be_snd_bank.c
