@@ -24,6 +24,8 @@ options:
   disassemble_all: True
 
   # Symbols
+  global_vram_start: 0x80098000
+  global_vram_end: 0x801D4B38
   symbol_addrs_path:
     - config/symbol_addrs.tripletriad.txt
   undefined_funcs_auto_path: config/undefined_funcs_auto.tripletriad.txt
@@ -47,6 +49,7 @@ segments:
     type: code
     start: 0x0
     vram: 0x80098000
+    bss_size: 0x31EF8
     subsegments:
       - { start: 0x0, type: .rodata, name: be_object1, linker_section_order: .text }
       - { start: 0xDC, type: .rodata, name: be_object1b, linker_section_order: .text }
