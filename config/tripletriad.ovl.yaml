@@ -15,6 +15,7 @@ options:
 
   # Linker
   ld_script_path: config/tripletriad.ovl.ld
+  ld_bss_is_noload: True  # the runtime state at 0x801A2C40+ is past the file image
   ld_dependencies: True
   ld_align_section_vram_end: False
   ld_align_segment_vram_end: False
@@ -78,4 +79,5 @@ segments:
       - { start: 0xEAB54, type: .data, name: be_tables, linker_section_order: .text }       # text/render/AI/sfx-config tables
       - { start: 0xEAEC8, type: .data, name: be_snd_akao, linker_section_order: .text }  # AKAO audio block (assets/tripletriad_akao.bin)
       - { start: 0x109B88, type: .data, name: be_snd_bank, linker_section_order: .text } # sound-bank image (assets/tripletriad_sound_bank.bin)
+      - { type: .bss, vram: 0x801A2C40, name: be_bss }  # runtime state past the file image (be_bss.c is the memory map)
   - [0x10AC40]

@@ -1,12 +1,18 @@
 /* PsyQ library aliases used by decomped C. */
 
-/* Second input-edge flag, a separate u16 split out from the g_removeCardEdge[2]
-   merge so func_8009F17C's prologue re-emits %hi(g_addCardEdge) rather than
-   reusing the g_removeCardEdge base (matches the original codegen). */
-g_addCardEdge  = 0x801D3E76;
-
-/* Result-screen SFX node handle (be_object1b.c matchFlowHandler). */
-g_resultSfxHandle = 0x801D3018;
+/* Aliases into the C-owned BSS memory map (be_bss.c). Each names an address
+   inside a larger object: split-out u16s (so prologues re-emit their own %hi),
+   array elements, and struct fields the decompiled code reaches as its own
+   symbol. */
+g_addCardEdge = g_removeCardEdge + 2;   /* second input-edge flag (func_8009F17C) */
+D_801A2D54 = g_orderingTables + 0x6C;   /* OT[0] tail entry (the drawn head) */
+D_801C2EBC = g_padRepeat + 4;           /* pad-repeat slot 2, split out */
+D_801C2EC4 = g_padPressed + 4;          /* pad-pressed slot 2, split out */
+D_801D3462 = g_aiSearchStack + 2;       /* g_aiSearchStack[0].card */
+D_801D3466 = g_aiSearchStack + 6;       /* g_aiSearchStack[0].bestCard */
+D_801D3018 = g_resultSfxHandle;         /* legacy splat name for the handle */
+D_801D49E2 = D_801D49C8 + 0x1A;         /* CursorState.timerStep */
+D_801D49EC = D_801D49C8 + 0x24;         /* CursorState.unk24 */
 
 /* Shared battle-animation state (main RAM). The Triple Triad board reuses the
    battle-animation entities to drive its card animations, so be_object4.c's
