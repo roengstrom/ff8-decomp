@@ -19,3 +19,13 @@ assets:
     symbol: g_tripleTriadCardArt
     header: be_tim.h
     output: src/tripletriad/be_tim_cardart.c
+  - name: tripletriad_bg0
+    source: assets/tripletriad_bg0.tim
+    symbol: g_tripleTriadBgTim0
+    header: be_tim.h
+    output: src/tripletriad/be_tim_bg0.c
+  - name: tripletriad_bg1
+    source: assets/tripletriad_bg1.tim
+    symbol: g_tripleTriadBgTim1
+    header: be_tim.h
+    output: src/tripletriad/be_tim_bg1.c

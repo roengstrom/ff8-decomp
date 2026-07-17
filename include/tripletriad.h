@@ -393,7 +393,8 @@ extern ObjList            D_801D3028[];      /**< Per-frame update callback list
 extern u8            D_801D3038[];      /**< Backing node pool for D_801D3028. */
 extern u8            D_801D30FC;        /**< Match winner (0/1, or 2 = draw); also the claim seat. */
 #define TT_WINNER_DRAW 2                 /**< @c D_801D30FC value when neither seat won. */
-extern u8            D_8012E66C[];      /**< Vblank flip callback. */
+extern u8 g_tripleTriadBgTim0[]; /**< 384x224 16bpp board background 0 (raw TIM; pixels at +0x14). */
+extern u8 g_tripleTriadBgTim1[]; /**< 384x224 16bpp board background 1 (raw TIM; pixels at +0x14). */
 extern ObjList            g_taskList[];      /**< Card-claim/AI shared scratch (be_object2/3/4). */
 
 /* Per-pad button-mask buffers (held / pressed / repeat), seeded by @c sampleInput.

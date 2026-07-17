@@ -9,5 +9,7 @@
 extern u8 g_tripleTriadCardFrames[];
 extern u8 g_textBufferRes[];
 extern u8 g_tripleTriadCardArt[];
+extern u8 g_tripleTriadBgTim0[]; /**< 384x224 16bpp board background 0 (also declared in tripletriad.h). */
+extern u8 g_tripleTriadBgTim1[]; /**< 384x224 16bpp board background 1 (also declared in tripletriad.h). */
 
 #endif /* TRIPLETRIAD_BE_TIM_H */

@@ -68,7 +68,9 @@ segments:
       - { start: 0xC5B8, type: .data, name: be_tim_frames, linker_section_order: .text }   # 4bpp card frame TIM (assets/tripletriad_card_frames.tim)
       - { start: 0x1F1D8, type: .data, name: be_tim_textbuf, linker_section_order: .text } # text-buffer TIM (assets/tripletriad_text_buffer.tim)
       - { start: 0x1F638, type: .data, name: be_tim_cardart, linker_section_order: .text } # 8bpp card art TIM (assets/tripletriad_card_art.tim)
-      - { start: 0x96658, type: data, name: be_data, linker_section_order: .text }  # data tables: animation data, sound bank, etc. (no code)
+      - { start: 0x96658, type: .data, name: be_tim_bg0, linker_section_order: .text }     # 16bpp board background 0 (assets/tripletriad_bg0.tim)
+      - { start: 0xC066C, type: .data, name: be_tim_bg1, linker_section_order: .text }     # 16bpp board background 1 (assets/tripletriad_bg1.tim)
+      - { start: 0xEA680, type: data, name: be_data, linker_section_order: .text }  # rule-description string block (RuleStrTable + FF8-encoded labels)
       - { start: 0xEA7E4, type: .data, name: be_card_stats, linker_section_order: .text }  # the 110-card stats table (g_tripleTriadCardStats)
       - { start: 0xEAB54, type: .data, name: be_tables, linker_section_order: .text }       # text/render/AI/sfx-config tables
       - { start: 0xEAEC8, type: data, name: be_data2, linker_section_order: .text } # remaining data (AKAO sound region etc.)

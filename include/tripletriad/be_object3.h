@@ -336,7 +336,6 @@ extern u8  D_80078658[];   /**< Card rarity/type table (cards 0x4D+); used to dr
 extern u8  g_handBuildHands[2][5];/**< Per-player working copy of the hands (card ids), seeded from D_801A2C48 (replayHandMoves). */
 extern s32 g_sweepProcessed;     /**< Count of objects processed this sweep (runAiCaptureSelect). */
 extern s32 g_gradFadeCount;
-extern u8  D_80158680[];
 
 /* Private data — fade / banner */
 extern u8  g_stagedFadeColor[];   /**< Staged fade colour (RGB); the start colour for the next fade. */

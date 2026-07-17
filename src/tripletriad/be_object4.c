@@ -472,13 +472,13 @@ void closeMenu(void) {
  *
  * Reads g_drawBufferIndex, XORs with 1 to get the alternate index, computes
  * an offset of index * 92 into g_drawEnvs, and calls queueLoadImage
- * with the resulting pointer and D_8012E66C.
+ * with the resulting pointer and &g_tripleTriadBgTim0[0x14].
  *
  * @return Always 0.
  */
 s32 func_800A274C(void) {
     s32 idx = g_drawBufferIndex ^ 1;
-    queueLoadImage(&g_drawEnvs[idx].clip, D_8012E66C);
+    queueLoadImage(&g_drawEnvs[idx].clip, &g_tripleTriadBgTim0[0x14]);
     return 0;
 }
 

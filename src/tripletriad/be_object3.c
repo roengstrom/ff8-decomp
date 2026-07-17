@@ -895,13 +895,13 @@ s32 setupPlayerHand(s32 arg0) {
  *
  * Reads g_drawBufferIndex, XORs with 1 to get the alternate index, computes
  * an offset of index * 92 into g_drawEnvs, and calls queueLoadImage
- * with the resulting pointer and D_8012E66C.
+ * with the resulting pointer and &g_tripleTriadBgTim0[0x14].
  *
  * @return Always 0.
  */
 s32 reloadSetupBuffer(void) {
     s32 idx = g_drawBufferIndex ^ 1;
-    queueLoadImage(&g_drawEnvs[idx].clip, D_8012E66C);
+    queueLoadImage(&g_drawEnvs[idx].clip, &g_tripleTriadBgTim0[0x14]);
     return 0;
 }
 
@@ -1419,13 +1419,13 @@ s32 hasPendingCardObj(void) {
  *
  * Reads g_drawBufferIndex, XORs with 1 to get the alternate index, computes
  * an offset of index * 92 into g_drawEnvs, and calls queueLoadImage
- * with the resulting pointer and D_80158680.
+ * with the resulting pointer and &g_tripleTriadBgTim1[0x14].
  *
  * @return Always 0.
  */
 s32 reloadClaimBuffer(void) {
     s32 idx = g_drawBufferIndex ^ 1;
-    queueLoadImage(&g_drawEnvs[idx].clip, D_80158680);
+    queueLoadImage(&g_drawEnvs[idx].clip, &g_tripleTriadBgTim1[0x14]);
     return 0;
 }
 
