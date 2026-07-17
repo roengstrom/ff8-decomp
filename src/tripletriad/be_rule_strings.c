@@ -5,11 +5,13 @@
  * @brief Offset table of the Triple Triad rule/banner string block.
  *
  * [0] holds 0x39 (57), the number of u16s that follow. After it, every odd
- * index is a byte offset from the table base to one FF8-encoded label in
- * @ref g_tripleTriadRuleStrText (the two arrays are contiguous, so offsets
- * >= 0x74 land in the text). A zero u16 pads between entries; be_object3/4
- * read individual slots through the D_801826xx linker aliases and recover
- * the base as `(u8 *)&slot - <slot offset>` (see @ref RuleStrTable).
+ * index is a byte offset to one FF8-encoded label. The offsets are relative
+ * to THIS TABLE's own base, so each value includes the table's 0x74-byte
+ * size: offset 0x74 is the first byte of @ref g_tripleTriadRuleStrText,
+ * which must stay immediately after this array (the byte-verify build pins
+ * the layout). A zero u16 pads between entries; be_object3/4 read individual
+ * slots through the D_801826xx linker aliases and recover the base as
+ * `(u8 *)&slot - <slot offset>` (see @ref RuleStrTable).
  */
 u16 g_tripleTriadRuleStrOffsets[58] = {
     0x39,
@@ -45,8 +47,10 @@ u16 g_tripleTriadRuleStrOffsets[58] = {
 };
 
 /**
- * @brief FF8-encoded rule/banner label text (see the offset table above;
- *        0x02 = line break). Decoded text in the comments.
+ * @brief FF8-encoded rule/banner label text (0x02 = line break). Decoded
+ *        text in the comments; the +0xNNN offsets are block-relative to
+ *        match the offset-table values (subtract 0x74 for the position
+ *        within this array).
  */
 u8 g_tripleTriadRuleStrText[0xF0] = {
     0x02, 0x00,  /* +0x074 "\n" */
