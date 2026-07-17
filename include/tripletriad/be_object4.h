@@ -59,11 +59,12 @@ extern s32 D_801D4560;              /**< Number of queued SFX requests. */
 extern u8 g_cardDetailMsg[];    /**< Work buffer for the card-detail popup message (built by showCardDetail). */
 extern u8 g_cardDetailSuffix[]; /**< String appended after the card name in the detail message. */
 
-extern u16 g_tripleTriadRuleStrOffsets[58]; /**< Rule/banner string offset table (be_rule_strings.c). */
-extern u8  g_tripleTriadRuleStrText[];      /**< FF8-encoded labels the offsets point into. */
+extern u8 g_tripleTriadRuleStrings[]; /**< Serialized rule/banner string block: u16 offset
+                                           table + FF8-encoded labels; the offsets are
+                                           block-base-relative (be_rule_strings.c). */
 
 /* Rule-string table @ 0x80182680 (see RuleStrTable): individual u16 offset slots, each
-   a linker alias into g_tripleTriadRuleStrOffsets; the block base is recovered as
+   a linker alias into g_tripleTriadRuleStrings; the block base is recovered as
    @c &<slot> - <slot offset>. */
 extern u16 D_8018269E;   /**< Rule-table title slot; the table base is @c &D_8018269E - 0x1E (0x80182680). */
 extern u16 D_801826A6;   /**< Rule-table offset: "," conjunction (table + 0x26). */
