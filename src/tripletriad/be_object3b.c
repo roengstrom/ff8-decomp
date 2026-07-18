@@ -173,7 +173,7 @@ s32 updateClaimController(ClaimCtrlNode *node)
  *
  * @return 0 on the no-claim path, otherwise the @c D_801D42F8 pool pointer.
  */
-s32 setupTripleTriadCardClaim(void)
+u8 *setupTripleTriadCardClaim(void)
 {
     s32 i;
     s32 col;
@@ -258,7 +258,7 @@ s32 setupTripleTriadCardClaim(void)
     }
     allocObjNode(D_801D42F8, (ObjNodeFn)updateClaimBoard);
     allocObjNode(D_801D42F8, (ObjNodeFn)reloadClaimBuffer);
-    return (s32)D_801D42F8;
+    return (u8 *)D_801D42F8;
 }
 
 /**
@@ -278,7 +278,7 @@ void hangForever(void) {
  * Sets the next state to @c TT_STATE_SCRIPT and returns 0 so the
  * state-dispatch loop keeps running.
  */
-s32 tripleTriadRestartScript(void) {
+u8 *tripleTriadRestartScript(void) {
     g_tripleTriadState = TT_STATE_SCRIPT;
     return 0;
 }

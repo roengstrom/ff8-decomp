@@ -21,6 +21,6 @@ TripleTriadStateFn g_tripleTriadStateHandlers[5] = {
     initTripleTriadRenderList,                     /* TT_STATE_INIT */
     initTripleTriadScripts,                        /* TT_STATE_SCRIPT */
     initTripleTriadUpdateList,                     /* TT_STATE_PLAY */
-    (TripleTriadStateFn)setupTripleTriadCardClaim, /* TT_STATE_CARD_CLAIM */
-    (TripleTriadStateFn)tripleTriadRestartScript,  /* TT_STATE_RESTART */
+    setupTripleTriadCardClaim,                     /* TT_STATE_CARD_CLAIM */
+    tripleTriadRestartScript,                      /* TT_STATE_RESTART */
 };
