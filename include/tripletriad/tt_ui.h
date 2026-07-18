@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_BE_OBJECT4_H
-#define TRIPLETRIAD_BE_OBJECT4_H
+#ifndef TRIPLETRIAD_TT_UI_H
+#define TRIPLETRIAD_TT_UI_H
 
 #include "common.h"
 #include "tripletriad.h"
@@ -224,4 +224,4 @@ extern s32 func_800A390C(s32 flags0, s32 flags1); /**< Cursor/timer state machin
 extern s32 func_800A443C(s32 a0);                 /**< VSync-locked display-list apply. */
 extern void func_800A4504(s32 a0, s32 a1); /**< SFX (60, 32) init. */
 
-#endif /* TRIPLETRIAD_BE_OBJECT4_H */
+#endif /* TRIPLETRIAD_TT_UI_H */

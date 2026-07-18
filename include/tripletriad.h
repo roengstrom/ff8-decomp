@@ -347,12 +347,12 @@ extern TripleTriadCard      g_tripleTriadCardStats[];          /**< Card stats t
 extern TripleTriadDirection g_tripleTriadDirectionOffsets[4];  /**< UP, DOWN, LEFT, RIGHT (see TripleTriadDirection). */
 extern s32                  g_tripleTriadRules;                /**< Active rule flags (TT_RULE_*). */
 
-/** @brief Latch @ref D_80082C90 encounter params into the Triple Triad globals (be_dispatch.c). */
+/** @brief Latch @ref D_80082C90 encounter params into the Triple Triad globals (tt_main.c). */
 extern void func_800981BC(void);
 
 /* ── Object-list system ──────────────────────────────────────────────────────
  * A per-frame callback list whose nodes are carved from a fixed pool. Every
- * be_objectN TU drives its objects through this (initObjList / allocObjNode /
+ * tt_*.c code drives its objects through this (initObjList / allocObjNode /
  * updateObjectList in tt_main.c); the type-specific node structs all extend
  * @c ObjListNode. */
 
@@ -382,7 +382,7 @@ typedef struct {
 } ObjList;
 
 /* ── Shared overlay globals ──────────────────────────────────────────────────
- * Referenced across the be_objectN translation units of the tripletriad overlay. */
+ * Referenced across the tt_* translation units of the tripletriad overlay. */
 extern s32           g_cardFlipPhase;       /**< Current seat / phase latched at the idle->flip handoff (0/1; -1 = not started). */
 extern volatile s32  g_tripleTriadFrameCount;       /**< Free-running frame counter (volatile forces lw, not lbu). */
 extern s32           g_tripleTriadInputFlags;       /**< Input-state flags (TT_INPUT_*). */

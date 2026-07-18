@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_BE_OBJECT3_H
-#define TRIPLETRIAD_BE_OBJECT3_H
+#ifndef TRIPLETRIAD_TT_SCRIPT_H
+#define TRIPLETRIAD_TT_SCRIPT_H
 
 #include "common.h"
 #include "tripletriad.h"
@@ -368,4 +368,4 @@ extern s32 updateScriptCardAnims(void); /**< Per-frame card slide/scale animatio
 extern s32  func_800A20F4(s32 a0);           /**< Poll the player-input gate: <0 = still
                                                   waiting, 0 or 1 = the player's decision. */
 
-#endif /* TRIPLETRIAD_BE_OBJECT3_H */
+#endif /* TRIPLETRIAD_TT_SCRIPT_H */
