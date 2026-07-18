@@ -12,7 +12,8 @@ typedef unsigned char u8;
  * size; the real types live in the headers' extern declarations. pad_*
  * arrays cover gaps with no referenced symbol. Names that alias into
  * larger objects are linker assignments in undefined_syms.tripletriad.txt.
- * tools/check_bss_map.py validates every address after each build.
+ * The layout is guarded by make verify: referenced addresses are baked
+ * into code relocations, so any drift breaks the overlay's SHA1.
  */
 
 u8 g_tripleTriadActiveList[4];                    /* 0x801A2C40 */
