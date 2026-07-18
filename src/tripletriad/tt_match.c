@@ -2,10 +2,10 @@
 #include "tripletriad.h"
 #include "psxsdk/libc.h"
 #include "psxsdk/libgpu.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object1b.h"
-#include "tripletriad/be_object2.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_match.h"
+#include "tripletriad/tt_game.h"
+#include "tripletriad/tt_ui.h"
 #include "gamestate.h"
 
 /* Private prototypes (functions local to this translation unit). */
@@ -15,7 +15,7 @@ s32 drawBoardElements(void);
 s32 updateChildList(CallbackNode *node);
 s32 drawScoreDigits(void);
 
-/* Imported from be_object4.c (called only here). */
+/* Imported from tt_ui.c (called only here). */
 extern void func_800A247C(s32 mode);
 
 /**

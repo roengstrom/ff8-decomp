@@ -5,7 +5,7 @@
 #include "tripletriad.h"
 #include "tim.h"          /* Tim / TimSection (queued VRAM image uploads) */
 
-/* Declarations for be_object1.c (Triple Triad board/card setup, draw-buffer
+/* Declarations for tt_main.c (Triple Triad board/card setup, draw-buffer
    init, deferred VRAM transfers, the object-list system, debug text, and the
    tetrahedral 3D icon). */
 
@@ -15,7 +15,7 @@
 
 /** @brief Triple Triad state-handler node: sub-state selector, frame counter, and
  *  phase bit (which side the card is showing). Shared between the card-flip
- *  handler (be_object1.c) and the match-flow driver (be_object1b.c). */
+ *  handler (tt_main.c) and the match-flow driver (tt_match.c). */
 typedef struct {
     u8    pad00[0x0C];
     void *subHandler;  /* 0x0C — spawned per-turn sub-handler node           */
@@ -56,7 +56,7 @@ extern void  queueLoadImage(RECT *rect, void *src);
 extern s32  cardFlipHandler(HandlerNode *node);
 extern void initCardHands(void);
 
-/* ───────── Private (only used in be_object1.c; may move into the .c) ─────── */
+/* ───────── Private (only used in tt_main.c; may move into the .c) ─────── */
 
 /* Private enums / defines / consts */
 
@@ -171,7 +171,7 @@ extern u8            g_vsyncMode;        /**< VSync() wait mode (0 = wait one vb
 extern RGB           g_textColor;        /**< Debug-text rgb color. */
 extern u32           g_textPalette[9];      /**< '#0'..'#8' escape colors, indexed digit - '0'. */
 
-/* Private prototypes (be_object1.c entry points forward-declared for earlier callers) */
+/* Private prototypes (tt_main.c entry points forward-declared for earlier callers) */
 extern void resetVramQueue(void);
 extern void flushVramTransfers(void);
 extern u8  *queueTimUpload(ResHeader *res);
@@ -179,7 +179,7 @@ extern void queueStoreImage(RECT *rect, void *dst);
 extern void queueMoveImage(RECT *rect, s16 dstX, u16 dstY);
 extern void *findFreeNode(ObjList *list);
 
-/* SDK / main-binary math helpers used by be_object1.c. */
+/* SDK / main-binary math helpers used by tt_main.c. */
 extern void  func_8003F884(SVECTOR *a, SVECTOR *b, s32 wa, s32 wb, SVECTOR *out);
 extern void  func_80041794(s32 angle, MATRIX *m);
 

@@ -625,7 +625,7 @@ func_800A44CC = 0x800A44CC; // type:func
 func_800A4504 = 0x800A4504; // type:func
 g_menuDisplayCfg = 0x801FAB00;
 
-// BSS symbols owned by be_bss.c that keep splat-style D_ names: declared
+// BSS symbols owned by tt_bss.c that keep splat-style D_ names: declared
 // local so the reference extraction's dlabels don't clash with the C globals.
 D_801A2C44 = 0x801A2C44; // visibility:local
 D_801A2C48 = 0x801A2C48; // visibility:local

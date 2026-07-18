@@ -1,9 +1,9 @@
 #include "common.h"
 #include "item.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object3.h"
-#include "tripletriad/be_object3b.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_script.h"
+#include "tripletriad/tt_claim.h"
+#include "tripletriad/tt_ui.h"
 
 /**
  * @brief Per-frame card-claim transition controller.

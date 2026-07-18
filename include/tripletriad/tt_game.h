@@ -4,7 +4,7 @@
 #include "common.h"
 #include "tripletriad.h"   /* board/card types, SVECTOR / CVECTOR / VECTOR */
 
-/* Declarations for be_object2.c (Triple Triad card objects, the rules engine,
+/* Declarations for tt_game.c (Triple Triad card objects, the rules engine,
    the menu/cursor sub-machine, and the AI move search). */
 
 /* ───────────────────────────── Public ──────────────────────────────────── */
@@ -65,7 +65,7 @@ extern TSPRT *drawCardOverlaySprite(CardAnimNode *node, s32 variant, void *ot, T
 extern void   animateCardEffect(TripleTriadCardObject *entity);
 extern void   transformCardEffect(TripleTriadCardObject *entity, CardAnimNode *node, void *otBucket);
 
-/* ───────── Private (only used in be_object2.c; may move into the .c) ─────── */
+/* ───────── Private (only used in tt_game.c; may move into the .c) ─────── */
 
 /* Enums / defines / consts */
 
@@ -214,7 +214,7 @@ extern ObjList g_cursorList[];
 extern u8 g_taskPool[];
 extern s32 g_substateMask;
 
-/* Data — menu/cursor substate (be_object2-private) */
+/* Data — menu/cursor substate (tt_game-private) */
 extern SVECTOR g_cardSlideDirs[]; /**< 4-entry direction-vector table for animateCardEffect (CARD_FX_SLIDE_*). */
 extern u16 g_padHeldLatch;       /**< Latched held mask (from g_padHeld). */
 extern u16 g_padRepeatLatch;       /**< Latched repeat mask (from g_padRepeat). */
@@ -253,7 +253,7 @@ extern CVECTOR *D_801D3390;      /**< Scratch walker: current vertex-colour slot
  *         applied to a card's matrix during the slide-in animation. */
 extern const VECTOR g_cardScaleVec;
 
-/* Private prototypes — be_object2.c forward declarations */
+/* Private prototypes — tt_game.c forward declarations */
 extern s32  updateCardSelectCursor(SubstateMachineNode *p);
 extern void drawMenuPrim(s32 mode, SubstateSlot *slot);
 extern void handleCursorSubstate1(SubstateSlot *slot, s32 idx);

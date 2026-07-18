@@ -4,11 +4,11 @@
 #include "gamestate.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libc.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object1b.h"
-#include "tripletriad/be_object2.h"
-#include "tripletriad/be_object3.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_match.h"
+#include "tripletriad/tt_game.h"
+#include "tripletriad/tt_script.h"
+#include "tripletriad/tt_ui.h"
 
 /** @brief Allocate a tripletriad object from the @c g_taskList pool with the
  *         given per-frame callback; returns the new object (0 if pool is full). */

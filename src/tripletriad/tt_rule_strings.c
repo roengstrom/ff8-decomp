@@ -1,5 +1,5 @@
 #include "common.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_ui.h"
 
 /**
  * @brief Serialized rule/banner string block: a u16 offset table followed by
@@ -8,7 +8,7 @@
  * The table's first u16 (0x39 = 57) is the number of u16s that follow; after
  * it, every other u16 is a byte offset to one label, with a zero u16 between
  * entries. Offsets are relative to the block base — they include the 0x74-byte
- * offset table itself — which is why this is one array. be_object3/4 read
+ * offset table itself — which is why this is one array. tt_script/4 read
  * individual offset slots through the D_801826xx linker aliases and recover
  * the block base as `(u8 *)&slot - <slot offset>` (see @ref RuleStrTable).
  */

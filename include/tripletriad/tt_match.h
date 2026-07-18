@@ -4,7 +4,7 @@
 #include "common.h"
 #include "psxsdk/libgte.h"  /* SVECTOR (layoutCardSlot) */
 
-/* Declarations for be_object1b.c (Triple Triad match-flow controller, the
+/* Declarations for tt_match.c (Triple Triad match-flow controller, the
    per-frame update-list callbacks, and card-object search helpers). */
 
 /* ───────────────────────────── Public ──────────────────────────────────── */
@@ -32,7 +32,7 @@ extern s32 findCardSlot(s32 groupId, s32 fieldD, s32 priority);
 /** @brief Flag the matching card object (sets @c TT_CARD_ROTATE_CW). */
 extern void highlightCardSlot(s32 groupId, s32 priority);
 
-/* ───────── Private (only used in be_object1b.c; may move into the .c) ────── */
+/* ───────── Private (only used in tt_match.c; may move into the .c) ────── */
 
 /* Enums / defines / consts */
 

@@ -1,16 +1,16 @@
 /* PsyQ library aliases used by decomped C. */
 
-/* Interior aliases into the C-owned BSS memory map (be_bss.c). These two
+/* Interior aliases into the C-owned BSS memory map (tt_bss.c). These two
    fields of g_aiSearchStack[0] must be their own symbols: the functions that
    read them keep the g_aiSearchStack base live nearby, and a folded
    base[0].field access would CSE its %hi with the base's — one lui where the
    original has two. A distinct symbol is its own CSE class and re-emits the
-   lui (see the AiSearchNode note in be_object2.h). */
+   lui (see the AiSearchNode note in tt_game.h). */
 D_801D3462 = g_aiSearchStack + 2;       /* g_aiSearchStack[0].card */
 D_801D3466 = g_aiSearchStack + 6;       /* g_aiSearchStack[0].bestCard */
 
 /* Shared battle-animation state (main RAM). The Triple Triad board reuses the
-   battle-animation entities to drive its card animations, so be_object4.c's
+   battle-animation entities to drive its card animations, so tt_ui.c's
    decompiled C references it by its canonical name. The auto symbol list still
    carries the D_80082DD0 alias at the same address for func_800A29D4's INCLUDE_ASM. */
 g_battleAnims = 0x80082DD0;
@@ -103,7 +103,7 @@ func_8C000000 = 0x8C000000;
 func_8C840000 = 0x8C840000;
 
 /* Offset slots of the rule/banner string block (see RuleStrTable in
-   be_object4.h): the code recovers the block base from each slot's own
+   tt_ui.h): the code recovers the block base from each slot's own
    address, so the slots are aliases into g_tripleTriadRuleStrings. */
 D_80182686 = g_tripleTriadRuleStrings + 0x06;
 D_8018268A = g_tripleTriadRuleStrings + 0x0A;

@@ -1,16 +1,16 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
 #include "tripletriad.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object2.h"
-#include "tripletriad/be_object3.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_game.h"
+#include "tripletriad/tt_script.h"
+#include "tripletriad/tt_ui.h"
 
 /* Initialized data tables of the Triple Triad engine, in original image order
-   (overlay .data 0x80182B54..0x80182EC8, placed by the be_tables segment).
+   (overlay .data 0x80182B54..0x80182EC8, placed by the tt_tables segment).
    Definition order is load-bearing: it reproduces the original layout. */
 
-/* -------- debug/message text engine state (be_object1.c) -------- */
+/* -------- debug/message text engine state (tt_main.c) -------- */
 
 s16 g_textBufferIndex = 0;
 s16 g_textCursorX = 0;
@@ -25,7 +25,7 @@ u32 g_textPalette[9] = {
 };
 u8 g_hexDigits[20] = "0123456789ABCDEF";
 
-/* -------- tetrahedral 3D icon model (be_object1.c) -------- */
+/* -------- tetrahedral 3D icon model (tt_main.c) -------- */
 
 SVECTOR g_triadIconVerts[4] = {
     {0x0, 0x8, 0x0, 0x0}, {0x0, -0x8, 0x8, 0x0},
@@ -39,7 +39,7 @@ TriadFaceDesc g_triadIconFaces[4] = {
     {1, 3, 2, 0, 0x3000FFFF, 0x0000FFFF, 0x0000FFFF}
 };
 
-/* -------- card-flip transform scratch (be_object1.c) -------- */
+/* -------- card-flip transform scratch (tt_main.c) -------- */
 
 SVECTOR g_cardFlipUpVec = {0x0, 0x0, 0x100, 0x0};
 SVECTOR g_cardFlipTarget = {0x0, -0x5C, 0x200, 0x0};
@@ -51,7 +51,7 @@ static u32 D_80182C10[8] = {
     0x0000FF00, 0x00808080, 0x00FF0000, 0x00FFFFFF
 };
 
-/* -------- card primitive geometry (be_object2.c renderers) -------- */
+/* -------- card primitive geometry (tt_game.c renderers) -------- */
 
 SVECTOR g_cardFaceQuad[4] = {
     {-0x20, -0x20, 0x0, 0x0}, {0x1F, -0x20, 0x0, 0x0},
@@ -125,7 +125,7 @@ WeightSet g_aiWeightTable[8] = {
     {0x1000, 0x0, 0x0, 0x1000, 0x1000}
 };
 
-/* -------- gradient-fade dispatch + staged state (be_object3.c) -------- */
+/* -------- gradient-fade dispatch + staged state (tt_script.c) -------- */
 
 ObjNodeFn g_gradFadeCallbacks[6] = {
     (ObjNodeFn)&updateCardScaleSprite,
@@ -142,7 +142,7 @@ u8 g_stagedFadeColor[4] = {0xff, 0xff, 0xff, 0};
 /** @note Not referenced by any decompiled code. */
 static s32 D_80182E6C = 0x3B;
 
-/* -------- per-SFX message-box / channel config (be_object4.c) -------- */
+/* -------- per-SFX message-box / channel config (tt_ui.c) -------- */
 
 SfxConfig g_sfxConfigs[7] = {
     {0x03, 0x57, 0x00, 0, {0x68, 0xBC, 0xB0, 0x1C}},

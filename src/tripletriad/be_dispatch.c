@@ -1,6 +1,6 @@
 #include "common.h"
 #include "tripletriad.h"
-#include "tripletriad/be_object3b.h"
+#include "tripletriad/tt_claim.h"
 
 /**
  * @brief Latch the field-VM encounter parameters into the Triple Triad globals.
@@ -16,7 +16,7 @@
  *    for both, otherwise player 0 gets type 3 and player 1 type 2.
  *
  * First initializer run by @ref initTripleTriad; sits alone ahead of
- * be_object1's code in the overlay image.
+ * tt_main's code in the overlay image.
  */
 void func_800981BC(void) {
     s32 rules = D_80082C90.encounterPtr;

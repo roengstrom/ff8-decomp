@@ -7,35 +7,35 @@ assets:
   - name: tripletriad_card_frames
     source: assets/tripletriad_card_frames.tim
     symbol: g_tripleTriadCardFrames
-    header: be_tim.h
-    output: src/tripletriad/be_tim_frames.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_tim_frames.c
   - name: tripletriad_text_buffer
     source: assets/tripletriad_text_buffer.tim
     symbol: g_textBufferRes
-    header: be_tim.h
-    output: src/tripletriad/be_tim_textbuf.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_tim_textbuf.c
   - name: tripletriad_card_art
     source: assets/tripletriad_card_art.tim
     symbol: g_tripleTriadCardArt
-    header: be_tim.h
-    output: src/tripletriad/be_tim_cardart.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_tim_cardart.c
   - name: tripletriad_bg0
     source: assets/tripletriad_bg0.tim
     symbol: g_tripleTriadBgTim0
-    header: be_tim.h
-    output: src/tripletriad/be_tim_bg0.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_tim_bg0.c
   - name: tripletriad_bg1
     source: assets/tripletriad_bg1.tim
     symbol: g_tripleTriadBgTim1
-    header: be_tim.h
-    output: src/tripletriad/be_tim_bg1.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_tim_bg1.c
   - name: tripletriad_akao
     source: assets/tripletriad_akao.bin
     symbol: g_tripleTriadAkao
-    header: be_tim.h
-    output: src/tripletriad/be_snd_akao.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_snd_akao.c
   - name: tripletriad_sound_bank
     source: assets/tripletriad_sound_bank.bin
     symbol: g_tripleTriadSoundBank
-    header: be_tim.h
-    output: src/tripletriad/be_snd_bank.c
+    header: tt_tim.h
+    output: src/tripletriad/tt_snd_bank.c

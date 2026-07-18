@@ -142,7 +142,7 @@ extern TripleTriadBoard g_tripleTriadBoard;
  * The static per-card stats (edge ranks + element) live separately in
  * @c TripleTriadCard / @c g_tripleTriadCardStats, indexed by @c cardId.
  *
- * The be_object2 dispatch layer drives each object by @c groupId (category)
+ * The tt_game dispatch layer drives each object by @c groupId (category)
  * and @c priority: setting a new high-priority entry in a group resets all
  * lower-priority siblings. When the card is placed (@ref commitCardToBoard), its
  * @c cardId and owner are copied onto the board and the board cell's
@@ -265,7 +265,7 @@ typedef struct {
  * Allocated by @c func_80098C44 with the per-frame callback (e.g.
  * @c updateCardObject) stored at offset @c 0x08. Different handlers in
  * this overlay reuse the node's @c 0x0C slot for different purposes;
- * the be_object2 dispatch stores a back-pointer to the @c TripleTriadCardObject
+ * the tt_game dispatch stores a back-pointer to the @c TripleTriadCardObject
  * entry being driven.
  */
 typedef struct {
@@ -274,7 +274,7 @@ typedef struct {
 } CardObjectCtl;
 
 /* drawCardOverlaySprite / animateCardEffect / transformCardEffect prototypes
-   live in be_object2.h (their owner). */
+   live in tt_game.h (their owner). */
 
 /**
  * @brief 60-byte work buffer staged by @c scratchAlloc for one card
@@ -353,7 +353,7 @@ extern void func_800981BC(void);
 /* ── Object-list system ──────────────────────────────────────────────────────
  * A per-frame callback list whose nodes are carved from a fixed pool. Every
  * be_objectN TU drives its objects through this (initObjList / allocObjNode /
- * updateObjectList in be_object1.c); the type-specific node structs all extend
+ * updateObjectList in tt_main.c); the type-specific node structs all extend
  * @c ObjListNode. */
 
 /** @brief Per-frame node callback; a return value with bit 1 set unlinks the node.
@@ -395,7 +395,7 @@ extern u8            D_801D30FC;        /**< Match winner (0/1, or 2 = draw); al
 #define TT_WINNER_DRAW 2                 /**< @c D_801D30FC value when neither seat won. */
 extern u8 g_tripleTriadBgTim0[]; /**< 384x224 16bpp board background 0 (raw TIM; pixels at +0x14). */
 extern u8 g_tripleTriadBgTim1[]; /**< 384x224 16bpp board background 1 (raw TIM; pixels at +0x14). */
-extern ObjList            g_taskList[];      /**< Card-claim/AI shared scratch (be_object2/3/4). */
+extern ObjList            g_taskList[];      /**< Card-claim/AI shared scratch (tt_game/3/4). */
 
 /* Per-pad button-mask buffers (held / pressed / repeat), seeded by @c sampleInput.
    Indexed by the menu pad source (0/1), or OR'd across both; [2] is the
@@ -426,6 +426,6 @@ extern u8           g_substatePhase;    /**< Substate completion phase (see Tria
 extern SubstateSlot D_801D335C;    /**< 4-byte snapshot of @c D_801D3340[g_activeSubstate]. */
 
 /* Cross-TU function prototypes live in the owning module's header
-   (be_object1.h .. be_object4.h), not here. */
+   (tt_main.h .. tt_ui.h), not here. */
 
 #endif /* TRIPLETRIAD_H */

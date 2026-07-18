@@ -3,10 +3,10 @@
 #include "tripletriad.h"
 #include "psxsdk/libc.h"
 #include "psxsdk/libgpu.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object2.h"
-#include "tripletriad/be_object3.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_game.h"
+#include "tripletriad/tt_script.h"
+#include "tripletriad/tt_ui.h"
 #include "gamestate.h"
 
 

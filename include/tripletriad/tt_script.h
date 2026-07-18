@@ -4,7 +4,7 @@
 #include "common.h"
 #include "tripletriad.h"
 
-/* Declarations for be_object3.c (Triple Triad card-claim / hand-build sequence,
+/* Declarations for tt_script.c (Triple Triad card-claim / hand-build sequence,
    the script and setup handlers, the per-card slide/scale animations, and the
    full-screen colour-fade effects). */
 
@@ -17,7 +17,7 @@
  *
  * Used by the claim handlers @ref runKeepCardSelect / @ref runAiCaptureSelect /
  * @ref replayHandMoves / @ref runOpponentSideSweep / @ref runCaptureCleanupSweep and spawned by
- * the card-claim controller updateClaimController (in be_object3b.c).
+ * the card-claim controller updateClaimController (in tt_claim.c).
  */
 typedef struct {
     /* 0x00 */ u8 pad00[0x0C];
@@ -51,7 +51,7 @@ typedef struct {
 /* Public data */
 extern ActiveObj g_activeCardObjs[]; /**< Active card-display object array. */
 
-/* Shared by the be_object3b tail (the card-claim controller/setup). */
+/* Shared by the tt_claim tail (the card-claim controller/setup). */
 extern s32 g_sweepTarget;   /**< Claim selector set at setup (>=0 normal, -1 capture-only, <-1 skip);
                                  also the sweep's target object count (it completes when g_sweepProcessed reaches it). */
 extern u8  D_801D444C;      /**< Set when the phase-1 claim handler finishes. */
@@ -76,14 +76,14 @@ extern void startFadeToWhite(s32 duration);
 extern s32  updateClaimBoard(void);
 extern s32  reloadClaimBuffer(void);
 
-/* Card-claim script-state handlers (driven by the be_object3b controller). */
+/* Card-claim script-state handlers (driven by the tt_claim controller). */
 extern s32  runKeepCardSelect(ScriptStateNode *node);
 extern s32  runAiCaptureSelect(ScriptStateNode *node);
 extern s32  replayHandMoves(ScriptStateNode *node);
 extern s32  runOpponentSideSweep(ScriptStateNode *node);
 extern s32  runCaptureCleanupSweep(ScriptStateNode *node);
 
-/* ───────── Private (only used in be_object3.c; may move into the .c) ─────── */
+/* ───────── Private (only used in tt_script.c; may move into the .c) ─────── */
 
 /* Private enums / defines / consts */
 
@@ -264,7 +264,7 @@ typedef struct {
     /* 0x23 */ u8  pad23;
 } GradientFadeNode; /* 0x24 */
 
-/* g_gradFadeCallbacks entries (be_object3.c). */
+/* g_gradFadeCallbacks entries (tt_script.c). */
 extern s32 updateCardScaleSprite(ScriptStateNode *node);
 extern s32 updateCardScaleSpriteShort(ScriptStateNode *node);
 extern s32 updateCardColorFade(ScriptStateNode *node);
@@ -307,7 +307,7 @@ typedef struct {
 
 /**
  * @brief 40-byte display node allocated by @c scratchAlloc and chained via the
- *        GTE matrix helpers (be_object3 fade/render path).
+ *        GTE matrix helpers (tt_script fade/render path).
  */
 typedef struct {
     /* 0x00 */ s16 angle;        /**< Rotation/animation angle. */
@@ -361,10 +361,10 @@ extern s32 g_fadePhaseMirror;     /**< Phase mirror counter (running scale). */
 extern s32 g_cardDisplaySlot;     /**< Current card-display slot index (must be < 0x6E). */
 extern s32 g_lastActiveSlot;     /**< Last-active slot index (-1 = none). */
 
-/* Private prototypes — be_object3.c internal forward declaration */
+/* Private prototypes — tt_script.c internal forward declaration */
 extern s32 updateScriptCardAnims(void); /**< Per-frame card slide/scale animation sweep. */
 
-/* Prototype imported by be_object3.c / be_object3b.c. */
+/* Prototype imported by tt_script.c / tt_claim.c. */
 extern s32  func_800A20F4(s32 a0);           /**< Poll the player-input gate: <0 = still
                                                   waiting, 0 or 1 = the player's decision. */
 

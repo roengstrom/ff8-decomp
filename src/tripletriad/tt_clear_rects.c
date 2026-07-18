@@ -1,6 +1,6 @@
 #include "common.h"
 #include "psxsdk/libgpu.h"
-#include "tripletriad/be_object1.h"
+#include "tripletriad/tt_main.h"
 
 /**
  * @brief VRAM rect covering one draw buffer (@c initGraphics clears both

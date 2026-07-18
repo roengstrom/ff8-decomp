@@ -1,10 +1,10 @@
 #include "common.h"
 #include "tripletriad.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object1b.h"
-#include "tripletriad/be_object3.h"
-#include "tripletriad/be_object3b.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_match.h"
+#include "tripletriad/tt_script.h"
+#include "tripletriad/tt_claim.h"
+#include "tripletriad/tt_ui.h"
 
 /**
  * @brief Top-level Triple Triad state-handler table, indexed by

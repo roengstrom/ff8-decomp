@@ -1,10 +1,10 @@
 #include "common.h"
 #include "item.h"
 #include "tripletriad.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object1b.h"
-#include "tripletriad/be_object2.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_match.h"
+#include "tripletriad/tt_game.h"
+#include "tripletriad/tt_ui.h"
 
 /**
  * @brief Set up a card-object slot and cancel lower-priority siblings in its group.

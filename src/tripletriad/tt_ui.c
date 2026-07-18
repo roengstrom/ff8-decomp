@@ -10,12 +10,12 @@
 #include "drawbar.h"
 #include "battle_anim.h"
 #include "btl_anim.h"
-#include "tripletriad/be_object1.h"
-#include "tripletriad/be_object1b.h"
-#include "tripletriad/be_object2.h"
-#include "tripletriad/be_object3.h"
-#include "tripletriad/be_object3b.h"
-#include "tripletriad/be_object4.h"
+#include "tripletriad/tt_main.h"
+#include "tripletriad/tt_match.h"
+#include "tripletriad/tt_game.h"
+#include "tripletriad/tt_script.h"
+#include "tripletriad/tt_claim.h"
+#include "tripletriad/tt_ui.h"
 
 /**
  * @brief Reset and reconfigure the seven SFX channels.
@@ -389,7 +389,7 @@ void func_800A247C(void) {
  * table followed by the FF8-encoded strings).  The base is recovered from the
  * title slot (@c &D_8018269E - 0x1E); each label is reached as @c base + offset.
  * The later labels re-derive the base from their own slots — the same access
- * idiom be_object3 uses for the card-claim banners.
+ * idiom tt_script uses for the card-claim banners.
  *
  * @param dst Destination buffer for the assembled, FF8-encoded string.
  */
