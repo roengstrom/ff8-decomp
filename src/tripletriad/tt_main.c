@@ -4,6 +4,7 @@
 #include "psxsdk/libc.h"
 #include "psxsdk/libgpu.h"
 #include "tripletriad/tt_main.h"
+#include "tripletriad/tt_text.h"
 #include "tripletriad/tt_game.h"
 #include "tripletriad/tt_script.h"
 #include "tripletriad/tt_ui.h"

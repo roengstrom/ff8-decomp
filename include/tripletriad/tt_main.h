@@ -1,13 +1,14 @@
-#ifndef TRIPLETRIAD_BE_OBJECT1_H
-#define TRIPLETRIAD_BE_OBJECT1_H
+#ifndef TRIPLETRIAD_TT_MAIN_H
+#define TRIPLETRIAD_TT_MAIN_H
 
 #include "common.h"
 #include "tripletriad.h"
 #include "tim.h"          /* Tim / TimSection (queued VRAM image uploads) */
 
-/* Declarations for tt_main.c (Triple Triad board/card setup, draw-buffer
-   init, deferred VRAM transfers, the object-list system, debug text, and the
-   tetrahedral 3D icon). */
+/* Declarations for tt_main.c: the encounter-param latch, session init and
+   main loop, draw-buffer/GTE setup, deferred VRAM transfers, the scratch-pool
+   allocator, and the pool-backed object-list system. The debug-text overlay,
+   3D icon, and card-flip/hand setup live in tt_text.h (tt_text.c). */
 
 /* ───────────────────────────── Public ──────────────────────────────────── */
 
@@ -15,7 +16,7 @@
 
 /** @brief Triple Triad state-handler node: sub-state selector, frame counter, and
  *  phase bit (which side the card is showing). Shared between the card-flip
- *  handler (tt_main.c) and the match-flow driver (tt_match.c). */
+ *  handler (tt_text.c) and the match-flow driver (tt_match.c). */
 typedef struct {
     u8    pad00[0x0C];
     void *subHandler;  /* 0x0C — spawned per-turn sub-handler node           */
@@ -29,6 +30,15 @@ typedef struct {
 } HandlerNode;
 
 typedef struct { u8 r, g, b; } RGB;
+
+/** @brief @c HandlerNode.state values for the card-flip handler (@ref cardFlipHandler,
+ *  defined in tt_text.c). The match-flow driver (tt_match.c) also arms these. */
+typedef enum {
+    CARD_FLIP_INIT   = 0,  /**< Pick the flip phase and seed the transform.   */
+    CARD_FLIP_ENTER  = 1,  /**< Entry arc: spin and dip the card into place.  */
+    CARD_FLIP_IDLE   = 2,  /**< Settled pose; waits for a phase change.       */
+    CARD_FLIP_REFLIP = 3,  /**< Swing to show the other face.                 */
+} CardFlipState;
 
 /** @brief Triple Triad top-level state-handler signature (entries of @c g_tripleTriadStateHandlers). */
 typedef u8 *(*TripleTriadStateFn)(void);
@@ -52,7 +62,8 @@ extern void  scratchFree(s32 size);
 /** @brief Queue a deferred LoadImage for the next @c flushVramTransfers. */
 extern void  queueLoadImage(RECT *rect, void *src);
 
-/* Card-flip animation handler + per-match card setup. */
+/* Card-flip animation handler + per-match card setup (defined in tt_text.c;
+   declared here as the cross-TU entry points called from tt_match.c). */
 extern s32  cardFlipHandler(HandlerNode *node);
 extern void initCardHands(void);
 
@@ -80,14 +91,6 @@ typedef enum {
     POOL_MOVE_IMAGE  = 3   /**< MoveImage(rect, dstX, dstY) with @c src packed as @c y<<16|x. */
 } PoolAction;
 
-/** @brief @c HandlerNode.state values for the card-flip handler (@ref cardFlipHandler). */
-typedef enum {
-    CARD_FLIP_INIT   = 0,  /**< Pick the flip phase and seed the transform.   */
-    CARD_FLIP_ENTER  = 1,  /**< Entry arc: spin and dip the card into place.  */
-    CARD_FLIP_IDLE   = 2,  /**< Settled pose; waits for a phase change.       */
-    CARD_FLIP_REFLIP = 3,  /**< Swing to show the other face.                 */
-} CardFlipState;
-
 /* Private typedefs */
 
 typedef struct {
@@ -103,48 +106,8 @@ typedef struct {
     void *src;          /**< TIM pointer / pixel buffer / packed dest coords (depends on @c active). */
 } PoolEntry;
 
-/** @brief 0x28 per-frame transform scratch for the card-flip handler: a
- *  scratch position vector followed by the composed rotation+translation
- *  matrix handed to the GTE. Allocated/freed each frame (scratchAlloc/BA0). */
-typedef struct {
-    SVECTOR vec;   /* 0x00 — scratch position (morph target)        */
-    MATRIX  mat;   /* 0x08 — composed YXZ rotation + translation     */
-} TransformBuf;    /* 0x28 */
-
-/**
- * @brief One face of the tetrahedral 3D icon model (@c g_triadIconFaces[4]).
- *
- * The 4 entries pair with the 4-vertex SVECTOR table @c g_triadIconVerts to describe
- * a tetrahedral 3D icon (3 yellow faces and one white face). The 3 vertex
- * indices select corners from the transformed vertex output; the three color
- * words pre-pack the @c POLY_G3 @c r/g/b/code byte quartets for direct
- * word-store into the primitive.
- */
-typedef struct {
-    u8  v0;             /**< Index 0..3 into the transformed vertex table. */
-    u8  v1;
-    u8  v2;
-    u8  pad03;
-    u32 color0Word;     /**< Packed @c r0|g0|b0|code (with @c 0x30 = G3 code). */
-    u32 color1Word;     /**< Packed @c r1|g1|b1|pad1. */
-    u32 color2Word;     /**< Packed @c r2|g2|b2|pad2. */
-} TriadFaceDesc;        /* 0x10 bytes */
-
-/* Private data — card-flip transform scratch */
-extern SVECTOR       g_cardFlipUpVec;        /* +Z unit scratch vector (morph source)   */
-extern SVECTOR       g_cardFlipTarget;        /* scratch target vector                   */
-extern SVECTOR       g_cardFlipAngles;        /* per-frame YXZ rotation angles           */
-extern s32           g_cardFlipSpin;        /* spin direction delta (+/-0x400)         */
-extern TransformBuf *g_cardFlipXform;        /* current frame's transform scratch       */
-
-/* Private data — tetrahedral 3D icon model */
-extern SVECTOR       g_triadIconVerts[4];     /**< 4-vertex tetrahedron model. */
-extern TriadFaceDesc g_triadIconFaces[4];     /**< 4 G3 face descriptors. */
-extern u32          *g_triadIconScratch;        /**< Scratch buffer pointer for RotTransPers4 outputs. */
-
 /* Private data — deferred VRAM transfer pool (flushVramTransfers) */
 extern PoolEntry     g_vramQueue[];
-extern ResHeader     g_textBufferRes;               /**< Resource header registered by the draw-target setup. */
 extern ResHeader     g_tripleTriadCardFrames;  /**< Card frame/border graphics (4bpp TIM, uploaded to VRAM at init). */
 extern ResHeader     g_tripleTriadCardArt;     /**< Card face artwork (8bpp TIM, ~110 cards at 64x64, uploaded to VRAM at init). */
 
@@ -153,23 +116,12 @@ extern RECT          g_fbClearRect;
 extern RECT          g_texClearRect;
 extern u32           g_orderingTables[2][TT_OT_LEN];  /**< Per-buffer ordering tables (OT). */
 extern u8            g_primPools[2][0x10000];  /* primitive pool, 64KB per buffer */
-extern u8            g_textOTs[2][8];
-extern u8            g_textFrameBufs[2][0x8000];
-extern u8           *g_textFbPtr;
-extern u8           *g_textOtPtr;
 extern u8           *g_tripleTriadActiveList;
-extern u8            g_hexDigits[];
 
-/* Private data — debug text / misc state */
+/* Private data — engine misc state */
 extern s32           g_vramQueueCount;
 extern s32           g_scratchPtr;
-extern s16           g_textBufferIndex;
-extern s16           g_textLineX;
-extern s16           g_textCursorY;
-extern s16           g_textCursorX;
 extern u8            g_vsyncMode;        /**< VSync() wait mode (0 = wait one vblank). */
-extern RGB           g_textColor;        /**< Debug-text rgb color. */
-extern u32           g_textPalette[9];      /**< '#0'..'#8' escape colors, indexed digit - '0'. */
 
 /* Private prototypes (tt_main.c entry points forward-declared for earlier callers) */
 extern void resetVramQueue(void);
@@ -179,8 +131,4 @@ extern void queueStoreImage(RECT *rect, void *dst);
 extern void queueMoveImage(RECT *rect, s16 dstX, u16 dstY);
 extern void *findFreeNode(ObjList *list);
 
-/* SDK / main-binary math helpers used by tt_main.c. */
-extern void  func_8003F884(SVECTOR *a, SVECTOR *b, s32 wa, s32 wb, SVECTOR *out);
-extern void  func_80041794(s32 angle, MATRIX *m);
-
-#endif /* TRIPLETRIAD_BE_OBJECT1_H */
+#endif /* TRIPLETRIAD_TT_MAIN_H */

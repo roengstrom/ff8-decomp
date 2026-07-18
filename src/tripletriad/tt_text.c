@@ -3,6 +3,7 @@
 #include "psxsdk/libc.h"
 #include "psxsdk/libgpu.h"
 #include "tripletriad/tt_main.h"
+#include "tripletriad/tt_text.h"
 
 /**
  * @brief Set up the debug-text overlay's buffers for the first frame.
