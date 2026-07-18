@@ -47,7 +47,6 @@ typedef struct {
 } ClaimCtrlNode;
 
 /* Private data */
-extern u8      D_801A2C44;    /**< Rule/mode selector for the post-game card-claim flow. */
 extern ObjList D_801D42F8[];  /**< Card-claim handler object pool. */
 
 #endif /* TRIPLETRIAD_BE_OBJECT3B_H */

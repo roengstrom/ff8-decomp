@@ -52,15 +52,15 @@ segments:
     vram: 0x80098000
     bss_size: 0x31EF8
     subsegments:
-      - { start: 0x0, type: .rodata, name: tt_main, linker_section_order: .text }
+      - { start: 0x0, type: .rodata, name: tt_text, linker_section_order: .text }   # formatString jump table
       - { start: 0xDC, type: .rodata, name: tt_match, linker_section_order: .text }
       - { start: 0x104, type: .rodata, name: tt_game, linker_section_order: .text }
       - { start: 0x154, type: .rodata, name: tt_card_scale, linker_section_order: .text }
       - { start: 0x164, type: .rodata, name: tt_script, linker_section_order: .text }
       - { start: 0x178, type: .rodata, name: tt_claim, linker_section_order: .text }
       - { start: 0x1A4, type: .rodata, name: tt_ui, linker_section_order: .text }
-      - [0x1BC, c, be_dispatch]
-      - [0x22C, c, tt_main]
+      - [0x1BC, c, tt_main]
+      - [0xDD4, c, tt_text]
       - [0x1C78, c, tt_match]
       - [0x28CC, c, tt_game]
       - [0x6248, c, tt_script]

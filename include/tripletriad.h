@@ -409,6 +409,7 @@ extern u16 g_padHeld[];      /**< Held (currently-down) mask. */
 extern u32  *g_otBase;
 extern void *g_primCursor;   /**< Current primitive-pool tail (advanced by display helpers). */
 
+extern u8    D_801A2C44;     /**< Rule/mode selector latched from the encounter; drives the post-game card-claim flow. */
 extern u8    D_801A2C70[2];  /**< Per-player layout type; 3 selects the offset-hand layout. */
 
 /**
