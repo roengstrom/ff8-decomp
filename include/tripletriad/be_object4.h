@@ -186,7 +186,7 @@ extern s32  getAnimFrameParam(s32 slot, s32 sub);     /**< Per-controller input-
 extern s32  func_80030F10(s32 arg);                   /**< Read a controller's button mask (owner TU not yet identified). */
 
 /* File-scope data: a few globals owned elsewhere (battle config / menu palette) plus
-   be_object4-private board / SFX / input state — the D_801D4xxx / D_801C2Exx / D_80182Exx
+   be_object4-private board / SFX / input state — the D_801D4xxx / D_80182Exx
    symbols are not referenced by any other translation unit. */
 extern u8  g_battleConfig[];   /**< Shared battle config; [9] bit 0 = sound-bank selector. */
 extern u8  D_80082C11;         /**< Sound-bank selector flag (same byte as g_battleConfig[9]). */
@@ -194,7 +194,6 @@ extern s16 D_8005F11C;
 extern s32 g_menuColor[];
 extern u8  g_tripleTriadSoundBank[];       /**< Start of the Triple Triad sound region uploaded to a bank. */
 extern u8  D_801D49B8[];       /**< Digit-glyph string buffer filled by intToDecString (func_800A3EE0). */
-extern s16 D_801D49E2;
 extern s16 D_801D49F8[];
 extern u16 D_801D4B18;
 extern u16 D_801D4B1A;
@@ -212,11 +211,8 @@ extern u8 D_801D4568[];
 extern u8 D_801D4968[];
 extern u8 D_801D4978[];
 extern CursorState D_801D49C8;
-extern u8 D_801D49EC;
 extern u8 D_801D4A88[]; /**< Per-cell lookup value, indexed by cursor grid position. */
 extern u8 D_801D4AF6;   /**< Total cell count of the cursor grid (rows of 11). */
-extern u16 D_801C2EBC;  /**< Idle-state input snapshot fed to the cursor state machine. */
-extern u16 D_801C2EC4;  /**< Slide-state input snapshot fed to the cursor state machine. */
 
 /* Private prototypes — functions defined in be_object4.c. */
 extern void *func_800A3EE0(void *ot, SPRT *prim, s32 x, s32 number, u32 color, s32 clutPage); /**< Right-aligned decimal SPRT renderer; tail-called by func_800A4098. */

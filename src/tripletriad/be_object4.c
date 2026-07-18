@@ -54,7 +54,7 @@ void func_800A1C6C(void)
     s32 i;
 
     if (g_tripleTriadInputFlags & TT_INPUT_HAND_BUILD) {
-        g_cardDisplaySlot = func_800A390C(D_801C2EBC, D_801C2EC4);
+        g_cardDisplaySlot = func_800A390C(g_padRepeat[2], g_padPressed[2]);
     } else {
         func_800A390C(0, 0);
         g_cardDisplaySlot = -1;
@@ -188,7 +188,7 @@ void func_800A2054(s32 a0) {
  * @brief Reset all 7 SFX entries and finalize.
  *
  * Calls fadeOutSfxFast for each of the 7 objects (indices 0-6),
- * then calls func_800A44BC to set D_801D49E2.
+ * then calls func_800A44BC to reset the cursor timer step.
  */
 void func_800A20B0(void) {
     s32 i = 0;
@@ -1815,19 +1815,19 @@ void func_800A4478(s32 a0) {
 }
 
 /**
- * @brief Store a byte value to D_801D49EC.
+ * @brief Store a byte value to the cursor state's unk24 field.
  *
  * @param a0 Byte value to store.
  */
 void func_800A44B0(s32 a0) {
-    D_801D49EC = a0;
+    D_801D49C8.unk24 = a0;
 }
 
 /**
- * @brief Set D_801D49E2 to -256 (0xFF00).
+ * @brief Set the cursor state's timer step to -256 (0xFF00).
  */
 void func_800A44BC(void) {
-    D_801D49E2 = -256;
+    D_801D49C8.timerStep = -256;
 }
 
 /**

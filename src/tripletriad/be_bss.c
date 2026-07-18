@@ -107,7 +107,7 @@ u8 g_gradFadePool[0x90];                            /* 0x801D3C78 */
 u8 g_gradFadeCount[4];                            /* 0x801D3D08 */
 u8 pad_801D3D0C[0x168];                             /* 0x801D3D0C */
 u8 g_removeCardEdge[2];                           /* 0x801D3E74 */
-u8 pad_801D3E76[2];                               /* 0x801D3E76 */
+u8 g_addCardEdge[2];                              /* 0x801D3E76 */
 u8 g_handBuildCount[4];                           /* 0x801D3E78 */
 u8 pad_801D3E7C[4];                               /* 0x801D3E7C */
 u8 g_setupHandlerPool[0x20];                        /* 0x801D3E80 */
