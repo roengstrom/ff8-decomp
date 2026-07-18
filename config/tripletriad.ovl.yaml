@@ -75,7 +75,10 @@ segments:
       - { start: 0xC066C, type: .data, name: tt_tim_bg1, linker_section_order: .text }     # 16bpp board background 1 (assets/tripletriad_bg1.tim)
       - { start: 0xEA680, type: .data, name: tt_rule_strings, linker_section_order: .text }  # rule-description string block (RuleStrTable + FF8-encoded labels)
       - { start: 0xEA7E4, type: .data, name: tt_card_stats, linker_section_order: .text }  # the 110-card stats table (g_tripleTriadCardStats)
-      - { start: 0xEAB54, type: .data, name: tt_tables, linker_section_order: .text }       # text/render/AI/sfx-config tables
+      - { start: 0xEAB54, type: .data, name: tt_text_data, linker_section_order: .text }    # text engine + 3D icon + card-flip scratch (tt_text.c)
+      - { start: 0xEAC30, type: .data, name: tt_game_data, linker_section_order: .text }    # card geometry + board dirs + AI tables (tt_game.c)
+      - { start: 0xEAE4C, type: .data, name: tt_script_data, linker_section_order: .text }  # gradient-fade dispatch + staged state (tt_script.c)
+      - { start: 0xEAE70, type: .data, name: tt_ui_data, linker_section_order: .text }      # per-SFX config + card-detail suffix (tt_ui.c)
       - { start: 0xEAEC8, type: .data, name: tt_snd_akao, linker_section_order: .text }  # AKAO audio block (assets/tripletriad_akao.bin)
       - { start: 0x109B88, type: .data, name: tt_snd_bank, linker_section_order: .text } # sound-bank image (assets/tripletriad_sound_bank.bin)
       - { type: .bss, vram: 0x801A2C40, name: tt_bss }  # runtime state past the file image (tt_bss.c is the memory map)
