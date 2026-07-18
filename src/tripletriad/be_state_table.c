@@ -16,8 +16,13 @@
  * data region (offset 0xC58C), directly after the last code byte — the
  * dispatcher's `- 1` folds into the relocation (`%lo(sym - 4)`), which is
  * why the raw disassembly appears to index a table based one word earlier.
+ *
+ * Sized to the full 7-value @ref TripleTriadState enum; only the five real
+ * states (1..5) have handlers, so entries for TT_STATE_IDLE-past and
+ * TT_STATE_EXIT stay zero — those two trailing zero words are the 8 bytes
+ * that previously showed up as unowned filler after the table.
  */
-TripleTriadStateFn g_tripleTriadStateHandlers[5] = {
+TripleTriadStateFn g_tripleTriadStateHandlers[7] = {
     initTripleTriadRenderList,                     /* TT_STATE_INIT */
     initTripleTriadScripts,                        /* TT_STATE_SCRIPT */
     initTripleTriadUpdateList,                     /* TT_STATE_PLAY */

@@ -66,8 +66,7 @@ segments:
       - [0x6248, c, be_object3]
       - [0x95C8, c, be_object3b]
       - [0x9BE0, c, be_object4]
-      - { start: 0xC58C, type: .data, name: be_state_table, linker_section_order: .text }
-      - { start: 0xC5A0, type: data, name: be_state_table_pad, linker_section_order: .text }  # 8 bytes of inter-object filler (not alignment; 0xC5A0 is already 8-aligned)
+      - { start: 0xC58C, type: .data, name: be_state_table, linker_section_order: .text }  # g_tripleTriadStateHandlers[7]; last 2 entries zero (the former 8-byte "pad")
       - { start: 0xC5A8, type: .data, name: be_object1_data, linker_section_order: .text }
       - { start: 0xC5B8, type: .data, name: be_tim_frames, linker_section_order: .text }   # 4bpp card frame TIM (assets/tripletriad_card_frames.tim)
       - { start: 0x1F1D8, type: .data, name: be_tim_textbuf, linker_section_order: .text } # text-buffer TIM (assets/tripletriad_text_buffer.tim)
