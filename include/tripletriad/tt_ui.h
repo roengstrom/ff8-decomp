@@ -218,7 +218,7 @@ extern u8 D_801D4AF6;   /**< Total cell count of the cursor grid (rows of 11). *
 extern void *func_800A3EE0(void *ot, SPRT *prim, s32 x, s32 number, u32 color, s32 clutPage); /**< Right-aligned decimal SPRT renderer; tail-called by func_800A4098. */
 extern void *func_800A3D2C(void *otBase, void *pkt, s32 x, s32 y, s32 cardImg, s32 col); /**< Card-image primitive. */
 extern void *func_800A3528(void *otBase, void *pkt, void *(*drawCell)(void *, void *, s32, s32, s32)); /**< Per-cell slide-render iterator. */
-extern s32 func_800A238C();
+extern s32 func_800A238C(SndTaskNode *node);  /**< Sound-bank swap task callback (spawned via ObjNodeFn cast). */
 extern s32 func_800A29D4(BattleAnimState *base, BattleAnimEntity *elem, u16 arg1, s32 side, s32 entryIndex);
 extern s32 func_800A390C(s32 flags0, s32 flags1); /**< Cursor/timer state machine. */
 extern s32 func_800A443C(s32 a0);                 /**< VSync-locked display-list apply. */
