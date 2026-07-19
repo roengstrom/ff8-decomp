@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_TT_CLAIM_H
-#define TRIPLETRIAD_TT_CLAIM_H
+#ifndef TT_CLAIM_H
+#define TT_CLAIM_H
 
 #include "common.h"
 #include "tripletriad.h"
@@ -49,4 +49,4 @@ typedef struct {
 /* Private data */
 extern ObjList D_801D42F8[];  /**< Card-claim handler object pool. */
 
-#endif /* TRIPLETRIAD_TT_CLAIM_H */
+#endif /* TT_CLAIM_H */

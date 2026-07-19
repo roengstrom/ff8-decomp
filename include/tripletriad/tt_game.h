@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_TT_GAME_H
-#define TRIPLETRIAD_TT_GAME_H
+#ifndef TT_GAME_H
+#define TT_GAME_H
 
 #include "common.h"
 #include "tripletriad.h"   /* board/card types, SVECTOR / CVECTOR / VECTOR */
@@ -265,4 +265,4 @@ extern void handleCursorSubstate3(SubstateSlot *slot, s32 idx);
    GPU primitives — RotTransPers4, NormalClip, AddPrim — in the psxsdk headers.) */
 extern void *func_8002FF34(void *otBase, void *pkt, s32 ch, s32 yPos, s32 w, s32 col);
 
-#endif /* TRIPLETRIAD_TT_GAME_H */
+#endif /* TT_GAME_H */

@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_TT_MAIN_H
-#define TRIPLETRIAD_TT_MAIN_H
+#ifndef TT_MAIN_H
+#define TT_MAIN_H
 
 #include "common.h"
 #include "tripletriad.h"
@@ -131,4 +131,4 @@ extern void queueStoreImage(RECT *rect, void *dst);
 extern void queueMoveImage(RECT *rect, s16 dstX, u16 dstY);
 extern void *findFreeNode(ObjList *list);
 
-#endif /* TRIPLETRIAD_TT_MAIN_H */
+#endif /* TT_MAIN_H */

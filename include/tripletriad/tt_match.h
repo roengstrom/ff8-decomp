@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_TT_MATCH_H
-#define TRIPLETRIAD_TT_MATCH_H
+#ifndef TT_MATCH_H
+#define TT_MATCH_H
 
 #include "common.h"
 #include "psxsdk/libgte.h"  /* SVECTOR (layoutCardSlot) */
@@ -90,4 +90,4 @@ typedef struct {
 extern u8  D_80082C9C;  /**< Match-result category byte (a @c TT_RESULT_* value). */
 extern s32 g_resultSfxHandle;  /**< Result-screen SFX node handle (from @c spawnGradientFade); dismissed on input. */
 
-#endif /* TRIPLETRIAD_TT_MATCH_H */
+#endif /* TT_MATCH_H */

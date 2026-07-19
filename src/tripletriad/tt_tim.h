@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_TT_TIM_H
-#define TRIPLETRIAD_TT_TIM_H
+#ifndef TT_TIM_H
+#define TT_TIM_H
 
 #include "common.h"
 
@@ -15,4 +15,4 @@ extern u8 g_tripleTriadBgTim1[]; /**< 384x224 16bpp board background 1 (also dec
 extern u8 g_tripleTriadAkao[];       /**< AKAO audio block fed to sndProcessAudio (also in tt_ui.h). */
 extern u8 g_tripleTriadSoundBank[];  /**< Sound-bank image at the end of the overlay (also in tt_ui.h). */
 
-#endif /* TRIPLETRIAD_TT_TIM_H */
+#endif /* TT_TIM_H */

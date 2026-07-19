@@ -1,5 +1,5 @@
-#ifndef TRIPLETRIAD_TT_TEXT_H
-#define TRIPLETRIAD_TT_TEXT_H
+#ifndef TT_TEXT_H
+#define TT_TEXT_H
 
 #include "common.h"
 #include "tripletriad.h"
@@ -92,4 +92,4 @@ extern u32           g_textPalette[9];     /**< '#0'..'#8' escape colors, indexe
 extern void func_8003F884(SVECTOR *a, SVECTOR *b, s32 wa, s32 wb, SVECTOR *out);
 extern void func_80041794(s32 angle, MATRIX *m);
 
-#endif /* TRIPLETRIAD_TT_TEXT_H */
+#endif /* TT_TEXT_H */
