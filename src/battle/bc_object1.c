@@ -82,8 +82,8 @@ void func_8009B198(s32);
 void func_8009B208(TaskLink *, u8 *, s32);
 s32  func_8009B238(u8 *, s32);
 s32  func_8009B270(u8 *, s32);
-s32  func_8009B2A4(u8 *, u8 *, s32);
-s32  func_8009B390(u8 *, s32);
+s32  func_8009B2A4(TaskLink *, u8 *, s32);
+u8   func_8009B390(TaskLink *, s32);
 void func_8009B428(void);
 void func_8009B478(void);
 void func_8009B520(void);
@@ -1062,16 +1062,15 @@ s32 func_8009B270(u8 *a0, s32 a1) {
  * @param a2 Number of slots.
  * @return Allocated slot index (as u8).
  */
-s32 func_8009B2A4(u8 *table, u8 *head, s32 count) {
-    s32 slot = (u8)func_8009B390(table, count);
-    u8 *entry = (u8 *)(slot * 4 + (s32)table);
+s32 func_8009B2A4(TaskLink *table, u8 *head, s32 count) {
+    u32 slot = func_8009B390(table, count);
 
-    entry[0] = *head;
-    entry[1] = 0xFF;
-    entry[2] = 0;
+    table[slot].fwd = *head;
+    table[slot].bwd = 0xFF;
+    table[slot].unk2 = 0;
 
     if (*head != 0xFF) {
-        table[*head * 4 + 1] = slot;
+        table[*head].bwd = slot;
     }
 
     *head = slot;
@@ -1125,13 +1124,13 @@ void func_8009B320(s32 a0, u8 *a1, u8 *a2) {
  * @param a1 Maximum number of entries to scan.
  * @return Index of the first inactive entry.
  */
-s32 func_8009B390(u8 *a0, s32 a1) {
+u8 func_8009B390(TaskLink *a0, s32 a1) {
     s32 i;
     for (i = 0; i < a1; i++) {
-        if (a0[0] == 0 && a0[1] == 0) {
-            return (u8)i;
+        if (a0->fwd == 0 && a0->bwd == 0) {
+            return i;
         }
-        a0 += 4;
+        a0++;
     }
 }
 
@@ -1149,7 +1148,7 @@ s32 func_8009B3D0(void *callback) {
     s32 base;
     unsigned long slot;
     base = (s32)D_800EE24B;
-    slot = func_8009B2A4((u8 *)base, (u8 *)(base + 0x1F3), 0x10);
+    slot = func_8009B2A4((TaskLink *)base, (u8 *)(base + 0x1F3), 0x10);
     *((s32 *)((((s32)D_800EE24B) + ((2 * slot) * 8)) + 0x41)) = (s32)callback;
     return (s16)slot;
 }
