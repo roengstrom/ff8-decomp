@@ -1467,5 +1467,5 @@ jtbl_80099C4C = 0x80099C4C; // type:jtbl size:0x38
 jtbl_80099C84 = 0x80099C84; // type:jtbl size:0x34
 jtbl_80099CB8 = 0x80099CB8; // type:jtbl size:0x1C
 jtbl_80099CD4 = 0x80099CD4; // type:jtbl size:0x2C
-jtbl_80099D00 = 0x80099D00; // type:jtbl size:0x2E8
+jtbl_80099D00 = 0x80099D00; // type:jtbl size:0x30
 g_fieldVars = 0x800562C4;

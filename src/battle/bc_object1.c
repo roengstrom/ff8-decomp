@@ -102,6 +102,86 @@ s32  func_8009B74C(s32, s32); /* also in field_engine */
 
 extern void func_800D0F74(void); /* defined in another battle TU */
 extern SoundCmd *func_800B8564(s32, s32); /* defined in bc_object9.c */
+extern u8 D_800EE38C[]; /* defined in the main binary */
+
+/* Forward declarations for callees defined later in this TU. */
+void func_8009A160(void);
+void func_8009A1E0(void);
+void func_80099FE8(void);
+void func_80099F18(void);
+void func_80099F58(void);
+void func_80099FA0(void);
+
+/**
+ * @brief Battle main loop driver.
+ *
+ * Resets the battle via @c func_80099FE8, then repeatedly dispatches on the
+ * battle state (@c D_800ED148.entities[0].state.word) until the split timer
+ * (@c D_800ED148.entities[0].timers.SplitTimer.timer) reaches zero. State 4
+ * runs the case-4 block: clears the entity animation group, sets @c unk5C3,
+ * rebuilds the three entity slots, applies status/flag cleanup and music
+ * calls, then resumes the state machine.
+ */
+void func_80099D30(void) {
+    void *var_s0;
+    s32 var_s1;
+
+    func_80099FE8();
+    while (D_800ED148.entities[0].timers.SplitTimer.timer != 0) {
+        switch (D_800ED148.entities[0].state.word) {
+        case 1:
+            func_8009A160();
+            break;
+        case 0:
+        case 2:
+            func_8009A308();
+            break;
+        case 3:
+            func_8009A1E0();
+            break;
+        case 4:
+            var_s1 = 0;
+            func_800DC664();
+            D_800ED148.unk5C3 = 1;
+            func_8009AB98();
+            func_8009AE9C();
+            var_s0 = D_800EE38C;
+            do {
+                func_800A5C48(var_s0);
+                var_s1 += 1;
+                var_s0 += 0x18;
+            } while (var_s1 < 3);
+            func_800A5BC4();
+            if (D_800ED148.unk12FE != 0) {
+                func_800A86F0(1);
+                func_800A86F0(2);
+                func_800A86F0(0);
+            }
+            if (D_800ED148.unk12FD == 0) {
+                func_800AD9C0();
+                func_800A63DC();
+            }
+            if ((D_800ED148.unk12EB != 0) && (D_800ED148.unk12FD == 0) && (D_800ED148.entities[0].stateMachine.unk0 == 0) && (D_80082C0F == 0)) {
+                func_800B0C08();
+                func_800B2038();
+            }
+            func_8009B478();
+            func_8009B520();
+            D_800ED148.unk5C3 = 0;
+            func_8009A308();
+            func_80099F18();
+            func_80099F58();
+            break;
+        }
+    }
+    func_800AF254();
+}
+
+INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object1", func_80099F18);
+
+INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object1", func_80099F58);
+
+INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object1", func_80099FA0);
 
 /**
  * @brief Battle initialization entry point.
