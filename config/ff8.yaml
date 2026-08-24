@@ -549,7 +549,7 @@ binaries:
     - [0x2C0F8, c, we_object13]
     - [0x2CCA4, bin]
     - [0x30640, bss, world_bss]
-    - [0x3B510, .bss, we_object4]
+    - [0x3B510, bss, world_bss_we4]
     - [0x3CE80, bss, world_bss2]
   - [0x50100]
 - name: SLUS_008.92
