@@ -63,7 +63,7 @@ def find_units():
             expected_o = EXPECTED / "build" / "src" / o_file.name
             units.append({
                 "name": f"src/{name}",
-                "target_path": str(expected_o.relative_to(ROOT)) if expected_o.exists() else str(o_file.relative_to(ROOT)),
+                "target_path": str(expected_o.relative_to(ROOT)),
                 "base_path": str(o_file.relative_to(ROOT)),
                 "metadata": {"progress_categories": ["main"]},
             })
@@ -72,18 +72,17 @@ def find_units():
         for subdir in sorted(MAIN_SRC_DIR.iterdir()):
             if subdir.is_dir() and subdir.name not in SDK_DIRS:
                 for o_file in sorted(subdir.glob("*.o")):
-                    name = o_file.stem
-                    rel = str(o_file.relative_to(MAIN_SRC_DIR))
+                    rel = o_file.relative_to(MAIN_SRC_DIR)
+                    expected_o = EXPECTED / "build" / "src" / rel
+                    rel_str = str(rel).replace('.o', '')
                     units.append({
-                        "name": f"src/{rel.replace('.o', '')}",
-                        "target_path": str(o_file.relative_to(ROOT)),
+                        "name": f"src/{rel_str}",
+                        "target_path": str(expected_o.relative_to(ROOT)),
                         "base_path": str(o_file.relative_to(ROOT)),
                         "metadata": {"progress_categories": ["main"]},
                     })
 
-    # Overlay .o files — for each overlay declared in CATEGORIES, find its
-    # build directory. Most overlays still live at build/ovl/<name>, but a
-    # few have been migrated to build/<name>; check both.
+    # Overlay .o files
     for cat in CATEGORIES:
         ovl_name = cat["id"]
         if ovl_name == "main":
@@ -101,7 +100,7 @@ def find_units():
             src_rel = str(rel_from_ovl).replace(".o", "")
             units.append({
                 "name": f"ovl/{ovl_name}/{Path(src_rel).name}",
-                "target_path": str(expected_o.relative_to(ROOT)) if expected_o.exists() else str(o_file.relative_to(ROOT)),
+                "target_path": str(expected_o.relative_to(ROOT)),
                 "base_path": str(o_file.relative_to(ROOT)),
                 "metadata": {"progress_categories": [ovl_name]},
             })
