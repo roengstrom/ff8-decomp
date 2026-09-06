@@ -42,17 +42,22 @@ typedef struct BattleEffectSlot {
     /* 0x7C */ u8 pad07C[0x9C - 0x7C];
 } BattleEffectSlot; /* 0x9C */
 
-extern BattleEffectSlot D_800EF2D0[];
-
-/** @brief @ref EffectEntity::flags -- stop the script after this opcode. */
 /** @brief Scratchpad address the per-frame world matrix is staged at. */
 #define EFFECT_SCRATCH_MATRIX 0x1F8002E0
 
+/** @brief @ref EffectEntity::flags -- stop the script after this opcode. */
 #define EFFECT_FLAG_STOP 0x1
 #define EFFECT_FLAG_UNK02 0x2
 /** @brief @ref EffectEntity::flags -- the script's counter reached its limit. */
 #define EFFECT_FLAG_DONE 0x4
 #define EFFECT_FLAG_UNK08 0x8
+/**
+ * @brief @ref EffectAnimSet::flags -- the effect's own assets are already up.
+ *
+ * Set, the overlay skips publishing its table and uploading its TIM.
+ */
+#define EFFECT_ANIMSET_FLAG_LOADED 0x1
+
 #define BATTLE_SLOT_FLAG_UNK02 0x2
 #define BATTLE_SLOT_FLAG_UNK04 0x4
 #define BATTLE_SLOT_FLAG_UNK20 0x20
@@ -248,7 +253,7 @@ typedef struct {
 /** @brief Owner of an effect's animation table. */
 typedef struct {
     /* 0x00 */ u8 slot;            /**< Battle slot the effect is attached to. */
-    /* 0x01 */ u8 unk001;
+    /* 0x01 */ u8 flags;          /**< See @c EFFECT_ANIMSET_FLAG_*. */
     /* 0x02 */ u8 pad002[0x4 - 0x2];
     /* 0x04 */ EffectAnim *anims;
 } EffectAnimSet;
@@ -302,5 +307,93 @@ typedef struct EffectEntity {
 
 /** @brief One step of an effect script: the handler for a single @c pc value. */
 typedef void (*EffectHandler)(EffectEntity *);
+
+/**
+ * @name battle.bin
+ *
+ * An effect overlay is entered from battle.bin and calls back into it for its
+ * task pools, its scratch allocations, model animation and prim output. These
+ * are that binary's exports, declared as the effect overlays use them; the
+ * battle sources carry their own view of the same symbols.
+ * @{
+ */
+
+/** @brief Per-entity battle records the effect overlays pose their models from. */
+extern BattleEffectSlot D_800EF2D0[];
+
+/** @brief The world matrix for this frame; effect matrices compose onto it. */
+extern MATRIX D_800F02C8;
+
+/** @brief The battle renderer's graphics context. */
+extern BattleGfx *D_800FA5E8;
+
+/** @brief Head of the prim list a posed battle model links into. */
+extern s32 D_800FA5F0;
+
+/** @brief Build a task pool of @p count entries of @p stride bytes. */
+void func_800B2A00(void *end, void *base, s32 stride, s32 count);
+
+/**
+ * @brief Take one task off @p pool and install @p task as its per-frame step.
+ *
+ * A task is called with the storage it was given and returns 2 once it is
+ * finished; the pool takes different entity kinds, so the parameter is untyped.
+ *
+ * @return The task's storage, or NULL if the pool is full.
+ */
+void *func_800B2A84(void *pool, void *task);
+
+/**
+ * @brief Run one frame of every task in @p pool.
+ * @return The number of tasks still live afterwards.
+ */
+s32 func_800B2B68(void *pool);
+
+/** @brief Take @p size bytes off the battle scratch stack. */
+void *func_800B3698(s32 size);
+
+/** @brief Give the top @p size bytes of the battle scratch stack back. */
+void func_800B36B8(s32 size);
+
+/** @brief Read the point @p id out of @p slot's model into @p out. */
+void func_800B3960(BattleEffectSlot *slot, s32 id, s32 arg2, SVECTOR *out);
+
+/** @brief Queue the TIM at @p arg0 for the battle renderer to upload. */
+void func_800BB084(u8 *arg0);
+
+/**
+ * @brief Link @p slot's posed model into an ordering table.
+ * @return The new head of the list @p head came from.
+ */
+s32 func_800BC060(BattleEffectSlot *slot, u8 *buf, s32 mode, s32 head);
+
+/** @brief Step @p anim by one frame. */
+void func_800BC420(u8 *anim);
+
+/** @brief Report whether @p anim can be posed at an explicit frame. */
+s32 func_800BCA3C(u8 *anim, u8 *state);
+
+/** @brief Pose @p anim at @p frame. */
+void func_800BCF6C(u8 *anim, u8 *state, s16 frame);
+
+/** @brief Hand one animation part to the battle model renderer. */
+void func_800BFE1C(EffectPart *part);
+
+/** @brief Publish the two tables inside @p arg0 for battle.bin to read. */
+void func_800C3BE0(u8 *arg0);
+
+/** @brief Queue the AKAO sound sequence at @p sequence for playback. */
+void func_800C4764(u8 *sequence, s32 arg1, s32 arg2);
+
+/** @brief Load the GTE matrices a prim at @p pos is emitted through. */
+void func_800C96E4(SVECTOR *pos, s32 scale, s16 angle);
+
+/**
+ * @brief Emit @p prim into @p ot.
+ * @return The new head of the prim buffer @p head came from.
+ */
+void *func_800C9E10(EffectPrim *prim, u8 *ot, s32 mode, void *head);
+
+/** @} */
 
 #endif /* EFFECT_H */

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "battle.h"
+#include "battle/bc_object16.h"
 #include "psxsdk/libgte.h"
 
 void func_800A5454(void);
@@ -21,9 +22,7 @@ extern s32 D_800EEC5C;
 s32 func_800B3698(s32 size);
 s32 func_800B36B8(s32 size);
 s32 func_800C6B1C(s32 idx);
-s32 func_800CBC68(s32 prim, s32 a1, s32 a2, s32 a3);
 
-void func_800CE158(void);
 u32 func_8009A2E0(void);
 void func_800D13CC(void);
 void func_800D5E48(void);
@@ -93,7 +92,7 @@ s32 func_800CD35C(ParticleEntry *p) {
     SVECTOR     rot;
     MATRIX      m;
     VECTOR      scale;
-    EffectPrim *prim;
+    BattleEffectPrim *prim;
     s32         newFrame;
 
     rot.vx = 0;
@@ -112,7 +111,7 @@ s32 func_800CD35C(ParticleEntry *p) {
     SetRotMatrix(&m);
     SetTransMatrix(&m);
 
-    prim = (EffectPrim *)func_800B3698(0x58);
+    prim = (BattleEffectPrim *)func_800B3698(0x58);
     prim->dispatch = (s32 *)func_800C6B1C(4);
     prim->cmd      = 0x3867;
     prim->flags    = 0x230;
@@ -181,7 +180,7 @@ s32 func_800CDF3C(ParticleEntry *p) {
     SVECTOR     rot;
     MATRIX      m;
     VECTOR      scale;
-    EffectPrim *prim;
+    BattleEffectPrim *prim;
 
     if (p->delay > 0) {
         if (D_800EEC5C & 1) {
@@ -207,7 +206,7 @@ s32 func_800CDF3C(ParticleEntry *p) {
     SetRotMatrix(&m);
     SetTransMatrix(&m);
 
-    prim = (EffectPrim *)func_800B3698(0x58);
+    prim = (BattleEffectPrim *)func_800B3698(0x58);
     prim->dispatch = (s32 *)func_800C6B1C(3);
     prim->cmd      = p->cmdWord;
     prim->flags    = 0x233;

@@ -1212,7 +1212,7 @@ typedef struct {
     /* 0x18 */ u8  pad18[0x4];       /**< Cleared when flag bit @c 0x1000 unset. */
     /* 0x1C */ s32 flags;            /**< Attribute/flag word (bits @c 0x1000 / @c 0x2000 read by @c func_800CBC68). */
     /* 0x20 */ u8  pad20[0x38];      /**< Working pointer + remaining unmapped fields. */
-} EffectPrim; /* 0x58 */
+} BattleEffectPrim; /* 0x58 */
 
 
 /* ---------------------------------------------------------------- *

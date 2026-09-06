@@ -3,40 +3,27 @@
  * @brief Cure
  */
 #include "common.h"
+#include "game.h"
 #include "effect.h"
 #include "psxsdk/libgpu.h"
 #include "effect/effect_001.h"
+#include "btl_entity.h"
 
-extern s32 D_801C58E0;
-extern s32 D_801C58E4;
-extern u8 *D_801C58F0;
-extern u8 *D_801C58FC;
-extern u8 *D_801C5900;
-extern u8 *D_801C5904;
-extern u8 *D_801C5908;
-extern s32 D_801C5910;
-extern s32 D_801C59E0;
-extern s32 D_801C59F0;
-extern s32 D_801C5B60;
-extern s32 D_801D3900;
-extern u8 D_801A475C;
-extern u8 D_801A4F0C;
-void func_800B2A00(void *end, void *base, s32 stride, s32 count);
-void func_800C3BE0(u8 *arg0);
-void func_800BB084(u8 *arg0);
-s32 func_801A4434(EffectEntity *entity);
-extern s32 D_801C532C;
-extern EffectRender D_801D3800;
-extern s32 D_801D37F0;
-extern EffectRenderPart D_801CDA00;
-extern s32 D_801CDA30;
-extern s32 D_801C5380;
-extern s32 D_801C5410;
-extern s32 D_801C55EC;
-extern s32 D_801C5B50;
-extern s32 D_801CD9F0;
-extern s32 D_801D5D14;
-extern s32 D_801D5D18;
+static void func_801A0644(MATRIX *m, s32 angle);
+static void func_801A0960(MATRIX *m, SVECTOR *dir, SVECTOR *up);
+static EffectEntity *func_801A0B00(void *pool, void *task, s32 stride,
+                                   EffectEntity *owner);
+static s32 func_801A2E48(EffectSpark *spark);
+static void func_801A351C(EffectEntity *entity);
+static void func_801A3640(EffectEntity *entity);
+static s32 func_801A3924(EffectEntity *entity);
+static s32 func_801A3B6C(EffectEntity *entity);
+static s32 func_801A3E64(EffectEntity *entity);
+static s32 func_801A41C8(EffectEntity *entity);
+static s32 func_801A4434(EffectEntity *entity);
+
+/** @brief Stride between the prim and frame banks carved out of the TIM. */
+#define EFFECT_BANK_SIZE 0x10000
 
 /** @brief Scratch a model's bounding box is accumulated in. */
 typedef struct {
@@ -65,52 +52,6 @@ typedef struct {
     /* 0x20 */ s16 sin;
     /* 0x22 */ s16 cos;
 } EffectRotScratch; /* 0x24 */
-
-/** @brief Per-frame script step installed on a task by @ref func_801A0B00. */
-typedef s32 (*EffectTask)(EffectEntity *);
-
-EffectEntity *func_801A0B00(void *pool, EffectTask task, s32 stride,
-                            EffectEntity *owner);
-void *func_800B2A84(void *pool, EffectTask task);
-s32 func_801A3E64(EffectEntity *entity);
-s32 func_801A41C8(EffectEntity *entity);
-s32 func_801A3B6C(EffectEntity *entity);
-s32 func_801A3924(EffectEntity *entity);
-s32 func_801A2E48(EffectSpark *spark);
-extern s32 D_801D5CF0;
-void func_800C4764(u8 *sequence, s32 arg1, s32 arg2);
-void func_800B3960(BattleEffectSlot *slot, s32 id, s32 arg2, SVECTOR *out);
-void func_800BC420(u8 *anim);
-s32 func_800BCA3C(u8 *anim, u8 *state);
-void func_800BCF6C(u8 *anim, u8 *state, s16 frame);
-s32 func_800BC060(BattleEffectSlot *slot, u8 *buf, s32 mode, s32 head);
-void func_801A1EBC(struct EffectSkeleton **skeleton, u8 *ot, s32 mode, EffectRender *render);
-void func_801A0644(MATRIX *m, s32 angle);
-void func_801A3640(EffectEntity *entity);
-void func_801A351C(EffectEntity *entity);
-extern u8 D_801C58B8[];
-void *func_800B3698(s32 size);
-extern MATRIX D_800F02C8;
-extern u8 D_801A4678[];
-void func_801A0960(MATRIX *m, SVECTOR *dir, SVECTOR *up);
-void MatrixNormal_2(MATRIX *in, MATRIX *out);
-void VectorNormalS(VECTOR *in, SVECTOR *out);
-void func_800BFE1C(EffectPart *part);
-void func_800B36B8(s32 size);
-void func_800C96E4(SVECTOR *pos, s32 scale, s16 angle);
-void *func_800C9E10(EffectPrim *prim, u8 *ot, s32 mode, void *head);
-extern void *D_801C58F4;
-extern void *D_801C58F8;
-extern MATRIX *D_801C58E8;
-extern MATRIX *D_801C58EC;
-s32 func_800B2B68(void *pool);
-extern BattleGfx *D_800FA5E8;
-extern s32 D_800FA5F0;
-extern u8 D_801D5D00[];
-u8 *getMenuString(s32 id);
-extern s32 D_801D5D1C;
-extern MATRIX D_801D5D20[];
-void *func_8002C56C(u8 *font, void *head, s32 x, s32 y, u8 *text, s32 style);
 
 /**
  * @brief Start an effect script and hand back its task pool.
@@ -142,19 +83,19 @@ void *func_801A0000(EffectAnimSet *animSet) {
     if (entity->unk02F < entity->unk058) {
         entity->unk02F = entity->unk058;
     }
-    if (!(animSet->unk001 & 1)) {
+    if (!(animSet->flags & EFFECT_ANIMSET_FLAG_LOADED)) {
         func_800C3BE0(&D_801A475C);
         func_800BB084(&D_801A4F0C);
     }
     D_801C58F0 = &D_801A4F0C;
     bank0 = &D_801A4F0C;
     D_801C58FC = bank0;
-    bank1 = bank0 + 0x10000;
-    D_801C5904 = bank0 + 0x10000;
-    D_801C58F0 = bank0 + 0x10000;
+    bank1 = bank0 + EFFECT_BANK_SIZE;
+    D_801C5904 = bank0 + EFFECT_BANK_SIZE;
+    D_801C58F0 = bank0 + EFFECT_BANK_SIZE;
     frames = bank1;
     D_801C5900 = frames;
-    frames += 0x10000;
+    frames += EFFECT_BANK_SIZE;
     D_801C58F0 = frames;
     D_801C5908 = frames;
     func_800B2A00(&D_801C5B50, &D_801C59F0, 0x58, 4);
@@ -163,8 +104,13 @@ void *func_801A0000(EffectAnimSet *animSet) {
     return &D_801C59E0;
 }
 
-/** @brief Cache the sixteen hex digit glyphs and reset the debug text cursor. */
-void func_801A01F0(void) {
+/**
+ * @brief Cache the sixteen hex digit glyphs and reset the debug text cursor.
+ *
+ * @note The lookup runs once per glyph -- the target holds 16 separate calls,
+ *       so a loop or a cached pointer does not match.
+ */
+static void func_801A01F0(void) {
     D_801D5D00[0] = getMenuString(11)[1];
     D_801D5D00[1] = getMenuString(11)[2];
     D_801D5D00[2] = getMenuString(11)[3];
@@ -188,7 +134,7 @@ void func_801A01F0(void) {
 }
 
 /** @brief Draw @p value as eight hex glyphs at the current debug text cursor. */
-void func_801A0340(u32 value) {
+static void func_801A0340(u32 value) {
     u8 *font = D_800FA5E8->font;
     u8 text[9];
     s32 i;
@@ -204,13 +150,13 @@ void func_801A0340(u32 value) {
 }
 
 /** @brief Opcode handler: arm the frame delay and advance the running total. */
-void func_801A03EC(void) {
+static void func_801A03EC(void) {
     D_801D5D14 = 10;
     D_801D5D18 += 10;
 }
 
 /** @brief Opcode handler: no-op. */
-void func_801A040C(EffectEntity *entity) {
+static void func_801A040C(EffectEntity *entity) {
 }
 
 /**
@@ -224,7 +170,7 @@ void func_801A040C(EffectEntity *entity) {
  * @param clutY Palette Y.
  * @param abr   Semi-transparency rate for the page.
  */
-void func_801A0414(s16 x, s16 y, s16 tx, s16 ty, u32 clutX, s32 clutY,
+static void func_801A0414(s16 x, s16 y, s16 tx, s16 ty, u32 clutX, s32 clutY,
                    s32 abr) {
     POLY_FT4 *poly = D_801C58F4;
 
@@ -257,7 +203,7 @@ void func_801A0414(s16 x, s16 y, s16 tx, s16 ty, u32 clutX, s32 clutY,
  * @param clutY Palette Y.
  * @param abr   Semi-transparency rate for the page.
  */
-void func_801A0510(s16 x, s16 y, s16 tx, s16 ty, u32 clutX, s32 clutY,
+static void func_801A0510(s16 x, s16 y, s16 tx, s16 ty, u32 clutX, s32 clutY,
                    s32 abr) {
     POLY_FT4 *poly = D_801C58F4;
 
@@ -280,7 +226,7 @@ void func_801A0510(s16 x, s16 y, s16 tx, s16 ty, u32 clutX, s32 clutY,
 }
 
 /** @brief Load the identity matrix. */
-void func_801A060C(MATRIX *m) {
+static void func_801A060C(MATRIX *m) {
     m->m[0][0] = ONE;
     m->m[1][0] = 0;
     m->m[2][0] = 0;
@@ -296,7 +242,7 @@ void func_801A060C(MATRIX *m) {
 }
 
 /** @brief Post-multiply @p m by a rotation of @p angle about X. */
-void func_801A0644(MATRIX *m, s32 angle) {
+static void func_801A0644(MATRIX *m, s32 angle) {
     EffectRotScratch *rot = func_800B3698(sizeof(EffectRotScratch));
 
     rot->sin = rsin(angle);
@@ -320,7 +266,7 @@ void func_801A0644(MATRIX *m, s32 angle) {
  * @param m     Matrix rotated in place.
  * @param angle Rotation, in the 0x1000-per-turn units @ref rsin takes.
  */
-void func_801A07D4(MATRIX *m, s32 angle) {
+static void func_801A07D4(MATRIX *m, s32 angle) {
     EffectRotScratch *rot = func_800B3698(sizeof(EffectRotScratch));
 
     rot->sin = rsin(angle);
@@ -339,17 +285,20 @@ void func_801A07D4(MATRIX *m, s32 angle) {
 }
 
 /** @brief Build a matrix in @p m that aims along @p dir with @p up as the roll. */
-void func_801A0960(MATRIX *m, SVECTOR *dir, SVECTOR *up) {
+static void func_801A0960(MATRIX *m, SVECTOR *dir, SVECTOR *up) {
     MATRIX *basis = func_800B3698(sizeof(MATRIX));
+    SVECTOR *row1 = (SVECTOR *)basis->m[1];
     SVECTOR *row2 = (SVECTOR *)basis->m[2];
 
-    /* The basis vectors live in the matrix rows, so `up` spans m[1][0..2] and
-       m[2][0] as one SVECTOR before m[2] is filled in. */
-    *(SVECTOR *)basis->m[1] = *up;
+    /* A matrix row is 6 bytes, so the whole-vector store spills one halfword
+       into row 2 -- harmless, row 2 is written next. The width is load-bearing:
+       it is the unaligned 8-byte copy the target does here, where the
+       element-wise stores below are three halfwords. */
+    *row1 = *up;
     row2->vx = dir->vx;
     row2->vy = dir->vy;
     row2->vz = dir->vz;
-    gte_ldopv1SV(basis->m[1]);
+    gte_ldopv1SV(row1);
     gte_ldopv2SV(row2);
     gte_op12();
     gte_stsv(basis->m[0]);
@@ -359,7 +308,7 @@ void func_801A0960(MATRIX *m, SVECTOR *dir, SVECTOR *up) {
 }
 
 /** @brief Aim @p m along the vector from @p from to @p to, Y up. */
-void func_801A0A6C(MATRIX *m, SVECTOR *from, SVECTOR *to) {
+static void func_801A0A6C(MATRIX *m, SVECTOR *from, SVECTOR *to) {
     SVECTOR up;
     SVECTOR delta;
 
@@ -373,7 +322,7 @@ void func_801A0A6C(MATRIX *m, SVECTOR *from, SVECTOR *to) {
 }
 
 /** @brief Opcode handler: release one frame of the linked script's wait. */
-void func_801A0AD8(EffectEntity *entity) {
+static void func_801A0AD8(EffectEntity *entity) {
     if (entity->unk018 != NULL) {
         entity->unk018->wait--;
     }
@@ -393,8 +342,8 @@ void func_801A0AD8(EffectEntity *entity) {
  * @param owner  Parent entity, or NULL for a root.
  * @return The new entity, or NULL if the pool is full.
  */
-EffectEntity *func_801A0B00(void *pool, EffectTask task, s32 stride,
-                            EffectEntity *owner) {
+static EffectEntity *func_801A0B00(void *pool, void *task, s32 stride,
+                                   EffectEntity *owner) {
     EffectEntity *node = func_800B2A84(pool, task);
     s32 *clear;
     s32 words;
@@ -438,7 +387,7 @@ EffectEntity *func_801A0B00(void *pool, EffectTask task, s32 stride,
 }
 
 /** @brief Cache the battle slot's two anchor points and their midpoint. */
-void func_801A0C8C(EffectEntity *entity) {
+static void func_801A0C8C(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
     SVECTOR top;
     SVECTOR bottom;
@@ -460,22 +409,22 @@ void func_801A0C8C(EffectEntity *entity) {
 }
 
 /** @brief Copy @c unk030 of the linked model out to @p out. */
-void func_801A0DC0(EffectEntity *entity, SVECTOR *out) {
+static void func_801A0DC0(EffectEntity *entity, SVECTOR *out) {
     *out = entity->unk014->unk030;
 }
 
 /** @brief Copy @c unk038 of the linked model out to @p out. */
-void func_801A0DF0(EffectEntity *entity, SVECTOR *out) {
+static void func_801A0DF0(EffectEntity *entity, SVECTOR *out) {
     *out = entity->unk014->unk038;
 }
 
 /** @brief Copy @c unk040 of the linked model out to @p out. */
-void func_801A0E20(EffectEntity *entity, SVECTOR *out) {
+static void func_801A0E20(EffectEntity *entity, SVECTOR *out) {
     *out = entity->unk014->unk040;
 }
 
 /** @brief As @ref func_801A0C8C, but for the slot the animation set names. */
-void func_801A0E50(EffectEntity *entity) {
+static void func_801A0E50(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->animSet->slot];
     SVECTOR top;
     SVECTOR bottom;
@@ -497,17 +446,17 @@ void func_801A0E50(EffectEntity *entity) {
 }
 
 /** @brief Copy @c unk030 of the linked model out to @p out. */
-void func_801A0F8C(EffectEntity *entity, SVECTOR *out) {
+static void func_801A0F8C(EffectEntity *entity, SVECTOR *out) {
     *out = entity->unk010->unk030;
 }
 
 /** @brief Copy @c unk038 of the linked model out to @p out. */
-void func_801A0FBC(EffectEntity *entity, SVECTOR *out) {
+static void func_801A0FBC(EffectEntity *entity, SVECTOR *out) {
     *out = entity->unk010->unk038;
 }
 
 /** @brief Copy @c unk040 of the linked model out to @p out. */
-void func_801A0FEC(EffectEntity *entity, SVECTOR *out) {
+static void func_801A0FEC(EffectEntity *entity, SVECTOR *out) {
     *out = entity->unk010->unk040;
 }
 
@@ -519,7 +468,7 @@ void func_801A0FEC(EffectEntity *entity, SVECTOR *out) {
  *
  * @param entity Entity whose model is measured.
  */
-void func_801A101C(EffectEntity *entity) {
+static void func_801A101C(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
     EffectSkeleton *skeleton = *slot->skeleton;
     EffectJoint *joint = skeleton->joints;
@@ -575,7 +524,7 @@ void func_801A101C(EffectEntity *entity) {
 }
 
 /** @brief Copy the linked model's bounding box out to @p min and @p max. */
-void func_801A1268(EffectEntity *entity, SVECTOR *min, SVECTOR *max) {
+static void func_801A1268(EffectEntity *entity, SVECTOR *min, SVECTOR *max) {
     EffectModel *model = entity->unk014;
 
     *min = model->boundsMin;
@@ -588,7 +537,7 @@ void func_801A1268(EffectEntity *entity, SVECTOR *min, SVECTOR *max) {
  * @param entity Entity whose model is measured.
  * @return Half the largest of the box's three extents.
  */
-s32 func_801A12B8(EffectEntity *entity) {
+static s32 func_801A12B8(EffectEntity *entity) {
     EffectModel *model = entity->unk014;
     s16 dx = model->boundsMax.vx - model->boundsMin.vx;
     s16 dy = model->boundsMax.vy - model->boundsMin.vy;
@@ -606,14 +555,14 @@ s32 func_801A12B8(EffectEntity *entity) {
 }
 
 /** @brief Half the height of the linked model's bounding box. */
-s16 func_801A135C(EffectEntity *entity) {
+static s16 func_801A135C(EffectEntity *entity) {
     EffectModel *model = entity->unk014;
 
     return (s16)(model->boundsMax.vy - model->boundsMin.vy) / 2;
 }
 
 /** @brief Half the linked model's larger horizontal extent. */
-s16 func_801A138C(EffectEntity *entity) {
+static s16 func_801A138C(EffectEntity *entity) {
     EffectModel *model = entity->unk014;
     s16 spanX = model->boundsMax.vx - model->boundsMin.vx;
     s16 spanZ = model->boundsMax.vz - model->boundsMin.vz;
@@ -625,26 +574,26 @@ s16 func_801A138C(EffectEntity *entity) {
 }
 
 /** @brief Height of the linked model's bounding box. */
-s16 func_801A13E4(EffectEntity *entity) {
+static s16 func_801A13E4(EffectEntity *entity) {
     return entity->unk014->boundsMax.vy - entity->unk014->boundsMin.vy;
 }
 
 /** @brief Y of the top of the linked model, in battle-entity space. */
-s16 func_801A1408(EffectEntity *entity) {
+static s16 func_801A1408(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
 
     return slot->unk01E + entity->unk014->boundsMax.vy;
 }
 
 /** @brief Y of the bottom of the linked model, in battle-entity space. */
-s16 func_801A1450(EffectEntity *entity) {
+static s16 func_801A1450(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
 
     return slot->unk01E + entity->unk014->boundsMin.vy;
 }
 
 /** @brief A random point up the linked model, in battle-entity space. */
-s16 func_801A1498(EffectEntity *entity) {
+static s16 func_801A1498(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
     EffectModel *model = entity->unk014;
     s16 height = model->boundsMax.vy - model->boundsMin.vy;
@@ -654,7 +603,7 @@ s16 func_801A1498(EffectEntity *entity) {
 }
 
 /** @brief Y of the centre of the linked model, in battle-entity space. */
-s16 func_801A1550(EffectEntity *entity) {
+static s16 func_801A1550(EffectEntity *entity) {
     EffectModel *model = entity->unk014;
 
     return D_800EF2D0[entity->unk02D].unk01E +
@@ -662,7 +611,7 @@ s16 func_801A1550(EffectEntity *entity) {
 }
 
 /** @brief Centre of the linked model's bounding box. */
-void func_801A15A4(EffectEntity *entity, SVECTOR *out) {
+static void func_801A15A4(EffectEntity *entity, SVECTOR *out) {
     EffectModel *model = entity->unk014;
 
     out->vx = (model->boundsMax.vx + model->boundsMin.vx) / 2;
@@ -671,7 +620,7 @@ void func_801A15A4(EffectEntity *entity, SVECTOR *out) {
 }
 
 /** @brief Zero @p size bytes' worth of words starting at @p dst. */
-void func_801A1610(s32 *dst, s32 size) {
+static void func_801A1610(s32 *dst, s32 size) {
     s32 i;
 
     for (i = 0; i < size / 4; i++) {
@@ -681,7 +630,7 @@ void func_801A1610(s32 *dst, s32 size) {
 }
 
 /** @brief Build this effect's primitive and link it into the battle display list. */
-void func_801A1648(EffectEntity *entity) {
+static void func_801A1648(EffectEntity *entity) {
     s16 count;
     EffectPrim *prim;
 
@@ -699,7 +648,7 @@ void func_801A1648(EffectEntity *entity) {
 }
 
 /** @brief Advance the script's counter, clamping at its limit. */
-s32 func_801A16E4(EffectEntity *entity) {
+static s32 func_801A16E4(EffectEntity *entity) {
     entity->unk050++;
     if (entity->unk052 < entity->unk050) {
         entity->unk050 = entity->unk052;
@@ -710,7 +659,7 @@ s32 func_801A16E4(EffectEntity *entity) {
 }
 
 /** @brief Pose @p model at the entity's position and link it into the OT. */
-void func_801A172C(EffectEntity *entity, void *model, CVECTOR *colour) {
+static void func_801A172C(EffectEntity *entity, void *model, CVECTOR *colour) {
     MATRIX m;
     void **head;
     EffectPrim *prim;
@@ -737,7 +686,7 @@ void func_801A172C(EffectEntity *entity, void *model, CVECTOR *colour) {
 }
 
 /** @brief Refresh the render matrices from @p pose and apply the offset. */
-void func_801A181C(EffectRender *render, BattleEffectSlot *slot) {
+static void func_801A181C(EffectRender *render, BattleEffectSlot *slot) {
     SVECTOR offset;
 
     render->unk014 = slot->mtx;
@@ -758,7 +707,7 @@ void func_801A181C(EffectRender *render, BattleEffectSlot *slot) {
 }
 
 /** @brief Compose each joint's matrix through the pose and the per-joint offset. */
-void func_801A1960(EffectSkeletonRef *ref, EffectPose *pose) {
+static void func_801A1960(EffectSkeletonRef *ref, EffectPose *pose) {
     MATRIX *offset = D_801D5D20;
     EffectSkeleton *skeleton = *ref->skeleton;
     EffectJoint *joint = skeleton->joints;
@@ -773,7 +722,7 @@ void func_801A1960(EffectSkeletonRef *ref, EffectPose *pose) {
 }
 
 /** @brief Rebase a table of absolute pointers into offsets from its own head. */
-void func_801A1A0C(s32 *table) {
+static void func_801A1A0C(s32 *table) {
     s32 *base;
     s32 count;
     s32 i;
@@ -787,7 +736,7 @@ void func_801A1A0C(s32 *table) {
 }
 
 /** @brief Aim the render's model at the camera reference point. */
-void func_801A1A4C(EffectRender *render) {
+static void func_801A1A4C(EffectRender *render) {
     EffectAimScratch *a = func_800B3698(sizeof(EffectAimScratch));
     s32 dx;
     s32 dy;
@@ -826,7 +775,7 @@ void func_801A1A4C(EffectRender *render) {
 }
 
 /** @brief Reset a render request to its default pose, white, and unit scale. */
-void func_801A1D38(EffectRender *render, void *pose, EffectRenderPart *part,
+static void func_801A1D38(EffectRender *render, void *pose, EffectRenderPart *part,
                    void *texture, BattleEffectSlot *source, s32 frame) {
     render->unk00C = &D_800FA5F0;
     render->unk000 = pose;
@@ -866,7 +815,7 @@ void func_801A1D38(EffectRender *render, void *pose, EffectRenderPart *part,
 }
 
 /** @brief Point a render request at a texture page, CLUT and source rectangle. */
-void func_801A1DF4(EffectRender *render, SVECTOR *pos, s16 tx, s16 ty,
+static void func_801A1DF4(EffectRender *render, SVECTOR *pos, s16 tx, s16 ty,
                    s16 clutX, s16 clutY, s16 w, s16 h) {
     POLY_FT3 poly;
 
@@ -890,7 +839,7 @@ void func_801A1DF4(EffectRender *render, SVECTOR *pos, s16 tx, s16 ty,
 INCLUDE_ASM("asm/ovl/effect_001/nonmatchings/effect_001", func_801A1EBC);
 
 /** @brief Pose the effect's model and link its skeletons into the battle OT. */
-void func_801A2D0C(EffectRender *render) {
+static void func_801A2D0C(EffectRender *render) {
     BattleEffectSlot *slot = render->slot;
 
     func_801A181C(render, slot);
@@ -923,7 +872,7 @@ void func_801A2D0C(EffectRender *render) {
  * @param spark Spark being stepped.
  * @return 2 once the spark has stopped and drained, 0 while it is still live.
  */
-s32 func_801A2E48(EffectSpark *spark) {
+static s32 func_801A2E48(EffectSpark *spark) {
     u32 *ot = (u32 *)D_800FA5E8->ot;
     POLY_G3 *prim = D_801C58F4;
     POLY_G4 *quad;
@@ -1078,7 +1027,7 @@ s32 func_801A2E48(EffectSpark *spark) {
  *
  * @param entity Script spawning the sparks.
  */
-void func_801A351C(EffectEntity *entity) {
+static void func_801A351C(EffectEntity *entity) {
     EffectSpark *spark;
     s32 count;
     s32 i;
@@ -1097,7 +1046,7 @@ void func_801A351C(EffectEntity *entity) {
     }
     for (i = 0; i < count; i++) {
         spark = (EffectSpark *)func_801A0B00(&D_801D5CF0,
-                                             (EffectTask)func_801A2E48, 0x5C,
+                                             func_801A2E48, 0x5C,
                                              entity);
         spark->unk056 = 8;
         spark->r = 0x10;
@@ -1127,7 +1076,7 @@ void func_801A351C(EffectEntity *entity) {
  *
  * @param entity Script spawning the sparks.
  */
-void func_801A3640(EffectEntity *entity) {
+static void func_801A3640(EffectEntity *entity) {
     s32 count;
     s32 i;
 
@@ -1165,7 +1114,7 @@ void func_801A3640(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: start a downward drift with a randomised speed. */
-void func_801A3840(EffectEntity *entity) {
+static void func_801A3840(EffectEntity *entity) {
     entity->unk04C = &D_801C5410;
     entity->unk052 = 0x10;
     entity->unk05A = -(rand() & 0xF) - 8;
@@ -1175,7 +1124,7 @@ void func_801A3840(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: drift by the current velocity until the count runs out. */
-void func_801A38A0(EffectEntity *entity) {
+static void func_801A38A0(EffectEntity *entity) {
     entity->pos.vx += entity->unk058;
     entity->pos.vy += entity->unk05A;
     entity->pos.vz += entity->unk05C;
@@ -1186,11 +1135,11 @@ void func_801A38A0(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: no-op. */
-void func_801A391C(EffectEntity *entity) {
+static void func_801A391C(EffectEntity *entity) {
 }
 
 /** @brief Run one frame of this effect's script and report whether it ended. */
-s32 func_801A3924(EffectEntity *entity) {
+static s32 func_801A3924(EffectEntity *entity) {
     EffectHandler handlers[3] = { func_801A3840, func_801A38A0, func_801A391C };
 
     handlers[entity->pc](entity);
@@ -1207,7 +1156,7 @@ s32 func_801A3924(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: spawn this frame's batch of scatter tasks. */
-void func_801A39CC(EffectEntity *entity) {
+static void func_801A39CC(EffectEntity *entity) {
     s32 count;
     s32 i;
 
@@ -1237,7 +1186,7 @@ void func_801A39CC(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: start a scatter with a randomised velocity. */
-void func_801A3A74(EffectEntity *entity) {
+static void func_801A3A74(EffectEntity *entity) {
     entity->unk04C = &D_801C55EC;
     entity->unk052 = 8;
     entity->unk058 = (rand() & 0x1F) - 0x10;
@@ -1247,7 +1196,7 @@ void func_801A3A74(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: drift by the current velocity until the count runs out. */
-void func_801A3AE8(EffectEntity *entity) {
+static void func_801A3AE8(EffectEntity *entity) {
     entity->pos.vx += entity->unk058;
     entity->pos.vy += entity->unk05A;
     entity->pos.vz += entity->unk05C;
@@ -1258,11 +1207,11 @@ void func_801A3AE8(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: no-op. */
-void func_801A3B64(EffectEntity *entity) {
+static void func_801A3B64(EffectEntity *entity) {
 }
 
 /** @brief Run one frame of this effect's script and report whether it ended. */
-s32 func_801A3B6C(EffectEntity *entity) {
+static s32 func_801A3B6C(EffectEntity *entity) {
     EffectHandler handlers[3] = { func_801A3A74, func_801A3AE8, func_801A3B64 };
 
     handlers[entity->pc](entity);
@@ -1279,7 +1228,7 @@ s32 func_801A3B6C(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: aim the effect at the target and hand it to the renderer. */
-void func_801A3C14(EffectEntity *entity) {
+static void func_801A3C14(EffectEntity *entity) {
     BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
     s16 span;
 
@@ -1304,7 +1253,7 @@ void func_801A3C14(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: once the timer passes 20, latch the table and step on. */
-void func_801A3D94(EffectEntity *entity) {
+static void func_801A3D94(EffectEntity *entity) {
     if (entity->unk024 >= 20) {
         entity->unk04C = &D_801C5380;
         entity->unk052 = 4;
@@ -1313,7 +1262,7 @@ void func_801A3D94(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: release the battle slot once the count runs out. */
-void func_801A3DCC(EffectEntity *entity) {
+static void func_801A3DCC(EffectEntity *entity) {
     BattleEffectSlot *slot;
     EffectModel *model;
 
@@ -1330,7 +1279,7 @@ void func_801A3DCC(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: no-op. */
-void func_801A3E5C(EffectEntity *entity) {
+static void func_801A3E5C(EffectEntity *entity) {
 }
 
 /**
@@ -1344,7 +1293,7 @@ void func_801A3E5C(EffectEntity *entity) {
  * @param entity Script being stepped.
  * @return 2 once the script has stopped and drained, 0 while it is still live.
  */
-s32 func_801A3E64(EffectEntity *entity) {
+static s32 func_801A3E64(EffectEntity *entity) {
     EffectHandler handlers[] = {
         func_801A3C14, func_801A3D94, func_801A3DCC, func_801A3E5C,
     };
@@ -1396,18 +1345,18 @@ s32 func_801A3E64(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: start a task running @ref func_801A3E64. */
-void func_801A40D4(EffectEntity *entity) {
+static void func_801A40D4(EffectEntity *entity) {
     func_801A0B00(&D_801CD9F0, func_801A3E64, 0x6C, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: consume the opcode and do nothing else. */
-void func_801A4124(EffectEntity *entity) {
+static void func_801A4124(EffectEntity *entity) {
     entity->pc++;
 }
 
 /** @brief Opcode handler: hand the selected animation part to the battle renderer. */
-void func_801A4138(EffectEntity *entity) {
+static void func_801A4138(EffectEntity *entity) {
     if (entity->unk024 >= 15) {
         func_800BFE1C(&entity->animSet->anims[entity->unk02A].parts[entity->unk02B]);
         entity->flags |= EFFECT_FLAG_STOP;
@@ -1416,11 +1365,11 @@ void func_801A4138(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: no-op. */
-void func_801A41C0(EffectEntity *entity) {
+static void func_801A41C0(EffectEntity *entity) {
 }
 
 /** @brief Run one frame of this effect's script and report whether it ended. */
-s32 func_801A41C8(EffectEntity *entity) {
+static s32 func_801A41C8(EffectEntity *entity) {
     EffectHandler handlers[4] = { func_801A40D4, func_801A4124, func_801A4138,
                                   func_801A41C0 };
 
@@ -1442,31 +1391,31 @@ s32 func_801A41C8(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: consume the opcode and do nothing else. */
-void func_801A42A4(EffectEntity *entity) {
+static void func_801A42A4(EffectEntity *entity) {
     entity->pc++;
 }
 
 /** @brief Opcode handler: consume the opcode and do nothing else. */
-void func_801A42B8(EffectEntity *entity) {
+static void func_801A42B8(EffectEntity *entity) {
     entity->pc++;
 }
 
 /** @brief Opcode handler: stall here until the wait counter runs out. */
-void func_801A42CC(EffectEntity *entity) {
+static void func_801A42CC(EffectEntity *entity) {
     if (entity->wait == 0) {
         entity->pc++;
     }
 }
 
 /** @brief Opcode handler: start a task running @ref func_801A41C8. */
-void func_801A42F4(EffectEntity *entity) {
+static void func_801A42F4(EffectEntity *entity) {
     entity->unk063 = 1;
     func_801A0B00(&D_801C5B50, func_801A41C8, 0x58, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: repeat the preceding opcode until the count runs out. */
-void func_801A434C(EffectEntity *entity) {
+static void func_801A434C(EffectEntity *entity) {
     if (entity->unk063 != 0) {
         return;
     }
@@ -1480,35 +1429,35 @@ void func_801A434C(EffectEntity *entity) {
 }
 
 /** @brief Opcode handler: consume the opcode and do nothing else. */
-void func_801A43AC(EffectEntity *entity) {
+static void func_801A43AC(EffectEntity *entity) {
     entity->pc++;
 }
 
 /** @brief Opcode handler: stall here until @c unk05E reaches zero. */
-void func_801A43C0(EffectEntity *entity) {
+static void func_801A43C0(EffectEntity *entity) {
     if (entity->unk05E == 0) {
         entity->pc++;
     }
 }
 
 /** @brief Opcode handler: consume the opcode and do nothing else. */
-void func_801A43E8(EffectEntity *entity) {
+static void func_801A43E8(EffectEntity *entity) {
     entity->pc++;
 }
 
 /** @brief Opcode handler: consume the opcode and do nothing else. */
-void func_801A43FC(EffectEntity *entity) {
+static void func_801A43FC(EffectEntity *entity) {
     entity->pc++;
 }
 
 /** @brief Opcode handler: raise @ref EFFECT_FLAG_STOP and consume the opcode. */
-void func_801A4410(EffectEntity *entity) {
+static void func_801A4410(EffectEntity *entity) {
     entity->flags |= EFFECT_FLAG_STOP;
     entity->pc++;
 }
 
 /** @brief Opcode handler: no-op. */
-void func_801A442C(EffectEntity *entity) {
+static void func_801A442C(EffectEntity *entity) {
 }
 
 /**
@@ -1522,7 +1471,7 @@ void func_801A442C(EffectEntity *entity) {
  * @param entity Script whose frame is being run.
  * @return 2 once the script has stopped and drained, 0 while it is still live.
  */
-s32 func_801A4434(EffectEntity *entity) {
+static s32 func_801A4434(EffectEntity *entity) {
     EffectHandler handlers[] = {
         func_801A42A4, func_801A42B8, func_801A42CC, func_801A42F4,
         func_801A434C, func_801A43AC, func_801A43C0, func_801A43E8,

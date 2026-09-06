@@ -42,6 +42,7 @@ MATRIX *MulMatrix(MATRIX *m0, MATRIX *m1);
 MATRIX *ScaleMatrix(MATRIX *m, VECTOR *scale);
 MATRIX *ScaleMatrixL(MATRIX *m, VECTOR *scale);
 MATRIX *TransposeMatrix(MATRIX *m0, MATRIX *m1);
+void MatrixNormal_2(MATRIX *m, MATRIX *n);   /**< Orthonormalise @p m into @p n via the GTE. */
 void SetRotMatrix(MATRIX *m);
 void SetTransMatrix(MATRIX *m);
 void SetLightMatrix(MATRIX *m);
@@ -77,6 +78,7 @@ void SetGeomScreen(s32 h);   /**< Set GTE projection-plane distance H (screen de
 s32 SquareRoot0(s32 a);
 s32 SquareRoot12(s32 a);   /**< Square root of a 20.12 fixed-point value. */
 s32 VectorNormal(VECTOR *v0, VECTOR *v1);   /**< Normalise @p v0 into @p v1; returns the squared length. */
+s32 VectorNormalS(VECTOR *v0, SVECTOR *v1);   /**< Normalise @p v0 into short @p v1; returns the squared length. */
 s32 rsin(s32 a);
 s32 rcos(s32 a);
 s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */
