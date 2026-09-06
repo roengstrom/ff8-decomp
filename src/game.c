@@ -318,7 +318,7 @@ s32 getSpellEntityData(s32 spellId) {
  * @param statId Stat index; >= 0x21 uses statTable4, otherwise statTable24.
  * @return Pointer to the stat's name string.
  */
-s32 getStatName(s32 statId) {
+u8 *getStatName(s32 statId) {
     u16 param;
     s32 base;
 
@@ -416,7 +416,7 @@ s32 getAbilityEntryDesc(s32 entryId) {
 
 
 /** @brief Wrapper that calls func_80020F84 with argument 3. */
-s32 getDefaultMenuLabel(void) {
+static u8 *getDefaultMenuLabel(void) {
     return getMenuString(3);
 }
 
@@ -426,7 +426,7 @@ s32 getDefaultMenuLabel(void) {
  * @param a0 Index into subTableV.
  * @return Resolved data pointer.
  */
-s32 getMenuString(s32 stringId) {
+u8 *getMenuString(s32 stringId) {
     return resolveKernelPtr(g_gfData.subTableV[stringId].param0, g_gfData.ptrSubTableV);
 }
 

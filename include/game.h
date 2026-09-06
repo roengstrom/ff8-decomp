@@ -9,6 +9,12 @@ void vsyncGameHandler(void);
 /** @brief Main game state-machine loop, driven by g_vsyncRate. */
 void gameStateLoop(void);
 
+/** @brief Look up entry @p stringId of the kernel string table. */
+u8 *getMenuString(s32 stringId);
+
+/** @brief Look up the name string for stat/command @p statId. */
+u8 *getStatName(s32 statId);
+
 u8 *getAbilityName(s32 abilityId);
 s32 getLevelCurveData(s32 curveId);
 u8 *getAbilityDesc(s32 abilityId);

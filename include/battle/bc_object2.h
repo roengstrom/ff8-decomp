@@ -1,6 +1,8 @@
 #ifndef BC_OBJECT2_H
 #define BC_OBJECT2_H
 
+#include "game.h"
+
 
 #define BATTLE_ENTITY_FLAG_BIT_0   (1 << 0)  /* 0x00000000 */
 #define BATTLE_ENTITY_FLAG_BIT_10  (1 << 10) /* 0x00000400 */
@@ -21,8 +23,6 @@
 #define BATTLE_ENTITY_FLAG_BIT_26  (1 << 26) /* 0x04000000 */
                                                 
 
-extern u8 *getMenuString(s32 id);
-extern u8 *getStatName(s32 statId);
 
 
 u16 func_8009BAC4(s32 arg0, u16 arg1);

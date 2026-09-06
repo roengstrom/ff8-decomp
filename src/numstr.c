@@ -15,7 +15,6 @@ extern u8 D_80083868;
 extern u8 D_8008369C[];
 extern SfxSystem g_sfxEntries;
 extern u8 *getMagicNamePtr(s32 magicId);
-extern s32 getStatName(s32 statId);
 extern u8 *getBattleCharNameWrapper(s32 entityIdx);
 extern u8 *getCharNameWrapper(s32 charId);
 extern u8 *getCharNameWrapper2(s32 charId);
