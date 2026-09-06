@@ -89,8 +89,68 @@ void func_801E5BA4(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, buf[a1] + 0x24, 0x22);
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5C08);
+/**
+ * @brief Updates the player's gil and synchronizes the shop inventory.
+ *
+ * Rebuilds item counts from the temporary purchase table, clears depleted
+ * slots, and adds any remaining items to the inventory.
+ *
+ * @param gil The updated gil amount.
+ */
+void func_801E5C08(s32 gil) {
+    ItemSlot *constPtr;
+    ItemSlot *p;
+    s32 i;
 
+    if (g_gameState.mainData.partyLockFlag & 1) {
+        g_gameState.mainData.party.dreamGil = gil;
+    } else {
+        g_gameState.mainData.party.gil = gil;
+    }
+
+    constPtr = D_80077EBC;
+    p = D_80077EBC;
+    
+    for (i = 0; i < ITEM_SLOT_COUNT; i++, p++) {
+        u8 itemId = p->id;
+        u8 itemCount = D_801EB088[itemId];
+
+        if (itemCount == 0) {
+            p->id = 0;
+        }
+
+        p->count = itemCount;
+        D_801EB088[itemId] = 0;
+    }
+
+    p = constPtr;
+
+    for (i = 0; i < ITEM_PRICE_COUNT; i++) {
+        u8 itemCount = D_801EB088[i];
+
+        if (itemCount == 0) {
+            continue;
+        }
+
+        while (1) {
+            if (p->id == 0 || p->count == 0) {
+                p->id = i;
+                p->count = itemCount;
+                func_800370AC(i);
+                break;
+            }
+            p++;
+        }
+    }
+}
+
+/**
+ * @brief Loads the current gil amount and rebuilds the available item counts.
+ *
+ * Item counts are read from the shop inventory table and stored by item ID.
+ * 
+ * @return The current gil amount (dream gil if party is locked, otherwise normal gil).
+ */
 s32 func_801E5D28(void) {
     s32 result;
     u8* ptr1;
@@ -108,7 +168,7 @@ s32 func_801E5D28(void) {
     ptr1 = D_80077EBC;
     
     for (i = 0; i < ITEM_PRICE_COUNT; i++) {
-         D_801EB088.unk0[i] = 0;
+        D_801EB088[i] = 0;
     }
 
     for (i = 0; i < ITEM_SLOT_COUNT; i++) {
@@ -119,7 +179,7 @@ s32 func_801E5D28(void) {
         ptr1++;
         
         if (val1 != 0) {
-            D_801EB088.unk0[val1] = val2;
+            D_801EB088[val1] = val2;
         }
     }
 
@@ -241,12 +301,73 @@ void func_801E6ACC(void) {
     }
 }
 
+/**
+ * @brief Update shop item visibility based on rarity and flags.
+ *
+ * For each item in the shop, computes a value based on the item's rarity.
+ * If the computed value exceeds 0x80, the item is marked as visible;
+ * otherwise, it is hidden. The visibility flags are stored in both the shared
+ * D_801EAA28 table and the shop's own inventory.
+ * 
+ * @param shopId Index of the shop to update.
+ */
+void func_801E6C3C(s32 shopId) {
+    ShopItemRarity* rarity;
+    ShopItemVisibility* p;
+    ShopData *shop;
+    s32 i;
+    s32 bitMask;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6C3C);
+    p = D_801EAA28;
+    rarity = D_801EA170[0];
+    rarity += shopId * 16;
+    shop = &D_80077CC8[shopId];
+    bitMask = (func_801F72B4() << 6) & 0x100;
+    
+    for (i = 0; i< 16; i++, p++) {
+        if (p->itemId != 0) {
+            s32 aux = rarity[i].rarity;
+            s32 val = bitMask + aux;
+            
+            aux = 0xFF;
+            if (val == aux) {
+                val = 0x100;
+            }
+            
+            func_801F6A5C();
+            
+            aux = 0x80;
+            if (val > aux) {
+                aux = 1;
+                p->visible = 1;
+            } else {
+                p->visible = 0;
+            }
+            
+            if (val == 0) {
+                p->visible = 0;
+            }
+            
+            shop->items[i] = p->visible;
+        }
+    }
+}
+
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6D54);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6E0C);
+void func_801E6E0C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+    s32 result;
+
+    result = func_801E5A8C(arg0, arg1, arg2 + 0xC, arg3 + 5, 3, D_801E9B64, 7);
+    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = arg2;
+    g_menuDisplayCfg.y = arg3;
+    g_menuDisplayCfg.w = 0x150;
+    g_menuDisplayCfg.h = 0x15;
+    func_801EF9AC(arg0, result, 0x1000, g_menuColor);
+}
 
 s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     u8 buffer[0x80];
@@ -263,7 +384,7 @@ s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
         temp_s0 = g_menuDisplayCfg.x + temp_v0;
         temp_s1 = g_menuDisplayCfg.y + 5;
         decodeMessage(msg, buffer, -1);
-        result = func_801F0FEC(arg0, arg1, temp_s0, temp_s1, buffer, 7);
+        result = func_801F0FEC(arg0, arg1, temp_s0, temp_s1, (s32)buffer, 7);
     }
     return result;
 }
@@ -303,9 +424,58 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6FD8);
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E722C);
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7374);
+s32 func_801E7374(Struct_801E7374* arg0, void *arg1, void* arg2, s32 arg3, s32 arg4) {
+    g_menuDisplayCfg.iconType = 0x4C;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = arg3;
+    g_menuDisplayCfg.w = 0x100;
+    g_menuDisplayCfg.h = 0x77;
+    g_menuDisplayCfg.columnCount = 8;
+    g_menuDisplayCfg.y = arg4;
+    g_menuDisplayCfg.pageStart = arg0->unk40;
+    g_menuDisplayCfg.pageEnd = arg0->unk41;
+    g_menuDisplayCfg.scrollOffset = arg0->unk3A;
+    g_menuDisplayCfg.dataPtr = (s32)arg0;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7508);
+    if (arg0->unk46 == 0) {
+        arg2 = (void *)func_8002FF34(arg1, arg2, 0x47, arg3 + 0xA8, arg4, g_menuColor);
+        arg2 = (void *)func_801F5F30((s32)arg1, (s32)arg2, arg3 + 0x1C, arg4, g_menuColor, (s32) (s8) arg0->unk40);
+    }
+    else {
+        arg2 = (void *)func_8002FF34(arg1, arg2, 0x47, arg3 + 0x80, arg4, g_menuColor);
+        arg2 = (void *)func_8002FF34(arg1, arg2, 0x4D, arg3 + 0xD6, arg4, g_menuColor);
+        arg2 = (void *)func_801F5EFC((s32)arg1, (s32)arg2, arg3 + 0x1C, arg4, g_menuColor, (s32) (s8) arg0->unk40);
+    }
+    
+    arg2 = (void *)func_801F5F60((s32)arg1, (s32)arg2, g_menuColor, 3);
+    return func_801EFBB4((s32)arg1, (s32)arg2, (s32)func_801E6FD8);
+}
+
+void func_801E7508(Struct_801E7508 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    s32 s6;
+    s32 s5;
+    s32 v0;
+
+    s6 = arg4 + 6;
+    s5 = arg3 + 0xD0;
+    arg2 = func_801F0FEC(arg1, arg2, s5, s6, func_801F6AA4(0x33), 7);
+
+    v0 = s6 << 0x10;
+    s5 = arg3 + 0x142;
+    arg2 = drawColorByMenuPalette(arg1, arg2, v0 | (s5 & 0xFFFF), arg0->unk28, 7);
+
+    s6 = arg4 + 8;
+    arg2 = func_8002FF34(arg1, arg2, 0xB, arg3 + 0x143, s6, g_menuColor);
+
+    g_menuDisplayCfg.iconType = 0x57;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = arg3;
+    g_menuDisplayCfg.w = 0x150;
+    g_menuDisplayCfg.y = arg4;
+    g_menuDisplayCfg.h = 0x17;
+
+    func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+}
 
 INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7628);
 
@@ -461,7 +631,7 @@ void func_801E8B60(Struct_801E8B60 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     g_menuDisplayCfg.pageEnd = 1;
     g_menuDisplayCfg.y = arg5;
     g_menuDisplayCfg.scrollOffset = a0->unk36;
-    g_menuDisplayCfg.dataPtr = &a0->unk20;
+    g_menuDisplayCfg.dataPtr = (s32)&a0->unk20;
     {
         func_801EFBB4(a1, a2, (s32)&func_801E8AB0);
     }

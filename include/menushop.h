@@ -1,7 +1,8 @@
 #ifndef MENUSHOP_H
 #define MENUSHOP_H
 
-#define SHOP_COUNT 20
+#include "gamestate.h"
+
 #define SHOP_ITEM_COUNT 16
 #define ITEM_PRICE_COUNT 200
 #define ITEM_SLOT_COUNT 198 
@@ -22,15 +23,26 @@ typedef struct {
 } ShopItemPrice; /* 0x3 = 3 bytes */
 
 typedef struct {
-    u8 unk0[0xC7];
-} Struct_D_801EB088;
+    u8 pad000[0x20];
+    s32 *unk20; /**< 0x20: pointer to data. */
+    u8 pad024[0x12];
+    u16 unk36; /**< 0x36: scroll offset. */
+} Struct_801E8B60;
 
 typedef struct {
-    u8 pad000[0x20];
-    s32 *unk20;
-    u8 pad024[0x12];
-    u16 unk36;
-} Struct_801E8B60;
+    u8 pad000[0x3A];
+    s16 unk3A; /**< 0x3A: scroll offset. */
+    u8 pad03D[0x4];
+    u8 unk40; /**< 0x40: page start. */
+    u8 unk41; /**< 0x41: page end. */
+    u8 pad041[0x4];
+    u8 unk46; /**< 0x46: orientation (left if equals 0, right otherwise). */
+} Struct_801E7374;
+
+typedef struct {
+    u8 pad000[0x28];
+    s32 unk28; /**< 0x28: passed to drawColorByMenuPalette as 4th argument. */
+} Struct_801E7508;
 
 extern ShopData D_80077CC8[SHOP_COUNT]; /**< Shop data table. */
 extern u8 D_80077EBC[ITEM_SLOT_COUNT]; /**< Item slot inventory. */
@@ -43,11 +55,13 @@ extern ShopItemRarity D_801EA170[SHOP_COUNT][SHOP_ITEM_COUNT]; /**< Shop item ra
 extern ShopItemVisibility D_801EAA28[SHOP_ITEM_COUNT]; /**< Shop item visibility table. */
 extern s32 D_801EAA48[ITEM_PRICE_COUNT]; /**< Item sell prices. */
 extern s32 D_801EAD68[ITEM_PRICE_COUNT]; /**< Item buy prices. */
-extern Struct_D_801EB088 D_801EB088;
+extern u8 D_801EB088[ITEM_PRICE_COUNT]; /**< Item quantities. */
 extern s32 g_menuColor;
 extern s32 D_80077E70;
 extern s32 func_801E8AB0;
 extern void func_801E5E90(void*);
 extern s32 func_801E79D4(void*, s32, s32);
+extern s32 func_801EFBB4(s32, s32, s32);
+extern void* func_801E6FD8(void);
 
 #endif /* MENUSHOP_H */

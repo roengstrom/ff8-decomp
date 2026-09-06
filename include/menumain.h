@@ -30,7 +30,7 @@
 DR_AREA *func_801EF800(P_TAG *, DR_AREA *, u8 *);  /**< Link a custom-rect DR_AREA prim. */
 DR_AREA *func_801EF8D8(P_TAG *, DR_AREA *);   /**< Link a clip-restore DR_AREA prim. */
 s32  func_801EF9AC(s32, s32, s32, s32);       /**< Panel/window render helper. */
-void func_801EFBB4(s32, s32, s32);            /**< Panel/window render helper. */
+s32 func_801EFBB4(s32, s32, s32);            /**< Panel/window render helper. */
 s32  func_801F179C(s32, s32);                 /**< Allocate a menu state task (tickCb, drawCb). */
 s32  func_801F6AD0(s32);                      /**< Party/character query helper. */
 void func_801F7B60(void);                     /**< Menu teardown/exit helper. */
