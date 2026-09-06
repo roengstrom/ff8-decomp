@@ -28,9 +28,9 @@ Usage: gen_splat_config.py CONFIG --out TEMPLATE [--make FILE] [--check]
   --out    where to write each generated config, as a path template containing
            {name}, for example build/splat/{name}.yaml
   --make   also write a make fragment defining <name>_TARGET, <name>_YAML,
-           <name>_LD, <name>_ELF and <name>_DIR for each binary, so a Makefile
-           can use the same paths this config gives splat instead of deriving
-           its own
+           <name>_LD, <name>_ELF and <name>_DIR for each binary plus
+           SPLAT_BINARIES listing them all, so a Makefile can use the same
+           paths this config gives splat instead of deriving its own
   --check  regenerate and exit non-zero if any output file would change
 """
 import argparse
@@ -75,17 +75,18 @@ def main():
     ap.add_argument("--check", action="store_true")
     args = ap.parse_args()
 
-    with open(args.config) as fh:
-        compact = yaml.safe_load(fh)
-
     if "{name}" not in args.out:
         sys.exit(f"--out must contain {{name}}: {args.out}")
 
+    with open(args.config) as fh:
+        compact = yaml.safe_load(fh)
+
     defaults = compact.get("defaults", {})
+    binaries = compact["binaries"]
 
     changed = []
     make_lines = []
-    for entry in compact["binaries"]:
+    for entry in binaries:
         cfg = expand(entry, defaults)
         opts = cfg["options"]
         make_lines += [
@@ -106,6 +107,8 @@ def main():
                     fh.write(text)
 
     if args.make:
+        make_lines.append("SPLAT_BINARIES := %s"
+                          % " ".join(e["name"] for e in binaries))
         text = "# Generated from %s. Do not edit.\n%s\n" % (
             args.config, "\n".join(make_lines))
         old = open(args.make).read() if os.path.exists(args.make) else None

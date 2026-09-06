@@ -19,6 +19,11 @@ Extracts:
   - world.bin                (LZSS-compressed)
   - menumain.ovl .. menutest.ovl  (17 menu overlays)
   - mngrp.bin, init.out      (data files)
+
+  - effect/effect_001.bin ..  the 343 battle effect overlays, which the IMG
+                              file table does not index; they are found through
+                              a table inside battle.bin instead, and add ~78 MB.
+                              See docs/battle-effect-overlays.md.
 """
 
 import hashlib
@@ -84,6 +89,20 @@ IMG_FILES = [
     (25, "battle.bin",           "raw"),
     (26, "world.bin",            "lzss"),
 ]
+
+# Battle effect overlays.
+#
+# battle.bin carries D_800E19BC, an array of (u32 sector, u32 size) pairs that
+# the IMG's own file table never references. Entries from EFFECT_FIRST_INDEX on
+# are the per-action effect overlays -- one per battle action id, reached as
+# index = id + EFFECT_ID_BIAS. Each is a sector-aligned
+# {u32 compressed_size, LZSS payload} block using the same compression as the
+# IMG files. See docs/battle-effect-overlays.md.
+EFFECT_TABLE_OFFSET = 0x499BC      # file offset of D_800E19BC within battle.bin
+EFFECT_TABLE_ENTRIES = 1117
+EFFECT_FIRST_INDEX = 767           # first entry that is an effect overlay
+EFFECT_ID_BIAS = 0x2FE
+EFFECT_SUBDIR = "effect"
 
 
 # ---------------------------------------------------------------------------
@@ -305,6 +324,39 @@ def extract_overlays(f, mode2, pvd, output_dir):
         print(f"  [{idx:2d}] {name:<24s} [{tag}] {size_str}  (sector {sector})")
 
 
+def extract_effects(f, mode2, output_dir):
+    """Extract the per-action battle effect overlays indexed by battle.bin."""
+    battle_path = os.path.join(output_dir, "battle.bin")
+    if not os.path.isfile(battle_path):
+        print("Error: battle.bin must be extracted before the effect overlays")
+        sys.exit(1)
+    with open(battle_path, "rb") as bf:
+        battle = bf.read()
+
+    out_dir = os.path.join(output_dir, EFFECT_SUBDIR)
+    os.makedirs(out_dir, exist_ok=True)
+
+    written = 0
+    total = 0
+    for index in range(EFFECT_FIRST_INDEX, EFFECT_TABLE_ENTRIES):
+        sector, size = struct.unpack_from(
+            "<II", battle, EFFECT_TABLE_OFFSET + index * 8)
+        if size == 0:
+            continue
+        sector_count = (size + SECTOR_DATA_SIZE - 1) // SECTOR_DATA_SIZE
+        raw = read_sectors(f, sector, sector_count, mode2)[:size]
+        data = lzss_decompress(raw)
+        name = f"effect_{index - EFFECT_ID_BIAS:03d}.bin"
+        with open(os.path.join(out_dir, name), "wb") as out:
+            out.write(data)
+        written += 1
+        total += len(data)
+
+    empty = (EFFECT_TABLE_ENTRIES - EFFECT_FIRST_INDEX) - written
+    print(f"  {written} overlays [LZSS] {format_size(total):>10s}"
+          f"  -> {EFFECT_SUBDIR}/  ({empty} empty slots skipped)")
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -342,6 +394,10 @@ def main():
 
         print("Extracting overlays from FF8DISC1.IMG...")
         extract_overlays(f, mode2, pvd, output_dir)
+
+        print()
+        print("Extracting battle effect overlays...")
+        extract_effects(f, mode2, output_dir)
 
     print()
     print("Done.")

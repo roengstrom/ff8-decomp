@@ -106,7 +106,10 @@ MENU_OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
                  menutmag menutips menutest
 CODE_OVERLAYS := field_init intro field \
                  tripletriad battle_render battle world
-OVERLAYS      := $(MENU_OVERLAYS) $(CODE_OVERLAYS)
+# One per battle action, from the generated block in config/ff8.yaml; the names
+# come back from binaries.mk rather than being repeated here.
+EFFECT_OVERLAYS := $(filter effect_%,$(SPLAT_BINARIES))
+OVERLAYS      := $(MENU_OVERLAYS) $(CODE_OVERLAYS) $(EFFECT_OVERLAYS)
 
 ### Targets ###
 
@@ -151,28 +154,28 @@ build: $(BUILT_EXE) build-overlays
 
 # Build and compare SHA1 against originals (main + overlays).
 # Builds each overlay; any build failure or SHA1 mismatch fails the target.
+# The name/built/original triples go through a file rather than being expanded
+# into the recipe: inline, several hundred overlays exceed the kernel's 128 KB
+# limit on a single shell argument and make dies with "Argument list too long".
+VERIFY_LIST := $(BUILD_DIR)/verify.list
+
 verify: $(BUILT_EXE) $(foreach ovl,$(OVERLAYS),build-$(ovl))
+	@mkdir -p $(BUILD_DIR)
+	$(file >$(VERIFY_LIST),$(MAIN) $(BUILT_EXE) $(TARGET))
+	$(foreach ovl,$(OVERLAYS),$(file >>$(VERIFY_LIST),$(notdir $($(ovl)_TARGET)) $($(ovl)_BIN) $($(ovl)_TARGET)))
 	@FAIL=0; \
 	printf "%-20s  %-40s  %-40s  %s\n" "Name" "Expected" "Actual" "State"; \
 	printf "%-20s  %-40s  %-40s  %s\n" "--------------------" "----------------------------------------" "----------------------------------------" "--------"; \
-	BUILT=$$(sha1sum $(BUILT_EXE) | cut -d' ' -f1); \
-	ORIG=$$(sha1sum $(TARGET) | cut -d' ' -f1); \
-	if [ "$$BUILT" = "$$ORIG" ]; then \
-		printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(MAIN)" "$$ORIG" "$$BUILT" "Match"; \
-	else \
-		printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(MAIN)" "$$ORIG" "$$BUILT" "Mismatch"; \
-		FAIL=1; \
-	fi; \
-	$(foreach ovl,$(OVERLAYS), \
-		BUILT=$$(sha1sum $($(ovl)_BIN) | cut -d' ' -f1); \
-		ORIG=$$(sha1sum $($(ovl)_TARGET) | cut -d' ' -f1); \
-		if [ "$$BUILT" = "$$ORIG" ]; then \
-			printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Match"; \
+	while read -r NAME BUILT ORIG; do \
+		B=$$(sha1sum "$$BUILT" | cut -d' ' -f1); \
+		O=$$(sha1sum "$$ORIG" | cut -d' ' -f1); \
+		if [ "$$B" = "$$O" ]; then \
+			printf "%-20s  %s  \033[32m%s\033[0m  \033[32m%s\033[0m\n" "$$NAME" "$$O" "$$B" "Match"; \
 		else \
-			printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$(notdir $($(ovl)_TARGET))" "$$ORIG" "$$BUILT" "Mismatch"; \
+			printf "%-20s  %s  \033[31m%s\033[0m  \033[31m%s\033[0m\n" "$$NAME" "$$O" "$$B" "Mismatch"; \
 			FAIL=1; \
 		fi; \
-	) \
+	done < $(VERIFY_LIST); \
 	if [ "$$FAIL" = "1" ]; then exit 1; fi
 
 # First-time setup: create venv, install dependencies, run splat
