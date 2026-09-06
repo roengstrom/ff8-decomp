@@ -1693,7 +1693,7 @@ s32 func_801F5E0C(s32 ctx, s32 dl, s32 x, s32 y, s32 color, s32 val, s32 flag) {
 }
 
 /** @brief Render number right-aligned (last param = 1). */
-void func_801F5EFC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
+s32 func_801F5EFC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
     func_801F5E0C(a0, a1, a2, a3, a4, a5, 1);
 }
 
