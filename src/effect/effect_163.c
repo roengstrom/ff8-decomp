@@ -1,3 +1,7 @@
+/**
+ * @file effect_163.c
+ * @brief Rough Divide
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_163/nonmatchings/effect_163", func_801B0000);

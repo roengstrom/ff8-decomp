@@ -1,3 +1,7 @@
+/**
+ * @file effect_061.c
+ * @brief Revive
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_061/nonmatchings/effect_061", func_801A0000);

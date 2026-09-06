@@ -1,3 +1,7 @@
+/**
+ * @file effect_088.c
+ * @brief Invincible Moon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_088/nonmatchings/effect_088", func_801A0000);

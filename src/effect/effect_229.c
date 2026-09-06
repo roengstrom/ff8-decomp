@@ -1,3 +1,7 @@
+/**
+ * @file effect_229.c
+ * @brief Homing Laser (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_229/nonmatchings/effect_229", func_801A0000);

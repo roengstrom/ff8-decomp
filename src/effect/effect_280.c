@@ -1,3 +1,7 @@
+/**
+ * @file effect_280.c
+ * @brief Full Cure
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_280/nonmatchings/effect_280", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_215.c
+ * @brief My Final Heaven (Zell's Finisher)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_215/nonmatchings/effect_215", func_801A0000);

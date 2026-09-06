@@ -1,3 +1,7 @@
+/**
+ * @file effect_077.c
+ * @brief Ultimecia Final Form Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_077/nonmatchings/effect_077", func_801A0000);

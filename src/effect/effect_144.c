@@ -1,3 +1,7 @@
+/**
+ * @file effect_144.c
+ * @brief Blizzard
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_144/nonmatchings/effect_144", func_801A0000);

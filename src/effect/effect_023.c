@@ -1,3 +1,7 @@
+/**
+ * @file effect_023.c
+ * @brief Psycho Blast
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_023/nonmatchings/effect_023", func_801A0000);

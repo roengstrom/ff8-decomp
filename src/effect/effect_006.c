@@ -1,3 +1,7 @@
+/**
+ * @file effect_006.c
+ * @brief Leviathan Summon (Tsunami)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_006/nonmatchings/effect_006", func_80190000);

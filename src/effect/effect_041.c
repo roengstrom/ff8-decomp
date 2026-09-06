@@ -1,3 +1,7 @@
+/**
+ * @file effect_041.c
+ * @brief Dribble
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_041/nonmatchings/effect_041", func_801A0000);

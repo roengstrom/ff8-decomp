@@ -1,3 +1,7 @@
+/**
+ * @file effect_306.c
+ * @brief Degenerator (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_306/nonmatchings/effect_306", func_801A0000);

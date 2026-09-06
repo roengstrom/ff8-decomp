@@ -1,3 +1,7 @@
+/**
+ * @file effect_295.c
+ * @brief Echo Screen
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_295/nonmatchings/effect_295", func_801A0000);

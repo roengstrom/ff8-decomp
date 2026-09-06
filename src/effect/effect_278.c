@@ -1,3 +1,7 @@
+/**
+ * @file effect_278.c
+ * @brief Carbuncle Summon (Ruby Light)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_278/nonmatchings/effect_278", func_801A0000);

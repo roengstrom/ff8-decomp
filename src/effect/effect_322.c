@@ -1,3 +1,7 @@
+/**
+ * @file effect_322.c
+ * @brief Zan
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_322/nonmatchings/effect_322", func_801A0000);

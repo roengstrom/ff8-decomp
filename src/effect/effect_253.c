@@ -1,3 +1,7 @@
+/**
+ * @file effect_253.c
+ * @brief Twin Homing Laser
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_253/nonmatchings/effect_253", func_801A0000);

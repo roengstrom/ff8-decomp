@@ -1,3 +1,7 @@
+/**
+ * @file effect_279.c
+ * @brief Mega Spark
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_279/nonmatchings/effect_279", func_801A0000);

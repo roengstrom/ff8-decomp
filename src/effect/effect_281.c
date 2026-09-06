@@ -1,3 +1,7 @@
+/**
+ * @file effect_281.c
+ * @brief Shotgun
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_281/nonmatchings/effect_281", func_801A0000);

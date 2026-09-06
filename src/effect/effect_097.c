@@ -1,3 +1,7 @@
+/**
+ * @file effect_097.c
+ * @brief ChocoFire
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_097/nonmatchings/effect_097", func_80190000);

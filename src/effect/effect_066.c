@@ -1,3 +1,7 @@
+/**
+ * @file effect_066.c
+ * @brief Griever + Ultimecia Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_066/nonmatchings/effect_066", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_121.c
+ * @brief Blind
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_121/nonmatchings/effect_121", func_801A0000);

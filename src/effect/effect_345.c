@@ -1,3 +1,7 @@
+/**
+ * @file effect_345.c
+ * @brief LV5 Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_345/nonmatchings/effect_345", func_801A0000);

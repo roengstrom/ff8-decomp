@@ -1,3 +1,7 @@
+/**
+ * @file effect_187.c
+ * @brief Odin Summon (Zantetsuken)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_187/nonmatchings/effect_187", func_80190000);

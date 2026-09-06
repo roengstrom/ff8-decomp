@@ -1,3 +1,7 @@
+/**
+ * @file effect_293.c
+ * @brief Eye Drops
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_293/nonmatchings/effect_293", func_801A0000);

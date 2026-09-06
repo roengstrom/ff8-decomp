@@ -1,3 +1,7 @@
+/**
+ * @file effect_310.c
+ * @brief Holy War-trial/Holy War
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_310/nonmatchings/effect_310", func_801A0000);

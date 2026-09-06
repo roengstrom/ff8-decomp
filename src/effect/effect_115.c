@@ -1,3 +1,7 @@
+/**
+ * @file effect_115.c
+ * @brief Float
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_115/nonmatchings/effect_115", func_801A0000);

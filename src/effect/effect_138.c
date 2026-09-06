@@ -1,3 +1,7 @@
+/**
+ * @file effect_138.c
+ * @brief Saliva
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_138/nonmatchings/effect_138", func_801A0000);

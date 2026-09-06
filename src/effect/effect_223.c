@@ -1,3 +1,7 @@
+/**
+ * @file effect_223.c
+ * @brief Meteor
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_223/nonmatchings/effect_223", func_801A0000);

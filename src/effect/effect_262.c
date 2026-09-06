@@ -1,3 +1,7 @@
+/**
+ * @file effect_262.c
+ * @brief Blood Pain
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_262/nonmatchings/effect_262", func_801A0000);

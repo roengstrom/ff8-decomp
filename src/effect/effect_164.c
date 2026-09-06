@@ -1,3 +1,7 @@
+/**
+ * @file effect_164.c
+ * @brief Blasting Zone
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_164/nonmatchings/effect_164", func_801B0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_258.c
+ * @brief Mad Cow Special
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_258/nonmatchings/effect_258", func_801A0000);

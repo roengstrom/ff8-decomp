@@ -1,3 +1,7 @@
+/**
+ * @file effect_109.c
+ * @brief Dispel
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_109/nonmatchings/effect_109", func_801A0000);

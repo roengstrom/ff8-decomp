@@ -1,3 +1,7 @@
+/**
+ * @file effect_074.c
+ * @brief LV?Death (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_074/nonmatchings/effect_074", func_801A0000);

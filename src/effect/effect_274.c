@@ -1,3 +1,7 @@
+/**
+ * @file effect_274.c
+ * @brief Duel
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_274/nonmatchings/effect_274", func_801A0000);

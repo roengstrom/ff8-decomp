@@ -1,3 +1,7 @@
+/**
+ * @file effect_255.c
+ * @brief Homing Laser
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_255/nonmatchings/effect_255", func_801A0000);

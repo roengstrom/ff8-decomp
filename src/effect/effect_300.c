@@ -1,3 +1,7 @@
+/**
+ * @file effect_300.c
+ * @brief Bad Breath (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_300/nonmatchings/effect_300", func_801A0000);

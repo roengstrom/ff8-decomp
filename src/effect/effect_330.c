@@ -1,3 +1,7 @@
+/**
+ * @file effect_330.c
+ * @brief Gilgamesh - Excalipoor
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_330/nonmatchings/effect_330", func_80190000);

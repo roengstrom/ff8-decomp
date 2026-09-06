@@ -1,3 +1,7 @@
+/**
+ * @file effect_275.c
+ * @brief Electrocute (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_275/nonmatchings/effect_275", func_801A0000);

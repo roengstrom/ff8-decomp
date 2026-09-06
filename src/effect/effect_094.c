@@ -1,3 +1,7 @@
+/**
+ * @file effect_094.c
+ * @brief Angelo Reverse
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_094/nonmatchings/effect_094", func_801A0000);

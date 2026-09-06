@@ -1,3 +1,7 @@
+/**
+ * @file effect_320.c
+ * @brief Dark Flare
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_320/nonmatchings/effect_320", func_801A0000);

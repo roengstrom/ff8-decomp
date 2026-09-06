@@ -1,3 +1,7 @@
+/**
+ * @file effect_072.c
+ * @brief Aqua Breath (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_072/nonmatchings/effect_072", func_801A0000);

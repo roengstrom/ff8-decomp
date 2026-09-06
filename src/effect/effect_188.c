@@ -1,3 +1,7 @@
+/**
+ * @file effect_188.c
+ * @brief Shot - Normal Shot
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_188/nonmatchings/effect_188", func_801A0000);

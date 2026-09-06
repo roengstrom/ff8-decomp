@@ -1,3 +1,7 @@
+/**
+ * @file effect_049.c
+ * @brief Resonance
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_049/nonmatchings/effect_049", func_801A0000);

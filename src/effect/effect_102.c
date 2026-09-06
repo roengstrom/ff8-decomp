@@ -1,3 +1,7 @@
+/**
+ * @file effect_102.c
+ * @brief Thundara
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_102/nonmatchings/effect_102", func_801A0000);

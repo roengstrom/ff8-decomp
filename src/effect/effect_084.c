@@ -1,3 +1,7 @@
+/**
+ * @file effect_084.c
+ * @brief Angel Wing
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_084/nonmatchings/effect_084", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_110.c
+ * @brief Biggs + Wedge 1st Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_110/nonmatchings/effect_110", func_801A0000);

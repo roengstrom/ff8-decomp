@@ -1,3 +1,7 @@
+/**
+ * @file effect_146.c
+ * @brief Tornado
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_146/nonmatchings/effect_146", func_801A0000);

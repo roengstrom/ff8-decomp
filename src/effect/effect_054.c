@@ -1,3 +1,7 @@
+/**
+ * @file effect_054.c
+ * @brief Everyone's Grudge
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_054/nonmatchings/effect_054", func_801A0000);

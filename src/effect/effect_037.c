@@ -1,3 +1,7 @@
+/**
+ * @file effect_037.c
+ * @brief Drink Magic
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_037/nonmatchings/effect_037", func_801A0000);

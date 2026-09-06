@@ -1,3 +1,7 @@
+/**
+ * @file effect_019.c
+ * @brief Raldo Ball
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_019/nonmatchings/effect_019", func_801A0000);

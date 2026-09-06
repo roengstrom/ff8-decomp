@@ -1,3 +1,7 @@
+/**
+ * @file effect_114.c
+ * @brief Zombie
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_114/nonmatchings/effect_114", func_801A0000);

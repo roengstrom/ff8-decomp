@@ -1,3 +1,7 @@
+/**
+ * @file effect_248.c
+ * @brief Soldier Entrance After BGH251F2 Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_248/nonmatchings/effect_248", func_801A0000);

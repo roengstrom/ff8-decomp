@@ -1,3 +1,7 @@
+/**
+ * @file effect_181.c
+ * @brief Kamikaze
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_181/nonmatchings/effect_181", func_801A0000);

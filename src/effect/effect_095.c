@@ -1,3 +1,7 @@
+/**
+ * @file effect_095.c
+ * @brief Siren Summon (Silent Voice)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_80190000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_304.c
+ * @brief Boomerang Sword
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_304/nonmatchings/effect_304", func_801A0000);

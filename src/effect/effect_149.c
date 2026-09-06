@@ -1,3 +1,7 @@
+/**
+ * @file effect_149.c
+ * @brief Ultima
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_149/nonmatchings/effect_149", func_801A0000);

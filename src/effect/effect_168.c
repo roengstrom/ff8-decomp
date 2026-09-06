@@ -1,3 +1,7 @@
+/**
+ * @file effect_168.c
+ * @brief Sleeping Gas
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_168/nonmatchings/effect_168", func_801A0000);

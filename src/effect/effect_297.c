@@ -1,3 +1,7 @@
+/**
+ * @file effect_297.c
+ * @brief White Wind (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_297/nonmatchings/effect_297", func_801A0000);

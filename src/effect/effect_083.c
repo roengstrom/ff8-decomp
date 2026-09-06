@@ -1,3 +1,7 @@
+/**
+ * @file effect_083.c
+ * @brief Absorbed into time...
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_083/nonmatchings/effect_083", func_801A0000);

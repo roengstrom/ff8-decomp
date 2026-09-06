@@ -1,3 +1,7 @@
+/**
+ * @file effect_003.c
+ * @brief Thunder
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_003/nonmatchings/effect_003", func_801A0000);

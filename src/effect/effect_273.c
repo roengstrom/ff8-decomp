@@ -1,3 +1,7 @@
+/**
+ * @file effect_273.c
+ * @brief Mad Rush
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_273/nonmatchings/effect_273", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_283.c
+ * @brief Magic Summon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_283/nonmatchings/effect_283", func_801A0000);

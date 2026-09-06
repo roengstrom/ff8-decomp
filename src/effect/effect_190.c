@@ -1,3 +1,7 @@
+/**
+ * @file effect_190.c
+ * @brief Chain Gun
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_190/nonmatchings/effect_190", func_801A0000);

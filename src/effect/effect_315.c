@@ -1,3 +1,7 @@
+/**
+ * @file effect_315.c
+ * @brief Fake President Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_315/nonmatchings/effect_315", func_801A0000);

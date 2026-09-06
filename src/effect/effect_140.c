@@ -1,3 +1,7 @@
+/**
+ * @file effect_140.c
+ * @brief Phoenix Pinion (Rebirth Flame)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_140/nonmatchings/effect_140", func_80190000);

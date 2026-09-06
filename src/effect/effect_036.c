@@ -1,3 +1,7 @@
+/**
+ * @file effect_036.c
+ * @brief Confuse
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_036/nonmatchings/effect_036", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_287.c
+ * @brief Mega Pulse Cannon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_287/nonmatchings/effect_287", func_801A0000);

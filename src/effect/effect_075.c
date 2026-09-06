@@ -1,3 +1,7 @@
+/**
+ * @file effect_075.c
+ * @brief Hell's Judgement
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_075/nonmatchings/effect_075", func_801A0000);

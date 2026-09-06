@@ -1,3 +1,7 @@
+/**
+ * @file effect_154.c
+ * @brief Ultra Waves
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_154/nonmatchings/effect_154", func_801A0000);

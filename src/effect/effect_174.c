@@ -1,3 +1,7 @@
+/**
+ * @file effect_174.c
+ * @brief Degenerator
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_174/nonmatchings/effect_174", func_801A0000);

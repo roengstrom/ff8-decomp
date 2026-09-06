@@ -1,3 +1,7 @@
+/**
+ * @file effect_203.c
+ * @brief Cerberus Summon (Counter Rockets)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_203/nonmatchings/effect_203", func_80190000);

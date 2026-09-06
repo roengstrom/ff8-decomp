@@ -1,3 +1,7 @@
+/**
+ * @file effect_242.c
+ * @brief Beam Cannon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_242/nonmatchings/effect_242", func_801A0000);

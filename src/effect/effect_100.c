@@ -1,3 +1,7 @@
+/**
+ * @file effect_100.c
+ * @brief ChocoBocle
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_100/nonmatchings/effect_100", func_80190000);

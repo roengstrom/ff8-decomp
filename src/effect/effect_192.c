@@ -1,3 +1,7 @@
+/**
+ * @file effect_192.c
+ * @brief Shot - Scatter Shot
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_192/nonmatchings/effect_192", func_801A0000);

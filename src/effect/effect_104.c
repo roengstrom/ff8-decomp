@@ -1,3 +1,7 @@
+/**
+ * @file effect_104.c
+ * @brief Blizzaga
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_104/nonmatchings/effect_104", func_801A0000);

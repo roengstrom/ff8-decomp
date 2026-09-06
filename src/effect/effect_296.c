@@ -1,3 +1,7 @@
+/**
+ * @file effect_296.c
+ * @brief Holy Water
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_296/nonmatchings/effect_296", func_801A0000);

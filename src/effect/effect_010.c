@@ -1,3 +1,7 @@
+/**
+ * @file effect_010.c
+ * @brief Ray-Bomb
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_010/nonmatchings/effect_010", func_801A0000);

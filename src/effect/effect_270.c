@@ -1,3 +1,7 @@
+/**
+ * @file effect_270.c
+ * @brief Ultima Weapon Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_270/nonmatchings/effect_270", func_801A0000);

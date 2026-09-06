@@ -1,3 +1,7 @@
+/**
+ * @file effect_241.c
+ * @brief BGH251F2 Gatling Gun
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_241/nonmatchings/effect_241", func_801A0000);

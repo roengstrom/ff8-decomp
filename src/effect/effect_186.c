@@ -1,3 +1,7 @@
+/**
+ * @file effect_186.c
+ * @brief Blaster
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_186/nonmatchings/effect_186", func_801A0000);

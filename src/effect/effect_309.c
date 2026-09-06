@@ -1,3 +1,7 @@
+/**
+ * @file effect_309.c
+ * @brief Hero-trial/Hero
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_309/nonmatchings/effect_309", func_801A0000);

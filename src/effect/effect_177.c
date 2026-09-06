@@ -1,3 +1,7 @@
+/**
+ * @file effect_177.c
+ * @brief 1,000 Needles
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_177/nonmatchings/effect_177", func_801A0000);

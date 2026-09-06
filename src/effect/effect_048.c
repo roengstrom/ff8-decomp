@@ -1,3 +1,7 @@
+/**
+ * @file effect_048.c
+ * @brief Magma Breath
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_048/nonmatchings/effect_048", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_007.c
+ * @brief Mega Phoenix
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_007/nonmatchings/effect_007", func_801A0000);

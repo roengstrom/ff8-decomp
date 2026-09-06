@@ -1,3 +1,7 @@
+/**
+ * @file effect_151.c
+ * @brief Cannon Blow
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_151/nonmatchings/effect_151", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_230.c
+ * @brief Fire Breath (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_230/nonmatchings/effect_230", func_801A0000);

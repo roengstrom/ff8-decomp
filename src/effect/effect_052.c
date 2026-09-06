@@ -1,3 +1,7 @@
+/**
+ * @file effect_052.c
+ * @brief X-Potion
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_052/nonmatchings/effect_052", func_801A0000);

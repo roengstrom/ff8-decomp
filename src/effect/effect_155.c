@@ -1,3 +1,7 @@
+/**
+ * @file effect_155.c
+ * @brief Sand Storm
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_155/nonmatchings/effect_155", func_801A0000);

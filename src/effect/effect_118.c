@@ -1,3 +1,7 @@
+/**
+ * @file effect_118.c
+ * @brief Aero
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_118/nonmatchings/effect_118", func_801A0000);

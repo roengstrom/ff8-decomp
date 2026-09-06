@@ -1,3 +1,7 @@
+/**
+ * @file effect_251.c
+ * @brief Demon Slice
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_251/nonmatchings/effect_251", func_801A0000);

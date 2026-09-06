@@ -1,3 +1,7 @@
+/**
+ * @file effect_326.c
+ * @brief Zantetsuken Reverse
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_326/nonmatchings/effect_326", func_80190000);

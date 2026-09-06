@@ -1,3 +1,7 @@
+/**
+ * @file effect_325.c
+ * @brief Diablos Summon (Dark Messenger)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_325/nonmatchings/effect_325", func_80190000);

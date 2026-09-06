@@ -1,3 +1,7 @@
+/**
+ * @file effect_030.c
+ * @brief Counter Laser-Eye
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_030/nonmatchings/effect_030", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_029.c
+ * @brief Wind Blast
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_029/nonmatchings/effect_029", func_801A0000);

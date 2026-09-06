@@ -1,3 +1,7 @@
+/**
+ * @file effect_172.c
+ * @brief Morph
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_172/nonmatchings/effect_172", func_801A0000);

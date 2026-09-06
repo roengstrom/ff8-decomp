@@ -1,3 +1,7 @@
+/**
+ * @file effect_236.c
+ * @brief Gas
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_236/nonmatchings/effect_236", func_801A0000);

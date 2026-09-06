@@ -1,3 +1,7 @@
+/**
+ * @file effect_024.c
+ * @brief Esuna
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_024/nonmatchings/effect_024", func_801A0000);

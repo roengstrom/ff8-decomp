@@ -1,3 +1,7 @@
+/**
+ * @file effect_013.c
+ * @brief Dark Mist/Poison Mist
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_013/nonmatchings/effect_013", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_062.c
+ * @brief Devour
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_062/nonmatchings/effect_062", func_801A0000);

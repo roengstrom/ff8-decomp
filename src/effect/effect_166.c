@@ -1,3 +1,7 @@
+/**
+ * @file effect_166.c
+ * @brief Megiddo Flame (Omega Weapon)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_166/nonmatchings/effect_166", func_801A0000);

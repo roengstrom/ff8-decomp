@@ -1,3 +1,7 @@
+/**
+ * @file effect_131.c
+ * @brief Bad Breath
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_131/nonmatchings/effect_131", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_324.c
+ * @brief Tonberry King Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_324/nonmatchings/effect_324", func_801A0000);

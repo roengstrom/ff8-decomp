@@ -1,3 +1,7 @@
+/**
+ * @file effect_210.c
+ * @brief Bloodfest
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_210/nonmatchings/effect_210", func_801A0000);

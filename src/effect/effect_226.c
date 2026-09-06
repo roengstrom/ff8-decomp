@@ -1,3 +1,7 @@
+/**
+ * @file effect_226.c
+ * @brief White Wind
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_226/nonmatchings/effect_226", func_801A0000);

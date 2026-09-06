@@ -1,3 +1,7 @@
+/**
+ * @file effect_120.c
+ * @brief Petrify Stare
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_120/nonmatchings/effect_120", func_801A0000);

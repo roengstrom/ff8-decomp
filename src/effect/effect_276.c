@@ -1,3 +1,7 @@
+/**
+ * @file effect_276.c
+ * @brief X-ATM092 Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_276/nonmatchings/effect_276", func_801A0000);

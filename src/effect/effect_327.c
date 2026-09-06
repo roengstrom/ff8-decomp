@@ -1,3 +1,7 @@
+/**
+ * @file effect_327.c
+ * @brief Gilgamesh - Zantetsuken
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_327/nonmatchings/effect_327", func_80190000);

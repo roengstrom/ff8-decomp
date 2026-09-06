@@ -1,3 +1,7 @@
+/**
+ * @file effect_076.c
+ * @brief Ultimecia Final Form Spawn
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_076/nonmatchings/effect_076", func_801A0000);

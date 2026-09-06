@@ -1,3 +1,7 @@
+/**
+ * @file effect_220.c
+ * @brief Light Pillar
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_220/nonmatchings/effect_220", func_801A0000);

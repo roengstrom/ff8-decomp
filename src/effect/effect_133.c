@@ -1,3 +1,7 @@
+/**
+ * @file effect_133.c
+ * @brief Hypnotize
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_133/nonmatchings/effect_133", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_204.c
+ * @brief Alexander Summon (Holy Judgment)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_204/nonmatchings/effect_204", func_80190000);

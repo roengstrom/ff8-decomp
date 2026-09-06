@@ -1,3 +1,7 @@
+/**
+ * @file effect_058.c
+ * @brief Elixir
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_058/nonmatchings/effect_058", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_001.c
+ * @brief Cure
+ */
 #include "common.h"
 #include "effect.h"
 #include "psxsdk/libgpu.h"

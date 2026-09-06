@@ -1,3 +1,7 @@
+/**
+ * @file effect_018.c
+ * @brief Elvoret Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_018/nonmatchings/effect_018", func_801A0000);

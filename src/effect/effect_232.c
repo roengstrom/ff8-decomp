@@ -1,3 +1,7 @@
+/**
+ * @file effect_232.c
+ * @brief Breath of Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_232/nonmatchings/effect_232", func_801A0000);

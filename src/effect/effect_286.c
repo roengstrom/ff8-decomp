@@ -1,3 +1,7 @@
+/**
+ * @file effect_286.c
+ * @brief Mini Pulse Cannon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_286/nonmatchings/effect_286", func_801A0000);

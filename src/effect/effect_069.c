@@ -1,3 +1,7 @@
+/**
+ * @file effect_069.c
+ * @brief Griever Summon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_069/nonmatchings/effect_069", func_801A0000);

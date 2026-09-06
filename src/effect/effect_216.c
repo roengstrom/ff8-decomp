@@ -1,3 +1,7 @@
+/**
+ * @file effect_216.c
+ * @brief Different Beat (Zell's Finisher)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_216/nonmatchings/effect_216", func_801A0000);

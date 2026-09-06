@@ -1,3 +1,7 @@
+/**
+ * @file effect_014.c
+ * @brief Death/Death Stone
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_014/nonmatchings/effect_014", func_801A0000);

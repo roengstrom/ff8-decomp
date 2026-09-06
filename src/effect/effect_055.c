@@ -1,3 +1,7 @@
+/**
+ * @file effect_055.c
+ * @brief Aqua Breath
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_055/nonmatchings/effect_055", func_801A0000);

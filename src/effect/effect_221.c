@@ -1,3 +1,7 @@
+/**
+ * @file effect_221.c
+ * @brief Apocalypse
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_221/nonmatchings/effect_221", func_801A0000);

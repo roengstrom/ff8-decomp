@@ -1,3 +1,7 @@
+/**
+ * @file effect_078.c
+ * @brief Mighty Guard
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_078/nonmatchings/effect_078", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_043.c
+ * @brief Melting Bubble
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_043/nonmatchings/effect_043", func_801A0000);

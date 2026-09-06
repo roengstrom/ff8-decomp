@@ -1,3 +1,7 @@
+/**
+ * @file effect_108.c
+ * @brief Berserk
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_108/nonmatchings/effect_108", func_801A0000);

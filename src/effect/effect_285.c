@@ -1,3 +1,7 @@
+/**
+ * @file effect_285.c
+ * @brief Thunder Summon
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_285/nonmatchings/effect_285", func_801A0000);

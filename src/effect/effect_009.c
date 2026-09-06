@@ -1,3 +1,7 @@
+/**
+ * @file effect_009.c
+ * @brief Doom Activation
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_009/nonmatchings/effect_009", func_801A0000);

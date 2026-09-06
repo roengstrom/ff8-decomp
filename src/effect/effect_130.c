@@ -1,3 +1,7 @@
+/**
+ * @file effect_130.c
+ * @brief Eerie Sound Wave
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_130/nonmatchings/effect_130", func_801A0000);

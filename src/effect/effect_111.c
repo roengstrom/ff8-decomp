@@ -1,3 +1,7 @@
+/**
+ * @file effect_111.c
+ * @brief Aura
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_111/nonmatchings/effect_111", func_801A0000);

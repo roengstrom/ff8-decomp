@@ -1,3 +1,7 @@
+/**
+ * @file effect_261.c
+ * @brief Desperado
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_261/nonmatchings/effect_261", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_017.c
+ * @brief Elvoret Entrance
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_017/nonmatchings/effect_017", func_801A0000);

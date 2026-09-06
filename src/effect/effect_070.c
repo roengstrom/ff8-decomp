@@ -1,3 +1,7 @@
+/**
+ * @file effect_070.c
+ * @brief Shockwave Pulsar
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_070/nonmatchings/effect_070", func_801A0000);

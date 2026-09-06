@@ -1,3 +1,7 @@
+/**
+ * @file effect_202.c
+ * @brief Bahamut Summon (Mega Flare)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_202/nonmatchings/effect_202", func_80190000);

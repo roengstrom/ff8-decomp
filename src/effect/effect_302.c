@@ -1,3 +1,7 @@
+/**
+ * @file effect_302.c
+ * @brief Snipe Laser
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_302/nonmatchings/effect_302", func_801A0000);

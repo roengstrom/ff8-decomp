@@ -106,8 +106,7 @@ MENU_OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
                  menutmag menutips menutest
 CODE_OVERLAYS := field_init intro field \
                  tripletriad battle_render battle world
-# One per battle action, from the generated block in config/ff8.yaml; the names
-# come back from binaries.mk rather than being repeated here.
+
 EFFECT_OVERLAYS := $(filter effect_%,$(SPLAT_BINARIES))
 OVERLAYS      := $(MENU_OVERLAYS) $(CODE_OVERLAYS) $(EFFECT_OVERLAYS)
 

@@ -1,3 +1,7 @@
+/**
+ * @file effect_212.c
+ * @brief Burning Rave (Zell's Finisher)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_212/nonmatchings/effect_212", func_801A0000);

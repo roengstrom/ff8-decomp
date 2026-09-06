@@ -1,3 +1,7 @@
+/**
+ * @file effect_256.c
+ * @brief Sand Shake
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_256/nonmatchings/effect_256", func_801A0000);

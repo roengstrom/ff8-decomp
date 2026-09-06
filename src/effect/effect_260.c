@@ -1,3 +1,7 @@
+/**
+ * @file effect_260.c
+ * @brief Shockwave Pulsar (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_260/nonmatchings/effect_260", func_801A0000);

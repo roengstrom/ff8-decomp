@@ -1,3 +1,7 @@
+/**
+ * @file effect_252.c
+ * @brief Corona
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_252/nonmatchings/effect_252", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_128.c
+ * @brief Gastric Juice
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_128/nonmatchings/effect_128", func_801A0000);

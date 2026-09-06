@@ -1,3 +1,7 @@
+/**
+ * @file effect_180.c
+ * @brief Suicide
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_180/nonmatchings/effect_180", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_153.c
+ * @brief Sticky Web
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_153/nonmatchings/effect_153", func_801A0000);

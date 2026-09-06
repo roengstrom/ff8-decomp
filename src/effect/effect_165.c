@@ -1,3 +1,7 @@
+/**
+ * @file effect_165.c
+ * @brief Lion Heart
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_165/nonmatchings/effect_165", func_801B0000);

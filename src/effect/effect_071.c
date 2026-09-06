@@ -1,3 +1,7 @@
+/**
+ * @file effect_071.c
+ * @brief Laser Eye (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_071/nonmatchings/effect_071", func_801A0000);

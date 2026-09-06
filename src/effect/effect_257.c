@@ -1,3 +1,7 @@
+/**
+ * @file effect_257.c
+ * @brief Mega Flare
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_257/nonmatchings/effect_257", func_801A0000);

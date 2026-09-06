@@ -1,3 +1,7 @@
+/**
+ * @file effect_064.c
+ * @brief Griever Tail Falling Off
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_064/nonmatchings/effect_064", func_801A0000);

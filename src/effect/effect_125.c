@@ -1,3 +1,7 @@
+/**
+ * @file effect_125.c
+ * @brief Haste
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_125/nonmatchings/effect_125", func_801A0000);

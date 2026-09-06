@@ -1,3 +1,7 @@
+/**
+ * @file effect_011.c
+ * @brief Storm Breath
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_011/nonmatchings/effect_011", func_801A0000);

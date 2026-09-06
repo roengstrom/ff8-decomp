@@ -1,3 +1,7 @@
+/**
+ * @file effect_282.c
+ * @brief Evil-Eye
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_282/nonmatchings/effect_282", func_801A0000);

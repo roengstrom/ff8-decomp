@@ -1,3 +1,7 @@
+/**
+ * @file effect_039.c
+ * @brief Drain
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_039/nonmatchings/effect_039", func_801A0000);

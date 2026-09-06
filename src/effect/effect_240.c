@@ -1,3 +1,7 @@
+/**
+ * @file effect_240.c
+ * @brief Earthquake
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_240/nonmatchings/effect_240", func_801A0000);

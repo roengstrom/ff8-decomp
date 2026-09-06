@@ -1,3 +1,7 @@
+/**
+ * @file effect_145.c
+ * @brief Sleep
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_145/nonmatchings/effect_145", func_801A0000);

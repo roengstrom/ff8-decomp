@@ -1,3 +1,7 @@
+/**
+ * @file effect_317.c
+ * @brief Acid (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_317/nonmatchings/effect_317", func_801A0000);

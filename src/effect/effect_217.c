@@ -1,3 +1,7 @@
+/**
+ * @file effect_217.c
+ * @brief Energy Bomber
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_217/nonmatchings/effect_217", func_801A0000);

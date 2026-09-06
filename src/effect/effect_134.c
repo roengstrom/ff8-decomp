@@ -1,3 +1,7 @@
+/**
+ * @file effect_134.c
+ * @brief Beam Laser
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_134/nonmatchings/effect_134", func_801A0000);

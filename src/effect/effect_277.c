@@ -1,3 +1,7 @@
+/**
+ * @file effect_277.c
+ * @brief Funguar Laser
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_277/nonmatchings/effect_277", func_801A0000);

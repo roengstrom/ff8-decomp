@@ -1,3 +1,7 @@
+/**
+ * @file effect_065.c
+ * @brief Great Attractor
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_065/nonmatchings/effect_065", func_801A0000);

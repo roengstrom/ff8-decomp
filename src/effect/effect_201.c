@@ -1,3 +1,7 @@
+/**
+ * @file effect_201.c
+ * @brief Ifrit Summon (Hell Fire)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_201/nonmatchings/effect_201", func_80190000);

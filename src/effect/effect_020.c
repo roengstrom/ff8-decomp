@@ -1,3 +1,7 @@
+/**
+ * @file effect_020.c
+ * @brief NORG Pod Opening
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_020/nonmatchings/effect_020", func_801A0000);

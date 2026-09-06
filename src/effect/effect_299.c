@@ -1,3 +1,7 @@
+/**
+ * @file effect_299.c
+ * @brief Micro Missiles (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_299/nonmatchings/effect_299", func_801A0000);

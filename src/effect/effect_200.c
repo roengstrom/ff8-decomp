@@ -1,3 +1,7 @@
+/**
+ * @file effect_200.c
+ * @brief No Mercy
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_200/nonmatchings/effect_200", func_801A0000);

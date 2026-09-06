@@ -1,3 +1,7 @@
+/**
+ * @file effect_051.c
+ * @brief Hi-Potion/Hi-Potion+
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_051/nonmatchings/effect_051", func_801A0000);

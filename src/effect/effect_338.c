@@ -1,3 +1,7 @@
+/**
+ * @file effect_338.c
+ * @brief Friendship (MoombaMoomba)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_338/nonmatchings/effect_338", func_801A0000);

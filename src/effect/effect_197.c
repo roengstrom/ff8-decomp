@@ -1,3 +1,7 @@
+/**
+ * @file effect_197.c
+ * @brief Shot - Armor Shot
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_197/nonmatchings/effect_197", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_171.c
+ * @brief Poison Gas
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_171/nonmatchings/effect_171", func_801A0000);

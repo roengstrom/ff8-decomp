@@ -1,3 +1,7 @@
+/**
+ * @file effect_284.c
+ * @brief Micro Missiles
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_284/nonmatchings/effect_284", func_801A0000);

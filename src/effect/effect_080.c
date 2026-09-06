@@ -1,3 +1,7 @@
+/**
+ * @file effect_080.c
+ * @brief Ultimecia Junctioning to Griever
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_080/nonmatchings/effect_080", func_801A0000);

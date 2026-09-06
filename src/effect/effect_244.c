@@ -1,3 +1,7 @@
+/**
+ * @file effect_244.c
+ * @brief BGH251F2 2nd Turret Exploding
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_244/nonmatchings/effect_244", func_801A0000);

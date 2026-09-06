@@ -1,3 +1,7 @@
+/**
+ * @file effect_096.c
+ * @brief Moogle Dance
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_096/nonmatchings/effect_096", func_80190000);

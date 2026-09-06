@@ -1,3 +1,7 @@
+/**
+ * @file effect_312.c
+ * @brief Megiddo Flame (Mobile Type 8)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_312/nonmatchings/effect_312", func_801A0000);

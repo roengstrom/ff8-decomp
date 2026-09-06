@@ -1,3 +1,7 @@
+/**
+ * @file effect_126.c
+ * @brief Electric Discharge
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_126/nonmatchings/effect_126", func_801A0000);

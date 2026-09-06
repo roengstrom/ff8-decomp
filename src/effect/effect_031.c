@@ -1,3 +1,7 @@
+/**
+ * @file effect_031.c
+ * @brief Heartbreak
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_031/nonmatchings/effect_031", func_801A0000);

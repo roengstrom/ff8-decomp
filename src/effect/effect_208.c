@@ -1,3 +1,7 @@
+/**
+ * @file effect_208.c
+ * @brief Final "Sorceress" Death
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_208/nonmatchings/effect_208", func_801A0000);

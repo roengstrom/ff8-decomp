@@ -1,3 +1,7 @@
+/**
+ * @file effect_116.c
+ * @brief Quezacotl Summon (Thunder Storm)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_116/nonmatchings/effect_116", func_80190000);

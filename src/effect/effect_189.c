@@ -1,3 +1,7 @@
+/**
+ * @file effect_189.c
+ * @brief Wall
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_189/nonmatchings/effect_189", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_173.c
+ * @brief Ice Breath
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_173/nonmatchings/effect_173", func_801A0000);

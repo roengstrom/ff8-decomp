@@ -1,3 +1,7 @@
+/**
+ * @file effect_122.c
+ * @brief Silence
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_122/nonmatchings/effect_122", func_801A0000);

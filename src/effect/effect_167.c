@@ -1,3 +1,7 @@
+/**
+ * @file effect_167.c
+ * @brief Zantetsuken
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_167/nonmatchings/effect_167", func_801A0000);

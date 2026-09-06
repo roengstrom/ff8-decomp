@@ -1,3 +1,7 @@
+/**
+ * @file effect_136.c
+ * @brief Oil Shot
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_136/nonmatchings/effect_136", func_801A0000);

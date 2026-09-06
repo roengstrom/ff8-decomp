@@ -1,3 +1,7 @@
+/**
+ * @file effect_132.c
+ * @brief Disolving Acid
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_132/nonmatchings/effect_132", func_801A0000);

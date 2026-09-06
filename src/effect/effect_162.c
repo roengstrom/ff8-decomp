@@ -1,3 +1,7 @@
+/**
+ * @file effect_162.c
+ * @brief Fated Circle
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_162/nonmatchings/effect_162", func_801B0000);

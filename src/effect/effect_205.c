@@ -1,3 +1,7 @@
+/**
+ * @file effect_205.c
+ * @brief Brothers Summon (Brotherly Love)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_205/nonmatchings/effect_205", func_80190000);

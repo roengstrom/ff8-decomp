@@ -1,3 +1,7 @@
+/**
+ * @file effect_294.c
+ * @brief Antidote
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_294/nonmatchings/effect_294", func_801A0000);

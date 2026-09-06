@@ -1,3 +1,7 @@
+/**
+ * @file effect_087.c
+ * @brief Angelo Strike
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_087/nonmatchings/effect_087", func_801A0000);

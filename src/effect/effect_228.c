@@ -1,3 +1,7 @@
+/**
+ * @file effect_228.c
+ * @brief Ice Strike
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_228/nonmatchings/effect_228", func_801A0000);

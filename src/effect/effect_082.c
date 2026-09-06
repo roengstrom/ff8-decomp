@@ -1,3 +1,7 @@
+/**
+ * @file effect_082.c
+ * @brief Ultimecia Blow Away Magic
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_082/nonmatchings/effect_082", func_801A0000);

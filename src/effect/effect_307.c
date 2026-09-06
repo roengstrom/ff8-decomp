@@ -1,3 +1,7 @@
+/**
+ * @file effect_307.c
+ * @brief Ray-Bomb (Quistis)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_307/nonmatchings/effect_307", func_801A0000);

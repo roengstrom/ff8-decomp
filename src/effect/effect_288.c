@@ -1,3 +1,7 @@
+/**
+ * @file effect_288.c
+ * @brief Rapture
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_288/nonmatchings/effect_288", func_801A0000);

@@ -1,3 +1,7 @@
+/**
+ * @file effect_028.c
+ * @brief Curaga
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_028/nonmatchings/effect_028", func_801A0000);

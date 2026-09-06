@@ -1,3 +1,7 @@
+/**
+ * @file effect_112.c
+ * @brief Meteor Barret (Zell's Finisher)
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_112/nonmatchings/effect_112", func_801A0000);

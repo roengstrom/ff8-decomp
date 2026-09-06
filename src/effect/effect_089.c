@@ -1,3 +1,7 @@
+/**
+ * @file effect_089.c
+ * @brief Wishing Star
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_089/nonmatchings/effect_089", func_801A0000);

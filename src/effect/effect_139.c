@@ -1,3 +1,7 @@
+/**
+ * @file effect_139.c
+ * @brief Sonic Wave
+ */
 #include "common.h"
 
 INCLUDE_ASM("asm/ovl/effect_139/nonmatchings/effect_139", func_801A0000);
