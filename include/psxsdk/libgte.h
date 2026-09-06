@@ -268,6 +268,97 @@ s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */
     : "$12", "$13", "$14" )
 
 /* Load IR0, the interpolation fraction used by INTPL / DPCS. */
+/* Load column vector — fills IR1/IR2/IR3 from one column of the 3x3 matrix
+ * @p r0 (row stride 6). PSY-Q INLINE_C.H gte_ldclmv. */
+#define gte_ldclmv( r0 ) __asm__ volatile (              \
+    "lhu    $12, 0( %0 );"                               \
+    "lhu    $13, 6( %0 );"                               \
+    "lhu    $14, 12( %0 );"                              \
+    "mtc2   $12, $9;"                                    \
+    "mtc2   $13, $10;"                                   \
+    "mtc2   $14, $11"                                    \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "$12", "$13", "$14" )
+
+/* Store column vector — writes IR1/IR2/IR3 back to one column of the 3x3
+ * matrix @p r0 (row stride 6). PSY-Q INLINE_C.H gte_stclmv. */
+#define gte_stclmv( r0 ) __asm__ volatile (              \
+    "mfc2   $12, $9;"                                    \
+    "mfc2   $13, $10;"                                   \
+    "mfc2   $14, $11;"                                   \
+    "sh     $12, 0( %0 );"                               \
+    "sh     $13, 6( %0 );"                               \
+    "sh     $14, 12( %0 )"                               \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "$12", "$13", "$14", "memory" )
+
+/* Rotate IR by the current rotation matrix. PSY-Q INLINE_C.H spells this
+ * ".word 0x000001ff", but that constant is for Sony's own assembler; under GAS
+ * the same operation is MVMVA(1,0,3,3,0), which is what the ROM contains. */
+#define gte_rtir() gte_mvmva(1, 0, 3, 3, 0)
+
+/* r3 = r1 * r2, a column at a time. PSY-Q GTEMAC.H gte_MulMatrix0. */
+#define gte_MulMatrix0(r1, r2, r3)                       \
+    {   gte_SetRotMatrix(r1);                            \
+        gte_ldclmv(r2);                                  \
+        gte_rtir();                                      \
+        gte_stclmv(r3);                                  \
+        gte_ldclmv((char *)r2 + 2);                      \
+        gte_rtir();                                      \
+        gte_stclmv((char *)r3 + 2);                      \
+        gte_ldclmv((char *)r2 + 4);                      \
+        gte_rtir();                                      \
+        gte_stclmv((char *)r3 + 4);   }
+
+/* Load OP operand 1 from an SVECTOR into the rotation-matrix diagonal.
+ * PSY-Q INLINE_C.H gte_ldopv1SV. */
+#define gte_ldopv1SV( r0 ) __asm__ volatile (            \
+    "lh     $12, 0( %0 );"                               \
+    "lh     $13, 2( %0 );"                               \
+    "ctc2   $12, $0;"                                    \
+    "lh     $14, 4( %0 );"                               \
+    "ctc2   $13, $2;"                                    \
+    "ctc2   $14, $4"                                     \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "$12", "$13", "$14" )
+
+/* Load OP operand 2 from an SVECTOR into IR1/IR2/IR3.
+ * PSY-Q INLINE_C.H gte_ldopv2SV. */
+#define gte_ldopv2SV( r0 ) __asm__ volatile (            \
+    "lh     $12, 0( %0 );"                               \
+    "lh     $13, 2( %0 );"                               \
+    "lh     $14, 4( %0 );"                               \
+    "mtc2   $12, $9;"                                    \
+    "mtc2   $13, $10;"                                   \
+    "mtc2   $14, $11"                                    \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "$12", "$13", "$14" )
+
+/* Load a VECTOR into V0, packing X/Y into one word. PSY-Q INLINE_C.H gte_ldlv0. */
+#define gte_ldlv0( r0 ) __asm__ volatile (               \
+    "lhu    $13, 4( %0 );"                               \
+    "lhu    $12, 0( %0 );"                               \
+    "sll    $13, $13, 16;"                               \
+    "or     $12, $12, $13;"                              \
+    "mtc2   $12, $0;"                                    \
+    "lwc2   $1, 8( %0 )"                                 \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "$12", "$13" )
+
+/* Store the GTE flag register. PSY-Q INLINE_C.H gte_stflg. */
+#define gte_stflg( r0 ) __asm__ volatile (               \
+    "cfc2   $12, $31;"                                   \
+    "nop    ;"                                           \
+    "sw     $12, 0( %0 )"                                \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "$12", "memory" )
+
 #define gte_lddp( r0 ) __asm__ volatile (                \
     "mtc2   %0, $8"                                      \
     :                                                    \
@@ -399,6 +490,15 @@ s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */
     ".word  0x4A980011"                                  \
     : : )
 
+/* Average of the three Z values in SZ1..SZ3, scaled by ZSF3, into OTZ.
+ * PSY-Q INLINE_C.H spells this ".word 0x000011bf", but that constant is for
+ * Sony's own assembler; under GAS the same operation is the word below. */
+#define gte_avsz3() __asm__ volatile (                   \
+    "nop;"                                               \
+    "nop;"                                               \
+    ".word  0x4B58002D"                                  \
+    : : )
+
 #define gte_avsz4() __asm__ volatile (                   \
     "nop;"                                               \
     "nop;"                                               \
@@ -408,6 +508,14 @@ s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */
 /* OP (sf = 0) — cross product of the vector loaded by @ref gte_ldopv1 with
  * the one loaded by @ref gte_ldopv2, full precision (no >>12), leaving the
  * result in MAC1..MAC3 for @ref gte_stlvnl. */
+/* Outer product with sf=1. PSY-Q INLINE_C.H spells this ".word 0x0000123f";
+ * in this tree's encoding that is gte_op0's word with the sf bit (19) set. */
+#define gte_op12() __asm__ volatile (                    \
+    "nop;"                                               \
+    "nop;"                                               \
+    ".word  0x4B78000C"                                  \
+    : : )
+
 #define gte_op0() __asm__ volatile (                     \
     "nop;"                                               \
     "nop;"                                               \

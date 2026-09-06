@@ -24,6 +24,7 @@ Usage: gen_effect_config.py [-o config/ff8.yaml] [--check]
 import argparse
 import hashlib
 import os
+import struct
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -43,6 +44,23 @@ HEADER = BEGIN + """\
 """
 
 
+def rodata_extent(image, base, text):
+    """-> byte offset where the pointer-table rodata after .text ends.
+
+    Every overlay puts its opcode dispatch tables immediately after the code,
+    as runs of pointers back into its own .text. They have to be a `.rodata`
+    subsegment rather than part of the asset blob, because they are local array
+    initialisers in the C and so must be emitted by the compiler.
+    """
+    off = text
+    while off + 4 <= len(image):
+        word = struct.unpack_from("<I", image, off)[0]
+        if not (base <= word < base + text and (word - base) % 4 == 0):
+            break
+        off += 4
+    return off
+
+
 def entries():
     table = effects.table()
     out = []
@@ -57,13 +75,18 @@ def entries():
         sha1 = hashlib.sha1(image).hexdigest()
         akao = image[8:12] == b"AKAO"
         base, text, _hits, _targets = effects.link_base(image)
-        out.append((name, sha1, len(image), None if akao else base, text))
+        rodata = None
+        if base is not None and not akao:
+            end = rodata_extent(image, base, text)
+            if end > text:
+                rodata = end
+        out.append((name, sha1, len(image), None if akao else base, text, rodata))
     return out
 
 
 def render(rows):
     lines = [HEADER]
-    for name, sha1, size, base, text in rows:
+    for name, sha1, size, base, text, rodata in rows:
         lines.append("- name: %s\n  sha1: %s\n" % (name, sha1))
         lines.append("  options: {target_path: original/effect/%s.bin, "
                      "src_path: src/effect}\n" % name)
@@ -71,11 +94,16 @@ def render(rows):
             lines.append("  segments:\n  - [0x0, bin, %s]\n  - [0x%X]\n"
                          % (name, size))
         else:
+            if rodata:
+                subs = ("[[0x0, c, %s], [0x%X, .rodata, %s], [0x%X, bin, %s]]"
+                        % (name, text, name, rodata, name))
+            else:
+                subs = "[[0x0, c, %s], [0x%X, bin, %s]]" % (name, text, name)
             lines.append("  segments:\n"
                          "  - {name: %s, type: code, start: 0, vram: 0x%08X,\n"
-                         "     subsegments: [[0x0, c, %s], [0x%X, bin, %s]]}\n"
+                         "     subsegments: %s}\n"
                          "  - [0x%X]\n"
-                         % (name, base, name, text, name, size))
+                         % (name, base, subs, size))
     lines.append(END)
     return "".join(lines)
 

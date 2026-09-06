@@ -683,7 +683,7 @@ binaries:
   options: {target_path: original/effect/effect_001.bin, src_path: src/effect}
   segments:
   - {name: effect_001, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_001], [0x4614, bin, effect_001]]}
+     subsegments: [[0x0, c, effect_001], [0x4614, .rodata, effect_001], [0x4678, bin, effect_001]]}
   - [0x258E0]
 - name: effect_002
   sha1: 25c0a9960ba3926df3d8b37f58ae7ed430751beb
@@ -704,42 +704,42 @@ binaries:
   options: {target_path: original/effect/effect_004.bin, src_path: src/effect}
   segments:
   - {name: effect_004, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_004], [0x58AC, bin, effect_004]]}
+     subsegments: [[0x0, c, effect_004], [0x58AC, .rodata, effect_004], [0x5974, bin, effect_004]]}
   - [0x296F4]
 - name: effect_005
   sha1: 016f3d494f6770bb764f44dee8606e2f41ee4b42
   options: {target_path: original/effect/effect_005.bin, src_path: src/effect}
   segments:
   - {name: effect_005, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_005], [0x29DC, bin, effect_005]]}
+     subsegments: [[0x0, c, effect_005], [0x29DC, .rodata, effect_005], [0x2A28, bin, effect_005]]}
   - [0x23DB8]
 - name: effect_006
   sha1: ab664b734a6069ec95c846716ae047a126382992
   options: {target_path: original/effect/effect_006.bin, src_path: src/effect}
   segments:
   - {name: effect_006, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_006], [0x12F5C, bin, effect_006]]}
+     subsegments: [[0x0, c, effect_006], [0x12F5C, .rodata, effect_006], [0x12F70, bin, effect_006]]}
   - [0x4CCF0]
 - name: effect_007
   sha1: 7edad0eff9c4f648a9934d3a12851ac600172f10
   options: {target_path: original/effect/effect_007.bin, src_path: src/effect}
   segments:
   - {name: effect_007, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_007], [0xA4B8, bin, effect_007]]}
+     subsegments: [[0x0, c, effect_007], [0xA4B8, .rodata, effect_007], [0xA4CC, bin, effect_007]]}
   - [0x379E4]
 - name: effect_008
   sha1: 5cba255514d63d99eebe123c311ae5f1ef1dec1a
   options: {target_path: original/effect/effect_008.bin, src_path: src/effect}
   segments:
   - {name: effect_008, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_008], [0x135C8, bin, effect_008]]}
+     subsegments: [[0x0, c, effect_008], [0x135C8, .rodata, effect_008], [0x135F4, bin, effect_008]]}
   - [0x5A830]
 - name: effect_009
   sha1: 266caff2c6f3f8e45eca09dea4935724714b5eb2
   options: {target_path: original/effect/effect_009.bin, src_path: src/effect}
   segments:
   - {name: effect_009, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_009], [0xA15C, bin, effect_009]]}
+     subsegments: [[0x0, c, effect_009], [0xA15C, .rodata, effect_009], [0xA238, bin, effect_009]]}
   - [0x403C8]
 - name: effect_010
   sha1: 102f23cc4b0a820404033aef0f44281c87da7d1f
@@ -767,28 +767,28 @@ binaries:
   options: {target_path: original/effect/effect_013.bin, src_path: src/effect}
   segments:
   - {name: effect_013, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_013], [0x6B6C, bin, effect_013]]}
+     subsegments: [[0x0, c, effect_013], [0x6B6C, .rodata, effect_013], [0x6C28, bin, effect_013]]}
   - [0x33720]
 - name: effect_014
   sha1: b2c82547d421ebedf900366daa1ec5dcead1e972
   options: {target_path: original/effect/effect_014.bin, src_path: src/effect}
   segments:
   - {name: effect_014, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_014], [0xFDB8, bin, effect_014]]}
+     subsegments: [[0x0, c, effect_014], [0xFDB8, .rodata, effect_014], [0xFDE4, bin, effect_014]]}
   - [0x59060]
 - name: effect_015
   sha1: 87756194aaad00815b2154cc357de77e2ab74db8
   options: {target_path: original/effect/effect_015.bin, src_path: src/effect}
   segments:
   - {name: effect_015, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_015], [0xACB8, bin, effect_015]]}
+     subsegments: [[0x0, c, effect_015], [0xACB8, .rodata, effect_015], [0xACCC, bin, effect_015]]}
   - [0x3A7EC]
 - name: effect_016
   sha1: 7e8f8bbec8494c6281042b0b60e7598ce59cd245
   options: {target_path: original/effect/effect_016.bin, src_path: src/effect}
   segments:
   - {name: effect_016, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_016], [0xF140, bin, effect_016]]}
+     subsegments: [[0x0, c, effect_016], [0xF140, .rodata, effect_016], [0xF16C, bin, effect_016]]}
   - [0x3F334]
 - name: effect_017
   sha1: 46ddad0ffd0c0faf04d852c4e4f60ec7922cd9e7
@@ -802,315 +802,315 @@ binaries:
   options: {target_path: original/effect/effect_018.bin, src_path: src/effect}
   segments:
   - {name: effect_018, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_018], [0x136DC, bin, effect_018]]}
+     subsegments: [[0x0, c, effect_018], [0x136DC, .rodata, effect_018], [0x13750, bin, effect_018]]}
   - [0x3DE94]
 - name: effect_019
   sha1: d69141dad4c733f10dcd3a27dccfbad3c62c8eea
   options: {target_path: original/effect/effect_019.bin, src_path: src/effect}
   segments:
   - {name: effect_019, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_019], [0xF13C, bin, effect_019]]}
+     subsegments: [[0x0, c, effect_019], [0xF13C, .rodata, effect_019], [0xF168, bin, effect_019]]}
   - [0x46B64]
 - name: effect_020
   sha1: 41819375ee682a69be583a69ce818fb61589c00c
   options: {target_path: original/effect/effect_020.bin, src_path: src/effect}
   segments:
   - {name: effect_020, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_020], [0x6D88, bin, effect_020]]}
+     subsegments: [[0x0, c, effect_020], [0x6D88, .rodata, effect_020], [0x6E1C, bin, effect_020]]}
   - [0x3579C]
 - name: effect_021
   sha1: 0b015f1bc4e2b212349f9b92e3f6e87f56d4da05
   options: {target_path: original/effect/effect_021.bin, src_path: src/effect}
   segments:
   - {name: effect_021, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_021], [0x5B64, bin, effect_021]]}
+     subsegments: [[0x0, c, effect_021], [0x5B64, .rodata, effect_021], [0x5C34, bin, effect_021]]}
   - [0x29B94]
 - name: effect_022
   sha1: f6f34b460b7ef377ed510d4dc9114daf78b98116
   options: {target_path: original/effect/effect_022.bin, src_path: src/effect}
   segments:
   - {name: effect_022, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_022], [0x8E58, bin, effect_022]]}
+     subsegments: [[0x0, c, effect_022], [0x8E58, .rodata, effect_022], [0x8E74, bin, effect_022]]}
   - [0x43DC8]
 - name: effect_023
   sha1: 77449628c073c52aa3eddc5e0aabb31c3aa23e5d
   options: {target_path: original/effect/effect_023.bin, src_path: src/effect}
   segments:
   - {name: effect_023, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_023], [0xF4FC, bin, effect_023]]}
+     subsegments: [[0x0, c, effect_023], [0xF4FC, .rodata, effect_023], [0xF528, bin, effect_023]]}
   - [0x44C74]
 - name: effect_024
   sha1: eb16265bad98806252497c51d3e62781b08b89cd
   options: {target_path: original/effect/effect_024.bin, src_path: src/effect}
   segments:
   - {name: effect_024, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_024], [0xA510, bin, effect_024]]}
+     subsegments: [[0x0, c, effect_024], [0xA510, .rodata, effect_024], [0xA524, bin, effect_024]]}
   - [0x3AF48]
 - name: effect_025
   sha1: 759122767c1509712ce1016d12c494df57d62392
   options: {target_path: original/effect/effect_025.bin, src_path: src/effect}
   segments:
   - {name: effect_025, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_025], [0x8304, bin, effect_025]]}
+     subsegments: [[0x0, c, effect_025], [0x8304, .rodata, effect_025], [0x83D0, bin, effect_025]]}
   - [0x33EA4]
 - name: effect_026
   sha1: 4ba6ba81335793113254dabaca4229aa48c10473
   options: {target_path: original/effect/effect_026.bin, src_path: src/effect}
   segments:
   - {name: effect_026, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_026], [0x5E00, bin, effect_026]]}
+     subsegments: [[0x0, c, effect_026], [0x5E00, .rodata, effect_026], [0x5EC8, bin, effect_026]]}
   - [0x27C84]
 - name: effect_027
   sha1: a1158a7823e198616a952269d40755268266c76b
   options: {target_path: original/effect/effect_027.bin, src_path: src/effect}
   segments:
   - {name: effect_027, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_027], [0x9BB8, bin, effect_027]]}
+     subsegments: [[0x0, c, effect_027], [0x9BB8, .rodata, effect_027], [0x9BCC, bin, effect_027]]}
   - [0x3AAF8]
 - name: effect_028
   sha1: eb8243db98aedc14e57e62c7b42d639c8171f9c5
   options: {target_path: original/effect/effect_028.bin, src_path: src/effect}
   segments:
   - {name: effect_028, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_028], [0x9EFC, bin, effect_028]]}
+     subsegments: [[0x0, c, effect_028], [0x9EFC, .rodata, effect_028], [0x9F10, bin, effect_028]]}
   - [0x3CCB0]
 - name: effect_029
   sha1: 2f817a2bd73ec621f623440889ade98973bd1131
   options: {target_path: original/effect/effect_029.bin, src_path: src/effect}
   segments:
   - {name: effect_029, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_029], [0x8744, bin, effect_029]]}
+     subsegments: [[0x0, c, effect_029], [0x8744, .rodata, effect_029], [0x8758, bin, effect_029]]}
   - [0x3567C]
 - name: effect_030
   sha1: 657aff70f8d134b11b82bac749abd43632956db4
   options: {target_path: original/effect/effect_030.bin, src_path: src/effect}
   segments:
   - {name: effect_030, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_030], [0xABD4, bin, effect_030]]}
+     subsegments: [[0x0, c, effect_030], [0xABD4, .rodata, effect_030], [0xABE8, bin, effect_030]]}
   - [0x3D5A4]
 - name: effect_031
   sha1: 472090cb605a37f22457bfa550ed81d0bc9530f1
   options: {target_path: original/effect/effect_031.bin, src_path: src/effect}
   segments:
   - {name: effect_031, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_031], [0xD150, bin, effect_031]]}
+     subsegments: [[0x0, c, effect_031], [0xD150, .rodata, effect_031], [0xD174, bin, effect_031]]}
   - [0x4B130]
 - name: effect_032
   sha1: ca5e5991cb91eda61813c277b7cfb3cf0cf90e83
   options: {target_path: original/effect/effect_032.bin, src_path: src/effect}
   segments:
   - {name: effect_032, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_032], [0x3DE4, bin, effect_032]]}
+     subsegments: [[0x0, c, effect_032], [0x3DE4, .rodata, effect_032], [0x3E60, bin, effect_032]]}
   - [0x32240]
 - name: effect_033
   sha1: cf8ba894ced9298b62b781b4af48f796bc9b2e7b
   options: {target_path: original/effect/effect_033.bin, src_path: src/effect}
   segments:
   - {name: effect_033, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_033], [0xB24C, bin, effect_033]]}
+     subsegments: [[0x0, c, effect_033], [0xB24C, .rodata, effect_033], [0xB260, bin, effect_033]]}
   - [0x3C994]
 - name: effect_034
   sha1: 846fb8534b692bfa5b8cab3c1ea5d683f324b37e
   options: {target_path: original/effect/effect_034.bin, src_path: src/effect}
   segments:
   - {name: effect_034, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_034], [0x5018, bin, effect_034]]}
+     subsegments: [[0x0, c, effect_034], [0x5018, .rodata, effect_034], [0x506C, bin, effect_034]]}
   - [0x32E74]
 - name: effect_035
   sha1: 87f40b96c89284ef6d879ddf99e794cee2ccaae0
   options: {target_path: original/effect/effect_035.bin, src_path: src/effect}
   segments:
   - {name: effect_035, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_035], [0x2A08, bin, effect_035]]}
+     subsegments: [[0x0, c, effect_035], [0x2A08, .rodata, effect_035], [0x2A54, bin, effect_035]]}
   - [0x24414]
 - name: effect_036
   sha1: 1f0689c870a5fbc8cac4b9fda5d2ff6b5351f90f
   options: {target_path: original/effect/effect_036.bin, src_path: src/effect}
   segments:
   - {name: effect_036, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_036], [0x9D6C, bin, effect_036]]}
+     subsegments: [[0x0, c, effect_036], [0x9D6C, .rodata, effect_036], [0x9D80, bin, effect_036]]}
   - [0x422F0]
 - name: effect_037
   sha1: b612bceb1b012825e0742387b0c698f409303e42
   options: {target_path: original/effect/effect_037.bin, src_path: src/effect}
   segments:
   - {name: effect_037, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_037], [0xE6BC, bin, effect_037]]}
+     subsegments: [[0x0, c, effect_037], [0xE6BC, .rodata, effect_037], [0xE6D0, bin, effect_037]]}
   - [0x47CBC]
 - name: effect_038
   sha1: f67484bc7f4238a677e2a34d21f5b91ee6bfa69c
   options: {target_path: original/effect/effect_038.bin, src_path: src/effect}
   segments:
   - {name: effect_038, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_038], [0x9E9C, bin, effect_038]]}
+     subsegments: [[0x0, c, effect_038], [0x9E9C, .rodata, effect_038], [0x9F88, bin, effect_038]]}
   - [0x3A960]
 - name: effect_039
   sha1: ab104d01954e945e94619d48d4aed1b75c1f1ccb
   options: {target_path: original/effect/effect_039.bin, src_path: src/effect}
   segments:
   - {name: effect_039, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_039], [0x9F34, bin, effect_039]]}
+     subsegments: [[0x0, c, effect_039], [0x9F34, .rodata, effect_039], [0x9F48, bin, effect_039]]}
   - [0x39744]
 - name: effect_040
   sha1: 71c17ed17dd7557405ab4a9ef1ca1eb46383dddf
   options: {target_path: original/effect/effect_040.bin, src_path: src/effect}
   segments:
   - {name: effect_040, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_040], [0xA114, bin, effect_040]]}
+     subsegments: [[0x0, c, effect_040], [0xA114, .rodata, effect_040], [0xA320, bin, effect_040]]}
   - [0x3AC08]
 - name: effect_041
   sha1: db1e9412002655fb6f2991c44703b762679274af
   options: {target_path: original/effect/effect_041.bin, src_path: src/effect}
   segments:
   - {name: effect_041, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_041], [0xBECC, bin, effect_041]]}
+     subsegments: [[0x0, c, effect_041], [0xBECC, .rodata, effect_041], [0xBEE0, bin, effect_041]]}
   - [0x3A23C]
 - name: effect_042
   sha1: c560c8343bde305260812182504c12c504045296
   options: {target_path: original/effect/effect_042.bin, src_path: src/effect}
   segments:
   - {name: effect_042, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_042], [0xE498, bin, effect_042]]}
+     subsegments: [[0x0, c, effect_042], [0xE498, .rodata, effect_042], [0xE4AC, bin, effect_042]]}
   - [0x3C5A0]
 - name: effect_043
   sha1: d0bc38383514f26db82d199e58142355bdd21067
   options: {target_path: original/effect/effect_043.bin, src_path: src/effect}
   segments:
   - {name: effect_043, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_043], [0x99BC, bin, effect_043]]}
+     subsegments: [[0x0, c, effect_043], [0x99BC, .rodata, effect_043], [0x99D0, bin, effect_043]]}
   - [0x3880C]
 - name: effect_044
   sha1: 35f4132376326338f61426abceda068b13102af1
   options: {target_path: original/effect/effect_044.bin, src_path: src/effect}
   segments:
   - {name: effect_044, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_044], [0x2670, bin, effect_044]]}
+     subsegments: [[0x0, c, effect_044], [0x2670, .rodata, effect_044], [0x26E4, bin, effect_044]]}
   - [0x448D8]
 - name: effect_045
   sha1: 2a1d95c50ac5113a65d9f39e6972041f294cbe0e
   options: {target_path: original/effect/effect_045.bin, src_path: src/effect}
   segments:
   - {name: effect_045, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_045], [0x7AE8, bin, effect_045]]}
+     subsegments: [[0x0, c, effect_045], [0x7AE8, .rodata, effect_045], [0x7B80, bin, effect_045]]}
   - [0x357A0]
 - name: effect_046
   sha1: 4910bfb5ba1aab911fd381ed97949dbc3a1f6533
   options: {target_path: original/effect/effect_046.bin, src_path: src/effect}
   segments:
   - {name: effect_046, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_046], [0x8CE8, bin, effect_046]]}
+     subsegments: [[0x0, c, effect_046], [0x8CE8, .rodata, effect_046], [0x8CFC, bin, effect_046]]}
   - [0x3EB4C]
 - name: effect_047
   sha1: 31d1c6307caad277665598f4c4ddb0c38a10dbb6
   options: {target_path: original/effect/effect_047.bin, src_path: src/effect}
   segments:
   - {name: effect_047, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_047], [0xFC64, bin, effect_047]]}
+     subsegments: [[0x0, c, effect_047], [0xFC64, .rodata, effect_047], [0xFC90, bin, effect_047]]}
   - [0x4829C]
 - name: effect_048
   sha1: ec5bffbc63618c111342be0c39d9cec32351e04b
   options: {target_path: original/effect/effect_048.bin, src_path: src/effect}
   segments:
   - {name: effect_048, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_048], [0xA748, bin, effect_048]]}
+     subsegments: [[0x0, c, effect_048], [0xA748, .rodata, effect_048], [0xA75C, bin, effect_048]]}
   - [0x3FB60]
 - name: effect_049
   sha1: 026cb8a74083eb5dcacddf0f320d8546e70601e3
   options: {target_path: original/effect/effect_049.bin, src_path: src/effect}
   segments:
   - {name: effect_049, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_049], [0x96F4, bin, effect_049]]}
+     subsegments: [[0x0, c, effect_049], [0x96F4, .rodata, effect_049], [0x97AC, bin, effect_049]]}
   - [0x3AB64]
 - name: effect_050
   sha1: d2269dde125f54b3f00c61eb318b58d3ca3c6f40
   options: {target_path: original/effect/effect_050.bin, src_path: src/effect}
   segments:
   - {name: effect_050, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_050], [0x4614, bin, effect_050]]}
+     subsegments: [[0x0, c, effect_050], [0x4614, .rodata, effect_050], [0x4678, bin, effect_050]]}
   - [0x258E0]
 - name: effect_051
   sha1: 759122767c1509712ce1016d12c494df57d62392
   options: {target_path: original/effect/effect_051.bin, src_path: src/effect}
   segments:
   - {name: effect_051, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_051], [0x8304, bin, effect_051]]}
+     subsegments: [[0x0, c, effect_051], [0x8304, .rodata, effect_051], [0x83D0, bin, effect_051]]}
   - [0x33EA4]
 - name: effect_052
   sha1: 018066f1282c8db5bf22c8ec68b0d92fe329d9d0
   options: {target_path: original/effect/effect_052.bin, src_path: src/effect}
   segments:
   - {name: effect_052, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_052], [0x9BDC, bin, effect_052]]}
+     subsegments: [[0x0, c, effect_052], [0x9BDC, .rodata, effect_052], [0x9BF0, bin, effect_052]]}
   - [0x3C6D8]
 - name: effect_053
   sha1: 738b1bb7de8b266db68995f925e9602f88fca51f
   options: {target_path: original/effect/effect_053.bin, src_path: src/effect}
   segments:
   - {name: effect_053, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_053], [0x9B74, bin, effect_053]]}
+     subsegments: [[0x0, c, effect_053], [0x9B74, .rodata, effect_053], [0x9B88, bin, effect_053]]}
   - [0x35338]
 - name: effect_054
   sha1: 8260bb65d383a92b02e7ed68c0548642943b5946
   options: {target_path: original/effect/effect_054.bin, src_path: src/effect}
   segments:
   - {name: effect_054, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_054], [0x9BB4, bin, effect_054]]}
+     subsegments: [[0x0, c, effect_054], [0x9BB4, .rodata, effect_054], [0x9BC8, bin, effect_054]]}
   - [0x33F44]
 - name: effect_055
   sha1: ba21e7c01873d2ebc4663da2bf6518984561d62a
   options: {target_path: original/effect/effect_055.bin, src_path: src/effect}
   segments:
   - {name: effect_055, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_055], [0x8E24, bin, effect_055]]}
+     subsegments: [[0x0, c, effect_055], [0x8E24, .rodata, effect_055], [0x8F08, bin, effect_055]]}
   - [0x35510]
 - name: effect_056
   sha1: ab104d01954e945e94619d48d4aed1b75c1f1ccb
   options: {target_path: original/effect/effect_056.bin, src_path: src/effect}
   segments:
   - {name: effect_056, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_056], [0x9F34, bin, effect_056]]}
+     subsegments: [[0x0, c, effect_056], [0x9F34, .rodata, effect_056], [0x9F48, bin, effect_056]]}
   - [0x39744]
 - name: effect_057
   sha1: 1ae05f01dd5c2a348e1f11bfad13b9419ee00177
   options: {target_path: original/effect/effect_057.bin, src_path: src/effect}
   segments:
   - {name: effect_057, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_057], [0xA510, bin, effect_057]]}
+     subsegments: [[0x0, c, effect_057], [0xA510, .rodata, effect_057], [0xA524, bin, effect_057]]}
   - [0x3B870]
 - name: effect_058
   sha1: b807d61db177307a411f058cf26065b065982519
   options: {target_path: original/effect/effect_058.bin, src_path: src/effect}
   segments:
   - {name: effect_058, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_058], [0x9B70, bin, effect_058]]}
+     subsegments: [[0x0, c, effect_058], [0x9B70, .rodata, effect_058], [0x9B84, bin, effect_058]]}
   - [0x38254]
 - name: effect_059
   sha1: 52386daec49eb860d4cb5bdc93604dcca999b32f
   options: {target_path: original/effect/effect_059.bin, src_path: src/effect}
   segments:
   - {name: effect_059, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_059], [0x9B70, bin, effect_059]]}
+     subsegments: [[0x0, c, effect_059], [0x9B70, .rodata, effect_059], [0x9B84, bin, effect_059]]}
   - [0x38254]
 - name: effect_060
   sha1: be641d0c6499e1cc9a05eb07655676eb51e85829
   options: {target_path: original/effect/effect_060.bin, src_path: src/effect}
   segments:
   - {name: effect_060, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_060], [0xF604, bin, effect_060]]}
+     subsegments: [[0x0, c, effect_060], [0xF604, .rodata, effect_060], [0xF630, bin, effect_060]]}
   - [0x47828]
 - name: effect_061
   sha1: b7cd64a3233ed17ad50592288289f955c5fa40f0
   options: {target_path: original/effect/effect_061.bin, src_path: src/effect}
   segments:
   - {name: effect_061, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_061], [0xF148, bin, effect_061]]}
+     subsegments: [[0x0, c, effect_061], [0xF148, .rodata, effect_061], [0xF174, bin, effect_061]]}
   - [0x3DDFC]
 - name: effect_062
   sha1: 43c71e90043acbb63acb908ec78809ca68724f8c
   options: {target_path: original/effect/effect_062.bin, src_path: src/effect}
   segments:
   - {name: effect_062, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_062], [0x2E10, bin, effect_062]]}
+     subsegments: [[0x0, c, effect_062], [0x2E10, .rodata, effect_062], [0x2E98, bin, effect_062]]}
   - [0x5C494]
 - name: effect_063
   sha1: 1922af0cc9e8994881433b984967901168a0c675
@@ -1138,21 +1138,21 @@ binaries:
   options: {target_path: original/effect/effect_066.bin, src_path: src/effect}
   segments:
   - {name: effect_066, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_066], [0xC884, bin, effect_066]]}
+     subsegments: [[0x0, c, effect_066], [0xC884, .rodata, effect_066], [0xC8B0, bin, effect_066]]}
   - [0x577CC]
 - name: effect_067
   sha1: eb16265bad98806252497c51d3e62781b08b89cd
   options: {target_path: original/effect/effect_067.bin, src_path: src/effect}
   segments:
   - {name: effect_067, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_067], [0xA510, bin, effect_067]]}
+     subsegments: [[0x0, c, effect_067], [0xA510, .rodata, effect_067], [0xA524, bin, effect_067]]}
   - [0x3AF48]
 - name: effect_068
   sha1: 57bf952a57f3af5426080ce571a6f99d69a8ad7b
   options: {target_path: original/effect/effect_068.bin, src_path: src/effect}
   segments:
   - {name: effect_068, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_068], [0xA0A4, bin, effect_068]]}
+     subsegments: [[0x0, c, effect_068], [0xA0A4, .rodata, effect_068], [0xA2B0, bin, effect_068]]}
   - [0x3AB98]
 - name: effect_069
   sha1: ae3181ce7d3e9ba4cf759bc4d940f1817057663f
@@ -1173,210 +1173,210 @@ binaries:
   options: {target_path: original/effect/effect_071.bin, src_path: src/effect}
   segments:
   - {name: effect_071, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_071], [0xAE7C, bin, effect_071]]}
+     subsegments: [[0x0, c, effect_071], [0xAE7C, .rodata, effect_071], [0xAE90, bin, effect_071]]}
   - [0x3F418]
 - name: effect_072
   sha1: bafaf0137b5a951c7af4a0eb0e84c16a562490fd
   options: {target_path: original/effect/effect_072.bin, src_path: src/effect}
   segments:
   - {name: effect_072, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_072], [0x8E84, bin, effect_072]]}
+     subsegments: [[0x0, c, effect_072], [0x8E84, .rodata, effect_072], [0x8F68, bin, effect_072]]}
   - [0x37154]
 - name: effect_073
   sha1: 4576c4bd2ae72b26592c07030f96701d8647dec8
   options: {target_path: original/effect/effect_073.bin, src_path: src/effect}
   segments:
   - {name: effect_073, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_073], [0xA524, bin, effect_073]]}
+     subsegments: [[0x0, c, effect_073], [0xA524, .rodata, effect_073], [0xA538, bin, effect_073]]}
   - [0x39BAC]
 - name: effect_074
   sha1: bd0d2c7e998c8ebbd849fd6699f9d21f6956492d
   options: {target_path: original/effect/effect_074.bin, src_path: src/effect}
   segments:
   - {name: effect_074, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_074], [0xFDD4, bin, effect_074]]}
+     subsegments: [[0x0, c, effect_074], [0xFDD4, .rodata, effect_074], [0xFE00, bin, effect_074]]}
   - [0x59DF0]
 - name: effect_075
   sha1: a4509e68d50d54e5dee8790556b6f10c72557600
   options: {target_path: original/effect/effect_075.bin, src_path: src/effect}
   segments:
   - {name: effect_075, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_075], [0x10C50, bin, effect_075]]}
+     subsegments: [[0x0, c, effect_075], [0x10C50, .rodata, effect_075], [0x10C64, bin, effect_075]]}
   - [0x36F8C]
 - name: effect_076
   sha1: 47aefc3b3f0530f8fc59e3db123d2fd0d7154cc5
   options: {target_path: original/effect/effect_076.bin, src_path: src/effect}
   segments:
   - {name: effect_076, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_076], [0x5C38, bin, effect_076]]}
+     subsegments: [[0x0, c, effect_076], [0x5C38, .rodata, effect_076], [0x5C64, bin, effect_076]]}
   - [0x3E024]
 - name: effect_077
   sha1: 1e47e2dcb8f0b936159264f0e0d87d4527288e94
   options: {target_path: original/effect/effect_077.bin, src_path: src/effect}
   segments:
   - {name: effect_077, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_077], [0x14614, bin, effect_077]]}
+     subsegments: [[0x0, c, effect_077], [0x14614, .rodata, effect_077], [0x14688, bin, effect_077]]}
   - [0x57900]
 - name: effect_078
   sha1: a17ef38f3064a663ac929a7e0342e5aa3460b28e
   options: {target_path: original/effect/effect_078.bin, src_path: src/effect}
   segments:
   - {name: effect_078, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_078], [0xA55C, bin, effect_078]]}
+     subsegments: [[0x0, c, effect_078], [0xA55C, .rodata, effect_078], [0xA570, bin, effect_078]]}
   - [0x3804C]
 - name: effect_079
   sha1: cc6a8a839c9f4945ff97edf901453c6ec19f2002
   options: {target_path: original/effect/effect_079.bin, src_path: src/effect}
   segments:
   - {name: effect_079, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_079], [0x13318, bin, effect_079]]}
+     subsegments: [[0x0, c, effect_079], [0x13318, .rodata, effect_079], [0x13344, bin, effect_079]]}
   - [0x556C8]
 - name: effect_080
   sha1: 2ea7de60ea3e6125f7061213759fa035f4c38019
   options: {target_path: original/effect/effect_080.bin, src_path: src/effect}
   segments:
   - {name: effect_080, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_080], [0x1300C, bin, effect_080]]}
+     subsegments: [[0x0, c, effect_080], [0x1300C, .rodata, effect_080], [0x13038, bin, effect_080]]}
   - [0x5E31C]
 - name: effect_081
   sha1: 38be461fdd919bc0ba72e7e254d9ff56794cc8db
   options: {target_path: original/effect/effect_081.bin, src_path: src/effect}
   segments:
   - {name: effect_081, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_081], [0xD3B4, bin, effect_081]]}
+     subsegments: [[0x0, c, effect_081], [0xD3B4, .rodata, effect_081], [0xD3E0, bin, effect_081]]}
   - [0x3DD5C]
 - name: effect_082
   sha1: ed0ef1ed1033f1f0689d8cf8178eaae347af3c59
   options: {target_path: original/effect/effect_082.bin, src_path: src/effect}
   segments:
   - {name: effect_082, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_082], [0xD380, bin, effect_082]]}
+     subsegments: [[0x0, c, effect_082], [0xD380, .rodata, effect_082], [0xD3AC, bin, effect_082]]}
   - [0x3CF58]
 - name: effect_083
   sha1: ec842d1aa086c6f78f209adda3b1989adad73d23
   options: {target_path: original/effect/effect_083.bin, src_path: src/effect}
   segments:
   - {name: effect_083, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_083], [0xF6CC, bin, effect_083]]}
+     subsegments: [[0x0, c, effect_083], [0xF6CC, .rodata, effect_083], [0xF6F8, bin, effect_083]]}
   - [0x54CB4]
 - name: effect_084
   sha1: f63bd6327aa8fd7ac71012fb3e653094fa5903ff
   options: {target_path: original/effect/effect_084.bin, src_path: src/effect}
   segments:
   - {name: effect_084, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_084], [0x14CD4, bin, effect_084]]}
+     subsegments: [[0x0, c, effect_084], [0x14CD4, .rodata, effect_084], [0x14D00, bin, effect_084]]}
   - [0x5A090]
 - name: effect_085
   sha1: dcd2c7b2ac43389a895bd48488b452d2d8b7e08b
   options: {target_path: original/effect/effect_085.bin, src_path: src/effect}
   segments:
   - {name: effect_085, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_085], [0x13AB0, bin, effect_085]]}
+     subsegments: [[0x0, c, effect_085], [0x13AB0, .rodata, effect_085], [0x13ADC, bin, effect_085]]}
   - [0x5174C]
 - name: effect_086
   sha1: ef09a37a160c9f809f30b4c907cf0d57244ee6d4
   options: {target_path: original/effect/effect_086.bin, src_path: src/effect}
   segments:
   - {name: effect_086, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_086], [0xDD88, bin, effect_086]]}
+     subsegments: [[0x0, c, effect_086], [0xDD88, .rodata, effect_086], [0xDE3C, bin, effect_086]]}
   - [0x58BD8]
 - name: effect_087
   sha1: 29325d6d03261fdc143799df4f68953882ddc484
   options: {target_path: original/effect/effect_087.bin, src_path: src/effect}
   segments:
   - {name: effect_087, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_087], [0x1678C, bin, effect_087]]}
+     subsegments: [[0x0, c, effect_087], [0x1678C, .rodata, effect_087], [0x167B8, bin, effect_087]]}
   - [0x5BB34]
 - name: effect_088
   sha1: c597a77e53c9ec8c10d886bf0fb9903590ec2593
   options: {target_path: original/effect/effect_088.bin, src_path: src/effect}
   segments:
   - {name: effect_088, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_088], [0x15F0C, bin, effect_088]]}
+     subsegments: [[0x0, c, effect_088], [0x15F0C, .rodata, effect_088], [0x15F50, bin, effect_088]]}
   - [0x5A9D8]
 - name: effect_089
   sha1: 0cc6050e91cda6ce91564b4a318aaef6dc0bc73a
   options: {target_path: original/effect/effect_089.bin, src_path: src/effect}
   segments:
   - {name: effect_089, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_089], [0x9AD0, bin, effect_089]]}
+     subsegments: [[0x0, c, effect_089], [0x9AD0, .rodata, effect_089], [0x9B88, bin, effect_089]]}
   - [0x49614]
 - name: effect_090
   sha1: 0d4752cc5d3f9e16a147e8df06718281ccb31e09
   options: {target_path: original/effect/effect_090.bin, src_path: src/effect}
   segments:
   - {name: effect_090, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_090], [0xD934, bin, effect_090]]}
+     subsegments: [[0x0, c, effect_090], [0xD934, .rodata, effect_090], [0xDADC, bin, effect_090]]}
   - [0x5BC20]
 - name: effect_091
   sha1: 3b012eb26118bb409d93a6278293bc32e76f8065
   options: {target_path: original/effect/effect_091.bin, src_path: src/effect}
   segments:
   - {name: effect_091, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_091], [0x12338, bin, effect_091]]}
+     subsegments: [[0x0, c, effect_091], [0x12338, .rodata, effect_091], [0x12364, bin, effect_091]]}
   - [0x51ACC]
 - name: effect_092
   sha1: 1ebfb1de0a9904448bf5f87fc03e4f9f3b4b8ea9
   options: {target_path: original/effect/effect_092.bin, src_path: src/effect}
   segments:
   - {name: effect_092, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_092], [0xA6D4, bin, effect_092]]}
+     subsegments: [[0x0, c, effect_092], [0xA6D4, .rodata, effect_092], [0xA7A0, bin, effect_092]]}
   - [0x4BEEC]
 - name: effect_093
   sha1: d0d23213f8d7019d5a15e9e855c3b05d0941d089
   options: {target_path: original/effect/effect_093.bin, src_path: src/effect}
   segments:
   - {name: effect_093, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_093], [0xF8C8, bin, effect_093]]}
+     subsegments: [[0x0, c, effect_093], [0xF8C8, .rodata, effect_093], [0xF8F4, bin, effect_093]]}
   - [0x4E960]
 - name: effect_094
   sha1: 62e6a833b327c70130688cb1894f6545d476fd1b
   options: {target_path: original/effect/effect_094.bin, src_path: src/effect}
   segments:
   - {name: effect_094, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_094], [0xF8C8, bin, effect_094]]}
+     subsegments: [[0x0, c, effect_094], [0xF8C8, .rodata, effect_094], [0xF8F4, bin, effect_094]]}
   - [0x4F390]
 - name: effect_095
   sha1: 4b14b93043d7c10fdc8cf4810a7c2449f9f8772a
   options: {target_path: original/effect/effect_095.bin, src_path: src/effect}
   segments:
   - {name: effect_095, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_095], [0x18D78, bin, effect_095]]}
+     subsegments: [[0x0, c, effect_095], [0x18D78, .rodata, effect_095], [0x18D8C, bin, effect_095]]}
   - [0x4A964]
 - name: effect_096
   sha1: 2c3c2f9042e37f288528aac98b2750decabe2a35
   options: {target_path: original/effect/effect_096.bin, src_path: src/effect}
   segments:
   - {name: effect_096, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_096], [0x10700, bin, effect_096]]}
+     subsegments: [[0x0, c, effect_096], [0x10700, .rodata, effect_096], [0x10714, bin, effect_096]]}
   - [0x575D8]
 - name: effect_097
   sha1: 32a3fb9c856c7c59c997882775bf4ee3d71fa938
   options: {target_path: original/effect/effect_097.bin, src_path: src/effect}
   segments:
   - {name: effect_097, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_097], [0x10398, bin, effect_097]]}
+     subsegments: [[0x0, c, effect_097], [0x10398, .rodata, effect_097], [0x103AC, bin, effect_097]]}
   - [0x4EF7C]
 - name: effect_098
   sha1: 9f848850744026f0f70bf58e90981d05b4b97f38
   options: {target_path: original/effect/effect_098.bin, src_path: src/effect}
   segments:
   - {name: effect_098, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_098], [0x1088C, bin, effect_098]]}
+     subsegments: [[0x0, c, effect_098], [0x1088C, .rodata, effect_098], [0x108A0, bin, effect_098]]}
   - [0x50020]
 - name: effect_099
   sha1: 47a2ab83d49d37c3966275a18d5592214172d8dc
   options: {target_path: original/effect/effect_099.bin, src_path: src/effect}
   segments:
   - {name: effect_099, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_099], [0x134B0, bin, effect_099]]}
+     subsegments: [[0x0, c, effect_099], [0x134B0, .rodata, effect_099], [0x134D4, bin, effect_099]]}
   - [0x5522C]
 - name: effect_100
   sha1: 3ac8c24a78eb01de47db1e15179a7ca5b6712627
   options: {target_path: original/effect/effect_100.bin, src_path: src/effect}
   segments:
   - {name: effect_100, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_100], [0x14290, bin, effect_100]]}
+     subsegments: [[0x0, c, effect_100], [0x14290, .rodata, effect_100], [0x1429C, bin, effect_100]]}
   - [0x53D80]
 - name: effect_101
   sha1: 5d3a569d2c87131105ce3e9d2680def0a290c0d2
@@ -1509,7 +1509,7 @@ binaries:
   options: {target_path: original/effect/effect_119.bin, src_path: src/effect}
   segments:
   - {name: effect_119, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_119], [0x399C, bin, effect_119]]}
+     subsegments: [[0x0, c, effect_119], [0x399C, .rodata, effect_119], [0x39D0, bin, effect_119]]}
   - [0x462A0]
 - name: effect_120
   sha1: cfde3817235d061499ce17a0d7dddf98d30d01b4
@@ -1742,7 +1742,7 @@ binaries:
   options: {target_path: original/effect/effect_153.bin, src_path: src/effect}
   segments:
   - {name: effect_153, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_153], [0x3598, bin, effect_153]]}
+     subsegments: [[0x0, c, effect_153], [0x3598, .rodata, effect_153], [0x35B0, bin, effect_153]]}
   - [0x1EF00]
 - name: effect_154
   sha1: 1255101a0924c5de3b7071b97d7fc47d05cfba41
@@ -1814,14 +1814,14 @@ binaries:
   options: {target_path: original/effect/effect_164.bin, src_path: src/effect}
   segments:
   - {name: effect_164, type: code, start: 0, vram: 0x801B0000,
-     subsegments: [[0x0, c, effect_164], [0xAD6C, bin, effect_164]]}
+     subsegments: [[0x0, c, effect_164], [0xAD6C, .rodata, effect_164], [0xAD98, bin, effect_164]]}
   - [0x3D820]
 - name: effect_165
   sha1: 7ce28a2f36fc01c76af53bb628a6ea1f757e83d5
   options: {target_path: original/effect/effect_165.bin, src_path: src/effect}
   segments:
   - {name: effect_165, type: code, start: 0, vram: 0x801B0000,
-     subsegments: [[0x0, c, effect_165], [0xE1C4, bin, effect_165]]}
+     subsegments: [[0x0, c, effect_165], [0xE1C4, .rodata, effect_165], [0xE208, bin, effect_165]]}
   - [0x40930]
 - name: effect_166
   sha1: e6367ed76bddb7847a8dcda2a61ef23808bcd531
@@ -1835,7 +1835,7 @@ binaries:
   options: {target_path: original/effect/effect_167.bin, src_path: src/effect}
   segments:
   - {name: effect_167, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_167], [0x3B0C, bin, effect_167]]}
+     subsegments: [[0x0, c, effect_167], [0x3B0C, .rodata, effect_167], [0x3B24, bin, effect_167]]}
   - [0x262BC]
 - name: effect_168
   sha1: b8634723d963fa04e4512c4b88bd72e921b0684f
@@ -1960,7 +1960,7 @@ binaries:
   options: {target_path: original/effect/effect_185.bin, src_path: src/effect}
   segments:
   - {name: effect_185, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_185], [0xDA90, bin, effect_185]]}
+     subsegments: [[0x0, c, effect_185], [0xDA90, .rodata, effect_185], [0xDAD4, bin, effect_185]]}
   - [0x54ABC]
 - name: effect_186
   sha1: f253d6056276aae279652497cec80c411e7b14f7
@@ -1974,7 +1974,7 @@ binaries:
   options: {target_path: original/effect/effect_187.bin, src_path: src/effect}
   segments:
   - {name: effect_187, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_187], [0xCF6C, bin, effect_187]]}
+     subsegments: [[0x0, c, effect_187], [0xCF6C, .rodata, effect_187], [0xCF98, bin, effect_187]]}
   - [0x4E92C]
 - name: effect_188
   sha1: 2448804135956eccf92821df786c4fbb684e185c
@@ -1988,7 +1988,7 @@ binaries:
   options: {target_path: original/effect/effect_189.bin, src_path: src/effect}
   segments:
   - {name: effect_189, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_189], [0x5624, bin, effect_189]]}
+     subsegments: [[0x0, c, effect_189], [0x5624, .rodata, effect_189], [0x563C, bin, effect_189]]}
   - [0x17958]
 - name: effect_190
   sha1: 3ab86c8ade80c735157761af2a8e75573d94278c
@@ -2002,7 +2002,7 @@ binaries:
   options: {target_path: original/effect/effect_191.bin, src_path: src/effect}
   segments:
   - {name: effect_191, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_191], [0xE22C, bin, effect_191]]}
+     subsegments: [[0x0, c, effect_191], [0xE22C, .rodata, effect_191], [0xE258, bin, effect_191]]}
   - [0x500A0]
 - name: effect_192
   sha1: 174dca062cf71bb73206dee851bd7c6136199abb
@@ -2058,56 +2058,56 @@ binaries:
   options: {target_path: original/effect/effect_199.bin, src_path: src/effect}
   segments:
   - {name: effect_199, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_199], [0x4600, bin, effect_199]]}
+     subsegments: [[0x0, c, effect_199], [0x4600, .rodata, effect_199], [0x462C, bin, effect_199]]}
   - [0x37AB4]
 - name: effect_200
   sha1: 6b5489e27506d63d7993dbe0025a68c576bd168a
   options: {target_path: original/effect/effect_200.bin, src_path: src/effect}
   segments:
   - {name: effect_200, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_200], [0xAF7C, bin, effect_200]]}
+     subsegments: [[0x0, c, effect_200], [0xAF7C, .rodata, effect_200], [0xAFA8, bin, effect_200]]}
   - [0x3798C]
 - name: effect_201
   sha1: e09f778f49b9519951d4023a80def475695b8552
   options: {target_path: original/effect/effect_201.bin, src_path: src/effect}
   segments:
   - {name: effect_201, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_201], [0xF6E4, bin, effect_201]]}
+     subsegments: [[0x0, c, effect_201], [0xF6E4, .rodata, effect_201], [0xF6F8, bin, effect_201]]}
   - [0x5B170]
 - name: effect_202
   sha1: d10e7f16b86c4a21ccde7de5f4cafdf831e35553
   options: {target_path: original/effect/effect_202.bin, src_path: src/effect}
   segments:
   - {name: effect_202, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_202], [0x1264C, bin, effect_202]]}
+     subsegments: [[0x0, c, effect_202], [0x1264C, .rodata, effect_202], [0x12660, bin, effect_202]]}
   - [0x59570]
 - name: effect_203
   sha1: 2a8be1aa1bdd4fa6793b812a02ae2eb6f26a6dd4
   options: {target_path: original/effect/effect_203.bin, src_path: src/effect}
   segments:
   - {name: effect_203, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_203], [0x114CC, bin, effect_203]]}
+     subsegments: [[0x0, c, effect_203], [0x114CC, .rodata, effect_203], [0x114E0, bin, effect_203]]}
   - [0x58540]
 - name: effect_204
   sha1: 45b706e262eb5f235fa33ce8a00a70de1534ab90
   options: {target_path: original/effect/effect_204.bin, src_path: src/effect}
   segments:
   - {name: effect_204, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_204], [0x11930, bin, effect_204]]}
+     subsegments: [[0x0, c, effect_204], [0x11930, .rodata, effect_204], [0x11944, bin, effect_204]]}
   - [0x581CC]
 - name: effect_205
   sha1: 2ce135743d74928e04e07f082b4bfbccd615ab58
   options: {target_path: original/effect/effect_205.bin, src_path: src/effect}
   segments:
   - {name: effect_205, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_205], [0x11014, bin, effect_205]]}
+     subsegments: [[0x0, c, effect_205], [0x11014, .rodata, effect_205], [0x11028, bin, effect_205]]}
   - [0x4382C]
 - name: effect_206
   sha1: 42c934507e7963cc3c7ba786fc94509e1d9f0c29
   options: {target_path: original/effect/effect_206.bin, src_path: src/effect}
   segments:
   - {name: effect_206, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_206], [0x183B8, bin, effect_206]]}
+     subsegments: [[0x0, c, effect_206], [0x183B8, .rodata, effect_206], [0x183CC, bin, effect_206]]}
   - [0x5B8CC]
 - name: effect_207
   sha1: 68eed8c5c08ec1a2a6e89f4213f5c6b1b3e4f971
@@ -2121,7 +2121,7 @@ binaries:
   options: {target_path: original/effect/effect_208.bin, src_path: src/effect}
   segments:
   - {name: effect_208, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_208], [0x11B34, bin, effect_208]]}
+     subsegments: [[0x0, c, effect_208], [0x11B34, .rodata, effect_208], [0x11B48, bin, effect_208]]}
   - [0x48E54]
 - name: effect_209
   sha1: edcc63113fae3948969b12ed36a94a02c000532d
@@ -2135,14 +2135,14 @@ binaries:
   options: {target_path: original/effect/effect_210.bin, src_path: src/effect}
   segments:
   - {name: effect_210, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_210], [0x8EB4, bin, effect_210]]}
+     subsegments: [[0x0, c, effect_210], [0x8EB4, .rodata, effect_210], [0x8EDC, bin, effect_210]]}
   - [0x3D718]
 - name: effect_211
   sha1: d5f416104c94eabb0c5121a22e9b82180f58931f
   options: {target_path: original/effect/effect_211.bin, src_path: src/effect}
   segments:
   - {name: effect_211, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_211], [0x13C8C, bin, effect_211]]}
+     subsegments: [[0x0, c, effect_211], [0x13C8C, .rodata, effect_211], [0x13D00, bin, effect_211]]}
   - [0x47EF8]
 - name: effect_212
   sha1: 363afa61c218e1398d4b42b06a0927247bb72a41
@@ -2170,14 +2170,14 @@ binaries:
   options: {target_path: original/effect/effect_215.bin, src_path: src/effect}
   segments:
   - {name: effect_215, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_215], [0x737C, bin, effect_215]]}
+     subsegments: [[0x0, c, effect_215], [0x737C, .rodata, effect_215], [0x73CC, bin, effect_215]]}
   - [0x5E990]
 - name: effect_216
   sha1: 61fa72f113fe009b9c32c168b8faeac7ebeeabb3
   options: {target_path: original/effect/effect_216.bin, src_path: src/effect}
   segments:
   - {name: effect_216, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_216], [0xAAB0, bin, effect_216]]}
+     subsegments: [[0x0, c, effect_216], [0xAAB0, .rodata, effect_216], [0xAAD8, bin, effect_216]]}
   - [0x5D074]
 - name: effect_217
   sha1: 1542f5d0c59d2b92d22aadc7d7a3b86ec247236d
@@ -2191,42 +2191,42 @@ binaries:
   options: {target_path: original/effect/effect_218.bin, src_path: src/effect}
   segments:
   - {name: effect_218, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_218], [0xA308, bin, effect_218]]}
+     subsegments: [[0x0, c, effect_218], [0xA308, .rodata, effect_218], [0xA334, bin, effect_218]]}
   - [0x49F3C]
 - name: effect_219
   sha1: 06a0d6d8319b2c1e355d652cd5e8d86d8aa13400
   options: {target_path: original/effect/effect_219.bin, src_path: src/effect}
   segments:
   - {name: effect_219, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_219], [0x1243C, bin, effect_219]]}
+     subsegments: [[0x0, c, effect_219], [0x1243C, .rodata, effect_219], [0x12450, bin, effect_219]]}
   - [0x58EB4]
 - name: effect_220
   sha1: cd47a25f59a0c95b3dfc2be4a8651cce6d947261
   options: {target_path: original/effect/effect_220.bin, src_path: src/effect}
   segments:
   - {name: effect_220, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_220], [0xEC20, bin, effect_220]]}
+     subsegments: [[0x0, c, effect_220], [0xEC20, .rodata, effect_220], [0xEC34, bin, effect_220]]}
   - [0x37958]
 - name: effect_221
   sha1: 9b2b60d6401ad8158f3e0ddd7fb5d2080b04f27f
   options: {target_path: original/effect/effect_221.bin, src_path: src/effect}
   segments:
   - {name: effect_221, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_221], [0x13100, bin, effect_221]]}
+     subsegments: [[0x0, c, effect_221], [0x13100, .rodata, effect_221], [0x13114, bin, effect_221]]}
   - [0x4F584]
 - name: effect_222
   sha1: 98fe99c1961a5e02b65c3e3bb91fd215b9a4db19
   options: {target_path: original/effect/effect_222.bin, src_path: src/effect}
   segments:
   - {name: effect_222, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_222], [0xF140, bin, effect_222]]}
+     subsegments: [[0x0, c, effect_222], [0xF140, .rodata, effect_222], [0xF154, bin, effect_222]]}
   - [0x4EC64]
 - name: effect_223
   sha1: 23ffdaaed9e68d00e3568cd3b989f03357bfe931
   options: {target_path: original/effect/effect_223.bin, src_path: src/effect}
   segments:
   - {name: effect_223, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_223], [0x10704, bin, effect_223]]}
+     subsegments: [[0x0, c, effect_223], [0x10704, .rodata, effect_223], [0x10718, bin, effect_223]]}
   - [0x5A94C]
 - name: effect_226
   sha1: f435e2cfba85b1f7ff9c06685e6fd000a92970e2
@@ -2247,161 +2247,161 @@ binaries:
   options: {target_path: original/effect/effect_228.bin, src_path: src/effect}
   segments:
   - {name: effect_228, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_228], [0xEE58, bin, effect_228]]}
+     subsegments: [[0x0, c, effect_228], [0xEE58, .rodata, effect_228], [0xEE6C, bin, effect_228]]}
   - [0x39004]
 - name: effect_229
   sha1: 90d1891065bc79d499e7c60346e0ad3cc12def10
   options: {target_path: original/effect/effect_229.bin, src_path: src/effect}
   segments:
   - {name: effect_229, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_229], [0xFC90, bin, effect_229]]}
+     subsegments: [[0x0, c, effect_229], [0xFC90, .rodata, effect_229], [0xFCA4, bin, effect_229]]}
   - [0x39E14]
 - name: effect_230
   sha1: 96e38bee06b60387f9e08b8d1a36857ca4a559d5
   options: {target_path: original/effect/effect_230.bin, src_path: src/effect}
   segments:
   - {name: effect_230, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_230], [0xEB18, bin, effect_230]]}
+     subsegments: [[0x0, c, effect_230], [0xEB18, .rodata, effect_230], [0xEB2C, bin, effect_230]]}
   - [0x48C4C]
 - name: effect_231
   sha1: 78fa82e193366cd80321c221af006a63a72d2e5a
   options: {target_path: original/effect/effect_231.bin, src_path: src/effect}
   segments:
   - {name: effect_231, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_231], [0xF3B4, bin, effect_231]]}
+     subsegments: [[0x0, c, effect_231], [0xF3B4, .rodata, effect_231], [0xF3C8, bin, effect_231]]}
   - [0x37250]
 - name: effect_232
   sha1: 2065d8a3a2655493378e2b414712d8e79743efd6
   options: {target_path: original/effect/effect_232.bin, src_path: src/effect}
   segments:
   - {name: effect_232, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_232], [0xEFF4, bin, effect_232]]}
+     subsegments: [[0x0, c, effect_232], [0xEFF4, .rodata, effect_232], [0xF008, bin, effect_232]]}
   - [0x39450]
 - name: effect_233
   sha1: 9892fc5ce42442a071810d3be64c23570320080d
   options: {target_path: original/effect/effect_233.bin, src_path: src/effect}
   segments:
   - {name: effect_233, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_233], [0xF5C0, bin, effect_233]]}
+     subsegments: [[0x0, c, effect_233], [0xF5C0, .rodata, effect_233], [0xF5D4, bin, effect_233]]}
   - [0x350D8]
 - name: effect_234
   sha1: 139ebfa758a5f453eb8f98223725170516c0fe28
   options: {target_path: original/effect/effect_234.bin, src_path: src/effect}
   segments:
   - {name: effect_234, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_234], [0xF61C, bin, effect_234]]}
+     subsegments: [[0x0, c, effect_234], [0xF61C, .rodata, effect_234], [0xF630, bin, effect_234]]}
   - [0x260D8]
 - name: effect_235
   sha1: 720b29a341f1bc2c523ea89d9fa2b2df27f18fd5
   options: {target_path: original/effect/effect_235.bin, src_path: src/effect}
   segments:
   - {name: effect_235, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_235], [0xF280, bin, effect_235]]}
+     subsegments: [[0x0, c, effect_235], [0xF280, .rodata, effect_235], [0xF294, bin, effect_235]]}
   - [0x449E8]
 - name: effect_236
   sha1: 22c91e3dae1156d703e56805abae8560d6ae37a6
   options: {target_path: original/effect/effect_236.bin, src_path: src/effect}
   segments:
   - {name: effect_236, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_236], [0xEF7C, bin, effect_236]]}
+     subsegments: [[0x0, c, effect_236], [0xEF7C, .rodata, effect_236], [0xEF90, bin, effect_236]]}
   - [0x547A8]
 - name: effect_237
   sha1: e6e7ae00fc50fe9a43a85911ba60b340bacab7fa
   options: {target_path: original/effect/effect_237.bin, src_path: src/effect}
   segments:
   - {name: effect_237, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_237], [0xF530, bin, effect_237]]}
+     subsegments: [[0x0, c, effect_237], [0xF530, .rodata, effect_237], [0xF544, bin, effect_237]]}
   - [0x551E0]
 - name: effect_238
   sha1: 592f8d53225b1a477d48af131e49b436c87cd137
   options: {target_path: original/effect/effect_238.bin, src_path: src/effect}
   segments:
   - {name: effect_238, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_238], [0xEA94, bin, effect_238]]}
+     subsegments: [[0x0, c, effect_238], [0xEA94, .rodata, effect_238], [0xEAA8, bin, effect_238]]}
   - [0x46F70]
 - name: effect_239
   sha1: b3d4b2664a0b7764ae15c74e7bec389a4cdc54cd
   options: {target_path: original/effect/effect_239.bin, src_path: src/effect}
   segments:
   - {name: effect_239, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_239], [0xF18C, bin, effect_239]]}
+     subsegments: [[0x0, c, effect_239], [0xF18C, .rodata, effect_239], [0xF1A0, bin, effect_239]]}
   - [0x3EFFC]
 - name: effect_240
   sha1: dbc9c65cbba92c51c797077b7c25bd4562496a07
   options: {target_path: original/effect/effect_240.bin, src_path: src/effect}
   segments:
   - {name: effect_240, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_240], [0x10378, bin, effect_240]]}
+     subsegments: [[0x0, c, effect_240], [0x10378, .rodata, effect_240], [0x1038C, bin, effect_240]]}
   - [0x36EE0]
 - name: effect_241
   sha1: 452e982699427508246c8d2bbc9ada6c7d17ae57
   options: {target_path: original/effect/effect_241.bin, src_path: src/effect}
   segments:
   - {name: effect_241, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_241], [0xE364, bin, effect_241]]}
+     subsegments: [[0x0, c, effect_241], [0xE364, .rodata, effect_241], [0xE378, bin, effect_241]]}
   - [0x33E3C]
 - name: effect_242
   sha1: 81cbbfb3065e6ff4875067c4309a8e77e0a266d9
   options: {target_path: original/effect/effect_242.bin, src_path: src/effect}
   segments:
   - {name: effect_242, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_242], [0xEC20, bin, effect_242]]}
+     subsegments: [[0x0, c, effect_242], [0xEC20, .rodata, effect_242], [0xEC34, bin, effect_242]]}
   - [0x379CC]
 - name: effect_243
   sha1: af3c3c2973fc187eb09a142fc9ea942d985afbb4
   options: {target_path: original/effect/effect_243.bin, src_path: src/effect}
   segments:
   - {name: effect_243, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_243], [0xE188, bin, effect_243]]}
+     subsegments: [[0x0, c, effect_243], [0xE188, .rodata, effect_243], [0xE19C, bin, effect_243]]}
   - [0x2C9D8]
 - name: effect_244
   sha1: b7b7bb1b726871a4a29271c1c2b4a92c108651ad
   options: {target_path: original/effect/effect_244.bin, src_path: src/effect}
   segments:
   - {name: effect_244, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_244], [0xE188, bin, effect_244]]}
+     subsegments: [[0x0, c, effect_244], [0xE188, .rodata, effect_244], [0xE19C, bin, effect_244]]}
   - [0x2C9D8]
 - name: effect_245
   sha1: b0e7bbc7db6f9bac10c0978461e939a7a70d64a7
   options: {target_path: original/effect/effect_245.bin, src_path: src/effect}
   segments:
   - {name: effect_245, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_245], [0xE188, bin, effect_245]]}
+     subsegments: [[0x0, c, effect_245], [0xE188, .rodata, effect_245], [0xE19C, bin, effect_245]]}
   - [0x2C9D8]
 - name: effect_246
   sha1: 003e1bbfbe2dffe74984a9326f43fb872579d8c0
   options: {target_path: original/effect/effect_246.bin, src_path: src/effect}
   segments:
   - {name: effect_246, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_246], [0xE188, bin, effect_246]]}
+     subsegments: [[0x0, c, effect_246], [0xE188, .rodata, effect_246], [0xE19C, bin, effect_246]]}
   - [0x2C9D8]
 - name: effect_247
   sha1: 0a6dbca45f6249031ee7da4195a8079589f74ae3
   options: {target_path: original/effect/effect_247.bin, src_path: src/effect}
   segments:
   - {name: effect_247, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_247], [0xE6F8, bin, effect_247]]}
+     subsegments: [[0x0, c, effect_247], [0xE6F8, .rodata, effect_247], [0xE70C, bin, effect_247]]}
   - [0x50258]
 - name: effect_248
   sha1: e21c1054a66eaf4e7a886abfe4c796bcad3763bc
   options: {target_path: original/effect/effect_248.bin, src_path: src/effect}
   segments:
   - {name: effect_248, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_248], [0xE10C, bin, effect_248]]}
+     subsegments: [[0x0, c, effect_248], [0xE10C, .rodata, effect_248], [0xE120, bin, effect_248]]}
   - [0x2874C]
 - name: effect_249
   sha1: 2849a97be4ec689b588b4013b45180d6f5e41325
   options: {target_path: original/effect/effect_249.bin, src_path: src/effect}
   segments:
   - {name: effect_249, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_249], [0xE364, bin, effect_249]]}
+     subsegments: [[0x0, c, effect_249], [0xE364, .rodata, effect_249], [0xE378, bin, effect_249]]}
   - [0x33E44]
 - name: effect_250
   sha1: 1dea50d3719f80ae2e547b421b52cafb23b58e15
   options: {target_path: original/effect/effect_250.bin, src_path: src/effect}
   segments:
   - {name: effect_250, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_250], [0x101D4, bin, effect_250]]}
+     subsegments: [[0x0, c, effect_250], [0x101D4, .rodata, effect_250], [0x101E8, bin, effect_250]]}
   - [0x38FB0]
 - name: effect_251
   sha1: 9b40bada558d40fc79789286f8ecb5345cd09704
@@ -2415,49 +2415,49 @@ binaries:
   options: {target_path: original/effect/effect_252.bin, src_path: src/effect}
   segments:
   - {name: effect_252, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_252], [0xE4E0, bin, effect_252]]}
+     subsegments: [[0x0, c, effect_252], [0xE4E0, .rodata, effect_252], [0xE4F4, bin, effect_252]]}
   - [0x18510]
 - name: effect_253
   sha1: 3a2ec4d5416886c8c5e0144860ace1330d6bae45
   options: {target_path: original/effect/effect_253.bin, src_path: src/effect}
   segments:
   - {name: effect_253, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_253], [0xFC0C, bin, effect_253]]}
+     subsegments: [[0x0, c, effect_253], [0xFC0C, .rodata, effect_253], [0xFC20, bin, effect_253]]}
   - [0x33BF8]
 - name: effect_254
   sha1: d5a30fb520704033ef742e93a691c4a046b1419c
   options: {target_path: original/effect/effect_254.bin, src_path: src/effect}
   segments:
   - {name: effect_254, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_254], [0xFC0C, bin, effect_254]]}
+     subsegments: [[0x0, c, effect_254], [0xFC0C, .rodata, effect_254], [0xFC20, bin, effect_254]]}
   - [0x33AA0]
 - name: effect_255
   sha1: 9c2774fdb4e591dd29008b9d784fa2e4e3a1d3bf
   options: {target_path: original/effect/effect_255.bin, src_path: src/effect}
   segments:
   - {name: effect_255, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_255], [0xFC0C, bin, effect_255]]}
+     subsegments: [[0x0, c, effect_255], [0xFC0C, .rodata, effect_255], [0xFC20, bin, effect_255]]}
   - [0x33AE0]
 - name: effect_256
   sha1: 47430879efc387e0b4fbd4cb7ba3925b9d87e1b9
   options: {target_path: original/effect/effect_256.bin, src_path: src/effect}
   segments:
   - {name: effect_256, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_256], [0xE354, bin, effect_256]]}
+     subsegments: [[0x0, c, effect_256], [0xE354, .rodata, effect_256], [0xE368, bin, effect_256]]}
   - [0x20220]
 - name: effect_257
   sha1: d3378d74d3d60baa6ca7148bf25c04e9480f3401
   options: {target_path: original/effect/effect_257.bin, src_path: src/effect}
   segments:
   - {name: effect_257, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_257], [0xEC60, bin, effect_257]]}
+     subsegments: [[0x0, c, effect_257], [0xEC60, .rodata, effect_257], [0xEC74, bin, effect_257]]}
   - [0x4D548]
 - name: effect_258
   sha1: fff44f411899bc467877465fbac354b1eac3e280
   options: {target_path: original/effect/effect_258.bin, src_path: src/effect}
   segments:
   - {name: effect_258, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_258], [0xFB34, bin, effect_258]]}
+     subsegments: [[0x0, c, effect_258], [0xFB34, .rodata, effect_258], [0xFB48, bin, effect_258]]}
   - [0x26AF0]
 - name: effect_259
   sha1: 5e870cc0720ee49e53f74815cd4d1495ea571d37
@@ -2477,70 +2477,70 @@ binaries:
   options: {target_path: original/effect/effect_261.bin, src_path: src/effect}
   segments:
   - {name: effect_261, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_261], [0x10F9C, bin, effect_261]]}
+     subsegments: [[0x0, c, effect_261], [0x10F9C, .rodata, effect_261], [0x10FB0, bin, effect_261]]}
   - [0x583A4]
 - name: effect_262
   sha1: 4261279f03b5a5b2e5e6f152b0f330db49bc5521
   options: {target_path: original/effect/effect_262.bin, src_path: src/effect}
   segments:
   - {name: effect_262, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_262], [0xF0B0, bin, effect_262]]}
+     subsegments: [[0x0, c, effect_262], [0xF0B0, .rodata, effect_262], [0xF0C4, bin, effect_262]]}
   - [0x40E54]
 - name: effect_263
   sha1: dd574ea180c74fd483de1cffdb0be04167da18ba
   options: {target_path: original/effect/effect_263.bin, src_path: src/effect}
   segments:
   - {name: effect_263, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_263], [0xED28, bin, effect_263]]}
+     subsegments: [[0x0, c, effect_263], [0xED28, .rodata, effect_263], [0xED3C, bin, effect_263]]}
   - [0x4A508]
 - name: effect_264
   sha1: 56a139b4e254eeec005003e4eadc9f0cd2b8e00a
   options: {target_path: original/effect/effect_264.bin, src_path: src/effect}
   segments:
   - {name: effect_264, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_264], [0x135AC, bin, effect_264]]}
+     subsegments: [[0x0, c, effect_264], [0x135AC, .rodata, effect_264], [0x13620, bin, effect_264]]}
   - [0x3B798]
 - name: effect_265
   sha1: 88912fb96f1fc599412dc2aee3c8335181d07d78
   options: {target_path: original/effect/effect_265.bin, src_path: src/effect}
   segments:
   - {name: effect_265, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_265], [0x11070, bin, effect_265]]}
+     subsegments: [[0x0, c, effect_265], [0x11070, .rodata, effect_265], [0x11084, bin, effect_265]]}
   - [0x4627C]
 - name: effect_266
   sha1: 073d537443663cb54d1216d0795276a0273bbc7f
   options: {target_path: original/effect/effect_266.bin, src_path: src/effect}
   segments:
   - {name: effect_266, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_266], [0x131C8, bin, effect_266]]}
+     subsegments: [[0x0, c, effect_266], [0x131C8, .rodata, effect_266], [0x1323C, bin, effect_266]]}
   - [0x47198]
 - name: effect_267
   sha1: d1b792124915621d521c1aaa19a0268fdc08ddb1
   options: {target_path: original/effect/effect_267.bin, src_path: src/effect}
   segments:
   - {name: effect_267, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_267], [0x131C8, bin, effect_267]]}
+     subsegments: [[0x0, c, effect_267], [0x131C8, .rodata, effect_267], [0x1323C, bin, effect_267]]}
   - [0x4985C]
 - name: effect_268
   sha1: 9ec0267445196076d1d75ceda19f7242ba5eb4d8
   options: {target_path: original/effect/effect_268.bin, src_path: src/effect}
   segments:
   - {name: effect_268, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_268], [0x131C8, bin, effect_268]]}
+     subsegments: [[0x0, c, effect_268], [0x131C8, .rodata, effect_268], [0x1323C, bin, effect_268]]}
   - [0x4817C]
 - name: effect_269
   sha1: e41711fc2406aa9ca6dc742b0add8b650bdcf1c0
   options: {target_path: original/effect/effect_269.bin, src_path: src/effect}
   segments:
   - {name: effect_269, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_269], [0x13C8C, bin, effect_269]]}
+     subsegments: [[0x0, c, effect_269], [0x13C8C, .rodata, effect_269], [0x13D00, bin, effect_269]]}
   - [0x3B6C8]
 - name: effect_270
   sha1: 6f27e792bb28ab908a0d9b3e959129d635b8f6cd
   options: {target_path: original/effect/effect_270.bin, src_path: src/effect}
   segments:
   - {name: effect_270, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_270], [0x131C8, bin, effect_270]]}
+     subsegments: [[0x0, c, effect_270], [0x131C8, .rodata, effect_270], [0x1323C, bin, effect_270]]}
   - [0x3C160]
 - name: effect_271
   sha1: 4864e598032fb618396a0fa34562889ef2419c75
@@ -2568,7 +2568,7 @@ binaries:
   options: {target_path: original/effect/effect_274.bin, src_path: src/effect}
   segments:
   - {name: effect_274, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_274], [0x8810, bin, effect_274]]}
+     subsegments: [[0x0, c, effect_274], [0x8810, .rodata, effect_274], [0x8824, bin, effect_274]]}
   - [0x5E33C]
 - name: effect_275
   sha1: badc08c574ce03e3cd26eb52dcba8639394abad4
@@ -2687,7 +2687,7 @@ binaries:
   options: {target_path: original/effect/effect_291.bin, src_path: src/effect}
   segments:
   - {name: effect_291, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_291], [0xB32C, bin, effect_291]]}
+     subsegments: [[0x0, c, effect_291], [0xB32C, .rodata, effect_291], [0xB340, bin, effect_291]]}
   - [0x5B4D8]
 - name: effect_292
   sha1: 90f66ce4097a4af908761060d0c8fd855c164303
@@ -2930,42 +2930,42 @@ binaries:
   options: {target_path: original/effect/effect_326.bin, src_path: src/effect}
   segments:
   - {name: effect_326, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_326], [0xF510, bin, effect_326]]}
+     subsegments: [[0x0, c, effect_326], [0xF510, .rodata, effect_326], [0xF53C, bin, effect_326]]}
   - [0x551F4]
 - name: effect_327
   sha1: 383bcc254841ccab7576e64e3d58395f8b83d4ee
   options: {target_path: original/effect/effect_327.bin, src_path: src/effect}
   segments:
   - {name: effect_327, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_327], [0xF220, bin, effect_327]]}
+     subsegments: [[0x0, c, effect_327], [0xF220, .rodata, effect_327], [0xF264, bin, effect_327]]}
   - [0x5259C]
 - name: effect_328
   sha1: 383bcc254841ccab7576e64e3d58395f8b83d4ee
   options: {target_path: original/effect/effect_328.bin, src_path: src/effect}
   segments:
   - {name: effect_328, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_328], [0xF220, bin, effect_328]]}
+     subsegments: [[0x0, c, effect_328], [0xF220, .rodata, effect_328], [0xF264, bin, effect_328]]}
   - [0x5259C]
 - name: effect_329
   sha1: 383bcc254841ccab7576e64e3d58395f8b83d4ee
   options: {target_path: original/effect/effect_329.bin, src_path: src/effect}
   segments:
   - {name: effect_329, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_329], [0xF220, bin, effect_329]]}
+     subsegments: [[0x0, c, effect_329], [0xF220, .rodata, effect_329], [0xF264, bin, effect_329]]}
   - [0x5259C]
 - name: effect_330
   sha1: 383bcc254841ccab7576e64e3d58395f8b83d4ee
   options: {target_path: original/effect/effect_330.bin, src_path: src/effect}
   segments:
   - {name: effect_330, type: code, start: 0, vram: 0x80190000,
-     subsegments: [[0x0, c, effect_330], [0xF220, bin, effect_330]]}
+     subsegments: [[0x0, c, effect_330], [0xF220, .rodata, effect_330], [0xF264, bin, effect_330]]}
   - [0x5259C]
 - name: effect_331
   sha1: 3cb3d7e2b69746320dc14bc2e7bd1c1c29de62ed
   options: {target_path: original/effect/effect_331.bin, src_path: src/effect}
   segments:
   - {name: effect_331, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_331], [0xEB50, bin, effect_331]]}
+     subsegments: [[0x0, c, effect_331], [0xEB50, .rodata, effect_331], [0xEB64, bin, effect_331]]}
   - [0x37D08]
 - name: effect_332
   sha1: b2d4970180b7568876154d905606389dfd0a6dd7
@@ -3008,7 +3008,7 @@ binaries:
   options: {target_path: original/effect/effect_338.bin, src_path: src/effect}
   segments:
   - {name: effect_338, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_338], [0x53B4, bin, effect_338]]}
+     subsegments: [[0x0, c, effect_338], [0x53B4, .rodata, effect_338], [0x5448, bin, effect_338]]}
   - [0x396A4]
 - name: effect_339
   sha1: d2a3b54d30cd2708846ec0bbf2bfb20e0ef00177
@@ -3051,6 +3051,6 @@ binaries:
   options: {target_path: original/effect/effect_345.bin, src_path: src/effect}
   segments:
   - {name: effect_345, type: code, start: 0, vram: 0x801A0000,
-     subsegments: [[0x0, c, effect_345], [0xFD80, bin, effect_345]]}
+     subsegments: [[0x0, c, effect_345], [0xFD80, .rodata, effect_345], [0xFDAC, bin, effect_345]]}
   - [0x59028]
 # END battle effect overlays

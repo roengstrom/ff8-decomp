@@ -100,6 +100,9 @@ typedef struct {
 /* Initialise a textured 4-vertex polygon primitive (len=9 words, code=0x2C). */
 #define setPolyFT4(p)    setlen(p, 9),  setcode(p, 0x2c)
 
+/* Initialise a gouraud-shaded 3-vertex polygon (len=6 words, code=0x30). */
+#define setPolyG3(p)     setlen(p, 6),  setcode(p, 0x30)
+
 /* Initialise a gouraud-shaded 4-vertex polygon (len=8 words, code=0x38). */
 #define setPolyG4(p)     setlen(p, 8),  setcode(p, 0x38)
 
