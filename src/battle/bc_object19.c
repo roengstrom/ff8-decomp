@@ -1,13 +1,12 @@
 #include "common.h"
+#include "battle/bc_object20.h"
+#include "battle/bc_object19.h"
 
 extern u8 D_800EE9E8[];
 extern u8 D_801032A0[];
 extern u8 getStatDesc[];
-void func_800DA3F0(s32, s32, s32, s32, s32, s32);
 void func_800D5C28(s32, s32, s32, s32);
-void func_800D90B4(void);
 void func_800D6D80(void);
-void func_800DC0CC(void);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object19", func_800D6AF4);
 

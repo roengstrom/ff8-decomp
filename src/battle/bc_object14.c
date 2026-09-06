@@ -1,8 +1,11 @@
 #include "common.h"
 #include "psxsdk/libgte.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object14.h"
+#include "battle/bc_object9.h"
+#include "battle.h"
 
 extern u8 D_800FA4FC[];
-extern u8 D_800FA5F0[];
 extern u8 D_800E662C[];
 extern u8 D_800F1B90[];
 extern u8 D_800FA4F8[];
@@ -13,7 +16,6 @@ extern u8 D_800EEC5C[];
 extern u8 D_800EEC54[];
 extern u8 D_800F02F4[];
 s32 func_800C5B1C(u8 *a0);
-s32 func_800B853C(void *);
 s32 func_800C5A94(s32, s32);
 void func_800C5338(s32);
 void func_800472E4(void);
@@ -248,7 +250,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C675C);
  * @return D_800FA4FC - D_800FA5F0.
  */
 s32 func_800C6A8C(void) {
-    return *(s32 *)D_800FA4FC - *(s32 *)D_800FA5F0;
+    return *(s32 *)D_800FA4FC - D_800FA5F0;
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C6AA4);
@@ -268,7 +270,6 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C6B38);
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C6C44);
 
 extern u8 D_800FB408[];
-s32 func_800B2A84(u8 *, void *);
 void func_800C6C44(void);
 
 /**

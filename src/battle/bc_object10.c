@@ -1,4 +1,6 @@
 #include "common.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object10.h"
 
 extern u8 D_800F082C[];
 extern u8 D_800F085C[];
@@ -12,7 +14,6 @@ extern u8 D_80170000[];
 s32 *func_800B88A0(void);
 void func_800B8BEC(void);
 void func_800B9078(void);
-s32 func_800B2C58(s32);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B872C);
 
@@ -209,7 +210,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B8F2C);
  * @param a0 Value stored as halfword at handler offset 0xE.
  */
 void func_800B8F4C(s32 a0) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800B8BEC);
+    u8 *result = func_800B2C58(func_800B8BEC);
     if (result != 0) {
         *(u16 *)(result + 0xC) = 0;
         *(u16 *)(result + 0xE) = a0;
@@ -226,7 +227,7 @@ void func_800B8F4C(s32 a0) {
  * @param a0 Value stored as halfword at handler offset 0xE.
  */
 void func_800B8F98(s32 a0) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800B8BEC);
+    u8 *result = func_800B2C58(func_800B8BEC);
     if (result != 0) {
         *(u16 *)(result + 0xC) = 0;
         *(u16 *)(result + 0xE) = a0;
@@ -282,7 +283,7 @@ void func_800B9114(s32 a0) {
         ptr += 0x2C;
     }
     {
-        u8 *result = (u8 *)func_800B2C58((s32)func_800B9078);
+        u8 *result = func_800B2C58(func_800B9078);
         *(u16 *)(result + 0xC) = 0;
         *(u16 *)(result + 0xE) = a0;
     }

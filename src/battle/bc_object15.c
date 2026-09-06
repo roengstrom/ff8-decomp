@@ -1,4 +1,6 @@
 #include "common.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object15.h"
 
 typedef struct {
     u8 pad00[3];
@@ -27,7 +29,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C7354); /* 0xF8 *
  * @param idx Index into D_800E6658 callback table.
  */
 void func_800C744C(s32 a0, s32 idx) {
-    u8 *entry = (u8 *)func_800B2A84(D_800FB408, *(s32 *)(D_800E6658 + idx * 4));
+    u8 *entry = func_800B2A84(D_800FB408, *(void **)(D_800E6658 + idx * 4));
     *(u16 *)(entry + 0xC) = 0;
     *(u16 *)(entry + 0xE) = 0;
     *(s32 *)(entry + 0x20) = a0;

@@ -1,4 +1,6 @@
 #include "common.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object13.h"
 
 extern u8 D_800F1A90[];
 extern u8 D_800F1A94[];
@@ -244,22 +246,22 @@ void func_800C3B6C(void) {
  * Reads halfwords at a0+2 and a0+4, adds each to a0, and stores
  * the results to D_800F1A90 and D_800F1A94 respectively.
  *
- * @param a0 Base pointer.
+ * @param base Base pointer.
  */
-void func_800C3BBC(s32 a0) {
-    *(s32 *)D_800F1A90 = a0 + *(u16 *)(a0 + 2);
-    *(s32 *)D_800F1A94 = a0 + *(u16 *)(a0 + 4);
+static void func_800C3BBC(u8 *base) {
+    *(u8 **)D_800F1A90 = base + *(u16 *)(base + 2);
+    *(u8 **)D_800F1A94 = base + *(u16 *)(base + 4);
 }
 
 /**
  * @brief Wrapper for func_800C3BBC.
  *
- * Passes through a0 to func_800C3BBC.
+ * Passes through @p base to func_800C3BBC.
  *
- * @param a0 Base pointer passed through.
+ * @param base Base pointer passed through.
  */
-void func_800C3BE0(s32 a0) {
-    func_800C3BBC(a0);
+void func_800C3BE0(u8 *base) {
+    func_800C3BBC(base);
 }
 
 /**
@@ -285,7 +287,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C3C0C);
  * @param a4 Word stored at handler offset 0x18.
  */
 void func_800C3DD4(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800C3C0C);
+    u8 *result = func_800B2C58(func_800C3C0C);
     if (result != 0) {
         *(s32 *)(result + 0xC) = a0;
         *(s32 *)(result + 0x10) = a1;
@@ -311,7 +313,7 @@ void func_800C3DD4(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
  * @param a5 Word stored at handler offset 0x18.
  */
 void func_800C3E64(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800C3C0C);
+    u8 *result = func_800B2C58(func_800C3C0C);
     if (result != 0) {
         *(s32 *)(result + 0xC) = a0;
         *(s32 *)(result + 0x10) = a1;
@@ -337,7 +339,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C3EFC);
  * @param a2 Third halfword value.
  */
 void func_800C3F88(s32 a0, s32 a1, s32 a2) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800C3EFC);
+    u8 *result = func_800B2C58(func_800C3EFC);
     if (result != 0) {
         *(u16 *)(result + 0xC) = a0;
         *(u16 *)(result + 0xE) = a1;
@@ -360,7 +362,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C3FE8);
  * @param a2 Halfword value.
  */
 void func_800C40B4(s32 a0, s32 a1, s32 a2) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800C3FE8);
+    u8 *result = func_800B2C58(func_800C3FE8);
     if (result != 0) {
         *(s32 *)(result + 0xC) = a0;
         *(s32 *)(result + 0x10) = a1;
@@ -421,11 +423,11 @@ s32 func_800C430C(s32 a0) {
  * @param a1 Pointer to completion flag byte.
  */
 void func_800C434C(s32 a0, u8 *a1) {
-    s32 result;
+    u8 *result;
     *a1 = 0;
     sndSetPlaybackAddr(a0, 0);
     result = func_800B2C58(func_800C430C);
-    *(s32 *)(result + 0x14) = (s32)a1;
+    *(u8 **)(result + 0x14) = a1;
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C438C);
@@ -515,8 +517,8 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C45FC);
 /**
  * @brief Wrapper for func_800C443C.
  */
-void func_800C4764(void) {
-    func_800C443C();
+void func_800C4764(u8 *sequence, s32 arg1, s32 arg2) {
+    func_800C443C(sequence, arg1, arg2);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C4784);
@@ -636,11 +638,11 @@ s32 func_800C4968(s32 a0) {
  * @param a1 Pointer to completion flag byte.
  */
 void func_800C49A8(s32 a0, u8 *a1) {
-    s32 result;
+    u8 *result;
     sndCmdE2(a0);
     sndUploadSampleBank(a0, *(u8 *)D_800F1B7C);
     result = func_800B2C58(func_800C4968);
-    *(s32 *)(result + 0x14) = (s32)a1;
+    *(u8 **)(result + 0x14) = a1;
     *a1 = 0;
 }
 

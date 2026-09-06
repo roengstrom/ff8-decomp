@@ -1,5 +1,6 @@
 #include "common.h"
 #include "battle.h"
+#include "battle/bc_object8.h"
 
 extern u8 D_800EEED8[];
 void func_800B304C();
@@ -24,7 +25,6 @@ extern u8 D_800EE465[];
 extern u8 D_80082C11[];
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
-extern u8 D_800EF2D0[];
 extern u8 D_800EF020[];
 extern u8 D_800EEFB0[];
 extern u8 D_800EF724[];
@@ -440,18 +440,20 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B28C8);
  * @param stride Byte stride between entries.
  * @param count Number of entries to zero.
  */
-void func_800B2A00(u8 *a0, u8 *data, s32 stride, s32 count) {
+void func_800B2A00(void *header, void *data, s32 stride, s32 count) {
     s32 i = 0;
+    u8 *a0 = header;
+    u8 *entry = data;
     *(s32 *)a0 = 0;
     *(s32 *)(a0 + 4) = 0;
-    *(s32 *)(a0 + 8) = (s32)data;
+    *(s32 *)(a0 + 8) = (s32)entry;
     *(u16 *)(a0 + 0xC) = stride;
     *(u16 *)(a0 + 0xE) = count;
     if (count > 0) {
         do {
-            *(u16 *)data = 0;
+            *(u16 *)entry = 0;
             i++;
-            data += stride;
+            entry += stride;
         } while (i < count);
     }
 }
@@ -505,11 +507,11 @@ u8 *func_800B2C14(void) {
 /**
  * @brief Call func_800B2A84 with D_800EEDC8 and the given parameter.
  *
- * @param a0 Second argument to func_800B2A84.
+ * @param task Per-frame step installed on the new task.
  * @return Result from func_800B2A84.
  */
-s32 func_800B2C58(s32 a0) {
-    return func_800B2A84(D_800EEDC8, a0);
+void *func_800B2C58(void *task) {
+    return func_800B2A84(D_800EEDC8, task);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B2C80);
@@ -545,7 +547,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B2F3C);
  * @param a1 Pointer to completion flag byte, stored at result offset 0x14.
  */
 void func_800B2FF8(s32 a0, u8 *a1) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800B2F3C);
+    u8 *result = func_800B2C58(func_800B2F3C);
     if (result != 0) {
         result[0xC] = 0;
         *(s32 *)(result + 0x10) = a0;
@@ -562,7 +564,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B304C);
  * @param a0 Pointer whose first byte will be cleared; stored at result[0x14].
  */
 void func_800B3128(u8 *a0) {
-    u8 *result = (u8 *)func_800B2C58((s32)func_800B304C);
+    u8 *result = func_800B2C58(func_800B304C);
     result[0xC] = 0;
     *(s32 *)(result + 0x14) = (s32)a0;
     *a0 = 0;
@@ -585,7 +587,7 @@ void func_800B3270(s32 *a0, u8 *a1) {
     *(s32 *)D_800EEEB8 = (s32)a0 + a0[1];
     *(s32 *)D_800EEEBC = (s32)a0 + a0[2];
     *(s32 *)D_800EEEC0 = a0[3] - a0[2];
-    result = (u8 *)func_800B2C58((s32)func_800B3164);
+    result = func_800B2C58(func_800B3164);
     result[0xC] = 0;
     *(s32 *)(result + 0x10) = (s32)a1;
     *a1 = 0;
@@ -651,10 +653,10 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B3650);
  * @param size Number of bytes to allocate.
  * @return Pointer to the allocated region.
  */
-s32 func_800B3698(s32 size) {
+void *func_800B3698(s32 size) {
     s32 ptr = *(s32 *)D_800EEED8;
     *(s32 *)D_800EEED8 = ptr + ((size + 3) & ~3);
-    return ptr;
+    return (void *)ptr;
 }
 
 /**
@@ -666,11 +668,11 @@ s32 func_800B3698(s32 size) {
  * @param size Number of bytes to free.
  * @return New pointer value after deallocation.
  */
-s32 func_800B36B8(s32 size) {
+void *func_800B36B8(s32 size) {
     s32 ptr = *(s32 *)D_800EEED8;
     ptr -= (size + 3) & ~3;
     *(s32 *)D_800EEED8 = ptr;
-    return ptr;
+    return (void *)ptr;
 }
 
 /**
@@ -717,14 +719,16 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B3E54);
 /**
  * @brief Initialize sound effect table and clear entries.
  *
- * Clears 7 halfwords at stride 0x9C starting from D_800EF2D0+0x3A8
- * going backwards. Then initializes D_800EF020 via func_800B2A00
+ * Clears the flags of all 7 battle slots, then initializes D_800EF020
+ * via func_800B2A00
  * with D_800EEFB0, stride 0x10, and count 7. Clears D_800EF724.
  *
  * @return Pointer to D_800EF020.
  */
 u8 *func_800B4248(void) {
     s32 i = 6;
+    /* The table address is materialised before the offset is added; as one
+       expression gcc folds both into a single addiu. */
     s32 base = (s32)D_800EF2D0;
     u8 *ptr = (u8 *)(base + 0x3A8);
     u8 *buf;

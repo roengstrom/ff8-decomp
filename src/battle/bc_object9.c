@@ -1,8 +1,11 @@
 #include "common.h"
 #include "psxsdk/libgte.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object9.h"
+#include "battle/bc_object10.h"
+#include "battle.h"
 
 extern u8 D_800EF72C[];
-extern u8 D_800F02C8[];
 extern u8 D_800F05C8[];
 extern u8 D_800F0290[];
 void func_800B5B48(void);
@@ -11,12 +14,8 @@ extern u8 D_800F0308[];
 extern u8 D_800F0408[];
 extern u8 D_800F0578[];
 extern u8 D_800EEC5C[];
-extern u8 D_800EF2D0[];
 void func_800B8314(void);
-void func_800B8870(u8 *, s32);
 s32 func_8013E000(s32);
-void func_800B8F4C(s32);
-s32 func_800B5604(u8 *);
 void func_800C2B88(u8 *);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B49D8);
@@ -28,17 +27,17 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B4BAC);
 /**
  * @brief Set or clear a bit in an entity's flags word and update state.
  *
- * Computes the entity at D_800EF2D0 + a0 * 0x9C. Creates a bitmask
+ * Takes the entity at D_800EF2D0[a0]. Creates a bitmask
  * from 1 << a1. Loads the word at entity+8, clears the bit. If a2 is
  * nonzero, sets the bit instead. Calls func_800B5C10 to update the
  * entity, then func_800B56B8 to finalize.
  *
- * @param a0 Entity index (stride 0x9C in D_800EF2D0).
+ * @param a0 Entity index into D_800EF2D0.
  * @param a1 Bit position to modify.
  * @param a2 If nonzero, set the bit; if zero, clear it.
  */
 void func_800B4DE8(s32 a0, s32 a1, s32 a2) {
-    u8 *entity = D_800EF2D0 + a0 * 0x9C;
+    u8 *entity = (u8 *)&D_800EF2D0[a0];
     s32 mask = 1 << a1;
     s32 flags = *(s32 *)(entity + 8) & ~mask;
     if (a2 != 0) {
@@ -147,7 +146,7 @@ void func_800B5C10(u8 *a0, s32 a1) {
     if (*(s32 *)(a0 + 0x8C) == 0) {
         func_800B59CC();
     } else {
-        u8 *result = (u8 *)func_800B2C58((s32)func_800B5B48);
+        u8 *result = func_800B2C58(func_800B5B48);
         *(s32 *)(result + 0xC) = (s32)a0;
         *(s32 *)(result + 0x10) = a1;
     }
@@ -189,9 +188,9 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6334);
  * with it if non-zero.
  */
 void func_800B64E0(void) {
-    s32 ptr = *(s32 *)D_800EF72C;
-    if (ptr != 0) {
-        func_800B2B68(ptr);
+    void *pool = *(void **)D_800EF72C;
+    if (pool != NULL) {
+        func_800B2B68(pool);
     }
 }
 
@@ -224,7 +223,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6954);
  * @brief Call func_800B3650 with D_800F02C8 as the argument.
  */
 void func_800B6A9C(void) {
-    func_800B3650(D_800F02C8);
+    func_800B3650(&D_800F02C8);
 }
 
 /**
@@ -232,10 +231,10 @@ void func_800B6A9C(void) {
  *
  * @param a0 Right-hand matrix passed to @c CompMatrix.
  */
-void func_800B6AC0(s32 a0) {
+static void func_800B6AC0(MATRIX *a0) {
     MATRIX m;
-    CompMatrix((MATRIX *)D_800F02C8, (MATRIX *)a0, &m);
-    func_800B3650((u8 *)&m);
+    CompMatrix(&D_800F02C8, a0, &m);
+    func_800B3650(&m);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6AF4);
@@ -311,18 +310,19 @@ u8 *func_800B84C8(void) {
     func_800B86C0(D_800F02F8, D_800F0308, D_800F0408, 0x1E);
     buf = D_800F05C8;
     func_800B2A00(buf, D_800F0578, 0x14, 4);
-    func_800B2A84(buf, (s32)func_800B8314);
+    func_800B2A84(buf, func_800B8314);
     return buf;
 }
 
 /**
  * @brief Allocate from D_800F05C8 and clear byte at offset 0xD.
  *
- * @param a0 Allocation parameter.
+ * @param task Per-frame step installed on the new task.
  */
-void func_800B853C(s32 a0) {
-    u8 *result = func_800B2A84(D_800F05C8, a0);
+void *func_800B853C(void *task) {
+    u8 *result = func_800B2A84(D_800F05C8, task);
     result[0xD] = 0;
+    return result;
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B8564);

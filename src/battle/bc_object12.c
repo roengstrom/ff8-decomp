@@ -1,10 +1,12 @@
 #include "common.h"
 #include "psxsdk/libgte.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object12.h"
+#include "battle/bc_object9.h"
 
 extern u8 D_800F1A5C[];
 extern u8 D_800F1A54[];
 s32 func_800C0CB8(s32, s32);
-s32 func_800B5604(s32);
 void func_800C29C4(s32, s32);
 s32 func_800BD3A0(void);
 void func_800BD230(void);
@@ -257,7 +259,7 @@ s32 func_800C0D3C(void) {
             return val;
         }
     }
-    return (u8)func_800B5604(*(s32 *)D_800F1A54);
+    return (u8)func_800B5604(*(u8 **)D_800F1A54);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800C0DB0);

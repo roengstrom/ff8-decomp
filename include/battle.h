@@ -1308,4 +1308,68 @@ void func_8002A2C4(u8 *, s32);
 s32 func_80037ADC(void);
 u16 func_800A97FC(s32 arg0);
 
+/* ---------------------------------------------------------------- *
+ * Records the effect overlays share with battle.bin
+ * ---------------------------------------------------------------- */
+
+/** @brief A second skeleton hung off a battle slot. */
+struct EffectAttachment {
+    /* 0x00 */ u8 pad000[0x4];
+    /* 0x04 */ struct EffectSkeleton **skeleton;
+};
+
+/**
+ * @brief One battle entity slot; @ref D_800EF2D0 holds seven of them.
+ *
+ * Both binaries index the table: battle.bin through the symbol, the effect
+ * overlays through a pointer they are handed. Three sites in battle take the
+ * table address into a local before indexing -- indexing inline emits the
+ * multiply ahead of the address and does not match.
+ */
+typedef struct BattleEffectSlot {
+    /* 0x00 */ u16 flags;          /**< See @c BATTLE_SLOT_FLAG_*. */
+    /* 0x02 */ u8 pad002[0x1E - 0x2];
+    /* 0x1E */ u16 unk01E;         /**< Y origin: summed with a model's Y bounds. */
+    /* 0x20 */ u8 pad020[0x24 - 0x20];
+    /* 0x24 */ u16 unk024;
+    /* 0x26 */ u8 pad026[0x40 - 0x26];
+    /* 0x40 */ MATRIX mtx;         /**< Pose the effect's render matrices start from. */
+    /* 0x60 */ u8 unk060[0x64 - 0x60];
+    /* 0x64 */ struct EffectSkeleton **skeleton;
+    /* 0x68 */ u8 pad068[0x6C - 0x68];
+    /* 0x6C */ u8 unk06C[0x78 - 0x6C];
+    /* 0x78 */ struct EffectAttachment *unk078;
+    /* 0x7C */ u8 pad07C[0x9C - 0x7C];
+} BattleEffectSlot; /* 0x9C */
+
+#define BATTLE_SLOT_FLAG_UNK02 0x2
+#define BATTLE_SLOT_FLAG_UNK04 0x4
+#define BATTLE_SLOT_FLAG_UNK20 0x20
+
+/**
+ * @brief The battle renderer's graphics context.
+ *
+ * Only the members reached from C are named; the rest of the record is still
+ * battle.bin's own.
+ */
+typedef struct {
+    /* 0x00 */ u8 pad000[0x14];
+    /* 0x0014 */ u8 font[0x44 - 0x14];   /**< Glyph set handed to the text drawer. */
+    /* 0x0044 */ u8 ot[0x4040 - 0x44];   /**< Ordering table the effects link into. */
+    /* 0x4040 */ u8 unk4040[4];
+} BattleGfx;
+
+/** @brief Per-entity battle records the effect overlays pose their models from. */
+extern BattleEffectSlot D_800EF2D0[];
+
+/** @brief The world matrix for this frame; effect matrices compose onto it. */
+extern MATRIX D_800F02C8;
+
+/** @brief The battle renderer's graphics context. */
+extern BattleGfx *D_800FA5E8;
+
+/** @brief Head of the prim list a posed battle model links into. */
+extern s32 D_800FA5F0;
+
+
 #endif /* BATTLE_H */

@@ -1,4 +1,7 @@
 #include "common.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object20.h"
+#include "battle.h"
 
 extern u8 D_80102F50[];
 extern u8 D_80103050[];
@@ -8,13 +11,11 @@ extern u8 D_8010305C[];
 extern u8 D_80103238[];
 extern u8 D_80103248[];
 extern u8 D_801032A0[];
-extern u8 D_800EF2D0[];
 extern u8 D_80103070[];
 extern u8 D_801030F0[];
 extern u8 D_80103160[];
 extern u8 D_80103162[];
 extern u8 D_800EF724[];
-void func_800B3960(s32, s32, s32, s32);
 
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800D8F90);
@@ -439,13 +440,12 @@ void func_800DC928(void) {
  * @return 1 if both bits are set, 0 otherwise.
  */
 s32 func_800DC948(s32 a0) {
-    s32 base = D_800EF2D0;
-    s32 offset = a0 * 156;
+    BattleEffectSlot *slot = D_800EF2D0;
     s32 flags;
-    base += offset;
+    slot += a0;
     flags = *(u16 *)D_800EF724;
     if ((flags >> a0) & 1) {
-        if (*(u16 *)base & 2) {
+        if (slot->flags & BATTLE_SLOT_FLAG_UNK02) {
             return 1;
         }
     }
@@ -460,12 +460,14 @@ s32 func_800DC948(s32 a0) {
  * passthrough parameter, and the original second argument.
  *
  * @param index Entity index (stride 156).
- * @param a1 Parameter passed as 4th arg to func_800B3960.
+ * @param out Point read out of the slot's model.
  * @param a2 Passthrough parameter for func_800B3960's 3rd arg.
  */
-void func_800DC9A0(s32 index, s32 a1, s32 a2) {
-    s32 base = (s32)D_800EF2D0;
-    func_800B3960(base + index * 156, 0xF0, a2, a1);
+static void func_800DC9A0(s32 index, SVECTOR *out, s32 a2) {
+    BattleEffectSlot *slot = D_800EF2D0;
+
+    slot += index;
+    func_800B3960(slot, 0xF0, a2, out);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800DC9E4);

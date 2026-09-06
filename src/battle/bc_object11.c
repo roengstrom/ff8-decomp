@@ -1,5 +1,9 @@
 #include "common.h"
 #include "gamestate.h"
+#include "battle/bc_object11.h"
+#include "battle/bc_object12.h"
+#include "battle/bc_object9.h"
+#include "battle.h"
 
 extern u8 D_800F16A4[];
 extern u8 D_800F16A8[];
@@ -10,10 +14,8 @@ extern u8 D_800F16B4[];
 extern u8 D_800F16BC[];
 extern u8 D_800F1468[];
 extern u8 D_800F1668[];
-extern u8 D_800EF2D0[];
 extern u8 D_800EEC58[];
 
-void func_800B5C10(u8 *, s32);
 s32 func_800C42FC(void);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object11", func_800BAEE8);
@@ -66,8 +68,8 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object11", func_800BC420);
  */
 void func_800BC7D4(u8 *entity) {
     func_800BC420(entity + 0x60);
-    if (*(s32 *)(entity + 0x78) != 0) {
-        func_800BC420(*(s32 *)(entity + 0x78));
+    if (*(u8 **)(entity + 0x78) != NULL) {
+        func_800BC420(*(u8 **)(entity + 0x78));
     }
 }
 
@@ -120,11 +122,11 @@ s32 func_800BD040(s32 a0, s32 a1) {
  * @param entity Pointer to entity data.
  */
 void func_800BD06C(u8 *entity) {
-    s32 ptr = *(s32 *)(entity + 0x78);
-    if (ptr != 0) {
+    u8 *ptr = *(u8 **)(entity + 0x78);
+    if (ptr != NULL) {
         func_800BCA3C(ptr, ptr + 0xC);
     }
-    func_800BCA3C((s32)entity + 0x60, (s32)entity + 0x6C);
+    func_800BCA3C(entity + 0x60, entity + 0x6C);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object11", func_800BD0B4);
@@ -153,7 +155,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object11", func_800BD260);
 
 /** @brief Call @c func_800BFE1C with the pointer stored in @c D_800F16A8. */
 void func_800BD2AC(void) {
-    func_800BFE1C(*(s32 *)D_800F16A8);
+    func_800BFE1C(*(void **)D_800F16A8);
 }
 
 /**

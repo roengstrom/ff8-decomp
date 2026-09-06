@@ -2,6 +2,8 @@
 #include "battle.h"
 #include "battle/bc_object16.h"
 #include "psxsdk/libgte.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object14.h"
 
 void func_800A5454(void);
 
@@ -14,18 +16,17 @@ extern u8 D_800FB444[];
 extern u8 D_800FB448[];
 extern u8 D_800F1B80[];
 extern u8 D_800FB408[];
-extern MATRIX D_800F02C8;
-extern s32 D_800FA5E8;
-extern s32 D_800FA5F0;
 extern s32 D_800EEC5C;
 
-s32 func_800B3698(s32 size);
-s32 func_800B36B8(s32 size);
-s32 func_800C6B1C(s32 idx);
 
 u32 func_8009A2E0(void);
 void func_800D13CC(void);
 void func_800D5E48(void);
+
+/* Declared here rather than in bc_object8.h: the effect overlays were built
+   against a void-returning declaration of this function, and either spelling
+   breaks the other binary's codegen. */
+void *func_800B36B8(s32 size);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object16", func_800CA078);
 
@@ -124,7 +125,7 @@ s32 func_800CD35C(ParticleEntry *p) {
         prim->flags |= 0xC0;
     }
 
-    D_800FA5F0 = func_800CBC68((s32)prim, D_800FA5E8 + 0x44, 2, D_800FA5F0);
+    D_800FA5F0 = func_800CBC68(prim, D_800FA5E8->ot, 2, D_800FA5F0);
     func_800B36B8(0x58);
 
     if (D_800EEC5C & 1) {
@@ -219,7 +220,7 @@ s32 func_800CDF3C(ParticleEntry *p) {
         prim->flags |= 0xC0;
     }
 
-    D_800FA5F0 = func_800CBC68((s32)prim, D_800FA5E8 + 0x44, 2, D_800FA5F0);
+    D_800FA5F0 = func_800CBC68(prim, D_800FA5E8->ot, 2, D_800FA5F0);
     func_800B36B8(0x58);
 
     if (!(D_800EEC5C & 1)) {
@@ -247,7 +248,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object16", func_800CE158);
  * @return Always 2.
  */
 s32 func_800CE77C(u8 *a0) {
-    u8 *entry = (u8 *)func_800B2A84(D_800FB408, (s32)func_800CE158);
+    u8 *entry = func_800B2A84(D_800FB408, func_800CE158);
     *(u16 *)(entry + 0xC) = 0;
     *(u16 *)(entry + 0xE) = 0;
     *(u16 *)(entry + 0x1C) = 0x3B27;
@@ -264,7 +265,7 @@ s32 func_800CE77C(u8 *a0) {
  * @return Always 2.
  */
 s32 func_800CE7D4(u8 *a0) {
-    u8 *entry = (u8 *)func_800B2A84(D_800FB408, (s32)func_800CE158);
+    u8 *entry = func_800B2A84(D_800FB408, func_800CE158);
     *(u16 *)(entry + 0xC) = 0;
     *(u16 *)(entry + 0xE) = 0;
     *(u16 *)(entry + 0x1C) = 0x3C67;
