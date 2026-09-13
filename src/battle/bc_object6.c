@@ -16,8 +16,6 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AB668);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AB6F4);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AB744);
-
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AB844);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AB914);
@@ -35,26 +33,6 @@ s16 func_800AB998(u8 *ptr) {
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AB9B4);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800ABA3C);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800ABCA4);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC034);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC094);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC190);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC2E4);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC348);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC368);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC400);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object6", func_800AC4E4);
 
 /**
  * @brief Check if an entity is available (no blocking status flags).
