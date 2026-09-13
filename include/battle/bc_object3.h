@@ -170,4 +170,4 @@ void func_800A5C48(InternalStruct*);
 
 void func_800A5F24(s32, s32, s32, s32, u16);
 
-#endif
+#endif /* BC_OBJECT3_H */

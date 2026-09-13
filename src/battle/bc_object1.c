@@ -915,8 +915,7 @@ void func_8009B0F8(s32 a0) {
  * @param entry Caller-supplied context pointer / value.
  * @return Pointer to the command buffer, or NULL if the queue is full.
  */
- 
- // some functions want arg1 to be s32, probably forgot to include the prototype
+
 SoundCmd* func_8009B134(s32 arg0, s32 arg1, void* unused) {
     return func_800B8564(arg0, arg1);
 }

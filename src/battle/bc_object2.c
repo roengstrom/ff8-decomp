@@ -8,6 +8,7 @@
 #include "common.h"
 #include "battle.h"
 #include "gamestate.h"
+#include "game.h"
 #include "battle/bc_object2.h"
 #include "battle/bc_object6.h"
 #include "battle/bc_object7.h"
@@ -336,8 +337,8 @@ s32 func_8009C300(s32 arg0, s32 arg1) {
 
 u8 func_8009C390(s32 arg0, s32 arg1, s32 arg2) {
     s32 temp_s3;
-    s32 var_s0;
-    s32 var_s1;
+    s32 i;
+    s32 mask;
     s32 var_s2;
     s32 var_s5;
     s32 sp20;
@@ -349,7 +350,7 @@ u8 func_8009C390(s32 arg0, s32 arg1, s32 arg2) {
         sp20 = entities[arg1].flags;
         
         if (arg2 == 0) {
-            var_s5 = entities[arg0].unkCD;
+            var_s5 = entities[arg0].unkCD[0];
             temp_s3 = func_8009C300(arg1, 0);
         } 
         
@@ -358,18 +359,22 @@ u8 func_8009C390(s32 arg0, s32 arg1, s32 arg2) {
             temp_s3 = func_8009C300(arg1, 1);
         }
         
-        var_s1 = 1;
-        for (var_s0 = 0; var_s0 < 7; var_s0++, var_s1 *= 2) {
-            if (D_800EEBC2 & var_s1) {
-                var_s2 += func_8009C104(arg0, arg1, var_s0, var_s1, 0, var_s5, temp_s3, D_800EEBBA);
+        mask = 1;
+        for (i = 0; i < 7; i++) {
+            if (D_800EEBC2 & mask) {
+                var_s2 += func_8009C104(arg0, arg1, i, mask, 0, var_s5, temp_s3, D_800EEBBA);
             }
+
+            mask <<= 1;
         }
 
-        var_s1 = 1;
-        for (var_s0 = 8; var_s0 < 40; var_s0++, var_s1 *= 2) {
-            if (D_800EEBC4 & var_s1) {
-                var_s2 += func_8009C104(arg0, arg1, var_s0, var_s1, 1, var_s5, temp_s3, D_800EEBBA);
+        mask = 1;
+        for (i = 8; i < 40; i++) {
+            if (D_800EEBC4 & mask) {
+                var_s2 += func_8009C104(arg0, arg1, i, mask, 1, var_s5, temp_s3, D_800EEBBA);
             }
+
+            mask <<= 1;
         }
         
         func_8009BF70(sp20, &D_800ED148.entities[arg1].flags);
@@ -662,24 +667,7 @@ s32 func_8009CF18(void) {
     return func_8009B7BC(33) + 239;
 }
 
-/**
- * @brief Compute damage for a battle action based on type and route to dispatcher.
- *
- *   - case 0/19: scale formula using attacker @c unkCD (squared), defense,
- *                power, and the @c func_8009CF18 modifier. Case 19 forces
- *                @c defense to 0 first.
- *   - case 1:    if target's @c controlFlags bit 0x10000 is set, mark
- *                @c D_800EE4C0[6] (bit 2) and report 0; else scale @c unk28.
- *   - case 3:    multiply attacker's @c unk2C by 5.
- *   - case 16:   active party member's kill count (selected via the party
- *                slot at @c targetIdx) times power. If @c targetIdx >= 3,
- *                the damage is forced to 0.
- *
- * @param attackerIdx Battle entity index of the attacker (case 0/3 path).
- * @param targetIdx   Battle entity index of the target (case 1) or party slot (case 16).
- * @param power       Damage multiplier.
- * @param type        Action type, indexes the case dispatch.
- */
+
 s32 func_8009CF38(s32 attackerIdx, s32 targetIdx, s32 power, u32 type) {
     s32 defense;
     s32 dmg;
@@ -693,7 +681,7 @@ s32 func_8009CF38(s32 attackerIdx, s32 targetIdx, s32 power, u32 type) {
             defense = 0;
         case 0:
             mod = func_8009CF18();
-            stat = D_800ED148.entities[attackerIdx].unkCD;
+            stat = D_800ED148.entities[attackerIdx].unkCD[0];
             sq = stat * stat / 16 + stat;
             dmg = sq * (265 - defense) / 256 * power / 16 * mod / 256;
             break;
@@ -779,9 +767,9 @@ s32 func_8009D228(s32 arg0, s32 arg1, s32 arg2) {
         result1 = func_8009C300(arg1, 0);
         result2 = func_8009CF18();
         
-        var_v1 = D_800ED148.entities[arg0].unkCD * D_800ED148.entities[arg0].unkCD;
+        var_v1 = D_800ED148.entities[arg0].unkCD[0] * D_800ED148.entities[arg0].unkCD[0];
         
-        var2 = ((var_v1 / 16) + D_800ED148.entities[arg0].unkCD) * (265 - result1);
+        var2 = ((var_v1 / 16) + D_800ED148.entities[arg0].unkCD[0]) * (265 - result1);
         
         var1 = (var2 / 256) * arg2;
         
@@ -1022,7 +1010,7 @@ void func_8009DD2C(s32 arg0, s32 arg1, u16 sp10, s32 arg3) {
     s32 i;
     BattleEntity* entities;
     BattleEntity* entity;
-    s32 var_s0;
+    s32 mask;
     s32 var_s2;
 
 
@@ -1031,22 +1019,22 @@ void func_8009DD2C(s32 arg0, s32 arg1, u16 sp10, s32 arg3) {
         func_8009B878(arg0, &sp10, &D_800EEBC4, 0);
         var_s2 = 0;
         
-        var_s0 = 1;
+        mask = 1;
         for(i = 0; i < 7; i++) {
-            if ((sp10 & var_s0) && (entities[arg0].status & var_s0)) {
+            if ((sp10 & mask) && (entities[arg0].status & mask)) {
                 var_s2 = 1;
             }
             
-            var_s0 *= 2;
+            mask <<= 1;
         }
 
-        var_s0 = 1;
+        mask = 1;
         for(i = 8; i < 40; i++) {
-            if ((arg3 & var_s0) && (D_800ED148.entities[arg0].flags & var_s0) && (func_800B0668(arg0, var_s0) == 0)) {
+            if ((arg3 & mask) && (D_800ED148.entities[arg0].flags & mask) && (func_800B0668(arg0, mask) == 0)) {
                 var_s2 = 1;
             }
             
-            var_s0 *= 2;
+            mask <<= 1;
         }
 
         
@@ -2105,17 +2093,8 @@ void func_8009FE14(s32 arg0) {
         break;
 
     case 7:  
-    case 23: 
-    case 24: 
-    case 25: 
-    case 26: 
-    case 27: 
-    case 29: 
-    case 30: 
-    case 31: 
-    case 32: 
-    case 33: 
-    case 34: 
+    case 23 ... 27: 
+    case 29 ... 34: 
     case 38: 
         D_800EEBB9 = D_80078E00.array4020[D_800EE4C0.statusCode].unk8;
         D_800EEBBA = D_80078E00.array4020[D_800EE4C0.statusCode].unk9;
@@ -2437,10 +2416,10 @@ void func_800A09D0(s32 arg0) {
         break;
 
     case 29:       
-        func_8009FCF4(D_80078E00.array4020[D_800EE4C0.statusCode].unk5);
-        var_s3 = D_80078E00.array4020[D_800EE4C0.statusCode].unk4;
-        D_800EE4C0.unk4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk2;
-        var_a0 = D_80078E00.array4020[D_800EE4C0.statusCode].unk3;
+        func_8009FCF4(D_80078E00.array4020[D_800EE4C0.statusCode].unk6);
+        var_s3 = D_80078E00.array4020[D_800EE4C0.statusCode].unk5;
+        D_800EE4C0.unk4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk3;
+        var_a0 = D_80078E00.array4020[D_800EE4C0.statusCode].unk4;
         D_800EE4C0.unkC = func_8009F930(var_a0, temp_s4, arg0, var_s3);
         break;
 
@@ -2512,10 +2491,10 @@ void func_800A09D0(s32 arg0) {
         break;
 
     case 15:        
-        func_8009FCF4(D_80078E00.array44FC[D_800EE4C0.statusCode].unk5);
+        func_8009FCF4(D_80078E00.array44FC[D_800EE4C0.statusCode].unk6);
         var_s3 = D_80078E00.array45F8[func_8009FDE0(temp_s4, D_800EE4C0.statusCode)].unk6;
-        D_800EE4C0.unk4 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk1;
-        var_a0 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk2;
+        D_800EE4C0.unk4 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk2;
+        var_a0 = D_80078E00.array44FC[D_800EE4C0.statusCode].unk3;
         D_800EE4C0.unkC = func_8009F930(var_a0, temp_s4, arg0, var_s3);
         break;
 
@@ -2529,20 +2508,12 @@ void func_800A09D0(s32 arg0) {
         break;
 
     case 7:        
-    case 23:       
-    case 24:       
-    case 25:       
-    case 26:       
-    case 27:       
-    case 30:       
-    case 31:       
-    case 32:       
-    case 33:       
-    case 34:       
-        func_8009FCF4(D_80078E00.array4020[D_800EE4C0.statusCode].unk5);
-        var_s3 = D_80078E00.array4020[D_800EE4C0.statusCode].unk4;
-        D_800EE4C0.unk4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk2;
-        var_a0 = D_80078E00.array4020[D_800EE4C0.statusCode].unk3;
+    case 23 ... 27:             
+    case 30 ... 34:           
+        func_8009FCF4(D_80078E00.array4020[D_800EE4C0.statusCode].unk6);
+        var_s3 = D_80078E00.array4020[D_800EE4C0.statusCode].unk5;
+        D_800EE4C0.unk4 = D_80078E00.array4020[D_800EE4C0.statusCode].unk3;
+        var_a0 = D_80078E00.array4020[D_800EE4C0.statusCode].unk4;
         D_800EE4C0.unkC = func_8009F930(var_a0, temp_s4, arg0, var_s3);
         break;
 

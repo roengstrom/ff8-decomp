@@ -1,25 +1,69 @@
-/**
- * @file bc_object5.h
- * @brief Public symbols owned by bc_object5 — battle command/state queries.
- *
- * @note Two of this unit's public functions are deliberately absent.
- *       @c func_800A97FC is still declared in @c battle.h, where bc_object3
- *       and bc_object8 pick it up; moving it here means giving those two
- *       units their own headers first. @c func_800A9784 is defined here
- *       taking a @c u16 offset but called from bc_object6 through an
- *       @c (s32, s32) view -- an inconsistent-ABI pair, so that prototype
- *       stays file-local to bc_object6 where the narrower parameter cannot
- *       change its call-site codegen.
- */
 #ifndef BC_OBJECT5_H
 #define BC_OBJECT5_H
 
-#include "common.h"
 
-extern void func_800A97D4(void);
+s32 func_800AA68C(s32, u32, u32);
 
-/** @brief State queries polled by the battle flow controller (bc_object6). */
-extern s32 func_800A980C(void);
-extern s32 func_800A9888(void);
+s32 func_800AA71C(s32, s32);
+
+s32 func_800AA768(s32, s32);
+
+s32 func_800AA7B4(s32, s32);
+
+s32 func_800AA840(s32, s32);
+
+s32 func_800AA88C(s32, s32);
+
+s32 func_800AA930(s32);
+
+s32 func_800AA980(s32, s32);
+
+s32 func_800AA9C8(s32, s32);
+
+s32 func_800AAA10(s32);
+
+s32 func_800AAA50(s32, s32, s32);
+
+s32 func_800AAA9C(s32, u32, BattleEntityData*);
+
+s32 func_800AAB50(s32, u32, BattleEntityData*);
+
+s32 func_800AABEC(s32, s32, s32, s32, s32);
+
+s32 func_800AACD0(s32, s32, s32, s32);
+
+s32 func_800AAE10(s32, s32, s32);
+
+s32 func_800AAE98(s32);
+
+void func_800AAF48(s32);
+
+void func_800AAF70(s32, s16);
+
+void func_800AAFB8(s32);
+
+void func_800AB008(s32);
+
+void func_800AB054(s32);
+
+void func_800AB0C0(s32, u16);
+
+void func_800AB11C(s16);
+
+void func_800AB1AC(s32);
+
+void func_800AB208(u16);
+
+s32 func_800AB24C(void);
+
+void func_800AB28C(void);
+
+void func_800AB3C4(void);
+
+void func_800AB3E0(void);
+
+void func_800AB3FC(s32, s32, s32);
+
+void func_800AB488(s32, s32);
 
 #endif /* BC_OBJECT5_H */

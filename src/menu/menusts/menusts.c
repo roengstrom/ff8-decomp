@@ -6,7 +6,7 @@
 #include "gamestate.h"
 #include "btl_color.h"
 #include "btl_entity.h"
-#include "battle/bc_object2.h"
+#include "game.h"
 
 /* menumain is called at a fixed overlay address, so its prototype stays
  * file-local here (overlay-conflict rule, as in the other sub-overlays). */

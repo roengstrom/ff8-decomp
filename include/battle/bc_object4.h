@@ -1,5 +1,6 @@
-#ifndef BATTLE_BC_OBJECT4_H
-#define BATTLE_BC_OBJECT4_H
+#ifndef BC_OBJECT4_H
+#define BC_OBJECT4_H
+
 
 void func_800A6184(s32, s32, s32, u16);
 
@@ -147,4 +148,90 @@ void func_800A8A48(BattleCharData*, s32, u8, s32);
 
 s32 func_800A8AFC(s32);
 
-#endif /* BATTLE_BC_OBJECT4_H */
+s32 func_800A8B7C(s32);
+
+void func_800A8CA4(s32, s32);
+
+void func_800A8D7C(s32, s32);
+
+void func_800A8E90(BattleCharData*, s32);
+
+s32 func_800A8EFC(BattleCharData*);
+
+void func_800A8F98(BattleCharData*, s32, s32);
+
+s32 func_800A8FDC(BattleCharData*);
+
+s32 func_800A9064(BattleCharData*);
+
+// func_800A9084
+
+s32 func_800A9240(s32);
+
+s32 func_800A9284(BattleCharData*);
+
+s32 func_800A9370(s32);
+
+void func_800A9490(void);
+
+void func_800A94E0(void);
+
+s32 func_800A9568(s32);
+
+void func_800A95A0(s32, s32);
+
+void func_800A960C(s32);
+
+s32 func_800A972C(s32);
+
+u8* func_800A9784(u16, s32);
+
+s32 func_800A97A4(s32);
+
+void func_800A97D4(void);
+
+s32 func_800A97FC(s32);
+
+u16 func_800A980C(void);
+
+u16 func_800A9888(void);
+
+u16 func_800A9904(s32);
+
+void func_800A9938(void);
+
+void func_800A9970(s32);
+
+void func_800A99E8(s32);
+
+void func_800A9A6C(s32);
+
+void func_800A9AC0(s32, s32);
+
+void func_800A9C68(s32, s32);
+
+void func_800A9E08(s32, s32);
+
+void func_800A9F98(void);
+
+void func_800A9FDC(void);
+
+u16 func_800AA034(s32, s32, s32, s32);
+
+s32 func_800AA368(s32);
+
+u16 func_800AA44C(s32);
+
+s32 func_800AA4E0(void);
+
+s32 func_800AA4E8(void);
+
+s32 func_800AA4F0(void);
+
+s32 func_800AA4F8(s32);
+
+s32 func_800AA530(s32);
+
+// func_800AA57C
+
+#endif /* BC_OBJECT4_H */

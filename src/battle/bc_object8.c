@@ -18,7 +18,6 @@ extern u8 D_800EEEC0[];
 extern u8 g_gameState[];
 void func_800B3164(void);
 void func_800B2F3C(void);
-extern u8 D_8007809A[];
 extern u8 D_800EE45C[];
 extern u8 D_800EEDD8[];
 extern u8 D_800EEDE8[];
@@ -34,6 +33,8 @@ s32 func_800AE788(void);
 s32 func_800AA4E0(void);
 extern u8 D_800EEED0[];
 extern u8 D_800EEED4[];
+
+u16 func_800A97FC(s32 arg0);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object8", func_800B1624);
 
@@ -138,23 +139,19 @@ top:
     return 1;
 }
 
-/**
- * @brief Check battle conditions and trigger entity action sequence.
- *
- * Checks bit 1 of D_8007809A. If set, calls func_800B1A78 to validate.
- * If valid, calls func_8009B79C(0x20, 0xFF) to test entity availability.
- * If available, clears D_800EE45C and calls func_800B1A48 to start action.
- */
 void func_800B1ACC(void) {
-    if (!(*(u8 *)D_8007809A & 2)) {
+    if (!(D_8007809A & 2)) {
         return;
     }
+    
     if (func_800B1A78() == 0) {
         return;
     }
-    if (func_8009B79C(0x20, 0xFF) == 0) {
+    
+    if (func_8009B79C(32, 255) == 0) {
         return;
     }
+    
     D_800ED148.unk1314 = 0;
     func_800B1A48();
 }
@@ -271,20 +268,12 @@ void func_800B2038(void) {
     }
 }
 
-/**
- * @brief Check battle mode flag and conditionally trigger entity processing.
- *
- * Checks bit 3 of D_8007809A. If set, calls func_8009B79C(8, 0xFF) to test
- * entity availability. If available, calls func_800B1B68 and returns.
- * Otherwise (bit not set or entity unavailable), clears D_800EE465.
- */
 void func_800B2084(void) {
-    if (*(u8 *)D_8007809A & 8) {
-        if (func_8009B79C(8, 0xFF) != 0) {
-            func_800B1B68();
-            return;
-        }
+    if (D_8007809A & 8 && func_8009B79C(8, 255) != 0) {
+        func_800B1B68();
+        return;
     }
+    
     D_800ED148.unk131D = 0;
 }
 
@@ -308,34 +297,30 @@ top:
     return 1;
 }
 
-/**
- * @brief Check if conditions are met to initiate an auto-battle action.
- *
- * Checks a chain of conditions: whether func_800AE788 returns the sentinel
- * 0xFF, whether func_800B20D8 indicates busy, bit 2 of D_8007809A flags,
- * whether g_battleConfig matches 0x13D, and whether entity slot 0x40 is
- * available via func_8009B79C. If all pass, sets D_800EE45C to 1 and
- * calls func_800B1A48 to start the action.
- *
- * @return 1 if action was initiated, 0 otherwise.
- */
 s32 func_800B2128(void) {
-    if (func_800AE788() == 0xFF) {
+    if (func_800AE788() == 255) {
         return 0;
     }
+    
     if (func_800B20D8() != 0) {
         return 0;
     }
-    if (*(u8 *)D_8007809A & 4) {
-        if (*(u16 *)&g_battleConfig != 0x13D) {
-            if (func_8009B79C(0x40, 0xFF) != 0) {
-                D_800ED148.unk1314 = 1;
-                func_800B1A48();
-                return 1;
-            }
-        }
+    
+    if (!(D_8007809A & 4)) {
+        return 0;
     }
-    return 0;
+    
+    if (g_battleConfig.battleSceneId == 0x13D) {
+        return 0;
+    }
+    
+    if (func_8009B79C(64, 255) == 0) { 
+        return 0;
+    }
+    
+    D_800ED148.unk1314 = 1;
+    func_800B1A48();
+    return 1;
 }
 
 /**

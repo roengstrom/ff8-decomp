@@ -351,7 +351,7 @@ typedef struct {
     u8 unkC8[3];
     u8 linkedIdx;
     u8 unkCC;
-    u8 unkCD;        /* 0xCD: stat byte used in case-0 damage formula (squared). */
+    u8 unkCD[1];        /* 0xCD: stat byte used in case-0 damage formula (squared). */
     u8 unkCE;
     u8 unkCF;        /* 0xCF: stat byte averaged with arg2 in func_8009DEF0 mode-7. */
 } BattleEntity; /* 208 bytes */
@@ -494,8 +494,8 @@ typedef struct {
     /* 0x1292 */ s16 unk1292;
     /* 0x1294 */ s16 unk1294;
     /* 0x1296 */ s16 unk1296;
-    /* 0x1298 */ u8 pad1298[0x12B8 - 0x1298];
-    /* 0x12B8 */ u16 array12B8[7];
+    /* 0x1298 */ s32 unk1298[8];
+    /* 0x12B8 */ u16 unk12B8[7];
     /* 0x12C6 */ u8 pad12C7[0x12CC - 0x12C6];
     /* 0x12CC */ Struct_12CC array12CC[1];          /* used in func_8009D594 */
     /* 0x12CF */ u8 pad12CF[0x12D8 - 0x12CF];
@@ -523,7 +523,9 @@ typedef struct {
     /* 0x12F7 */ u8 unk12F7;
     /* 0x12F8 */ u8 unk12F8;
     /* 0x12F9 */ u8 unk12F9;
-    /* 0x12FA */ u8 pad12FA[3];
+    /* 0x12FA */ u8 pad12FA;
+    /* 0x12FB */ u8 unk12FB; // used as index for entities (max 7)
+    /* 0x12FC */ u8 unk12FC; // used as index for unkD54,unkD14 (max 8)
     /* 0x12FD */ u8 unk12FD;
     /* 0x12FE */ u8 unk12FE;
     /* 0x12FF */ u8 unk12FF;
@@ -697,6 +699,14 @@ typedef struct {
     u8 unk3;
 } BattleUnkSlot;
 
+typedef struct{
+    u8 unk0;
+    u8 unk1;
+    u8 unk2;
+    u8 unk3;
+    u8 unk4;
+} BattleTestSlot;
+
 /** @brief Battle character render data (g_battleChars, stride 0x1D0 = 464 bytes). */
 typedef struct {
     /* 0x000 */ u8 pad0[0x008 - 0x000];
@@ -708,7 +718,8 @@ typedef struct {
     /* 0x01C */ u8 unk1C;
     /* 0x01D */ u8 unk1D;
     /* 0x01E */ BattleCmdSlot cmdSlots[4];
-    /* 0x02E */ u8 pad2E[0x082 - 0x02E];
+    /* 0x02E */ u8 pad2E[4];
+    /* 0x032 */ BattleTestSlot testSlots[16];
     /* 0x082 */ BattleMagicSlot magicSlots[32];
     /* 0x122 */ BattleItemSlot itemSlots[16];
     /* 0x172 */ s16 unk172;          /**< Mirrored HP cap (set with hpRegenCap when battle HP is reduced). */
@@ -717,7 +728,7 @@ typedef struct {
     /* 0x17C */ s32 xpToNext;          /**< XP needed to reach next level. */
     /* 0x180 */ u32 unk180;
     /* 0x184 */ u32 unk184;
-    /* 0x188 */ s32 unk188;          /**< Status/ability mask checked for bit 0x60000. */
+    /* 0x188 */ u32 unk188;          /**< Status/ability mask checked for bit 0x60000. */
     /* 0x18C */ s32 abilityFlags;
     /* 0x190 */ s32 statusFlags;
     /* 0x194 */ u16 elemResistances[8];/**< Element resistance values (8 × s16). */
@@ -739,7 +750,7 @@ typedef struct {
 
 /** @brief GF battle entry (12 bytes, used for GF HP in battle). */
 typedef struct {
-    u8 pad0[8];
+    u8 unk0[8];
     u16 maxHp;          /* max HP cap (used to restore hp on revive) */
     s16 hp;             /* current HP */
 } BattleGfEntry;
@@ -754,15 +765,25 @@ typedef struct {
     u8 pad5[7];
 } BattleLevelEntry;
 
+typedef struct{
+    u8 unk0;
+    u8 unk1;
+} splitStruct;
+
 /** @brief Complete battle character/GF state block. */
 typedef struct {
     /* 0x000 */ BattleCharData chars[3];          /* 3 party members × 0x1D0 */
-    /* 0x570 */ u8 pad570[0x610 - 0x570];
+    /* 0x570 */ u8 pad570[4];
+    /* 0x574 */ u16 unk574[3];
+    /* 0x57A */ u16 unk57A[3];
+    /* 0x580 */ u16 unk580[16];
+    /* 0x5A0 */ u16 unk5A0[16];
+    /* 0x5C0 */ u16 unk5C0[16];
+    /* 0x5E0 */ splitStruct unk5E0[24];
     /* 0x610 */ BattleGfEntry gfEntries[1];       /* hp sub-array (stride 12, 16 entries) */
     /* 0x61C */ u8 pad61C[0x620 - 0x61C];
     /* 0x620 */ BattleLevelEntry levelEntries[16]; /* 16 × 12 bytes */
 } BattleCharState;/* 0x6E0 */
-
 
 
 /**
@@ -916,7 +937,9 @@ typedef struct {
  */
 typedef struct {
     u16 lookupId;       /**< u16 passed to resolveKernelPtr. */
-    u8 pad2[6];
+    u8 unk2;
+    u8 unk3;
+    u8 pad4[4];
 } BattleSceneRow8;      /* 8 bytes */
 
 typedef struct {
@@ -949,12 +972,12 @@ typedef struct {
 
 typedef struct {
     u16 unk0;
-    u8 unk1;
     u8 unk2;
     u8 unk3;
     u8 unk4;
     u8 unk5;
     u8 unk6;
+    u8 unk7;
     u8 unk8;
     u8 unk9;
     u16 unkA;
@@ -991,7 +1014,7 @@ typedef struct {
     u8 unk2;
     u8 unk3;
     u8 unk4;
-    u8 pad5;
+    u8 unk5;
     u8 unk6;
     u8 unk7;
     u8 unk8;
@@ -1071,8 +1094,13 @@ typedef struct {
     /* 0x00D8 */ u8 pad00D8[0x00DC - 0x00D8];                
     /* 0x00DC */ s32 unk4C0CArg;                /**< resolveKernelPtr arg paired with unk4C0C[]. */
     /* 0x00E0 */ u8 pad00E0[0x00E8 - 0x00E0];
-    /* 0x00E8 */ structE8 unkE8[36];
-    /* 0x0208 */ u8 pad0208[0x0220 - 0x0208];
+    /* 0x00E8 */ structE8 unkE8[7];
+    /* 0x0120 */ u8 pad00F0[0x0139 - 0x0120];
+    /* 0x0139 */ u8 unk0139;
+    /* 0x013A */ u8 unk013A;
+    /* 0x013B */ u8 pad013B[0x015A - 0x013B];
+    /* 0x015A */ u8 unk015A;
+    /* 0x015B */ u8 pad015B[0x0220 - 0x015B];
     /* 0x0220 */ BattleSpellRow spells[1];      /**< 60-byte stride (size unknown, index past). */
     /* 0x025C */ u8 pad025C[0x0F78 - 0x025C];
     /* 0x0F78 */ BattleSceneRow rows132[1];     /**< 132-byte stride (size unknown, index past). */
@@ -1098,8 +1126,7 @@ typedef struct {
     /* 0x3F63 */ u8 pad3F63[0x4020 - 0x3F63];
     /* 0x4020 */ Struct_4020 array4020[1];
     /* 0x4030 */ u8 pad4034[0x4484 - 0x4030];
-    /* 0x4484 */ Struct_446C array4484[1];
-    /* 0x449C */ u8 pad449C[0x44FC - 0x449C];
+    /* 0x4484 */ Struct_446C array4484[5];
     /* 0x44FC */ Struct_4020 array44FC[1];
     /* 0x450C */ u8 pad4510[0x45F8 - 0x450C];
     /* 0x45F8 */ Struct_45F8 array45F8[1];      /**< stride 8 */
@@ -1225,6 +1252,7 @@ extern s16             D_8005F11C;
 extern u8              D_80077E58;
 extern u8              D_80077E92;
 extern u8              D_80077E59;
+extern u8              D_8007809A;
 extern u8              D_800786D9;
 extern u8              D_80078DF8;
 extern BattleSceneData D_80078E00;
@@ -1242,9 +1270,10 @@ extern u8              D_800E3CC5;
 extern u8              D_800E3CC6;
 extern u8              D_800E3CBC[];
 extern u8              D_800E3CE8;
+extern u8              D_800E3CEC[];
 extern BattleSystem    D_800ED148;
 extern BattleCmdBuf    D_800EE4C0;
-extern BattleAnimTable D_800EE9E8;
+extern BattleAnimTable D_800EE9E8; // (D_800EE9B3 = D_800EE9E8-3)
 extern u8              D_800EEBA8[];
 extern u8              D_800EEBB0;
 extern u8              D_800EEBB8;
@@ -1260,6 +1289,9 @@ extern u16             D_800EEBC2;
 extern s32             D_800EEBC4;
 extern u8              D_800EEBC8;
 extern u8              D_800EEBD0;
+extern s32             D_800EEBD8;
+extern s32             D_800EEBDC;
+extern u8              D_800EEBE0[7];
 
 /* ---------------------------------------------------------------- *
  *  Battle-overlay function prototypes (battle internals).
@@ -1306,7 +1338,6 @@ void func_800D0608(void); /* bc_object17: overlay VSync handler (RENDER_OVERLAY)
 
 void func_8002A2C4(u8 *, s32);
 s32 func_80037ADC(void);
-u16 func_800A97FC(s32 arg0);
 
 /* ---------------------------------------------------------------- *
  * Records the effect overlays share with battle.bin

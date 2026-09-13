@@ -142,4 +142,4 @@ void func_8009B924(s32, s32, s32);
 
 u16 func_8009BA5C(s32, u16);
 
-#endif
+#endif /* BC_OBJECT1_H */
