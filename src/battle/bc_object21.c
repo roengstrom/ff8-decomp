@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 extern u8 D_80103180[];
 extern u8 D_80103182[];
@@ -6,6 +7,7 @@ extern u8 D_80103184[];
 extern u8 D_80103188[];
 extern u8 D_80078752[];
 extern u8 D_80103230[];
+extern u8 D_80103420[];
 extern u8 D_80103340[];
 extern u8 D_801031A0[];
 extern u8 D_80103198[];
@@ -13,6 +15,7 @@ extern u8 D_80103191[];
 void func_800D5C28(s32, s32, s32, s32);
 void func_800D5D08(s32, s32);
 void func_800DF4E4(void);
+u16 func_800DA62C(s32);
 void func_800DF718(void);
 
 /**
@@ -84,9 +87,78 @@ void func_800DD280(s32 a0) {
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DD28C);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DD700);
+u8 *func_800DD700(u8 *ot, u8 *p, u16 *xy, u32 color) {
+    register s32 t1 __asm__("$9") = 3;
+    register s32 t0 __asm__("$8") = 0x60;
+    register s32 t2 __asm__("$10");
+    register s32 v1 __asm__("$3");
+    register u16 v0 __asm__("$2");
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DD80C);
+    p[3] = t1;
+    p[7] = t0;
+    *(u32 *)(p + 4) = color;
+    v0 = xy[0];
+    t2 = 0x126;
+    *(u16 *)(p + 8) = v0;
+    v0 = xy[1];
+    v1 = 2;
+    *(u16 *)(p + 0xC) = t2;
+    *(u16 *)(p + 0xE) = v1;
+    *(u16 *)(p + 0xA) = v0;
+    addPrimFast(ot, p, t3);
+    p += 0x10;
+
+    p[3] = t1;
+    p[7] = t0;
+    *(u32 *)(p + 4) = color;
+    v0 = xy[0];
+    *(u16 *)(p + 8) = v0;
+    v0 = xy[3];
+    *(u16 *)(p + 0xC) = t2;
+    *(u16 *)(p + 0xE) = v1;
+    *(u16 *)(p + 0xA) = v0;
+    addPrimFast(ot, p, t4);
+    p += 0x10;
+
+    p[3] = t1;
+    p[7] = t0;
+    *(u32 *)(p + 4) = color;
+    v0 = xy[0];
+    *(u16 *)(p + 8) = v0;
+    v0 = xy[1];
+    t2 = 0x18;
+    *(u16 *)(p + 0xC) = v1;
+    *(u16 *)(p + 0xE) = t2;
+    v0 = v0 + 2;
+    *(u16 *)(p + 0xA) = v0;
+    addPrimFast(ot, p, t5);
+    p += 0x10;
+
+    p[3] = t1;
+    p[7] = t0;
+    *(u32 *)(p + 4) = color;
+    v0 = xy[2];
+    *(u16 *)(p + 8) = v0;
+    v0 = xy[1];
+    *(u16 *)(p + 0xC) = v1;
+    *(u16 *)(p + 0xE) = t2;
+    v0 = v0 + 2;
+    *(u16 *)(p + 0xA) = v0;
+    addPrimFast(ot, p, t6);
+    return p + 0x10;
+}
+
+u8 *func_800DD80C(u8 *ot, u8 *p, u16 *xywh) {
+    setlen(p, 3);
+    setcode(p, 0x60);
+    *(u32 *)(p + 4) = 0x60000000;
+    *(u16 *)(p + 8) = xywh[0];
+    *(u16 *)(p + 0xA) = xywh[1];
+    *(u16 *)(p + 0xC) = xywh[2];
+    *(u16 *)(p + 0xE) = xywh[3];
+    addPrimFast(ot, p, v1);
+    return p + 0x10;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DD86C);
 
@@ -170,9 +242,49 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DF4E4);
  * parameters: D_801031A0=0xC5, D_80103198=0x5F, D_8010319C=0x80,
  * D_8010319E=0x10, D_80103191=0.
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DF6AC);
+/**
+ * @brief Register DF4E4 task on slot 8 and seed UI params.
+ *
+ * Calls func_800D5C28(8, 0, func_800DF4E4, 0) and func_800D5D08(8, 3),
+ * then stores D_801031A0=0xC5, D_80103198=0x5F, D_8010319C=0x80,
+ * D_8010319E=0x10, D_80103191=0.
+ */
+void func_800DF6AC(void) {
+    u8 *p;
+    s32 new_var;
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DF718);
+    func_800D5C28(8, 0, (s32)func_800DF4E4, 0);
+    func_800D5D08(8, 3);
+    new_var = 0x80;
+    *(s16 *)D_801031A0 = 0xC5;
+    *(s16 *)D_80103198 = 0x5F;
+    p = D_80103198;
+    *(s16 *)(p + 4) = new_var;
+    *(s16 *)(p + 6) = 0x10;
+    *D_80103191 = 0;
+}
+
+void func_800DF718(void) {
+    u16 cur = func_800DA62C(0);
+    s32 i = 0;
+    u16 prev = *(u16 *)D_80103230;
+    s32 bits;
+    *(u16 *)D_80103230 = cur;
+    bits = (s32)((cur ^ prev) & 0x78) >> 3;
+    do {
+        if ((bits >> i) & 1) {
+            u8 *p = D_80103420;
+            s32 j = 2;
+            do {
+                (p + i)[0x64] = 0;
+                j -= 1;
+                p += 0x6C;
+            } while (j >= 0);
+        }
+        i += 1;
+    } while (i < 4);
+}
+
 
 /**
  * @brief Register callback func_800DF718 and clear D_80103230.
@@ -244,7 +356,26 @@ void func_800DF904(void) {
     resetAllSfx();
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DF924);
+s32 func_800DF924(void) {
+    s32 v0 = func_800CEBF8();
+    s32 a1 = v0 / (s32)0x2AAA;
+    s32 v1;
+    s32 tmp = a1 / 3;
+    a1 -= tmp * 3;
+    a1 += 1;
+    if (a1 <= 0) {
+        v1 = 1;
+        goto done;
+    }
+    if (a1 < 4) {
+        v1 = a1;
+        goto done;
+    }
+    v1 = 3;
+done:
+    return v1;
+}
+
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800DF9A4);
 

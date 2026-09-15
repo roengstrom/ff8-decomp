@@ -6,6 +6,8 @@
 #include "battle.h"
 
 extern u8 D_800EF72C[];
+extern SVECTOR D_800E3D70;
+extern SVECTOR D_800E3D78;
 extern u8 D_800F05C8[];
 extern u8 D_800F0290[];
 void func_800B5B48(void);
@@ -172,7 +174,54 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B5CB8);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B5EC8);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B5FD0);
+typedef struct {
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ u16 otOff;
+} BattleDigitPos;
+
+void func_800D0D54(void *gfx, s32 packedXY, s8 *digits, s32 color);
+
+/**
+ * @brief Draw a scaled battle value as one or two digit sprites.
+ *
+ * Treats @p value == -0x457 as empty. Otherwise clamps negatives to 0,
+ * divides by 30, and emits digits (each offset by 0x18) at @p pos. Values
+ * >= 10 use a two-digit buffer and shift X left by 8; smaller values shift
+ * by 4. Draws once into the OT slot taken from @p pos->otOff, then again on
+ * the base context with colour bit 0x04000000.
+ *
+ * @param pos Screen position (x/y) and OT selector (otOff).
+ * @param value Value to display, or -0x457 to skip.
+ * @param color Colour / draw flags forwarded to func_800D0D54.
+ */
+void func_800B5FD0(BattleDigitPos *pos, s32 value, s32 color) {
+    s8 digits[3];
+    s8 *str;
+    s32 packed;
+    s32 scaled;
+
+    scaled = value;
+    if (scaled != -0x457) {
+        if (scaled < 0) {
+            scaled = 0;
+        }
+        scaled = (scaled + 10) / 30;
+        str = &digits[0];
+        if (scaled >= 10) {
+            str = &digits[1];
+            packed = (pos->y << 16) | ((pos->x - 8) & 0xFFFF);
+            digits[0] = (scaled / 10) + 0x18;
+            scaled %= 10;
+        } else {
+            packed = (pos->y << 16) | ((pos->x - 4) & 0xFFFF);
+        }
+        str[0] = scaled + 0x18;
+        str[1] = 0;
+        func_800D0D54((u8 *)D_800FA5E8 + ((pos->otOff & 0xFFFC) + 0x24), packed, digits, color);
+        func_800D0D54(D_800FA5E8, packed, digits, color | 0x04000000);
+    }
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6100);
 
@@ -215,6 +264,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6764);
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B67D4);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6858);
+
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B6954);
 
@@ -285,7 +335,22 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B7FD4);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B81B4);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B8248);
+s16 func_800B7FD4(s16 a0, s32 a1, s32 a2, s32 a3, s32 a4);
+
+/**
+ * @brief Fill an SVECTOR by evaluating func_800B7FD4 on each axis.
+ *
+ * Shared params @p a0 / @p a1 / @p shared feed every call; per-axis
+ * pairs (@p x2/@p x4, @p y2/@p y4, @p z2/@p z4) select each component.
+ *
+ * @return @p out, after vx/vy/vz have been written.
+ */
+SVECTOR *func_800B8248(s16 a0, s32 a1, s32 x2, s32 y2, s32 z2, s32 shared, s32 x4, s32 y4, s32 z4, SVECTOR *out) {
+    out->vx = func_800B7FD4(a0, a1, x2, x4, shared);
+    out->vy = func_800B7FD4(a0, a1, y2, y4, shared);
+    out->vz = func_800B7FD4(a0, a1, z2, z4, shared);
+    return out;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B8314);
 

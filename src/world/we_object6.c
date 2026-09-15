@@ -3,7 +3,56 @@
 #include "world/we_object6.h"
 #include "psxsdk/libc.h"
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800ACC68);
+extern void func_800B7240(s32 arg0);
+extern s32  func_800BE5F8(void *rec);
+extern void func_800BC51C(VECTOR *src, VECTOR *dst);
+
+/* Declared in we_object9.h; avoid pulling that header (conflicts with local decls). */
+extern void func_800BC544(VECTOR *src, VECTOR *dst);
+
+extern void func_80041274(SVECTOR *angles, MATRIX *m);
+extern void func_80040534(MATRIX *m, VECTOR *t);
+extern void func_80040E74(SVECTOR *v, VECTOR *out, s32 *flag);
+extern void func_80040FA4(MATRIX *src, MATRIX *dst);
+
+/**
+ * @brief Build a negated-translation world matrix from angles / rot / offset.
+ *
+ * Rotates @p angles into a scratch matrix, applies @p rotBuf as translation,
+ * transforms @p offset through that matrix, copies the result into @p outMat,
+ * then negates all three translation components.
+ */
+void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf, SVECTOR *offset) {
+    MATRIX m;
+    VECTOR t;
+    s32 flag;
+
+    func_80041274(angles, &m);
+    SetRotMatrix(&m);
+    t.vx = rotBuf->vx;
+    t.vy = rotBuf->vy;
+    t.vz = rotBuf->vz;
+    func_80040534(&m, &t);
+    SetTransMatrix(&m);
+    func_80040E74(offset, (VECTOR *)m.t, &flag);
+    func_80040FA4(&m, outMat);
+    func_8003FD84(outMat, (VECTOR *)m.t, (VECTOR *)outMat->t);
+    {
+        register s32 a __asm__("v0");
+        register s32 b __asm__("v1");
+
+        a = outMat->t[0];
+        b = outMat->t[2];
+        a = -a;
+        outMat->t[0] = a;
+        a = outMat->t[1];
+        b = -b;
+        outMat->t[2] = b;
+        a = -a;
+        outMat->t[1] = a;
+    }
+}
+
 
 /**
  * @brief Snapshot @c D_800D2390.tail with an angle-adjusted @c angle
@@ -247,13 +296,140 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B13B8);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B164C);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B18B8);
+/**
+ * @brief Sync active named slots from camera @p pos / @p ang into
+ *        @c D_800DBFB8.
+ *
+ * For each slot index (@c D_800C5C18 .. @c D_800C5C30) that is live
+ * (>= 0) and whose world-dispatch gate matches, calls
+ * @c func_800BC544(@p pos, &slot->position) then copies @p ang[1]
+ * into @c slot->vec via an unaligned 8-byte memcpy (matching the
+ * target's @c lwl/@c lwr/@c swl/@c swr pair).
+ *
+ * Gates:
+ *  - @c D_800C5C18: always (when live)
+ *  - @c D_800C5C1C: @c D_800C4D38 == 0x31 and @c D_800C5BFC == 0
+ *  - @c D_800C5C20: @c D_800C5BFC == 0
+ *  - @c D_800C5C28: @c D_800C4D38 in 0x20..0x28 or == 0x84
+ *  - @c D_800C5C24: @c D_800C4D38 == 0x32
+ *  - @c D_800C5C2C / @c D_800C5C30: @c D_800C4D38 == 0x30
+ *
+ * @param flags Unused (callers pass @c D_800D23D8).
+ * @param pos   Source camera world position.
+ * @param ang   Camera scratch (@c D_800C9770); rotation at @c ang[1].
+ */
+void func_800B18B8(u8 *flags, VECTOR *pos, SVECTOR *ang) {
+    SlotEntry *slot;
+
+    if (D_800C5C18 >= 0) {
+        slot = &D_800DBFB8[D_800C5C18];
+        func_800BC544(pos, &slot->position);
+        memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+    }
+    if (D_800C5C1C >= 0) {
+        if ((D_800C4D38 == 0x31) && (D_800C5BFC == 0)) {
+            slot = &D_800DBFB8[D_800C5C1C];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C20 >= 0) {
+        if (D_800C5BFC == 0) {
+            slot = &D_800DBFB8[D_800C5C20];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C28 >= 0) {
+        if (((u32)(D_800C4D38 - 0x20) < 9U) || (D_800C4D38 == 0x84)) {
+            slot = &D_800DBFB8[D_800C5C28];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C24 >= 0) {
+        if (D_800C4D38 == 0x32) {
+            slot = &D_800DBFB8[D_800C5C24];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C2C >= 0) {
+        if (D_800C4D38 == 0x30) {
+            slot = &D_800DBFB8[D_800C5C2C];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if ((D_800C5C30 >= 0) && (D_800C4D38 == 0x30)) {
+        slot = &D_800DBFB8[D_800C5C30];
+        func_800BC544(pos, &slot->position);
+        memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B1BCC);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B1FD0);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B20E4);
+/**
+ * @brief Arm actor @p actorIdx: store @p flag, set dispatch code, seed camera.
+ *
+ * Writes @p flag through @p out, sets @c D_800C4D38 to @c 0x15 when
+ * @p mode == 2 else @c 0x10, forces @c D_800C4D2C = 1, and copies the
+ * actor's rotation-source @c +0x68 vector into @c D_800C9868 via
+ * @c func_800BC51C.
+ *
+ * Then dispatches on @p mode:
+ *  - @c 1: @c func_800B7240(0x41) and clear @c D_800C987C.
+ *  - @c 0: @c func_800B7240(0x40/0x41) by @c flag1E, then refresh
+ *    @c D_800C987C from @c func_800BE5F8(@c D_800C9878).
+ *  - @c 2: @c func_800B7240(0x42/0x43) by @c flag1E == -1, then the same
+ *    @c func_800BE5F8 refresh.
+ */
+void func_800B20E4(s8 *out, s32 actorIdx, s8 flag, s32 mode) {
+    ActorRecord *rec;
+    ActorRecord *base;
+    s32 code;
+    s32 script;
+    s32 idx;
+    s16 refreshed;
+
+    idx = actorIdx;
+    code = 0x10;
+    *out = flag;
+    if (mode == 2) {
+        code = 0x15;
+    }
+    D_800C4D38 = code;
+    D_800C4D2C = 1;
+    base = D_800DD6A8;
+    rec = &base[idx];
+    func_800BC51C((VECTOR *)((u8 *)rec->rotSrc + 0x68), &D_800C9868);
+    if (mode == 1) {
+        func_800B7240(0x41);
+        D_800C987C = 0;
+        return;
+    }
+    if (mode == 0) {
+        script = 0x41;
+        if (rec->flag1E != -1) {
+            script = 0x40;
+        }
+        goto shared;
+    }
+    if (mode == 2) {
+        script = 0x42;
+        if (rec->flag1E == -1) {
+            script = 0x43;
+        }
+    shared:
+        func_800B7240(script);
+        refreshed = func_800BE5F8((void *)D_800C9878);
+        D_800C987C = refreshed;
+    }
+}
+
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B21EC);
 

@@ -5,6 +5,8 @@
 #include "battle.h"
 #include "battle/bc_object8.h"
 #include "battle/bc_object15.h"
+#include "battle/bc_object14.h"
+#include "battle/bc_object16.h"
 
 typedef struct {
     u8 pad00[3];
@@ -24,6 +26,8 @@ extern u8 D_800E6658[];
 #define BATTLE_SPRITE_UV_MAX 0xFF
 
 static void *func_800C97E4(BattleSpritePrim *prim, u32 *ot, s32 otShift, void *head);
+
+D_800EBF24_Type *func_800C94B8(s32 index);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C7294); /* 0x58 */
 
@@ -63,17 +67,166 @@ u8 *func_800C749C(void) {
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C74E0); /* 0x1EC */
 
+
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C76CC); /* 0xC0 */
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C778C); /* 0x998 */
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C8124); /* 0x404 */
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C8528); /* 0x18C */
+/**
+ * @brief Draw a uniform-scale particle and advance its frame.
+ *
+ * Builds a rotation from @c angle / @c angVel, scales equally on all axes by
+ * @c sizeX, and links a @c 0x33-flagged effect prim. Frames 0–1 fade in,
+ * frames 4+ fade out; the particle expires once the frame exceeds 7.
+ *
+ * @param p Particle entry to draw and step.
+ * @return @c 2 once the particle has expired, @c 0 otherwise.
+ */
+s32 func_800C8528(ParticleEntry *p) {
+    SVECTOR rot;
+    MATRIX m;
+    VECTOR scale;
+    BattleEffectPrim *prim;
+    s32 newFrame;
+    s32 size;
+
+    rot.vx = 0;
+    rot.vy = p->angle;
+    rot.vz = p->angVel;
+    RotMatrix(&rot, &m);
+
+    m.t[0] = p->posX;
+    m.t[1] = p->posY;
+    m.t[2] = p->posZ;
+    size = p->sizeX;
+    scale.vz = size;
+    scale.vy = size;
+    scale.vx = size;
+    ScaleMatrix(&m, &scale);
+    CompMatrix(&D_800F02C8, &m, &m);
+    SetRotMatrix(&m);
+    SetTransMatrix(&m);
+
+    prim = (BattleEffectPrim *)func_800B3698(0x58);
+    prim->dispatch = (s32 *)func_800C6B1C(p->delay + 8);
+    *(s32 *)&prim->bgR = 0;
+    prim->flags = 0x33;
+
+    if ((s16)p->frame < 2) {
+        prim->depth = 0x1000 - ((s16)p->frame << 11);
+        prim->flags |= 0xC0;
+    } else if ((s16)p->frame >= 4) {
+        prim->depth = ((s16)p->frame - 4) << 10;
+        prim->flags |= 0xC0;
+    }
+
+    D_800FA5F0 = func_800CBC68(prim, D_800FA5E8->ot, 2, D_800FA5F0);
+    func_800B36B8(0x58);
+
+    if (D_800EEC5C & BATTLE_STATE_UNK001) {
+        return 0;
+    }
+
+    newFrame = p->frame + 1;
+    p->frame = newFrame;
+    return ((s16)newFrame > 7) * 2;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C86B4); /* 0x114 */
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C87C8); /* 0x2B0 */
+/**
+ * @brief Draw a beam/ring particle pair and advance its frame.
+ *
+ * While @c frame is still non-positive, emits a faded effect prim along the
+ * particle's facing. Always emits a sprite-set prim scaled to 1.5× @c sizeX,
+ * offset along the stored forward vector. Expires once the frame exceeds 3.
+ *
+ * @param p Particle entry to draw and step.
+ * @return @c 2 once the particle has expired, @c 0 otherwise.
+ */
+s32 func_800C87C8(ParticleEntry *p) {
+    SVECTOR rot;
+    MATRIX m;
+    VECTOR scale;
+    BattleEffectPrim *effect;
+    BattleSpritePrim *sprite;
+    s32 newFrame;
+    s32 size;
+    s32 pos;
+
+    scale.vy = p->sizeX;
+    scale.vx = scale.vy;
+    scale.vz = p->sizeY;
+
+    if ((s16)p->frame <= 0) {
+        rot.vx = 0;
+        rot.vy = p->angle;
+        rot.vz = p->angVel;
+        RotMatrix(&rot, &m);
+
+        m.t[0] = p->posX;
+        m.t[1] = p->posY;
+        m.t[2] = p->posZ;
+        ScaleMatrix(&m, &scale);
+
+        scale.vx = 0;
+        scale.vy = 0;
+        scale.vz = -0x1000;
+        ApplyMatrixLV(&m, &scale, &scale);
+
+        CompMatrix(&D_800F02C8, &m, &m);
+        SetRotMatrix(&m);
+        SetTransMatrix(&m);
+
+        effect = (BattleEffectPrim *)func_800B3698(0x58);
+        effect->dispatch = (s32 *)func_800C6B1C(5);
+        *(s32 *)&effect->bgR = 0;
+        effect->depth = (s16)p->frame * 0x555;
+        D_800FA5F0 = func_800CBC68(effect, D_800FA5E8->ot, 2, (effect->flags = 0xF3, D_800FA5F0));
+        func_800B36B8(0x58);
+    }
+
+    rot.vx = 0x400;
+    rot.vy = 0;
+    rot.vz = p->angVel;
+    RotMatrix(&rot, &m);
+
+    pos = p->posX;
+    m.t[1] = 0;
+    m.t[0] = pos + ((scale.vx * 0xC8) >> 12);
+    m.t[2] = p->posZ + ((scale.vz * 0xC8) >> 12);
+
+    size = (s16)((u16)p->sizeX);
+    size = size + (size >> 1);
+    scale.vz = size;
+    scale.vy = size;
+    scale.vx = size;
+    ScaleMatrix(&m, &scale);
+
+    CompMatrix(&D_800F02C8, &m, &m);
+    SetRotMatrix(&m);
+    SetTransMatrix(&m);
+
+    sprite = (BattleSpritePrim *)func_800B3698(0xB4);
+    sprite->anim = (BattleSpriteAnim *)func_800C94B8(0x1F);
+    {
+        u16 frame = p->frame;
+        sprite->flags = 8;
+        sprite->frame = frame;
+    }
+    D_800FA5F0 = (s32)func_800C9E10(sprite, D_800FA5E8->ot, 2, (void *)D_800FA5F0);
+    func_800B36B8(0xB4);
+
+    if (D_800EEC5C & BATTLE_STATE_UNK001) {
+        return 0;
+    }
+
+    newFrame = p->frame + 1;
+    p->frame = newFrame;
+    return ((s16)newFrame > 3) * 2;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C8A78); /* 0x15C */
 

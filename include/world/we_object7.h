@@ -4,6 +4,7 @@
 #include "common.h"
 #include "world.h"
 
+
 /**
  * @brief 0x34-byte tracking entry — one world-space target with screen-space
  * projection state and a relative neighbour link.
@@ -36,6 +37,7 @@ typedef struct {
 
 /* File-private world data. */
 extern u8 *D_800C96C8;
+extern s16 D_800DCB4C;
 
 /* func_8009B358/func_8009B550 are defined in we_object1, func_8009D8A8 in
  * we_object2; addItemToInventory, func_800A5DC8 and func_80041E84 are

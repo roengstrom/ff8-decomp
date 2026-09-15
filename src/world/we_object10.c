@@ -121,7 +121,70 @@ s32 func_800BD7E4(s32 charIdx) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", func_800BD82C);
+/**
+ * @brief Fill a slot from optional rot/trans and claim a free id in @p actor.
+ *
+ * Writes @p trans/@p rot into @p slot when non-NULL, stores @p marker (and
+ * @p flag when non-negative), then scans the 0x40-byte id table at
+ * @p actor + 6 for the first @c 0xFF. On a free slot: stores @p marker, sets
+ * @c lookupIdx to the count of prior ids below @c 0x40 (or -1 if marker
+ * >= that), and returns 1 / 0. Returns -1 if the id table is full.
+ *
+ * @note Prologue pointer add is forced with inline asm so gcc 2.8.0 does not
+ *       fold actor+0 into a move.
+ */
+s32 func_800BD82C(u8 *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans) {
+    s32 i;
+    s32 count;
+    s32 markerOk;
+    s32 endMark;
+    s32 neg1;
+    u8 *p;
+    u8 id;
+
+    if (slot != NULL) {
+        if (trans != NULL) {
+            slot->position = *trans;
+        }
+        if (rot != NULL) {
+            slot->vec = *rot;
+        }
+        slot->marker = marker;
+        if (flag >= 0) {
+            slot->pad11 = flag;
+        }
+    }
+
+    i = 0;
+    count = i;
+    endMark = 0xFF;
+    markerOk = marker < 0x40;
+    neg1 = -1;
+    asm volatile("addu  $v1, $a0, $a3" : : : "$3");
+    p = ({ register u8 *r __asm__("v1"); r; });
+    do {
+        id = p[6];
+        if (id == endMark) {
+            p[6] = marker;
+            if (markerOk) {
+                if (slot != NULL) {
+                    slot->lookupIdx = count;
+                }
+                return 1;
+            }
+            if (slot != NULL) {
+                slot->lookupIdx = neg1;
+            }
+            return 0;
+        }
+        if (id < 0x40U) {
+            count++;
+        }
+        i++;
+        p = actor + i;
+    } while (i < 0x40);
+    return -1;
+}
 
 /**
  * @brief Copy 10 flag bytes from D_800780D8 to destination struct.
@@ -422,7 +485,48 @@ void func_800BDDC4(SlotEntry *input) {
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", func_800BDEF4);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", func_800BE040);
+/**
+ * @brief Double-emit from the rotation source at @c D_800DD6A8+0x18
+ *        (@c D_800DD6C0): snapshot @c vecA + @c vec4C, nudge @c vy by
+ *        @c ±0x200 with RNG jitter (@c *4), dispatch marker @c 0 / flags @c 3.
+ *
+ * Position is captured once; @c vec4C is re-read before the second emit.
+ * Inline @c nop + @c addu @c v1,@c v0,@c zero match the target's first-emit
+ * load-delay and base copy for the unaligned @c vec4C load.
+ */
+void func_800BE040(void) {
+    VECTOR pos;
+    SVECTOR vec;
+    ActorRecord *base;
+    RotationSources *src;
+    u8 *raw;
+    s32 r;
+    s16 vy;
+
+    base = D_800DD6A8;
+    src = *(RotationSources **)((u8 *)base + 0x18);
+    asm volatile("nop");
+    asm volatile("addu	$v1, $v0, $zero" : : : "$3");
+    raw = ({ register u8 *r __asm__("v1"); r; });
+    pos = src->vecA;
+    vec = *(SVECTOR *)(raw + 0x4C);
+    r = func_8009CC3C();
+    vy = vec.vy;
+    vy += 0x200;
+    vy += (r - 0x80) * 4;
+    vec.vy = vy;
+    func_800AC0A0(0, &pos, &vec, 3);
+
+    src = *(RotationSources **)((u8 *)base + 0x18);
+    vec = src->vec4C;
+    r = func_8009CC3C();
+    vy = vec.vy;
+    vy += -0x200;
+    vy -= (r - 0x80) * 4;
+    vec.vy = vy;
+    func_800AC0A0(0, &pos, &vec, 3);
+}
+
 
 
 /**

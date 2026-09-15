@@ -71,7 +71,7 @@ extern void setWorldMapTransVector(s16 coord0, s16 coord1);
 extern void registerNewWorldObjects(void);
 
 /* Generate up to 5 spread-positioned SVECTOR offsets for the scene @p ctx. */
-extern void func_800B5ADC(s32 ctx, SVECTOR *out, s32 c, s32 d);
+extern s32  func_800B5ADC(s32 ctx, SVECTOR *out, u16 *outParam, s32 bias);
 
 
 /* Compute a linear tile index from 2D world coordinates (32x24 grid). */

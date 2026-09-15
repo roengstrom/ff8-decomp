@@ -517,6 +517,7 @@ binaries:
     target_path: original/world.bin
     section_order: [.rodata, .text, .data, .bss]
     ld_bss_is_noload: true
+    subalign: 1
   segments:
   - name: world
     type: code

@@ -75,6 +75,7 @@ PutDrawEnv    = 0x800492B4;
 PutDispEnv    = 0x80049480;
 GetODE       = 0x800499AC;
 SetDrawArea = 0x80049A14;
+SetDrawOffset = 0x80049A94;
 SetDrawMode    = 0x80049B24;
 SetDrawEnv   = 0x80049B78;
 OpenTIM      = 0x8004B8F4;

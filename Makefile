@@ -262,6 +262,7 @@ $(1)_LDFLAGS  := -T $$($(1)_LD) \
 
 split-$(1): splat-config
 	$$(SPLAT) split $$($(1)_YAML)
+	@if [ "$(1)" = "world" ]; then $(PYTHON) tools/fix_world_bss_vram.py; fi
 
 # An object's path is the binary's build_path plus the source path, whatever
 # directory that source lives in -- so these two rules need no per-overlay paths.

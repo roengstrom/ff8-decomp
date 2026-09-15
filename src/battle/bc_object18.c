@@ -4,6 +4,7 @@
 extern u8 D_80102E40[];
 extern u8 D_80102E70[];
 extern u8 D_80102E78[];
+extern u16 D_80102F30[];
 extern u8 D_80103240[];
 extern u8 D_80103308[];
 extern u8 D_80103420[];
@@ -16,10 +17,13 @@ void func_800D1A20(void);
 void func_800D2F14(void);
 void func_800D5C28(s32, s32, s32, s32);
 void func_800D5D08(s32, s32);
+s32 func_800D1F70(s32, s32, u8 *, s32, s32);
+s32 func_800D2044(s32, s32, u8 *, s32, s32);
 void func_800D33F8(void);
 void func_800D3A00(void);
-void func_800A5F24(s32, s32);
+void func_800A5F24(s32, s32, s32, s32, u16);
 void func_800A2360(s32);
+s32 func_800CEE34(s32, s32, s32, s32, s32, s32);
 
 /**
  * @brief Initialize 3 entries in D_80103420 table and register task handlers.
@@ -90,7 +94,33 @@ s32 func_800D330C(u8 *a0, s32 bit) {
     return result != 0;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D3344);
+u8 func_800D3344(u8 *arg0) {
+    register u8 *s3 __asm__("$19");
+    register s32 s2 __asm__("$18");
+    register s32 s1 __asm__("$17");
+    register s32 s0 __asm__("$16");
+    register s32 v0 __asm__("$2");
+    s32 found;
+
+    s3 = arg0;
+    s0 = 0;
+    s2 = s3[0x52] + 1;
+    asm volatile("" : "+r"(s0));
+    v0 = s2 + s0;
+loop:
+    s1 = v0 & 0x3F;
+    found = func_800D330C(s3, s1);
+    s0 += 1;
+    if (found != 0) {
+        return s1;
+    }
+    if (s0 < 0x3F) {
+        v0 = s2 + s0;
+        goto loop;
+    }
+    return s3[0x52];
+}
+
 
 /**
  * @brief Count the number of set bits in a 32-bit value.
@@ -113,7 +143,22 @@ s32 func_800D33C0(s32 val) {
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D33F8);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D365C);
+s32 func_800D365C(s32 arg0, s32 arg1) {
+    u8 *row = D_80103420;
+    s32 i = 0;
+    s32 off = 0;
+    do {
+        if (row[0x49] != 0) {
+            s32 tmp = off + 0xAC;
+            arg1 = func_800D2044(arg0, func_800D1F70(arg0, arg1, row, 0xE3, tmp), row, 0x103, tmp);
+            off += 0xD;
+        }
+        i += 1;
+        row += 0x6C;
+    } while (i < 3);
+    return arg1;
+}
+
 
 /**
  * @brief Clamp a0 and call getMenuString with offset.
@@ -123,11 +168,11 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D365C);
  *
  * @param a0 Input index, clamped if >= 0x20.
  */
-void func_800D3708(s32 a0) {
+s32 func_800D3708(s32 a0) {
     if (a0 >= 0x20) {
         a0 -= 0x10;
     }
-    getMenuString(a0 + 0x39);
+    return (s32)getMenuString(a0 + 0x39);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D3734);
@@ -172,7 +217,14 @@ void func_800D3BB8(void) {
  *
  * @return Pointer to entity field (as integer).
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D3C14);
+s32 func_800D3C14(void) {
+    s32 cfg = (s32)D_80103308;
+    s32 idx = *(s8 *)(cfg + 0x14);
+    s32 sub = *(u8 *)(cfg + 0x13);
+    s32 off = idx * 0x1D0;
+    off += (s32)D_8007873E;
+    return off + (sub * 4);
+}
 
 /**
  * @brief Return the address of D_80102E40.
@@ -496,7 +548,27 @@ s32 func_800D5CE4(s32 a0) {
     return *(s8 *)(base + 0x10);
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D5D08);
+/**
+ * @brief Arm or clear a D_80102E78 slot's countdown bytes.
+ */
+void func_800D5D08(s32 a0, s32 a1) {
+    u8 *base = D_80102E78;
+    base = base + a0 * 20;
+    if (a1 > 0) {
+        if (*(s8 *)(base + 0x10) == 1) {
+            base[0x13] = a1;
+        } else {
+            base[0x10] = a1;
+        }
+        base[0x11] = a1;
+        base[0x12] = 1;
+    } else {
+        *(s8 *)(base + 0x10) = -1;
+        *(s8 *)(base + 0x11) = -1;
+        base[0x12] = 1;
+    }
+}
+
 
 /**
  * @brief Store a byte into an array element at stride 20.
@@ -563,7 +635,23 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D60A0);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D60F4);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object18", func_800D6294);
+s32 func_800D6294(s32 arg0, s32 arg1) {
+    u8 *slot = D_80102E78;
+    s32 i;
+    if (*(u16 *)0x1F8003AE & 0x40) {
+        i = 9;
+        do {
+            s32 (*cb)(s32, s32, u8 *) = *(void **)(slot + 0xC);
+            if (cb != 0) {
+                arg1 = cb(arg0, arg1, slot);
+            }
+            i -= 1;
+            slot += 0x14;
+        } while (i > 0);
+    }
+    return arg1;
+}
+
 
 /**
  * @brief Clear all 9 display slots and reset scratchpad bit 5.

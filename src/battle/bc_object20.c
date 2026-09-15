@@ -53,7 +53,15 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800D9AD4);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800D9E84);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800DA3C0);
+/**
+ * @brief Copy 8 unaligned bytes from arg0 into D_801032A0 at +0xC.
+ */
+void func_800DA3C0(u8 *arg0) {
+    typedef struct { u8 b[8]; } Eight;
+    u8 *dst = D_801032A0;
+    *(Eight *)(dst + 0xC) = *(Eight *)arg0;
+}
+
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800DA3F0);
 
@@ -113,7 +121,16 @@ s32 func_800DA61C(void) {
     return *(s32 *)D_8010305C;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800DA62C);
+/**
+ * @brief Return D_80103162 if arg0 nonzero, else D_80103160.
+ */
+u16 func_800DA62C(s32 arg0) {
+    if (arg0 == 0) {
+        return *(u16 *)D_80103160;
+    }
+    return *(u16 *)D_80103162;
+}
+
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object20", func_800DA650);
 

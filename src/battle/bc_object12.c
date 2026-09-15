@@ -1,4 +1,5 @@
 #include "common.h"
+#include "battle.h"
 #include "psxsdk/libgte.h"
 #include "battle/bc_object8.h"
 #include "battle/bc_object12.h"
@@ -7,7 +8,10 @@
 extern u8 D_800F1A5C[];
 extern u8 D_800F1A54[];
 s32 func_800C0CB8(s32, s32);
-void func_800C29C4(s32, s32);
+void func_800C29C4(void *, s32);
+void func_800C2AB0(void *, s32);
+void func_800C63D4(void *, s32);
+void *func_800B2C58(void *);
 s32 func_800BD3A0(void);
 void func_800BD230(void);
 
@@ -49,10 +53,10 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BF444);
 
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BF5C4);
-
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BF7E8);
-
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BF888);
+
+
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BF92C);
 
@@ -68,7 +72,12 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BFBA8);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BFC14);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BFDA0);
+void func_800BFDA0(BattleEffectSlot *arg0, s32 arg1, s32 arg2) {
+    s32 idx = arg0 - D_800EF2D0;
+    s32 merged = (arg2 & 0xFF77FFFF) | (D_800ED148.entities[idx].flags & 0x880000);
+    func_800B5C70((s32)arg0, arg1 & 0xFFFF, merged);
+}
+
 
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800BFE1C);
@@ -284,7 +293,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800C26B0);
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800C29C4);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800C2A18);
-
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800C2A38);
-
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object12", func_800C2AB0);
+
+

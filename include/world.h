@@ -121,13 +121,50 @@ typedef struct {
 } SlotEntry; /* 0x28 = 40 bytes */
 
 /**
- * @brief Lookup target reached via D_800DDB00[SlotEntry.lookupIdx].
- *
- * Only the @c field52 u16 is known so far.
+ * @brief Four-word transform block at LookupTarget+0x20 (world twin of
+ *        field @c EntityRenderXform).
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[0x52];
+    s32 field20;
+    s32 field24;
+    s32 field28;
+    s32 field2C;
+} WorldRenderXform;
+
+/**
+ * @brief Lookup / render-slot target reached via D_800DDB00[idx].
+ *
+ * World twin of field @c EntityRenderSlot. Layout matches the fields
+ * touched by @c func_800C1718 (init) and later world render helpers;
+ * @c field52 remains the motion halfword used elsewhere.
+ */
+typedef struct {
+    /* 0x00 */ s32 firstWord;
+    /* 0x04 */ u8 *dataPtr;       /**< Base for mode-0x1C/1D/1E indexed buffers. */
+    /* 0x08 */ s32 unk08;
+    /* 0x0C */ u16 unk0C;
+    /* 0x0E */ u16 unk0E;
+    /* 0x10 */ u16 unk10;
+    /* 0x12 */ u16 unk12;
+    /* 0x14 */ u16 unk14;
+    /* 0x16 */ u8 pad16[0x02];
+    /* 0x18 */ u16 unk18;
+    /* 0x1A */ u16 unk1A;
+    /* 0x1C */ u16 unk1C;
+    /* 0x1E */ u8 pad1E[0x02];
+    /* 0x20 */ WorldRenderXform xform;
+    /* 0x30 */ u8 pad30[0x20];
+    /* 0x50 */ u16 unk50;
     /* 0x52 */ u16 field52;
+    /* 0x54 */ u8 pad54[0x0C];
+    /* 0x60 */ u8 unk60;
+    /* 0x61 */ u8 pad61[0x07];
+    /* 0x68 */ u8 *unk68;          /**< Halfword-pair table (mode 0xD setup). */
+    /* 0x6C */ u8 *unk6C;
+    /* 0x70 */ u8 unk70;
+    /* 0x71 */ u8 unk71;
+    /* 0x72 */ u8 pad72[0x26];
+    /* 0x98 */ s32 subBuffer;
 } LookupTarget;
 
 /**
@@ -396,7 +433,9 @@ typedef struct {
     /* 0x00 */ u8 pad00[2];
     /* 0x02 */ s8 unk02;            /**< Signed counter / clamp value. */
     /* 0x03 */ u8 unk03;            /**< Byte counter (range-checked against 1..2). */
-    /* 0x04 */ u8 pad04[0x1A];
+    /* 0x04 */ u8 pad04[0x14];
+    /* 0x18 */ void *rotSrc; /**< RotationSources* — vecB lives at +0x68. */
+    /* 0x1C */ u8 pad1C[2];
     /* 0x1E */ s8 flag1E;           /**< -1 disables actor; otherwise active. */
     /* 0x1F */ s8 unk1F;            /**< Signed phase byte (-1, 0, 1). */
     /* 0x20 */ u8 pad20[4];
@@ -567,7 +606,7 @@ extern BattleSceneCtx D_800CA040;       /**< Worldmap "no-battle" sentinel — a
 extern s16         D_800C53B8[];        /**< Bone-id table (used by we_object4). */
 extern s32 func_800AF28C(ScriptOp *p);
 extern s32 func_800BEFC4(void);
-extern void func_800BD82C(u8 *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans);
+extern s32 func_800BD82C(u8 *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans);
 
 /**
  * @brief Pair of rotation source vectors at known offsets. Pointed to by
@@ -577,7 +616,9 @@ extern void func_800BD82C(u8 *actor, SlotEntry *slot, s32 marker, s32 flag, SVEC
 typedef struct {
     /* 0x00 */ u8     unk00[0x34];
     /* 0x34 */ VECTOR vecA;
-    /* 0x44 */ u8     unk44[0x24];
+    /* 0x44 */ u8     unk44[0x08];
+    /* 0x4C */ SVECTOR vec4C;       /**< Rotation snapshot used by func_800BE040. */
+    /* 0x54 */ u8     unk54[0x14];
     /* 0x68 */ VECTOR vecB;
 } RotationSources;
 

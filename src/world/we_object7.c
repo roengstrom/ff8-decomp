@@ -5,6 +5,11 @@
 #include "world/we_object3.h"
 #include "world/we_object1.h"
 
+extern s16 D_800DCB4C;
+extern s32 D_800C971C;
+extern s32 D_800C4D28;
+#include "world/we_object4.h"
+
 /* ActorRecord now lives in world.h (shared across world TUs). */
 
 
@@ -76,7 +81,85 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B3ED0);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B3FD4);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B438C);
+/**
+ * @brief Seed camera @c D_800C9868 / @c D_800C9770 from a @c Slot track.
+ *
+ * Picks a 12-byte @c Track index from @c D_800C4D38, with the index set
+ * depending on whether @c D_800C971C is set (zone mode). On a valid index,
+ * copies that track into the camera position (with the world X/Z word
+ * layout) and clears @c D_800C9770[1] except for @c vy = track->rot_y.
+ * Always refreshes @c D_800C4D3C / @c D_800C4D28 from slot bytes @c 0x6C /
+ * @c 0x6E (zeroing @c D_800C4D3C outside the known dispatch set).
+ *
+ * @param slot Slot whose leading track table supplies the pose.
+ */
+void func_800B438C(Slot *slot) {
+    s32 idx;
+
+    idx = -1;
+    if (D_800C971C != 0) {
+        if (((u32)D_800C4D38 >= 0xAU) && (D_800C4D38 != 0x80)) {
+            if (D_800C4D38 != 0x32) {
+                if (D_800C4D38 != 0x30) {
+                    if (((u32)(D_800C4D38 - 0x20) < 9U) || (D_800C4D38 == 0x84)) {
+                        idx = 5;
+                    } else if (D_800C4D38 == 0x31) {
+                        goto block_zone1;
+                    }
+                } else {
+                    goto block_idx3;
+                }
+            } else {
+                goto block_idx2;
+            }
+        } else {
+block_zone1:
+            idx = 1;
+        }
+    } else if (((u32)D_800C4D38 >= 0xAU) && (D_800C4D38 != 0x80)) {
+        if (D_800C4D38 == 0x32) {
+block_idx2:
+            idx = 2;
+        } else if (D_800C4D38 == 0x30) {
+block_idx3:
+            idx = 3;
+        } else if (((u32)(D_800C4D38 - 0x20) < 9U) || (D_800C4D38 == 0x84)) {
+            idx = 4;
+        } else if (D_800C4D38 == 0x31) {
+            goto block_zone0;
+        }
+    } else {
+block_zone0:
+        idx = 0;
+    }
+
+    if (idx >= 0) {
+        void *row = (u8 *)slot + (idx * 0xC);
+        s16 *cam = (s16 *)D_800C9770;
+        s32 y;
+
+        D_800C9868.vx = *(s32 *)row;
+        D_800C9868.vy = *((s32 *)row + 1);
+        y = *((s16 *)row + 4);
+        cam[6] = 0;
+        cam[4] = 0;
+        D_800C9868.vz = y;
+        cam[5] = *((u16 *)row + 5);
+        D_800D239A = *((u16 *)((u8 *)slot + 0x60));
+    }
+
+    if (((u32)D_800C4D38 < 0xAU) || (D_800C4D38 == 0x80) ||
+        ((u32)(D_800C4D38 - 0x10) < 7U) || ((u32)(D_800C4D38 - 0x40) < 3U) ||
+        (D_800C4D38 == 0x31) || ((u32)(D_800C4D38 - 0x20) < 9U) ||
+        (D_800C4D38 == 0x84) || (D_800C4D38 == 0x32) || (D_800C4D38 == 0x30)) {
+        D_800C4D3C = *((u8 *)slot + 0x6C);
+    } else {
+        D_800C4D3C = 0;
+    }
+    D_800C4D28 = *((u8 *)slot + 0x6E);
+}
+
+
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B454C);
 
@@ -84,9 +167,98 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B4AA0);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B56A0);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B5974);
+typedef struct {
+    u16 x;
+    u16 y;
+    u16 z;
+    s16 mode;
+} WorldRec8;
+
+extern WorldRec8 D_800C5A44[];
+extern WorldRec8 D_800C5D44;
+extern WorldRec8 D_800C5D4C;
+
+/**
+ * @brief Mode-dispatch helper over an 8-byte world record.
+ *
+ * Selects a row from @c D_800C5A44 (idx>=0x40) or the fixed
+ * @c D_800C5D44 / @c D_800C5D4C slots, then returns the row mode after
+ * computing max(x,y)+add into @p outVal (and optionally @p outZ).
+ *
+ * Matching notes: register-bound @c lo/@c hi plus @c lo = lo < hi force
+ * the target @c sra/@c move/@c slt register pattern under gcc 2.8.0-psx.
+ */
+s32 func_800B5974(s32 idx, s16 *outVal, u16 *outZ, s32 add) {
+    WorldRec8 *rec;
+    register s32 lo __asm__("v0");
+    register s32 hi __asm__("v1");
+    s32 ret;
+
+    if (idx >= 0x40) {
+        rec = &D_800C5A44[idx];
+    } else if (idx == 1) {
+        rec = &D_800C5D44;
+    } else {
+        rec = &D_800C5D4C;
+    }
+
+    if (rec->mode == 1) {
+        lo = (s32)(rec->x << 16) >> 17;
+        idx = lo;
+        hi = (s32)(rec->y << 16) >> 17;
+        lo = lo < hi;
+        if (lo) {
+            idx = hi;
+        }
+        idx += add;
+        ret = 1;
+    } else if (rec->mode == 2) {
+        hi = (s16)rec->x;
+        idx = hi;
+        lo = (s32)(rec->y << 16) >> 17;
+        hi = hi < lo;
+        if (hi) {
+            idx = lo;
+        }
+        idx += add;
+        ret = 2;
+    } else if (rec->mode == 3) {
+        lo = (s32)(rec->x << 16) >> 17;
+        idx = lo;
+        hi = (s32)(rec->y << 16) >> 17;
+        lo = lo < hi;
+        if (lo) {
+            idx = hi;
+        }
+        idx += add;
+        ret = 3;
+    } else if (rec->mode == 4) {
+        lo = (s32)(rec->x << 16) >> 17;
+        idx = lo;
+        hi = (s32)(rec->y << 16) >> 17;
+        lo = lo < hi;
+        if (lo) {
+            idx = hi;
+        }
+        idx += add;
+        ret = 4;
+    } else {
+        return 0;
+    }
+
+    if (outZ != NULL) {
+        *outZ = rec->z;
+    }
+    if (outVal != NULL) {
+        *outVal = idx;
+    }
+    return ret;
+}
+
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B5ADC);
+
+
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B5C60);
 
@@ -207,6 +379,10 @@ void func_800B7178(void) {
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B7240);
 
+
+
+
+
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B73A4);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B7530);
@@ -215,9 +391,119 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B76F8);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B7C70);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B816C);
+/**
+ * @brief Tick a 64-frame countdown UI/state while clamping @c D_800C4D58.
+ *
+ * On first entry (@c D_800C4D2C < 0) seeds related counters. Each call adds
+ * 12 to @c D_800C4D58 (clamped to @c [0, 0x31F]), bumps @c D_800DCB48, and
+ * when the timer hits 64 clears the active state and returns 1.
+ *
+ * @return 1 when the 64-frame window ends, else 0.
+ */
+s32 func_800B816C(void) {
+    s32 done;
+    s32 val;
+    s32 clamped;
+    s32 timer;
+    s32 *p58;
+    register s32 four __asm__("a0");
+    register s32 *p2c __asm__("a1");
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B8230);
+    done = 0;
+    p2c = &D_800C4D2C;
+    if (*p2c < 0) {
+        four = 4;
+        __asm__ volatile("" : : "r"(four));
+        D_800DCB48 = 0;
+        D_800C4D40 = 0;
+        D_800C4D44 = 0x10;
+        D_800C5C04 = four;
+        *(volatile s32 *)p2c = four;
+        *p2c = 0;
+        D_800C4D58 = 0;
+    }
+
+    p58 = &D_800C4D58;
+    val = *p58 + 0xC;
+    *p58 = val;
+    if (val >= 0) {
+        clamped = 0x31F;
+        if (val < 0x320) {
+            clamped = val;
+        }
+    } else {
+        clamped = 0;
+    }
+    *p58 = clamped;
+
+    timer = D_800DCB48 + 1;
+    D_800DCB48 = timer;
+    if (timer >= 0x40) {
+        done = 1;
+        D_800C4D2C = 0;
+        D_800D23D8[0] = 0;
+        D_800C5C04 = 0;
+        D_800C4D58 = 0;
+    }
+    return done;
+}
+
+
+
+
+
+
+
+/**
+ * @brief Advance the active slot's follow-camera along its heading.
+ *
+ * On the first call after @c D_800C4D2C goes negative, seeds the step size
+ * as @c (D_800C97F4 - D_800C9870) / 30 and clears the related counters.
+ * Each call then adds that step to the current slot's @c position.vy,
+ * bumps a 30-frame timer, and when the timer expires clears the follow
+ * state and returns 1. Always refreshes @c D_800C9868 / @c D_800C9770 from
+ * the slot (with the world-entry X/Z swizzle) via @c worldPosToCell.
+ *
+ * @return 1 when the 30-frame follow window ends, else 0.
+ */
+s32 func_800B8230(void) {
+    s32 done;
+    SlotEntry *slots;
+    SlotEntry *slot;
+    s32 timer;
+    s32 step;
+
+    done = 0;
+    if (D_800C4D2C < 0) {
+        D_800C4D2C = 4;
+        D_800DCB48 = 0;
+        D_800C4D40 = 0;
+        D_800C4D44 = 0x10;
+        D_800C4D2C = 0;
+        D_800DCB4C = (D_800C97F4 - D_800C9870.word) / 30;
+    }
+
+    slots = D_800DBFB8;
+    slot = slots + D_800C5C2C;
+    step = D_800DCB4C;
+    timer = D_800DCB48 + 1;
+    D_800DCB48 = timer;
+    slot->position.vy += step;
+    if (timer >= 0x1F) {
+        done = 1;
+        D_800D23D8[0] = 0;
+        D_800C5C04 = 0;
+        D_800C4D2C = 0;
+        D_800C4D58 = 0;
+    }
+
+    D_800C9868.vx = slot->position.vx;
+    D_800C9868.vy = -slot->position.vz;
+    D_800C9868.vz = slot->position.vy;
+    worldPosToCell(&slot->position, D_800C9770);
+    D_800C9770[1] = (slots + D_800C5C2C)->vec;
+    return done;
+}
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B83B4);
 

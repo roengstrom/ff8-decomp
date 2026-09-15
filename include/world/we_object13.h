@@ -37,10 +37,9 @@ extern void func_80047C3C(u8 *msg);
 
 /* Advance the streaming pipeline one tick. Returns the controller's status:
    0 while idle, -1 on error, otherwise the pending block count. */
-extern s32 func_800C4558(s32 mode, s32 *out);
-/* Stream one @p len -byte record from @p src through the staging buffer
-   @p buf. Returns 0 while the transfer is still in flight. */
-extern s32 func_800C4480(s32 src, s32 len, u32 *buf);
+extern s32 func_800C4558(s32 nowait, s32 *out);
+/* Initialize multi-sector streaming and start the first buffer. */
+extern s32 func_800C4480(s32 startSeq, s32 blocksPerBuf, u8 *volatile *buffers);
 /* Reset the streaming controller; returns its status word. */
 extern s32 func_800C4450(void);
 

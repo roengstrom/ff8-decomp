@@ -140,43 +140,8 @@ s32 func_800C4450(void) {
     return 1;
 }
 
-/**
- * @brief Initialize the multi-sector streaming engine and start the first
- *        buffer.
- *
- * Initializes the @c StreamState header from the caller's arguments and
- * kicks off the first read via @c func_800C42D8.
- *
- * @param startSeq      Starting sector sequence number (logical block).
- * @param blocksPerBuf  Blocks to read into each buffer slot (reload value
- *                      for @c remaining when advancing).
- * @param buffers       NULL-terminated array of destination buffer pointers.
- * @return @c 1 if streaming kicked off successfully, @c 0 on failure.
- *
- * @verbatim
- * s32 func_800C4480(s32 startSeq, s32 blocksPerBuf, u8 **buffers) {
- *     if (CdSync(1, NULL) == 0)
- *         return 0;
- *
- *     D_800E3E70.buffers = buffers;
- *     D_800E3E70.blocksPerBuf = blocksPerBuf;
- *     D_800E3E70.bufIdx = 0;
- *     D_800E3E70.expectedSeq = startSeq;
- *     D_800E3E70.remaining = 0;
- *     D_800E3E70.field_14 = 0;
- *     D_800E3E70.field_18 = VSync(-1);
- *     D_800E3E70.blockIdx = 0;
- *     D_800E3E70.status = 1;
- *     CdSyncCallback(NULL);
- *     CdReadyCallback(NULL);
- *     if (CdStatus() & 0xC0)
- *         CdControlB(9, NULL, NULL);
- *
- *     return func_800C42D8(1) > 0;
- * }
- * @endverbatim
- */
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object13", func_800C4480);
+
 
 /**
  * @brief Query streaming status; optionally block until the current buffer
@@ -211,7 +176,56 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object13", func_800C4480);
  * }
  * @endverbatim
  */
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object13", func_800C4558);
+s32 func_800C4558(s32 nowait, s32 *out) {
+    register StreamState *s __asm__("a1");
+    s32 status;
+    s32 ret;
+
+    (void)out;
+    s = &D_800E3E70;
+    status = s->status;
+    if (status != 1) {
+        if (status < 2) {
+            return 0;
+        }
+        if (status == 2) {
+            goto ret_neg;
+        }
+        return 0;
+    }
+    if (nowait != 0) {
+        if (s->buffers[s->bufIdx] == NULL) {
+            goto ret_zero;
+        }
+        return 1;
+    }
+    if (s->buffers[s->bufIdx] == NULL) {
+        goto ret_zero;
+    }
+    nowait = (s32)s;
+    {
+        register s32 one __asm__("a1");
+        register s32 idx __asm__("v0");
+        register u8 **bufs __asm__("v1");
+
+        one = 1;
+loop_9:
+        ret = -1;
+        if (*(u8 *)(nowait + 0x25) == one) {
+            idx = *(u8 *)(nowait + 0x24);
+            /* Keep %hi(D_800E3E70) in $a2 from the prologue; reload buffers. */
+            __asm__ volatile("lw\t%0, %%lo(D_800E3E70)($6)" : "=r"(bufs));
+            if (bufs[idx] == 0) {
+                return 0;
+            }
+            goto loop_9;
+        }
+    }
+ret_neg:
+    return -1;
+ret_zero:
+    return 0;
+}
 
 /** Exchanges the callback pointer, returning the previous value.
  * @param newVal New callback value to store.
@@ -456,4 +470,39 @@ void func_800C4A74(void) {
  * }
  * @endverbatim
  */
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object13", func_800C4AE4);
+void func_800C4AE4(s32 stepDelta) {
+    s32 minSeedExp = 100;
+    g_fieldVars->stepCounter += stepDelta;
+    g_fieldVars->hpRegenStepAcc += stepDelta;
+    g_fieldVars->packedFlagsStepAcc = (u16)(g_fieldVars->packedFlagsStepAcc + stepDelta);
+    g_fieldVars->angeloLearnStepAcc += stepDelta;
+    D_80082C14 = (u32)g_fieldVars->stepCounter;
+    if (g_fieldVars->packedFlagsStepAcc >= 0x2800u) {
+        g_fieldVars->packedFlagsStepAcc = 0;
+        func_800C4A74();
+    }
+    if ((u32)g_fieldVars->hpRegenStepAcc >= 8u) {
+        g_fieldVars->hpRegenStepAcc = 0;
+        func_800C48C0();
+        func_800C492C();
+    }
+    if (D_8007809A & 1) return;
+    if (!(g_fieldVars->stateFlags & 8)) {
+        g_fieldVars->seedExpStepAcc += stepDelta;
+        if ((u32)g_fieldVars->seedExpStepAcc >= 0x6000u) {
+            g_fieldVars->seedExpStepAcc = 0;
+            func_800C4688();
+        }
+        if ((s16)g_fieldVars->seedExp < minSeedExp)  g_fieldVars->seedExp = minSeedExp;
+        else if ((s16)g_fieldVars->seedExp >= 0xC1C) g_fieldVars->seedExp = 0xC1C;
+    }
+    if ((s16)g_fieldVars->levelUpDisplayTimer >= 0) {
+        if ((s16)g_fieldVars->levelUpDisplayTimer == 0) setTransitionPhase7();
+        g_fieldVars->levelUpDisplayTimer--;
+    }
+    if (D_8007809A & 0x10) return;
+    if ((u32)g_fieldVars->angeloLearnStepAcc >= 0x250u) {
+        g_fieldVars->angeloLearnStepAcc = 0;
+        func_800C49CC();
+    }
+}
