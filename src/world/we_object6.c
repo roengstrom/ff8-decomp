@@ -3,6 +3,9 @@
 #include "world/we_object6.h"
 #include "psxsdk/libc.h"
 
+/* Declared in we_object9.h; avoid pulling that header (conflicts with local decls). */
+extern void func_800BC544(VECTOR *src, VECTOR *dst);
+
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800ACC68);
 
 /**
@@ -247,7 +250,77 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B13B8);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B164C);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B18B8);
+/**
+ * @brief Sync active named slots from camera @p pos / @p ang into
+ *        @c D_800DBFB8.
+ *
+ * For each slot index (@c D_800C5C18 .. @c D_800C5C30) that is live
+ * (>= 0) and whose world-dispatch gate matches, calls
+ * @c func_800BC544(@p pos, &slot->position) then copies @p ang[1]
+ * into @c slot->vec via an unaligned 8-byte memcpy (matching the
+ * target's @c lwl/@c lwr/@c swl/@c swr pair).
+ *
+ * Gates:
+ *  - @c D_800C5C18: always (when live)
+ *  - @c D_800C5C1C: @c D_800C4D38 == 0x31 and @c D_800C5BFC == 0
+ *  - @c D_800C5C20: @c D_800C5BFC == 0
+ *  - @c D_800C5C28: @c D_800C4D38 in 0x20..0x28 or == 0x84
+ *  - @c D_800C5C24: @c D_800C4D38 == 0x32
+ *  - @c D_800C5C2C / @c D_800C5C30: @c D_800C4D38 == 0x30
+ *
+ * @param flags Unused (callers pass @c D_800D23D8).
+ * @param pos   Source camera world position.
+ * @param ang   Camera scratch (@c D_800C9770); rotation at @c ang[1].
+ */
+void func_800B18B8(u8 *flags, VECTOR *pos, SVECTOR *ang) {
+    SlotEntry *slot;
+
+    if (D_800C5C18 >= 0) {
+        slot = &D_800DBFB8[D_800C5C18];
+        func_800BC544(pos, &slot->position);
+        memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+    }
+    if (D_800C5C1C >= 0) {
+        if ((D_800C4D38 == 0x31) && (D_800C5BFC == 0)) {
+            slot = &D_800DBFB8[D_800C5C1C];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C20 >= 0) {
+        if (D_800C5BFC == 0) {
+            slot = &D_800DBFB8[D_800C5C20];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C28 >= 0) {
+        if (((u32)(D_800C4D38 - 0x20) < 9U) || (D_800C4D38 == 0x84)) {
+            slot = &D_800DBFB8[D_800C5C28];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C24 >= 0) {
+        if (D_800C4D38 == 0x32) {
+            slot = &D_800DBFB8[D_800C5C24];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if (D_800C5C2C >= 0) {
+        if (D_800C4D38 == 0x30) {
+            slot = &D_800DBFB8[D_800C5C2C];
+            func_800BC544(pos, &slot->position);
+            memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+        }
+    }
+    if ((D_800C5C30 >= 0) && (D_800C4D38 == 0x30)) {
+        slot = &D_800DBFB8[D_800C5C30];
+        func_800BC544(pos, &slot->position);
+        memcpy((u8 *)&slot->vec, (u8 *)&ang[1], sizeof(SVECTOR));
+    }
+}
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B1BCC);
 

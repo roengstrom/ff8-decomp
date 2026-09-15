@@ -2,6 +2,7 @@
 #include "sound.h"
 
 extern s32 D_80056558;
+extern s32 D_8008A404;
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039444); /* 0x38 — LZSS init */
 
@@ -15,22 +16,53 @@ INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039678); /* 0x68 — memcpy */
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_800396E0); /* 0x48 — memset */
 
-INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039728); /* 0x24 */
+/**
+ * @brief Resolve an 8-byte table entry: write size to @p out, return base+offset.
+ */
+s32 func_80039728(s32 base, s32 index, s32 *out) {
+    s32 *entry = (s32 *)(base + (index * 8));
+    entry++;
+    {
+        s32 size = entry[1];
+        s32 offset = entry[0];
+        *out = size;
+        NOP();
+        return base + offset;
+    }
+}
 
-INCLUDE_ASM("asm/nonmatchings/snd_cd", func_8003974C); /* 0x18 */
+/**
+ * @brief Index a word table at @p base and return base + entry[index].
+ */
+u8 *func_8003974C(u8 *base, s32 index) {
+    s32 *entry = (s32 *)(base + (index * 4));
+    s32 offset = *entry;
+    NOP();
+    return base + offset;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039764); /* 0x118 */
 
 void func_80039910(void);
 s32 func_800398A8(void);
 
-INCLUDE_ASM("asm/nonmatchings/snd_cd", func_8003987C); /* 0x2C */
+/**
+ * @brief Install LZSS coroutine callbacks and clear adjacent flags.
+ */
+void func_8003987C(void) {
+    s32 *p = &D_8008A404;
+    REGALLOC_BARRIER(p);
+    *p = (s32)func_80039910;
+    p[1] = (s32)func_800398A8;
+    p[-1] = 0;
+    p[2] = 0;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_800398A8); /* 0x68 */
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039910); /* 0x190 */
 
-INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039AA0); /* 0x14 */
+INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039AA0); /* 0x14 — ASPSX $at vs gcc $v1 */
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039AB4); /* 0xCC */
 

@@ -13,7 +13,13 @@ extern s32 g_menuColor[2];
 extern u8 D_800834D8[];
 void func_8002D970(void);
 void func_8002DBF8(void);
-void func_8002CC4C(s32 idx, s32 arg0);
+void func_8002CC4C(s32 idx, P_TAG *ot);
+void func_8002CAE0(P_TAG *ot, SfxEntry *entry);
+void func_8002EE10(P_TAG *ot, SfxEntry *entry);
+BattleDisplayEntity *getBattleEntity(s32 idx);
+s32 getDisplayListHead(void);
+void storeGpuPacket(u32 pkt);
+void *func_8002FF34(void *ot, void *pkt, s32 stringId, s32 x, s32 y, s32 color);
 void func_8002CDE4(RECT *rect, s32 scale, s32 arg2);
 void setBattleEntityBoundRect(s32 idx, RECT *src);
 void setBattleEntityRectClamp(s32 idx, RECT *src);
@@ -167,8 +173,117 @@ s32 getSfxField1C(s32 idx) {
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CAE0);
 
+/**
+ * @brief One 8-byte sprite cell of a glyph in the @c D_80052A68 font table.
+ *
+ * A glyph is drawn from one or more of these cells. @c texInfo carries the PS1
+ * sprite attributes (texture page / CLUT / UV) and @c metrics packs the cell's
+ * placement as four bytes: @c x + (s8)@c xExtent give the cell's right edge,
+ * @c y + (s8)@c yExtent its bottom edge.
+ */
+typedef struct {
+    /* 0x00 */ u32 texInfo; /**< PS1 sprite/texture attributes for the cell. */
+    /* 0x04 */ u32 metrics; /**< x | (s8)xExtent<<8 | y<<16 | (s8)yExtent<<24. */
+} GlyphCell;
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CC4C);
+/**
+ * @brief Header view of the @c D_80052A68 font table (baked into executable data).
+ *
+ * A glyph count followed by one descriptor per glyph. Each descriptor packs the
+ * glyph's cell @c count (high 16 bits) and the byte offset from the table base
+ * to that glyph's @ref GlyphCell list (low 16 bits). The cell lists themselves
+ * live in the trailing area the descriptors point at.
+ */
+typedef struct {
+    /* 0x00 */ u32 glyphCount;
+    /* 0x04 */ u32 descriptors[1]; /**< cellCount<<16 | byteOffsetToCells. */
+} GlyphTable;
+
+/** @brief Font glyph table (glyph count + per-glyph descriptors + cell lists). */
+extern GlyphTable D_80052A68;
+
+
+
+/**
+ * @brief Draw SFX entry overlay (glyph + clip) and chain OT mode packets.
+ *
+ * When the entry has data and is in the active clip state (field29 != 0xFF,
+ * field28 == 1), emits an optional glyph via func_8002FF34 (if the font table
+ * is present), a SetDrawArea clipped to the battle entity rect at +0x18, then
+ * always runs the shared CAE0/EE10 updates and appends a DR_MODE packet.
+ *
+ * @param idx  SFX entry index.
+ * @param ot   Ordering-table / packet chain head.
+ */
+void func_8002CC4C(s32 idx, P_TAG *ot) {
+    SfxEntry *entry;
+    BattleDisplayEntity *entity;
+    GlyphTable *glyphs;
+    /* Pin volume/$s2 and color/$a2 so the color-pack asm keeps retail regs. */
+    register s32 volume __asm__("$18");
+    s32 y;
+    register s32 color __asm__("$6");
+    u8 *pkt;
+    s32 tmp_s7;
+    s32 tmp_fp;
+    DR_MODE *mode;
+
+    entry = &g_sfxEntries.entries[idx];
+    if (entry->dataPtr != NULL) {
+        glyphs = &D_80052A68;
+        volume = entry->volume;
+        if (entry->field29 != 0xFF) {
+            if (entry->field28 == 1) {
+                entity = getBattleEntity(entry->entityIdx);
+                y = (entry->field2B * 0x10) + 5;
+                pkt = (u8 *)getDisplayListHead();
+                if (glyphs != NULL) {
+                    color = volume;
+                    if (color < 0) {
+                        color += 0x1F;
+                    }
+                    color >>= 5;
+                    /* Grayscale pack: temps must be $a0/$v0/$v1 (retail). */
+                    __asm__ __volatile__(
+                        ".set push\n\t"
+                        ".set noreorder\n\t"
+                        "sll\t$a0, %0, 16\n\t"
+                        "sll\t$v0, %0, 8\n\t"
+                        "lui\t$v1, 0x6400\n\t"
+                        "or\t$v0, $v0, $v1\n\t"
+                        "or\t$a0, $a0, $v0\n\t"
+                        "or\t%0, %0, $a0\n\t"
+                        ".set pop"
+                        : "+r"(color)
+                        :
+                        : "v0", "v1", "a0");
+                    pkt = func_8002FF34(ot, pkt, 0, 4, y, color);
+                }
+                SetDrawArea((DR_AREA *)pkt, (RECT *)((u8 *)entity + 0x18));
+                addPrimFastWithTempOperand(ot, pkt, tmp_s7);
+                storeGpuPacket((u32)(pkt + 0xC));
+            }
+        }
+        func_8002CAE0(ot, entry);
+        func_8002EE10(ot, entry);
+        mode = (DR_MODE *)getDisplayListHead();
+        /* DR_MODE header: code in $a0, len in $v1 (retail). */
+        __asm__ __volatile__(
+            ".set push\n\t"
+            ".set noreorder\n\t"
+            "lui\t$a0, 0xe100\n\t"
+            "ori\t$a0, $a0, 0x0400\n\t"
+            "addiu\t$v1, $zero, 1\n\t"
+            "sb\t$v1, 3(%0)\n\t"
+            "sw\t$a0, 4(%0)\n\t"
+            ".set pop"
+            :
+            : "r"(mode)
+            : "a0", "v1", "memory");
+        addPrimFastWithTempOperand(ot, mode, tmp_fp);
+        storeGpuPacket((u32)mode + 8);
+    }
+}
 
 
 /**
@@ -435,7 +550,7 @@ void func_8002D8CC(s32 arg0, s32 index) {
             ((void (*)(SfxEntry *, s32))entry->field34)(entry, arg0);
         }
         dispatchSfxColorUpdate(index);
-        func_8002CC4C(index, arg0);
+        func_8002CC4C(index, (P_TAG *)arg0);
         GP_RESTORE_RET(saved, ret);
     }
 }
@@ -747,35 +862,6 @@ void dispatchSfxAnimSpeed(s32 idx) {
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E298);
 
-
-/**
- * @brief One 8-byte sprite cell of a glyph in the @c D_80052A68 font table.
- *
- * A glyph is drawn from one or more of these cells. @c texInfo carries the PS1
- * sprite attributes (texture page / CLUT / UV) and @c metrics packs the cell's
- * placement as four bytes: @c x + (s8)@c xExtent give the cell's right edge,
- * @c y + (s8)@c yExtent its bottom edge.
- */
-typedef struct {
-    /* 0x00 */ u32 texInfo; /**< PS1 sprite/texture attributes for the cell. */
-    /* 0x04 */ u32 metrics; /**< x | (s8)xExtent<<8 | y<<16 | (s8)yExtent<<24. */
-} GlyphCell;
-
-/**
- * @brief Header view of the @c D_80052A68 font table (baked into executable data).
- *
- * A glyph count followed by one descriptor per glyph. Each descriptor packs the
- * glyph's cell @c count (high 16 bits) and the byte offset from the table base
- * to that glyph's @ref GlyphCell list (low 16 bits). The cell lists themselves
- * live in the trailing area the descriptors point at.
- */
-typedef struct {
-    /* 0x00 */ u32 glyphCount;
-    /* 0x04 */ u32 descriptors[1]; /**< cellCount<<16 | byteOffsetToCells. */
-} GlyphTable;
-
-/** @brief Font glyph table (glyph count + per-glyph descriptors + cell lists). */
-extern GlyphTable D_80052A68;
 
 /**
  * @brief Compute the bounding width of a multi-cell glyph.

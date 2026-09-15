@@ -3,6 +3,7 @@
 #include "battle.h"
 #include "gamestate.h"
 
+
 extern TripleTriadData g_tripleTriad;
 extern u16 D_8005EC3E[];
 
@@ -265,10 +266,7 @@ s32 func_80023D04(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/item", func_80023D60);
 
-
-INCLUDE_ASM("asm/nonmatchings/item", func_80024064);
 
 
 /**
@@ -285,6 +283,5 @@ INCLUDE_ASM("asm/nonmatchings/item", func_80024064);
  * @note Work-in-progress decomp (clean C, ~80% matched; blocked on a cc1 @c -O0
  *       v0/t0 reload-register idiom): https://decomp.me/scratch/Hl8Lx
  */
-INCLUDE_ASM("asm/nonmatchings/item", func_800242C8);
 
 

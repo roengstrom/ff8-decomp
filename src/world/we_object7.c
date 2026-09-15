@@ -5,6 +5,9 @@
 #include "world/we_object3.h"
 #include "world/we_object1.h"
 
+extern s16 D_800DCB4C;
+#include "world/we_object4.h"
+
 /* ActorRecord now lives in world.h (shared across world TUs). */
 
 
@@ -217,7 +220,56 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B7C70);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B816C);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B8230);
+/**
+ * @brief Advance the active slot's follow-camera along its heading.
+ *
+ * On the first call after @c D_800C4D2C goes negative, seeds the step size
+ * as @c (D_800C97F4 - D_800C9870) / 30 and clears the related counters.
+ * Each call then adds that step to the current slot's @c position.vy,
+ * bumps a 30-frame timer, and when the timer expires clears the follow
+ * state and returns 1. Always refreshes @c D_800C9868 / @c D_800C9770 from
+ * the slot (with the world-entry X/Z swizzle) via @c worldPosToCell.
+ *
+ * @return 1 when the 30-frame follow window ends, else 0.
+ */
+s32 func_800B8230(void) {
+    s32 done;
+    SlotEntry *slots;
+    SlotEntry *slot;
+    s32 timer;
+    s32 step;
+
+    done = 0;
+    if (D_800C4D2C < 0) {
+        D_800C4D2C = 4;
+        D_800DCB48 = 0;
+        D_800C4D40 = 0;
+        D_800C4D44 = 0x10;
+        D_800C4D2C = 0;
+        D_800DCB4C = (D_800C97F4 - D_800C9870.word) / 30;
+    }
+
+    slots = D_800DBFB8;
+    slot = slots + D_800C5C2C;
+    step = D_800DCB4C;
+    timer = D_800DCB48 + 1;
+    D_800DCB48 = timer;
+    slot->position.vy += step;
+    if (timer >= 0x1F) {
+        done = 1;
+        D_800D23D8[0] = 0;
+        D_800C5C04 = 0;
+        D_800C4D2C = 0;
+        D_800C4D58 = 0;
+    }
+
+    D_800C9868.vx = slot->position.vx;
+    D_800C9868.vy = -slot->position.vz;
+    D_800C9868.vz = slot->position.vy;
+    worldPosToCell(&slot->position, D_800C9770);
+    D_800C9770[1] = (slots + D_800C5C2C)->vec;
+    return done;
+}
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B83B4);
 

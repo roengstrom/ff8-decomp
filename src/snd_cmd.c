@@ -3,6 +3,8 @@
 #include "psxsdk/libgpu.h"
 #include "overlay.h"
 
+extern u8 D_8008A4C0[];
+
 /**
  * @brief Send a "play note" command (0x43) to a sound voice.
  *
@@ -122,7 +124,19 @@ void sndVoiceCmdArchive(SndVoice *voice) {
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BEF0);
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003BFAC);
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003C228);
-INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003C260);
+/**
+ * @brief Select primary or alternate command buffer based on high nibble of @p sel.
+ */
+u8 *func_8003C260(s32 sel) {
+    u8 *p = &D_8008A4C0[0];
+    REGALLOC_BARRIER(p);
+    if (sel & 0xF0) {
+        p += 0xF0;
+    }
+    return p;
+}
+/* Preserve 4-byte padding before func_8003C284. */
+asm("nop");
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003C284);
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003C2B8);
 INCLUDE_ASM("asm/nonmatchings/snd_cmd", func_8003C3C8);

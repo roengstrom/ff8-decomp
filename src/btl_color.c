@@ -33,6 +33,8 @@ typedef struct {
 extern u8 g_battleSfxTable[];              /* 0x80052A34 — SPU command table */
 extern AnimEntry D_80083772[];       /* 0x80083772 — animation entry table */
 extern u8 D_80083756;                /* 0x80083756 — transition flag */
+extern s32 D_80083870;                   /* 0x80083870 — max stream-0 intensity */
+extern s32 D_80083874;                   /* 0x80083874 — max stream-1 intensity */
 extern BattleCmdEntry g_battleCmdTable[];   /* 0x80083878 — battle command entries (4 × 0x24) */
 extern HudDisplayBuf *D_80083918;    /* 0x80083918 — active HUD display buffer */
 extern HudDisplayBuf *D_80083920[];  /* 0x80083920 — HUD display buffer pair */
@@ -566,8 +568,94 @@ clamp:
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_color", func_80030B2C);
+/**
+ * @brief Tick all battle command color streams and update anim entity params.
+ *
+ * Walks the 4-entry command table: for each active entry, samples both
+ * CmdStreams via func_80030A54, tracks the per-stream maxima in
+ * D_80083870 / D_80083874, clears spent entries, then clamps and pushes
+ * the result through setAnimEntityParams(0, max0, max1).
+ *
+ * Note: the OR-accumulator for "any active" intentionally starts from the
+ * incoming $s5 value (never zeroed) to match the original codegen.
+ *
+ * @note @c activePtr is never explicitly seeded; GCC CSEs @c &entry->active
+ * into the same register and the @c += 0x24 keeps that pointer in lockstep
+ * with @c entry += 1 (required for the original schedule / regalloc).
+ */
+void func_80030B2C(void) {
+    BattleCmdEntry *entry;
+    s8 *activePtr;
+    s32 i;
+    s32 temp0;
+    s32 temp1;
+    s32 localActive;
+    s32 anyActive;
+    s32 a1;
+    s32 a0;
+    s32 v1;
+    s32 a2;
 
+    entry = getBattleCmdTable();
+    i = 0;
+    D_80083870 = 0;
+    D_80083874 = 0;
+
+    do {
+        localActive = 0;
+        if (entry->active != 0) {
+            temp0 = func_80030A54(entry->streams);
+            temp1 = func_80030A54(entry->streams + 1);
+            if ((temp0 == -1) && (temp1 == temp0)) {
+                entry->active = 0;
+            } else {
+                if ((temp0 > 0) && (D_80083870 < temp0)) {
+                    D_80083870 = temp0;
+                }
+                localActive = 1;
+                if ((temp1 > 0) && (D_80083874 < temp1)) {
+                    D_80083874 = temp1;
+                }
+            }
+        }
+        i += 1;
+        activePtr += 0x24;
+        entry += 1;
+        anyActive |= localActive;
+    } while (i < 4);
+
+    if (anyActive != 0) {
+        a1 = D_80083870;
+        a0 = D_80083874;
+    } else {
+        a1 = 0;
+        a0 = a1;
+    }
+
+    if (a1 >= 0) {
+        if (a1 < 0x100) {
+            v1 = a1;
+        } else {
+            v1 = 0xFF;
+        }
+    } else {
+        v1 = 0;
+    }
+
+    a1 = v1;
+
+    if (a0 >= 0) {
+        if (a0 < 0x100) {
+            a2 = a0;
+        } else {
+            a2 = 0xFF;
+        }
+    } else {
+        a2 = 0;
+    }
+
+    setAnimEntityParams(0, a1, a2);
+}
 
 /**
  * @brief Add to the battle timer and process ticks.

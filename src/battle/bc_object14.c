@@ -5,14 +5,40 @@
 #include "battle/bc_object9.h"
 #include "battle.h"
 
-extern u8 D_800FA4FC[];
+extern s32 D_800FA4FC;
 extern u8 D_800E662C[];
 extern u8 D_800F1B90[];
-extern u8 D_800FA4F8[];
-extern u8 D_800FA504[];
-extern u8 D_800FA500[];
+extern u8 D_800FA4F8;
+extern s16 D_800FA504[2];
+extern s16 D_800FA500;
 extern u8 D_800EEC54[];
 extern u8 D_800F02F4[];
+
+extern u8 D_800E3F78;
+extern s32 D_800E3F7C;
+extern s32 D_800E3F80;
+extern DRAWENV D_800FA508[];
+extern DISPENV D_800FA5C0[];
+extern u8 D_800F1B98[];
+extern u8 D_800F1BE8[];
+extern u8 D_800F606C[];
+extern s32 D_24000;
+extern s32 D_1C000;
+extern s32 D_80106000;
+extern s32 func_801A0000;
+
+void func_800D0970(void *a0, DRAWENV *env, s32 a2);
+void func_800D09F0(s32 a0, DISPENV *disp, DRAWENV *draw1, DRAWENV *draw2);
+void func_80048C50(s32 a);
+void func_80048DD4(DRAWENV *env, s32 r, s32 g, s32 b);
+void func_80048BB8(s32 a);
+void func_800B3330(void);
+void func_800C45FC(void);
+void func_800BAEE8(void);
+void func_80049AFC(u8 *a0, s32 a1);
+void func_800491E8(u8 *a0);
+void func_80049244(u8 *a0);
+void func_8004913C(u8 *a0, s32 a1);
 s32 func_800C5B1C(u8 *a0);
 s32 func_800C5A94(s32, s32);
 void func_800C5338(s32);
@@ -21,6 +47,7 @@ void func_800472F4(void);
 void sndEnableReverb(s32);
 void sndDisableReverb(s32);
 void func_8009B6B0(void);
+s32 func_80042634(s32 mode);
 static void func_800C6DB4(s32 level, s32 colour);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C4A64);
@@ -185,7 +212,6 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C5D28);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C5E68);
 
-
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C5F98);
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C60A0);
@@ -232,16 +258,86 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C65A8);
  * D_800FA500, calls SetGeomScreen with 0x200, sets D_800FA4F8 to 0x11,
  * and sets bit 2 of D_800EEC5C.
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C66E4);
+void func_800C66E4(void) {
+    s32 flags;
+
+    InitGeom();
+    D_800FA504[1] = 0;
+    D_800FA504[0] = 0;
+    SetGeomOffset(0xA0, 0x6C);
+    D_800FA500 = 0x200;
+    SetGeomScreen(0x200);
+    flags = D_800EEC5C;
+    D_800FA4F8 = 0x11;
+    D_800EEC5C = flags | 4;
+}
 
 /**
  * @brief Store constant 2 to D_800FA4F8.
  */
 void func_800C674C(void) {
-    *(u8 *)D_800FA4F8 = 2;
+    D_800FA4F8 = 2;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C675C);
+/**
+ * @brief Advance the battle frame: swap buffers, update geometry, and refresh OT pointers.
+ */
+void func_800C675C(void) {
+    s32 flip;
+    u8 fade;
+    s32 arg0;
+
+    if (D_800EEC5C & 4) {
+        func_800D0970((u8 *)D_800FA5E8 + 8, &D_800FA508[D_800E3F78 ^ 1], D_800E3F7C);
+    }
+    if (D_800EEC5C & 8) {
+        func_80042634(1);
+        func_80048C50(0);
+        func_80042634(1);
+    }
+    if (D_800EEC5C & 4) {
+        arg0 = D_800E3F7C;
+        flip = D_800E3F78 ^ 1;
+        func_800D09F0(arg0, &D_800FA5C0[flip], &D_800FA508[flip], &D_800FA508[D_800E3F78]);
+        D_800E3F80 = func_80042634(1);
+        fade = D_800FA4F8;
+        if (fade != 0) {
+            if (fade >= 0x11U) {
+                D_800FA4F8 = fade - 0x10;
+            } else {
+                func_80048BB8(fade & 1);
+                D_800FA4F8 = 0;
+            }
+        }
+        func_80048DD4(&D_800FA508[D_800E3F78 ^ 1], 0, 0, 0);
+    }
+    func_800B3330();
+    func_800C45FC();
+    if (D_800EEC5C & 8) {
+        func_800BAEE8();
+        func_80049AFC(D_800F1B98, 1);
+        func_800491E8(D_800F1B98);
+        func_80048C50(0);
+    }
+    if (D_800EEC5C & 4) {
+        func_80049244(D_800F606C + D_800E3F78 * 0x4488);
+        SetGeomScreen(D_800FA500);
+        SetGeomOffset(D_800FA504[0] + 0xA0, D_800FA504[1] + 0x6C);
+        D_800FA504[1] = 0;
+        D_800FA504[0] = 0;
+    }
+    D_800E3F78 ^= 1;
+    func_8004913C(D_800F1BE8 + D_800E3F78 * 0x4488, 0x1122);
+    if (D_800EEC5C & 0x80) {
+        D_800FA5F0 = D_800E3F78 * (s32)&D_24000 + (s32)&func_801A0000;
+        D_800FA4FC = D_800FA5F0 + (s32)&D_24000;
+    } else {
+        D_800FA5F0 = D_800E3F78 * (s32)&D_1C000 + (s32)&D_80106000;
+        D_800FA4FC = D_800FA5F0 + (s32)&D_1C000;
+    }
+    D_800FA5E8 = (BattleGfx *)(D_800F1BE8 + D_800E3F78 * 0x4488);
+}
+
 
 /**
  * @brief Compute the difference between D_800FA4FC and D_800FA5F0.
@@ -249,7 +345,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C675C);
  * @return D_800FA4FC - D_800FA5F0.
  */
 s32 func_800C6A8C(void) {
-    return *(s32 *)D_800FA4FC - D_800FA5F0;
+    return D_800FA4FC - D_800FA5F0;
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object14", func_800C6AA4);

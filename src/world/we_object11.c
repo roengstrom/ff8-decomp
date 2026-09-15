@@ -2,7 +2,30 @@
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BF80C);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFBFC);
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFCC0);
+#include "world.h"
+#include "world/we_object10.h"
+
+extern s32 D_800DD8F8[0x20];
+extern void func_800C3278(s32 arg0);
+
+void func_800BFCC0(unsigned long long arg0) {
+    s32 i;
+    s32 *dst;
+    s32 *src;
+
+    i = 0;
+    dst = D_800DD8F8;
+    src = (s32 *)D_800DDB00;
+    do {
+        s32 v = *src;
+        src++;
+        i++;
+        *dst = v;
+        dst++;
+    } while (i < 0x20);
+    func_800C3278(arg0 + 4);
+}
+
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFD10);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFFEC);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C0084);

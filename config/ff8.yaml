@@ -517,6 +517,7 @@ binaries:
     target_path: original/world.bin
     section_order: [.rodata, .text, .data, .bss]
     ld_bss_is_noload: true
+    subalign: 1
   segments:
   - name: world
     type: code
@@ -630,6 +631,7 @@ binaries:
     - [0x12FF4, c, ability]
     - [0x131FC, c, gf_anim]
     - [0x14100, c, item]
+    - [0x14560, c, item_render]
     - [0x16120, c, render3d]
     - [0x16580, c, mesh3d]
     - [0x172DC, c, thread]
