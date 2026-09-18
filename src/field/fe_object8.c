@@ -1100,7 +1100,7 @@ s32 opHandler_FACEDIRA(Actor *actor, s32 arg1) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
         idx = POP(&actor->context);
-        func_800A8DAC(D_80085230[idx]->field_0x256, 0x1E, (u32)D_800C71F8, buf);
+        func_800A8DAC(D_80085230[idx]->field_0x256, 0x1E, (u32)g_curFieldView, buf);
         actor->turnTgtX = D_80085230[idx]->posX / 4096;
         actor->turnTgtY = D_80085230[idx]->posY / 4096;
         actor->turnTgtZ = buf[2] + D_80085230[idx]->posZ / 4096;
@@ -1129,7 +1129,7 @@ s32 opHandler_FACEDIRP(Actor *actor, s32 arg1) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
         slot = g_fieldVars->memberSlot[POP(&actor->context)];
-        func_800A8DAC(slot, 0x1E, (u32)D_800C71F8, buf);
+        func_800A8DAC(slot, 0x1E, (u32)g_curFieldView, buf);
         actor->turnTgtX = D_80085224[slot].posX / 4096;
         actor->turnTgtY = D_80085224[slot].posY / 4096;
         actor->turnTgtZ = buf[2] + D_80085224[slot].posZ / 4096;

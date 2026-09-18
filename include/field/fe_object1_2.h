@@ -21,8 +21,8 @@
 extern void func_800A17A4(u8 *a0);
 extern void func_800A1C64(void);
 extern void func_800A1CC0(void);
-extern void func_800A2EE0(u8 *a0);
-extern void func_800A2F28(s32 a0, u8 *a1);
+extern void func_800A2EE0(FieldParticles *particles);
+extern void func_800A2F28(FieldParticles *particles, SystemState *sys);
 extern void func_800A303C(s16 emIdx, ParticleSystem *sys, s16 *pos, s16 count);
 extern void func_800A355C(ActorAnim *actor, s32 slot, s32 a2);
 extern void func_800A44D8(void);
@@ -44,16 +44,13 @@ extern func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p);
 extern func_800A2A30_item *func_800A2A30(func_800A2A30_item *p);
 extern void func_800A2D2C(s16 *buf, s32 slot);
 extern s16  func_800A2EA4(s16 range);
-extern void func_800A2F48();  /* arg is a file-private buffer view in fe_object1.c */
-extern void func_800A2F70();  /* arg is a file-private buffer view in fe_object1.c */
 extern s16  func_800A2FE0();  /* arg is a file-private buffer view in fe_object1.c */
 extern void func_800A327C();  /* arg0 is a file-private Actor-stack view in fe_object1.c */
 extern void func_800A3488();  /* arg0 is a file-private Actor-stack view in fe_object1.c */
-extern void func_800A3534();  /* arg is a file-private buffer view in fe_object1.c */
-extern void func_800A37A8(MATRIX *m, FieldFrameBuf *frame, FieldSubsceneBuffer *buf);
+extern void func_800A37A8(MATRIX *m, FieldFrameBuf *frame, FieldParticles *buf);
 extern void func_800A38B4(MoveAccum *out, MoveStep *in, MoveStep *target);
-extern void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldSubsceneBuffer *buf, u32 *ot);
-extern void func_800A3FE0(FieldSubsceneBuffer *buf);
+extern void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldParticles *buf, u32 *ot);
+extern void func_800A3FE0(FieldParticles *buf);
 void func_800A42EC(POLY_G4 *polys, DR_TPAGE *tpages);
 extern void func_800A4500(s32 x, s32 y, s32 z);
 void func_800A455C(s16 entityIdx);
@@ -70,7 +67,7 @@ extern void func_800A5700(void);
 extern s16  func_800A5748(s16 start, s16 end, s16 progress, s16 total);
 extern void func_800A5788(FieldFrameBuf *buf);
 extern void func_800A5898(FieldFrameBuf *buf);
-extern void func_800A5A20(Actor *actor, EventEntry *entries);
+extern void func_800A5A20(Actor *actor, FieldGateway *gateways);
 extern s32  func_800A5C9C(void);
 extern void func_800A5D28(void);
 

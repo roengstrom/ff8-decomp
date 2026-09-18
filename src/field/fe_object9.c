@@ -29,7 +29,7 @@ s32 opHandler_RFACEDIRA(Actor *actor) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
         idx = POP(&actor->context);
-        func_800A8DAC(D_80085230[idx]->field_0x256, 0x1E, (u32)D_800C71F8, buf);
+        func_800A8DAC(D_80085230[idx]->field_0x256, 0x1E, (u32)g_curFieldView, buf);
         actor->turnTgtX = D_80085230[idx]->posX / 4096;
         actor->turnTgtY = D_80085230[idx]->posY / 4096;
         actor->turnTgtZ = buf[2] + D_80085230[idx]->posZ / 4096;
@@ -55,7 +55,7 @@ s32 opHandler_RFACEDIRP(Actor *actor) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
         slot = g_fieldVars->memberSlot[POP(&actor->context)];
-        func_800A8DAC(slot, 0x1E, (u32)D_800C71F8, buf);
+        func_800A8DAC(slot, 0x1E, (u32)g_curFieldView, buf);
         actor->turnTgtX = D_80085224[slot].posX / 4096;
         actor->turnTgtY = D_80085224[slot].posY / 4096;
         actor->turnTgtZ = buf[2] + D_80085224[slot].posZ / 4096;
@@ -466,7 +466,7 @@ s32 opHandler_SETMESSPEED(ScriptContext *context) {
  * If the Actor's @c activeMask bit for the current @c scriptSlot is
  * set: returns 5 immediately when the slot bit is already in
  * @c sfxStartMask; otherwise looks up the SFX data via
- * @c func_8003974C(D_800704C0, val1), kicks off playback
+ * @c getOffsetTableEntry(g_curFieldMessages, val1), kicks off playback
  * (@c initSfxPlayback / @c startSfxSlow), promotes the global flag
  * and marks the slot bit in @c sfxStartMask. Returns 1.
  *
@@ -488,7 +488,7 @@ s32 opHandler_MESW(ScriptContext *context) {
         if ((g_fieldVars->sfxStartMask >> sfxIdx) & 1) {
             return 5;
         }
-        initSfxPlayback(sfxIdx, func_8003974C(D_800704C0, val1));
+        initSfxPlayback(sfxIdx, getOffsetTableEntry(g_curFieldMessages, val1));
         startSfxSlow(sfxIdx);
         setSfxGlobalFlag(sfxIdx);
         do {
@@ -532,7 +532,7 @@ void func_800BC12C(s32 idx, s32 val, u16 *src) {
  * the sound-data lookup) and @c sfxIdx (one below). If the slot's bit
  * is already set in @c sfxStartMask, return 5 (busy).
  *
- * Otherwise: look up the SFX data via @c func_8003974C(D_800704C0,
+ * Otherwise: look up the SFX data via @c getOffsetTableEntry(g_curFieldMessages,
  * val1), kick off playback (@c initSfxPlayback / @c startSfxSlow),
  * promote to the global flag, set both @c sfxStartMask and
  * @c sfxActiveMask bits, pop two stack slots, then register the
@@ -550,7 +550,7 @@ s32 opHandler_MES(ScriptContext *context) {
         return 5;
     }
 
-    data = func_8003974C(D_800704C0, val1);
+    data = getOffsetTableEntry(g_curFieldMessages, val1);
     initSfxPlayback(sfxIdx, data);
     startSfxSlow(sfxIdx);
     setSfxGlobalFlag(sfxIdx);
@@ -614,7 +614,7 @@ s32 opHandler_AMESW(ScriptContext *context) {
         if ((g_fieldVars->sfxStartMask >> sfxIdx) & 1) {
             return 5;
         }
-        data = func_8003974C(D_800704C0, textIdx);
+        data = getOffsetTableEntry(g_curFieldMessages, textIdx);
         initSfxPlayback(sfxIdx, data);
         dims = func_8002E680(data);
         buf.w = (dims & 0xFFFF) + 0x10;
@@ -659,7 +659,7 @@ s32 opHandler_AMES(ScriptContext *context) {
         return 5;
     }
 
-    data = func_8003974C(D_800704C0, textIdx);
+    data = getOffsetTableEntry(g_curFieldMessages, textIdx);
     initSfxPlayback(sfxIdx, data);
     dims = func_8002E680(data);
     buf.w = (dims & 0xFFFF) + 0x10;
@@ -702,7 +702,7 @@ s32 opHandler_RAMESW(ScriptContext *context) {
         return 5;
     }
 
-    data = func_8003974C(D_800704C0, textIdx);
+    data = getOffsetTableEntry(g_curFieldMessages, textIdx);
     initSfxPlayback(sfxIdx, data);
     dims = func_8002E680(data);
     buf.w = (dims & 0xFFFF) + 0x10;
@@ -756,7 +756,7 @@ s32 opHandler_ASK(Actor *actor) {
             return 5;
         }
         D_800DE4D8 = getSfxGlobalFlag();
-        data = func_8003974C(D_800704C0, textIdx);
+        data = getOffsetTableEntry(g_curFieldMessages, textIdx);
         func_8002D784(sfxIdx, data, paramY, paramZ, paramW, paramV);
         startSfxSlow(sfxIdx);
         actor->field_0x204 = 0;
@@ -837,7 +837,7 @@ s32 opHandler_AASK(Actor *actor) {
             return 5;
         }
         D_800DE4DC = getSfxGlobalFlag();
-        text = func_8003974C(D_800704C0, textIdx);
+        text = getOffsetTableEntry(g_curFieldMessages, textIdx);
         dims = func_8002E680(text);
         buf[2] = (dims & 0xFFFF) + 0x30;
         buf[3] = (dims >> 16) + 0x11;

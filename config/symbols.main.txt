@@ -686,6 +686,7 @@ cdPollSeekState = 0x80039094; // type:func
 cdCheckDriveStatus = 0x80039344; // type:func
 cdBreakRead = 0x80039388; // type:func
 D_80039418 = 0x80039418; // size:0x2C
+getOffsetTableEntry = 0x8003974C; // type:func
 cdReadStatusWrapper = 0x8003AB64; // type:func
 cdInitHandlerWrapper = 0x8003AB84; // type:func
 cdDisableInterruptWrapper = 0x8003ABA4; // type:func
