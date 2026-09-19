@@ -218,10 +218,14 @@ extern s32 g_substateMask;
 extern SVECTOR D_80182D10[]; /**< 4-entry direction-vector table for animateCardEffect (CARD_FX_SLIDE_*). */
 extern u16 g_padHeldLatch;       /**< Latched held mask (from g_padHeld). */
 extern u16 g_padRepeatLatch;       /**< Latched repeat mask (from g_padRepeat). */
-extern u16 g_padPressedLatch;       /**< Latched pressed mask (bits 0xC0/0x10 trigger completion). */
-extern s32 g_substateSuppress;       /**< Completion-suppress flags (bits 1, 2). */
-extern u8  g_menuPadSource;       /**< Pad-input source / state byte (TriadMenuPadSource; -1 = idle). */
+extern u16 g_padPressedLatch;       /**< Latched pressed mask (from g_padPressed). */
+extern s32 g_substateSuppress;       /**< Exits the active substate refuses; see @c TT_SUPPRESS_. */
+extern u8  g_menuPadSource;       /**< Which controller(s) get latched each tick (TriadMenuPadSource); any other value latches nothing. */
 extern u8  g_activeSubstate;       /**< Active substate index (TriadMenuSubstate). */
+
+/** @brief Bits of @c g_substateSuppress, latched by activateMenuSubstate. */
+#define TT_SUPPRESS_CONFIRM 0x1  /**< Cross and square do not complete the substate. */
+#define TT_SUPPRESS_CANCEL  0x2  /**< Triangle does not back out of it. */
 
 /* Data — AI move search */
 extern AiMove    g_aiSearchStack[9];   /* AI move-search workspace (root = [0], one entry per ply) */

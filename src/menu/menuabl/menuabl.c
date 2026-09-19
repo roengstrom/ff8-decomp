@@ -2,6 +2,7 @@
 #include "menu.h"
 #include "gamestate.h"
 #include "menuabl.h"
+#include "psxsdk/libetc.h"
 #include "numstr.h"
 
 extern AbilityEntry  D_8007CEE0[];
@@ -183,8 +184,8 @@ void func_801E2990(void) {
 void func_801E2A34(SoundMenuState *s) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     u16 *statePtr = &s->state;
-    u16 btnFlags = cfg->inputNew;
-    u32 cfgFlags = cfg->inputRepeat;
+    u16 inputRepeat = cfg->inputRepeat;
+    u32 inputNew = cfg->inputNew;
     u16 state = s->state;
     s32 newSel;
     s32 slot;
@@ -215,23 +216,23 @@ restart:
     case 3: {
         s32 page = s->field_3A / 11;
         slot = s->field_3A % 11;
-        if (btnFlags & 0x8000) {
+        if (inputRepeat & PADLleft) {
             if (D_801E3D9C >= 12) {
                 state = 4;
                 goto restart;
             }
         }
-        if (btnFlags & 0x2000) {
+        if (inputRepeat & PADLright) {
             if (D_801E3D9C >= 12) {
                 state = 6;
                 goto restart;
             }
         }
-        newSel = func_801F6768(btnFlags, 11, slot);
+        newSel = func_801F6768(inputRepeat, 11, slot);
         func_801E28B4(1, s->field_3A, s->field_2C);
         s->field_20 = func_801E2944(s->field_3A);
         s->field_3A = (page * 11) + newSel;
-        if (cfgFlags & 0x40) {
+        if (inputNew & PADRdown) {
             s32 cur = s->field_3A;
             if (cur < D_801E3D9C) {
                 u8 *trackPtr = &D_801E3D84[cur];
@@ -272,7 +273,7 @@ restart:
             }
             sendSpuCommand(5);
         }
-        if (cfgFlags & 0x10) {
+        if (inputNew & PADRup) {
             sendSpuCommand(3);
             *statePtr = 0x18;
         }
@@ -311,10 +312,10 @@ restart:
             s->field_32 = 0;
             *statePtr = 3;
         }
-        if (cfgFlags & 0x8000) {
+        if (inputNew & PADLleft) {
             *statePtr = 4;
         }
-        if (cfgFlags & 0x2000) {
+        if (inputNew & PADLright) {
             *statePtr = 6;
         }
         break;
@@ -351,10 +352,10 @@ restart:
             s->field_32 = 0;
             *statePtr = 3;
         }
-        if (cfgFlags & 0x8000) {
+        if (inputNew & PADLleft) {
             *statePtr = 4;
         }
-        if (cfgFlags & 0x2000) {
+        if (inputNew & PADLright) {
             *statePtr = 6;
         }
         break;
@@ -377,20 +378,20 @@ restart:
         s32 page = s->field_3B / 11;
         slot = s->field_3B % 11;
         if (D_801E3DB8 >= 12) {
-            if (btnFlags & 0x8000) {
+            if (inputRepeat & PADLleft) {
                 if (page != 0) {
                     state = 0xC;
                     goto restart;
                 }
             }
-            if (btnFlags & 0x2000) {
+            if (inputRepeat & PADLright) {
                 if (page == 0) {
                     state = 0xE;
                     goto restart;
                 }
             }
         }
-        newSel = func_801F6768(btnFlags, 11, slot);
+        newSel = func_801F6768(inputRepeat, 11, slot);
         func_801E28B4(0, s->field_3A, s->field_2C);
         func_801E2800(1, s->field_3B, s->field_2C, (MenuSlot *)s);
         {
@@ -403,7 +404,7 @@ restart:
                 : "=r"(newSlot)
                 : "r"(page * 11), "r"(newSel));
             s->field_3B = newSlot;
-            if (cfgFlags & 0x40) {
+            if (inputNew & PADRdown) {
                 if (((u8)newSlot) < D_801E3DB8) {
                     /* FIXME: Keep newSlot live past the andi (for the
                      *        upcoming `(u8)newSlot` cast) so the andi
@@ -419,7 +420,7 @@ restart:
                 sendSpuCommand(5);
             }
         }
-        if (cfgFlags & 0x10) {
+        if (inputNew & PADRup) {
             sendSpuCommand(3);
             *statePtr = 0xB;
             break;
@@ -516,8 +517,8 @@ restart:
         /* fall through */
     case 17:
         s->field_30 -= 1;
-        if (cfgFlags & 0x50) {
-            func_801F7BEC(cfgFlags);
+        if (inputNew & (PADRup | PADRdown)) {
+            func_801F7BEC(inputNew);
             s->field_30 = 0;
         }
         if (s->field_30 <= 0) {

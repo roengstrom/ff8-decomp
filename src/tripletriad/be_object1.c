@@ -2,6 +2,7 @@
 #include "item.h"
 #include "tripletriad.h"
 #include "psxsdk/libc.h"
+#include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
 #include "tripletriad/be_object1.h"
 #include "tripletriad/be_object2.h"
@@ -57,7 +58,7 @@ s32 tripleTriadMainLoop(void) {
 
     do {
         if (g_tripleTriadInputFlags & TT_INPUT_DISABLED) {
-            if (g_padPressed[2] & 0x30) {
+            if (g_padPressed[2] & (PADRup | PADRright)) {
                 closeMenu();
             }
             for (i = 0; i < 3; i++) {

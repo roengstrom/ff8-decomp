@@ -111,11 +111,6 @@ extern u8 D_801E4EC2;
 /* External shared menu globals (live in menumain overlay)                  */
 /* ======================================================================== */
 
-/** @brief CLUT lookup table, indexed by an angle/64 (shared across menu overlays). */
-
-/** @brief Buttons-with-repeat alias of g_menuDisplayCfg.inputRepeat. */
-extern u16 D_801FAB1C;
-
 /** @brief Tutorial save flag controlling the party-availability scan. */
 extern u8 D_801FABC7;
 

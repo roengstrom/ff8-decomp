@@ -1,6 +1,7 @@
 #include "common.h"
 #include "item.h"
 #include "tripletriad.h"
+#include "psxsdk/libetc.h"
 #include "tripletriad/be_object1.h"
 #include "tripletriad/be_object1b.h"
 #include "tripletriad/be_object2.h"
@@ -493,13 +494,13 @@ void initMenuObjectHandler(s32 groupId, s32 fieldD, s32 priority) {
  *             callback signature).
  */
 void handleCursorSubstate1(SubstateSlot *slot, s32 idx) {
-    if ((g_padRepeatLatch & 0x1000) && findCardSlot(0, 0, slot->field2 - 1) >= 0) {
+    if ((g_padRepeatLatch & PADLup) && findCardSlot(0, 0, slot->field2 - 1) >= 0) {
         playTriadSfx(1);
         slot->field2 = slot->field2 - 1;
-    } else if ((g_padRepeatLatch & 0x4000) && findCardSlot(0, 0, slot->field2 + 1) >= 0) {
+    } else if ((g_padRepeatLatch & PADLdown) && findCardSlot(0, 0, slot->field2 + 1) >= 0) {
         playTriadSfx(1);
         slot->field2 = slot->field2 + 1;
-    } else if (g_padRepeatLatch & 0x2000) {
+    } else if (g_padRepeatLatch & PADLright) {
         if (g_substateMask & 0x8) {
             g_activeSubstate = 3;
             return;
@@ -525,13 +526,13 @@ void handleCursorSubstate1(SubstateSlot *slot, s32 idx) {
  *             callback signature).
  */
 void handleCursorSubstate2(SubstateSlot *slot, s32 idx) {
-    if ((g_padRepeatLatch & 0x1000) && findCardSlot(1, 0, slot->field2 - 1) >= 0) {
+    if ((g_padRepeatLatch & PADLup) && findCardSlot(1, 0, slot->field2 - 1) >= 0) {
         playTriadSfx(1);
         slot->field2 = slot->field2 - 1;
-    } else if ((g_padRepeatLatch & 0x4000) && findCardSlot(1, 0, slot->field2 + 1) >= 0) {
+    } else if ((g_padRepeatLatch & PADLdown) && findCardSlot(1, 0, slot->field2 + 1) >= 0) {
         playTriadSfx(1);
         slot->field2 = slot->field2 + 1;
-    } else if (g_padRepeatLatch & 0x8000) {
+    } else if (g_padRepeatLatch & PADLleft) {
         if (g_substateMask & 0x8) {
             g_activeSubstate = 3;
             return;
@@ -558,20 +559,20 @@ void handleCursorSubstate2(SubstateSlot *slot, s32 idx) {
  *             callback signature).
  */
 void handleCursorSubstate3(SubstateSlot *slot, s32 idx) {
-    if (g_padRepeatLatch & 0x8000) {
+    if (g_padRepeatLatch & PADLleft) {
         slot->field0 = slot->field0 - 1;
         if (slot->field0 >= 0) {
             playTriadSfx(1);
         }
-    } else if (g_padRepeatLatch & 0x2000) {
+    } else if (g_padRepeatLatch & PADLright) {
         slot->field0 = slot->field0 + 1;
         if (slot->field0 < 3) {
             playTriadSfx(1);
         }
-    } else if ((g_padRepeatLatch & 0x1000) && slot->field2 > 0) {
+    } else if ((g_padRepeatLatch & PADLup) && slot->field2 > 0) {
         playTriadSfx(1);
         slot->field2 = slot->field2 - 1;
-    } else if ((g_padRepeatLatch & 0x4000) && slot->field2 < 2) {
+    } else if ((g_padRepeatLatch & PADLdown) && slot->field2 < 2) {
         playTriadSfx(1);
         slot->field2 = slot->field2 + 1;
     }
@@ -602,7 +603,7 @@ void handleCursorSubstate3(SubstateSlot *slot, s32 idx) {
 void adjustConfigParam(u16 *param) {
     u16 val;
 
-    if (g_padRepeatLatch & 0x8000) {
+    if (g_padRepeatLatch & PADLleft) {
         if (*(s16 *)param > 0) {
             playTriadSfx(1);
             val = *param - 1;
@@ -610,7 +611,7 @@ void adjustConfigParam(u16 *param) {
             goto store;
         }
     }
-    if (g_padRepeatLatch & 0x2000) {
+    if (g_padRepeatLatch & PADLright) {
         if (*(s16 *)param < 4) {
             playTriadSfx(1);
             val = *param + 1;
@@ -630,7 +631,7 @@ store:
  * Finally checks the completion triggers that commit or cancel the substate.
  */
 void updateTriadMenu(void) {
-    s32 state = *(u8 *)&g_menuPadSource;
+    s32 state = g_menuPadSource;
 
     switch (state) {
     case TT_PAD_SRC_P0:
@@ -661,14 +662,14 @@ void updateTriadMenu(void) {
 
         drawMenuPrim(g_activeSubstate, &D_801D3340[g_activeSubstate]);
 
-        if (!(g_substateSuppress & 1)) {
-            if (g_padPressedLatch & 0xC0) {
+        if (!(g_substateSuppress & TT_SUPPRESS_CONFIRM)) {
+            if (g_padPressedLatch & (PADRdown | PADRleft)) {
                 g_substatePhase = TT_SUBPHASE_CONFIRM;
                 memcpy(&D_801D335C, &D_801D3340[g_activeSubstate], 4);
                 return;
             }
         }
-        if (!(g_substateSuppress & 2) && (g_padPressedLatch & 0x10)) {
+        if (!(g_substateSuppress & TT_SUPPRESS_CANCEL) && (g_padPressedLatch & PADRup)) {
             g_substatePhase = TT_SUBPHASE_CANCEL;
         }
     }
@@ -686,7 +687,7 @@ void updateTriadMenu(void) {
  * @param mask          Caller-supplied subscriber mask (this substate's bit
  *                      is OR'd in before storing).
  * @param stateByte     State byte latched for the dispatcher.
- * @param suppressFlags Completion-suppress flags latched for the dispatcher.
+ * @param suppressFlags @c TT_SUPPRESS_ bits: which exits this substate refuses.
  */
 void activateMenuSubstate(s32 idx, s32 mask, u8 stateByte, s32 suppressFlags) {
     g_activeSubstate = idx;
@@ -720,7 +721,7 @@ void activateMenuSubstate(s32 idx, s32 mask, u8 stateByte, s32 suppressFlags) {
 s32 updateCardSelectCursor(SubstateMachineNode *p) {
     s32 s1;
 
-    if (!(g_tripleTriadInputFlags & TT_INPUT_DISABLED) && (g_padPressed[2] & 0x20)) {
+    if (!(g_tripleTriadInputFlags & TT_INPUT_DISABLED) && (g_padPressed[2] & PADRright)) {
         openTriadMenu();
         return 0;
     }
@@ -729,7 +730,7 @@ s32 updateCardSelectCursor(SubstateMachineNode *p) {
         s1 = p->state;
         switch (s1) {
         case CARD_SEL_BEGIN_PICK:
-            activateMenuSubstate(p->fieldD + 1, 0, p->fieldE, 2);
+            activateMenuSubstate(p->fieldD + 1, 0, p->fieldE, TT_SUPPRESS_CANCEL);
             p->state = CARD_SEL_WAIT_PICK;
             break;
         case CARD_SEL_WAIT_PICK:

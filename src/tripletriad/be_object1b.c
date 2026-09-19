@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tripletriad.h"
 #include "psxsdk/libc.h"
+#include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
 #include "tripletriad/be_object1.h"
 #include "tripletriad/be_object1b.h"
@@ -160,7 +161,7 @@ s32 matchFlowHandler(HandlerNode *ctl) {
                     g_resultSfxHandle = spawnGradientFade(mode);
                     ctl->counter++;
                 }
-                if (g_padPressed[2] & PAD_UP) {
+                if (g_padPressed[2] & PADLdown) {
                     if (g_resultSfxHandle != 0) { setNodeDoneFlag(g_resultSfxHandle, 1); g_resultSfxHandle = 0; }
                     return 0;
                 }
