@@ -16,7 +16,18 @@
  * @param a2 Item index.
  * @return Item byte value, or 0 if out of range.
  */
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5800);
+s32 func_801E5800(ShopMenuState *arg0, s32 arg1, s32 arg2) {
+    if (arg2 >= 198) {
+        return 0;
+    }
+
+    if (arg1 == 0) {
+        return D_801EAA28[arg2].itemId;
+    }
+
+    arg2 *= 2;
+    return arg0->unk2C[arg2];
+}
 
 /**
  * @brief Look up a shop item's category byte.
@@ -31,7 +42,20 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5800);
  * @param a2 Item index.
  * @return Category byte value, or 0 if not found.
  */
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E583C);
+s32 func_801E583C(ShopMenuState* a0, s32 a1, s32 a2) {
+    s32 itemId;
+
+    if (a1 == 0) {
+        return D_801EAA28[a2].visible;
+    }
+
+    itemId = func_801E5800(a0, a1, a2);
+    if (itemId == 0) {
+        return 0;
+    }
+
+    return D_801EB088[itemId];
+}
 
 /**
  * @brief Look up shop item and get its description string.
@@ -45,7 +69,7 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E583C);
  * @param a2 Item index
  * @return Description string pointer, or 0 if invalid
  */
-s32 func_801E58A0(s32 a0, s32 a1, s32 a2) {
+s32 func_801E58A0(ShopMenuState *a0, s32 a1, s32 a2) {
     s32 result = func_801E583C(a0, a1, a2);
     if (result != 0) {
         return getStatDesc(func_801E5800(a0, a1, a2));
@@ -63,15 +87,78 @@ s32 func_801E58A0(s32 a0, s32 a1, s32 a2) {
  * @return Property byte value.
  */
 s32 func_801E5904(s32 a0) {
-    u8 idx = *(u8 *)(D_801EA70C + a0 * 4);
-    return D_801F7F98[idx];
+    return D_801F7F98[D_801EA70C[a0].type];
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5930);
+void func_801E5930(s32 arg0, s32 arg1, ShopMenuState* arg2) {
+    s32 unk36;
+    s32 aux2;
+    s32 aux1;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E59D8);
+    aux1 = (arg1 % 8) * 0xD + 0x52;
+    
+    unk36 = (s16)arg2->unk36;
+    aux2 = D_801FA3C8[(unk36 < 0 ? -unk36 : unk36) / 64];
+    aux2 = (aux2 * 0x168) / 4096;
+    
+    func_801F0A34(arg0, 0, aux2 + 0x23, aux1);
+}
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5A8C);
+s32 func_801E59D8(s16* arg0, s16* arg1, s32 arg2) {
+    s32 sum;
+    s32 count;
+    s16 val;
+    s32 aux;
+
+    sum = 0;
+    count = 0;
+    *arg1 = 0;
+    arg1++;
+
+    while (1) {
+        val = *arg0;
+        arg0++;
+
+        if (val == -1) {
+            break;
+        }
+
+        aux = func_801F08D4(1, arg2, (s32)val, 0);
+        aux = getGlyphStatusU16(aux);
+        aux += 0xA;       
+        sum += aux;
+        *arg1 = sum;
+        arg1++;
+        count++;
+    }
+
+    return count;
+}
+
+s32 func_801E5A8C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s16* arg5, s32 arg6) {
+    s16 buffer[36];
+    s32 i;
+    s32 count;
+    s32 tmp1;
+    s32 param;
+    s32 tmp2;
+    s32 arg3Val;
+    s32 mask;
+
+    arg3Val = arg3;
+    count = func_801E59D8(arg5, buffer, arg4);
+    for (i = 0; i < count; i++) {
+        tmp1 = arg2 + buffer[i];
+        mask = 1 << i;
+        param = 1;
+        if (arg6 & mask) {
+            param = 7;
+        }
+        tmp2 = func_801F08D4(1, arg4, arg5[i], 0);
+        arg1 = func_801F0FEC(arg0, arg1, tmp1, arg3Val, tmp2, param);
+    }
+    return arg1;
+}
 
 /**
  * @brief Render a shop item at a position from a decoded table.
@@ -108,8 +195,8 @@ void func_801E5C08(s32 gil) {
         g_gameState.mainData.party.gil = gil;
     }
 
-    constPtr = D_80077EBC;
-    p = D_80077EBC;
+    constPtr = (ItemSlot *)D_80077EBC;
+    p = constPtr;
     
     for (i = 0; i < ITEM_SLOT_COUNT; i++, p++) {
         u8 itemId = p->id;
@@ -224,10 +311,435 @@ void func_801E5DBC(void) {
     }
 }
 
-void func_801E5E88(void) {
+void func_801E5E88(u8 arg0) {
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E5E90);
+void func_801E5E90(ShopMenuState *s) {
+    u16 btnFlags;
+    u32 cfgFlags;
+    u16 *statePtr;
+    u16 state;
+
+    statePtr = &s->state;
+    btnFlags = g_menuDisplayCfg.inputNew;
+    cfgFlags = g_menuDisplayCfg.inputRepeat;
+    state = s->state;
+
+restart:
+    switch (state & 0xFFFF) {
+    case 0:
+        s->union30.unk30_s32 = func_801F6AA4(0x40);
+        s->unk38 = 0;
+        *statePtr = 1;
+        break;
+
+    case 1:
+        s->unk38 += 0x100;
+        if ((s16)s->unk38 >= 0x1000) {
+            s->unk38 = 0x1000;
+            *statePtr = 2;
+        }
+        func_801E5BA4(1, (s8)s->unk42);
+        break;
+
+    case 2:
+        s->unk42 = 0;
+        *statePtr = 3;
+        func_801E5BA4(1, (s8)s->unk42);
+        break;
+
+    case 3:
+        if (btnFlags & 0x2000) {
+            sendSpuCommand(1);
+            s->unk42 = func_80035B28(7, (s8)s->unk42);
+        }
+
+        if (btnFlags & 0x8000) {
+            sendSpuCommand(1);
+            s->unk42 = func_80035B70(7, (s8)s->unk42);
+        }
+
+        func_801E5BA4(1, (s8)s->unk42);
+
+        if (cfgFlags & 0x10) {
+            sendSpuCommand(3);
+            *statePtr = 0x10;
+        }
+
+        if (!(cfgFlags & 0x40)) {
+            break;
+        }
+
+        sendSpuCommand(2);
+
+        if ((s8)s->unk42 == 2) {
+            state = 16;
+            goto restart;
+        }
+
+        s->unk46 = s->unk42;
+        if (s->unk46 == 0) {
+            s->union30.unk30_s32 = func_801F6AA4(0x42);
+            s->unk47 = 2;
+        } else {
+            s->union30.unk30_s32 = func_801F6AA4(0x41);
+            s->unk47 = 0x19;
+        }
+
+        s->unk40 = s->union3C.unk3C_s16[s->unk46] / 8;
+        func_801E5C08(s->gil);
+        s->gil = func_801E5D28();
+        *statePtr = 4;
+        break;
+
+    case 4:
+        s->unk36 = 0xF00;
+        *statePtr = 5;
+        /* fallthrough */
+
+    case 5:
+        s->unk36 -= 0x100;
+        if (((s16)s->unk36 << 0x10) <= 0) {
+            s->unk36 = 0;
+            *statePtr = 6;
+        }
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1, s->union3C.unk3C_s16[s->unk46], s);
+        break;
+
+    case 6: {
+        s32 param;
+        s16 dividend;
+        s32 quotient;
+        s32 rest;
+
+        if (btnFlags != 0) {
+            s->unk4E = 0;
+        }
+
+        param = 0x4A;
+        if (s->unk4E != 0) {
+            s->unk4E--;
+            s->union30.unk30_s32 = func_801F6AA4(param);
+        } else {
+            param = 0x41;
+            if (s->unk46 == 0) {
+                param = 0x42;
+            }
+            s->union30.unk30_s32 = func_801F6AA4(param);
+        }
+
+        dividend = s->union3C.unk3C_s16[s->unk46];
+        rest = (s16)(dividend % 8);
+        quotient = dividend / 8;
+        s->union3C.unk3C_s16[s->unk46]  = func_801F6768(btnFlags, 8, rest) + quotient * 8;
+
+        s->field_20 = func_801E58A0((s32)s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+
+        if (btnFlags & 0x8000) {
+            state = 7;
+            goto restart;
+        }
+        if (btnFlags & 0x2000) {
+            state = 9;
+            goto restart;
+        }
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1, s->union3C.unk3C_s16[s->unk46], s);
+        if (cfgFlags & 0x10) {
+            sendSpuCommand(3);
+            s->field_20 = 0;
+            s->union30.unk30_s32 = func_801F6AA4(0x40);
+            *statePtr = 14;
+        }
+        if (cfgFlags & 0x40) {
+            if (func_801E583C(s, s->unk46, s->union3C.unk3C_s16[s->unk46])) {
+                if (s->unk46 == 1 && s->union3C.unk3C_s16[s->unk46] >= 0xC6) {
+                    sendSpuCommand(5);
+                    break;
+                }
+                state = 11;
+                goto restart;
+            }
+            sendSpuCommand(5);
+        }
+        break;
+    }
+
+    case 11: {
+        s32 index;
+        u32 price;
+        u32 count;
+
+        index = func_801E5800(s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+        s->unk48 = 1;
+        price = D_801EAD68[index];
+
+        if (s->unk46 == 0) {
+            if (index == 0) {
+                sendSpuCommand(5);
+                break;
+            }
+
+            if (s->gil < price) {
+                s32 tmp;
+                sendSpuCommand(5);
+                tmp = func_801F6AA4(0x49);
+                initSfxPlayback(0, tmp);
+                func_801F23D0(0, 0x68, (u8 *)tmp);
+                setSfxPitch(0, 0);
+                startSfxNormal(0);
+                s->unk4C = 0x258;
+                *statePtr = 15;
+                break;
+            }
+
+            if (D_801EB088[index] >= 100) {
+                s32 tmp;
+                sendSpuCommand(5);
+                tmp = func_801F6AA4(0x48);
+                func_801F23D0(0, 0x68, (u8 *)tmp);
+                initSfxPlayback(0, tmp);
+                setSfxPitch(0, 0);
+                startSfxNormal(0);
+                s->unk4C = 0x258;
+                *statePtr = 15;
+                break;
+            }
+
+            count = s->gil / price;
+            if ((s32)count + D_801EB088[index] >= 100) {
+                count = 100 - D_801EB088[index];
+            }
+        } else {
+            if (index == 0) {
+                sendSpuCommand(5);
+                break;
+            }
+    
+            count = D_801EB088[index];
+        }
+
+        sendSpuCommand(2);
+        s->unk49 = count;
+        s->unk4A = 0x40;
+        if (s->unk46 == 0) {
+            s->union30.unk30_s32 = func_801F6AA4(0x46);
+        } else {
+            s->union30.unk30_s32 = func_801F6AA4(0x47);
+        }
+        *statePtr = 12;
+        break;
+    }
+
+    case 15:
+        s->unk4C -= 1;
+        if (cfgFlags & 0x50) {
+            func_801F7BEC(cfgFlags);
+            s->unk4C = 0;
+        }
+        if ((s16)s->unk4C <= 0) {
+            fadeOutSfxFast(0);
+            *statePtr = 6;
+        }
+        break;
+
+    case 12:
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(0, s->union3C.unk3C_s16[s->unk46], s);
+
+        if (btnFlags & 0x2000) {
+            if ((s8)s->unk48 < (s8)s->unk49) {
+                s->unk48++;
+                sendSpuCommand(1);
+            }
+        }
+
+        if (btnFlags & 0x8000) {
+            if ((s8)s->unk48 >= 2) {
+                s->unk48--;
+                sendSpuCommand(1);
+            }
+        }
+
+        if (btnFlags & 0x4000) {
+            if ((s8)s->unk48 >= 2) {
+                sendSpuCommand(1);
+                s->unk48 -= 10;
+                if (((s8)s->unk48 << 24) <= 0) {
+                    s->unk48 = 1;
+                }
+            }
+        }
+
+        if (btnFlags & 0x1000) {
+            if ((s8)s->unk48 < (s8)s->unk49) {
+                s->unk48 += 0xA;
+                sendSpuCommand(1);
+                if ((s8)s->unk48 > (s8)s->unk49) {
+                    s->unk48 = s->unk49;
+                }
+            }
+        }
+
+        if (cfgFlags & 0x10) {
+            sendSpuCommand(3);
+            *statePtr = 13;
+        }
+
+        if (cfgFlags & 0x40) {
+            s32 index;
+            s32 price;
+            if (s->unk46 == 0) {
+                playSoundEffect(0x14);
+                index = func_801E5800(s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+                price = D_801EAD68[index];
+                price *= (s8)s->unk48;
+                s->gil -= price;
+                D_801EB088[index] += s->unk48;
+            } else {
+                if (s->union3C.unk3C_s16[s->unk46] >= 0xC6) {
+                    sendSpuCommand(5);
+                    break;
+                }
+
+                playSoundEffect(0x14);
+                index = func_801E5800(s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+                price = D_801EAA48[index];
+                price *= (s8)s->unk48;
+                s->gil += price;
+                if (s->gil > 99999999) {
+                    s->gil = 99999999;
+                }
+
+                D_801EB088[index] -= s->unk48;
+            }
+            s->unk4E = 0x3C;
+            *statePtr = 13;
+        }
+        break;
+
+    case 13:
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(0, s->union3C.unk3C_s16[s->unk46], s);
+        s->unk4A = 0;
+        *statePtr = 6;
+        break;
+
+    case 14:
+        func_801E5BA4(0, (s8)s->unk42);
+        s->unk36 += 0x100;
+        if ((s16)s->unk36 >= 0x1000) {
+            s->unk36 = 0x1000;
+            *statePtr = 3;
+        }
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1, s->union3C.unk3C_s16[s->unk46], s);
+        break;
+
+    case 7: {
+        s32 dividend;
+        s32 rest;
+        s32 quotient;
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1, s->union3C.unk3C_s16[s->unk46], s);
+        s->field_24 = s->field_20;
+        dividend = s->union3C.unk3C_s16[s->unk46];
+        rest = (s16)(dividend % 8);
+        quotient = dividend / 8;
+        s->unk41 = quotient;
+        quotient--;
+        if (quotient < 0) {
+            quotient = (u8)s->unk47 - 1;
+        }
+        s->union3C.unk3C_s16[s->unk46] = rest + quotient * 8;
+        s->unk40 = quotient;
+        s->field_20 = func_801E58A0((s32)s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+        s->unk3A = -0xE67;
+        sendSpuCommand(1);
+        *statePtr = 8;
+        break;
+    }
+
+    case 8:
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1,  s->union3C.unk3C_s16[s->unk46], s);
+        s->unk3A += 0x199;
+        if (s->unk3A >= 0) {
+            s->unk3A = 0;
+            *statePtr = 6;
+        }
+        if (cfgFlags & 0x8000) {
+            *statePtr = 7;
+        }
+        if (cfgFlags & 0x2000) {
+            *statePtr = 9;
+        }
+        break;
+
+    case 9: {
+        s32 dividend;
+        s32 rest;
+        s32 quotient;
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1, s->union3C.unk3C_s16[s->unk46], s);
+        s->field_24 = s->field_20;
+        dividend = s->union3C.unk3C_s16[s->unk46];
+        rest = (s16)(dividend % 8);
+        quotient = dividend / 8;
+        s->unk41 = quotient;
+        quotient++;
+        if (quotient >= (u8)s->unk47) {
+            quotient = 0;
+        }
+        s->union3C.unk3C_s16[s->unk46] = rest + quotient * 8;
+        s->unk40 = quotient;
+        s->field_20 = func_801E58A0((s32)s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+        s->unk3A = 0x0E67;
+        sendSpuCommand(1);
+        *statePtr = 10;
+        break;
+    }
+
+    case 10:
+        func_801E5BA4(0, (s8)s->unk42);
+        func_801E5930(1,  s->union3C.unk3C_s16[s->unk46], s);
+        s->unk3A -= 0x199;
+        if (s->unk3A <= 0) {
+            s->unk3A = 0;
+            *statePtr = 6;
+        }
+        if (cfgFlags & 0x8000) {
+            *statePtr = 7;
+        }
+        if (cfgFlags & 0x2000) {
+            *statePtr = 9;
+        }
+        break;
+
+    case 16:
+        s->union30.unk30_s32 = func_801F6AA4(0x44);
+        *statePtr = 17;
+        /* fallthrough */
+
+    case 17:
+        s->unk38 -= 0x100;
+        if ((s16)s->unk38 << 0x10 <= 0) {
+            s->unk38 = 0;
+            func_801E5C08(s->gil);
+            func_801E5E88(s->unk45);
+            func_801F6888();
+            func_801F7B60();
+            func_801F18FC(s);
+            func_801F0BB0();
+        }
+        func_801E5BA4(1, (s8)s->unk42);
+        break;
+
+    }
+
+    func_801F0948((s16)s->unk38);
+}
 
 /**
  * @brief Populate shop item visibility data for a shop.
@@ -353,10 +865,49 @@ void func_801E6C3C(s32 shopId) {
     }
 }
 
+void func_801E6D54(s32 arg0) {
+    GameState *gs;
+    s32 visited;
+    s32 sum;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6D54);
+    if (arg0 != 0x15) {
+        gs = &g_gameState;
 
-void func_801E6E0C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+        sum = gs->mainData.fieldCDC;
+
+        visited = gs->shops[arg0].visited;
+
+        sum += gs->mainData.fieldCE2;
+        sum += gs->mainData.fieldCE0;
+        sum &= 0xFFFF;
+        if (sum == 0) {
+            sum = 1;
+        }
+
+        gs->shops[arg0].visited = 1;
+
+        // Dead code
+        visited &= 0xFFFF;
+        if (sum < (u32)visited) {
+            sum += 0x10000;
+        }
+        sum -= visited;
+        // End of dead code
+
+        func_801E6A68(arg0);
+        func_801E6C3C(arg0);
+        func_801E6C3C(arg0);
+        func_801E5DBC();
+        func_801E6ACC();
+
+        /* FIXME: Keep `sum` live here during all function calls (jal), forcing
+           the compiler to allocate more space on the stack to reach desired
+           0x20. */
+        KEEP_ALIVE(sum);
+    }
+}
+
+s32 func_801E6E0C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     s32 result;
 
     result = func_801E5A8C(arg0, arg1, arg2 + 0xC, arg3 + 5, 3, D_801E9B64, 7);
@@ -366,25 +917,25 @@ void func_801E6E0C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     g_menuDisplayCfg.y = arg3;
     g_menuDisplayCfg.w = 0x150;
     g_menuDisplayCfg.h = 0x15;
-    func_801EF9AC(arg0, result, 0x1000, g_menuColor);
+    return func_801EF9AC(arg0, result, 0x1000, g_menuColor);
 }
 
 s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    u8 buffer[0x80];
+    u8 buffer[128];
     s32 msg;
-    s32 temp_s0;
-    s32 temp_s1;
-    s32 temp_v0;
+    s32 x;
+    s32 y;
+    s32 xOffset;
     s32 result;
 
     msg = ((s32 *)(g_menuDisplayCfg.dataPtr))[arg2];
     result = arg1;
     if (msg != 0) {
-        temp_v0 = (arg4 + 0xA);
-        temp_s0 = g_menuDisplayCfg.x + temp_v0;
-        temp_s1 = g_menuDisplayCfg.y + 5;
+        xOffset = arg4 + 10;
+        x = g_menuDisplayCfg.x + xOffset;
+        y = g_menuDisplayCfg.y + 5;
         decodeMessage(msg, buffer, -1);
-        result = func_801F0FEC(arg0, arg1, temp_s0, temp_s1, (s32)buffer, 7);
+        result = func_801F0FEC(arg0, arg1, x, y, buffer, 7);
     }
     return result;
 }
@@ -403,7 +954,7 @@ s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
  * @param a3 Y position for the display configuration.
  * @param arg5 X position for the display configuration.
  */
-void func_801E6F60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
+s32 func_801E6F60(ShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 arg5) {
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = a3;
@@ -413,18 +964,122 @@ void func_801E6F60(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
     g_menuDisplayCfg.y = arg5;
-    g_menuDisplayCfg.scrollOffset = *(u16 *)(a0 + 0x3A);
-    g_menuDisplayCfg.dataPtr = (s32)(a0 + 0x20);
+    g_menuDisplayCfg.scrollOffset = s->unk3A;
+    g_menuDisplayCfg.dataPtr = (s32)&s->field_20;
     {
-        func_801EFBB4(a1, a2, (s32)&func_801E6EB0);
+        return func_801EFBB4(a1, a2, (s32)&func_801E6EB0);
     }
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E6FD8);
+s32 func_801E6FD8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    MenuDisplayConfig *cfg;
+    ShopMenuState *s;
+    s32 index;
+    s32 price;
+    s32 count;
+    s32 shopItemIdx;
+    s32 xBase;
+    s32 yBase;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E722C);
+    cfg = &g_menuDisplayCfg;
+    shopItemIdx = arg2 * 8 + arg3;
+    xBase = cfg->x + arg4;
+    yBase = cfg->y + arg3 * 13;
 
-s32 func_801E7374(Struct_801E7374* arg0, void *arg1, void* arg2, s32 arg3, s32 arg4) {
+    s = (ShopMenuState *)cfg->dataPtr;
+    index = func_801E5800(s, s->unk46, shopItemIdx);
+
+    if (s->unk46 == 1) { // selling
+        price = D_801EAA48[index];
+        count = D_801EB088[index];
+        if (shopItemIdx >= 198) {
+            return arg1;
+        }
+    }
+
+    else { // buying
+        price = D_801EAD68[index];
+        count = D_801EAA28[shopItemIdx].visible;
+    }
+
+    if (index != 0 && count != 0) {
+        s32 color;
+        s32 statName;
+        s32 x;
+        s32 y;
+
+        color = 7;
+        if (s->gil < D_801EAD68[index] && s->unk46 == 0) {
+            color = 1;
+        }
+
+        statName = getStatName(index);
+        arg2 = func_801E5904(index);
+
+        arg1 = func_8002FF34(arg0, arg1, arg2 + 0xDF, xBase + 0xB, yBase + 8, g_menuColor);
+
+        x = xBase + 0x19;
+        y = yBase + 0xA;
+        arg1 = func_801F0FEC(arg0, arg1, x, y, statName, color);
+
+        if (s->unk46 == 0) { // buying
+            x = xBase + 0xF0;
+            arg1 = drawColorByMenuPalette(arg0, arg1, (y << 0x10) | (x & 0xffff), price, color);
+        }
+
+        else { // selling
+            x = xBase + 0xC8;
+            arg1 = drawColorByMenuPalette(arg0, arg1, (y << 0x10) | (x & 0xffff), price, color);
+            x = xBase + 0xF0;
+            arg1 = drawColorByMenuPalette(arg0, arg1, (y << 0x10) | (x & 0xffff), count, color);
+        }
+    }
+
+    return arg1;
+}
+
+s32 func_801E722C(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    MenuDisplayConfig *cfg;
+    s32 color;
+
+    cfg = &g_menuDisplayCfg;
+    color = 7;
+
+    if (s->unk46 == 0) {
+        s32 x;
+        s32 y;
+        s32 result;
+        s32 index;
+        s32 count;
+
+        x = 8 + arg3;
+        y = 9 + arg4;
+        result = func_801F0FEC(arg1, arg2, x, y, func_801F6AA4(0x32), color);
+
+        /* FIXME: Keep `x` live here to force `addiu` between `move` and `lbu`. */
+        KEEP_ALIVE(x);
+
+        x = 0x42 + arg3;
+
+        /* FIXME: Keep `s` live here to force allocation to the $v0 register. */
+        KEEP_ALIVE(s);
+
+        index = func_801E5800(s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+        y = 0x16 + arg4;
+        arg2 = drawColorByMenuPalette(arg1, result, (y << 0x10) | (x & 0xFFFF), D_801EB088[index], color);
+    }
+
+    cfg->iconType = 0x57;
+    cfg->iconSubType = 0;
+    cfg->x = arg3;
+    cfg->w = 0x50;
+    cfg->y = arg4;
+    cfg->h = 0x77;
+
+    return func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+}
+
+s32 func_801E7374(ShopMenuState *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     g_menuDisplayCfg.iconType = 0x4C;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = arg3;
@@ -438,34 +1093,33 @@ s32 func_801E7374(Struct_801E7374* arg0, void *arg1, void* arg2, s32 arg3, s32 a
     g_menuDisplayCfg.dataPtr = (s32)arg0;
 
     if (arg0->unk46 == 0) {
-        arg2 = (void *)func_8002FF34(arg1, arg2, 0x47, arg3 + 0xA8, arg4, g_menuColor);
-        arg2 = (void *)func_801F5F30((s32)arg1, (s32)arg2, arg3 + 0x1C, arg4, g_menuColor, (s32) (s8) arg0->unk40);
+        arg2 = func_8002FF34(arg1, arg2, 0x47, arg3 + 0xA8, arg4, g_menuColor);
+        arg2 = func_801F5F30(arg1, arg2, arg3 + 0x1C, arg4, g_menuColor, (s8)arg0->unk40);
     }
     else {
-        arg2 = (void *)func_8002FF34(arg1, arg2, 0x47, arg3 + 0x80, arg4, g_menuColor);
-        arg2 = (void *)func_8002FF34(arg1, arg2, 0x4D, arg3 + 0xD6, arg4, g_menuColor);
-        arg2 = (void *)func_801F5EFC((s32)arg1, (s32)arg2, arg3 + 0x1C, arg4, g_menuColor, (s32) (s8) arg0->unk40);
+        arg2 = func_8002FF34(arg1, arg2, 0x47, arg3 + 0x80, arg4, g_menuColor);
+        arg2 = func_8002FF34(arg1, arg2, 0x4D, arg3 + 0xD6, arg4, g_menuColor);
+        arg2 = func_801F5EFC(arg1, arg2, arg3 + 0x1C, arg4, g_menuColor, (s8)arg0->unk40);
     }
     
-    arg2 = (void *)func_801F5F60((s32)arg1, (s32)arg2, g_menuColor, 3);
-    return func_801EFBB4((s32)arg1, (s32)arg2, (s32)func_801E6FD8);
+    arg2 = func_801F5F60(arg1, arg2, g_menuColor, 3);
+    return func_801EFBB4(arg1, arg2, func_801E6FD8);
 }
 
-void func_801E7508(Struct_801E7508 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    s32 s6;
-    s32 s5;
-    s32 v0;
+s32 func_801E7508(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    s32 x;
+    s32 y;
 
-    s6 = arg4 + 6;
-    s5 = arg3 + 0xD0;
-    arg2 = func_801F0FEC(arg1, arg2, s5, s6, func_801F6AA4(0x33), 7);
+    x = arg3 + 0xD0;
+    y = arg4 + 6;
+    arg2 = func_801F0FEC(arg1, arg2, x, y, func_801F6AA4(0x33), 7);
 
-    v0 = s6 << 0x10;
-    s5 = arg3 + 0x142;
-    arg2 = drawColorByMenuPalette(arg1, arg2, v0 | (s5 & 0xFFFF), arg0->unk28, 7);
+    x = arg3 + 0x142;
+    arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), s->gil, 7);
 
-    s6 = arg4 + 8;
-    arg2 = func_8002FF34(arg1, arg2, 0xB, arg3 + 0x143, s6, g_menuColor);
+    x = arg3 + 0x143;
+    y = arg4 + 8;
+    arg2 = func_8002FF34(arg1, arg2, 0xB, x, y, g_menuColor);
 
     g_menuDisplayCfg.iconType = 0x57;
     g_menuDisplayCfg.iconSubType = 0;
@@ -474,22 +1128,117 @@ void func_801E7508(Struct_801E7508 *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4
     g_menuDisplayCfg.y = arg4;
     g_menuDisplayCfg.h = 0x17;
 
-    func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+    return func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7628);
+s32 func_801E7628(ShopMenuState* s, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    s32 result;
+    s32 x;
+    s32 y;
+    s32 index;
+    s32 color;
+    s32 price;
+    MenuDisplayConfig *cfg;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E77EC);
+    color = 7;
+    cfg = &g_menuDisplayCfg;
+    if (s->unk4A == 0) {
+        return arg2;
+    }
+
+    x = arg3 + 0xB;
+    y = arg4 + 9;
+    arg2 = func_801F0FEC(arg1, arg2, x, y, func_801F6AA4(0x37), color);
+
+    y = arg4 + 0x23;
+    arg2 = func_801F0FEC(arg1, arg2, x, y, func_801F6AA4(0x38), color);
+
+    x = arg3 + 0x60;
+    y = arg4 + 0x18;
+    arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), (s8)s->unk48, color);
+
+    y = arg4 + 0x32;
+
+    index = func_801E5800(s, s->unk46, s->union3C.unk3C_s16[s->unk46]);
+    if (s->unk46 == 0) {
+        price = D_801EAD68[index];
+    } else {
+        price = D_801EAA48[index];
+    }
+
+    arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), price * (s8)s->unk48, color);
+
+    cfg->iconType = 0x47;
+    cfg->w = 0x68;
+    cfg->iconSubType = 0;
+    cfg->x = arg3;
+    cfg->y = arg4;
+    cfg->h = 0x42;
+
+    return func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+}
+
+s32 func_801E77EC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    MenuDisplayConfig *cfg;
+    s32 name;
+    s32 x;
+    s32 y;
+    s32 param1;
+    s32 param2;
+    s32 result;
+
+    result = func_801EFFB8();
+
+    /* FIXME: Keep `arg2` live here to force allocation to the $s2 register. */
+    KEEP_ALIVE(arg2);
+
+    if (result == 0x17) {
+        param1 = 1;
+        param2 = 0x150;
+    } else {
+        param1 = 0;
+        param2 = 0xF4;
+    }
+
+    cfg = &g_menuDisplayCfg;
+
+    if (arg0 >= 0) {
+        name = func_801F6AA4(arg0 + 1);
+    } else {
+        name = func_801F6AA4(0x30);
+    }
+
+    x = (param2 - getGlyphStatusU16(name)) / 2;
+    x += arg3;
+
+    y = 5;
+    y += arg4;
+
+    arg2 = func_801F0FEC(arg1, arg2, x, y, name, 7);
+
+    cfg->iconType = 0x49;
+    cfg->iconSubType = 0;
+    cfg->x = arg3;
+    cfg->y = arg4;
+
+    if (param1 != 0) {
+        cfg->w = 0x150;
+        cfg->h = 0x14;
+    } else {
+        cfg->w = 0xF4;
+        cfg->h = 0x14;
+    }
+
+    return func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+}
 
 void func_801E791C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    s32 var_v0;
     MenuDisplayConfig *cfg;
 
     cfg = &g_menuDisplayCfg;
 
-    var_v0 = arg2;
     if (arg0 != 0) {
-        var_v0 = func_801F0FEC(arg1, var_v0, arg3 + 0xC, arg4 + 5, arg0, 7);
+        arg2 = func_801F0FEC(arg1, arg2, arg3 + 0xC, arg4 + 5, arg0, 7);
     }
     cfg->iconType = 0;
     cfg->iconSubType = 0;
@@ -497,26 +1246,71 @@ void func_801E791C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     cfg->w = 0xDA;
     cfg->y = (s16) arg4;
     cfg->h = 0x15;
-    func_801EF9AC(arg1, var_v0, 0x1000, g_menuColor);
+    func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E79D4);
+s32 func_801E79D4(ShopMenuState *s, s32 arg1, s32 arg2) {
+    s32 result;
+    s32 x;
+    s32 y;
+    s32 val;
+
+    result = getDisplayListHead();
+
+    val = (s16)s->unk36;
+    val = D_801FA3C8[(val < 0 ? -val : val) / 64];
+
+    func_801F1AFC();
+    setMenuColorIntensity((s16)s->unk38);
+
+    x = 0x18;
+    y = 0x1D;
+    arg2 = func_801E6E0C(arg1, arg2, x, y);
+
+    x = 0x18;
+    y = 8;
+    arg2 = func_801E77EC(func_801EFFF0(), arg1, arg2, x, y);
+
+    x = 0x1E;
+    y = 0x33;
+    result = func_801E6F60(s, arg1, result, x, y);
+
+    x = 0x90;
+    y = 0x50;
+    result = func_801E7628(s, arg1, result, x, y);
+
+    x = (val * 0x68 / 0x1000) + 0x118;
+    y = 0x48;
+    result = func_801E722C(s, arg1, result, x, y);
+
+    x = (val * 0x168 / 0x1000) + 0x18;
+    arg2 = func_801E7374(s, (void *)arg1, (void *)arg2, x, y);
+
+    x = (val * 0x168 / 0x1000);
+    x += 0x18;
+    y = 0xC1;
+    arg2 = func_801E7508(s, arg1, arg2, x, y);
+
+    func_801F1B10();
+    storeGpuPacket(result);
+    return arg2;
+}
 
 void func_801E7B9C(s32 a0) {
-    MenuTask *temp_s0;
+    ShopMenuState *s;
 
-    temp_s0 = (MenuTask *)func_801F179C((s32)func_801E5E90, (s32)func_801E79D4);
+    s = (ShopMenuState *)func_801F179C((s32)func_801E5E90, (s32)func_801E79D4);
     func_801F1D2C(0, "shop.bin", (s32)D_801EA170);
     func_801F1D2C(0, "price.bin", (s32)D_801EA3F0);
     func_801F1D2C(0, "mitem.bin", (s32)D_801EA70C);
-    if (temp_s0 != NULL) {
-        temp_s0->unk2C = D_80077EBC;
-        temp_s0->unk36 = 0x1000;
-        temp_s0->unk30 = 0;
-        temp_s0->unk28 = func_801E5D28();
-        temp_s0->unk45 = D_801E9B6C[func_801EFFF0()];
-        func_801E6D54(temp_s0->unk45);
-        func_801E5E90(temp_s0);
+    if (s != NULL) {
+        s->unk2C = D_80077EBC;
+        s->unk36 = 0x1000;
+        s->union30.unk30_s32 = 0;
+        s->gil = func_801E5D28();
+        s->unk45 = D_801E9B6C[func_801EFFF0()];
+        func_801E6D54(s->unk45);
+        func_801E5E90(s);
         if (func_801EFFB8() == 0x17) {
             func_801F1D84();
         }
@@ -545,9 +1339,61 @@ void func_801E7C8C(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7CFC);
+u8* func_801E7CFC(s32 arg0) {
+    Struct_func_801E7CFC *ptr1;
+    u8 *ptr2;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7D30);
+    ptr1 = D_801E9BA0;
+    ptr2 = D_801E9D2C;
+
+    ptr1 += arg0 & ~0xC0;
+    ptr2 += ptr1->unk0;
+
+    return ptr2;
+}
+
+void func_801E7D30(u8* src, u8* dst) {
+    u8 buffer[127];
+    u8* bufferPtr;
+    s32 srcVal;
+
+    while (1) {
+        srcVal = *src;
+        src++;
+
+        if (srcVal == 0) {
+            break;
+        }
+
+        bufferPtr = buffer;
+
+        if (srcVal != 0xA) {
+            *dst = srcVal;
+            dst++;
+        } else {
+            srcVal = *src;
+            src++;
+            *buffer = 0;
+
+            switch (srcVal) {
+            case 38:
+                copyString(bufferPtr, getLevelCurveData(D_801EB2E4));
+                break;
+            case 39:
+                copyString(bufferPtr, getCharName(D_801EB2E8));
+                break;
+            }
+
+            while (*bufferPtr != 0) {
+                *dst = *bufferPtr;
+                dst++;
+                bufferPtr++;
+            }
+        }
+    }
+
+    *dst = 0;
+}
 
 /**
  * @brief Compute shop item price from table.
@@ -557,7 +1403,12 @@ INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7D30);
  * @param a0 Shop item index.
  * @return Computed price value.
  */
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E1C);
+s32 func_801E7E1C(s32 arg0) {
+    Struct_func_801E7CFC* ptr;
+    ptr = D_801E9BA0;
+    ptr += arg0;
+    return  ptr->unk3 * 10;
+}
 
 /**
  * @brief Test if bit a0 is set in D_80077E70.
@@ -576,19 +1427,123 @@ s32 func_801E7E68(s32 a0, u32 a1) {
     return a1 >= (u32)func_801E7E1C(a0);
 }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7E98);
+s32 func_801E7E98(s32 arg0, s32 arg1) {
+    Struct_func_801E7CFC *basePtr;
+    u8 *ptr;
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E7F4C);
+    if (func_801E7E68(arg0, arg1) == 0) {
+        return 0;
+    }
 
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8058);
+    basePtr = D_801E9BA0;
+    basePtr += arg0;
+
+    ptr = basePtr->unk4;
+
+    for (i = 0; i < 4; i++) {
+        s32 unk0;
+        s32 unk1;
+
+        unk0 = *ptr;
+        ptr++;
+        unk1 = *ptr;
+        ptr++;
+
+        if (unk0 != 0 && unk1 > D_801EB088[unk0]) {
+            return 0;
+        }
+    }
+
+    g_gameState.mainData.party.unlockedWeapons |= 1 << arg0;
+    return 1;
+}
+
+s32 func_801E7F4C(s32 arg0, s32 arg1) {
+    s32 count;
+    s32 i;
+    u8* ptr1;
+    u8* ptr2;
+    Struct_func_801E7F4C *ptr3;
+    u8 value;
+
+    count = 0;
+    value = 0xFF;
+    i = 7;
+
+    ptr1 = D_801EB150;
+    ptr1 += 7;
+
+    for (; i >= 0; i--) {
+        *ptr1 = value;
+        ptr1--;
+    }
+
+    ptr2 = D_801EB150;
+    ptr3 = D_8007C3B8;
+
+    if ((0x3F >> arg0) & 1) {
+        for (i = 0; i < 28; i++) {
+            if (arg0 == ptr3[i].unk4) {
+                s32 mask;
+                mask = (func_801E7E4C(i) != 0) << 6;
+                if (func_801E7E98(i, arg1) != 0) {
+                    mask |= 0x80;
+                }
+                if (mask != 0) {
+                    *ptr2 = i | mask;
+                    ptr2++;
+                    count++;
+                }
+            }
+        }
+    }
+
+    return count;
+}
+
+s32 func_801E8058(s32 arg0) {
+    Struct_func_801E7F4C *ptr;
+    s32 availableChars;
+    s32 charBit;
+    s32 ret;
+    s32 i;
+
+    if (D_8007809A & 1) {
+        return 0;
+    }
+
+    ptr = D_8007C3B8;
+    availableChars = func_80036EC0() & 0x3F;
+    ret = 0;
+
+    for (i = 0; i < 28; i++) {
+        charBit = 1 << ptr[i].unk4;
+        if (availableChars & charBit) {
+            s32 val;
+            val = func_801E7E4C(i);
+            if (val) {
+                ret |= charBit;
+                continue;
+            } else {
+                val = func_801E7E98(i, arg0);
+                if (val) {
+                    ret |= charBit;
+                }
+            }
+        }
+    }
+
+    return ret;
+}
 
 /**
- * @brief Render shop item entry at computed Y position with width 0x24.
+ * @brief Render shop item entry at computed Y position with width 36.
  * @param a0 X position parameter
- * @param a1 Row index (multiplied by 13 and offset by 0x50 for Y position)
+ * @param a1 Row index (multiplied by 13 and offset by 80 for Y position)
  */
 void func_801E8134(s32 a0, s32 a1) {
-    func_801F0A34(a0, 0, 0x24, a1 * 13 + 0x50);
+    func_801F0A34(a0, 0, 36, a1 * 13 + 80);
 }
 
 /**
@@ -597,102 +1552,5 @@ void func_801E8134(s32 a0, s32 a1) {
  * @param a1 Row index (multiplied by 13 and offset by 0x4F for Y position)
  */
 void func_801E816C(s32 a0, s32 a1) {
-    func_801F0A34(a0, 0, 0xA9, a1 * 13 + 0x4F);
+    func_801F0A34(a0, 0, 169, a1 * 13 + 79);
 }
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E81A4);
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8978);
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8AB0);
-
-/**
- * @brief Configure display parameters and invoke callback for shop sell rendering.
- *
- * Sets up the g_menuDisplayCfg display configuration structure with the given
- * position and size values, stores the pointer at a0+0x20 as the data source,
- * reads a halfword at a0+0x36 as the display ID, then calls func_801EFBB4
- * with func_801E8AB0 as the render callback.
- *
- * @param a0 Pointer to source data structure.
- * @param a1 First callback parameter (passed as a0 to func_801EFBB4).
- * @param a2 Second callback parameter (passed as a1 to func_801EFBB4).
- * @param a3 Y position for the display configuration.
- * @param arg5 X position for the display configuration.
- */
-void func_801E8B60(Struct_801E8B60 *a0, s32 a1, s32 a2, s32 a3, s32 arg5) {
-    g_menuDisplayCfg.iconType = 0;
-    g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 0x144;
-    g_menuDisplayCfg.h = 0x14;
-    g_menuDisplayCfg.columnCount = 1;
-    g_menuDisplayCfg.pageStart = 0;
-    g_menuDisplayCfg.pageEnd = 1;
-    g_menuDisplayCfg.y = arg5;
-    g_menuDisplayCfg.scrollOffset = a0->unk36;
-    g_menuDisplayCfg.dataPtr = (s32)&a0->unk20;
-    {
-        func_801EFBB4(a1, a2, (s32)&func_801E8AB0);
-    }
-}
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8BD8);
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E8D84);
-
-/** @brief Return color code: 7 (equal), 3 (a0 > a1), 2 (a0 < a1). */
-s32 func_801E8FF8(s32 a0, s32 a1) {
-    s32 color = 7;
-    if (a0 > a1) color = 3;
-    if (a0 < a1) color = 2;
-    return color;
-}
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E9020);
-
-/**
- * @brief Initialize all 30 shop item entries.
- *
- * Calls func_801E9020 for indices 0 through 29.
- */
-void func_801E90BC(void) {
-    s32 i;
-    for (i = 0; i < 30; i++) {
-        func_801E9020(i);
-    }
-}
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E90F8);
-
-/**
- * @brief Configure shop display and render with g_menuDisplayCfg settings.
- *
- * Calls func_801E90F8 with all parameters, then sets up g_menuDisplayCfg
- * display config (icon 0x57, 0x150 x 0x26, x=a3, y=arg5) and calls
- * func_801EF9AC to render.
- *
- * @param a0 Context pointer for func_801E90F8.
- * @param a1 Render context passed to func_801EF9AC.
- * @param a2 Parameter for func_801E90F8.
- * @param a3 X position for display config.
- * @param arg4 Y position for display config.
- */
-void func_801E9554(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    s32 result;
-
-    result = func_801E90F8(a0, a1, a2, a3, arg4);
-    g_menuDisplayCfg.iconType = 0x57;
-    g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 0x150;
-    g_menuDisplayCfg.y = arg4;
-    g_menuDisplayCfg.h = 0x26;
-    func_801EF9AC(a1, result, 0x1000, g_menuColor);
-}
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E95DC);
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E9684);
-
-INCLUDE_ASM("asm/ovl/menushop/nonmatchings/menushop", func_801E9900);

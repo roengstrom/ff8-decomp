@@ -108,8 +108,8 @@ enum GfId {
  */
 typedef struct {
     /* 0x00 */ u8 items[16];   /**< Flags indicating whether each item is visible in the shop. */
-    /* 0x10 */ u8 visited;     /**< Shop has been visited flag. */
-    /* 0x11 */ u8 pad[3];      /**< Padding. */
+    /* 0x10 */ u16 visited;    /**< Shop has been visited flag. */
+    /* 0x12 */ u8 pad[2];      /**< Padding. */
 } ShopData; /* 0x14 = 20 bytes */
 
 #define SHOP_COUNT 20

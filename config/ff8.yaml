@@ -389,6 +389,7 @@ binaries:
   options:
     target_path: original/menushop.ovl
     src_path: src/menu/menushop
+    section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: menushop
     type: code
@@ -396,7 +397,9 @@ binaries:
     vram: 0x801E5800
     subsegments:
     - [0x0, c, menushop]
+    - [0x29A4, c, menushop2]
     - [0x429C, .rodata, menushop]
+    - [0x4308, .rodata, menushop2]
     - [0x4364, rodata]
     - [0x4570, data]
   - [0x5228]
