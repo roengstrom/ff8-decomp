@@ -1062,7 +1062,7 @@ static s32 func_801E6F60(ShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 arg5) {
     g_menuDisplayCfg.pageEnd = 1;
     g_menuDisplayCfg.y = arg5;
     g_menuDisplayCfg.scrollOffset = s->unk3A;
-    g_menuDisplayCfg.dataPtr = (s32)&s->field_20;
+    g_menuDisplayCfg.dataPtr = &s->field_20;
     {
         return func_801EFBB4(a1, a2, (s32)&func_801E6EB0);
     }
@@ -1186,7 +1186,7 @@ static s32 func_801E7374(ShopMenuState *arg0, s32 arg1, s32 arg2, s32 arg3, s32 
     g_menuDisplayCfg.pageStart = arg0->currentPage;
     g_menuDisplayCfg.pageEnd = arg0->previousPage;
     g_menuDisplayCfg.scrollOffset = arg0->unk3A;
-    g_menuDisplayCfg.dataPtr = (s32)arg0;
+    g_menuDisplayCfg.dataPtr = arg0;
 
     if (arg0->unk46 == 0) {
         arg2 = func_8002FF34(arg1, arg2, 0x47, arg3 + 0xA8, arg4, g_menuColor);

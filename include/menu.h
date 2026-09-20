@@ -34,7 +34,7 @@ typedef struct {
     /* 0x1C */ u16 inputRepeat;   /**< Buttons with auto-repeat applied */
     /* 0x1E */ u8 itemId;         /**< Current item/card ID for rendering */
     /* 0x1F */ u8 itemAttr;       /**< Item attribute byte */
-    /* 0x20 */ s32 dataPtr;       /**< Pointer to item data array */
+    /* 0x20 */ void *dataPtr;       /**< Pointer to item data array */
 } MenuDisplayConfig; /* 0x24 bytes */
 
 /** @brief Shared menu display state (lives in menumain BSS at 0x801FAB00). */

@@ -675,7 +675,7 @@ void* func_801F179C(s32 tickCb, s32 drawCb) {
         }
         n++;
     }
-    if (node == 0) {
+    if (node == NULL) {
         return NULL;
     }
     head = (MenuTask *)&D_801FA450;

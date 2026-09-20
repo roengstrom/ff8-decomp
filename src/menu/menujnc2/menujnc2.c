@@ -3752,7 +3752,7 @@ void setupMagicListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam,
     g_menuDisplayCfg.pageEnd = 1;
     g_menuDisplayCfg.y = y;
     g_menuDisplayCfg.scrollOffset = ctx->unk34;
-    g_menuDisplayCfg.dataPtr = (s32)&ctx->itemPtr;
+    g_menuDisplayCfg.dataPtr = &ctx->itemPtr;
 
     if (ctx->unk42 == 4) {
         g_menuDisplayCfg.scrollOffset = 0;
@@ -4668,7 +4668,7 @@ s32 renderAbilityListEntry(s32 ctx, s32 cursorY, s32 row, s32 col, s32 panelX) {
     s32 highlight;
     s32 stringX;
 
-    data = (u8 *)g_menuDisplayCfg.dataPtr;
+    data = g_menuDisplayCfg.dataPtr;
     if (data != 0) {
         idx = (row * 11) + col;
         cfgX = g_menuDisplayCfg.x;
