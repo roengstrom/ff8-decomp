@@ -16,7 +16,8 @@
  *        @ref BattleSpritePrim::flags.
  */
 typedef struct {
-    /* 0x00 */ u8 unk000[4];
+    /* 0x00 */ u8 unk000[3];
+    /* 0x03 */ s8 flag;            /**< Non-zero while the set is not usable. */
     /* 0x04 */ u8 clutRow[4];      /**< Default for @ref BattleSpritePrim::clutRow. */
     /* 0x08 */ u16 frameCount;
     /* 0x0A */ u16 offsets[1];     /**< One per frame, plus a terminator. */
@@ -105,6 +106,12 @@ typedef struct {
     /* 0xAC */ s32 lastAngle;
     /* 0xB0 */ s32 uvInset;        /**< 1 to keep the right and bottom texture edges one texel in. */
 } BattleSpritePrim; /* 0xB4 */
+
+/**
+ * @brief The animation at @p index of the battle's table.
+ * @return That animation, or the table's first if it is not usable yet.
+ */
+BattleSpriteAnim *func_800C94B8(s32 index);
 
 /** @brief Load the GTE matrices a prim at @p pos is emitted through. */
 void func_800C96E4(SVECTOR *pos, s32 scale, s16 angle);

@@ -140,7 +140,7 @@ CODE_OVERLAYS := field_init intro field \
                  tripletriad battle_render battle world
 
 ALL_EFFECT_OVERLAYS := $(filter effect_%,$(SPLAT_BINARIES))
-EFFECTS ?= effect_001 effect_025 effect_028 effect_052 effect_039 effect_056 effect_050 effect_051 effect_036 effect_027
+EFFECTS ?= effect_001 effect_025 effect_028 effect_052 effect_039 effect_056 effect_050 effect_051 effect_036 effect_027 effect_002
 EFFECT_OVERLAYS := $(if $(filter all,$(EFFECTS)),$(ALL_EFFECT_OVERLAYS),$(EFFECTS))
 OVERLAYS      := $(MENU_OVERLAYS) $(CODE_OVERLAYS) $(EFFECT_OVERLAYS)
 ALL_OVERLAYS  := $(MENU_OVERLAYS) $(CODE_OVERLAYS) $(ALL_EFFECT_OVERLAYS)

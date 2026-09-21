@@ -1348,8 +1348,8 @@ typedef struct BattleEffectSlot {
     /* 0x1C */ SVECTOR pos;        /**< Where the slot's model stands; @c vy is
                                         the origin a model's Y bounds are summed
                                         with. */
-    /* 0x24 */ u16 unk024;
-    /* 0x26 */ u8 pad026[0x28 - 0x26];
+    /* 0x24 */ s16 unk024;
+    /* 0x26 */ s16 unk026;
     /* 0x28 */ u32 unk028;         /**< Packed RGB the textured prims are drawn with. */
     /* 0x2C */ u8 pad02C[0x36 - 0x2C];
     /* 0x36 */ u16 unk036;

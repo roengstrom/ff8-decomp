@@ -6,12 +6,7 @@
 #include "battle/bc_object8.h"
 #include "battle/bc_object15.h"
 
-typedef struct {
-    u8 pad00[3];
-    s8 flag;
-} D_800EBF24_Type;
-
-extern D_800EBF24_Type *D_800EBF24[];
+extern BattleSpriteAnim *D_800EBF24[];
 extern u8 D_800FB408[];
 extern u8 D_800FA5F8[];
 extern u8 D_800E6658[];
@@ -106,8 +101,8 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object15", func_800C9424); /* 0x94 *
  * @param index Array index.
  * @return Entry from D_800EBF24[index] or D_800EBF24[0] on fallback.
  */
-D_800EBF24_Type *func_800C94B8(s32 index) {
-    D_800EBF24_Type *entry = D_800EBF24[index];
+BattleSpriteAnim *func_800C94B8(s32 index) {
+    BattleSpriteAnim *entry = D_800EBF24[index];
 
     if (entry->flag == 0)
         return entry;
