@@ -52,10 +52,6 @@ typedef struct {
     /* 0x04 */ SPRT sprt;        /**< Its own tag slot carries the @ref FIRE_DRAW_MODE word. */
 } FirePrim; /* 0x18 */
 
-void *func_801A0F3C(FireModel *model, u32 *ot, s32 z, void *head);
-
-void *func_801A110C(FireModel *model, SVECTOR *at, u32 *ot, void *prim);
-
 /** @brief How many battle slots the flame keeps a word for. */
 #define FIRE_SLOTS 7
 
@@ -75,10 +71,6 @@ typedef struct {
     /* 0x20 */ s16 slot;       /**< The battle slot it is cast on. */
     /* 0x22 */ s16 age;        /**< Counts up every frame it runs. */
 } FireChild; /* 0x24 */
-
-s32 func_801A0A70(FireChild *child);
-s32 func_801A1340(FireChild *child);
-s32 func_801A1810(FireTask *task);
 
 /** @brief How long one of the flame's sparks plays for. */
 #define FIRE_SPARK_LAST_FRAME 15
@@ -112,7 +104,25 @@ typedef struct {
     /* 0x1C */ s16 scale;
 } FireBurst;
 
-s32 func_801A0434(FireBurst *burst);
+/** @brief The record one of the flame's embers runs in. */
+typedef struct {
+    /* 0x00 */ u8 pad000[0xC];
+    /* 0x0C */ u16 frame;      /**< Counts down; the ember ends when it wraps. */
+    /* 0x0E */ s16 delay;      /**< Frames to wait before the ember appears. */
+    /* 0x10 */ SVECTOR pos;
+    /* 0x18 */ SVECTOR vel;
+    /* 0x20 */ s16 scale;
+} FireEmber;
+
+static s32 func_801A0174(FireEmber *ember);
+static s32 func_801A02FC(FireSpark *spark);
+static s32 func_801A0434(FireBurst *burst);
+static s32 func_801A0A70(FireChild *flame);
+static void *func_801A0F3C(FireModel *model, u32 *ot, s32 z, void *head);
+static void *func_801A110C(FireModel *model, SVECTOR *at, u32 *ot, void *head);
+static s32 func_801A1284(FireTask *task);
+static s32 func_801A1340(FireChild *cue);
+static s32 func_801A1810(FireTask *task);
 
 /**
  * @brief Start the effect and hand back its task pool.
@@ -153,23 +163,13 @@ void *func_801A0000(EffectAnimSet *animSet) {
     return &D_801C2D14;
 }
 
-/** @brief The record one of the flame's embers runs in. */
-typedef struct {
-    /* 0x00 */ u8 pad000[0xC];
-    /* 0x0C */ u16 frame;      /**< Counts down; the ember ends when it wraps. */
-    /* 0x0E */ s16 delay;      /**< Frames to wait before the ember appears. */
-    /* 0x10 */ SVECTOR pos;
-    /* 0x18 */ SVECTOR vel;
-    /* 0x20 */ s16 scale;
-} FireEmber;
-
 /**
  * @brief Draw one of the flame's embers, drifting and shrinking as it goes.
  *
  * @param ember The ember to draw.
  * @return 2 once its frame counter has wrapped past zero.
  */
-s32 func_801A0174(FireEmber *ember) {
+static s32 func_801A0174(FireEmber *ember) {
     BattleSpritePrim *prim;
     void *head;
     u32 frame;
@@ -212,7 +212,7 @@ s32 func_801A0174(FireEmber *ember) {
  * @param spark The spark to draw.
  * @return 2 once it has played every frame of its animation.
  */
-s32 func_801A02FC(FireSpark *spark) {
+static s32 func_801A02FC(FireSpark *spark) {
     BattleSpritePrim *prim;
     s16 frame;
     void *head;
@@ -254,7 +254,7 @@ s32 func_801A02FC(FireSpark *spark) {
  * @param burst The burst to draw.
  * @return 2 once it has played every frame of its animation.
  */
-s32 func_801A0434(FireBurst *burst) {
+static s32 func_801A0434(FireBurst *burst) {
     BattleSpritePrim *prim;
     FireSpark *spark;
     FireEmber *ember;
@@ -349,9 +349,13 @@ s32 func_801A0434(FireBurst *burst) {
 /** @brief The frame a cue hands the animation on to the next entry. */
 #define FIRE_CUE_HANDOFF_FRAME 12
 
-/** @brief The frames a cue throws its bursts, plays its sound and lands its hit. */
+/** @brief The frame a cue throws its bursts. */
 #define FIRE_CUE_BURST_FRAME 1
+
+/** @brief The frame a cue plays its sound. */
 #define FIRE_CUE_SOUND_FRAME 6
+
+/** @brief The frame a cue lands its hit. */
 #define FIRE_CUE_HIT_FRAME 8
 
 /** @brief The last frame a cue runs; it ends once it is past this. */
@@ -382,7 +386,7 @@ s32 func_801A0434(FireBurst *burst) {
  * @param flame The flame to run.
  * @return 2 once it has run its last frame.
  */
-s32 func_801A0A70(FireChild *flame) {
+static s32 func_801A0A70(FireChild *flame) {
     SVECTOR at;
     FireChild *next;
     FireBurst *burst;
@@ -475,7 +479,7 @@ s32 func_801A0A70(FireChild *flame) {
  * @param head The prim cursor they are built from.
  * @return The prim cursor left afterwards.
  */
-void *func_801A0F3C(FireModel *model, u32 *ot, s32 z, void *head) {
+static void *func_801A0F3C(FireModel *model, u32 *ot, s32 z, void *head) {
     FirePrim *prim;
     FirePrim *next;
     DR_TPAGE *extra;
@@ -491,7 +495,7 @@ void *func_801A0F3C(FireModel *model, u32 *ot, s32 z, void *head) {
     sprite = (BattleSprite *)model->sprites;
     for (i = 0; i < n; i++, sprite++) {
         setlen(prim, 5);
-        setcode(&prim->sprt, (sprite->code & 2) | 0x64);
+        setcode(&prim->sprt, (sprite->code & BATTLE_SPRITE_CODE_BLEND) | 0x64);
         prim->sprt.r0 = prim->sprt.g0 = prim->sprt.b0 = sprite->shade;
         *(u32 *)&prim->sprt.u0 = *(u32 *)&sprite->u;
         setXY0(&prim->sprt, model->x + sprite->x, model->y + sprite->y);
@@ -539,7 +543,7 @@ void *func_801A0F3C(FireModel *model, u32 *ot, s32 z, void *head) {
  * @param head The prim cursor it is built from.
  * @return The prim cursor left afterwards.
  */
-void *func_801A110C(FireModel *model, SVECTOR *at, u32 *ot, void *head) {
+static void *func_801A110C(FireModel *model, SVECTOR *at, u32 *ot, void *head) {
     BattleSpriteAnim *anim;
     u16 *offsets;
 
@@ -551,7 +555,7 @@ void *func_801A110C(FireModel *model, SVECTOR *at, u32 *ot, void *head) {
     model->sprites = model->sprites + 4;
     model->nextOffset = offsets[model->frame + 1];
     if (model->spriteCount < 0) {
-        model->spriteCount &= 0x7FFFFFFF;
+        model->spriteCount &= ~BATTLE_SPRITE_COUNT_FLAG;
         model->flags |= BATTLE_SPRITE_FLAG_ADDITIVE;
     }
     if (!(model->flags & BATTLE_SPRITE_FLAG_COLOUR)) {
@@ -585,7 +589,7 @@ void *func_801A110C(FireModel *model, SVECTOR *at, u32 *ot, void *head) {
  * @param task The effect's frame task.
  * @return 2 once the flame has played out.
  */
-s32 func_801A1284(FireTask *task) {
+static s32 func_801A1284(FireTask *task) {
     SVECTOR at;
     FireModel *model;
     s16 frame;
@@ -614,7 +618,7 @@ s32 func_801A1284(FireTask *task) {
  * @param cue The cue to run.
  * @return 2 once it has run its last frame.
  */
-s32 func_801A1340(FireChild *cue) {
+static s32 func_801A1340(FireChild *cue) {
     SVECTOR at;
     FireChild *next;
     FireBurst *burst;
@@ -702,7 +706,7 @@ s32 func_801A1340(FireChild *cue) {
  * @param task The effect's frame task.
  * @return 2 once its children have drained.
  */
-s32 func_801A1810(FireTask *task) {
+static s32 func_801A1810(FireTask *task) {
     s32 done;
 
     D_801D8254 = (task->frame & FIRE_FRAME_ODD) ? D_801C4254 + FIRE_HALF

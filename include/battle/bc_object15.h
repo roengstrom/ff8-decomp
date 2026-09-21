@@ -43,6 +43,9 @@ typedef struct {
     /* 0x12 */ s16 scaleY;
 } BattleSprite; /* 0x14 */
 
+/** @brief @ref BattleSprite::code -- the sprite is drawn semi-transparent. */
+#define BATTLE_SPRITE_CODE_BLEND 0x2
+
 /** @brief @ref BattleSprite::flags bits 0-8: the texture page. */
 #define BATTLE_SPRITE_TPAGE_MASK 0x1FF
 /** @brief @ref BattleSprite::flags bits 10-11: the sprite carries its own angle and scale. */
