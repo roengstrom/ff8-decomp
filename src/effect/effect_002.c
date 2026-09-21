@@ -201,6 +201,8 @@ static s32 func_801A0174(FireEmber *ember) {
         ember->pos.vz += ember->vel.vz;
         ember->vel.vz -= ember->vel.vz >> 4;
         ember->scale -= 0x40;
+        /* bit 15 is set once the counter wraps below zero; this moves it to
+         * bit 1, which reads as the 2 that ends the task. */
         return (frame >> 14) & 2;
     }
     return 0;
