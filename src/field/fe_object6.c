@@ -4,11 +4,12 @@
 #include "battle.h"
 #include "sound.h"
 #include "psxsdk/libgte.h"
+#include "field/field_data.h"
 #include "field/fe_object6.h"
 
 /**
  * Pops 3 stack values (target, volume, pan), looks up an SFX entry in
- * the dispatcher-keyed bank table @c D_800D5EA4, and plays the resulting
+ * the dispatcher-keyed bank table @c g_curFieldSfx, and plays the resulting
  * bank SFX with the popped parameters (volume masked to 8 bits, pan to 7).
  *
  * @param actor Pointer to the Actor event-script context.
@@ -22,7 +23,7 @@ s32 opHandler_EFFECTPLAY2(ScriptContext *context, s32 a1) {
     val3 = POP(context);
     val2 &= 0xFF;
     val3 &= 0x7F;
-    sndPlayBankSfx((s32)func_8003974C(D_800D5EA4, a1), val1, val2, val3);
+    sndPlayBankSfx((s32)getOffsetTableEntry(g_curFieldSfx, a1), val1, val2, val3);
     return 2;
 }
 
@@ -240,7 +241,7 @@ void func_800B2864(Actor *actor, s32 channel, s32 unused2, s32 unused3) {
         if ((u32)(actor->msgActive - 3) < 2) {
             sndPlaySfx(0x40, 0x400000, pitch, volume);
         } else if ((s8)actor->unk188 != -1) {
-            sndPlayBankSfx((s32)func_8003974C(D_800D5EA4, (s8)actor->unk188), 0x400000, pitch, volume);
+            sndPlayBankSfx((s32)getOffsetTableEntry(g_curFieldSfx, (s8)actor->unk188), 0x400000, pitch, volume);
         } else if (actor->context.flags & 0x4000000) {
             sndPlaySfx(0x36, 0x400000, pitch, volume);
         } else {
@@ -251,7 +252,7 @@ void func_800B2864(Actor *actor, s32 channel, s32 unused2, s32 unused3) {
         if ((u32)(actor->msgActive - 3) < 2) {
             sndPlaySfx(0x3F, 0x400000, pitch, volume);
         } else if ((s8)actor->unk189 != -1) {
-            sndPlayBankSfx((s32)func_8003974C(D_800D5EA4, (s8)actor->unk189), 0x800000, pitch, volume);
+            sndPlayBankSfx((s32)getOffsetTableEntry(g_curFieldSfx, (s8)actor->unk189), 0x800000, pitch, volume);
         } else if (actor->context.flags & 0x4000000) {
             sndPlaySfx(0x35, 0x400000, pitch, volume);
         } else {
@@ -1378,28 +1379,27 @@ s32 opHandler_SETDCAMERA(ScriptContext *context) {
 }
 
 /**
- * Find the first free slot in @c D_8005F0F8->entries (the entry whose
- * @c field16 is the sentinel @c 0x7FFF), pop four halfwords into its
- * @c field04 / @c field06 / @c field08 / @c field16, set @c field14 =
- * @c 0xFFFF to mark the slot armed, and re-arm the next entry's
- * @c field16 to @c 0x7FFF as the new sentinel.
+ * Fill the first unused gateway (@c fieldId @c FIELD_GATEWAY_UNUSED): pop
+ * its exit-line start @c z0 / @c y0 / @c x0 and destination @c fieldId, set
+ * @c spawnTriIdx to @c FIELD_GATEWAY_NO_TRIANGLE so the crossing scan skips
+ * it, and mark the next slot unused.
  *
- * @param actor Pointer to the Actor event-script context.
+ * @param context Script context.
  * @return 2 (continue processing).
  */
 s32 opHandler_PREMAPJUMP(ScriptContext *context) {
     s32 t = 0;
-    if (D_8005F0F8->entries[0].field16 != 0x7FFF) {
+    if (g_curFieldInfo->gateways[0].fieldId != FIELD_GATEWAY_UNUSED) {
         do {
             t++;
-        } while (D_8005F0F8->entries[t].field16 != 0x7FFF);
+        } while (g_curFieldInfo->gateways[t].fieldId != FIELD_GATEWAY_UNUSED);
     }
-    D_8005F0F8->entries[t].y1 = (u16)POP(context);
-    D_8005F0F8->entries[t].x1 = (u16)POP(context);
-    D_8005F0F8->entries[t].z0 = (u16)POP(context);
-    D_8005F0F8->entries[t].field16 = (u16)POP(context);
-    D_8005F0F8->entries[t].field14 = 0xFFFF;
-    D_8005F0F8->entries[t + 1].field16 = 0x7FFF;
+    g_curFieldInfo->gateways[t].z0 = POP(context);
+    g_curFieldInfo->gateways[t].y0 = POP(context);
+    g_curFieldInfo->gateways[t].x0 = POP(context);
+    g_curFieldInfo->gateways[t].fieldId = POP(context);
+    g_curFieldInfo->gateways[t].spawnTriIdx = FIELD_GATEWAY_NO_TRIANGLE;
+    g_curFieldInfo->gateways[t + 1].fieldId = FIELD_GATEWAY_UNUSED;
     return 2;
 }
 

@@ -267,14 +267,14 @@ s32 opHandler_DRAWPOINT(Actor *actor) {
         if (func_800B5990()) {
             i = getPackedField2Bit(fieldIdx);
             if (i == 3 || getPackedField2Bit(fieldIdx) == 2) {
-                text = func_800B574C(func_8003974C(D_8005630C, 3));
+                text = func_800B574C(getOffsetTableEntry(&D_8005630C, 3));
             } else {
-                text = func_800B574C(func_8003974C(D_8005630C, 2));
+                text = func_800B574C(getOffsetTableEntry(&D_8005630C, 2));
                 text = func_800B578C(0xC, tableResult & 0x3F);
                 sndPlaySfx(0x42, 0, 0x80, 0x7F);
             }
         } else {
-            text = func_800B574C(func_8003974C(D_8005630C, 7));
+            text = func_800B574C(getOffsetTableEntry(&D_8005630C, 7));
         }
 
         initSfxPlayback(6, text);
@@ -331,7 +331,7 @@ s32 opHandler_DRAWPOINT(Actor *actor) {
             }
         }
 
-        text = func_800B574C(func_8003974C(D_8005630C, 4));
+        text = func_800B574C(getOffsetTableEntry(&D_8005630C, 4));
         text = func_800B57E8(D_800DE4D4, tableResult & 0x3F);
         dims = func_8002E680(text);
         rect[2] = (dims & 0xFFFF) + 0x30;
@@ -400,13 +400,13 @@ s32 opHandler_DRAWPOINT(Actor *actor) {
             func_8002E1B4(7, i);
 
             if (i != 0) {
-                text = func_800B574C(func_8003974C(D_8005630C, 5));
+                text = func_800B574C(getOffsetTableEntry(&D_8005630C, 5));
             } else {
-                text = func_800B574C(func_8003974C(D_8005630C, 6));
+                text = func_800B574C(getOffsetTableEntry(&D_8005630C, 6));
                 actor->field_0x204 = 0;
             }
         } else {
-            text = func_800B574C(func_8003974C(D_8005630C, 6));
+            text = func_800B574C(getOffsetTableEntry(&D_8005630C, 6));
             actor->field_0x204 = 0;
         }
 

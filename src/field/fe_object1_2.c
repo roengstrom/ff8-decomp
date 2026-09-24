@@ -9,6 +9,10 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object10.h"
 
+static void func_800A2F48(FieldParticles *particles);
+static void func_800A2F70(POLY_FT4 *prim);
+static void func_800A3534(FieldParticles *particles);
+
 /**
  * @brief Arm every camera slot whose move has not started yet.
  *
@@ -55,7 +59,7 @@ void func_800A10F4(void) {
  *
  * Reads @c D_800704A8.slots[unk1A6].param to pick an @ref Actor entity,
  * fills @c svec.{vx,vy,vz} from its @c posX/posY/posZ shifted right by
- * @c 12, biasing @c vz by @c D_8005F0F8->baseZ. The projection result is
+ * @c 12, biasing @c vz by @c g_curFieldInfo->baseZ. The projection result is
  * latched to @c D_800C71FC. The trailing @c func_800A0FB8 clamp call gets
  * flag @c 0 when @c unk1A6 @c == @c 0 and flag @c 1 otherwise.
  *
@@ -70,7 +74,7 @@ void func_800A11E0(Vec2s *out, s16 slotIdx) {
     svec.vx = D_80085224[D_800704A8.slots[D_800704A8.unk1A6].param].posX >> 12;
     svec.vy = D_80085224[D_800704A8.slots[D_800704A8.unk1A6].param].posY >> 12;
     svec.vz = (D_80085224[D_800704A8.slots[D_800704A8.unk1A6].param].posZ >> 12) +
-              D_8005F0F8->baseZ;
+              g_curFieldInfo->baseZ;
     D_800C71FC = func_800A0F34(&svec, (s32 *)out);
     if (D_800704A8.unk1A6 == 0) {
         func_800A0FB8(out, 0, 0);
@@ -195,19 +199,19 @@ void func_800A15C0(FieldFrameBuf *buf, DRAWENV *env, s16 slotIdx) {
     SetGeomOffset(0, 0);
     if (func_800BE274() == 0) {
         if (buf == D_800C7218) {
-            env[0].dispX = (D_800C7210 - D_800704A8.slots[slotIdx].q1) + (s8)D_800704A8.oscillators[0].output + D_800C71F8->viewOfsX;
-            env[0].dispY = (D_800C7214 - D_800704A8.slots[slotIdx].q2) + (s8)D_800704A8.oscillators[1].output + D_800C71F8->viewOfsY;
+            env[0].dispX = (D_800C7210 - D_800704A8.slots[slotIdx].q1) + (s8)D_800704A8.oscillators[0].output + g_curFieldView->viewOfsX;
+            env[0].dispY = (D_800C7214 - D_800704A8.slots[slotIdx].q2) + (s8)D_800704A8.oscillators[1].output + g_curFieldView->viewOfsY;
         } else {
-            env[1].dispX = (D_800C7210 - D_800704A8.slots[slotIdx].q1) + (s8)D_800704A8.oscillators[0].output + D_800C71F8->viewOfsX + 0x200;
-            env[1].dispY = (D_800C7214 - D_800704A8.slots[slotIdx].q2) + (s8)D_800704A8.oscillators[1].output + D_800C71F8->viewOfsY;
+            env[1].dispX = (D_800C7210 - D_800704A8.slots[slotIdx].q1) + (s8)D_800704A8.oscillators[0].output + g_curFieldView->viewOfsX + 0x200;
+            env[1].dispY = (D_800C7214 - D_800704A8.slots[slotIdx].q2) + (s8)D_800704A8.oscillators[1].output + g_curFieldView->viewOfsY;
         }
     } else {
         if (buf == D_800C7218) {
-            env[0].dispX = D_800C7210 - D_800C71F8->viewOfsX;
-            env[0].dispY = D_800C7214 + D_800C71F8->viewOfsY;
+            env[0].dispX = D_800C7210 - g_curFieldView->viewOfsX;
+            env[0].dispY = D_800C7214 + g_curFieldView->viewOfsY;
         } else {
-            env[1].dispX = (D_800C7210 - D_800C71F8->viewOfsX) + 0x200;
-            env[1].dispY = D_800C7214 + D_800C71F8->viewOfsY;
+            env[1].dispX = (D_800C7210 - g_curFieldView->viewOfsX) + 0x200;
+            env[1].dispY = D_800C7214 + g_curFieldView->viewOfsY;
         }
     }
 }
@@ -335,7 +339,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1_2", func_800A19B8);
  *        the @c 0x8000 transparency bit on every pixel.
  *
  * Sets @c D_800C71E4 to point at the saved-image buffer @c D_800D3E88,
- * then (only when the current event queue's @c unk0E flag is @c 1)
+ * then (only when the field info's @c movieMask flag is @c 1)
  * uses @c StoreImage (via @c func_80048F5C) to write the buffer back
  * to VRAM at @c (0x100, 0x10) with a @c 256x16 RECT, and masks every
  * pixel's @c 0x8000 transparency bit to leave just the colour bits.
@@ -349,7 +353,7 @@ void func_800A1BB8(void) {
     u16 *p;
     s32 i;
     D_800C71E4 = D_800D3E88;
-    if (D_8005F0F8->unk0E != 1) return;
+    if (g_curFieldInfo->movieMask != 1) return;
     rect.x = 0x200;
     rect.y = 0xF0;
     rect.w = 0x100;
@@ -365,19 +369,19 @@ void func_800A1BB8(void) {
 }
 
 /**
- * If D_8005F0F8 byte at offset 0xE is 1, sets up a display region
- * (0x200 x 0xF0 at 0x100, 0x10) and calls LoadImage.
+ * @brief Upload @c D_800C71E4 back to the 256x16 strip at VRAM (512, 240) when
+ *        the field has a movie mask.
+ *
+ * Counterpart of @c func_800A1BB8, which captures the same strip.
  */
 void func_800A1C64(void) {
-    u8 *data = (u8 *)D_8005F0F8;
-
-    if (*(u8 *)(data + 0xE) == 1) {
-        s16 rect[4];
-        rect[0] = 0x200;
-        rect[1] = 0xF0;
-        rect[2] = 0x100;
-        rect[3] = 0x10;
-        LoadImage(rect, D_800C71E4);
+    if (g_curFieldInfo->movieMask == 1) {
+        RECT rect;
+        rect.x = 0x200;
+        rect.y = 0xF0;
+        rect.w = 0x100;
+        rect.h = 0x10;
+        LoadImage(&rect, D_800C71E4);
     }
 }
 
@@ -449,7 +453,7 @@ void func_800A1CFC(Actor *ents, FieldFrameBuf *frame) {
         v30.z = (u16)ent->posOfsZ + (ent->posZ >> 12);
         func_800A7224(i, (u16 *)&v30, 0);
         if (ent->turnMode == 1 && ent->turnTick == 0) {
-            func_800A8DAC(i, 0x1E, D_800C71F8, buf);
+            func_800A8DAC(i, 0x1E, g_curFieldView, buf);
             pB.x = ent->turnTgtX;
             pB.y = ent->turnTgtY;
             pB.z = ent->turnTgtZ;
@@ -536,7 +540,7 @@ void func_800A1CFC(Actor *ents, FieldFrameBuf *frame) {
             func_800A97E4(i, 0x25, 0, 0);
         }
     }
-    func_800A63AC(frame, D_800C71F8, 0);
+    func_800A63AC(frame, g_curFieldView, 0);
 }
 
 /**
@@ -744,16 +748,17 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
  * @brief Initialize a run of items at @p p; return the pointer past the
  *        last item.
  *
- * Iterates @c **D_800D5E9C items, each iteration writing the fixed
- * trio (@c b3 = 4, @c b7 = 0x22, @c b4/b5/b6 = 0). The buffer count
- * @c **D_800D5E9C is reloaded each iteration (gcc can't prove the
- * stores don't alias the indirect chain). Returns the input pointer
+ * Writes one item per @c g_fieldMovieMask triangle, each with the fixed
+ * trio (@c b3 = 4, @c b7 = 0x22, @c b4/b5/b6 = 0). The triangle count
+ * is reloaded each iteration (gcc can't prove the stores don't alias
+ * the indirect chain) and read as a halfword: reading the full word turns
+ * the lhu into lw and the exit test into blez. Returns the input pointer
  * advanced past the items written, used by @c func_800983F0 to chain
  * multiple init regions into one growing buffer.
  */
 func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
     s32 i;
-    for (i = 0; i < **D_800D5E9C; i++) {
+    for (i = 0; i < (u16)(*g_fieldMovieMask)->count; i++) {
         p->b3 = 4;
         p->b7 = 0x22;
         p->b4 = 0;
@@ -765,11 +770,11 @@ func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
 }
 
 /**
- * @brief Append one GPU draw-mode prim per entry in the @c D_800D5E9C
- *        list; return the advanced output pointer.
+ * @brief Append one GPU draw-mode prim per @c g_fieldMovieMask triangle;
+ *        return the advanced output pointer.
  *
- * For each non-sentinel entry (count from @c **D_800D5E9C), calls
- * @c func_8004D524(0, 1, 0, 0) to get a color value, masks to 9 bits,
+ * For each triangle (the count read as a halfword, which keeps the lhu),
+ * calls @c func_8004D524(0, 1, 0, 0) to get a color value, masks to 9 bits,
  * ORs with the GPU draw-mode command base @c 0xE1000200, and writes
  * one 8-byte prim with @c tag=1 + @c cmd=combined.
  *
@@ -777,7 +782,7 @@ func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
  */
 func_800A2A30_item *func_800A2A30(func_800A2A30_item *p) {
     s32 i;
-    for (i = 0; i < **D_800D5E9C; i++) {
+    for (i = 0; i < (u16)(*g_fieldMovieMask)->count; i++) {
         s32 color;
         p->tag = 1;
         color = func_8004D524(0, 1, 0, 0);
@@ -871,108 +876,60 @@ s16 func_800A2EA4(s16 range) {
 }
 
 /**
- * Initializes an object by calling a sequence of setup functions.
+ * @brief Reset the field's particle system after its member is loaded.
  *
- * @param a0 Pointer to the script/object structure.
+ * Clears the animation slots' state, the records' active counts and every
+ * particle's step state, then tags both prim arenas' @c POLY_FT4s.
+ *
+ * @param particles The field's particle system.
  */
-void func_800A2EE0(u8 *a0) {
-    func_800A3534(a0);
-    func_800A3018(a0);
-    func_800A2F48(a0);
-    func_800A2F70(a0 + 0x3720);
-    func_800A2F70(a0 + 0x4B20);
+void func_800A2EE0(FieldParticles *particles) {
+    func_800A3534(particles);
+    func_800A3018(particles->records);
+    func_800A2F48(particles);
+    func_800A2F70(particles->primArena[0]);
+    func_800A2F70(particles->primArena[1]);
 }
 
 /**
- * Clears 16 bytes at offset 0x190 (backwards loop).
+ * @brief Clear all 16 @c SystemState::slotActive entries.
  *
- * @param a0 Unused parameter.
- * @param a1 Pointer to the object structure base.
+ * @param particles Unused.
+ * @param sys       System state.
  */
-void func_800A2F28(s32 a0, u8 *a1) {
-    s32 i = 0xF;
-    a1 += 0xF;
-    do {
-        *(u8 *)(a1 + 0x190) = 0;
-        i--;
-        a1--;
-    } while (i >= 0);
-}
-
-/**
- * @brief Shape of the buffer @c func_800A2F48 sees: an array of 128
- * 32-byte items beginning at offset 0x2739, each item's first 3 bytes
- * being what gets zeroed.
- *
- * @note Named after the function/arg it describes rather than after a
- *       semantic role, we don't know what the original developer
- *       called this view. The same memory is also reached by
- *       @c func_800A303C through the @c Particle overlay (where these
- *       3 bytes are the per-particle @c unk19, @c unk1A, and @c active
- *       fields), but it's not certain that the original C used the same
- *       struct in both functions.
- */
-typedef struct {
-    /* 0x0000 */ u8 pad0000[0x2739];
-    /* 0x2739 */ struct {
-        u8 b0;
-        u8 b1;
-        u8 b2;
-        u8 pad[0x1D];
-    } items[128];
-} func_800A2F48_arg0;
-
-/**
- * @brief Zero the 3 leading bytes of each of the 128 items in the table.
- *
- * Called from @c func_800A2EE0 during the particle-system init chain on
- * the disc-loaded field-map buffer.
- */
-void func_800A2F48(func_800A2F48_arg0 *t) {
+void func_800A2F28(FieldParticles *particles, SystemState *sys) {
     s32 i;
-    for (i = 0; i < 128; i++) {
-        t->items[i].b0 = 0;
-        t->items[i].b1 = 0;
-        t->items[i].b2 = 0;
+    for (i = 0; i < 16; i++) {
+        sys->slotActive[i] = 0;
     }
 }
 
 /**
- * @brief Shape @c func_800A2F70 sees: array of 128 40-byte items, three
- *        fields per item, @c b3 / @c b7 (constant tags) and @c hE (a
- *        @c func_8004D564 -seeded halfword).
+ * @brief Clear every particle's step index, step progress and active flag.
  *
- * @note Named after the function/arg. Called from @c func_800A2EE0 twice
- *       (at base + 0x3720 and base + 0x4B20) on two different sub-regions
- *       of the disc-loaded field-map buffer, so the shape describes
- *       "whichever sub-region was passed" rather than any single
- *       canonical struct.
+ * @param particles The field's particle system.
  */
-typedef struct {
-    /* 0x00 */ u8  pad00[0x3];
-    /* 0x03 */ u8  b3;
-    /* 0x04 */ u8  pad04[0x3];
-    /* 0x07 */ u8  b7;
-    /* 0x08 */ u8  pad08[0x6];
-    /* 0x0E */ s16 hE;
-    /* 0x10 */ u8  pad10[0x18];
-} func_800A2F70_arg0;  /* 0x28 = 40 bytes */
-
-/**
- * @brief Seed 128 items with the constant tags 9 / 0x2C and a
- *        per-item @c func_8004D564(0, 0xE8) sample at the @c hE field.
- *
- * Called twice from @c func_800A2EE0 on two distinct sub-regions of the
- * disc-loaded field-map buffer; both regions are arrays of 40-byte
- * items, 128 entries each.
- */
-void func_800A2F70(func_800A2F70_arg0 *e) {
+static void func_800A2F48(FieldParticles *particles) {
     s32 i;
     for (i = 0; i < 128; i++) {
-        e->b3 = 9;
-        e->b7 = 0x2C;
-        e->hE = func_8004D564(0, 0xE8);
-        e++;
+        particles->entries[i].stepIndex = 0;
+        particles->entries[i].stepProgress = 0;
+        particles->entries[i].active = 0;
+    }
+}
+
+/**
+ * @brief Tag all 128 prims of one particle prim arena as @c POLY_FT4, each
+ *        using the CLUT at VRAM (0, 232).
+ *
+ * @param prim First prim of the arena.
+ */
+static void func_800A2F70(POLY_FT4 *prim) {
+    s32 i;
+    for (i = 0; i < 128; i++) {
+        setPolyFT4(prim);
+        prim->clut = func_8004D564(0, 0xE8);
+        prim++;
     }
 }
 
@@ -981,10 +938,9 @@ void func_800A2F70(func_800A2F70_arg0 *e) {
  * 32-byte items beginning at offset 0x2739, each item's third byte
  * being the @c active flag scanned for free slots.
  *
- * @note Named after the function/arg. Same memory layout as
- *       @c func_800A2F48_arg0 (which clears all three leading bytes of
- *       each item); the views weren't unified because we don't know
- *       whether the original C source shared a single typedef.
+ * @note Named after the function/arg. The three bytes are
+ *       @c MoveAccum::stepIndex, @c stepProgress and @c active of
+ *       @c FieldParticles::entries.
  */
 typedef struct {
     /* 0x0000 */ u8 pad0000[0x2739];
@@ -1165,38 +1121,16 @@ void func_800A3488(func_800A3488_arg0 *a, SVECTOR *out) {
 }
 
 /**
- * @brief Shape of the buffer @c func_800A3534 sees: an array of 16
- * items beginning at offset 0x1830, each item @c 0xFE bytes with three
- * leading s16 fields that get zeroed.
+ * @brief Clear the three state halfwords of all 16 animation slots.
  *
- * @note Named after the function/arg; we don't know the original name.
- *       Same disc-loaded field-map buffer that the rest of the
- *       @c func_800A2EE0 init chain operates on, but the per-item shape
- *       (stride 0xFE, three s16 fields) doesn't align with any other
- *       struct in this file.
+ * @param particles The field's particle system.
  */
-typedef struct {
-    /* 0x0000 */ u8 pad0000[0x1830];
-    /* 0x1830 */ struct {
-        s16 h0;
-        s16 h1;
-        s16 h2;
-        u8  pad[0xF8];   /* pad to 0xFE stride */
-    } items[16];
-} func_800A3534_arg0;
-
-/**
- * @brief Zero the three leading s16 fields of each of 16 items in the table.
- *
- * Called from @c func_800A2EE0 as the first step of the particle-system
- * init chain on the disc-loaded field-map buffer.
- */
-void func_800A3534(func_800A3534_arg0 *t) {
+static void func_800A3534(FieldParticles *particles) {
     s32 i;
     for (i = 0; i < 16; i++) {
-        t->items[i].h0 = 0;
-        t->items[i].h1 = 0;
-        t->items[i].h2 = 0;
+        particles->slots[i].h0 = 0;
+        particles->slots[i].h1 = 0;
+        particles->slots[i].h2 = 0;
     }
 }
 
@@ -1272,7 +1206,7 @@ void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
 }
 
 /**
- * @brief Per-frame animation tick for all 16 slots of a field subscene buffer.
+ * @brief Per-frame animation tick for all 16 slots of the field's particle system.
  *
  * Walks the 16 @ref FieldSubsceneSlot entries of @p buf (stride @c 0xFE). For
  * each slot marked active in @c D_800704A8.slotActive[i]:
@@ -1285,12 +1219,12 @@ void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
  *
  * @param arg0 Unused.
  * @param frame Unused.
- * @param buf  Subscene buffer (from the @c D_800C7200 table).
+ * @param buf  The field's particle system (@c g_curFieldParticles).
  *
  * @note @c pos is declared but unused: the original reserves an 8-byte stack
  *       slot here (gcc 2.7.2 keeps an unused struct local), matching the frame.
  */
-void func_800A37A8(MATRIX *m, FieldFrameBuf *frame, FieldSubsceneBuffer *buf) {
+void func_800A37A8(MATRIX *m, FieldFrameBuf *frame, FieldParticles *buf) {
     s32 i;
     SVECTOR pos;
 
@@ -1372,7 +1306,7 @@ void func_800A38B4(MoveAccum *out, MoveStep *in, MoveStep *target) {
  *       @c func_80040534 its @c TransMatrix; the field overlay links both by
  *       address, so they keep their @c func_ names here.
  */
-void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldSubsceneBuffer *buf, u32 *ot) {
+void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldParticles *buf, u32 *ot) {
     SVECTOR *pos = (SVECTOR *)getScratchAddr(5);
     SVECTOR *rot = (SVECTOR *)getScratchAddr(7);
     SVECTOR *corner = (SVECTOR *)getScratchAddr(9);
@@ -1398,11 +1332,11 @@ void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldSubsceneBuffer *buf, u3
 
     if (step->mode == 4) {
         buf->primCursor->code &= ~2;
-        buf->primCursor->tpage = (D_8005F0F8->tpageX & 0xF) | 0x10;
+        buf->primCursor->tpage = (g_curFieldInfo->tpageX & 0xF) | 0x10;
     } else {
         buf->primCursor->code |= 2;
         tp = (((step->mode & 3) << 5) | 0x10);
-        tp |= D_8005F0F8->tpageX & 0xF;
+        tp |= g_curFieldInfo->tpageX & 0xF;
         buf->primCursor->tpage = tp;
     }
 
@@ -1415,7 +1349,7 @@ void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldSubsceneBuffer *buf, u3
     if (otz > 0 && otz < 0x1000) {
         dx = (next->spriteX - step->spriteX) * acc->stepProgress / step->stepTotal;
         dy = (next->spriteY - step->spriteY) * acc->stepProgress / step->stepTotal;
-        scale = (D_800C71F8->spriteScale << 14) / otz;
+        scale = (g_curFieldView->spriteScale << 14) / otz;
         spriteX = step->spriteX + dx;
         spriteY = step->spriteY + dy;
 
@@ -1504,7 +1438,7 @@ void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldSubsceneBuffer *buf, u3
  *
  * @param buf Animation buffer to run to completion.
  */
-void func_800A3FE0(FieldSubsceneBuffer *buf) {
+void func_800A3FE0(FieldParticles *buf) {
     u8 saved[16];
     s32 i;
     s32 j;
@@ -2308,10 +2242,9 @@ void func_800A5A14(s16 a0) {
  * @brief Per-frame background preload of the field nearest the player.
  *
  * Snapshots the player position into the scratchpad (whole units), then, while
- * the map is not suppressed by @c D_800704BD, scans the 12 event-queue entries
- * for the armed one (@c counter != @c 0x7FFF) whose trigger-segment start is
- * nearest in XY, recording its @c counter (the destination field id) in
- * @c D_8005F142.
+ * the map is not suppressed by @c D_800704BD, scans the 12 gateways for the one
+ * in use (@c fieldId != @c FIELD_GATEWAY_UNUSED) whose exit line starts
+ * nearest in XY, recording its destination @c fieldId in @c D_8005F142.
  *
  * The streaming half then runs unless the movie subsystem is busy or the engine
  * is in mode 3 (both abort through @c func_800A59D0), and unless a load is
@@ -2324,9 +2257,9 @@ void func_800A5A14(s16 a0) {
  * in flight.
  *
  * @param actor    Player entity, read for its 20.12 world position.
- * @param entries Event-queue entry array (12 slots).
+ * @param gateways The field's 12 gateways.
  */
-void func_800A5A20(Actor *actor, EventEntry *entries) {
+void func_800A5A20(Actor *actor, FieldGateway *gateways) {
     Vec3i *scratch = (Vec3i *)getScratchAddr(0);
     s32 best;
     s32 i;
@@ -2347,11 +2280,11 @@ void func_800A5A20(Actor *actor, EventEntry *entries) {
     scratch->z = actor->posZ >> 12;
 
     if (D_800704BD == 0) {
-        for (i = 0; i < 12; i++, entries++) {
-            id = entries->counter;
-            if (id != 0x7FFF) {
-                dx = entries->x0 - scratch->x;
-                dy = entries->y0 - scratch->y;
+        for (i = 0; i < 12; i++, gateways++) {
+            id = gateways->fieldId;
+            if (id != FIELD_GATEWAY_UNUSED) {
+                dx = gateways->x0 - scratch->x;
+                dy = gateways->y0 - scratch->y;
                 d = dx * dx + dy * dy;
                 if (d < best) {
                     best = d;
@@ -2447,14 +2380,17 @@ s32 func_800A5CF8(void) {
  * @note The first formation store writes @c D_800704A8.counter through the
  *       struct; the others use the alias symbol @c D_800704AA (same word,
  *       0x800704AA), both spellings exist in the original.
+ * @note Each formation id is read twice from the same slot: through the
+ *       @c (s16) cast for the compare with @c D_8005F120 (@c lh) and
+ *       unsigned for the store (@c lhu), both loads are in the original.
  * @note The step accumulator advances by the player's @c moveSpeed (0x1FE)
  *       read through a @c (u16) view, so faster movement builds the encounter
  *       counter proportionally faster.
  */
 void func_800A5D28(void) {
-    u8 *rate;
+    FieldEncounterRate *rate;
     s32 r;
-    u16 *fm;
+    FieldFormations *fm;
 
     if (D_800704A8.mode == 1) {
         return;
@@ -2484,11 +2420,11 @@ void func_800A5D28(void) {
     if (D_80078DF8 & 8) {
         return;
     }
-    rate = *D_800C71F4;
+    rate = *g_fieldEncounterRate;
     if (D_80078DF8 & 4) {
-        D_8005F164 += *rate >> 1;
+        D_8005F164 += rate->stepRate >> 1;
     } else {
-        D_8005F164 += *rate;
+        D_8005F164 += rate->stepRate;
     }
     if (D_8005F164 < 0x101) {
         return;
@@ -2500,15 +2436,15 @@ void func_800A5D28(void) {
         D_8005F0FE = 0;
         D_8005F130 = 1;
         r = func_800A5CF8();
-        fm = *D_800C720C;
-        if ((u8)r < 0x80 && D_8005F120 != (s16)fm[0]) {
-            D_800704A8.counter = fm[0];
-        } else if ((u8)r < 0xC0 && D_8005F120 != (s16)fm[1]) {
-            D_800704AA = fm[1];
-        } else if ((u8)r < 0xF0 && D_8005F120 != (s16)fm[2]) {
-            D_800704AA = fm[2];
+        fm = *g_fieldFormations;
+        if ((u8)r < 0x80 && D_8005F120 != (s16)fm->formation[0]) {
+            D_800704A8.counter = fm->formation[0];
+        } else if ((u8)r < 0xC0 && D_8005F120 != (s16)fm->formation[1]) {
+            D_800704AA = fm->formation[1];
+        } else if ((u8)r < 0xF0 && D_8005F120 != (s16)fm->formation[2]) {
+            D_800704AA = fm->formation[2];
         } else {
-            D_800704AA = fm[3];
+            D_800704AA = fm->formation[3];
         }
         D_8005F120 = D_800704AA;
     }

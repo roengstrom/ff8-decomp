@@ -17,7 +17,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_cd", func_800396E0); /* 0x48 — memset */
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039728); /* 0x24 */
 
-INCLUDE_ASM("asm/nonmatchings/snd_cd", func_8003974C); /* 0x18 */
+INCLUDE_ASM("asm/nonmatchings/snd_cd", getOffsetTableEntry); /* 0x18 */
 
 INCLUDE_ASM("asm/nonmatchings/snd_cd", func_80039764); /* 0x118 */
 

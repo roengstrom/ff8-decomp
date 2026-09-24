@@ -2,6 +2,7 @@
 #define FIELD_H
 
 #include "common.h"
+#include "snd_cd.h"
 #include "psxsdk/libgpu.h"
 
 /*
@@ -62,102 +63,6 @@ typedef struct {
 } SystemSubMode; /* 0x1C = 28 bytes */
 
 /**
- * @brief One slot of the field-engine's event-queue array at
- *        @c D_8005F0F8->entries, stride 32 bytes.
- *
- * The array is scanned linearly for the entry whose @c field16 equals
- * the sentinel @c 0x7FFF; that entry is then populated with the
- * pushed event parameters and the next entry is re-armed as the new
- * sentinel.
- */
-typedef struct {
-    /* 0x00 */ s16 x0;          /**< Trigger segment start X (func_8009AAC8 walk-crossing scan). */
-    /* 0x02 */ s16 y0;          /**< Trigger segment start Y. */
-    /* 0x04 */ s16 z0;          /**< Trigger segment start Z. */
-    /* 0x06 */ s16 x1;          /**< Trigger segment end X. */
-    /* 0x08 */ s16 y1;          /**< Trigger segment end Y. */
-    /* 0x0A */ s16 z1;          /**< Trigger segment end Z. */
-    /* 0x0C */ u16 position_x;  /**< Spawn X, copied to @c D_800704A8.position_x by @c func_8009AA64. */
-    /* 0x0E */ u16 position_y;  /**< Spawn Y, copied to @c D_800704A8.position_y. */
-    /* 0x10 */ u16 spawnTriIdx; /**< Spawn triangle, copied to @c D_800704A8.spawnTriIdx. */
-    /* 0x12 */ u16 counter;     /**< Snapshot field copied to @c D_800704A8.counter; @c < 72 selects mode 1, else 7. */
-    /* 0x14 */ u16 field14;     /**< Set to @c 0xFFFF when the slot is armed. */
-    /* 0x16 */ u16 field16;     /**< Slot key / sentinel marker (@c 0x7FFF == free). */
-    /* 0x18 */ u8 pad18[0x04];
-    /* 0x1C */ u8 anim_state;   /**< Snapshot field copied to @c D_800704A8.anim_state (low byte). */
-    /* 0x1D */ u8 pad1D[0x03];
-} EventEntry; /* 0x20 = 32 bytes */
-
-/** @brief 8-byte clamp rectangle (f0=top, f2=bottom, f4=right, f6=left edges). */
-typedef struct {
-    /* 0x00 */ s16 f0;
-    /* 0x02 */ s16 f2;
-    /* 0x04 */ s16 f4;
-    /* 0x06 */ s16 f6;
-} ClampRect;
-
-/**
- * @brief One entry of the field line-trigger table (12 per table, 16-byte
- *        stride) held at @c EventQueue.segs, scanned by @c func_800A6100 /
- *        @c func_800A62EC.
- *
- * A 3D line segment from @c (x0,y0,z0) to @c (x1,y1,z1). @c marker @c == @c 0xFF
- * flags an empty slot; @c type selects the @c func_800A5FA4 dispatch behaviour.
- * @c func_8009A2BC reads all three axes, so @c z0 / @c z1 are real Z coordinates.
- *
- * @note Separate storage from the per-entity trigger volume an @ref Eline
- *       carries (the @c SETLINE opcode), which it resembles only in layout.
- *       The @ref EventQueue is a
- *       field-script section: its base comes from @c D_800C7208 (set up with
- *       the other @c 0x800E1000 field-data section pointers by @c func_8009895C,
- *       then latched into @c D_8005F0F8 by @c func_800983F0). No game code
- *       stores into this region, so the 12 trigger lines are field-file data
- *       loaded with the field; @c func_800A6100 / @c func_800A62EC only read
- *       them against entity positions.
- */
-typedef struct {
-    /* 0x00 */ s16 x0;
-    /* 0x02 */ s16 y0;
-    /* 0x04 */ s16 z0;
-    /* 0x06 */ s16 x1;
-    /* 0x08 */ s16 y1;
-    /* 0x0A */ s16 z1;
-    /* 0x0C */ u8  marker;
-    /* 0x0D */ u8  unk0D;
-    /* 0x0E */ u8  type;
-    /* 0x0F */ u8  unk0F;
-} FieldLineTrigger;
-
-/**
- * @brief Container struct at @c D_8005F0F8; 0x60-byte header, then the event
- *        entry ring and the field line-trigger table.
- */
-typedef struct {
-    /* 0x000 */ u8 pad00[0x09];
-    /* 0x009 */ u8 unk09;            /**< Copied into @c SystemState::unk1A8 and @c unk100 on field entry. */
-    /* 0x00A */ u8 pad0A;
-    /* 0x00B */ u8 slotHeadingBias[2]; /**< Per-party-slot heading bias the field bundle ships;
-                                            @c func_8009BEC8 adds it to the global heading before
-                                            the analog-stick direction. @note Name inferred from that use. */
-    /* 0x00D */ u8 unk0D;            /**< Field-bundle variant flag: selects the @c D_800C315C command table over
-                                          @c D_800C311C in @c func_800983F0, and forces the actor-pool install
-                                          (@c func_800A1CC0) even for load modes 1 and 6. */
-    /* 0x00E */ u8 unk0E;            /**< When @c == 1, @c func_800A1BB8 issues a StoreImage to VRAM. */
-    /* 0x00F */ u8 pad0F;
-    /* 0x010 */ u8 tpageX;           /**< Texture-page X written into every field sprite's tpage word. */
-    /* 0x011 */ u8 pad11;
-    /* 0x012 */ u16 baseZ;           /**< Base Z offset added to the per-entity Z when building SVECTOR (func_800A11E0). */
-    /* 0x014 */ ClampRect rect_a[8]; /**< Per-region clamp rectangles, consumed by @c func_800A0FB8. */
-    /* 0x054 */ ClampRect rect_b[1]; /**< Padding margin used by @c func_800A0FB8 to shrink @c rect_a. */
-    /* 0x05C */ u8 pad5C[0x04];
-    /* 0x060 */ EventEntry entries[12]; /**< Sentinel-scanned event ring (field16 @c == @c 0x7FFF terminates). */
-    /* 0x1E0 */ u8 pad1E0[0x04];        /**< Alignment gap: entries[12] ends at 0x1E0, segs begins at 0x1E4; no field code reads or writes it. */
-    /* 0x1E4 */ FieldLineTrigger segs[12];      /**< Line-trigger table scanned by @c func_800A6100. */
-} EventQueue;
-
-extern EventQueue *D_8005F0F8;
-
-/**
  * @brief Field oscillator: a small waveform generator the field VM drives.
  *
  * @c mode 1 oscillates continuously; otherwise it runs once and stops.
@@ -216,10 +121,10 @@ typedef struct {
     /* 0x012 */ u8 entityIndex[3];  /**< Per-active-slot field-entity index (mirror of g_fieldVars->memberSlot[]). */
     /* 0x015 */ u8 unk015;          /**< Cleared by @c opHandler_UCON along with the trigger flag. */
     /* 0x016 */ u8 pad016[0x02];
-    /* 0x018 */ s32 unk018;         /**< Word snapshotted from the field bundle's @c D_800D5EAC section pointer on load. */
+    /* 0x018 */ OffsetTable *fieldMessages; /**< The field's message table, latched from @c g_fieldMessages on load. */
     /* 0x01C */ s32 fieldStepDelta; /**< Step delta passed to @c func_800BD804 each field tick. */
     /* 0x020 */ SystemSubMode slots[8]; /**< 8 mode/param slots, stride 28; slot 0 corresponds to the legacy @c unk020..unk032 fields. */
-    /* 0x100 */ u16 unk100;         /**< Seeded from @c EventQueue::unk09 on field entry. */
+    /* 0x100 */ u16 unk100;         /**< Seeded from @c FieldInfo::unk09 on field entry. */
     /* 0x102 */ u16 unk102;
     /* 0x104 */ u16 unk104;
     /* 0x106 */ u16 unk106;
@@ -489,7 +394,7 @@ typedef struct {
     /* 0x1F4 */ u16 field_0x1F4;
     /* 0x1F6 */ u16 radius;         /**< Collision radius (used by @c func_8009E468 overlap test). */
     /* 0x1F8 */ u16 talkRadius;     /**< Set by @c opHandler_TALKRADIUS; read alongside @c radius by @c func_8009F74C 's asymmetric overlap test. */
-    /* 0x1FA */ u16 triIdx;         /**< Navmesh triangle the entity stands on; indexes @c D_800C71F0.
+    /* 0x1FA */ u16 triIdx;         /**< Navmesh triangle the entity stands on; indexes @c g_fieldWalkmeshVerts.
                                          Set from a path-table entry's @c unk6 by @c func_8009BB18 and
                                          from @c D_800704A8.spawnTriIdx on field entry by @c func_8009AEC0. */
     /* 0x1FC */ u16 field_0x1FC;
@@ -877,102 +782,6 @@ typedef struct {
 } ActorAnim; /* 0x264 = 612 bytes — second view of the same slot as @ref Actor. */
 
 /**
- * @brief One 20-byte movement-command step: an endpoint plus the tick count to
- *        reach it. @c func_800A38B4 lerps between consecutive steps.
- */
-typedef struct {
-    /* 0x00 */ s16 x;
-    /* 0x02 */ s16 y;
-    /* 0x04 */ s16 z;
-    /* 0x06 */ s16 angle;
-    /* 0x08 */ u8  spriteX;       /**< Sprite half-width at this waypoint (lerped by func_800A39D8). */
-    /* 0x09 */ u8  spriteY;       /**< Sprite half-height at this waypoint. */
-    /* 0x0A */ u8  u;             /**< Texture U of the sprite's top-left corner. */
-    /* 0x0B */ u8  v;             /**< Texture V of the sprite's top-left corner. */
-    /* 0x0C */ u8  w;             /**< Texture width; the far corner is @c u+w-1. */
-    /* 0x0D */ u8  h;             /**< Texture height; the far corner is @c v+h-1. */
-    /* 0x0E */ u8  stepTotal;     /**< Ticks this step lasts; 0 ends the command. */
-    /* 0x0F */ u8  mode;          /**< 4 = opaque; otherwise the low 2 bits are the GPU
-                                       semi-transparency mode written into the tpage word. */
-    /* 0x10 */ u8  r;             /**< Vertex colour at this waypoint (lerped to the next). */
-    /* 0x11 */ u8  g;
-    /* 0x12 */ u8  b;
-    /* 0x13 */ u8  pad13;
-} MoveStep;                       /* 0x14 = 20 bytes */
-
-/** @brief One 372-byte movement command: up to 17 @ref MoveStep waypoints plus
- *         a count of the accumulators still running it. */
-typedef struct {
-    /* 0x000 */ MoveStep steps[17];
-    /* 0x154 */ s16 zBias;        /**< Added to the projected OTZ before the range check. */
-    /* 0x156 */ u8  pad156[0x06];
-    /* 0x15C */ u16 activeCount;
-    /* 0x15E */ u8  pad15E[0x0C];
-    /* 0x16A */ s16 flags;        /**< Non-zero above bit 6 halves the sprite scale shift. */
-    /* 0x16C */ u8  pad16C[0x08];
-} MoveRecord;                     /* 0x174 = 372 bytes */
-
-/**
- * @brief One 32-byte movement accumulator — the @c func_800A38B4 output view
- *        plus the bookkeeping @ref func_800A3FE0 uses to walk its command.
- */
-typedef struct {
-    /* 0x00 */ s32 posX;
-    /* 0x04 */ s32 posY;
-    /* 0x08 */ s32 posZ;
-    /* 0x0C */ s16 xStart;
-    /* 0x0E */ s16 yStart;
-    /* 0x10 */ s16 zStart;
-    /* 0x12 */ u16 angle;
-    /* 0x14 */ u8  pad14[0x02];
-    /* 0x16 */ s16 angleStart;
-    /* 0x18 */ u8  cmdIndex;      /**< Index into @c FieldSubsceneBuffer.records. */
-    /* 0x19 */ u8  stepIndex;     /**< Current waypoint within that command. */
-    /* 0x1A */ u8  stepProgress;  /**< Ticks spent on the current waypoint. */
-    /* 0x1B */ u8  active;        /**< 1 while this accumulator is running a command. */
-    /* 0x1C */ u8  pad1C[0x04];
-} MoveAccum;                      /* 0x20 = 32 bytes */
-
-/**
- * @brief One 254-byte animation slot in the field "subscene" buffer walked by
- *        @ref func_800A37A8.
- *
- * The leading @c subscene region is a packed @ref ActorAnim — only its first
- * @c 0xFE bytes are live, so slots pack at 254-byte stride — and is passed to
- * @c func_800A355C as its @c ActorAnim argument. @c h2 mirrors
- * @c ActorAnim.animOffset (offset @c 0xF4).
- */
-typedef struct {
-    /* 0x00 */ u8 subscene[0xD0]; /**< Packed ActorAnim head (rows/timers/...). */
-    /* 0xD0 */ u8 table[0x20];    /**< Animation source bytes, indexed by @c h2. */
-    /* 0xF0 */ s16 h0;            /**< State counter (advanced each active tick). */
-    /* 0xF2 */ s16 h1;            /**< State counter, compared against @c table[h2]. */
-    /* 0xF4 */ s16 h2;            /**< Table cursor (mirror of @c ActorAnim.animOffset). */
-    /* 0xF6 */ u16 padF6;
-    /* 0xF8 */ s16 frameCount;    /**< Frames this slot plays for; @c func_800A3FE0 runs the
-                                       whole buffer for @c max(frameCount) ticks and drops the
-                                       slot once the tick passes it. */
-    /* 0xFA */ u8 padFA[0x04];
-} FieldSubsceneSlot;             /* 0xFE = 254 bytes */
-
-/**
- * @brief The field animation buffer: 16 movement-command records, 16 subscene
- *        slots and 128 movement accumulators, walked by @ref func_800A37A8 and
- *        fast-forwarded whole by @ref func_800A3FE0.
- *
- * The three regions pack exactly: @c 16*0x174 == @c 0x1740 and
- * @c 16*0xFE == @c 0xFE0, putting @c entries at @c 0x2720.
- */
-typedef struct {
-    /* 0x0000 */ MoveRecord records[16];
-    /* 0x1740 */ FieldSubsceneSlot slots[16];
-    /* 0x2720 */ MoveAccum entries[128];
-    /* 0x3720 */ POLY_FT4 primArena[2][128]; /**< Double-buffered sprite arena; @c primCursor is
-                                                  reset to the current buffer's half each frame. */
-    /* 0x5F20 */ POLY_FT4 *primCursor; /**< Next free prim in the field bundle's prim arena. */
-} FieldSubsceneBuffer;                 /* 0x5F24 — the whole field-file header */
-
-/**
  * @brief Per-slot ribbon prim buffer: the five @c LINE_G4 strips that make up
  *        one shimmer object's four-segment trail.
  */
@@ -1066,8 +875,8 @@ typedef struct {
     s16 h;
 } Rect;
 
-/** @brief Generic SFX/text data pointer used as base for @c func_8003974C. */
-extern u8 *D_800704C0;
+/** @brief The field's message table; the same word as @c SystemState::fieldMessages. */
+extern OffsetTable *g_curFieldMessages;
 
 /** @brief Spatial-entity dispatch context word (passed to @c func_800A8DAC). */
 
@@ -1142,8 +951,8 @@ extern u16 D_8007737C;
 /** @brief Field-side post-battle flag byte. */
 extern u8 D_800773C0;
 
-/** @brief Stashed text-id buffer base shared by field-VM string opcodes. */
-extern u8 D_8005630C[];
+/** @brief Resident table of text strings read by the field-VM string opcodes. */
+extern OffsetTable D_8005630C;
 
 /** @brief Sound-init parameter passed to @c func_80037FB0. */
 extern s32 D_8005F13C;
@@ -1249,8 +1058,8 @@ extern u8 *D_800DE4E8;      /**< Pointer to second sub-table (header base + offs
 /* Field-side scalars consumed by fe_object6 (SFX / camera / GF opcodes)    */
 /* ======================================================================== */
 
-/** @brief Per-channel SFX bank lookup table; indexed by the SFX dispatcher. */
-extern u8 *D_800D5EA4;
+/** @brief The field's SFX table, latched from @c g_fieldSfxTable on load. */
+extern OffsetTable *g_curFieldSfx;
 
 /** @brief Misc field-side scratch bytes used by fe_object6. */
 extern u8 D_8007064A;
@@ -1286,8 +1095,6 @@ extern u8 D_800DE8D2;
  * Returns a per-entity pointer in @c v0 (used by callers of @c 0x1F);
  * callers that ignore the return value just drop it.
  */
-/** @brief Index into a null-terminated entry table by skipping strings. */
-extern u8 *func_8003974C(u8 *base, s32 idx);
 
 /** @brief Measure a text string, returning width|height packed as one s32. */
 extern s32 func_8002E680(u8 *text);
