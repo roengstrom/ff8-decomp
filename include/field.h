@@ -33,7 +33,7 @@
 
 /**
  * @brief One slot of the @c SystemState mode-slot table at
- *        @c D_800704A8.slots, stride 28 bytes.
+ *        @c g_fieldEntity.slots, stride 28 bytes.
  *
  * Each slot encodes a mode-dispatched operation: @c mode selects which
  * code path runs in the field engine's per-frame poller, @c param
@@ -77,14 +77,14 @@ typedef struct {
     /* 0x06 */ s16 x1;          /**< Trigger segment end X. */
     /* 0x08 */ s16 y1;          /**< Trigger segment end Y. */
     /* 0x0A */ s16 z1;          /**< Trigger segment end Z. */
-    /* 0x0C */ u16 position_x;  /**< Spawn X, copied to @c D_800704A8.position_x by @c func_8009AA64. */
-    /* 0x0E */ u16 position_y;  /**< Spawn Y, copied to @c D_800704A8.position_y. */
-    /* 0x10 */ u16 spawnTriIdx; /**< Spawn triangle, copied to @c D_800704A8.spawnTriIdx. */
-    /* 0x12 */ u16 counter;     /**< Snapshot field copied to @c D_800704A8.counter; @c < 72 selects mode 1, else 7. */
+    /* 0x0C */ u16 position_x;  /**< Spawn X, copied to @c g_fieldEntity.position_x by @c func_8009AA64. */
+    /* 0x0E */ u16 position_y;  /**< Spawn Y, copied to @c g_fieldEntity.position_y. */
+    /* 0x10 */ u16 spawnTriIdx; /**< Spawn triangle, copied to @c g_fieldEntity.spawnTriIdx. */
+    /* 0x12 */ u16 counter;     /**< Snapshot field copied to @c g_fieldEntity.counter; @c < 72 selects mode 1, else 7. */
     /* 0x14 */ u16 field14;     /**< Set to @c 0xFFFF when the slot is armed. */
     /* 0x16 */ u16 field16;     /**< Slot key / sentinel marker (@c 0x7FFF == free). */
     /* 0x18 */ u8 pad18[0x04];
-    /* 0x1C */ u8 anim_state;   /**< Snapshot field copied to @c D_800704A8.anim_state (low byte). */
+    /* 0x1C */ u8 anim_state;   /**< Snapshot field copied to @c g_fieldEntity.anim_state (low byte). */
     /* 0x1D */ u8 pad1D[0x03];
 } EventEntry; /* 0x20 = 32 bytes */
 
@@ -187,7 +187,7 @@ typedef struct {
 #define FIELD_PAD_YHIGH 0x4000 /**< Stick/d-pad Y-high. */
 #define FIELD_PAD_XLOW  0x8000 /**< Stick/d-pad X-low. */
 
-/** @brief System state block (at @c D_800704A8); also aliased as @c g_fieldEntity. */
+/** @brief System state block (at @c g_fieldEntity); also aliased as @c g_fieldEntity. */
 typedef struct {
     /* 0x000 */ u8 mode;            /**< Top-level engine mode; @c 4 means exit. */
     /* 0x001 */ u8 pad001;
@@ -246,9 +246,9 @@ typedef struct {
     /* 0x144 */ s32 padHeldPrev;    /**< Previous tick's @c padHeld, used by @c func_80099180 for direction edge-detection. */
     /* 0x148 */ s32 padPressed;     /**< Newly-pressed input for pad slot 0 (direction bit set only when not held last tick). */
     /* 0x14C */ u8 pad14C[0x04];
-    /* 0x150 */ s32 unk150;         /**< Bit-6/7 source for @c func_8009A7E8 's per-entity trigger7 write; set to @c func_80030F10(padHeld) each tick. */
+    /* 0x150 */ s32 unk150;         /**< Bit-6/7 source for @c func_8009A7E8 's per-entity trigger7 write; set to @c remapControllerInput(padHeld) each tick. */
     /* 0x154 */ s32 unk154;         /**< Bit-6/7 mask gating @c func_8009A7E8 's write (inverse of @c unk150); previous tick's @c unk150. */
-    /* 0x158 */ s32 ambientFlags;   /**< Ambient SFX/state flags; bits 6-7 gate the fade-out path in @c func_800BD9C4; set to @c func_80030F10(padPressed). */
+    /* 0x158 */ s32 ambientFlags;   /**< Ambient SFX/state flags; bits 6-7 gate the fade-out path in @c func_800BD9C4; set to @c remapControllerInput(padPressed). */
     /* 0x15C */ u8 pad15C[0x04];
     /* 0x160 */ s32 field_0x160;    /**< Held input for pad slot 1 (@c getAnimFrameParam(1, 0)). */
     /* 0x164 */ u8 pad164[0x04];
@@ -269,7 +269,7 @@ typedef struct {
     /* 0x1AA */ u8 unk1AA;
     /* 0x1AB */ u8 unk1AB;          /**< Sub-mode byte; written together with @c mode by fe_object6 opcodes. */
     /* 0x1AC */ u8 unk1AC;          /**< Passed as the mode argument to @c renderAndUpdateDisplay
-                                         and @c func_80042634 on the branch @c func_800BE274 gates.
+                                         and @c VSync on the branch @c func_800BE274 gates.
                                          @note Nothing in the decompiled tree writes it yet, so the
                                          purpose is inferred from those two argument positions only. */
     /* 0x1AD */ u8 unk1AD;          /**< Non-zero makes @c func_80099348 skip the entity-aim, blob-shadow
@@ -284,7 +284,6 @@ typedef struct {
     /* 0x1B8 */ u8 statusBits[0x40]; /**< Packed bit-array (512 bits); set by @c opHandler_IDLOCK, cleared by @c opHandler_IDUNLOCK, zeroed during init. */
 } SystemState;
 
-extern SystemState D_800704A8;
 extern SystemState g_fieldEntity;
 
 /**
@@ -328,7 +327,7 @@ typedef struct {
     /* 0x48 */ s32 gilMirror;           /**< Mirror of @c g_gameState.mainData.party.gil, kept in sync by fe_object6. */
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
     /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
-    /* 0x54 */ u16 field54;             /**< Mirror of @c D_800704A8.field120, set by @c func_800BFBBC. */
+    /* 0x54 */ u16 field54;             /**< Mirror of @c g_fieldEntity.field120, set by @c func_800BFBBC. */
     /* 0x56 */ u8 field56;              /**< Copy of @c D_80082C8D byte, set by @c func_800BFBBC. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c D_8005F14C, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
@@ -365,7 +364,7 @@ typedef struct {
     /* 0xD5 */ u8 nextSoundBank;        /**< Sound bank ID staged by MUSICCHANGE; copied into @c audioChannel0State on swap. */
     /* 0xD6 */ u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
     /* 0xD7 */ u8 padD7;
-    /* 0xD8 */ u16 dialogStateMirror;   /**< Mirror of @c D_800704A8.dialogState (kept in sync by fe_object9). */
+    /* 0xD8 */ u16 dialogStateMirror;   /**< Mirror of @c g_fieldEntity.dialogState (kept in sync by fe_object9). */
     /* 0xDA */ u16 fieldDA;
     /* 0xDC */ u16 fieldDC;
     /* 0xDE */ u16 fieldDE;
@@ -491,7 +490,7 @@ typedef struct {
     /* 0x1F8 */ u16 talkRadius;     /**< Set by @c opHandler_TALKRADIUS; read alongside @c radius by @c func_8009F74C 's asymmetric overlap test. */
     /* 0x1FA */ u16 triIdx;         /**< Navmesh triangle the entity stands on; indexes @c D_800C71F0.
                                          Set from a path-table entry's @c unk6 by @c func_8009BB18 and
-                                         from @c D_800704A8.spawnTriIdx on field entry by @c func_8009AEC0. */
+                                         from @c g_fieldEntity.spawnTriIdx on field entry by @c func_8009AEC0. */
     /* 0x1FC */ u16 field_0x1FC;
     /* 0x1FE */ s16 moveSpeed;      /**< Per-tick movement speed, 8.8 fixed point (@c 256 @c = 1.0):
                                          @c func_8009D598 scales the sin/cos step vector by it before
@@ -740,7 +739,7 @@ typedef struct {
     /* 0x196 */ u8  trigger4;       /**< In-range latch: @c func_8009A4C0 sets it while the query point projects inside @c actor->radius, clears it when out; cleared with @c unk19D by @c func_8009A8E0. */
     /* 0x197 */ u8  trigger5;       /**< Edge-straddle: @c func_8009A4C0 sets it when self and the query point fall on opposite sides of the segment edge (2D cross-product signs differ). */
     /* 0x198 */ u8  trigger6;       /**< Facing hit: @c func_8009A4C0 sets it when self coincides with the projected point or lies within a +/-64 facing window. */
-    /* 0x199 */ u8  trigger7;       /**< Set to 1/2 by @c func_8009A4C0 / @c func_8009A7E8 from the current pad-hold mode (@c D_800704A8 unk150/unk154 bits 0x40/0x80) when the active-marker test + diff window pass. */
+    /* 0x199 */ u8  trigger7;       /**< Set to 1/2 by @c func_8009A4C0 / @c func_8009A7E8 from the current pad-hold mode (@c g_fieldEntity unk150/unk154 bits 0x40/0x80) when the active-marker test + diff window pass. */
     /* 0x19A */ u8  trigger2;       /**< Entered: @c func_8009A4C0 sets it on the frame the record first comes into range. */
     /* 0x19B */ u8  trigger3;       /**< Exited: @c func_8009A4C0 sets it on the frame the record leaves range. */
     /* 0x19C */ u8  unk19C;         /**< Facing angle to the projected point, written by @c func_8009A4C0 (@ref func_8009A0E8); compared (with diff bias) against @c actor->unk23F by @c func_8009A4C0 / @c func_8009A7E8. */
@@ -1081,7 +1080,6 @@ extern s32 D_800DE4D8;
 extern s32 D_80070600;
 
 /** @brief Active field-script entity index (mirrors @c actor->field_0x256). */
-extern u8 D_800DE4FC;
 extern u8 D_800DE4FD[];
 extern u8 D_80085390;
 extern u8 D_800704BB;
@@ -1267,7 +1265,7 @@ extern u8 D_800704CA;
 /** @brief Field-side rotation/orientation halfword consumed by camera opcodes. */
 extern u16 D_800704AA;
 
-/** @brief Dialog dispatch mode shared with @ref D_800704A8.dialogState. */
+/** @brief Dialog dispatch mode shared with @ref g_fieldEntity.dialogState. */
 extern u8 D_800DE8D2;
 
 /* ======================================================================== */

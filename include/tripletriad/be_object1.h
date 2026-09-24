@@ -168,6 +168,9 @@ extern s16           g_textLineX;
 extern s16           g_textCursorY;
 extern s16           g_textCursorX;
 extern u8            g_vsyncMode;        /**< VSync() wait mode (0 = wait one vblank). */
+extern s8            g_ttFadeCounter;    /**< Frames left in a display-mask fade; negative counts up toward 0. */
+extern DRAWENV       g_ttDrawEnvs[2];    /**< Card game's own double-buffered draw environments. */
+extern DISPENV       g_ttDispEnvs[2];    /**< Card game's own display environments. */
 extern RGB           g_textColor;        /**< Debug-text rgb color. */
 extern u32           g_textPalette[];      /**< Color palette table, indexed by ASCII byte '0'..'8'. */
 
@@ -180,7 +183,7 @@ extern void queueMoveImage(RECT *rect, s16 dstX, u16 dstY);
 extern void *findFreeNode(ObjList *list);
 
 /* SDK / main-binary math helpers used by be_object1.c. */
-extern void  func_8003F884(SVECTOR *a, SVECTOR *b, s32 wa, s32 wb, SVECTOR *out);
-extern void  func_80041794(s32 angle, MATRIX *m);
+extern void  LoadAverageShort12(SVECTOR *a, SVECTOR *b, s32 wa, s32 wb, SVECTOR *out);
+extern void  RotMatrixX(s32 angle, MATRIX *m);
 
 #endif /* TRIPLETRIAD_BE_OBJECT1_H */

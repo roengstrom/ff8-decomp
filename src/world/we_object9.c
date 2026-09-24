@@ -94,9 +94,9 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object9", func_800BAC84);
  *                       if (src[j] >= 0x20) {
  *                           s32 code = src[j] - 0x20;
  *                           if (code == 0 && itemName[0] != 0)
- *                               func_80047C74(msgBuf, itemName);
+ *                               strcat(msgBuf, itemName);
  *                           else if (code == 1 && qtyStr[0] != 0)
- *                               func_80047C74(msgBuf, qtyStr);
+ *                               strcat(msgBuf, qtyStr);
  *                       }
  *                   } else {
  *                       // Append a glyph from the global character table.
@@ -295,8 +295,8 @@ void func_800BC09C(ParticleSource *src) {
  *     extern u16    D_800C5C44[];   // per-kind 8-byte entries
  *     extern MATRIX D_800C9838;     // secondary world-to-screen matrix
  *     extern void   RotMatrix(SVECTOR *angles, MATRIX *out);  // = RotMatrix
- *     extern s32    ratan2(s32 y, s32 x);                     // = func_80041E84
- *     extern void  *memset(void *dst, s32 val, s32 n);        // = func_80047CE4
+ *     extern s32    ratan2(s32 y, s32 x);                     // = ratan2
+ *     extern void  *memset(void *dst, s32 val, s32 n);        // = memset
  *     extern s32    project(VECTOR *src, VECTOR *out);        // = worldPosToCell
  *     extern GlyphHeader *glyphAt(VECTOR *v, DVECTOR *out);
  *     extern s32    lookupKey(u32 key);                       // = func_800A45D8
@@ -736,7 +736,7 @@ void func_800BCA54(u8 *buf, s32 id) {
  * @c D_800C97D4 character table and appended to @p dst. The two-byte sequence
  * @c 0x0A/0xFF terminates the template. When the byte following an @c 0x0A
  * is in the range @c 0x20..0x23, the corresponding parameter
- * (@p p1 / @p p2 / @p p3 / @p p4) is appended via @c func_80047C74.
+ * (@p p1 / @p p2 / @p p3 / @p p4) is appended via @c strcat.
  *
  * @param dst Destination buffer.
  * @param idx Template index into @c D_800C9FE8.
@@ -758,13 +758,13 @@ u8 *func_800BCA74(u8 *dst, s32 idx, u8 *p1, u8 *p2, u8 *p3, u8 *p4) {
             if (src[i] >= 0x20) {
                 s32 code = src[i] - 0x20;
                 if (code == 0) {
-                    if (p1 != 0) func_80047C74(dst, p1);
+                    if (p1 != 0) strcat(dst, p1);
                 } else if (code == 1) {
-                    if (p2 != 0) func_80047C74(dst, p2);
+                    if (p2 != 0) strcat(dst, p2);
                 } else if (code == 2) {
-                    if (p3 != 0) func_80047C74(dst, p3);
+                    if (p3 != 0) strcat(dst, p3);
                 } else if (code == 3) {
-                    if (p4 != 0) func_80047C74(dst, p4);
+                    if (p4 != 0) strcat(dst, p4);
                 }
             }
         } else {
@@ -820,13 +820,13 @@ u8 *func_800BCC70(u8 *dst, s32 idx, u8 *p1, u8 *p2, u8 *p3, u8 *p4) {
             if (src[i] >= 0x20) {
                 s32 code = src[i] - 0x20;
                 if (code == 0) {
-                    if (p1 != 0) func_80047C74(dst, p1);
+                    if (p1 != 0) strcat(dst, p1);
                 } else if (code == 1) {
-                    if (p2 != 0) func_80047C74(dst, p2);
+                    if (p2 != 0) strcat(dst, p2);
                 } else if (code == 2) {
-                    if (p3 != 0) func_80047C74(dst, p3);
+                    if (p3 != 0) strcat(dst, p3);
                 } else if (code == 3) {
-                    if (p4 != 0) func_80047C74(dst, p4);
+                    if (p4 != 0) strcat(dst, p4);
                 }
             }
         } else {

@@ -326,7 +326,7 @@ extern ObjNodeFn g_gradFadeCallbacks[];  /**< Gradient-fade variant callback tab
 
 /* Private data — hand build / card config */
 extern u8  D_80082C95;     /**< Card-config byte; the owned-quantity delta for built hands. */
-extern u8  D_80078658[];   /**< Card rarity/type table (cards 0x4D+); used to draw rarity-filtered hands. */
+extern u8  g_tripleTriad[];   /**< Card rarity/type table (cards 0x4D+); used to draw rarity-filtered hands. */
 extern u8  g_handBuildHands[2][5];/**< Per-player working copy of the hands (card ids), seeded from D_801A2C48 (replayHandMoves). */
 extern s32 g_sweepProcessed;     /**< Count of objects processed this sweep (runAiCaptureSelect). */
 extern s32 g_gradFadeCount;

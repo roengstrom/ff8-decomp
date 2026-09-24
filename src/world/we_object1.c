@@ -332,7 +332,7 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object1", func_8009A954);
  *
  * Selects a load RECT from the active scene context @c D_800D244C — at @c +0x5C when it is
  * not the @c D_800CA040 sentinel, else at @c +0x40CC — and, if its width field is non-zero,
- * loads its image (@c MoveImage) after a @c func_80042634 prep. It then copies the
+ * loads its image (@c MoveImage) after a @c VSync prep. It then copies the
  * sentinel's DRAWENV and DISPENV templates into the active @c D_80082C30 / @c D_80082C18 and
  * publishes them via @c g_activeDrawEnv / @c D_8005F138. Finally, when the scene mode
  * @c D_80082C8C is 5, it re-initialises both screen buffers (16 passes of
@@ -348,7 +348,7 @@ void func_8009AD3C(void) {
     } else {
         r = (RECT *)((u8 *)&D_800CA040 + 0x40CC);
     }
-    func_80042634(0);
+    VSync(0);
     if (r->x != 0) {
         MoveImage(r, 0, 0);
         DrawSync(0);
@@ -361,7 +361,7 @@ void func_8009AD3C(void) {
         func_800A5F78(0);
         func_800A5FD4(0);
         for (i = 0; i < 0x10; i++) {
-            func_80042634(0);
+            VSync(0);
             func_800A5D10();
             func_800A5FD4(0);
         }
@@ -669,9 +669,9 @@ void func_8009C070(void) {
     if (D_800C4D38 == 0x32 && D_800C4D3C == 0 && D_800D23D8[0] == 0 &&
         (v = angle, ABS(v) < 0x241)) {
         func_800ACD38(&localMtx);
-        func_8003FD84(&localMtx, &localA, &localB);
+        ApplyMatrixLV(&localMtx, &localA, &localB);
     } else {
-        func_8003FD84(&D_800C9838, &localA, &localB);
+        ApplyMatrixLV(&D_800C9838, &localA, &localB);
     }
     D_800D23C0.z = 0;
     D_800D23C0.x = D_800C9868.vx + localB.vx;
@@ -1022,13 +1022,13 @@ void func_8009C8CC(s32 val) {
  * slot 0 — and fills a @c POLY_FT4 covering @c (x,y) to
  * @c (x + scale*128, y + scale*96) at neutral RGB, mapping the full
  * @c 0..0xFF × 0..0xBF texture region (CLUT chosen from @p frame, fixed
- * tpage). @c func_8004D604 finishes the prim setup from @p frame, then it is
+ * tpage). @c SetSemiTrans finishes the prim setup from @p frame, then it is
  * linked into the scene's main OT chain (@c primList[BSC_OTHEAD_IDX]).
  *
  * @param x     Quad left edge (screen X).
  * @param y     Quad top edge (screen Y).
  * @param scale Size multiplier (quad is @c scale*128 wide, @c scale*96 tall).
- * @param frame Texture frame index — feeds the CLUT and @c func_8004D604.
+ * @param frame Texture frame index — feeds the CLUT and @c SetSemiTrans.
  */
 void func_8009C8E0(u16 x, s32 y, s32 scale, s32 frame) {
     POLY_FT4 *p;
@@ -1038,7 +1038,7 @@ void func_8009C8E0(u16 x, s32 y, s32 scale, s32 frame) {
         p = &D_800C8648[1];
     }
     setPolyFT4(p);
-    func_8004D604(p, frame);
+    SetSemiTrans(p, frame);
     setRGB0(p, 0x80, 0x80, 0x80);
     /* Four corners, paired by the coordinate they share: x1/x3 = right edge,
        y2/y3 = bottom edge, x0/x2 = left, y0/y1 = top. */
@@ -1137,7 +1137,7 @@ s32 func_8009CA34(s32 *src, ImageDesc *desc) {
  * For each non-terminator entry, kicks off @c cdRead(lba, size, dest, NULL)
  * then busy-waits in a poll loop on @c func_800393C8 until it returns 0
  * (read complete). While polling, optionally calls @p spin_cb each iteration
- * after a @c func_80042634(0) prep step — used by callers to keep the frame
+ * after a @c VSync(0) prep step — used by callers to keep the frame
  * advancing / GPU buffer flushing during the wait.
  *
  * Returns immediately if the first entry's marker is 0.
@@ -1160,7 +1160,7 @@ top:
     cdRead(e->lba, e->size, e->dest, 0);
     while (func_800393C8() != 0) {
         if (spin_cb != 0) {
-            func_80042634(0);
+            VSync(0);
             spin_cb();
         }
     }

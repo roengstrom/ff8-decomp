@@ -496,7 +496,7 @@ extern CVECTOR    D_800DB0E0;          /**< Active background-color cache (progr
 /** Base of the world zone block: a table of s32 offsets, each relative to
  *  this pointer, locating one record. Entry 0 is the map-wide default. */
 extern s32       *D_800C9EE8;
-extern VECTOR     D_800DB0E8;          /**< World camera-base translation (GTE TR bias; used by setWorldMapTransVector and func_800423DC). */
+extern VECTOR     D_800DB0E8;          /**< World camera-base translation (GTE TR bias; used by setWorldMapTransVector and ApplyTransposeMatrixLV). */
 extern KindParams D_800C5480[];
 
 /**

@@ -11,30 +11,30 @@ void intToDecStringShort(s32, u8 *, s32);
 void replaceLeadingZeros(u8 *, s32, s32, s32);
 
 /**
- * @brief Call getAnimFrameParam with a1=0, pass result to func_80030F10.
+ * @brief Call getAnimFrameParam with a1=0, pass result to remapControllerInput.
  *
  * @param a0 First argument passed through to getAnimFrameParam.
  */
 void func_800CFF2C(s32 a0) {
-    func_80030F10(getAnimFrameParam(a0, 0));
+    remapControllerInput(getAnimFrameParam(a0, 0));
 }
 
 /**
- * @brief Call getAnimFrameStatusFlags with a1=0, pass result to func_80030F10.
+ * @brief Call getAnimFrameStatusFlags with a1=0, pass result to remapControllerInput.
  *
  * @param a0 First argument passed through to getAnimFrameStatusFlags.
  */
 void func_800CFF54(s32 a0) {
-    func_80030F10(getAnimFrameStatusFlags(a0, 0));
+    remapControllerInput(getAnimFrameStatusFlags(a0, 0));
 }
 
 /**
- * @brief Call func_80027A58 with a1=0, pass result to func_80030F10.
+ * @brief Call func_80027A58 with a1=0, pass result to remapControllerInput.
  *
  * @param a0 First argument passed through to func_80027A58.
  */
 void func_800CFF7C(s32 a0) {
-    func_80030F10(func_80027A58(a0, 0));
+    remapControllerInput(func_80027A58(a0, 0));
 }
 
 /**

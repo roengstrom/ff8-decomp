@@ -13,7 +13,7 @@ typedef struct {
     u8 field00;
     u8 field01;
     u16 field02;
-    u8 params[4]; /**< 0x04-0x07: Indexed by param in func_80027FDC. */
+    u8 params[4]; /**< 0x04-0x07: Indexed by param in getAnimFrameSlotParam. */
     u16 field08;
     u16 field0A;
     u16 field0C;

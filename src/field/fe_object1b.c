@@ -21,7 +21,6 @@
 #include "field/fe_object1.h"
 
 extern u8 D_800DD6D0[];
-extern void *func_80047CE4(void *dst, s32 val, s32 n);
 
 /**
  * @brief Per-frame entity render pipeline orchestrator.
@@ -62,9 +61,9 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A63AC);
  *  - @c bit 0 set (path A): full keyframe transform — calls
  *    @c SetRotMatrix to set GTE registers, @c SetTransMatrix to push,
  *    interpolates the @c (h18-h8)/(h1A-hA)/(h1C-hC) position triplet by
- *    @c h4/h1E, runs the GTE transform via @c func_80040E74, copies an
+ *    @c h4/h1E, runs the GTE transform via @c RotTrans, copies an
  *    8-word vertex block from the source buffer, applies the delta, runs
- *    a second @c func_80040E74 + @c SetRotMatrix pair, increments
+ *    a second @c RotTrans + @c SetRotMatrix pair, increments
  *    @c h4 and either flips the @c hE bit-0 / sets bit-2 (if exhausted)
  *    or sets @c slot->unk78 = -1 (otherwise).
  *
@@ -92,7 +91,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A6A80);
 /**
  * @brief Reset three field-engine tables.
  *
- * 1. Calls @c func_80047CE4 (@c memset) on each of 64 @c D_800DD6D0
+ * 1. Calls @c memset (@c memset) on each of 64 @c D_800DD6D0
  *    entries (stride 0x30 = 48 bytes), zeroing each in turn.
  * 2. Clears 64 @c s32 entries at @c D_800D6620.
  * 3. Clears 32 @c EntityRenderSlot* pointer entries at @c D_800D9630.
@@ -106,7 +105,7 @@ void func_800A7194(void) {
     u8 *p = D_800DD6D0;
 
     do {
-        func_80047CE4(p, 0, 0x30);
+        memset(p, 0, 0x30);
         i++;
         p += 0x30;
     } while (i < 64);

@@ -81,16 +81,16 @@ typedef struct {
     u16 flags;        /**< +0x0E: Status/attribute flags. */
     u16 flags2;       /**< +0x10: Secondary flags. */
     u8 pad12[0x0B];   /**< +0x12..+0x1C: Unknown. */
-    u8 spiritParam;   /**< +0x1D: Spirit parameter (func_800220E4). */
-    u8 magicParam;    /**< +0x1E: Magic parameter (func_80022028). */
+    u8 spiritParam;   /**< +0x1D: Spirit parameter (calcEvaStat). */
+    u8 magicParam;    /**< +0x1E: Magic parameter (calcHitStat). */
     u8 pad1F;         /**< +0x1F: Unknown. */
-    u8 statParamA;    /**< +0x20: Stat parameter A (func_8002216C). */
-    u8 statParamB;    /**< +0x21: Stat parameter B (func_800221B4). */
+    u8 statParamA;    /**< +0x20: Stat parameter A (getAtkElemBase). */
+    u8 statParamB;    /**< +0x21: Stat parameter B (getAtkElemBonus). */
     u8 defElemFlag;   /**< +0x22: Element defense flag (checked for bit in getElemResistance). */
     u8 defElemMult;   /**< +0x23: Element defense multiplier (getElemResistance). */
-    u8 hitParam;      /**< +0x24: Hit parameter (func_80022404). */
+    u8 hitParam;      /**< +0x24: Hit parameter (calcAtkStatusHit). */
     u8 defStatusBase; /**< +0x25: Status defense base value (getStatusResistance). */
-    u16 statusFlags;  /**< +0x26: Status flags bitmask (func_80022328/func_80022370). */
+    u16 statusFlags;  /**< +0x26: Status flags bitmask (getAtkStatusFlags/decodeAtkStatusMask). */
     u16 defStatusFlags;/**< +0x28: Status defense flags (checked for bit in getStatusResistance). */
     u8 pad2A[0x12];   /**< +0x2A..+0x3B: Unknown. */
 } GfJunctionEntry; /* 60 bytes: 2+2+1+1+1+1+1+1+1+1+1+1+2+2+11+1+1+1+1+1+1+1+1+1+2+2+18 = 60 */
@@ -124,8 +124,8 @@ typedef struct {
  * 16 entries starting at offset 0xF7A within g_gfData (ptr slot +0x88,
  * which points to 0xF8C = 0xF7A + 0x12, i.e. &entry->xpLinear).
  *
- * func_8002172C reads xpLinear, xpQuadDiv, xpConst as curve coefficients.
- * func_8002166C/func_800216B0 read xpParamB, xpParamC.
+ * evalStatCurve reads xpLinear, xpQuadDiv, xpConst as curve coefficients.
+ * evalAbilityCurve/findAbilityLevel read xpParamB, xpParamC.
  * Ability slots begin at +0x1C with stride 4, up to 21 slots.
  */
 /** @brief Single ability slot within a GF's ability table (4 bytes). */
@@ -154,7 +154,7 @@ typedef struct {
 typedef struct {
     u16 param0;    /**< +0x00: Lookup param (getLevelCurveData). */
     u8 pad02[5];   /**< +0x02..+0x06: Unknown. */
-    u8 field07;    /**< +0x07: Used in func_80022028. */
+    u8 field07;    /**< +0x07: Used in calcHitStat. */
     u8 pad08;      /**< +0x08: Unknown. */
     u8 field09;    /**< +0x09: Returned directly by @c func_800A7A44 as a per-class lookup byte. */
     u8 pad0A;      /**< +0x0A: Unknown. */
@@ -312,7 +312,7 @@ s32 getGfAvailabilityMask(void);
  * for each of the 9 stats, plus element/status flags and multipliers
  * used to score magic for auto-junction.
  *
- * Lives at D_8007901C (= g_gfData + 0x21C, same region as junctionData
+ * Lives at g_magicJunctionData (= g_gfData + 0x21C, same region as junctionData
  * but indexed by magic spell, not GF).
  */
 typedef struct {
@@ -330,7 +330,5 @@ typedef struct {
 } MagicJunctionData; /* 60 bytes */
 
 extern MagicJunctionData g_magicJunctionData[];
-u8 *func_80020EF4(s32);
-u8 *func_80020F84(s32);
 
 #endif /* GF_H */

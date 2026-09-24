@@ -4,7 +4,7 @@
 static const s16 D_801E9528[4];
 static const s16 D_801E9530[4];
 extern u8 D_801E9540;
-extern u8 D_80077808[];
+extern u8 g_characters[];
 
 INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E5800);
 
@@ -139,14 +139,14 @@ INCLUDE_ASM("asm/ovl/menupty/nonmatchings/menupty", func_801E7318);
  * @brief Build bitmask of characters with specific status flag.
  *
  * For each of 8 character slots, checks if the input bitmask has the
- * character's bit set AND the character's status halfword at D_80077808+0x94
+ * character's bit set AND the character's status halfword at g_characters+0x94
  * (stride 152) has bit 2 set. Returns a combined bitmask.
  *
  * @param a0 Input character bitmask.
  * @return Filtered bitmask of characters matching the criteria.
  */
 s32 func_801E74DC(s32 a0) {
-    u8 *ptr = D_80077808;
+    u8 *ptr = g_characters;
     s32 result = 0;
     s32 i = 0;
     s32 one = 1;
@@ -173,7 +173,7 @@ s32 func_801E74DC(s32 a0) {
  * @return Filtered bitmask of characters matching the criteria.
  */
 s32 func_801E7530(s32 a0) {
-    u8 *ptr = D_80077808;
+    u8 *ptr = g_characters;
     s32 result = 0;
     s32 i = 0;
     s32 one = 1;

@@ -84,7 +84,7 @@ s32 tripleTriadMainLoop(void) {
         g_tripleTriadFrameCount++;
     } while (g_tripleTriadState != TT_STATE_EXIT);
 
-    g_fadeCounter = -1;
+    g_ttFadeCounter = -1;
     for (i = 0; i < 2; i++) {
         func_800A1C6C();
         flipBuffers();
@@ -107,8 +107,8 @@ void initGraphics(void) {
     RECT *screen0;
     RECT *screen1;
 
-    SetDefDrawEnv(&g_drawEnvs[0], 0, 0, TT_DRAW_W, TT_SCREEN_H);
-    disp = g_dispEnvs;
+    SetDefDrawEnv(&g_ttDrawEnvs[0], 0, 0, TT_DRAW_W, TT_SCREEN_H);
+    disp = g_ttDispEnvs;
     SetDefDispEnv(&disp[0], TT_DRAW_W, 0, TT_DRAW_W, TT_SCREEN_H);
     screen0 = &disp[0].screen;
     screen0->x = 0;
@@ -116,7 +116,7 @@ void initGraphics(void) {
     screen0->w = TT_SCREEN_W;
     screen0->h = TT_SCREEN_H;
 
-    SetDefDrawEnv(&g_drawEnvs[1], TT_DRAW_W, 0, TT_DRAW_W, TT_SCREEN_H);
+    SetDefDrawEnv(&g_ttDrawEnvs[1], TT_DRAW_W, 0, TT_DRAW_W, TT_SCREEN_H);
     SetDefDispEnv(&disp[1], 0, 0, TT_DRAW_W, TT_SCREEN_H);
     disp[1].screen.x = 0;
     screen1 = &disp[1].screen;
@@ -141,7 +141,7 @@ void initGraphics(void) {
     SetGeomScreen(TT_PROJ_DIST);
     SetDispMask(0);
 
-    g_fadeCounter = 2;
+    g_ttFadeCounter = 2;
     g_vsyncMode = 0;
     resetVramQueue();
 }
@@ -149,7 +149,7 @@ void initGraphics(void) {
 /**
  * @brief Present the frame: wait for vsync, step the fade, and swap the double buffer.
  *
- * Advances @c g_fadeCounter (toggling the display mask as it reaches zero),
+ * Advances @c g_ttFadeCounter (toggling the display mask as it reaches zero),
  * swaps @c g_drawBufferIndex, draws the just-finished buffer's ordering table,
  * and resets the new buffer's OT and primitive pool for the next frame.
  */
@@ -160,22 +160,22 @@ void flipBuffers(void) {
     VSync(1);
     VSync(g_vsyncMode);
 
-    if (g_fadeCounter > 0) {
-        g_fadeCounter--;
-        if (g_fadeCounter == 0) {
+    if (g_ttFadeCounter > 0) {
+        g_ttFadeCounter--;
+        if (g_ttFadeCounter == 0) {
             SetDispMask(1);
         }
-    } else if (g_fadeCounter < 0) {
-        g_fadeCounter++;
-        if (g_fadeCounter == 0) {
+    } else if (g_ttFadeCounter < 0) {
+        g_ttFadeCounter++;
+        if (g_ttFadeCounter == 0) {
             SetDispMask(0);
         }
     }
 
     g_drawBufferIndex ^= 1;
 
-    PutDrawEnv(&g_drawEnvs[g_drawBufferIndex]);
-    PutDispEnv(&g_dispEnvs[g_drawBufferIndex]);
+    PutDrawEnv(&g_ttDrawEnvs[g_drawBufferIndex]);
+    PutDispEnv(&g_ttDispEnvs[g_drawBufferIndex]);
     flushVramTransfers();
 
     DrawOTag(&g_orderingTables[g_drawBufferIndex ^ 1][TT_OT_LEN - 1]);
@@ -183,7 +183,7 @@ void flipBuffers(void) {
     g_otBase = &g_orderingTables[g_drawBufferIndex][0];
     ClearOTagR(&g_orderingTables[g_drawBufferIndex][0], TT_OT_LEN);
 
-    g_activeDrawEnv = &g_drawEnvs[g_drawBufferIndex ^ 1];
+    g_activeDrawEnv = &g_ttDrawEnvs[g_drawBufferIndex ^ 1];
 }
 
 /**
@@ -947,7 +947,7 @@ s32 cardFlipHandler(HandlerNode *node) {
             tmp = d;
             g_cardFlipAngles.vx = (-(d << 10) >> 12) + 0x400;
             g_cardFlipAngles.vy = g_cardFlipSpin + (((-g_cardFlipSpin) * d) >> 12);
-            func_8003F884(&g_cardFlipUpVec, &g_cardFlipTarget, 0x1000 - tmp, d, &g_cardFlipXform->vec);
+            LoadAverageShort12(&g_cardFlipUpVec, &g_cardFlipTarget, 0x1000 - tmp, d, &g_cardFlipXform->vec);
             d = (rsin(d / 2) << 4) >> 12;
             g_cardFlipXform->vec.vy -= d;
         } else {
@@ -996,7 +996,7 @@ s32 cardFlipHandler(HandlerNode *node) {
     g_cardFlipXform->mat.t[0] = g_cardFlipXform->vec.vx;
     g_cardFlipXform->mat.t[1] = g_cardFlipXform->vec.vy;
     g_cardFlipXform->mat.t[2] = g_cardFlipXform->vec.vz;
-    func_80041794(0x100, &g_cardFlipXform->mat);
+    RotMatrixX(0x100, &g_cardFlipXform->mat);
     SetRotMatrix(&g_cardFlipXform->mat);
     SetTransMatrix(&g_cardFlipXform->mat);
     ot = &g_otBase[4];

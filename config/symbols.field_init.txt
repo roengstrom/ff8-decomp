@@ -1,8 +1,3 @@
-getMagicNamePtr = 0x80020C08;
-getCharName = 0x80020E4C;
-g_battleConfig = 0x80082C08;
-g_battleAnims = 0x80082DD0;
-g_cardData = 0x80082FB4;
 func_80098028 = 0x80098028; // type:func
 func_800980B0 = 0x800980B0; // type:func
 func_800980D0 = 0x800980D0; // type:func

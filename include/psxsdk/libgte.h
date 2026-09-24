@@ -59,7 +59,7 @@ SVECTOR *ApplyMatrixSV(MATRIX *m, SVECTOR *v0, SVECTOR *v1);
 s32 RotTransPers(SVECTOR *v0, s32 *sxy, s32 *p, s32 *flag);
 /** @brief The main binary's own @c RotTransPers copy; overlays link it by address, so it
  *         keeps its @c func_ name. */
-s32 func_80040DE4(SVECTOR *v0, s32 *sxy, s32 *p, s32 *flag);
+s32 RotTransPers(SVECTOR *v0, s32 *sxy, s32 *p, s32 *flag);
 s32 RotTransPers4(SVECTOR *v0, SVECTOR *v1, SVECTOR *v2, SVECTOR *v3,
                   s32 *sxy0, s32 *sxy1, s32 *sxy2, s32 *sxy3,
                   s32 *p, s32 *flag);

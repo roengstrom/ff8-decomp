@@ -119,17 +119,17 @@ s32 opHandler_FACEDIRINIT(Actor *actor) {
 }
 
 /**
- * @brief Snapshot the 12-halfword dialog-state block from @c D_800704A8
+ * @brief Snapshot the 12-halfword dialog-state block from @c g_fieldEntity
  *        into @c g_fieldVars.
  *
- * Copies @c D_800704A8.dialogState..field_0x11E (12 halfwords) into
+ * Copies @c g_fieldEntity.dialogState..field_0x11E (12 halfwords) into
  * @c g_fieldVars->dialogStateMirror..fieldEE. The first four writes
  * are emitted out of source order (dst@D8, DC, DA, DE) for codegen
  * matching; the remaining eight are sequential.
  */
 void func_800BB6C8(void) {
     FieldVars   *dst = g_fieldVars;
-    SystemState *src = &D_800704A8;
+    SystemState *src = &g_fieldEntity;
 
     dst->dialogStateMirror = src->dialogState;
     dst->fieldDC           = src->dialogCount;
@@ -149,19 +149,19 @@ void func_800BB6C8(void) {
  * @brief Initialise the dialog-state block and mirror it to @c g_fieldVars.
  *
  * Sets the global mode marker @c D_800DE8D2 to @c 2 and seeds the
- * 6-halfword dialog state at @c D_800704A8.dialogState..field_0x112
+ * 6-halfword dialog state at @c g_fieldEntity.dialogState..field_0x112
  * with the boot values (state=2, timer=0xFF, count=0x10, then 0xFF
  * sentinels). @c func_800BB6C8 copies the whole 12-halfword block
  * into @c g_fieldVars->dialogStateMirror..fieldEE.
  */
 s32 opHandler_FADEIN(void) {
     D_800DE8D2 = 2;
-    D_800704A8.dialogState  = 2;
-    D_800704A8.dialogTimer  = 0xFF;
-    D_800704A8.dialogCount  = 0x10;
-    D_800704A8.field_0x10E  = 0xFF;
-    D_800704A8.field_0x110  = 0xFF;
-    D_800704A8.field_0x112  = 0xFF;
+    g_fieldEntity.dialogState  = 2;
+    g_fieldEntity.dialogTimer  = 0xFF;
+    g_fieldEntity.dialogCount  = 0x10;
+    g_fieldEntity.field_0x10E  = 0xFF;
+    g_fieldEntity.field_0x110  = 0xFF;
+    g_fieldEntity.field_0x112  = 0xFF;
     func_800BB6C8();
     return 2;
 }
@@ -178,13 +178,13 @@ s32 opHandler_FADEIN(void) {
  */
 s32 opHandler_FADEOUT(void) {
     D_800DE8D2 = 3;
-    D_800704A8.dialogState = 3;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.dialogCount = 8;
+    g_fieldEntity.dialogState = 3;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.dialogCount = 8;
     do { } while (0);
-    D_800704A8.field_0x10E = 0xFF;
-    D_800704A8.field_0x110 = 0xFF;
-    D_800704A8.field_0x112 = 0xFF;
+    g_fieldEntity.field_0x10E = 0xFF;
+    g_fieldEntity.field_0x110 = 0xFF;
+    g_fieldEntity.field_0x112 = 0xFF;
     func_800BB6C8();
     return 2;
 }
@@ -202,11 +202,11 @@ s32 opHandler_FADEOUT(void) {
  * so the two halves merge back into one function.
  */
 s32 opHandler_DCOLADD(ScriptContext *context) {
-    D_800704A8.dialogState = 7;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.field_0x112 = POP(context);
-    D_800704A8.field_0x110 = POP(context);
-    D_800704A8.field_0x10E = POP(context);
+    g_fieldEntity.dialogState = 7;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.field_0x112 = POP(context);
+    g_fieldEntity.field_0x110 = POP(context);
+    g_fieldEntity.field_0x10E = POP(context);
     func_800BB6C8();
     return 2;
 }
@@ -221,11 +221,11 @@ s32 opHandler_DCOLADD(ScriptContext *context) {
  * from @c symbol_addrs.field so the two halves merge back.
  */
 s32 opHandler_DCOLSUB(ScriptContext *context) {
-    D_800704A8.dialogState = 8;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.field_0x112 = POP(context);
-    D_800704A8.field_0x110 = POP(context);
-    D_800704A8.field_0x10E = POP(context);
+    g_fieldEntity.dialogState = 8;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.field_0x112 = POP(context);
+    g_fieldEntity.field_0x110 = POP(context);
+    g_fieldEntity.field_0x10E = POP(context);
     func_800BB6C8();
     return 2;
 }
@@ -244,15 +244,15 @@ s32 opHandler_DCOLSUB(ScriptContext *context) {
  * from @c symbol_addrs.field so the two halves merge back.
  */
 s32 opHandler_TCOLADD(ScriptContext *context) {
-    D_800704A8.dialogState = 5;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.dialogCount = POP(context);
-    D_800704A8.field_0x11E = POP(context);
-    D_800704A8.field_0x11C = POP(context);
-    D_800704A8.field_0x11A = POP(context);
-    D_800704A8.field_0x118 = D_800704A8.field_0x112;
-    D_800704A8.field_0x116 = D_800704A8.field_0x110;
-    D_800704A8.field_0x114 = D_800704A8.field_0x10E;
+    g_fieldEntity.dialogState = 5;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.dialogCount = POP(context);
+    g_fieldEntity.field_0x11E = POP(context);
+    g_fieldEntity.field_0x11C = POP(context);
+    g_fieldEntity.field_0x11A = POP(context);
+    g_fieldEntity.field_0x118 = g_fieldEntity.field_0x112;
+    g_fieldEntity.field_0x116 = g_fieldEntity.field_0x110;
+    g_fieldEntity.field_0x114 = g_fieldEntity.field_0x10E;
     func_800BB6C8();
     return 2;
 }
@@ -262,15 +262,15 @@ s32 opHandler_TCOLADD(ScriptContext *context) {
  * @brief Same shape as @c opHandler_TCOLADD with @c dialogState=6.
  */
 s32 opHandler_TCOLSUB(ScriptContext *context) {
-    D_800704A8.dialogState = 6;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.dialogCount = POP(context);
-    D_800704A8.field_0x11E = POP(context);
-    D_800704A8.field_0x11C = POP(context);
-    D_800704A8.field_0x11A = POP(context);
-    D_800704A8.field_0x118 = D_800704A8.field_0x112;
-    D_800704A8.field_0x116 = D_800704A8.field_0x110;
-    D_800704A8.field_0x114 = D_800704A8.field_0x10E;
+    g_fieldEntity.dialogState = 6;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.dialogCount = POP(context);
+    g_fieldEntity.field_0x11E = POP(context);
+    g_fieldEntity.field_0x11C = POP(context);
+    g_fieldEntity.field_0x11A = POP(context);
+    g_fieldEntity.field_0x118 = g_fieldEntity.field_0x112;
+    g_fieldEntity.field_0x116 = g_fieldEntity.field_0x110;
+    g_fieldEntity.field_0x114 = g_fieldEntity.field_0x10E;
     func_800BB6C8();
     return 2;
 }
@@ -288,15 +288,15 @@ s32 opHandler_TCOLSUB(ScriptContext *context) {
  * @c symbol_addrs.field to merge them back.
  */
 s32 opHandler_FCOLADD(ScriptContext *context) {
-    D_800704A8.dialogState = 5;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.dialogCount = POP(context);
-    D_800704A8.field_0x11E = POP(context);
-    D_800704A8.field_0x11C = POP(context);
-    D_800704A8.field_0x11A = POP(context);
-    D_800704A8.field_0x118 = POP(context);
-    D_800704A8.field_0x116 = POP(context);
-    D_800704A8.field_0x114 = POP(context);
+    g_fieldEntity.dialogState = 5;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.dialogCount = POP(context);
+    g_fieldEntity.field_0x11E = POP(context);
+    g_fieldEntity.field_0x11C = POP(context);
+    g_fieldEntity.field_0x11A = POP(context);
+    g_fieldEntity.field_0x118 = POP(context);
+    g_fieldEntity.field_0x116 = POP(context);
+    g_fieldEntity.field_0x114 = POP(context);
     func_800BB6C8();
     return 2;
 }
@@ -307,15 +307,15 @@ s32 opHandler_FCOLADD(ScriptContext *context) {
  * @brief Same shape as @c opHandler_FCOLADD with @c dialogState=6.
  */
 s32 opHandler_FCOLSUB(ScriptContext *context) {
-    D_800704A8.dialogState = 6;
-    D_800704A8.dialogTimer = 0;
-    D_800704A8.dialogCount = POP(context);
-    D_800704A8.field_0x11E = POP(context);
-    D_800704A8.field_0x11C = POP(context);
-    D_800704A8.field_0x11A = POP(context);
-    D_800704A8.field_0x118 = POP(context);
-    D_800704A8.field_0x116 = POP(context);
-    D_800704A8.field_0x114 = POP(context);
+    g_fieldEntity.dialogState = 6;
+    g_fieldEntity.dialogTimer = 0;
+    g_fieldEntity.dialogCount = POP(context);
+    g_fieldEntity.field_0x11E = POP(context);
+    g_fieldEntity.field_0x11C = POP(context);
+    g_fieldEntity.field_0x11A = POP(context);
+    g_fieldEntity.field_0x118 = POP(context);
+    g_fieldEntity.field_0x116 = POP(context);
+    g_fieldEntity.field_0x114 = POP(context);
     func_800BB6C8();
     return 2;
 }
@@ -323,15 +323,15 @@ s32 opHandler_FCOLSUB(ScriptContext *context) {
 /**
  * @brief Wait for the dialog-state countdown to match the timer.
  *
- * Returns @c 1 while @c D_800704A8+0x10C (countdown) and @c +0x10A
+ * Returns @c 1 while @c g_fieldEntity+0x10C (countdown) and @c +0x10A
  * (target/timer) differ. Once they match, copy the current dialog
  * state word at @c +0x108 into @c g_fieldVars->dialogStateMirror and return @c 2.
  */
 s32 opHandler_COLSYNC(void) {
-    if (D_800704A8.dialogCount != D_800704A8.dialogTimer) {
+    if (g_fieldEntity.dialogCount != g_fieldEntity.dialogTimer) {
         return 1;
     }
-    g_fieldVars->dialogStateMirror = D_800704A8.dialogState;
+    g_fieldVars->dialogStateMirror = g_fieldEntity.dialogState;
     return 2;
 }
 
@@ -339,7 +339,7 @@ s32 opHandler_COLSYNC(void) {
  * @brief Dialog ready/idle predicate dispatched on @c D_800DE8D2.
  *
  * When @c D_800DE8D2 == 2 the function reports 2 only if
- * @c D_800704A8.dialogState is currently 0 (idle), otherwise 1.
+ * @c g_fieldEntity.dialogState is currently 0 (idle), otherwise 1.
  * For every other value of @c D_800DE8D2 the function waits for
  * @c dialogState == 3 AND @c dialogTimer == 0xFF before reporting 2.
  *
@@ -353,14 +353,14 @@ s32 opHandler_FADESYNC(void) {
     u16 dlg;
     volatile SystemState *ss;
     if (D_800DE8D2 == 2) {
-        dlg = ((volatile SystemState *)&D_800704A8)->dialogState;
+        dlg = ((volatile SystemState *)&g_fieldEntity)->dialogState;
         if (dlg != 0) {
             dlg = 1;
             return dlg;
         }
         return 2;
     }
-    ss = &D_800704A8;
+    ss = &g_fieldEntity;
     if ((s16)ss->dialogState != 3) {
         return 1;
     }
@@ -373,7 +373,7 @@ s32 opHandler_FADESYNC(void) {
 /**
  * @brief Clear the dialog state and mirror it into @c g_fieldVars.
  *
- * Writes 0 into @c D_800704A8.dialogState, then copies the freshly
+ * Writes 0 into @c g_fieldEntity.dialogState, then copies the freshly
  * cleared value into @c g_fieldVars->dialogStateMirror. The @c volatile
  * pointer is required to force a real load-after-store rather than
  * letting gcc fold the mirror to a constant 0.
@@ -381,7 +381,7 @@ s32 opHandler_FADESYNC(void) {
  * @return Always 2 (VM continue).
  */
 s32 opHandler_FADENONE(void) {
-    volatile SystemState *src = &D_800704A8;
+    volatile SystemState *src = &g_fieldEntity;
     FieldVars *dst = g_fieldVars;
     src->dialogState = 0;
     dst->dialogStateMirror = src->dialogState;
@@ -396,7 +396,7 @@ s32 opHandler_FADENONE(void) {
  * literal @c 4.
  */
 s32 opHandler_FADEBLACK(void) {
-    SystemState *src = &D_800704A8;
+    SystemState *src = &g_fieldEntity;
     *(volatile u16 *)&src->dialogState = 4;
     g_fieldVars->dialogStateMirror = *(volatile u16 *)&src->dialogState;
     return 2;

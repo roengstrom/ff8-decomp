@@ -1,11 +1,3 @@
-getMagicNamePtr = 0x80020C08; // type:func
-getCharName = 0x80020E4C; // type:func
-copyString = 0x8002A2A8; // type:func
-renderBattleDisplayList = 0x8002A92C; // type:func
-decodeMessage = 0x8002F688;
-g_activeDrawEnv = 0x8005F134;
-g_battleChars = 0x80078720;
-g_menuColor = 0x80083848;
 func_801EF8D8 = 0x801EF8D8; // type:func
 func_801EF934 = 0x801EF934; // type:func
 func_801EF9AC = 0x801EF9AC; // type:func
@@ -132,4 +124,3 @@ func_801F7C98 = 0x801F7C98; // type:func
 g_menuDisplayCfg = 0x801FAB00;
 g_menumain_partyMemberMask = 0x801FABB8;
 func_9F9EFB00 = 0x9F9EFB00; // type:func
-SetDrawArea = 0x80049A14; // type:func

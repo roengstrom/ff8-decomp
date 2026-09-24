@@ -36,7 +36,7 @@ typedef enum {
 } RenderMode;
 
 /* Display / render state owned by main.c. */
-extern u16            g_currentMusicTrack;
+extern s16            g_currentMusicTrack;
 extern TILE           g_clearTiles[];
 extern volatile u16   g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
 extern volatile u8    g_fadeMode;    /* volatile for codegen match (forces reload each access) */
@@ -46,7 +46,7 @@ extern s32            D_8005F138;       /**< Active display-environment window (
 
 /** @brief Present/flip the built buffer; @p mode selects the presentation path.
  *         Returns a handle the field loop keeps in @c D_800D5EA0 . */
-extern s32            func_80042634(s32 mode);
+extern s32            VSync(s32 mode);
 
 /* VSync callback state owned by main.c. */
 extern u8             g_vsyncSkip;
@@ -55,7 +55,7 @@ extern volatile s32   D_8005F15C; /**< VSync countdown-timer timing accumulator 
 extern u16            D_8005F11E; /**< VSync-done / status flag. */
 /** Scene-transition handshake driven by the VSync path; shared by the field,
  *  world and battle engines (each spins on it with its own sentinel value). */
-extern volatile s16   D_8005F146;
+extern volatile s16   g_renderMode;
 
 /* CD file-table descriptors + scratch buffers loaded/managed by main.c. */
 extern CdFileDesc     g_fileTableDesc[];

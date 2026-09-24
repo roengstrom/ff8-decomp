@@ -4,7 +4,6 @@
 #include "render.h"
 
 extern MATRIX g_meshBaseMatrix;
-extern MeshRenderCtx g_meshRenderCtx;  /**< Global mesh render context (overlay area). */
 
 /**
  * @brief Set up GTE matrices and render a mesh grid.
@@ -80,7 +79,7 @@ INCLUDE_ASM("asm/nonmatchings/mesh3d", renderFlatMesh);
 /**
  * @brief Initialize 9x9 vertex grid and ordering tables for mesh rendering.
  *
- * Sets up the mesh render context at g_meshRenderCtx with buffer pointers,
+ * Sets up the mesh render context at MESH_RENDER_CTX with buffer pointers,
  * clears two 8-entry ordering tables at 0x801F6000, and fills a 9x9 grid
  * of screen-space vertex positions with uniform spacing (40px h, 27px v).
  */

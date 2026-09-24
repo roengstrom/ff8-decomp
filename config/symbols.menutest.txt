@@ -1,8 +1,3 @@
-getMagicNamePtr = 0x80020C08; // type:func
-getCharName = 0x80020E4C; // type:func
-copyString = 0x8002A2A8; // type:func
-decodeMessage = 0x8002F688;
-g_menuColor = 0x80083848;
 func_801E582C = 0x801E582C; // type:func
 func_801E58B8 = 0x801E58B8; // type:func
 func_801E59B4 = 0x801E59B4; // type:func
@@ -13,5 +8,4 @@ func_801E6570 = 0x801E6570; // type:func
 func_801E66A8 = 0x801E66A8; // type:func
 func_801E6760 = 0x801E6760; // type:func
 func_801E67F0 = 0x801E67F0; // type:func
-g_menuDisplayCfg = 0x801FAB00;
 func_9F9E5B80 = 0x9F9E5B80; // type:func

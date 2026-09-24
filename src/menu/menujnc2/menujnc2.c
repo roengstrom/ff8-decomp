@@ -1582,7 +1582,7 @@ s32 getAbilityNamePtr(s32 type, s32 index) {
     case 1:
         if (index < D_801EEF38) {
             u8 cmdId = D_801EEF10[index * 2];
-            gfData = (u8 *)&D_80078E00;
+            gfData = (u8 *)&g_gfData;
             stride = 8;
             /* g_gfData ability range J: typeField at offset 0x4180 + 5 = 0x4185 */
             result = getAbilityEntryDesc(gfData[(cmdId - 0x14) * stride + 0x4185]);
@@ -1954,7 +1954,7 @@ dispatch:
             ctx->unk40 = 0;
             /* fallthrough */
         case 0xD:
-            ctx->unk4B = func_80035AA4(ctx->statInfo[1], 0);
+            ctx->unk4B = findNthSetBit(ctx->statInfo[1], 0);
             *statePtr = 0xE;
             break;
         case 0xE:
@@ -2125,7 +2125,7 @@ dispatch:
             }
             if (col != 0) {
                 if (fr < 3) {
-                    { s32 b = (s32)&D_80078E00; u8 *p = (u8 *)((col - 0x14) * 8 + b); ctx->itemPtr = getAbilityEntryDesc(p[0x4185]); }
+                    { s32 b = (s32)&g_gfData; u8 *p = (u8 *)((col - 0x14) * 8 + b); ctx->itemPtr = getAbilityEntryDesc(p[0x4185]); }
                 } else {
                     ctx->itemPtr = getAbilityDesc(col);
                 }
@@ -3031,11 +3031,11 @@ dispatch:
         case 0x43:
             sendSpuCommand(5);
             ctx->unk66 = 0x258;
-            func_8002D6AC(0, D_801EF1B0);
+            initSfxPlayback(0, D_801EF1B0);
             func_801F23D0(0, 0x68, D_801EF1B0);
-            func_8002DE74(0, 0x56);
-            func_8002CA58(0, 0);
-            func_8002DCF4(0);
+            setSfxField2F(0, 0x56);
+            setSfxPitch(0, 0);
+            startSfxNormal(0);
             *statePtr = 0x44;
             break;
         case 0x44:
@@ -3045,7 +3045,7 @@ dispatch:
                 ctx->unk66 = 0;
             }
             if ((s16)ctx->unk66 <= 0) {
-                func_8002DD58(0);
+                fadeOutSfxFast(0);
                 *statePtr = 0x29;
             }
             break;
@@ -3090,7 +3090,7 @@ dispatch:
                 func_801F18FC(ctx);
                 func_801F0BB0();
                 func_801F5340();
-                func_80023888();
+                recalcPartyStats();
                 *statePtr = 8;
             }
             if (func_801F1200() == 0) {
@@ -3213,14 +3213,14 @@ s32 renderStatTableA(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
             cy2 = func_800300F8(renderCtx, cy2, indicator, x, y, g_menuColor, (color * 64) + 2);
         }
         x += 0xA;
-        func_8002F294(currentVal, buf, func_80020F84(0xB)[1]);
-        fmtParam = func_80020F84(0xB)[1];
-        func_8002F2EC(&buf[2], 2, fmtParam, func_80020F84(0xB)[0]);
-        func_8002A2C4(buf, fmtResult);
+        intToDecStringShort(currentVal, buf, getMenuString(0xB)[1]);
+        fmtParam = getMenuString(0xB)[1];
+        replaceLeadingZeros(&buf[2], 2, fmtParam, getMenuString(0xB)[0]);
+        btlStrcat2(buf, fmtResult);
         cursorY = func_8002C56C(renderCtx, cy2, x, y, &buf[2], color);
     }
 
-    if (func_80037ADC() == 4) {
+    if (isMcBusy() == 4) {
         cfg->iconType = 0xFC;
     } else {
         cfg->iconType = 0xD0;
@@ -3296,14 +3296,14 @@ s32 renderStatTableB(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
             cy2 = func_800300F8(renderCtx, cy2, indicator, x, y, g_menuColor, (color * 64) + 2);
         }
         x += 0xA;
-        func_8002F294(currentVal, buf, func_80020F84(0xB)[1]);
-        fmtParam = func_80020F84(0xB)[1];
-        func_8002F2EC(&buf[2], 2, fmtParam, func_80020F84(0xB)[0]);
-        func_8002A2C4(buf, fmtResult);
+        intToDecStringShort(currentVal, buf, getMenuString(0xB)[1]);
+        fmtParam = getMenuString(0xB)[1];
+        replaceLeadingZeros(&buf[2], 2, fmtParam, getMenuString(0xB)[0]);
+        btlStrcat2(buf, fmtResult);
         cursorY = func_8002C56C(renderCtx, cy2, x, y, &buf[2], color);
     }
 
-    if (func_80037ADC() == 4) {
+    if (isMcBusy() == 4) {
         cfg->iconType = 0xFD;
     } else {
         cfg->iconType = 0xD1;
@@ -3401,14 +3401,14 @@ s32 renderStatTableC(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
             cy2 = func_800300F8(renderCtx, cy2, indicator, x, y, g_menuColor, (color * 64) + 2);
         }
         x += 0xA;
-        func_8002F294(currentVal, buf, func_80020F84(0xB)[1]);
-        fmtParam = func_80020F84(0xB)[1];
-        func_8002F2EC(bufPtr, 2, fmtParam, func_80020F84(0xB)[0]);
-        func_8002A2C4(buf, fmtResult);
+        intToDecStringShort(currentVal, buf, getMenuString(0xB)[1]);
+        fmtParam = getMenuString(0xB)[1];
+        replaceLeadingZeros(bufPtr, 2, fmtParam, getMenuString(0xB)[0]);
+        btlStrcat2(buf, fmtResult);
         cursorY = func_8002C56C(renderCtx, cy2, x, y, bufPtr, color);
     }
 
-    if (func_80037ADC() == 4) {
+    if (isMcBusy() == 4) {
         cfg->iconType = 0xFE;
     } else {
         cfg->iconType = 0xD2;
@@ -3498,14 +3498,14 @@ s32 renderStatTableD(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
             cy2 = func_800300F8(renderCtx, cy2, indicator, x, y, g_menuColor, (color * 64) + 2);
         }
         x += 0xA;
-        func_8002F294(currentVal, buf, func_80020F84(0xB)[1]);
-        fmtParam = func_80020F84(0xB)[1];
-        func_8002F2EC(bufPtr, 2, fmtParam, func_80020F84(0xB)[0]);
-        func_8002A2C4(buf, fmtResult);
+        intToDecStringShort(currentVal, buf, getMenuString(0xB)[1]);
+        fmtParam = getMenuString(0xB)[1];
+        replaceLeadingZeros(bufPtr, 2, fmtParam, getMenuString(0xB)[0]);
+        btlStrcat2(buf, fmtResult);
         cursorY = func_8002C56C(renderCtx, cy2, x, y, bufPtr, color);
     }
 
-    if (func_80037ADC() == 4) {
+    if (isMcBusy() == 4) {
         cfg->iconType = 0xFF;
     } else {
         cfg->iconType = 0xD3;
@@ -4825,7 +4825,7 @@ s32 renderAbilityListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32
  * @brief Render the character's 3 equipped-command rows with junction highlighting.
  *
  * Reads the character index from @c ctx->charIdx, renders the character title (looked
- * up via @c func_80020EF4 from @c g_charMenuInfo[charIdx].unk12), then loops over the
+ * up via @c getAbilityEntryName from @c g_charMenuInfo[charIdx].unk12), then loops over the
  * 3 equipped commands (@c g_gameState.chars[charIdx].commands[i]). Each command is
  * drawn with its category icon (@c getAbilityCategory) and name (@c getAbilityName),
  * highlighted (color 1 instead of 7) when the junction slot being edited — queried
@@ -4859,7 +4859,7 @@ s32 renderStatRowGrid(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s
     xPos = x + 0x21;
     yPos = y + 9;
     highlight = 7;
-    title = func_80020EF4((*(cmiTable = &g_charMenuInfo))[ctx->charIdx].unk12);
+    title = getAbilityEntryName((*(cmiTable = &g_charMenuInfo))[ctx->charIdx].unk12);
     cursorY = func_801F0FEC(renderCtx, cursorY, xPos, yPos, title, highlight);
 
     for (i = 0; i < 3; i++) {
@@ -5007,14 +5007,14 @@ s32 renderCharSwitchPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 
             x2 += 0x180;
         }
         chr = ctx->prevCharIdx;
-        rec = &D_80077808[chr];
+        rec = &g_characters[chr];
         info = &g_charMenuInfo[chr];
         cursorY = func_801F65F0(renderCtx, cursorY, x2, y2, rec, info);
         x2 = x + scale;
         y2 = y;
     }
     chr = ctx->charIdx;
-    rec = &D_80077808[chr];
+    rec = &g_characters[chr];
     info = &g_charMenuInfo[chr];
     return func_801F65F0(renderCtx, cursorY, x2, y2, rec, info);
 }

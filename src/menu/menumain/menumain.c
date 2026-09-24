@@ -2414,7 +2414,7 @@ s32 func_801F7C20(s32 a0) {
 }
 
 /** @brief Render save/card-related text (convert value to string, draw at position). */
-void func_801F7C98(s32 a0, s32 a1) {
+void func_801F7C98(s32 a0, u8 *a1) {
     u8 buf[16];
     intToDecStringShort(a0, buf, 0x30);
     copyString(a1, D_80056290);

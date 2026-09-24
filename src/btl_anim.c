@@ -27,7 +27,7 @@ void stepAnimEntries(void);
 extern u8 g_animInitialized;
 extern u8 g_animFlag;
 extern CardDataBlock g_cardData;
-extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
+extern s8 g_cardFlag; /**< g_cardFlag: Memory card operation status flag. */
 extern u16 g_animState;
 extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
 extern s16 g_cardFileSlot;   /* save slot index */

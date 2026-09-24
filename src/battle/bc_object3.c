@@ -1,6 +1,7 @@
 #include "common.h"
 #include "gamestate.h"
 #include "battle.h"
+#include "battle/scene_data.h"
 #include "game.h"
 #include "battle/bc_object2.h"
 #include "battle/bc_object3.h"
@@ -231,7 +232,7 @@ s32 func_800A20AC(s32 arg0) {
     mask = 1;
     for (i = 0; i < 8; i++) {
         if (temp_a0->displayStatus & mask) {
-            result += D_80078E00.unk4CDC[i];
+            result += g_gfData.unk4CDC[i];
         }
         
         mask <<= 1;
@@ -240,7 +241,7 @@ s32 func_800A20AC(s32 arg0) {
     mask = 1;
     for (i = 0; i < 24; i++) {
         if (temp_a0->unk188 & mask) {
-            result += D_80078E00.unk4CE4[i];
+            result += g_gfData.unk4CE4[i];
         }
 
         mask <<= 1;
@@ -277,7 +278,7 @@ s32 func_800A21B0(s32 arg0) {
     u8 temp_s2;
 
     temp_s3 = &g_battleChars.chars[arg0];
-    temp_s2 = D_80078E00.array37A6[D_800ED148.entities[arg0].linkedIdx].unk0;
+    temp_s2 = g_gfData.array37A6[D_800ED148.entities[arg0].linkedIdx].unk0;
 
     if (!(D_80082C10 & 0x20)) {
         if (!(temp_s3->unk188 & 0x200)) {      
@@ -564,8 +565,8 @@ void func_800A2724(s32 arg0, s32 arg1, u8* arg2, u8* arg3, s32 arg4, s8* arg5, u
 /**
  * @brief Check battle status flags and optionally store adjusted value.
  *
- * Reads D_800786D8[0] and tests bit flags. If bit 0 is clear, returns 0.
- * If bit 1 is set, returns 1. Otherwise, stores D_800786D8[0x2D] + 2
+ * Reads g_chocoboWorld[0] and tests bit flags. If bit 0 is clear, returns 0.
+ * If bit 1 is set, returns 1. Otherwise, stores g_chocoboWorld[0x2D] + 2
  * into *a0 as a halfword and returns 2.
  *
  * @param a0 Pointer to halfword destination (written only if returning 2).
@@ -621,13 +622,13 @@ s32 func_800A2D24(void) {
  * @brief Look up a byte from a two-level table.
  *
  * Indexes into D_800ED148 by a0*208, reads a byte at offset 0xDA,
- * then uses (byte-1)*2 to index into D_80078E00 at offset 0x4CFD.
+ * then uses (byte-1)*2 to index into g_gfData at offset 0x4CFD.
  *
  * @param a0 Entity index (stride 208).
  * @return Byte value from the second-level table.
  */
 u8 func_800A2E04(s32 arg0) {
-    BattleSceneData* bsd = &D_80078E00;
+    BattleSceneData* bsd = &g_gfData;
     BattleSystem* bs = &D_800ED148;
     BattleEntity* currentEntity = &bs->entities[arg0];
 
@@ -696,21 +697,21 @@ s32 func_800A2EF8(s32 arg0, s32 arg1) {
  * @brief Look up ability flag and value, then call func_800E1880.
  *
  * Reads battle state index from D_800ED148[0x1324], entity index from
- * D_800ED148[0xF]. Looks up flag byte from D_80078E00 table (stride 24,
+ * D_800ED148[0xF]. Looks up flag byte from g_gfData table (stride 24,
  * offset 0x4802), checks bit 0x10. Also reads entity ability byte at
- * offset 0xDA (stride 0xD0), uses it to index D_80078E00 at offset 0x4D03.
+ * offset 0xDA (stride 0xD0), uses it to index g_gfData at offset 0x4D03.
  * Calls func_800E1880 with inverted flag and the lookup result.
  */
 void func_800A2F54(void) {
-    s32 result = D_80078E00.array47FC[D_800ED148.unk1324].unk6 & 0x10;
+    s32 result = g_gfData.array47FC[D_800ED148.unk1324].unk6 & 0x10;
     BattleEntity* entity = &D_800ED148.entities[D_800ED148.entities[0].entityRef];
     
-    func_800E1880(!result, D_80078E00.unk4D03[(entity + 1)->slot8.byteView.unkA + 1]);
+    func_800E1880(!result, g_gfData.unk4D03[(entity + 1)->slot8.byteView.unkA + 1]);
 }
 
 
 void func_800A2FC8(void) {
-    BattleSceneData* bsd = &D_80078E00;
+    BattleSceneData* bsd = &g_gfData;
     BattleEntity* entity = &D_800ED148.entities[D_800ED148.entities[0].entityRef];
     
     func_800DEAA4(D_800ED148.unk131A, bsd->unk4CFC[(entity + 1)->slot8.byteView.unkA - 1].unk0);
@@ -785,7 +786,7 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
     
     if (arg0 < 3) {
         arg6 = 0;
-        if ((arg1 == 4 || arg1 == 13) && D_80078E00.array3920[arg2].unk16 == 14) {
+        if ((arg1 == 4 || arg1 == 13) && g_gfData.array3920[arg2].unk16 == 14) {
             arg1 = 244;
             arg3 = arg2;
             if (arg2 == 30) {
@@ -811,7 +812,7 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 }
                 
                 D_800ED148.unk1321 = 0;
-                arg2 = D_80078E00.array3920[arg2].unk14;
+                arg2 = g_gfData.array3920[arg2].unk14;
             }
         }
         
@@ -858,9 +859,9 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             }
             
             else {
-                arg2 = D_80078E00.unkE8[arg1].unk0;
-                var_s3 = D_80078E00.array4020[arg2].unk7;
-                sp2E = D_80078E00.array4020[arg2].unk0;
+                arg2 = g_gfData.unkE8[arg1].unk0;
+                var_s3 = g_gfData.array4020[arg2].unk7;
+                sp2E = g_gfData.array4020[arg2].unk0;
                 break;
             }
             
@@ -873,11 +874,11 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                     if (func_8009F718(arg0, arg4, arg2) != 0) {
                         func_800A779C(arg2);
                         arg6 = D_800E3CC5;
-                        var_s3 = D_80078E00.spells[arg2].unk9;
-                        sp2E = D_80078E00.spells[arg2].unk0;
+                        var_s3 = g_gfData.spells[arg2].unk9;
+                        sp2E = g_gfData.spells[arg2].unk0;
                         var_s2 = func_800B02AC(func_800B0248(getAbilityEntryName(9), *getMenuString(0xB), getMagicNamePtr(arg2)));
                         // @HACK ?
-                        D_800ED148.entities[0].slot8.initFlags = (int) &D_80078E00.spells[arg2].unk26;
+                        D_800ED148.entities[0].slot8.initFlags = (int) &g_gfData.spells[arg2].unk26;
                     } 
                     
                     else {
@@ -1000,8 +1001,8 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
         case 247:                                     
             var_s2 = 0;
             func_800A779C(arg2);
-            var_s3 = D_80078E00.spells[arg2].unk9;
-            sp2E = D_80078E00.spells[arg2].unk0;
+            var_s3 = g_gfData.spells[arg2].unk9;
+            sp2E = g_gfData.spells[arg2].unk0;
             break;
             
         case 2:                                      
@@ -1013,10 +1014,10 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 }
                 
                 func_800A779C(arg2);
-                var_s3 = D_80078E00.spells[arg2].unk9;
-                sp2E = D_80078E00.spells[arg2].unk0;
+                var_s3 = g_gfData.spells[arg2].unk9;
+                sp2E = g_gfData.spells[arg2].unk0;
                 // @HACK ?
-                D_800ED148.entities[0].slot8.initFlags = (int) &D_80078E00.spells[arg2].unk26;
+                D_800ED148.entities[0].slot8.initFlags = (int) &g_gfData.spells[arg2].unk26;
                 D_800ED148.unk132A = arg2;
             }
             
@@ -1058,12 +1059,12 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             
             D_800EEBC8 = 0;
             D_800ED148.unk1300 = 1;
-            var_s3 = D_80078E00.rows132[arg2 - 64].unkC;
-            sp2E = D_80078E00.rows132[arg2 - 64].unk4;
+            var_s3 = g_gfData.rows132[arg2 - 64].unkC;
+            sp2E = g_gfData.rows132[arg2 - 64].unk4;
             var_s2 = func_800AFF70(arg2);
             D_800ED148.unk131E = 0;
             // @HACK ?
-            D_800ED148.entities[0].slot8.initFlags = (int) &D_80078E00.rows132[arg2 - 64].unk70;
+            D_800ED148.entities[0].slot8.initFlags = (int) &g_gfData.rows132[arg2 - 64].unk70;
             break;
             
         case 244:                                     
@@ -1079,8 +1080,8 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 break;
                 
             default:
-                var_s3 = D_80078E00.entriesA0[arg2].unkA;
-                sp2E = D_80078E00.entriesA0[arg2].unk2;
+                var_s3 = g_gfData.entriesA0[arg2].unkA;
+                sp2E = g_gfData.entriesA0[arg2].unk2;
                 var_s2 = func_800AFF30(arg2);
                 break;
             }
@@ -1088,28 +1089,28 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             
         case 240:
         case 245:
-            var_s3 = D_80078E00.entriesA0[arg2].unkA;
-            sp2E = D_80078E00.entriesA0[arg2].unk2;
+            var_s3 = g_gfData.entriesA0[arg2].unkA;
+            sp2E = g_gfData.entriesA0[arg2].unk2;
             var_s2 = func_800AFF30(arg2);
             break;
             
         case 4:                                      
         case 13:                                      
-            var_s3 = D_80078E00.abilities[arg2].unkE;
-            sp2E = D_80078E00.array3920[arg2].unk14;
+            var_s3 = g_gfData.abilities[arg2].unkE;
+            sp2E = g_gfData.array3920[arg2].unk14;
             var_s2 = getStatName(arg2);
             break;
             
         case 250:                                     
-            var_s3 = D_80078E00.array3750[arg3].unk0;
-            sp2E = D_80078E00.unk3738[arg3].unk10;
+            var_s3 = g_gfData.array3750[arg3].unk0;
+            sp2E = g_gfData.unk3738[arg3].unk10;
             var_s2 = getElementName(arg3);
             break;
             
         case 16:                                     
             var_s2 = getMagicNamePtr(arg2);
-            var_s3 = D_80078E00.spells[arg2].unk9;
-            sp2E = D_80078E00.spells[arg2].unk0;
+            var_s3 = g_gfData.spells[arg2].unk9;
+            sp2E = g_gfData.spells[arg2].unk0;
             if (arg2 >= 51) {
                 g_gameState.mainData.limitBreaks.selphieLimits |= 1 << (arg2 - 51);
             }
@@ -1133,26 +1134,26 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             D_800ED148.unk1325 = 0;
             var_s2 = 0;
             dummy:
-            var_s3 = D_80078E00.array47FC[D_800ED148.unk1324].unk8;
-            sp2E = D_80078E00.array47FC[D_800ED148.unk1324].unk0;
+            var_s3 = g_gfData.array47FC[D_800ED148.unk1324].unk8;
+            sp2E = g_gfData.array47FC[D_800ED148.unk1324].unk0;
             break;
             
         case 19:                                     
-            var_s3 = D_80078E00.array4A6C[arg3].unk4A76;
-            sp2E = D_80078E00.array4A6C[arg3].unk4A6E;
+            var_s3 = g_gfData.array4A6C[arg3].unk4A76;
+            sp2E = g_gfData.array4A6C[arg3].unk4A6E;
             var_s2 = getGfSummonData(arg3);
             break;
             
         case 17 ... 18:                                   
         case 20 ... 22:                                
-            var_s3 = D_80078E00.array4484[arg2].unk8;
-            sp2E = D_80078E00.array4484[arg2].unk0;
+            var_s3 = g_gfData.array4484[arg2].unk8;
+            sp2E = g_gfData.array4484[arg2].unk0;
             var_s2 = getJuncCategoryName(arg2);
             break;
             
         case 15:                                      
-            var_s3 = D_80078E00.array44FC[arg2].unk7;
-            sp2E = D_80078E00.array44FC[arg2].unk0;
+            var_s3 = g_gfData.array44FC[arg2].unk7;
+            sp2E = g_gfData.array44FC[arg2].unk0;
             var_s2 = getJuncEffectName(arg2);
             break;
             
@@ -1170,7 +1171,7 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 D_800ED148.unk1303 = 1;
                 D_800ED148.unk1304 = 1;
                 arg2 = 65534;
-                temp_v0_5 = func_800A2EB8(func_8009B7BC(4), D_80078E00.array35B1[g_battleChars.chars[arg0].classId].unk9);
+                temp_v0_5 = func_800A2EB8(func_8009B7BC(4), g_gfData.array35B1[g_battleChars.chars[arg0].classId].unk9);
                 func_800A3054(arg0, 250, 65535, temp_v0_5, func_8009BAC4(temp_v0_5, arg5));
             }
             break;
@@ -1178,9 +1179,9 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
         case 11:                                      
             D_800ED148.unk131A = func_800A2E04(arg0);
             var_s2 = 0;
-            D_800ED148.unk131B = D_80078E00.unk49F8[D_800ED148.unk131A];
+            D_800ED148.unk131B = g_gfData.unk49F8[D_800ED148.unk131A];
             arg2 = 65531;
-            sp2E = D_80078E00.array48BC[D_800ED148.unk131B].unk48BC;
+            sp2E = g_gfData.array48BC[D_800ED148.unk131B].unk48BC;
             func_800A3054(arg0, 241, D_800ED148.unk131B, 0, arg5);
             D_800ED148.unk12E2 = arg5;
             D_800ED148.unk131C = 0;
@@ -1208,8 +1209,8 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                     break;
                 
                 default:
-                    var_s3 = D_80078E00.array48BC[arg2].unk48C4;
-                    sp2E = D_80078E00.array48BC[arg2].unk48BC;
+                    var_s3 = g_gfData.array48BC[arg2].unk48C4;
+                    sp2E = g_gfData.array48BC[arg2].unk48BC;
                     var_s2 = getMagicEffectName(arg2);
                     D_800ED148.unk131C++;
                     break;
@@ -1217,14 +1218,14 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             break;
             
         case 239:                                     
-            var_s3 = D_80078E00.array48BC[arg2].unk48C4;
-            sp2E = D_80078E00.array48BC[arg2].unk48BC;
+            var_s3 = g_gfData.array48BC[arg2].unk48C4;
+            sp2E = g_gfData.array48BC[arg2].unk48BC;
             var_s2 = getMagicEffectName(arg2);
             break;
             
         case 8:                                      
         case 236:                                     
-            if (D_80078E00.entries17[arg2].unk9 & 0x80) {
+            if (g_gfData.entries17[arg2].unk9 & 0x80) {
                 var_s2 = func_800AFFB4(arg2);
             } 
             
@@ -1232,9 +1233,9 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 var_s2 = 0;
             }
             
-            var_s3 = D_80078E00.entries17[arg2].unk9 & 0x7F;
-            sp2E = D_80078E00.entries17[arg2].unk2;
-            sp30 = D_80078E00.entries17[arg2].unk4;
+            var_s3 = g_gfData.entries17[arg2].unk9 & 0x7F;
+            sp2E = g_gfData.entries17[arg2].unk2;
+            sp30 = g_gfData.entries17[arg2].unk4;
             break;
             
         case 38:                                     
@@ -1249,9 +1250,9 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 break;
                 
             case 2:                                     
-                var_s3 = D_80078E00.unk3F62;
+                var_s3 = g_gfData.unk3F62;
                 arg2 = 6;
-                sp2E = D_80078E00.unk3F5A;
+                sp2E = g_gfData.unk3F5A;
                 var_s2 = func_800AFF30(6);
                 D_800ED148.unk1322 = 0;
                 break;
@@ -1265,9 +1266,9 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             
             if (!(D_800ED148.entities[sp2A].status & 4)) {
                 if (func_8009EF64(sp2A) != 0) {
-                    arg2 = D_80078E00.unkE8[arg1].unk0;
-                    var_s3 = D_80078E00.array4020[arg2].unk7;
-                    sp2E = D_80078E00.array4020[arg2].unk0;
+                    arg2 = g_gfData.unkE8[arg1].unk0;
+                    var_s3 = g_gfData.array4020[arg2].unk7;
+                    sp2E = g_gfData.array4020[arg2].unk0;
                     break;
                 }
             }
@@ -1277,9 +1278,9 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
             
         case 23 ... 27:                                   
         case 30 ... 34:                                   
-            arg2 = D_80078E00.unkE8[arg1].unk0;
-            var_s3 = D_80078E00.array4020[arg2].unk7;
-            sp2E = D_80078E00.array4020[arg2].unk0;
+            arg2 = g_gfData.unkE8[arg1].unk0;
+            var_s3 = g_gfData.array4020[arg2].unk7;
+            sp2E = g_gfData.array4020[arg2].unk0;
             var_s2 = getAbilityEntryName(arg1);
             break;
             
@@ -1596,7 +1597,7 @@ u16 func_800A4A74(s32 arg0, u16 arg1) {
     s32 temp_v0;
 
     if ((arg0 == 1) && (D_800EE4C0.unk0 >= 3)) {
-        if (D_800EE4C0.unk1 == 8 && !(D_800ED148.unk130F & 4) && !(D_80078E00.entries17[D_800EE4C0.statusCode].unk8 & 3)) {
+        if (D_800EE4C0.unk1 == 8 && !(D_800ED148.unk130F & 4) && !(g_gfData.entries17[D_800EE4C0.statusCode].unk8 & 3)) {
             func_800A4FC4(arg1, &sp10);
             
             temp_v0 = func_800A493C(sp10);
@@ -2072,7 +2073,7 @@ s32 func_800A5688(s32 arg0) {
         var_a0 = 5;
     }
     
-    currentEntityData->unk14 += ((currentEntityData->unkC1 + 30) * D_80078E00.unk4CCC[14] * var_a0) / 100; // maybe D_80078E00.unk4CCC[14] isnt part of the array
+    currentEntityData->unk14 += ((currentEntityData->unkC1 + 30) * g_gfData.unk4CCC[14] * var_a0) / 100; // maybe g_gfData.unk4CCC[14] isnt part of the array
     
     if (currentEntityData->unk10 <= currentEntityData->unk14) {
         currentEntityData->unk14 = currentEntityData->unk10;
@@ -2315,7 +2316,7 @@ void func_800A5F24(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u16 arg4) {
     switch (arg2) {
         case 16:
             for (i = 0; i < D_800ED148.unk1320; i++) {
-                func_800A5A7C(arg1, arg2, D_800ED148.unk131F, 0, func_800B0F9C(D_80078E00.spells[D_800ED148.unk131F].magicId) | func_800B0F7C(D_80078E00.spells[D_800ED148.unk131F].magicId), 0, &D_800ED148.unk1244[arg1].unk0[i]);
+                func_800A5A7C(arg1, arg2, D_800ED148.unk131F, 0, func_800B0F9C(g_gfData.spells[D_800ED148.unk131F].magicId) | func_800B0F7C(g_gfData.spells[D_800ED148.unk131F].magicId), 0, &D_800ED148.unk1244[arg1].unk0[i]);
             }
             return;
             
@@ -2330,7 +2331,7 @@ void func_800A5F24(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u16 arg4) {
             D_800ED148.unk132C = func_800A2EB8((entity + 1)->slot8.byteView.unkA, D_80077E92 / 16);
             
         
-            func_800A5A7C(arg1, arg2, arg3, D_800ED148.unk132C, func_800B0F9C(D_80078E00.array4A6C[D_800ED148.unk132C].unk4A74) | func_800B0F7C(D_80078E00.array4A6C[D_800ED148.unk132C].unk4A74), 0, &D_800ED148.unk1244[arg1].unk0[arg0]);
+            func_800A5A7C(arg1, arg2, arg3, D_800ED148.unk132C, func_800B0F9C(g_gfData.array4A6C[D_800ED148.unk132C].unk4A74) | func_800B0F7C(g_gfData.array4A6C[D_800ED148.unk132C].unk4A74), 0, &D_800ED148.unk1244[arg1].unk0[arg0]);
             return;
     }
 

@@ -722,7 +722,7 @@ typedef struct {
     /* 0x1B6 */ u16 atkStatusHit;      /**< Attack status hit chance. */
     /* 0x1B8 */ u8 level;              /**< Battle level (from findCharXpLevel). */
     /* 0x1B9 */ u8 unk1B9;
-    /* 0x1BA */ u8 classId;            /**< Equipped weapon ID. Used as index into the @c D_80078E00 ability tables (stride 12 at @c 0x35C1). */
+    /* 0x1BA */ u8 classId;            /**< Equipped weapon ID. Used as index into the @c g_gfData ability tables (stride 12 at @c 0x35C1). */
     /* 0x1BB */ u8 stats[8];           /**< Battle stats: STR, VIT, MAG, SPR, SPD, ?, hit (0x1C0), eva (0x1C1). 0x1C2 = ? */
     /* 0x1C3 */ u8 characterId;
     /* 0x1C4 */ u8 atkElemBase;        /**< Attack element base. */
@@ -799,7 +799,7 @@ typedef struct {
 
 
 /**
- * @brief Spell record in the battle scene buffer (D_80078E00.spells, stride 60).
+ * @brief Spell record in the battle scene buffer (g_gfData.spells, stride 60).
  *
  * Only byte 0 (magicId) is read by the known callers.
  */
@@ -824,7 +824,7 @@ typedef struct {
 } BattleSpellRow; /* 60 bytes */
 
 /**
- * @brief Ability record in the battle scene buffer (D_80078E00.abilities, stride 24).
+ * @brief Ability record in the battle scene buffer (g_gfData.abilities, stride 24).
  *
  * Only byte 0 (abilityId) is read by the known callers.
  */
@@ -1061,7 +1061,7 @@ typedef struct {
 } structE8;
 
 /**
- * @brief Battle scene data buffer at D_80078E00 (loaded from disc, ~0x9E08 bytes).
+ * @brief Battle scene data buffer at g_gfData (loaded from disc, ~0x9E08 bytes).
  *
  * Contains kernel-data pointers and various sub-arrays. Many regions remain
  * unidentified — fields will be added as more code is decompiled.
@@ -1238,7 +1238,6 @@ extern u8              D_80077E59;
 extern u8              D_8007809A;
 extern u8              D_800786D9;
 extern u8              D_80078DF8;
-extern BattleSceneData D_80078E00;
 extern u16             D_80082C0A;
 extern u8              D_80082C0F;
 extern MsgFormatConfig D_80083858;
@@ -1309,18 +1308,11 @@ u8 *func_800B02AC(u8 *buf);
 /* --- Battle animation lifecycle --- */
 void activateBattleAnim(s32 idx);
 
-/* --- Spatial / matrix helpers (defined in field overlay) --- */
-void func_800406A4(u8 *p);
-void func_80040734(u8 *p);
-/* func_80040DE4 (the main binary's RotTransPers) is declared in psxsdk/libgte.h. */
-
 /** @brief Reset battle-transition state (clears @c btl_color flags). */
 void initBattleTransition(void);
 void func_800D0608(void); /* bc_object17: overlay VSync handler (RENDER_OVERLAY) */
 
 
-void func_8002A2C4(u8 *, s32);
-s32 func_80037ADC(void);
 
 /* ---------------------------------------------------------------- *
  * Records the effect overlays share with battle.bin

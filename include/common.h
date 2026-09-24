@@ -212,8 +212,6 @@ typedef struct {
 
 extern EncounterParams D_80082C90;
 
-/** @brief Append string @p src onto @p dst (main-binary string concatenation). */
-extern void func_80047C74(u8 *dst, u8 *src);
 
 /** @brief Integer square root of @p a (main-binary helper). */
 

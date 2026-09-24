@@ -232,7 +232,7 @@ void loadSubOverlay(s32 a0, s32 a1) {
 /**
  * @brief Load an overlay by ID, resolving dependencies from load_table.
  *
- * Looks up the overlay descriptor from load_table (D_80053C58), extracts
+ * Looks up the overlay descriptor from load_table (load_table), extracts
  * the dependency byte (low 8 bits), and loads the dependency first if
  * it differs from the currently loaded dependency (D_8008520A). Then
  * enqueues the main overlay load with callbacks a1 and a2.
@@ -275,7 +275,7 @@ void loadOverlayDirect(s32 a0, s32 a1) {
 /**
  * @brief Enqueue a type-0x11 overlay load with a completion callback.
  *
- * Uses func_80035F70 as the first callback and the load address as the
+ * Uses loadTimImage as the first callback and the load address as the
  * second callback argument.
  *
  * @param a0 Parameter passed as the command param.

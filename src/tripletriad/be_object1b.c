@@ -286,7 +286,7 @@ s32 drawBoardElements(void) {
     }
 
     g_primCursor = prim;
-    queueLoadImage(&g_drawEnvs[g_drawBufferIndex ^ 1].clip, D_8012E66C);
+    queueLoadImage(&g_ttDrawEnvs[g_drawBufferIndex ^ 1].clip, D_8012E66C);
     return 0;
 }
 

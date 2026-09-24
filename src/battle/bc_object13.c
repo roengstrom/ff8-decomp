@@ -178,7 +178,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C3568);
  * @brief Increment progress counter and compute pitch ratio.
  *
  * Increments the byte at a0[0xC], divides (a0[0xC] << 10) by
- * a0[0xD] to get a ratio, passes it through func_8003ED64,
+ * a0[0xD] to get a ratio, passes it through rsin,
  * and stores the result in D_800F02E8. Returns 2 if the counter
  * has reached or exceeded the limit, 0 otherwise.
  *
@@ -188,7 +188,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object13", func_800C3568);
 s32 func_800C3694(u8 *a0) {
     s32 result;
     a0[0xC]++;
-    result = func_8003ED64((a0[0xC] << 10) / a0[0xD]);
+    result = rsin((a0[0xC] << 10) / a0[0xD]);
     *(u16 *)D_800F02E8 = result;
     return (a0[0xC] >= a0[0xD]) << 1;
 }

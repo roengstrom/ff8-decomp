@@ -6,7 +6,7 @@
 
 /** @brief CD-ROM file descriptor (sector + size pair).
  *
- *  Used by func_8003882C / func_80038868 to identify data on disc.
+ *  Used by cdRead / func_80038868 to identify data on disc.
  *  The master file table at 0x80097400 is an array of these descriptors,
  *  loaded from a hard-coded bootstrap descriptor (g_fileTableDesc).
  */

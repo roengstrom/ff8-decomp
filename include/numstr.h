@@ -30,7 +30,5 @@ extern void advanceAndDecodeMessage(MsgState *msg, u8 *output);
 extern void decodeMessageDirect(MsgState *msg, u8 *output);
 
 u8 *func_8002F548(u8 *src);
-void func_8002F294(s32 value, u8 *dst, u8 digits);
-void func_8002F2EC(u8 *dst, s32 base, u8 digits, u8 width);
 
 #endif /* NUMSTR_H */

@@ -58,7 +58,7 @@ extern u8            *D_800C9E34;
 
 extern void func_800BAC84(u8 *p);
 extern s32  func_800BA870(u8 *p);
-extern void *func_80047CE4(void *dst, s32 c, u32 n);
+extern void *memset(void *dst, s32 c, u32 n);
 extern s32 func_800BEF6C(void);
 extern void func_800AEB58(XformEntry *entry, XformGroup *group);
 extern void func_8009C5FC(s32 *data);

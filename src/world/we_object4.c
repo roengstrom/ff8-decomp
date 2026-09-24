@@ -939,7 +939,7 @@ static void func_800A8024(void) {
     rot.vx += D_800C9770[0].vx;
     rot.vz += D_800C9770[0].vz;
 
-    func_800423DC((VECTOR *)&D_800C9838, D_800C9838.t, &base);
+    ApplyTransposeMatrixLV((VECTOR *)&D_800C9838, D_800C9838.t, &base);
     SetRotMatrix(&D_800C9838);
     gte_ldtr(0, 0, 0);
 
@@ -1640,7 +1640,7 @@ void func_800A9300(void) {
         } else if (kp->shape == PARTICLE_SHAPE_ROTATED) {
             /* Measure the sprite on screen: project the centre and a point one
              * half-width to its side, and take the gap between them. */
-            func_80047CE4(&noRotation, 0, sizeof(SVECTOR));
+            memset(&noRotation, 0, sizeof(SVECTOR));
             span[2] = slot->view;
             span[1] = span[2];
             span[0] = span[1];
@@ -2359,7 +2359,7 @@ static void func_800AB06C(void) {
     MATRIX     *mp;
 
     local_pos = D_8009814C;
-    func_80047CE4(&rot_in, 0, sizeof(SVECTOR));
+    memset(&rot_in, 0, sizeof(SVECTOR));
 
     slot = D_800D9CB0;
     proj_p = &projected;
@@ -2465,7 +2465,7 @@ void func_800AB2D4(VECTOR *pos) {
     MATRIX     *mp;
     s32         t;
 
-    func_80047CE4(&rot_in, 0, sizeof(SVECTOR));
+    memset(&rot_in, 0, sizeof(SVECTOR));
     local_pos = *pos;
 
     if (func_8009CC3C() < 0x80) {

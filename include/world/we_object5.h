@@ -32,14 +32,14 @@ typedef struct {
 /**
  * @brief 32-byte input passed to @ref func_800ACA70. Contains two
  *        16-byte halves: a 4-word @c a block (opaque, forwarded as-is
- *        to @c func_800423DC) and a @c b block whose first u32 is
+ *        to @c ApplyTransposeMatrixLV) and a @c b block whose first u32 is
  *        kept while the trailing 3 s32s are negated to invert a
  *        position before the call.
  */
 typedef struct {
     /* 0x00 */ VECTOR a;       /**< Opaque 16-byte block, passed through. */
     /* 0x10 */ s32    b_pre;   /**< Untouched (likely a tag / mode byte). */
-    /* 0x14 */ s32    b_x;     /**< Negated before @c func_800423DC. */
+    /* 0x14 */ s32    b_x;     /**< Negated before @c ApplyTransposeMatrixLV. */
     /* 0x18 */ s32    b_y;     /**< Negated. */
     /* 0x1C */ s32    b_z;     /**< Negated. */
 } Input32;
@@ -60,10 +60,10 @@ extern VECTOR     D_800C9858;     /* live camera world position (VECTOR view)   
 extern VECTOR     D_800DD658;     /* source position for func_800BC51C            */
 
 extern void func_800A84D0(void);
-extern s32  func_8003F9F4(CVECTOR *input, CVECTOR *cue, s32 w1, s32 w2, CVECTOR *out);
+extern s32  LoadAverageCol(CVECTOR *input, CVECTOR *cue, s32 w1, s32 w2, CVECTOR *out);
 extern s32  func_800A4700(s32 a, s32 b);
 extern s32  func_800A475C(s32 a, s32 b);
-extern void func_800423DC(VECTOR *a, s32 *b_pos, VECTOR *out);
+extern void ApplyTransposeMatrixLV(VECTOR *a, s32 *b_pos, VECTOR *out);
 /* Rotates four corner offsets into place and projects them; @c outSXY takes
  * the four packed screen points and @c outOTZ their average depth. */
 extern void func_800ABEF0(SVECTOR *src, SVECTOR *rot, SVECTOR *trans,

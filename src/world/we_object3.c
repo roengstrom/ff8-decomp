@@ -235,9 +235,9 @@ extern s32              D_800D2474;   /**< Repeat step counter. */
 
 /* getAnimFrameParam returns u16 in thread.c, but every caller uses the result as
    s32 with no widening mask; thread.h documents that those callers keep their own
-   declaration. func_80030F10 has no owning translation unit yet. */
+   declaration. remapControllerInput has no owning translation unit yet. */
 extern s32              getAnimFrameParam(s32 slot, s32 sub);
-extern s32              func_80030F10(s32 arg);
+extern s32              remapControllerInput(s32 arg);
 extern s16              D_800C9772;   /**< Receives the low half of the camera-follow
                                            reference D_800C9870. */
 
@@ -265,15 +265,11 @@ extern void             func_800A4420(WorldSpriteRec *rec, SVECTOR *ref, SVECTOR
    outside the decompiled sources. static anyway: gcc 2.8 has no unit-at-a-time
    pass, so it still emits the definition and the overlay matches. */
 void                    func_800A01DC(s32 skipPresent);
-extern u8               D_800C53F4[3];  /* Three colour bytes handed to func_80048DD4;
+extern u8               D_800C53F4[3];  /* Three colour bytes handed to ClearImage;
                                            only this function reads them. */
 extern s32              D_800C9738;     /* Previous frame's D_800D23D0 timestamp. */
-extern void             func_800488D4(s32 a);
-extern void             func_80048C50(s32 a);
-extern void             func_80048DD4(BattleSceneCtx *ctx, s32 r, s32 g, s32 b);
-extern void             func_80049244(s32 *tag);
-extern void             func_800492B4(BattleSceneCtx *ctx);
-extern void             func_80049480(void *disp);
+extern void             ResetGraph(s32 a);
+extern void             PutDispEnv(void *disp);
 static s32              func_800A5B48(void);
 /* Writes exactly one word through its out-parameter. */
 extern s32              func_800A50A0(s32 *runs);
@@ -296,7 +292,7 @@ static void             func_800A62E0(s16 val, u16 *coarse, u16 *fine);
  *
  * Polls the pad, picks the counter increment for @c D_800D2264 -- 3 only while
  * the dispatch code @c D_800C4D38 is 0x32 and world-state flag 0 is not 0xC,
- * otherwise 2 -- and feeds it to @c func_80042634. The frame clock is then stepped: the previous
+ * otherwise 2 -- and feeds it to @c VSync. The frame clock is then stepped: the previous
  * @c D_800D23D0 is kept in @c D_800C9738, a fresh one is taken, and the delta
  * lands in @c D_800C9724, which drives the pad repeat timers.
  *
@@ -320,12 +316,12 @@ void func_800A01DC(s32 skipPresent) {
     func_800A0388();
     D_800C4DBC = 0;
     D_800D2264 = (D_800C4D38 != 0x32 || D_800D23D8[0] == 0xC) ? 2 : 3;
-    func_80048C50(0);
-    func_80042634(D_800D2264);
+    DrawSync(0);
+    VSync(D_800D2264);
     D_800C9738 = D_800D23D0;
-    D_800D23D0 = func_80042634(-1);
+    D_800D23D0 = VSync(-1);
     D_800C9724 = D_800D23D0 - D_800C9738;
-    func_800488D4(1);
+    ResetGraph(1);
 
     if (D_800D2458 != 0) {
         func_800A7B38();
@@ -334,17 +330,17 @@ void func_800A01DC(s32 skipPresent) {
         func_800A7E74(D_800D244C);
     }
     func_800AC2B8();
-    func_800492B4(D_800D244C);
-    func_80049480(&D_800D244C->disp);
+    PutDrawEnv(D_800D244C);
+    PutDispEnv(&D_800D244C->disp);
 
     if (skipPresent == 0) {
         if (D_800D23D8[0] == 0xC) {
-            func_80048DD4(D_800D244C, 0, 0, 0);
+            ClearImage(D_800D244C, 0, 0, 0);
         } else {
-            func_80048DD4(D_800D244C, D_800C53F4[0], D_800C53F4[1], D_800C53F4[2]);
+            ClearImage(D_800D244C, D_800C53F4[0], D_800C53F4[1], D_800C53F4[2]);
         }
         if (skipPresent == 0) {
-            func_80049244(&D_800D244C->primList[BSC_HUD_IDX]);
+            DrawOTag(&D_800D244C->primList[BSC_HUD_IDX]);
             D_800D244C = (D_800D244C == &D_800CA040) ? (&D_800CA040) + 1 : &D_800CA040;
         }
     }
@@ -378,7 +374,7 @@ static void func_800A0388(void) {
     func_800275D4();
     D_800C9ED0 = getAnimFrameParam(0, 0);
     D_800C9ED4 = getAnimFrameParam(1, 0);
-    D_800D2278[D_800C4D04] = func_80030F10(D_800C9ED0) | (D_800C9ED4 << 16);
+    D_800D2278[D_800C4D04] = remapControllerInput(D_800C9ED0) | (D_800C9ED4 << 16);
 
     D_800D2240[0] = D_800C96D8[0];
     D_800D2240[1] = D_800C96D8[1];
@@ -1688,9 +1684,9 @@ s32 func_800A2D50(s32 code, s32 angZ, SVECTOR *angles, VECTOR *hitPos, s32 arg4,
     u16 gmode;
     u16 ang16;
 
-    func_80047CE4(&ang, 0, 8);
+    memset(&ang, 0, 8);
     ang.vz = angZ;
-    func_80047CE4(&yang, 0, 8);
+    memset(&yang, 0, 8);
 
     packed = D_800C4D64->type | (D_800C4D64->flag << 8) | (D_800C4D64->param << 16);
     mode = D_800C4D38;
@@ -1942,8 +1938,8 @@ s32 func_800A358C(s32 kind, SlotEntry *slot, SVECTOR *angles, s32 flag) {
     s32 ret;
     s32 i;
 
-    func_80047CE4(&ang, 0, sizeof(ang));
-    func_80047CE4(&yang, 0, sizeof(yang));
+    memset(&ang, 0, sizeof(ang));
+    memset(&yang, 0, sizeof(yang));
     ctx = func_800B0010(kind);
     angBase = angles->vy;
     base = rec.sprite;
@@ -2083,8 +2079,8 @@ static void func_800A39BC(WorldSprite *out, s16 h) {
     s32 i;
     s32 j;
 
-    func_80047CE4(&v, 0, sizeof(v));
-    func_80047CE4(&ang, 0, sizeof(ang));
+    memset(&v, 0, sizeof(v));
+    memset(&ang, 0, sizeof(ang));
     ang.vy = out->unk28;
     rot = ang;
     pos = out->pos;
@@ -2308,9 +2304,9 @@ s32 func_800A3EE4(VECTOR *tr, s16 ang, s16 z) {
     /* Each vector is cleared and filled before the next one is touched: letting
        the two clears run back to back keeps `ang` alive past the point where
        the original has already reused its register for &m. */
-    func_80047CE4(&rot, 0, sizeof(rot));
+    memset(&rot, 0, sizeof(rot));
     rot.vy = ang - 0x400;
-    func_80047CE4(&v, 0, sizeof(v));
+    memset(&v, 0, sizeof(v));
     v.vz = z;
     RotMatrix(&rot, &m);
     SetRotMatrix(&m);

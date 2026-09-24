@@ -54,8 +54,8 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
                 initBattleTransition();
             }
 
-            D_800704A8.mode = 8;
-            D_800704A8.counter = 0;
+            g_fieldEntity.mode = 8;
+            g_fieldEntity.counter = 0;
 
             while (sndGetStatus() == 2) {
                 func_800393C8();
@@ -483,7 +483,7 @@ s32 opHandler_UNKNOWN10(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLEON(ScriptContext *context) {
-    D_800704A8.slotActive[POP(context) & 0xF] = 1;
+    g_fieldEntity.slotActive[POP(context) & 0xF] = 1;
     return 2;
 }
 
@@ -494,7 +494,7 @@ s32 opHandler_PARTICLEON(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLEOFF(ScriptContext *context) {
-    D_800704A8.slotActive[POP(context) & 0xF] = 0;
+    g_fieldEntity.slotActive[POP(context) & 0xF] = 0;
     return 2;
 }
 
@@ -505,7 +505,7 @@ s32 opHandler_PARTICLEOFF(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLESET(Actor *actor) {
-    D_800704A8.slotActive[POP(&actor->context) & 0xF] = actor->field_0x256 | 0x80;
+    g_fieldEntity.slotActive[POP(&actor->context) & 0xF] = actor->field_0x256 | 0x80;
     return 2;
 }
 
@@ -579,11 +579,11 @@ s32 opHandler_BATTLEMODE(ScriptContext *context) {
  * @return 3 (special return — triggers mode transition).
  */
 s32 opHandler_BATTLE(ScriptContext *context) {
-    if (D_800704A8.mode == 0) {
-        D_800704A8.mode = 3;
+    if (g_fieldEntity.mode == 0) {
+        g_fieldEntity.mode = 3;
     }
     D_80082C0A = POP(context);
-    D_800704A8.counter = POP(context);
+    g_fieldEntity.counter = POP(context);
     return 3;
 }
 
@@ -637,7 +637,7 @@ s32 opHandler_BATTLECUT(ScriptContext *context) {
  * @return 1 (yield).
  */
 s32 opHandler_GAMEOVER(ScriptContext *context) {
-    D_800704A8.mode = 4;
+    g_fieldEntity.mode = 4;
     return 1;
 }
 
@@ -1706,7 +1706,7 @@ s32 opHandler_PJUMPA(Actor *actor) {
 
 /**
  * @brief Pop a word from the bytecode stack and store its low byte to
- *        @c D_800704A8.unk1AE.
+ *        @c g_fieldEntity.unk1AE.
  *
  * The @c volatile cast on the load is required to prevent gcc 2.7.2
  * from narrowing the @c lw to @c lbu — the target reads a full s32
@@ -1716,7 +1716,7 @@ s32 opHandler_PJUMPA(Actor *actor) {
  * @return 2 (advance PC).
  */
 s32 opHandler_COUNTERCLOCKWISETURN2(ScriptContext *context) {
-    D_800704A8.unk1AE = *(volatile s32 *)&POP(context);
+    g_fieldEntity.unk1AE = *(volatile s32 *)&POP(context);
     return 2;
 }
 
@@ -2099,7 +2099,7 @@ s32 opHandler_INITTRACE(ScriptContext *context) {
 }
 
 /**
- * @brief Wait until @c D_800704A8.unk106 catches up with @c unk104.
+ * @brief Wait until @c g_fieldEntity.unk106 catches up with @c unk104.
  *
  * Read by scripts to wait for the animation tick set by
  * @c opHandler_AXIS (POP → @c unk104, @c unk106 = 0) — some other
@@ -2109,14 +2109,14 @@ s32 opHandler_INITTRACE(ScriptContext *context) {
  * @return 2 (advance) when @c unk104 == @c unk106, 1 (yield) otherwise.
  */
 s32 opHandler_AXISSYNC(ScriptContext *context) {
-    if (D_800704A8.unk106 == D_800704A8.unk104) {
+    if (g_fieldEntity.unk106 == g_fieldEntity.unk104) {
         return 2;
     }
     return 1;
 }
 
 /**
- * @brief Pop two halfwords into D_800704A8.unk102/unk104; clear unk106.
+ * @brief Pop two halfwords into g_fieldEntity.unk102/unk104; clear unk106.
  *
  * Writes the popped values into the SystemState block: first POP →
  * @c unk104, second POP → @c unk102. Also zeros @c unk106. Leaf
@@ -2126,9 +2126,9 @@ s32 opHandler_AXISSYNC(ScriptContext *context) {
  * @return 2 (advance PC).
  */
 s32 opHandler_AXIS(ScriptContext *context) {
-    D_800704A8.unk104 = POP(context);
-    D_800704A8.unk102 = POP(context);
-    D_800704A8.unk106 = 0;
+    g_fieldEntity.unk104 = POP(context);
+    g_fieldEntity.unk102 = POP(context);
+    g_fieldEntity.unk106 = 0;
     return 2;
 }
 

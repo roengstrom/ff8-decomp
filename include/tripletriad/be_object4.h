@@ -167,16 +167,15 @@ typedef struct {
      - sendSpuCommand, func_800300F8 — owned by btl_color.c, whose btl_color.h pulls in battle.h
        (for BattleCmdEntry); tripletriad is decoupled from battle.h, and this header does not
        include battle.h.
-     - func_800281A4, func_800485C4, func_80030F10 — no .c in the tree defines them yet, so there
+     - setAnimUnk10Both, memmove, remapControllerInput — no .c in the tree defines them yet, so there
        is no owner translation unit to give a header.
      - getAnimFrameParam — returns u16 (thread.c) but this caller needs the s32 view with no
        widening mask; adopting the true u16 measurably breaks the match (see thread.h). */
 extern void sendSpuCommand(s32 idx);
-extern void func_800485C4(void *dst, void *src, s32 size);
-extern void func_800281A4(s32 entity, s32 side, s32 value);
+extern void setAnimUnk10Both(s32 entity, s32 side, s32 value);
 extern void *func_800300F8(void *renderCtx, void *prim, s32 glyph, s32 x, s32 y, s32 color, s32 blink);
 extern s32  getAnimFrameParam(s32 slot, s32 sub);     /**< Per-controller input-frame param. Defined u16 in thread.c, but the original caller uses it as s32 (no widening mask) — match-load-bearing, so kept here rather than via thread.h. */
-extern s32  func_80030F10(s32 arg);                   /**< Read a controller's button mask (owner TU not yet identified). */
+extern s32  remapControllerInput(s32 arg);                   /**< Read a controller's button mask (owner TU not yet identified). */
 
 /* File-scope data: a few globals owned elsewhere (battle config / menu palette) plus
    be_object4-private board / SFX / input state — the D_801D4xxx / D_801C2Exx / D_80182Exx

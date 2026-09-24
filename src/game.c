@@ -404,7 +404,7 @@ s32 getLevelCurveData(s32 curveId) {
 
 
 /** @brief Resolves AbilityEntry.statParam0 from GfData.statTable8[entryId] via resolveKernelPtr. */
-s32 getAbilityEntryName(s32 entryId) {
+u8 *getAbilityEntryName(s32 entryId) {
     return resolveKernelPtr(g_gfData.statTable8[entryId].statParam0, g_gfData.ptrStatTable8);
 }
 
@@ -415,7 +415,7 @@ s32 getAbilityEntryDesc(s32 entryId) {
 }
 
 
-/** @brief Wrapper that calls func_80020F84 with argument 3. */
+/** @brief Wrapper that calls getMenuString with argument 3. */
 static u8 *getDefaultMenuLabel(void) {
     return getMenuString(3);
 }

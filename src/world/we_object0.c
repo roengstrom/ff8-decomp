@@ -135,7 +135,7 @@ s32 func_800987D8(void)
     if (D_80082C8C.mode == 2) {
         func_8009A7C0();
         func_8009CAE0(D_800C4F2C, NULL);
-        while (D_8005F146 == 4) {
+        while (g_renderMode == 4) {
         }
     }
     func_800C4644();
@@ -151,8 +151,8 @@ s32 func_800987D8(void)
     D_800D2238 = 0;
     D_800C971C = 0;
     D_800C9762 = 1;
-    func_8009CCC8(func_80042634(-1));
-    func_8009C8CC(func_80042634(-1));
+    func_8009CCC8(VSync(-1));
+    func_8009C8CC(VSync(-1));
     func_8009CCDC(0);
     InitGeom();
     setupWorldRenderParams();
@@ -188,12 +188,12 @@ s32 func_800987D8(void)
         if (D_800C4FBC != 0) {
             if (sndGetStatus() != 0) {
                 while (sndGetMaxVolume(1) != 0) {
-                    func_80042634(2);
+                    VSync(2);
                 }
             }
             sndCmdC0(0, 0);
             sndCmd11(0);
-            func_80042634(2);
+            VSync(2);
             sndProcessAudio(D_800C4FC0, 1);
             func_8009CDFC(D_800C4FBC, 0x7F);
         } else {
@@ -216,7 +216,7 @@ s32 func_800987D8(void)
         func_800BC570(&D_800D2290, &D_800D2130, &D_800C9FF0);
 
         while ((D_800C4D88 >> 31 & 1) < (D_800C4D80 = func_800A47A4())) {
-            func_80042634(2);
+            VSync(2);
             func_800A5D10();
             D_800C8638++;
         }
@@ -229,7 +229,7 @@ s32 func_800987D8(void)
         if (D_800C4D88 >= 0) {
             D_800C4D84 = 1;
             do {
-                func_80042634(2);
+                VSync(2);
                 func_8009AEE4(D_800C4D88);
             } while (D_800C4D84 != 0);
         }
@@ -241,7 +241,7 @@ s32 func_800987D8(void)
     SetGeomScreen(D_800C9730);
     setCameraVibrateIntensity(0x1000);
     activateBattleAnim(0);
-    func_80042634(0);
+    VSync(0);
     SetDispMask(1);
 
     while (1) {
@@ -464,8 +464,8 @@ s32 func_800987D8(void)
     func_800A6358();
     deactivateBattleCmd(-1);
     func_80027448();
-    func_80048C50(0);
-    func_800488D4(3);
+    DrawSync(0);
+    ResetGraph(3);
     func_8009AD3C();
 
     return result;

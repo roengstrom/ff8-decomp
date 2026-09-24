@@ -92,7 +92,7 @@ void effectEmitterSetup(EffectEmitter *emitter) {
         break;
     case 1:
         effectMatrixIdentity(&emitter->mtx);
-        angle = func_80041E84(
+        angle = ratan2(
             g_effectDrawList->trail[1].vx - g_effectDrawList->strands[0][emitter->unk06B].vx,
             g_effectDrawList->trail[1].vz - g_effectDrawList->strands[0][emitter->unk06B].vz);
         if (angle != 0) {
@@ -101,7 +101,7 @@ void effectEmitterSetup(EffectEmitter *emitter) {
         break;
     case 2:
         effectMatrixIdentity(&emitter->mtx);
-        angle = func_80041E84(
+        angle = ratan2(
             g_effectDrawList->strands[0][emitter->unk06B].vx - g_effectDrawList->trail[1].vx,
             g_effectDrawList->strands[0][emitter->unk06B].vz - g_effectDrawList->trail[1].vz);
         if (angle != 0) {

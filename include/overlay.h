@@ -5,7 +5,7 @@
 #include "world/we_object0.h"
 
 /**
- * @brief Overlay command queue entry (D_80085168, 8-slot ring buffer).
+ * @brief Overlay command queue entry (g_ovlCmdQueue, 8-slot ring buffer).
  *
  * Each entry describes a pending overlay load/unload command. The queue
  * is indexed by D_80085140 (write) and D_80085144 (read).

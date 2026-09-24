@@ -1,7 +1,8 @@
 #include "common.h"
 #include "main.h"
 #include "battle.h"
-#include "gf.h"
+#include "battle/scene_data.h"
+#include "game.h"
 #include "battle/bc_object1.h"
 #include "battle/bc_object7.h"
 
@@ -111,9 +112,9 @@ void func_80099F58(void) {
 }
 
 void func_80099FA0() {
-    while(D_8005F146 != 0);
+    while(g_renderMode != 0);
    
-    D_8005F146 = 3;
+    g_renderMode = 3;
     func_800D0FB0();
 }
 
@@ -142,7 +143,7 @@ void func_80099FE8(void) {
         g_battleConfig.unk4[i] = 255;
     }
 
-    func_8009B198(func_80042634(-1));
+    func_8009B198(VSync(-1));
     func_800B25E4();
     func_8009B6D0(g_battleConfig.battleSceneId, &D_800ED148.unkCDC);
     
@@ -1455,7 +1456,7 @@ void func_8009B924(s32 slot, s32 clearMask, s32 applyMask) {
 u16 func_8009BA5C(s32 arg0, u16 arg1) {
     u16 result;
     
-    result = func_800B0F9C(D_80078E00.array48BC[arg0].unk48C2) | func_800B0F7C(D_80078E00.array48BC[arg0].unk48C2);
+    result = func_800B0F9C(g_gfData.array48BC[arg0].unk48C2) | func_800B0F7C(g_gfData.array48BC[arg0].unk48C2);
 
     return (result & 0x8000)? result : arg1;
 }

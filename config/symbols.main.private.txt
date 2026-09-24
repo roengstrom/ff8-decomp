@@ -1,0 +1,5 @@
+// Read by the executable's config only. Overlay entry points main's C calls;
+// their addresses lie in the overlay window, so the overlays, which read
+// symbols.main.txt, must not see them.
+tripleTriadMainLoop = 0x80098304;
+SmInitEventAll = 0x800C00C8; // type:func

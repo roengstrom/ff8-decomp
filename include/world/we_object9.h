@@ -87,7 +87,6 @@ extern void func_800BFFEC(void);
 extern void func_800C2C00(s32 a, s32 b, s32 c, s32 d, s32 e, U64 *f, s32 g, U64 *h);
 extern u8 *func_800BC8D8(u8 *buf, s32 magicId);
 extern u8 *func_800BC974(u8 *buf, s32 id);
-extern void func_80047C74(u8 *dst, u8 *src);
 extern u8 *func_800BCE74(u8 *buf, s32 statId);
 extern s32 func_800B00D8(s32 a);
 

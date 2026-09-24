@@ -663,7 +663,7 @@ void loadSoundBankA(void) {
 /**
  * @brief Load and apply sound data from disc (variant B).
  *
- * Same as func_80037E60, but the bank table selection is inverted:
+ * Same as loadSoundBankA, but the bank table selection is inverted:
  * uses D_80063388 when g_fieldVars field 0xC9 is non-zero, and
  * D_8005F388 when it is zero.
  */

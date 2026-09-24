@@ -1,10 +1,10 @@
 #include "common.h"
+#include "character.h"
 #include "menu.h"
 
 extern u8 D_801E8C10[];
 extern u8 D_801E8C20[];
 extern u8 D_801E9600[];
-extern u8 D_80077818[];
 extern s32 func_801E7D88;
 
 /**
@@ -158,7 +158,7 @@ void func_801E5EF0(u8 *a0) {
 /**
  * @brief Search a 152-byte entry for a matching id, return its value.
  *
- * Computes the entry address as D_80077818 + a0 * 152, then searches
+ * Computes the entry address as g_characterMagic + a0 * 152, then searches
  * up to 32 byte-pairs for a match with a1. Returns the value byte
  * following the matched id, or 0 if not found.
  *
@@ -167,7 +167,7 @@ void func_801E5EF0(u8 *a0) {
  * @return Value byte after matched id, or 0 if not found
  */
 s32 func_801E5F48(s32 a0, s32 a1) {
-    u8 *ptr = D_80077818 + a0 * 152;
+    u8 *ptr = g_characterMagic[a0].bytes;
     s32 i = 0;
 top:
     {
@@ -440,14 +440,14 @@ typedef struct {
 /** @brief Extension menu context — character/magic IDs plus state byte. */
 typedef struct {
     /* 0x00 */ u8 pad00[0x48];
-    /* 0x48 */ u8 charIdx;        /**< Character index into D_80077808. */
+    /* 0x48 */ u8 charIdx;        /**< Character index into g_characters. */
     /* 0x49 */ u8 pad49[2];
     /* 0x4B */ u8 magicId;        /**< Magic id (input to getMagicNamePtr). */
     /* 0x4C */ u8 pad4C[7];
     /* 0x53 */ u8 state;          /**< Render state (0xFF = inactive). */
 } ExtMenuCtx;
 
-extern CharRecord D_80077808[];
+extern CharRecord g_characters[];
 extern s32 g_menuColor;
 
 extern u32 func_801F57A4(s32 a0);
@@ -485,7 +485,7 @@ s32 func_801E7EB4(ExtMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
         textAttr = func_801F3FB4(func_801F57A4(ctx->charIdx) & 0xFFFF);
         textX = x + 8;
         textY = y + 8;
-        charEntry = &D_80077808[ctx->charIdx];
+        charEntry = &g_characters[ctx->charIdx];
         cursorY = func_801F0FEC(renderCtx, cursorY, textX, textY,
                                 getCharName(charEntry->charId), textAttr);
 

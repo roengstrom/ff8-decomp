@@ -14,6 +14,7 @@ u8 *getMenuString(s32 stringId);
 
 /** @brief Look up the name string for stat/command @p statId. */
 u8 *getStatName(s32 statId);
+u8 *getAbilityEntryName(s32 entryId);
 
 u8 *getAbilityName(s32 abilityId);
 s32 getLevelCurveData(s32 curveId);

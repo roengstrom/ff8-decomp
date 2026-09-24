@@ -410,7 +410,7 @@ typedef struct {
     /* 0xE60 */ u8            padE60[0x400];               /**< Field script vars, TT rules. */
     /* 0x1260 */ u8           pad1260[0x80];               /**< World map position/vehicles. */
     /* 0x12E0 */ TripleTriadData cards;                    /**< Triple Triad data (128 bytes). */
-    /* 0x1360 */ ChocoboWorldData chocobo;                 /* D_800786D8 *< Chocobo World data (64 bytes). */
+    /* 0x1360 */ ChocoboWorldData chocobo;                 /* g_chocoboWorld *< Chocobo World data (64 bytes). */
 } GameState; /* 0x13A0 = 5024 bytes */
 
 /* SaveMainData.partyLockFlag bits. Only bit 0 has a confirmed meaning; the
@@ -452,7 +452,7 @@ extern u8 D_8005F151;
 extern volatile s16 g_vsyncRate;
 extern DISPENV      g_dispEnvs[2];
 extern DRAWENV      g_drawEnvs[2];
-extern s8           g_fadeCounter; /* signed: counts toward 0 (be_object1 uses -1 / <0) */
+extern u8           g_fadeCounter;
 
 /** @brief Bit @c 0x10 mirrors into @c FieldVars.field58 on full field reset. */
 extern u8  D_80078DF8;
@@ -471,7 +471,7 @@ extern void enableChocoboWorld(void);
 /** @brief Resolve a character ID (e.g. party slot) to its global character code. */
 extern s32 func_80037C6C(s32 charId);
 
-extern CharacterData D_80077808[];
+extern CharacterData g_characters[];
 extern u8 D_800788E4;
 extern u8 D_800788E5;
 

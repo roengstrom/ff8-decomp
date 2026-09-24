@@ -1,8 +1,3 @@
-SetGeomOffset = 0x800408C4;
-SetGeomScreen = 0x800408E4;
-getMagicNamePtr = 0x80020C08;
-getCharName = 0x80020E4C;
-g_battleConfig = 0x80082C08;
 D_80098000 = 0x80098000; // type:asciz
 func_80098238 = 0x80098238; // type:func
 func_80098688 = 0x80098688; // type:func

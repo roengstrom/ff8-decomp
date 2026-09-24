@@ -240,7 +240,7 @@ void setModeBit(s32 a0) {
 /**
  * @brief Store a value in the upper 16 bits of D_8008513C and set bit 2.
  *
- * Shifts a0 left by 16 and ORs it into D_8008513C, then calls func_80035C70(2)
+ * Shifts a0 left by 16 and ORs it into D_8008513C, then calls setModeBit(2)
  * to also set bit 2 as a "data present" flag.
  *
  * @param a0 Value to store in the upper halfword of D_8008513C.

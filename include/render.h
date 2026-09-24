@@ -45,7 +45,7 @@ typedef struct {
  *
  * These are hardcoded because PSYLINK (the PsyQ linker) strips
  * redundant `addiu reg, reg, 0` when resolving %lo relocations to 0,
- * but the GNU linker does not. Using `&g_meshRenderCtx` would add
+ * but the GNU linker does not. Going through a symbol would add
  * an extra instruction in our build pipeline.
  */
 #define MESH_RENDER_CTX     ((MeshRenderCtx *)0x801F0000)

@@ -1,6 +1,3 @@
-getMagicNamePtr = 0x80020C08;
-getCharName = 0x80020E4C;
-g_menuColor = 0x80083848;
 func_801E5820 = 0x801E5820; // type:func
 func_801E587C = 0x801E587C; // type:func
 func_801E58EC = 0x801E58EC; // type:func
@@ -18,4 +15,3 @@ func_801E68E4 = 0x801E68E4; // type:func
 func_801E698C = 0x801E698C; // type:func
 func_801E6D34 = 0x801E6D34; // type:func
 func_801E6E58 = 0x801E6E58; // type:func
-g_menuDisplayCfg = 0x801FAB00;

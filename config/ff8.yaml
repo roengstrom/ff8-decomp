@@ -23,10 +23,9 @@ defaults:
     ld_dependencies: true
     ld_align_section_vram_end: false
     ld_align_segment_vram_end: false
-    # Symbols
-    symbol_addrs_path:
-    - config/symbols.shared.txt
-    - config/symbols.{name}.txt
+    # Symbols. Each binary lists its own symbol_addrs_path: the executable's
+    # declarations, then those of any other binary that stays loaded under it
+    # (battle under the effects, menumain under the menu screens), then its own.
     undefined_funcs_auto_path: build/splat/undefined_funcs_auto.{name}.txt
     undefined_syms_auto_path: build/splat/undefined_syms_auto.{name}.txt
     disassemble_all: true
@@ -46,6 +45,7 @@ binaries:
   sha1: fa3b045925c0cc8855b321f5dd22ff196f9d51b0
   options:
     target_path: original/battle.bin
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt]
     section_order: [.rodata, .text, .data, .bss]
   segments:
   - name: battle
@@ -107,6 +107,7 @@ binaries:
   options:
     target_path: original/battle_render.bin
     src_path: src/ovl/battle_render
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle_render.txt]
     section_order: [.rodata, .text, .data, .bss]
   segments:
   - name: battle_render
@@ -123,6 +124,7 @@ binaries:
   sha1: 1787bc2d0ee08f2e0a29b78bd0f07a0bbcfe2bc8
   options:
     target_path: original/field.bin
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt]
     elf_path: build/field/field.elf
     asm_path: asm/field
     build_path: build/field
@@ -169,6 +171,7 @@ binaries:
   options:
     target_path: original/field_init.bin
     src_path: src/ovl/field_init
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field_init.txt]
   segments:
   - name: field_init
     type: code
@@ -187,6 +190,7 @@ binaries:
     elf_path: build/intro/intro.elf
     asm_path: asm/intro
     src_path: src
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.intro.txt]
     build_path: build/intro
     ld_bss_is_noload: true
     section_order: [.text, .rodata, .data, .bss]
@@ -210,6 +214,7 @@ binaries:
   options:
     target_path: original/menuabl.ovl
     src_path: src/menu/menuabl
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menuabl.txt]
   segments:
   - name: menuabl
     type: code
@@ -224,6 +229,7 @@ binaries:
   options:
     target_path: original/menucfg.ovl
     src_path: src/menu/menucfg
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menucfg.txt]
   segments:
   - name: menucfg
     type: code
@@ -239,6 +245,7 @@ binaries:
   options:
     target_path: original/menucrd.ovl
     src_path: src/menu/menucrd
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menucrd.txt]
   segments:
   - name: menucrd
     type: code
@@ -255,6 +262,7 @@ binaries:
   options:
     target_path: original/menuext.ovl
     src_path: src/menu/menuext
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menuext.txt]
   segments:
   - name: menuext
     type: code
@@ -269,6 +277,7 @@ binaries:
   options:
     target_path: original/menugf.ovl
     src_path: src/menu/menugf
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menugf.txt]
   segments:
   - name: menugf
     type: code
@@ -284,6 +293,7 @@ binaries:
   options:
     target_path: original/menuitem.ovl
     src_path: src/menu/menuitem
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menuitem.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: menuitem
@@ -305,7 +315,7 @@ binaries:
   options:
     target_path: original/menujnc2.ovl
     src_path: src/menu/menujnc2
-    symbol_addrs_path: [config/symbols.menujnc2.txt]
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menujnc2.txt]
     ld_bss_is_noload: true
     section_order: [.text, .rodata, .data, .bss]
   segments:
@@ -329,6 +339,7 @@ binaries:
   options:
     target_path: original/menumain.ovl
     src_path: src/menu/menumain
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt]
   segments:
   - name: menumain
     type: code
@@ -346,6 +357,7 @@ binaries:
   options:
     target_path: original/menumgc.ovl
     src_path: src/menu/menumgc
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menumgc.txt]
   segments:
   - name: menumgc
     type: code
@@ -361,6 +373,7 @@ binaries:
   options:
     target_path: original/menupty.ovl
     src_path: src/menu/menupty
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menupty.txt]
   segments:
   - name: menupty
     type: code
@@ -375,6 +388,7 @@ binaries:
   options:
     target_path: original/menusav.ovl
     src_path: src/menu/menusav
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menusav.txt]
   segments:
   - name: menusav
     type: code
@@ -389,6 +403,7 @@ binaries:
   options:
     target_path: original/menushop.ovl
     src_path: src/menu/menushop
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menushop.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: menushop
@@ -408,6 +423,7 @@ binaries:
   options:
     target_path: original/menusts.ovl
     src_path: src/menu/menusts
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menusts.txt]
   segments:
   - name: menusts
     type: code
@@ -424,6 +440,7 @@ binaries:
   options:
     target_path: original/menutest.ovl
     src_path: src/menu/menutest
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menutest.txt]
   segments:
   - name: menutest
     type: code
@@ -439,6 +456,7 @@ binaries:
   options:
     target_path: original/menutips.ovl
     src_path: src/menu/menutips
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menutips.txt]
   segments:
   - name: menutips
     type: code
@@ -454,6 +472,7 @@ binaries:
   options:
     target_path: original/menutmag.ovl
     src_path: src/menu/menutmag
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menutmag.txt]
   segments:
   - name: menutmag
     type: code
@@ -469,6 +488,7 @@ binaries:
   options:
     target_path: original/menututo.ovl
     src_path: src/menu/menututo
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt, config/symbols.menututo.txt]
   segments:
   - name: menututo
     type: code
@@ -483,6 +503,7 @@ binaries:
   sha1: accfe3831595f26c5d6de6f3891736521736f8ef
   options:
     target_path: original/tripletriad.bin
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.tripletriad.txt]
     section_order: [.rodata, .text, .data, .bss]
     ld_bss_is_noload: true
   segments:
@@ -517,6 +538,7 @@ binaries:
   sha1: b421bf83a307dcd41536b14dc81a3aa03f7c9ed0
   options:
     target_path: original/world.bin
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.world.txt]
     section_order: [.rodata, .text, .data, .bss]
     ld_bss_is_noload: true
   segments:
@@ -568,7 +590,7 @@ binaries:
     build_path: build
     ld_script_path: build/splat/slus_008.92.ld
     gp_value: 0x8005EC24
-    symbol_addrs_path: [config/symbols.main.txt]
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.main.private.txt]
     reloc_addrs_path: [config/reloc_addrs.txt]
     undefined_funcs_auto_path: build/splat/undefined_funcs_auto.txt
     undefined_syms_auto_path: build/splat/undefined_syms_auto.txt
@@ -675,6 +697,7 @@ binaries:
   options:
     target_path: original/effect/effect_001.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_001.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_001
@@ -708,6 +731,7 @@ binaries:
   options:
     target_path: original/effect/effect_002.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_002.txt]
   segments:
   - name: effect_002
     type: code
@@ -722,6 +746,7 @@ binaries:
   options:
     target_path: original/effect/effect_003.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_003.txt]
   segments:
   - name: effect_003
     type: code
@@ -736,6 +761,7 @@ binaries:
   options:
     target_path: original/effect/effect_004.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_004.txt]
   segments:
   - name: effect_004
     type: code
@@ -751,6 +777,7 @@ binaries:
   options:
     target_path: original/effect/effect_005.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_005.txt]
   segments:
   - name: effect_005
     type: code
@@ -766,6 +793,7 @@ binaries:
   options:
     target_path: original/effect/effect_006.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_006.txt]
   segments:
   - name: effect_006
     type: code
@@ -781,6 +809,7 @@ binaries:
   options:
     target_path: original/effect/effect_007.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_007.txt]
   segments:
   - name: effect_007
     type: code
@@ -796,6 +825,7 @@ binaries:
   options:
     target_path: original/effect/effect_008.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_008.txt]
   segments:
   - name: effect_008
     type: code
@@ -811,6 +841,7 @@ binaries:
   options:
     target_path: original/effect/effect_009.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_009.txt]
   segments:
   - name: effect_009
     type: code
@@ -826,6 +857,7 @@ binaries:
   options:
     target_path: original/effect/effect_010.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_010.txt]
   segments:
   - name: effect_010
     type: code
@@ -840,6 +872,7 @@ binaries:
   options:
     target_path: original/effect/effect_011.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_011.txt]
   segments:
   - name: effect_011
     type: code
@@ -854,6 +887,7 @@ binaries:
   options:
     target_path: original/effect/effect_012.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_012.txt]
   segments:
   - name: effect_012
     type: code
@@ -868,6 +902,7 @@ binaries:
   options:
     target_path: original/effect/effect_013.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_013.txt]
   segments:
   - name: effect_013
     type: code
@@ -883,6 +918,7 @@ binaries:
   options:
     target_path: original/effect/effect_014.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_014.txt]
   segments:
   - name: effect_014
     type: code
@@ -898,6 +934,7 @@ binaries:
   options:
     target_path: original/effect/effect_015.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_015.txt]
   segments:
   - name: effect_015
     type: code
@@ -913,6 +950,7 @@ binaries:
   options:
     target_path: original/effect/effect_016.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_016.txt]
   segments:
   - name: effect_016
     type: code
@@ -928,6 +966,7 @@ binaries:
   options:
     target_path: original/effect/effect_017.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_017.txt]
   segments:
   - name: effect_017
     type: code
@@ -942,6 +981,7 @@ binaries:
   options:
     target_path: original/effect/effect_018.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_018.txt]
   segments:
   - name: effect_018
     type: code
@@ -957,6 +997,7 @@ binaries:
   options:
     target_path: original/effect/effect_019.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_019.txt]
   segments:
   - name: effect_019
     type: code
@@ -972,6 +1013,7 @@ binaries:
   options:
     target_path: original/effect/effect_020.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_020.txt]
   segments:
   - name: effect_020
     type: code
@@ -987,6 +1029,7 @@ binaries:
   options:
     target_path: original/effect/effect_021.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_021.txt]
   segments:
   - name: effect_021
     type: code
@@ -1002,6 +1045,7 @@ binaries:
   options:
     target_path: original/effect/effect_022.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_022.txt]
   segments:
   - name: effect_022
     type: code
@@ -1017,6 +1061,7 @@ binaries:
   options:
     target_path: original/effect/effect_023.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_023.txt]
   segments:
   - name: effect_023
     type: code
@@ -1032,6 +1077,7 @@ binaries:
   options:
     target_path: original/effect/effect_024.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_024.txt]
   segments:
   - name: effect_024
     type: code
@@ -1047,6 +1093,7 @@ binaries:
   options:
     target_path: original/effect/effect_025.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_025.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_025
@@ -1081,6 +1128,7 @@ binaries:
   options:
     target_path: original/effect/effect_026.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_026.txt]
   segments:
   - name: effect_026
     type: code
@@ -1096,6 +1144,7 @@ binaries:
   options:
     target_path: original/effect/effect_027.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_027.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_027
@@ -1135,6 +1184,7 @@ binaries:
   options:
     target_path: original/effect/effect_028.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_028.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_028
@@ -1174,6 +1224,7 @@ binaries:
   options:
     target_path: original/effect/effect_029.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_029.txt]
   segments:
   - name: effect_029
     type: code
@@ -1189,6 +1240,7 @@ binaries:
   options:
     target_path: original/effect/effect_030.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_030.txt]
   segments:
   - name: effect_030
     type: code
@@ -1204,6 +1256,7 @@ binaries:
   options:
     target_path: original/effect/effect_031.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_031.txt]
   segments:
   - name: effect_031
     type: code
@@ -1219,6 +1272,7 @@ binaries:
   options:
     target_path: original/effect/effect_032.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_032.txt]
   segments:
   - name: effect_032
     type: code
@@ -1234,6 +1288,7 @@ binaries:
   options:
     target_path: original/effect/effect_033.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_033.txt]
   segments:
   - name: effect_033
     type: code
@@ -1249,6 +1304,7 @@ binaries:
   options:
     target_path: original/effect/effect_034.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_034.txt]
   segments:
   - name: effect_034
     type: code
@@ -1264,6 +1320,7 @@ binaries:
   options:
     target_path: original/effect/effect_035.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_035.txt]
   segments:
   - name: effect_035
     type: code
@@ -1279,6 +1336,7 @@ binaries:
   options:
     target_path: original/effect/effect_036.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_036.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_036
@@ -1319,6 +1377,7 @@ binaries:
   options:
     target_path: original/effect/effect_037.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_037.txt]
   segments:
   - name: effect_037
     type: code
@@ -1334,6 +1393,7 @@ binaries:
   options:
     target_path: original/effect/effect_038.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_038.txt]
   segments:
   - name: effect_038
     type: code
@@ -1349,6 +1409,7 @@ binaries:
   options:
     target_path: original/effect/effect_039.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_039.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_039
@@ -1390,6 +1451,7 @@ binaries:
   options:
     target_path: original/effect/effect_040.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_040.txt]
   segments:
   - name: effect_040
     type: code
@@ -1405,6 +1467,7 @@ binaries:
   options:
     target_path: original/effect/effect_041.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_041.txt]
   segments:
   - name: effect_041
     type: code
@@ -1420,6 +1483,7 @@ binaries:
   options:
     target_path: original/effect/effect_042.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_042.txt]
   segments:
   - name: effect_042
     type: code
@@ -1435,6 +1499,7 @@ binaries:
   options:
     target_path: original/effect/effect_043.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_043.txt]
   segments:
   - name: effect_043
     type: code
@@ -1450,6 +1515,7 @@ binaries:
   options:
     target_path: original/effect/effect_044.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_044.txt]
   segments:
   - name: effect_044
     type: code
@@ -1465,6 +1531,7 @@ binaries:
   options:
     target_path: original/effect/effect_045.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_045.txt]
   segments:
   - name: effect_045
     type: code
@@ -1480,6 +1547,7 @@ binaries:
   options:
     target_path: original/effect/effect_046.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_046.txt]
   segments:
   - name: effect_046
     type: code
@@ -1495,6 +1563,7 @@ binaries:
   options:
     target_path: original/effect/effect_047.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_047.txt]
   segments:
   - name: effect_047
     type: code
@@ -1510,6 +1579,7 @@ binaries:
   options:
     target_path: original/effect/effect_048.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_048.txt]
   segments:
   - name: effect_048
     type: code
@@ -1525,6 +1595,7 @@ binaries:
   options:
     target_path: original/effect/effect_049.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_049.txt]
   segments:
   - name: effect_049
     type: code
@@ -1540,6 +1611,7 @@ binaries:
   options:
     target_path: original/effect/effect_050.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_050.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_050
@@ -1565,6 +1637,7 @@ binaries:
   options:
     target_path: original/effect/effect_051.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_051.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_051
@@ -1600,6 +1673,7 @@ binaries:
   options:
     target_path: original/effect/effect_052.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_052.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_052
@@ -1641,6 +1715,7 @@ binaries:
   options:
     target_path: original/effect/effect_053.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_053.txt]
   segments:
   - name: effect_053
     type: code
@@ -1656,6 +1731,7 @@ binaries:
   options:
     target_path: original/effect/effect_054.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_054.txt]
   segments:
   - name: effect_054
     type: code
@@ -1671,6 +1747,7 @@ binaries:
   options:
     target_path: original/effect/effect_055.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_055.txt]
   segments:
   - name: effect_055
     type: code
@@ -1686,6 +1763,7 @@ binaries:
   options:
     target_path: original/effect/effect_056.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_056.txt]
     section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_056
@@ -1726,6 +1804,7 @@ binaries:
   options:
     target_path: original/effect/effect_057.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_057.txt]
   segments:
   - name: effect_057
     type: code
@@ -1741,6 +1820,7 @@ binaries:
   options:
     target_path: original/effect/effect_058.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_058.txt]
   segments:
   - name: effect_058
     type: code
@@ -1756,6 +1836,7 @@ binaries:
   options:
     target_path: original/effect/effect_059.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_059.txt]
   segments:
   - name: effect_059
     type: code
@@ -1771,6 +1852,7 @@ binaries:
   options:
     target_path: original/effect/effect_060.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_060.txt]
   segments:
   - name: effect_060
     type: code
@@ -1786,6 +1868,7 @@ binaries:
   options:
     target_path: original/effect/effect_061.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_061.txt]
   segments:
   - name: effect_061
     type: code
@@ -1801,6 +1884,7 @@ binaries:
   options:
     target_path: original/effect/effect_062.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_062.txt]
   segments:
   - name: effect_062
     type: code
@@ -1816,6 +1900,7 @@ binaries:
   options:
     target_path: original/effect/effect_063.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_063.txt]
   segments:
   - name: effect_063
     type: code
@@ -1830,6 +1915,7 @@ binaries:
   options:
     target_path: original/effect/effect_064.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_064.txt]
   segments:
   - name: effect_064
     type: code
@@ -1844,6 +1930,7 @@ binaries:
   options:
     target_path: original/effect/effect_065.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_065.txt]
   segments:
   - name: effect_065
     type: code
@@ -1858,6 +1945,7 @@ binaries:
   options:
     target_path: original/effect/effect_066.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_066.txt]
   segments:
   - name: effect_066
     type: code
@@ -1873,6 +1961,7 @@ binaries:
   options:
     target_path: original/effect/effect_067.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_067.txt]
   segments:
   - name: effect_067
     type: code
@@ -1888,6 +1977,7 @@ binaries:
   options:
     target_path: original/effect/effect_068.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_068.txt]
   segments:
   - name: effect_068
     type: code
@@ -1903,6 +1993,7 @@ binaries:
   options:
     target_path: original/effect/effect_069.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_069.txt]
   segments:
   - name: effect_069
     type: code
@@ -1917,6 +2008,7 @@ binaries:
   options:
     target_path: original/effect/effect_070.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_070.txt]
   segments:
   - name: effect_070
     type: code
@@ -1931,6 +2023,7 @@ binaries:
   options:
     target_path: original/effect/effect_071.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_071.txt]
   segments:
   - name: effect_071
     type: code
@@ -1946,6 +2039,7 @@ binaries:
   options:
     target_path: original/effect/effect_072.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_072.txt]
   segments:
   - name: effect_072
     type: code
@@ -1961,6 +2055,7 @@ binaries:
   options:
     target_path: original/effect/effect_073.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_073.txt]
   segments:
   - name: effect_073
     type: code
@@ -1976,6 +2071,7 @@ binaries:
   options:
     target_path: original/effect/effect_074.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_074.txt]
   segments:
   - name: effect_074
     type: code
@@ -1991,6 +2087,7 @@ binaries:
   options:
     target_path: original/effect/effect_075.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_075.txt]
   segments:
   - name: effect_075
     type: code
@@ -2006,6 +2103,7 @@ binaries:
   options:
     target_path: original/effect/effect_076.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_076.txt]
   segments:
   - name: effect_076
     type: code
@@ -2021,6 +2119,7 @@ binaries:
   options:
     target_path: original/effect/effect_077.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_077.txt]
   segments:
   - name: effect_077
     type: code
@@ -2036,6 +2135,7 @@ binaries:
   options:
     target_path: original/effect/effect_078.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_078.txt]
   segments:
   - name: effect_078
     type: code
@@ -2051,6 +2151,7 @@ binaries:
   options:
     target_path: original/effect/effect_079.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_079.txt]
   segments:
   - name: effect_079
     type: code
@@ -2066,6 +2167,7 @@ binaries:
   options:
     target_path: original/effect/effect_080.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_080.txt]
   segments:
   - name: effect_080
     type: code
@@ -2081,6 +2183,7 @@ binaries:
   options:
     target_path: original/effect/effect_081.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_081.txt]
   segments:
   - name: effect_081
     type: code
@@ -2096,6 +2199,7 @@ binaries:
   options:
     target_path: original/effect/effect_082.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_082.txt]
   segments:
   - name: effect_082
     type: code
@@ -2111,6 +2215,7 @@ binaries:
   options:
     target_path: original/effect/effect_083.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_083.txt]
   segments:
   - name: effect_083
     type: code
@@ -2126,6 +2231,7 @@ binaries:
   options:
     target_path: original/effect/effect_084.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_084.txt]
   segments:
   - name: effect_084
     type: code
@@ -2141,6 +2247,7 @@ binaries:
   options:
     target_path: original/effect/effect_085.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_085.txt]
   segments:
   - name: effect_085
     type: code
@@ -2156,6 +2263,7 @@ binaries:
   options:
     target_path: original/effect/effect_086.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_086.txt]
   segments:
   - name: effect_086
     type: code
@@ -2171,6 +2279,7 @@ binaries:
   options:
     target_path: original/effect/effect_087.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_087.txt]
   segments:
   - name: effect_087
     type: code
@@ -2186,6 +2295,7 @@ binaries:
   options:
     target_path: original/effect/effect_088.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_088.txt]
   segments:
   - name: effect_088
     type: code
@@ -2201,6 +2311,7 @@ binaries:
   options:
     target_path: original/effect/effect_089.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_089.txt]
   segments:
   - name: effect_089
     type: code
@@ -2216,6 +2327,7 @@ binaries:
   options:
     target_path: original/effect/effect_090.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_090.txt]
   segments:
   - name: effect_090
     type: code
@@ -2231,6 +2343,7 @@ binaries:
   options:
     target_path: original/effect/effect_091.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_091.txt]
   segments:
   - name: effect_091
     type: code
@@ -2246,6 +2359,7 @@ binaries:
   options:
     target_path: original/effect/effect_092.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_092.txt]
   segments:
   - name: effect_092
     type: code
@@ -2261,6 +2375,7 @@ binaries:
   options:
     target_path: original/effect/effect_093.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_093.txt]
   segments:
   - name: effect_093
     type: code
@@ -2276,6 +2391,7 @@ binaries:
   options:
     target_path: original/effect/effect_094.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_094.txt]
   segments:
   - name: effect_094
     type: code
@@ -2291,6 +2407,7 @@ binaries:
   options:
     target_path: original/effect/effect_095.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_095.txt]
   segments:
   - name: effect_095
     type: code
@@ -2306,6 +2423,7 @@ binaries:
   options:
     target_path: original/effect/effect_096.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_096.txt]
   segments:
   - name: effect_096
     type: code
@@ -2321,6 +2439,7 @@ binaries:
   options:
     target_path: original/effect/effect_097.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_097.txt]
   segments:
   - name: effect_097
     type: code
@@ -2336,6 +2455,7 @@ binaries:
   options:
     target_path: original/effect/effect_098.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_098.txt]
   segments:
   - name: effect_098
     type: code
@@ -2351,6 +2471,7 @@ binaries:
   options:
     target_path: original/effect/effect_099.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_099.txt]
   segments:
   - name: effect_099
     type: code
@@ -2366,6 +2487,7 @@ binaries:
   options:
     target_path: original/effect/effect_100.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_100.txt]
   segments:
   - name: effect_100
     type: code
@@ -2381,6 +2503,7 @@ binaries:
   options:
     target_path: original/effect/effect_101.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_101.txt]
   segments:
   - name: effect_101
     type: code
@@ -2395,6 +2518,7 @@ binaries:
   options:
     target_path: original/effect/effect_102.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_102.txt]
   segments:
   - name: effect_102
     type: code
@@ -2409,6 +2533,7 @@ binaries:
   options:
     target_path: original/effect/effect_103.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_103.txt]
   segments:
   - name: effect_103
     type: code
@@ -2423,6 +2548,7 @@ binaries:
   options:
     target_path: original/effect/effect_104.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_104.txt]
   segments:
   - name: effect_104
     type: code
@@ -2437,6 +2563,7 @@ binaries:
   options:
     target_path: original/effect/effect_105.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_105.txt]
   segments:
   - name: effect_105
     type: code
@@ -2451,6 +2578,7 @@ binaries:
   options:
     target_path: original/effect/effect_106.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_106.txt]
   segments:
   - name: effect_106
     type: code
@@ -2465,6 +2593,7 @@ binaries:
   options:
     target_path: original/effect/effect_107.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_107.txt]
   segments:
   - name: effect_107
     type: code
@@ -2479,6 +2608,7 @@ binaries:
   options:
     target_path: original/effect/effect_108.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_108.txt]
   segments:
   - name: effect_108
     type: code
@@ -2493,6 +2623,7 @@ binaries:
   options:
     target_path: original/effect/effect_109.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_109.txt]
   segments:
   - name: effect_109
     type: code
@@ -2507,6 +2638,7 @@ binaries:
   options:
     target_path: original/effect/effect_110.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_110.txt]
   segments:
   - name: effect_110
     type: code
@@ -2521,6 +2653,7 @@ binaries:
   options:
     target_path: original/effect/effect_111.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_111.txt]
   segments:
   - name: effect_111
     type: code
@@ -2535,6 +2668,7 @@ binaries:
   options:
     target_path: original/effect/effect_112.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_112.txt]
   segments:
   - name: effect_112
     type: code
@@ -2549,6 +2683,7 @@ binaries:
   options:
     target_path: original/effect/effect_113.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_113.txt]
   segments:
   - name: effect_113
     type: code
@@ -2563,6 +2698,7 @@ binaries:
   options:
     target_path: original/effect/effect_114.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_114.txt]
   segments:
   - name: effect_114
     type: code
@@ -2577,6 +2713,7 @@ binaries:
   options:
     target_path: original/effect/effect_115.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_115.txt]
   segments:
   - name: effect_115
     type: code
@@ -2591,6 +2728,7 @@ binaries:
   options:
     target_path: original/effect/effect_116.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_116.txt]
   segments:
   - name: effect_116
     type: code
@@ -2605,6 +2743,7 @@ binaries:
   options:
     target_path: original/effect/effect_117.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_117.txt]
   segments:
   - name: effect_117
     type: code
@@ -2619,6 +2758,7 @@ binaries:
   options:
     target_path: original/effect/effect_118.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_118.txt]
   segments:
   - name: effect_118
     type: code
@@ -2633,6 +2773,7 @@ binaries:
   options:
     target_path: original/effect/effect_119.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_119.txt]
   segments:
   - name: effect_119
     type: code
@@ -2648,6 +2789,7 @@ binaries:
   options:
     target_path: original/effect/effect_120.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_120.txt]
   segments:
   - name: effect_120
     type: code
@@ -2662,6 +2804,7 @@ binaries:
   options:
     target_path: original/effect/effect_121.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_121.txt]
   segments:
   - name: effect_121
     type: code
@@ -2676,6 +2819,7 @@ binaries:
   options:
     target_path: original/effect/effect_122.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_122.txt]
   segments:
   - name: effect_122
     type: code
@@ -2690,6 +2834,7 @@ binaries:
   options:
     target_path: original/effect/effect_123.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_123.txt]
   segments:
   - name: effect_123
     type: code
@@ -2704,6 +2849,7 @@ binaries:
   options:
     target_path: original/effect/effect_124.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_124.txt]
   segments:
   - name: effect_124
     type: code
@@ -2718,6 +2864,7 @@ binaries:
   options:
     target_path: original/effect/effect_125.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_125.txt]
   segments:
   - name: effect_125
     type: code
@@ -2732,6 +2879,7 @@ binaries:
   options:
     target_path: original/effect/effect_126.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_126.txt]
   segments:
   - name: effect_126
     type: code
@@ -2746,6 +2894,7 @@ binaries:
   options:
     target_path: original/effect/effect_127.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_127.txt]
   segments:
   - name: effect_127
     type: code
@@ -2760,6 +2909,7 @@ binaries:
   options:
     target_path: original/effect/effect_128.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_128.txt]
   segments:
   - name: effect_128
     type: code
@@ -2774,6 +2924,7 @@ binaries:
   options:
     target_path: original/effect/effect_129.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_129.txt]
   segments:
   - name: effect_129
     type: code
@@ -2788,6 +2939,7 @@ binaries:
   options:
     target_path: original/effect/effect_130.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_130.txt]
   segments:
   - name: effect_130
     type: code
@@ -2802,6 +2954,7 @@ binaries:
   options:
     target_path: original/effect/effect_131.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_131.txt]
   segments:
   - name: effect_131
     type: code
@@ -2816,6 +2969,7 @@ binaries:
   options:
     target_path: original/effect/effect_132.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_132.txt]
   segments:
   - name: effect_132
     type: code
@@ -2830,6 +2984,7 @@ binaries:
   options:
     target_path: original/effect/effect_133.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_133.txt]
   segments:
   - name: effect_133
     type: code
@@ -2844,6 +2999,7 @@ binaries:
   options:
     target_path: original/effect/effect_134.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_134.txt]
   segments:
   - name: effect_134
     type: code
@@ -2858,6 +3014,7 @@ binaries:
   options:
     target_path: original/effect/effect_135.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_135.txt]
   segments:
   - name: effect_135
     type: code
@@ -2872,6 +3029,7 @@ binaries:
   options:
     target_path: original/effect/effect_136.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_136.txt]
   segments:
   - name: effect_136
     type: code
@@ -2886,6 +3044,7 @@ binaries:
   options:
     target_path: original/effect/effect_137.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_137.txt]
   segments:
   - name: effect_137
     type: code
@@ -2900,6 +3059,7 @@ binaries:
   options:
     target_path: original/effect/effect_138.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_138.txt]
   segments:
   - name: effect_138
     type: code
@@ -2914,6 +3074,7 @@ binaries:
   options:
     target_path: original/effect/effect_139.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_139.txt]
   segments:
   - name: effect_139
     type: code
@@ -2928,6 +3089,7 @@ binaries:
   options:
     target_path: original/effect/effect_140.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_140.txt]
   segments:
   - name: effect_140
     type: code
@@ -2942,6 +3104,7 @@ binaries:
   options:
     target_path: original/effect/effect_141.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_141.txt]
   segments:
   - [0x0, bin, effect_141]
   - [0x319A4]
@@ -2950,6 +3113,7 @@ binaries:
   options:
     target_path: original/effect/effect_142.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_142.txt]
   segments:
   - [0x0, bin, effect_142]
   - [0x341C4]
@@ -2958,6 +3122,7 @@ binaries:
   options:
     target_path: original/effect/effect_143.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_143.txt]
   segments:
   - [0x0, bin, effect_143]
   - [0x2DBEC]
@@ -2966,6 +3131,7 @@ binaries:
   options:
     target_path: original/effect/effect_144.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_144.txt]
   segments:
   - name: effect_144
     type: code
@@ -2980,6 +3146,7 @@ binaries:
   options:
     target_path: original/effect/effect_145.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_145.txt]
   segments:
   - name: effect_145
     type: code
@@ -2994,6 +3161,7 @@ binaries:
   options:
     target_path: original/effect/effect_146.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_146.txt]
   segments:
   - name: effect_146
     type: code
@@ -3008,6 +3176,7 @@ binaries:
   options:
     target_path: original/effect/effect_147.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_147.txt]
   segments:
   - [0x0, bin, effect_147]
   - [0x138D4]
@@ -3016,6 +3185,7 @@ binaries:
   options:
     target_path: original/effect/effect_148.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_148.txt]
   segments:
   - name: effect_148
     type: code
@@ -3030,6 +3200,7 @@ binaries:
   options:
     target_path: original/effect/effect_149.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_149.txt]
   segments:
   - name: effect_149
     type: code
@@ -3044,6 +3215,7 @@ binaries:
   options:
     target_path: original/effect/effect_150.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_150.txt]
   segments:
   - [0x0, bin, effect_150]
   - [0x1387C]
@@ -3052,6 +3224,7 @@ binaries:
   options:
     target_path: original/effect/effect_151.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_151.txt]
   segments:
   - name: effect_151
     type: code
@@ -3066,6 +3239,7 @@ binaries:
   options:
     target_path: original/effect/effect_152.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_152.txt]
   segments:
   - name: effect_152
     type: code
@@ -3080,6 +3254,7 @@ binaries:
   options:
     target_path: original/effect/effect_153.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_153.txt]
   segments:
   - name: effect_153
     type: code
@@ -3095,6 +3270,7 @@ binaries:
   options:
     target_path: original/effect/effect_154.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_154.txt]
   segments:
   - name: effect_154
     type: code
@@ -3109,6 +3285,7 @@ binaries:
   options:
     target_path: original/effect/effect_155.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_155.txt]
   segments:
   - name: effect_155
     type: code
@@ -3123,6 +3300,7 @@ binaries:
   options:
     target_path: original/effect/effect_156.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_156.txt]
   segments:
   - name: effect_156
     type: code
@@ -3137,6 +3315,7 @@ binaries:
   options:
     target_path: original/effect/effect_157.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_157.txt]
   segments:
   - [0x0, bin, effect_157]
   - [0x47C0C]
@@ -3145,6 +3324,7 @@ binaries:
   options:
     target_path: original/effect/effect_158.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_158.txt]
   segments:
   - [0x0, bin, effect_158]
   - [0x2AF74]
@@ -3153,6 +3333,7 @@ binaries:
   options:
     target_path: original/effect/effect_159.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_159.txt]
   segments:
   - [0x0, bin, effect_159]
   - [0x35F6C]
@@ -3161,6 +3342,7 @@ binaries:
   options:
     target_path: original/effect/effect_160.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_160.txt]
   segments:
   - [0x0, bin, effect_160]
   - [0x30C18]
@@ -3169,6 +3351,7 @@ binaries:
   options:
     target_path: original/effect/effect_161.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_161.txt]
   segments:
   - [0x0, bin, effect_161]
   - [0x35578]
@@ -3177,6 +3360,7 @@ binaries:
   options:
     target_path: original/effect/effect_162.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_162.txt]
   segments:
   - name: effect_162
     type: code
@@ -3191,6 +3375,7 @@ binaries:
   options:
     target_path: original/effect/effect_163.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_163.txt]
   segments:
   - name: effect_163
     type: code
@@ -3205,6 +3390,7 @@ binaries:
   options:
     target_path: original/effect/effect_164.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_164.txt]
   segments:
   - name: effect_164
     type: code
@@ -3220,6 +3406,7 @@ binaries:
   options:
     target_path: original/effect/effect_165.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_165.txt]
   segments:
   - name: effect_165
     type: code
@@ -3235,6 +3422,7 @@ binaries:
   options:
     target_path: original/effect/effect_166.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_166.txt]
   segments:
   - name: effect_166
     type: code
@@ -3249,6 +3437,7 @@ binaries:
   options:
     target_path: original/effect/effect_167.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_167.txt]
   segments:
   - name: effect_167
     type: code
@@ -3264,6 +3453,7 @@ binaries:
   options:
     target_path: original/effect/effect_168.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_168.txt]
   segments:
   - name: effect_168
     type: code
@@ -3278,6 +3468,7 @@ binaries:
   options:
     target_path: original/effect/effect_169.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_169.txt]
   segments:
   - name: effect_169
     type: code
@@ -3292,6 +3483,7 @@ binaries:
   options:
     target_path: original/effect/effect_170.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_170.txt]
   segments:
   - name: effect_170
     type: code
@@ -3306,6 +3498,7 @@ binaries:
   options:
     target_path: original/effect/effect_171.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_171.txt]
   segments:
   - name: effect_171
     type: code
@@ -3320,6 +3513,7 @@ binaries:
   options:
     target_path: original/effect/effect_172.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_172.txt]
   segments:
   - name: effect_172
     type: code
@@ -3334,6 +3528,7 @@ binaries:
   options:
     target_path: original/effect/effect_173.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_173.txt]
   segments:
   - name: effect_173
     type: code
@@ -3348,6 +3543,7 @@ binaries:
   options:
     target_path: original/effect/effect_174.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_174.txt]
   segments:
   - name: effect_174
     type: code
@@ -3362,6 +3558,7 @@ binaries:
   options:
     target_path: original/effect/effect_175.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_175.txt]
   segments:
   - name: effect_175
     type: code
@@ -3376,6 +3573,7 @@ binaries:
   options:
     target_path: original/effect/effect_176.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_176.txt]
   segments:
   - name: effect_176
     type: code
@@ -3390,6 +3588,7 @@ binaries:
   options:
     target_path: original/effect/effect_177.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_177.txt]
   segments:
   - name: effect_177
     type: code
@@ -3404,6 +3603,7 @@ binaries:
   options:
     target_path: original/effect/effect_178.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_178.txt]
   segments:
   - name: effect_178
     type: code
@@ -3418,6 +3618,7 @@ binaries:
   options:
     target_path: original/effect/effect_179.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_179.txt]
   segments:
   - name: effect_179
     type: code
@@ -3432,6 +3633,7 @@ binaries:
   options:
     target_path: original/effect/effect_180.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_180.txt]
   segments:
   - name: effect_180
     type: code
@@ -3446,6 +3648,7 @@ binaries:
   options:
     target_path: original/effect/effect_181.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_181.txt]
   segments:
   - name: effect_181
     type: code
@@ -3460,6 +3663,7 @@ binaries:
   options:
     target_path: original/effect/effect_182.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_182.txt]
   segments:
   - [0x0, bin, effect_182]
   - [0x2EAB0]
@@ -3468,6 +3672,7 @@ binaries:
   options:
     target_path: original/effect/effect_183.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_183.txt]
   segments:
   - name: effect_183
     type: code
@@ -3482,6 +3687,7 @@ binaries:
   options:
     target_path: original/effect/effect_184.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_184.txt]
   segments:
   - name: effect_184
     type: code
@@ -3496,6 +3702,7 @@ binaries:
   options:
     target_path: original/effect/effect_185.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_185.txt]
   segments:
   - name: effect_185
     type: code
@@ -3511,6 +3718,7 @@ binaries:
   options:
     target_path: original/effect/effect_186.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_186.txt]
   segments:
   - name: effect_186
     type: code
@@ -3525,6 +3733,7 @@ binaries:
   options:
     target_path: original/effect/effect_187.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_187.txt]
   segments:
   - name: effect_187
     type: code
@@ -3540,6 +3749,7 @@ binaries:
   options:
     target_path: original/effect/effect_188.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_188.txt]
   segments:
   - name: effect_188
     type: code
@@ -3554,6 +3764,7 @@ binaries:
   options:
     target_path: original/effect/effect_189.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_189.txt]
   segments:
   - name: effect_189
     type: code
@@ -3569,6 +3780,7 @@ binaries:
   options:
     target_path: original/effect/effect_190.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_190.txt]
   segments:
   - name: effect_190
     type: code
@@ -3583,6 +3795,7 @@ binaries:
   options:
     target_path: original/effect/effect_191.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_191.txt]
   segments:
   - name: effect_191
     type: code
@@ -3598,6 +3811,7 @@ binaries:
   options:
     target_path: original/effect/effect_192.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_192.txt]
   segments:
   - name: effect_192
     type: code
@@ -3612,6 +3826,7 @@ binaries:
   options:
     target_path: original/effect/effect_193.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_193.txt]
   segments:
   - name: effect_193
     type: code
@@ -3626,6 +3841,7 @@ binaries:
   options:
     target_path: original/effect/effect_194.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_194.txt]
   segments:
   - name: effect_194
     type: code
@@ -3640,6 +3856,7 @@ binaries:
   options:
     target_path: original/effect/effect_195.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_195.txt]
   segments:
   - name: effect_195
     type: code
@@ -3654,6 +3871,7 @@ binaries:
   options:
     target_path: original/effect/effect_196.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_196.txt]
   segments:
   - name: effect_196
     type: code
@@ -3668,6 +3886,7 @@ binaries:
   options:
     target_path: original/effect/effect_197.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_197.txt]
   segments:
   - name: effect_197
     type: code
@@ -3682,6 +3901,7 @@ binaries:
   options:
     target_path: original/effect/effect_198.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_198.txt]
   segments:
   - name: effect_198
     type: code
@@ -3696,6 +3916,7 @@ binaries:
   options:
     target_path: original/effect/effect_199.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_199.txt]
   segments:
   - name: effect_199
     type: code
@@ -3711,6 +3932,7 @@ binaries:
   options:
     target_path: original/effect/effect_200.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_200.txt]
   segments:
   - name: effect_200
     type: code
@@ -3726,6 +3948,7 @@ binaries:
   options:
     target_path: original/effect/effect_201.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_201.txt]
   segments:
   - name: effect_201
     type: code
@@ -3741,6 +3964,7 @@ binaries:
   options:
     target_path: original/effect/effect_202.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_202.txt]
   segments:
   - name: effect_202
     type: code
@@ -3756,6 +3980,7 @@ binaries:
   options:
     target_path: original/effect/effect_203.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_203.txt]
   segments:
   - name: effect_203
     type: code
@@ -3771,6 +3996,7 @@ binaries:
   options:
     target_path: original/effect/effect_204.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_204.txt]
   segments:
   - name: effect_204
     type: code
@@ -3786,6 +4012,7 @@ binaries:
   options:
     target_path: original/effect/effect_205.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_205.txt]
   segments:
   - name: effect_205
     type: code
@@ -3801,6 +4028,7 @@ binaries:
   options:
     target_path: original/effect/effect_206.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_206.txt]
   segments:
   - name: effect_206
     type: code
@@ -3816,6 +4044,7 @@ binaries:
   options:
     target_path: original/effect/effect_207.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_207.txt]
   segments:
   - name: effect_207
     type: code
@@ -3830,6 +4059,7 @@ binaries:
   options:
     target_path: original/effect/effect_208.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_208.txt]
   segments:
   - name: effect_208
     type: code
@@ -3845,6 +4075,7 @@ binaries:
   options:
     target_path: original/effect/effect_209.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_209.txt]
   segments:
   - name: effect_209
     type: code
@@ -3859,6 +4090,7 @@ binaries:
   options:
     target_path: original/effect/effect_210.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_210.txt]
   segments:
   - name: effect_210
     type: code
@@ -3874,6 +4106,7 @@ binaries:
   options:
     target_path: original/effect/effect_211.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_211.txt]
   segments:
   - name: effect_211
     type: code
@@ -3889,6 +4122,7 @@ binaries:
   options:
     target_path: original/effect/effect_212.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_212.txt]
   segments:
   - name: effect_212
     type: code
@@ -3903,6 +4137,7 @@ binaries:
   options:
     target_path: original/effect/effect_213.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_213.txt]
   segments:
   - name: effect_213
     type: code
@@ -3917,6 +4152,7 @@ binaries:
   options:
     target_path: original/effect/effect_214.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_214.txt]
   segments:
   - name: effect_214
     type: code
@@ -3931,6 +4167,7 @@ binaries:
   options:
     target_path: original/effect/effect_215.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_215.txt]
   segments:
   - name: effect_215
     type: code
@@ -3946,6 +4183,7 @@ binaries:
   options:
     target_path: original/effect/effect_216.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_216.txt]
   segments:
   - name: effect_216
     type: code
@@ -3961,6 +4199,7 @@ binaries:
   options:
     target_path: original/effect/effect_217.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_217.txt]
   segments:
   - name: effect_217
     type: code
@@ -3975,6 +4214,7 @@ binaries:
   options:
     target_path: original/effect/effect_218.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_218.txt]
   segments:
   - name: effect_218
     type: code
@@ -3990,6 +4230,7 @@ binaries:
   options:
     target_path: original/effect/effect_219.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_219.txt]
   segments:
   - name: effect_219
     type: code
@@ -4005,6 +4246,7 @@ binaries:
   options:
     target_path: original/effect/effect_220.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_220.txt]
   segments:
   - name: effect_220
     type: code
@@ -4020,6 +4262,7 @@ binaries:
   options:
     target_path: original/effect/effect_221.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_221.txt]
   segments:
   - name: effect_221
     type: code
@@ -4035,6 +4278,7 @@ binaries:
   options:
     target_path: original/effect/effect_222.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_222.txt]
   segments:
   - name: effect_222
     type: code
@@ -4050,6 +4294,7 @@ binaries:
   options:
     target_path: original/effect/effect_223.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_223.txt]
   segments:
   - name: effect_223
     type: code
@@ -4065,6 +4310,7 @@ binaries:
   options:
     target_path: original/effect/effect_226.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_226.txt]
   segments:
   - name: effect_226
     type: code
@@ -4079,6 +4325,7 @@ binaries:
   options:
     target_path: original/effect/effect_227.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_227.txt]
   segments:
   - name: effect_227
     type: code
@@ -4093,6 +4340,7 @@ binaries:
   options:
     target_path: original/effect/effect_228.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_228.txt]
   segments:
   - name: effect_228
     type: code
@@ -4108,6 +4356,7 @@ binaries:
   options:
     target_path: original/effect/effect_229.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_229.txt]
   segments:
   - name: effect_229
     type: code
@@ -4123,6 +4372,7 @@ binaries:
   options:
     target_path: original/effect/effect_230.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_230.txt]
   segments:
   - name: effect_230
     type: code
@@ -4138,6 +4388,7 @@ binaries:
   options:
     target_path: original/effect/effect_231.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_231.txt]
   segments:
   - name: effect_231
     type: code
@@ -4153,6 +4404,7 @@ binaries:
   options:
     target_path: original/effect/effect_232.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_232.txt]
   segments:
   - name: effect_232
     type: code
@@ -4168,6 +4420,7 @@ binaries:
   options:
     target_path: original/effect/effect_233.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_233.txt]
   segments:
   - name: effect_233
     type: code
@@ -4183,6 +4436,7 @@ binaries:
   options:
     target_path: original/effect/effect_234.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_234.txt]
   segments:
   - name: effect_234
     type: code
@@ -4198,6 +4452,7 @@ binaries:
   options:
     target_path: original/effect/effect_235.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_235.txt]
   segments:
   - name: effect_235
     type: code
@@ -4213,6 +4468,7 @@ binaries:
   options:
     target_path: original/effect/effect_236.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_236.txt]
   segments:
   - name: effect_236
     type: code
@@ -4228,6 +4484,7 @@ binaries:
   options:
     target_path: original/effect/effect_237.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_237.txt]
   segments:
   - name: effect_237
     type: code
@@ -4243,6 +4500,7 @@ binaries:
   options:
     target_path: original/effect/effect_238.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_238.txt]
   segments:
   - name: effect_238
     type: code
@@ -4258,6 +4516,7 @@ binaries:
   options:
     target_path: original/effect/effect_239.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_239.txt]
   segments:
   - name: effect_239
     type: code
@@ -4273,6 +4532,7 @@ binaries:
   options:
     target_path: original/effect/effect_240.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_240.txt]
   segments:
   - name: effect_240
     type: code
@@ -4288,6 +4548,7 @@ binaries:
   options:
     target_path: original/effect/effect_241.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_241.txt]
   segments:
   - name: effect_241
     type: code
@@ -4303,6 +4564,7 @@ binaries:
   options:
     target_path: original/effect/effect_242.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_242.txt]
   segments:
   - name: effect_242
     type: code
@@ -4318,6 +4580,7 @@ binaries:
   options:
     target_path: original/effect/effect_243.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_243.txt]
   segments:
   - name: effect_243
     type: code
@@ -4333,6 +4596,7 @@ binaries:
   options:
     target_path: original/effect/effect_244.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_244.txt]
   segments:
   - name: effect_244
     type: code
@@ -4348,6 +4612,7 @@ binaries:
   options:
     target_path: original/effect/effect_245.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_245.txt]
   segments:
   - name: effect_245
     type: code
@@ -4363,6 +4628,7 @@ binaries:
   options:
     target_path: original/effect/effect_246.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_246.txt]
   segments:
   - name: effect_246
     type: code
@@ -4378,6 +4644,7 @@ binaries:
   options:
     target_path: original/effect/effect_247.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_247.txt]
   segments:
   - name: effect_247
     type: code
@@ -4393,6 +4660,7 @@ binaries:
   options:
     target_path: original/effect/effect_248.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_248.txt]
   segments:
   - name: effect_248
     type: code
@@ -4408,6 +4676,7 @@ binaries:
   options:
     target_path: original/effect/effect_249.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_249.txt]
   segments:
   - name: effect_249
     type: code
@@ -4423,6 +4692,7 @@ binaries:
   options:
     target_path: original/effect/effect_250.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_250.txt]
   segments:
   - name: effect_250
     type: code
@@ -4438,6 +4708,7 @@ binaries:
   options:
     target_path: original/effect/effect_251.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_251.txt]
   segments:
   - name: effect_251
     type: code
@@ -4452,6 +4723,7 @@ binaries:
   options:
     target_path: original/effect/effect_252.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_252.txt]
   segments:
   - name: effect_252
     type: code
@@ -4467,6 +4739,7 @@ binaries:
   options:
     target_path: original/effect/effect_253.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_253.txt]
   segments:
   - name: effect_253
     type: code
@@ -4482,6 +4755,7 @@ binaries:
   options:
     target_path: original/effect/effect_254.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_254.txt]
   segments:
   - name: effect_254
     type: code
@@ -4497,6 +4771,7 @@ binaries:
   options:
     target_path: original/effect/effect_255.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_255.txt]
   segments:
   - name: effect_255
     type: code
@@ -4512,6 +4787,7 @@ binaries:
   options:
     target_path: original/effect/effect_256.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_256.txt]
   segments:
   - name: effect_256
     type: code
@@ -4527,6 +4803,7 @@ binaries:
   options:
     target_path: original/effect/effect_257.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_257.txt]
   segments:
   - name: effect_257
     type: code
@@ -4542,6 +4819,7 @@ binaries:
   options:
     target_path: original/effect/effect_258.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_258.txt]
   segments:
   - name: effect_258
     type: code
@@ -4557,6 +4835,7 @@ binaries:
   options:
     target_path: original/effect/effect_259.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_259.txt]
   segments:
   - [0x0, bin, effect_259]
   - [0x32AB8]
@@ -4565,6 +4844,7 @@ binaries:
   options:
     target_path: original/effect/effect_260.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_260.txt]
   segments:
   - name: effect_260
     type: code
@@ -4579,6 +4859,7 @@ binaries:
   options:
     target_path: original/effect/effect_261.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_261.txt]
   segments:
   - name: effect_261
     type: code
@@ -4594,6 +4875,7 @@ binaries:
   options:
     target_path: original/effect/effect_262.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_262.txt]
   segments:
   - name: effect_262
     type: code
@@ -4609,6 +4891,7 @@ binaries:
   options:
     target_path: original/effect/effect_263.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_263.txt]
   segments:
   - name: effect_263
     type: code
@@ -4624,6 +4907,7 @@ binaries:
   options:
     target_path: original/effect/effect_264.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_264.txt]
   segments:
   - name: effect_264
     type: code
@@ -4639,6 +4923,7 @@ binaries:
   options:
     target_path: original/effect/effect_265.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_265.txt]
   segments:
   - name: effect_265
     type: code
@@ -4654,6 +4939,7 @@ binaries:
   options:
     target_path: original/effect/effect_266.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_266.txt]
   segments:
   - name: effect_266
     type: code
@@ -4669,6 +4955,7 @@ binaries:
   options:
     target_path: original/effect/effect_267.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_267.txt]
   segments:
   - name: effect_267
     type: code
@@ -4684,6 +4971,7 @@ binaries:
   options:
     target_path: original/effect/effect_268.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_268.txt]
   segments:
   - name: effect_268
     type: code
@@ -4699,6 +4987,7 @@ binaries:
   options:
     target_path: original/effect/effect_269.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_269.txt]
   segments:
   - name: effect_269
     type: code
@@ -4714,6 +5003,7 @@ binaries:
   options:
     target_path: original/effect/effect_270.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_270.txt]
   segments:
   - name: effect_270
     type: code
@@ -4729,6 +5019,7 @@ binaries:
   options:
     target_path: original/effect/effect_271.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_271.txt]
   segments:
   - name: effect_271
     type: code
@@ -4743,6 +5034,7 @@ binaries:
   options:
     target_path: original/effect/effect_272.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_272.txt]
   segments:
   - name: effect_272
     type: code
@@ -4757,6 +5049,7 @@ binaries:
   options:
     target_path: original/effect/effect_273.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_273.txt]
   segments:
   - name: effect_273
     type: code
@@ -4771,6 +5064,7 @@ binaries:
   options:
     target_path: original/effect/effect_274.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_274.txt]
   segments:
   - name: effect_274
     type: code
@@ -4786,6 +5080,7 @@ binaries:
   options:
     target_path: original/effect/effect_275.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_275.txt]
   segments:
   - name: effect_275
     type: code
@@ -4800,6 +5095,7 @@ binaries:
   options:
     target_path: original/effect/effect_276.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_276.txt]
   segments:
   - name: effect_276
     type: code
@@ -4814,6 +5110,7 @@ binaries:
   options:
     target_path: original/effect/effect_277.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_277.txt]
   segments:
   - name: effect_277
     type: code
@@ -4828,6 +5125,7 @@ binaries:
   options:
     target_path: original/effect/effect_278.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_278.txt]
   segments:
   - name: effect_278
     type: code
@@ -4842,6 +5140,7 @@ binaries:
   options:
     target_path: original/effect/effect_279.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_279.txt]
   segments:
   - name: effect_279
     type: code
@@ -4856,6 +5155,7 @@ binaries:
   options:
     target_path: original/effect/effect_280.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_280.txt]
   segments:
   - name: effect_280
     type: code
@@ -4870,6 +5170,7 @@ binaries:
   options:
     target_path: original/effect/effect_281.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_281.txt]
   segments:
   - name: effect_281
     type: code
@@ -4884,6 +5185,7 @@ binaries:
   options:
     target_path: original/effect/effect_282.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_282.txt]
   segments:
   - name: effect_282
     type: code
@@ -4898,6 +5200,7 @@ binaries:
   options:
     target_path: original/effect/effect_283.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_283.txt]
   segments:
   - name: effect_283
     type: code
@@ -4912,6 +5215,7 @@ binaries:
   options:
     target_path: original/effect/effect_284.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_284.txt]
   segments:
   - name: effect_284
     type: code
@@ -4926,6 +5230,7 @@ binaries:
   options:
     target_path: original/effect/effect_285.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_285.txt]
   segments:
   - name: effect_285
     type: code
@@ -4940,6 +5245,7 @@ binaries:
   options:
     target_path: original/effect/effect_286.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_286.txt]
   segments:
   - name: effect_286
     type: code
@@ -4954,6 +5260,7 @@ binaries:
   options:
     target_path: original/effect/effect_287.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_287.txt]
   segments:
   - name: effect_287
     type: code
@@ -4968,6 +5275,7 @@ binaries:
   options:
     target_path: original/effect/effect_288.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_288.txt]
   segments:
   - name: effect_288
     type: code
@@ -4982,6 +5290,7 @@ binaries:
   options:
     target_path: original/effect/effect_289.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_289.txt]
   segments:
   - name: effect_289
     type: code
@@ -4996,6 +5305,7 @@ binaries:
   options:
     target_path: original/effect/effect_290.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_290.txt]
   segments:
   - name: effect_290
     type: code
@@ -5010,6 +5320,7 @@ binaries:
   options:
     target_path: original/effect/effect_291.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_291.txt]
   segments:
   - name: effect_291
     type: code
@@ -5025,6 +5336,7 @@ binaries:
   options:
     target_path: original/effect/effect_292.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_292.txt]
   segments:
   - name: effect_292
     type: code
@@ -5039,6 +5351,7 @@ binaries:
   options:
     target_path: original/effect/effect_293.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_293.txt]
   segments:
   - name: effect_293
     type: code
@@ -5053,6 +5366,7 @@ binaries:
   options:
     target_path: original/effect/effect_294.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_294.txt]
   segments:
   - name: effect_294
     type: code
@@ -5067,6 +5381,7 @@ binaries:
   options:
     target_path: original/effect/effect_295.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_295.txt]
   segments:
   - name: effect_295
     type: code
@@ -5081,6 +5396,7 @@ binaries:
   options:
     target_path: original/effect/effect_296.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_296.txt]
   segments:
   - name: effect_296
     type: code
@@ -5095,6 +5411,7 @@ binaries:
   options:
     target_path: original/effect/effect_297.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_297.txt]
   segments:
   - name: effect_297
     type: code
@@ -5109,6 +5426,7 @@ binaries:
   options:
     target_path: original/effect/effect_298.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_298.txt]
   segments:
   - name: effect_298
     type: code
@@ -5123,6 +5441,7 @@ binaries:
   options:
     target_path: original/effect/effect_299.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_299.txt]
   segments:
   - name: effect_299
     type: code
@@ -5137,6 +5456,7 @@ binaries:
   options:
     target_path: original/effect/effect_300.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_300.txt]
   segments:
   - name: effect_300
     type: code
@@ -5151,6 +5471,7 @@ binaries:
   options:
     target_path: original/effect/effect_301.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_301.txt]
   segments:
   - name: effect_301
     type: code
@@ -5165,6 +5486,7 @@ binaries:
   options:
     target_path: original/effect/effect_302.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_302.txt]
   segments:
   - name: effect_302
     type: code
@@ -5179,6 +5501,7 @@ binaries:
   options:
     target_path: original/effect/effect_303.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_303.txt]
   segments:
   - name: effect_303
     type: code
@@ -5193,6 +5516,7 @@ binaries:
   options:
     target_path: original/effect/effect_304.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_304.txt]
   segments:
   - name: effect_304
     type: code
@@ -5207,6 +5531,7 @@ binaries:
   options:
     target_path: original/effect/effect_305.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_305.txt]
   segments:
   - [0x0, bin, effect_305]
   - [0x156B8]
@@ -5215,6 +5540,7 @@ binaries:
   options:
     target_path: original/effect/effect_306.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_306.txt]
   segments:
   - name: effect_306
     type: code
@@ -5229,6 +5555,7 @@ binaries:
   options:
     target_path: original/effect/effect_307.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_307.txt]
   segments:
   - name: effect_307
     type: code
@@ -5243,6 +5570,7 @@ binaries:
   options:
     target_path: original/effect/effect_308.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_308.txt]
   segments:
   - name: effect_308
     type: code
@@ -5257,6 +5585,7 @@ binaries:
   options:
     target_path: original/effect/effect_309.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_309.txt]
   segments:
   - name: effect_309
     type: code
@@ -5271,6 +5600,7 @@ binaries:
   options:
     target_path: original/effect/effect_310.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_310.txt]
   segments:
   - name: effect_310
     type: code
@@ -5285,6 +5615,7 @@ binaries:
   options:
     target_path: original/effect/effect_311.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_311.txt]
   segments:
   - name: effect_311
     type: code
@@ -5299,6 +5630,7 @@ binaries:
   options:
     target_path: original/effect/effect_312.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_312.txt]
   segments:
   - name: effect_312
     type: code
@@ -5313,6 +5645,7 @@ binaries:
   options:
     target_path: original/effect/effect_313.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_313.txt]
   segments:
   - name: effect_313
     type: code
@@ -5327,6 +5660,7 @@ binaries:
   options:
     target_path: original/effect/effect_314.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_314.txt]
   segments:
   - name: effect_314
     type: code
@@ -5341,6 +5675,7 @@ binaries:
   options:
     target_path: original/effect/effect_315.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_315.txt]
   segments:
   - name: effect_315
     type: code
@@ -5355,6 +5690,7 @@ binaries:
   options:
     target_path: original/effect/effect_316.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_316.txt]
   segments:
   - name: effect_316
     type: code
@@ -5369,6 +5705,7 @@ binaries:
   options:
     target_path: original/effect/effect_317.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_317.txt]
   segments:
   - name: effect_317
     type: code
@@ -5383,6 +5720,7 @@ binaries:
   options:
     target_path: original/effect/effect_318.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_318.txt]
   segments:
   - name: effect_318
     type: code
@@ -5397,6 +5735,7 @@ binaries:
   options:
     target_path: original/effect/effect_319.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_319.txt]
   segments:
   - name: effect_319
     type: code
@@ -5411,6 +5750,7 @@ binaries:
   options:
     target_path: original/effect/effect_320.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_320.txt]
   segments:
   - name: effect_320
     type: code
@@ -5425,6 +5765,7 @@ binaries:
   options:
     target_path: original/effect/effect_321.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_321.txt]
   segments:
   - [0x0, bin, effect_321]
   - [0x1C3A0]
@@ -5433,6 +5774,7 @@ binaries:
   options:
     target_path: original/effect/effect_322.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_322.txt]
   segments:
   - name: effect_322
     type: code
@@ -5447,6 +5789,7 @@ binaries:
   options:
     target_path: original/effect/effect_323.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_323.txt]
   segments:
   - name: effect_323
     type: code
@@ -5461,6 +5804,7 @@ binaries:
   options:
     target_path: original/effect/effect_324.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_324.txt]
   segments:
   - name: effect_324
     type: code
@@ -5475,6 +5819,7 @@ binaries:
   options:
     target_path: original/effect/effect_325.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_325.txt]
   segments:
   - name: effect_325
     type: code
@@ -5489,6 +5834,7 @@ binaries:
   options:
     target_path: original/effect/effect_326.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_326.txt]
   segments:
   - name: effect_326
     type: code
@@ -5504,6 +5850,7 @@ binaries:
   options:
     target_path: original/effect/effect_327.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_327.txt]
   segments:
   - name: effect_327
     type: code
@@ -5519,6 +5866,7 @@ binaries:
   options:
     target_path: original/effect/effect_328.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_328.txt]
   segments:
   - name: effect_328
     type: code
@@ -5534,6 +5882,7 @@ binaries:
   options:
     target_path: original/effect/effect_329.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_329.txt]
   segments:
   - name: effect_329
     type: code
@@ -5549,6 +5898,7 @@ binaries:
   options:
     target_path: original/effect/effect_330.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_330.txt]
   segments:
   - name: effect_330
     type: code
@@ -5564,6 +5914,7 @@ binaries:
   options:
     target_path: original/effect/effect_331.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_331.txt]
   segments:
   - name: effect_331
     type: code
@@ -5579,6 +5930,7 @@ binaries:
   options:
     target_path: original/effect/effect_332.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_332.txt]
   segments:
   - [0x0, bin, effect_332]
   - [0x33698]
@@ -5587,6 +5939,7 @@ binaries:
   options:
     target_path: original/effect/effect_333.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_333.txt]
   segments:
   - [0x0, bin, effect_333]
   - [0x33480]
@@ -5595,6 +5948,7 @@ binaries:
   options:
     target_path: original/effect/effect_334.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_334.txt]
   segments:
   - [0x0, bin, effect_334]
   - [0x3E178]
@@ -5603,6 +5957,7 @@ binaries:
   options:
     target_path: original/effect/effect_335.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_335.txt]
   segments:
   - [0x0, bin, effect_335]
   - [0x38ED4]
@@ -5611,6 +5966,7 @@ binaries:
   options:
     target_path: original/effect/effect_336.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_336.txt]
   segments:
   - [0x0, bin, effect_336]
   - [0x3D868]
@@ -5619,6 +5975,7 @@ binaries:
   options:
     target_path: original/effect/effect_337.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_337.txt]
   segments:
   - [0x0, bin, effect_337]
   - [0x3B310]
@@ -5627,6 +5984,7 @@ binaries:
   options:
     target_path: original/effect/effect_338.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_338.txt]
   segments:
   - name: effect_338
     type: code
@@ -5642,6 +6000,7 @@ binaries:
   options:
     target_path: original/effect/effect_339.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_339.txt]
   segments:
   - [0x0, bin, effect_339]
   - [0x3C538]
@@ -5650,6 +6009,7 @@ binaries:
   options:
     target_path: original/effect/effect_340.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_340.txt]
   segments:
   - [0x0, bin, effect_340]
   - [0x3A6A8]
@@ -5658,6 +6018,7 @@ binaries:
   options:
     target_path: original/effect/effect_341.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_341.txt]
   segments:
   - [0x0, bin, effect_341]
   - [0x3672C]
@@ -5666,6 +6027,7 @@ binaries:
   options:
     target_path: original/effect/effect_342.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_342.txt]
   segments:
   - [0x0, bin, effect_342]
   - [0x3C718]
@@ -5674,6 +6036,7 @@ binaries:
   options:
     target_path: original/effect/effect_343.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_343.txt]
   segments:
   - [0x0, bin, effect_343]
   - [0x394E4]
@@ -5682,6 +6045,7 @@ binaries:
   options:
     target_path: original/effect/effect_344.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_344.txt]
   segments:
   - [0x0, bin, effect_344]
   - [0x227D8]
@@ -5690,6 +6054,7 @@ binaries:
   options:
     target_path: original/effect/effect_345.bin
     src_path: src/effect
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_345.txt]
   segments:
   - name: effect_345
     type: code

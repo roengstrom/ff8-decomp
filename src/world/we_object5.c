@@ -268,7 +268,7 @@ void func_800ABD54(void) {
 
 /**
  * @brief Per-pixel depth-cued shade-and-pack — feed each @c CVECTOR
- *        through @c func_8003F9F4, then pack the resulting RGB into
+ *        through @c LoadAverageCol, then pack the resulting RGB into
  *        PSX 15-bit @c BGR555 (with @c STP from the input's @c cd bit)
  *        at @p output.
  *
@@ -276,7 +276,7 @@ void func_800ABD54(void) {
  *  - If @c input[i].cd has the @c 0x80 bit set, store @c 0 to
  *    @c output[i] (skipped / transparent).
  *  - Else, call
- *    @c func_8003F9F4(@c &input[i], @c &cue, @c 0x1000 - z, @c z,
+ *    @c LoadAverageCol(@c &input[i], @c &cue, @c 0x1000 - z, @c z,
  *    @c &rgb) — a depth-cued blend between the per-pixel color and
  *    the cue color copied from @c D_8009811C, weighted by
  *    @c z / (@c 0x1000 - @p z). The output @c CVECTOR (rgb) lands in
@@ -313,7 +313,7 @@ void func_800ABDD8(CVECTOR *input, u16 *output, s32 z, s16 count) {
         if (input[i].cd & WORLD_CD_DROP) {
             output[i] = 0;
         } else {
-            func_8003F9F4(&input[i], &cue, 0x1000 - z, z, &rgb);
+            LoadAverageCol(&input[i], &cue, 0x1000 - z, z, &rgb);
             if (input[i].cd & WORLD_CD_DROP) {
                 input[i].cd = 0;
             } else {
@@ -566,7 +566,7 @@ s32 func_800AC3EC(s32 idx, s32 divisor, s32 use_alt) {
  *    floors the pitch (vy) to @c -0x80 when @c D_800C4D38 == @c 0x30, and
  *    composes the matrix via @c func_800ACC68.
  *
- * Both paths finish by pushing @p mh's matrix to the GTE (@c func_800423DC
+ * Both paths finish by pushing @p mh's matrix to the GTE (@c ApplyTransposeMatrixLV
  * then @c gte_SetRotMatrix / @c gte_SetTransMatrix).
  *
  * @param unused_a0 Unused.
@@ -651,7 +651,7 @@ void func_800AC468(void *unused_a0, WorldViewXform *oa, WorldViewXform *mh, s32 
     }
 
     /* Common tail: build & push the GTE matrix. */
-    func_800423DC((VECTOR *)&mh->matrix, mh->matrix.t, &D_800DB0E8);
+    ApplyTransposeMatrixLV((VECTOR *)&mh->matrix, mh->matrix.t, &D_800DB0E8);
     gte_SetRotMatrix(&mh->matrix);
     gte_SetTransMatrix(&mh->matrix);
 }
@@ -785,7 +785,7 @@ void func_800ACB70(s16 angle, VECTOR *out);   /* forward — defined below func_
  * Copies the 32-byte @p input into a local @ref Input32, negates the
  * three trailing fields of the @c b half (@c b_x / @c b_y / @c b_z) to
  * invert that position, and hands @c &a / @c &b_x off to
- * @c func_800423DC together with a stack scratch @c result.
+ * @c ApplyTransposeMatrixLV together with a stack scratch @c result.
  *
  * Then reads the camera world position from @c D_800C9868, derives a
  * 16-bit angle via @c func_800A5DC8, expands it into a world-axis
@@ -807,7 +807,7 @@ void func_800ACA70(VECTOR *out, Input32 *input) {
     local.b_y = -local.b_y;
     local.b_z = -local.b_z;
 
-    func_800423DC(&local.a, &local.b_x, &result);
+    ApplyTransposeMatrixLV(&local.a, &local.b_x, &result);
 
     angle = func_800A5DC8(D_800C9868.vx, D_800C9868.vy);
     func_800ACB70(angle, &vec);

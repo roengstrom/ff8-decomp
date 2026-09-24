@@ -1,5 +1,6 @@
 #include "common.h"
 #include "battle.h"
+#include "battle/scene_data.h"
 #include "gamestate.h"
 #include "battle/bc_object7.h"
 
@@ -117,19 +118,19 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AFD0C);
 /**
  * @brief Resolve the kernel pointer keyed by @c entriesA0[a0].lookupId.
  *
- * @param a0 Index into @c D_80078E00.entriesA0.
+ * @param a0 Index into @c g_gfData.entriesA0.
  */
 u8* func_800AFF30(s32 a0) {
-  return resolveKernelPtr(D_80078E00.entriesA0[a0].lookupId, D_80078E00.entriesA0Arg);
+  return resolveKernelPtr(g_gfData.entriesA0[a0].lookupId, g_gfData.entriesA0Arg);
 }
 
 /**
  * @brief Resolve the kernel pointer keyed by @c rows132[a0-0x40].lookupId.
  *
- * @param a0 Index into @c D_80078E00.rows132, offset by @c 0x40.
+ * @param a0 Index into @c g_gfData.rows132, offset by @c 0x40.
  */
 u8* func_800AFF70(s32 a0) {
-    BattleSceneData *scene = &D_80078E00;
+    BattleSceneData *scene = &g_gfData;
     a0 -= 0x40;
     return resolveKernelPtr(scene->rows132[a0].lookupId, scene->rows132Arg);
 }
@@ -137,10 +138,10 @@ u8* func_800AFF70(s32 a0) {
 /**
  * @brief Resolve the kernel pointer keyed by @c entries17[a0].lookupId.
  *
- * @param a0 Index into @c D_80078E00.entries17.
+ * @param a0 Index into @c g_gfData.entries17.
  */
 u8* func_800AFFB4(s32 a0) {
-    return resolveKernelPtr(D_80078E00.entries17[a0].lookupId, D_80078E00.entries17Arg);
+    return resolveKernelPtr(g_gfData.entries17[a0].lookupId, g_gfData.entries17Arg);
 }
 
 /**
@@ -279,10 +280,10 @@ u8 *func_800B0328(u8 *src) {
 /**
  * @brief Resolve the kernel pointer keyed by @c rows8[a0].lookupId.
  *
- * @param a0 Index into @c D_80078E00.rows8.
+ * @param a0 Index into @c g_gfData.rows8.
  */
 u8* func_800B0360(s32 a0) {
-    return resolveKernelPtr(D_80078E00.rows8[a0].lookupId, D_80078E00.rows8Arg);
+    return resolveKernelPtr(g_gfData.rows8[a0].lookupId, g_gfData.rows8Arg);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0398);
@@ -310,7 +311,7 @@ static s32 func_800B054C(u32 arg0) {
  *
  * Calls func_800B054C to find the lowest set bit in a1. If the result
  * is less than 14, computes a scale factor from @c GameConfig.battleSpeed and a table
- * value from D_80078E00, multiplies them, and stores the result at the
+ * value from g_gfData, multiplies them, and stores the result at the
  * entity's bit-indexed halfword slot.
  *
  * @param a0 Entity index (stride 0xD0).
@@ -321,7 +322,7 @@ void func_800B0574(s32 arg0, u32 arg1) {
     
     temp_v0 = func_800B054C(arg1);
     if (temp_v0 < 14) {
-        u8 val = D_80078E00.unk4CCC[temp_v0];
+        u8 val = g_gfData.unk4CCC[temp_v0];
         s32 temp = ((g_gameState.config.battleSpeed + 1) * 4);
         D_800ED148.entities[arg0].field64.perBit[temp_v0] = val * temp;
     }
@@ -529,7 +530,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B1050);
 /**
  * @brief Compute combined ability flags for the spell record at the given ID.
  *
- * Indexes into the spell array at offset 0x226 of D_80078E00 (stride 60),
+ * Indexes into the spell array at offset 0x226 of g_gfData (stride 60),
  * reads the magicId byte, passes it to func_800B1050 and func_800B0F7C,
  * and returns the OR of both results masked to 16 bits.
  *
@@ -537,7 +538,7 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B1050);
  * @return Combined 16-bit ability flags.
  */
 u16 func_800B1104(s32 a0) {
-    return func_800B1050(D_80078E00.spells[a0].magicId) | func_800B0F7C(D_80078E00.spells[a0].magicId);
+    return func_800B1050(g_gfData.spells[a0].magicId) | func_800B0F7C(g_gfData.spells[a0].magicId);
 }
 
 /**
@@ -548,9 +549,9 @@ u16 func_800B1104(s32 a0) {
  *
  * - cmd 1 / 12 (Attack-like): writes only *outFlags (no ID resolved).
  * - cmd 2 (Magic): resolves a spell ID via func_800B0DDC; combined element/status flags
- *   are read from D_80078E00.spells[id].magicId via func_800B0F9C/F7C/1104.
+ *   are read from g_gfData.spells[id].magicId via func_800B0F9C/F7C/1104.
  * - cmd 4 (GF/Item): resolves an ability ID via func_800B0F3C, calls func_800AF4BC(id, 1)
- *   to consume a charge, then reads flags from D_80078E00.abilities[id].abilityId via
+ *   to consume a charge, then reads flags from g_gfData.abilities[id].abilityId via
  *   func_800B1050/F9C/F7C.
  *
  * @param selfIdx     Party slot index into g_battleChars.chars (0..2).
@@ -585,7 +586,7 @@ s32 func_800B115C(s32 selfIdx, s32 cmdIdx, s32 *outId, u16 *outFlags) {
         if ((m & 0xFF) != 0) {
             *outFlags = func_800B1104(a);
         } else {
-            *outFlags = func_800B0F9C(D_80078E00.spells[a].magicId) | func_800B0F7C(D_80078E00.spells[*outId].magicId);
+            *outFlags = func_800B0F9C(g_gfData.spells[a].magicId) | func_800B0F7C(g_gfData.spells[*outId].magicId);
         }
         return cmd;
     case 4:
@@ -596,9 +597,9 @@ s32 func_800B115C(s32 selfIdx, s32 cmdIdx, s32 *outId, u16 *outFlags) {
         }
         func_800AF4BC(a, 1);
         if ((m & 0xFF) != 0) {
-            *outFlags = func_800B1050(D_80078E00.abilities[*outId].abilityId) | func_800B0F7C(D_80078E00.abilities[*outId].abilityId);
+            *outFlags = func_800B1050(g_gfData.abilities[*outId].abilityId) | func_800B0F7C(g_gfData.abilities[*outId].abilityId);
         } else {
-            *outFlags = func_800B0F9C(D_80078E00.abilities[*outId].abilityId) | func_800B0F7C(D_80078E00.abilities[*outId].abilityId);
+            *outFlags = func_800B0F9C(g_gfData.abilities[*outId].abilityId) | func_800B0F7C(g_gfData.abilities[*outId].abilityId);
         }
         
         return cmd;

@@ -682,7 +682,7 @@ s32 runHandBuildSequencer(ScriptCtx *node) {
  * @brief Build a player's Triple Triad hand by drawing cards.
  *
  * If @p arg1 is non-zero it first deals up to 5 cards of that rarity/type from the
- * @c D_80078658 table (cards 0x4D+), each gated by an RNG roll against the deal
+ * @c g_tripleTriad table (cards 0x4D+), each gated by an RNG roll against the deal
  * threshold @c D_80082C90.field_09 (halved after the first hit). It then fills the
  * remaining slots by drawing from random tiers: @c D_80082C90.field_08 is a 7-bit
  * tier mask whose set bits build @c tierList (tier bases 0, 0xB, 0x16, ...), and each
@@ -712,7 +712,7 @@ void dealRarityHand(s32 player, s32 arg1) {
     u8 *rarity;
 
     count = 0;
-    rarity = D_80078658;
+    rarity = g_tripleTriad;
     threshold = D_80082C90.field_09;
     if (arg1 != 0) {
         for (i = 0; i < 0x21; i++) {
@@ -894,14 +894,14 @@ s32 setupPlayerHand(s32 arg0) {
  * @brief Add a rendering command entry based on the alternate screen index.
  *
  * Reads g_drawBufferIndex, XORs with 1 to get the alternate index, computes
- * an offset of index * 92 into g_drawEnvs, and calls queueLoadImage
+ * an offset of index * 92 into g_ttDrawEnvs, and calls queueLoadImage
  * with the resulting pointer and D_8012E66C.
  *
  * @return Always 0.
  */
 s32 reloadSetupBuffer(void) {
     s32 idx = g_drawBufferIndex ^ 1;
-    queueLoadImage(&g_drawEnvs[idx].clip, D_8012E66C);
+    queueLoadImage(&g_ttDrawEnvs[idx].clip, D_8012E66C);
     return 0;
 }
 
@@ -1311,7 +1311,7 @@ s32 updateClaimBoard(void) {
                     m->t[2] = 0x100;
                     if (s0 == 0) {
                         strcpy(g_nameBannerBuf, func_80023A54(cell->cardId));
-                        func_80047C74(g_nameBannerBuf, (u8 *)&D_80182692 - 0x12 + D_80182692);
+                        strcat(g_nameBannerBuf, (u8 *)&D_80182692 - 0x12 + D_80182692);
                         func_800A1D68(1, g_nameBannerBuf, 0);
                         cell->field9++;
                     } else if ((g_padPressed[0] | g_padPressed[1]) != 0) {
@@ -1357,7 +1357,7 @@ s32 updateClaimBoard(void) {
                     m->t[2] = 0x100;
                     if (s0 == 0) {
                         strcpy(g_nameBannerBuf, func_80023A54(cell->cardId));
-                        func_80047C74(g_nameBannerBuf, (u8 *)&D_80182696 - 0x16 + D_80182696);
+                        strcat(g_nameBannerBuf, (u8 *)&D_80182696 - 0x16 + D_80182696);
                         func_800A1D68(1, g_nameBannerBuf, 0);
                         cell->field9++;
                     } else if ((g_padPressed[0] | g_padPressed[1]) != 0) {
@@ -1418,14 +1418,14 @@ s32 hasPendingCardObj(void) {
  * @brief Add a rendering command for the alternate screen buffer.
  *
  * Reads g_drawBufferIndex, XORs with 1 to get the alternate index, computes
- * an offset of index * 92 into g_drawEnvs, and calls queueLoadImage
+ * an offset of index * 92 into g_ttDrawEnvs, and calls queueLoadImage
  * with the resulting pointer and D_80158680.
  *
  * @return Always 0.
  */
 s32 reloadClaimBuffer(void) {
     s32 idx = g_drawBufferIndex ^ 1;
-    queueLoadImage(&g_drawEnvs[idx].clip, D_80158680);
+    queueLoadImage(&g_ttDrawEnvs[idx].clip, D_80158680);
     return 0;
 }
 

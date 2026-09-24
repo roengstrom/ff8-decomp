@@ -14,4 +14,6 @@ extern u8  *emitDrawEnvPackets(P_TAG *ot, u8 *pkt); /**< Emit SetDrawArea/SetDra
 extern s32 getAnimGlobalState(void);
 extern s32 setAnimGlobalState(s32 value);
 extern void setAnimEntityParams(s32 idx, s32 param7, s32 param6);
+void btlStrcat2(u8 *dst, u8 *src);
+
 #endif /* BTL_ANIM_H */

@@ -15,12 +15,8 @@ typedef struct {
     u8 pad[3];
 } FlagEntry;
 
-typedef struct { u8 unk00[0x98]; } Unk98;
-
 extern FlagEntry D_801F87B8[];
 extern GfData g_gfData;
-extern Unk98 D_80077818[];
-extern Unk98 D_80077864[];
 extern void func_801F1B4C(s32 a0);
 extern void func_801F5400(s32 a0);
 
@@ -156,7 +152,7 @@ void func_801E5A28(s32 arg0, s32 arg1) {
         dst++;
     }
 
-    src = D_80077818[arg0].unk00;
+    src = g_characterMagic[arg0].bytes;
     dst = D_801ECF90[arg1].unk00;
     for (i = 0; i < 0x40; i++) {
         *dst = *src;
@@ -179,7 +175,7 @@ void func_801E5B00(s32 arg0, s32 arg1) {
     u8 *src;
     u8 *dst;
 
-    dst = D_80077864[arg0].unk00;
+    dst = g_characterAbilities[arg0].bytes;
     src = D_801ECF60[arg1].unk00;
     for (i = 0; i < 0x13; i++) {
         *dst = *src;
@@ -211,7 +207,7 @@ void func_801E5B00(s32 arg0, s32 arg1) {
  * @return Slot index (1-31) if found, 0 if not found.
  */
 s32 func_801E5C00(s32 charIdx, s32 spellId) {
-    u8 *ptr = D_80077818[charIdx].unk00;
+    u8 *ptr = g_characterMagic[charIdx].bytes;
     s32 i = 0;
 
     do {
@@ -227,14 +223,14 @@ s32 func_801E5C00(s32 charIdx, s32 spellId) {
  * @brief Search a character's junction slots for a specific spell ID.
  *
  * Searches through the 19 junction stat slots (HP through DefStatus)
- * in D_80077864 for the given spell ID.
+ * in g_characterAbilities for the given spell ID.
  *
  * @param charIdx Character index (0-7).
  * @param spellId Spell ID to search for (returns -1 if 0).
  * @return Junction slot index (0-18) if found, -1 if not found or spellId is 0.
  */
 s32 func_801E5C50(s32 charIdx, s32 spellId) {
-    u8 *ptr = D_80077864[charIdx].unk00;
+    u8 *ptr = g_characterAbilities[charIdx].bytes;
     s32 i;
     s32 result;
 
@@ -256,7 +252,7 @@ end:
 /**
  * @brief Search a character's magic inventory for a spell and return its quantity.
  *
- * Searches through 32 magic slots in D_80077818 for the given spell ID.
+ * Searches through 32 magic slots in g_characterMagic for the given spell ID.
  * Returns the quantity if found, 0 if not found or spellId is 0.
  *
  * @param charIdx Character index (0-7).
@@ -264,7 +260,7 @@ end:
  * @return Quantity of the spell, or 0 if not found.
  */
 s32 func_801E5CAC(s32 charIdx, s32 spellId) {
-    u8 *ptr = D_80077818[charIdx].unk00;
+    u8 *ptr = g_characterMagic[charIdx].bytes;
     s32 i;
     s32 result;
 

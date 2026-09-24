@@ -1,6 +1,7 @@
 #include "common.h"
 #include "cd.h"
 #include "battle.h"
+#include "battle/scene_data.h"
 #include "field_init_font.h"
 #include "psxsdk/libapi.h"
 
@@ -87,7 +88,7 @@ void func_80098000(void) {
  *
  * Clears the battle config, fills the 3 command slots with 0xFF,
  * then reads battle data from disc into a scratch buffer and copies
- * it to the battle data buffer (D_80078E00).
+ * it to the battle data buffer (g_gfData).
  */
 void func_80098028(void) {
     s32 i;
@@ -102,7 +103,7 @@ void func_80098028(void) {
     }
 
     cdReadSync(D_80097800.sector, D_80097800.size, 0x801A0000, 0);
-    memcopy((u8 *)0x801A0000, (u8 *)&D_80078E00, D_80097800.size);
+    memcopy((u8 *)0x801A0000, (u8 *)&g_gfData, D_80097800.size);
 }
 
 /**
@@ -125,8 +126,8 @@ void func_800980D0(void) {
     setCardFlag(-1);
     func_8004D8C4(0);
     func_8004D930();
-    func_800471A4();
-    func_8004D844(0);
+    _bu_init();
+    _card_auto(0);
     func_800472E4();
 
     g_cardData.events[0] = OpenEvent(0xF4000001, 4, 0x2000, 0);

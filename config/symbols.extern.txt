@@ -93,7 +93,6 @@ SetDrawLoad  = 0x8004D7B4;
 g_gameState = 0x80077378;
 g_characterMagic = 0x80077818;
 g_characterAbilities = 0x80077864;
-g_characterJunctions = 0x80077864;
 g_configFlags = 0x80077E5C;
 g_battleChars = 0x80078720;
 g_gfData = 0x80078E00;

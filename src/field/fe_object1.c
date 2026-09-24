@@ -19,23 +19,23 @@
  * first buffer pair as the live one.
  */
 void func_80098314(void) {
-    SetDefDrawEnv(&D_80067388[0],   0, 0, 320, 224);
-    SetDefDrawEnv(&D_80067388[1], 512, 0, 320, 224);
-    SetDefDispEnv(&D_80067440[0], 512, 0, 320, 224);
-    SetDefDispEnv(&D_80067440[1],   0, 0, 320, 224);
+    SetDefDrawEnv(&g_drawEnvs[0],   0, 0, 320, 224);
+    SetDefDrawEnv(&g_drawEnvs[1], 512, 0, 320, 224);
+    SetDefDispEnv(&g_dispEnvs[0], 512, 0, 320, 224);
+    SetDefDispEnv(&g_dispEnvs[1],   0, 0, 320, 224);
 
-    D_80067388[0].dtd  = 1;
-    D_80067388[1].dtd  = 1;
-    D_80067388[0].isbg = 0;
-    D_80067388[1].isbg = 0;
+    g_drawEnvs[0].dtd  = 1;
+    g_drawEnvs[1].dtd  = 1;
+    g_drawEnvs[0].isbg = 0;
+    g_drawEnvs[1].isbg = 0;
 
-    D_80067440[0].screen.y = 8;
-    D_80067440[1].screen.y = 8;
-    D_80067440[0].screen.h = 224;
-    D_80067440[1].screen.h = 224;
+    g_dispEnvs[0].screen.y = 8;
+    g_dispEnvs[1].screen.y = 8;
+    g_dispEnvs[0].screen.h = 224;
+    g_dispEnvs[1].screen.h = 224;
 
-    PutDispEnv(&D_80067440[0]);
-    PutDrawEnv(&D_80067388[0]);
+    PutDispEnv(&g_dispEnvs[0]);
+    PutDrawEnv(&g_drawEnvs[0]);
 }
 
 /** @brief Tag written into a field-file header that carries no script section. */
@@ -76,7 +76,7 @@ void func_80098314(void) {
  * @brief Load/refresh the active field map's asset bundle from CD.
  *
  * Either issues a fresh CD read (when @c D_8005F14A is 0 or the current area
- * @c D_8005F14E differs from the cached @c D_8005F100) or restores from the
+ * @c g_currentMusicTrack differs from the cached @c D_8005F100) or restores from the
  * cached pointer @c D_8005F104. Then loads the secondary asset, snapshots
  * pointer-table headers into globals (@c D_800C7208, @c D_800D5EA4 family,
  * etc.), copies script data to the @c FIELD_SCRIPT_STAGE staging region, and
@@ -108,9 +108,9 @@ s32 *func_800983F0(void) {
     s32 size;
     u8 *heapEnd;
 
-    if (D_8005F14A == 0 || D_8005F14E != D_8005F100) {
-        func_80038868(D_800C0900[D_800C2568[D_8005F14E] * 6],
-                      D_800C0900[D_800C2568[D_8005F14E] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF,
+    if (D_8005F14A == 0 || g_currentMusicTrack != D_8005F100) {
+        func_80038868(D_800C0900[D_800C2568[g_currentMusicTrack] * 6],
+                      D_800C0900[D_800C2568[g_currentMusicTrack] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF,
                       NULL);
         while (func_800393C8() != 0) {}
     } else {
@@ -125,14 +125,14 @@ s32 *func_800983F0(void) {
 
     D_8005F100 = 0;
     D_8005F142 = 0;
-    func_80038868(D_800C0908[D_800C2568[D_8005F14E] * 6],
-                  D_800C0908[D_800C2568[D_8005F14E] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF, NULL);
+    func_80038868(D_800C0908[D_800C2568[g_currentMusicTrack] * 6],
+                  D_800C0908[D_800C2568[g_currentMusicTrack] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF, NULL);
     while (func_800393C8() != 0) {}
 
     D_8005F0F8 = (EventQueue *)*D_800C7208;
     D_800D5EA4 = *D_800C71EC;
     stageBase = FIELD_SCRIPT_STAGE;
-    D_800704A8.unk018 = *D_800D5EAC;
+    g_fieldEntity.unk018 = *D_800D5EAC;
     size = *D_800D5E8C - *D_800D5ED4;
     func_80039678(FIELD_SCRIPT_STAGE, (s32)*D_800D5ED4, size);
     D_8005F13C = stageBase + size;
@@ -148,7 +148,7 @@ s32 *func_800983F0(void) {
         buf += FIELD_HEADER_SIZE;
         *D_800D5ED4 = buf;
         if (D_8005F14C != 3 && D_8005F14C != 6 && D_8005F14C != 0xA) {
-            func_800A2F28((s32)D_800C7200, (u8 *)&D_800704A8);
+            func_800A2F28((s32)D_800C7200, (u8 *)&g_fieldEntity);
         }
     } else {
         D_800C7200 = NULL;
@@ -190,18 +190,18 @@ s32 *func_800983F0(void) {
 
     if (D_8005F0F8->unk0D == 0) {
         buf = (u8 *)func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C311C,
-                                  (u8 *)&D_800C0910[D_800C2568[D_8005F14E] * 3], 0, D_800C06A0,
+                                  (u8 *)&D_800C0910[D_800C2568[g_currentMusicTrack] * 3], 0, D_800C06A0,
                                   heapEnd);
     } else {
         buf = (u8 *)func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C315C,
-                                  (u8 *)&D_800C0910[D_800C2568[D_8005F14E] * 3], 0, D_800C06A0,
+                                  (u8 *)&D_800C0910[D_800C2568[g_currentMusicTrack] * 3], 0, D_800C06A0,
                                   heapEnd);
     }
 
     if (D_8007064D == 0) {
-        while (D_8005F116 != 0) {}
+        while (g_fadeMode != 0) {}
     }
-    while (D_8005F146 == 4) {}
+    while (g_renderMode == 4) {}
     while (DrawSync(1) != 0) {}
 
     if (D_8005F14C == 3 || D_8005F14C == 0) {
@@ -213,11 +213,11 @@ s32 *func_800983F0(void) {
 }
 
 /**
- * Zero 0x40 bytes at D_800704A8+0x1B8 (backwards loop).
+ * Zero 0x40 bytes at g_fieldEntity+0x1B8 (backwards loop).
  */
 void func_80098934(void) {
     s32 i = 0x3F;
-    volatile u8 *base = (u8 *)&D_800704A8;
+    volatile u8 *base = (u8 *)&g_fieldEntity;
     u8 *ptr = (u8 *)base + 0x3F;
     do {
         *(u8 *)(ptr + 0x1B8) = 0;
@@ -232,7 +232,7 @@ void func_80098934(void) {
  * Runs the per-frame outer init/reset loop for the field engine. The whole
  * function dispatches on @c D_8005F14C (the field load mode, 0=fresh,
  * 1=normal, 2=new-area, 3=movie, 6=transition, 0xA=skip-transition) and on
- * @c D_800704A8.mode (the engine-level state byte that picks one of several
+ * @c g_fieldEntity.mode (the engine-level state byte that picks one of several
  * exit paths at the end of each iteration: 4=quit, 5/6=copyFramebuffer +
  * flag-reset, 7=sndCmd21 + snapshot, 1=loop back, 3/8/etc.=plain exit).
  *
@@ -262,7 +262,7 @@ void func_80098934(void) {
  * @note Two source shapes carry this to a byte match, and both are the
  *       opposite of what reads naturally:
  *
- *       1. Every @c SystemState access goes through @c D_800704A8 directly
+ *       1. Every @c SystemState access goes through @c g_fieldEntity directly
  *          rather than a cached @c SystemState @c *sys. With a pointer local,
  *          gcc builds the address in two pseudos (@c lui @c -> @c fp,
  *          @c addiu @c -> @c s2) and the original has three, cse only
@@ -281,13 +281,13 @@ void func_80098934(void) {
  *          set-override and switch spelling tried.
  *
  *       Several semantic bugs were caught during decomp: the
- *       @c D_800704A8.mode = 0 dispatch had an inverted condition;
+ *       @c g_fieldEntity.mode = 0 dispatch had an inverted condition;
  *       @c func_800BF718 's argument mapping had 0xA->2 (should be 3) and
  *       3->3 (should be 0); state==7 was missing the @c field_0x120 save;
  *       @c D_800D5E98 was missing the @c +4 offset. Three more surfaced
  *       while closing the last 2%: both @c isrgb24 clears on the
  *       @c DISPENV pair were absent before @c PutDispEnv; state==1 stored
- *       @c D_8005F14E after @c sndCmd21 instead of before (the original
+ *       @c g_currentMusicTrack after @c sndCmd21 instead of before (the original
  *       loads @c counter first and lets dbr sink the store into the jal
  *       delay slot, so doing it after reads a post-call value); and the
  *       loop body ended in an unconditional @c break, dropping out of the
@@ -301,10 +301,10 @@ void func_8009895C(void) {
 
     /* Copy 8-byte header from D_80098000 (lwl/lwr unaligned copy in asm), dead store, kept for codegen match */
     memcpy(header, D_80098000, 8);
-    func_80012870();
+    InitClearTiles();
 
-    D_800704A8.dialogState = 0;
-    D_800704A8.unk1A1 = 0;
+    g_fieldEntity.dialogState = 0;
+    g_fieldEntity.unk1A1 = 0;
 
     while (1) {
         if ((s16)D_8005F14C != 6) {
@@ -312,41 +312,41 @@ void func_8009895C(void) {
         }
 
         if (D_8005F14C == 0 || (s16)D_8005F14C == 1 || (s16)D_8005F14C == 2) {
-            D_800704A8.unk1A6 = 0;
-            D_800704A8.unk1A9 = 0;
-            D_800704A8.unk1A7 = 1;
-            D_800704A8.unk1A2 = 0;
-            D_800704A8.unk1AA = 0;
-            D_800704A8.unk015 = 0;
-            D_800704A8.fieldStepDelta = 0;
-            D_800704A8.unk1AE = 0x1C;
-            D_800704A8.unk1B0 = 0;
-            D_800704A8.unk1B1 = 0;
-            D_800704A8.unk104 = 0;
-            D_800704A8.unk106 = 0;
-            func_800A17A4(&D_800704A8.oscillators[0]);
-            func_800A17A4(&D_800704A8.oscillators[1]);
+            g_fieldEntity.unk1A6 = 0;
+            g_fieldEntity.unk1A9 = 0;
+            g_fieldEntity.unk1A7 = 1;
+            g_fieldEntity.unk1A2 = 0;
+            g_fieldEntity.unk1AA = 0;
+            g_fieldEntity.unk015 = 0;
+            g_fieldEntity.fieldStepDelta = 0;
+            g_fieldEntity.unk1AE = 0x1C;
+            g_fieldEntity.unk1B0 = 0;
+            g_fieldEntity.unk1B1 = 0;
+            g_fieldEntity.unk104 = 0;
+            g_fieldEntity.unk106 = 0;
+            func_800A17A4(&g_fieldEntity.oscillators[0]);
+            func_800A17A4(&g_fieldEntity.oscillators[1]);
             func_800A44D8();
             func_80098934();
         }
 
         if (D_8005F14C == 0) {
             func_80098314();
-            ClearImage(&D_80067388[0].clip, 0, 0, 0);
-            ClearImage(&D_80067388[1].clip, 0, 0, 0);
+            ClearImage(&g_drawEnvs[0].clip, 0, 0, 0);
+            ClearImage(&g_drawEnvs[1].clip, 0, 0, 0);
         }
 
-        if (((s16)D_8005F14C == 1 && D_800704A8.unk1A5 == 0) || (s16)D_8005F14C == 2) {
-            func_80042634(0);
+        if (((s16)D_8005F14C == 1 && g_fieldEntity.unk1A5 == 0) || (s16)D_8005F14C == 2) {
+            VSync(0);
             func_80098314();
             if ((s16)D_8005F14C == 2) {
                 g_bufferIndex = 1;
             }
             copyFramebuffer();
-            D_8005F116 = 1;
-            D_8005F0FC = 0;
+            g_fadeMode = 1;
+            g_fadeCounter = 0;
             D_8005F11E = 0;
-            D_8005F146 = 1;
+            g_renderMode = 1;
         }
 
         if ((s16)D_8005F14C != 6) {
@@ -369,16 +369,16 @@ void func_8009895C(void) {
 
         func_800A1BB8();
         func_80098314();
-        func_80049B78(D_800CC118, &D_80067388[0]);
-        func_80049B78(&D_800CC118[0x6638], &D_80067388[1]);
-        func_80049B78(&D_800CC118[0x40], &D_80067388[0]);
-        func_80049B78(&D_800CC118[0x6678], &D_80067388[1]);
+        SetDrawEnv((DR_ENV *)D_800CC118, &g_drawEnvs[0]);
+        SetDrawEnv((DR_ENV *)&D_800CC118[0x6638], &g_drawEnvs[1]);
+        SetDrawEnv((DR_ENV *)&D_800CC118[0x40], &g_drawEnvs[0]);
+        SetDrawEnv((DR_ENV *)&D_800CC118[0x6678], &g_drawEnvs[1]);
 
         if (D_8005F14C == 0
             || (s16)D_8005F14C == 3
             || (s16)D_8005F14C == 6
             || (s16)D_8005F14C == 0xA) {
-            *(u8 *)&D_800704A8 = 0;
+            *(u8 *)&g_fieldEntity = 0;
         }
 
         if (D_800C7200 != 0) {
@@ -388,11 +388,11 @@ void func_8009895C(void) {
         if (D_8005F14C == 0 || (s16)D_8005F14C == 1 || (s16)D_8005F14C == 2) {
             func_800A62EC(D_8005F0F8->segs);
             q = D_8005F0F8;
-            D_800704A8.unk1A4 = 0;
-            D_800704A8.unk1A8 = q->unk09;
-            D_800704A8.unk100 = q->unk09;
+            g_fieldEntity.unk1A4 = 0;
+            g_fieldEntity.unk1A8 = q->unk09;
+            g_fieldEntity.unk100 = q->unk09;
         } else {
-            D_800704A8.unk010 = 2;
+            g_fieldEntity.unk010 = 2;
         }
 
         func_800A42EC(D_800CD1B0, &D_800CD1B0[0x5A0]);
@@ -400,7 +400,7 @@ void func_8009895C(void) {
         func_800A2128(D_800CD1B0 - 0x5F98);
         func_800A2128(&D_800CD1B0[0x6A0]);
 
-        func_80048B58(D_800982F0);
+        DrawSyncCallback(D_800982F0);
         D_8005F14A = 0;
         D_800C7210 = ((D_8005F0F8->rect_b[0].f4 - D_8005F0F8->rect_b[0].f6) / 2) + D_8005F0F8->rect_b[0].f6;
         D_800C7214 = ((D_8005F0F8->rect_b[0].f2 - D_8005F0F8->rect_b[0].f0) / 2) + D_8005F0F8->rect_b[0].f0;
@@ -429,21 +429,21 @@ void func_8009895C(void) {
         }
 
         func_80099348();
-        func_80048B58(0);
+        DrawSyncCallback(0);
         while (DrawSync(1) != 0) {}
-        func_80042634(0);
+        VSync(0);
         func_80098314();
 
-        D_80067440[0].isrgb24 = 0;
-        D_80067440[1].isrgb24 = 0;
-        func_80049480(&D_80067440[(s16)g_bufferIndex]);
-        func_800492B4(&D_80067388[(s16)g_bufferIndex]);
+        g_dispEnvs[0].isrgb24 = 0;
+        g_dispEnvs[1].isrgb24 = 0;
+        PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
+        PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
 
-        state = *(u8 *)&D_800704A8;
+        state = *(u8 *)&g_fieldEntity;
         D_8005F14C = 1;
 
         if (state == 4) {
-            func_80042634(0);
+            VSync(0);
             SetDispMask(0);
             D_8005F14A = 0;
             break;
@@ -454,29 +454,29 @@ void func_8009895C(void) {
         }
         if (state == 5 || state == 6) {
             copyFramebuffer();
-            D_8005F116 = 9;
-            D_8005F0FC = 0;
+            g_fadeMode = 9;
+            g_fadeCounter = 0;
             D_8005F11E = 0;
-            D_8005F146 = 1;
+            g_renderMode = 1;
             D_8005F14A = 0;
             break;
         }
         if (state == 7) {
-            *(u8 *)&D_800704A8 = 0;
-            D_8005F158 = 2;
-            D_800704A8.field_0x120 = D_8005F14E;
-            D_80082C8C.unk02 = *(u8 *)&D_800704A8.counter;
-            D_80082C8C.cmd = *(u8 *)&D_800704A8.spawnTriIdx;
-            D_80082C8C.unk03 = *(u8 *)&D_800704A8.anim_state;
+            *(u8 *)&g_fieldEntity = 0;
+            g_vsyncRate = 2;
+            g_fieldEntity.field_0x120 = g_currentMusicTrack;
+            D_80082C8C.unk02 = *(u8 *)&g_fieldEntity.counter;
+            D_80082C8C.cmd = *(u8 *)&g_fieldEntity.spawnTriIdx;
+            D_80082C8C.unk03 = *(u8 *)&g_fieldEntity.anim_state;
             sndCmd21(-1, 0);
             break;
         }
         if (state == 1) {
-            *(u8 *)&D_800704A8 = 0;
-            D_800704A8.field_0x120 = D_8005F14E;
-            D_8005F14E = D_800704A8.counter;
-            sndCmd21(-2, D_800704A8.field1B4);
-            if (D_800704A8.unk1B0 != 1) {
+            *(u8 *)&g_fieldEntity = 0;
+            g_fieldEntity.field_0x120 = g_currentMusicTrack;
+            g_currentMusicTrack = g_fieldEntity.counter;
+            sndCmd21(-2, g_fieldEntity.field1B4);
+            if (g_fieldEntity.unk1B0 != 1) {
                 func_800ACB10();
             } else if (D_8005F0F8->unk0D == 0) {
                 func_800A1CC0();
@@ -484,14 +484,14 @@ void func_8009895C(void) {
                 func_800ACB10();
             }
             D_8005F14A = 0;
-            func_800308B0(-1);
+            deactivateBattleCmd(-1);
             func_80027448();
         }
     }
 
-    func_800308B0(-1);
+    deactivateBattleCmd(-1);
     func_80027448();
-    func_80042634(0);
+    VSync(0);
 }
 
 
@@ -521,7 +521,7 @@ void func_8009912C(void) {
 
 extern s32  getAnimFrameParam(s32 slot, s32 sub); /* per-pad input-frame param (s32 view) */
 extern s32  func_80027A58(s32 a, s32 b);          /* per-pad newly-pressed input */
-extern s32  func_80030F10(s32 arg);               /* map pad input word to a button mask */
+extern s32  remapControllerInput(s32 arg);               /* map pad input word to a button mask */
 
 /**
  * @brief Per-tick controller-input sampling for the field engine's two pad slots.
@@ -536,41 +536,41 @@ extern s32  func_80030F10(s32 arg);               /* map pad input word to a but
  * Y read (axis 3) sets 0x1000 / 0x4000. Each bit is OR'd into @c padHeld always
  * and into @c padPressed only when it was not held last tick (edge detect).
  *
- * Finally derives the held/pressed button masks (@c func_80030F10) into
+ * Finally derives the held/pressed button masks (@c remapControllerInput) into
  * @c unk150 / @c ambientFlags.
  */
 void func_80099180(void) {
     s32 r;
 
-    D_800704A8.padHeldPrev = D_800704A8.padHeld;
-    D_800704A8.unk154 = D_800704A8.unk150;
+    g_fieldEntity.padHeldPrev = g_fieldEntity.padHeld;
+    g_fieldEntity.unk154 = g_fieldEntity.unk150;
     func_800275D4();
-    D_800704A8.padHeld = getAnimFrameParam(0, 0);
-    D_800704A8.padPressed = func_80027A58(0, 0);
-    D_800704A8.field_0x160 = getAnimFrameParam(1, 0);
-    D_800704A8.field_0x168 = func_80027A58(1, 0);
+    g_fieldEntity.padHeld = getAnimFrameParam(0, 0);
+    g_fieldEntity.padPressed = func_80027A58(0, 0);
+    g_fieldEntity.field_0x160 = getAnimFrameParam(1, 0);
+    g_fieldEntity.field_0x168 = func_80027A58(1, 0);
 
-    if (!(D_800704A8.padHeld & 0xF000) && func_80027DB4(0, PAD_AXIS_X, 0) != -1) {
+    if (!(g_fieldEntity.padHeld & 0xF000) && func_80027DB4(0, PAD_AXIS_X, 0) != -1) {
         r = (s16)func_80027DB4(0, PAD_AXIS_X, 0);
         if (r < 0x40) {
-            D_800704A8.padHeld |= 0x8000;
-            if (!(D_800704A8.padHeldPrev & 0x8000)) D_800704A8.padPressed |= 0x8000;
+            g_fieldEntity.padHeld |= 0x8000;
+            if (!(g_fieldEntity.padHeldPrev & 0x8000)) g_fieldEntity.padPressed |= 0x8000;
         } else if (r >= 0xC1) {
-            D_800704A8.padHeld |= 0x2000;
-            if (!(D_800704A8.padHeldPrev & 0x2000)) D_800704A8.padPressed |= 0x2000;
+            g_fieldEntity.padHeld |= 0x2000;
+            if (!(g_fieldEntity.padHeldPrev & 0x2000)) g_fieldEntity.padPressed |= 0x2000;
         }
         r = (s16)func_80027DB4(0, PAD_AXIS_Y, 0);
         if (r < 0x40) {
-            D_800704A8.padHeld |= 0x1000;
-            if (!(D_800704A8.padHeldPrev & 0x1000)) D_800704A8.padPressed |= 0x1000;
+            g_fieldEntity.padHeld |= 0x1000;
+            if (!(g_fieldEntity.padHeldPrev & 0x1000)) g_fieldEntity.padPressed |= 0x1000;
         } else if (r >= 0xC1) {
-            D_800704A8.padHeld |= 0x4000;
-            if (!(D_800704A8.padHeldPrev & 0x4000)) D_800704A8.padPressed |= 0x4000;
+            g_fieldEntity.padHeld |= 0x4000;
+            if (!(g_fieldEntity.padHeldPrev & 0x4000)) g_fieldEntity.padPressed |= 0x4000;
         }
     }
 
-    D_800704A8.unk150 = func_80030F10(D_800704A8.padHeld);
-    D_800704A8.ambientFlags = func_80030F10(D_800704A8.padPressed);
+    g_fieldEntity.unk150 = remapControllerInput(g_fieldEntity.padHeld);
+    g_fieldEntity.ambientFlags = remapControllerInput(g_fieldEntity.padPressed);
 }
 
 /* Park the real stack pointer at 0x1F8003FC and run the next call with its
@@ -608,12 +608,12 @@ void func_80099180(void) {
  * Finally it programs the draw environment from the field's clip rectangle,
  * links the two extra prims into the OT, presents, and dispatches on
  * @c SystemState::mode, modes 3, 4, 6, 8 and the menu leave the loop with a
- * code in @ref D_8005F158, mode 1/7 waits for the DMA to drain and leaves, and
+ * code in @ref g_vsyncRate, mode 1/7 waits for the DMA to drain and leaves, and
  * anything else draws the OT and goes round again.
  *
- * @note @c SystemState::dialogState and @ref D_8005F158 are @c volatile: the
+ * @note @c SystemState::dialogState and @ref g_vsyncRate are @c volatile: the
  *       original re-reads @c dialogState for each of the seven comparisons
- *       instead of caching one load, and keeps the @c D_8005F158 stores out of
+ *       instead of caching one load, and keeps the @c g_vsyncRate stores out of
  *       branch delay slots.
  * @note The four loop-head assignments are ordered buffer / previous-dispenv /
  *       draw-env / dispenv. That order matters: it keeps the lifetime of
@@ -627,15 +627,15 @@ void func_80099348(void) {
     s16 frames;
     u8 *eq;
 
-    if (D_800704A8.unk1A5 == 0) {
-        ClearImage(&D_80067388[0].clip, 0, 0, 0);
-        ClearImage(&D_80067388[1].clip, 0, 0, 0);
+    if (g_fieldEntity.unk1A5 == 0) {
+        ClearImage(&g_drawEnvs[0].clip, 0, 0, 0);
+        ClearImage(&g_drawEnvs[1].clip, 0, 0, 0);
     } else {
-        D_800704A8.unk1A5 = 0;
+        g_fieldEntity.unk1A5 = 0;
     }
     frames = 2;
     activateBattleAnim(0);
-    func_8009A920(&D_80085224[D_800704A8.entityIndex[0]], D_8008538C);
+    func_8009A920(&D_80085224[g_fieldEntity.entityIndex[0]], D_8008538C);
 
     while (1) {
         func_80099180();
@@ -643,8 +643,8 @@ void func_80099348(void) {
         g_bufferIndex &= 1;
         D_800C71E0 = &D_800C7218[(s16)g_bufferIndex];
         D_8005F110 = D_8005F138;
-        g_activeDrawEnv = &D_80067388[(s16)g_bufferIndex];
-        D_8005F138 = (s32)&D_80067440[(s16)g_bufferIndex];
+        g_activeDrawEnv = &g_drawEnvs[(s16)g_bufferIndex];
+        D_8005F138 = (s32)&g_dispEnvs[(s16)g_bufferIndex];
         ClearOTagR(D_800C71E0->ot, 0x1000);
 
         SCRATCH_STACK_ENTER();
@@ -654,81 +654,81 @@ void func_80099348(void) {
         /* The whole 0x90F button set held on this tick and the last: tear the
            field down (mode 4) and hand control back to the engine. The bit
            layout of padHeld is not decoded, so the buttons are left unnamed. */
-        if ((D_800704A8.padHeld & 0x90F) == 0x90F
-            && (D_800704A8.padHeldPrev & 0x90F) == 0x90F) {
-            D_800704A8.counter = 0;
-            D_800704A8.mode = 4;
-            D_800704A8.spawnTriIdx = 0x7FFF;
+        if ((g_fieldEntity.padHeld & 0x90F) == 0x90F
+            && (g_fieldEntity.padHeldPrev & 0x90F) == 0x90F) {
+            g_fieldEntity.counter = 0;
+            g_fieldEntity.mode = 4;
+            g_fieldEntity.spawnTriIdx = 0x7FFF;
             sndStopAll();
             func_800A59D0();
-            func_80042634(0);
+            VSync(0);
             SetDispMask(0);
             break;
         }
 
-        if ((D_800704A8.unk150 & 0x20) && func_800BE274() == 0
-            && D_80085224[D_800704A8.entityIndex[0]].msgActive != 3
-            && D_80085224[D_800704A8.entityIndex[0]].msgActive != 4
-            && (s16)D_800704A8.dialogState != 4
-            && (s16)D_800704A8.dialogState != 1
-            && (s16)D_800704A8.dialogState != 3
-            && (s16)D_800704A8.dialogState != 2
-            && D_800704A8.unk1A3 == 0 && D_800704A8.mode == 0) {
+        if ((g_fieldEntity.unk150 & 0x20) && func_800BE274() == 0
+            && D_80085224[g_fieldEntity.entityIndex[0]].msgActive != 3
+            && D_80085224[g_fieldEntity.entityIndex[0]].msgActive != 4
+            && (s16)g_fieldEntity.dialogState != 4
+            && (s16)g_fieldEntity.dialogState != 1
+            && (s16)g_fieldEntity.dialogState != 3
+            && (s16)g_fieldEntity.dialogState != 2
+            && g_fieldEntity.unk1A3 == 0 && g_fieldEntity.mode == 0) {
             func_8009912C();
-            D_800704A8.mode = 5;
-            D_800704A8.counter = 0;
-            D_8005F158 = 6;
-            D_800704A8.position_x = D_80085224[D_8005F148].posX / 4096;
-            D_800704A8.position_y = D_80085224[D_8005F148].posY / 4096;
-            D_800704A8.spawnTriIdx = D_80085224[D_8005F148].triIdx;
-            D_800704A8.anim_state = D_80085224[D_8005F148].field_0x241;
+            g_fieldEntity.mode = 5;
+            g_fieldEntity.counter = 0;
+            g_vsyncRate = 6;
+            g_fieldEntity.position_x = D_80085224[D_8005F148].posX / 4096;
+            g_fieldEntity.position_y = D_80085224[D_8005F148].posY / 4096;
+            g_fieldEntity.spawnTriIdx = D_80085224[D_8005F148].triIdx;
+            g_fieldEntity.anim_state = D_80085224[D_8005F148].field_0x241;
             func_800A59D0();
             break;
         }
 
-        if (D_800704A8.mode == 5) {
+        if (g_fieldEntity.mode == 5) {
             func_8009912C();
-            D_8005F158 = 10;
+            g_vsyncRate = 10;
             func_800A59D0();
             break;
         }
 
         if (func_800BE274() == 0) {
-            if (D_800704A8.unk1A6 == 0) {
+            if (g_fieldEntity.unk1A6 == 0) {
                 D_800C71F8 = *D_800C71E8;
             } else {
                 D_800C71F8 = *D_800C71E8 + 1;
             }
         } else {
             D_800C71F8 = D_8005F108;
-            D_800704A8.unk1B0 = 1;
-            if (D_800704A8.unk1B1 == 0) {
-                D_800704A8.unk1B1 = 1;
+            g_fieldEntity.unk1B0 = 1;
+            if (g_fieldEntity.unk1B1 == 0) {
+                g_fieldEntity.unk1B1 = 1;
             }
         }
 
         SetGeomScreen(D_800C71F8->spriteScale);
-        if (D_800704A8.unk1A6 != D_800704A8.unk1A9) {
-            D_800704A8.unk1A9 = D_800704A8.unk1A6;
+        if (g_fieldEntity.unk1A6 != g_fieldEntity.unk1A9) {
+            g_fieldEntity.unk1A9 = g_fieldEntity.unk1A6;
             eq = (u8 *)D_8005F0F8;
-            D_800704A8.unk1A8 = D_800704A8.unk100 =
-                ((EventQueue *)(eq + D_800704A8.unk1A6))->unk09;
+            g_fieldEntity.unk1A8 = g_fieldEntity.unk100 =
+                ((EventQueue *)(eq + g_fieldEntity.unk1A6))->unk09;
         }
-        func_8009BEC8(D_80085224, D_800704A8.unk150);
-        func_8009A7E8(&D_80085224[D_800704A8.entityIndex[0]], D_8008538C);
+        func_8009BEC8(D_80085224, g_fieldEntity.unk150);
+        func_8009A7E8(&D_80085224[g_fieldEntity.entityIndex[0]], D_8008538C);
         func_8009CEE8();
-        func_800A17B8(&D_800704A8.oscillators[0]);
-        func_800A17B8(&D_800704A8.oscillators[1]);
+        func_800A17B8(&g_fieldEntity.oscillators[0]);
+        func_800A17B8(&g_fieldEntity.oscillators[1]);
         func_800A10F4();
         func_800A1318();
-        if (D_800704A8.unk1A6 == 1) {
-            func_800A15C0(D_800C71E0, D_80067388, 1);
+        if (g_fieldEntity.unk1A6 == 1) {
+            func_800A15C0(D_800C71E0, g_drawEnvs, 1);
         } else {
-            func_800A15C0(D_800C71E0, D_80067388, 0);
+            func_800A15C0(D_800C71E0, g_drawEnvs, 0);
         }
 
-        if (D_80067440[((s16)g_bufferIndex + 1) & 1].isrgb24 == 0
-            && D_800704A8.unk1AD == 0) {
+        if (g_dispEnvs[((s16)g_bufferIndex + 1) & 1].isrgb24 == 0
+            && g_fieldEntity.unk1AD == 0) {
             SCRATCH_STACK_ENTER();
             func_800A1CFC(D_80085224, D_800C71E0);
             SCRATCH_STACK_LEAVE();
@@ -742,7 +742,7 @@ void func_80099348(void) {
             func_800A06F0(0, D_800C71E0, D_800C6D98[(s16)g_bufferIndex],
                           D_800C71E0->unk4F80);
         } else if (D_8005F0F8->unk0E == 1
-                   && D_800704A8.unk1A7 == 0) {
+                   && g_fieldEntity.unk1A7 == 0) {
             func_800A2AF8(D_800C71E0, D_800D5EC8[(s16)g_bufferIndex],
                           D_800D5EB8[(s16)g_bufferIndex], D_800C71F8);
         }
@@ -773,46 +773,46 @@ void func_80099348(void) {
         }
 
         if ((s16)g_bufferIndex == 0) {
-            D_80067388[(s16)g_bufferIndex].clip.x = D_8005F0F8->rect_b[0].f6;
+            g_drawEnvs[(s16)g_bufferIndex].clip.x = D_8005F0F8->rect_b[0].f6;
         } else {
-            D_80067388[(s16)g_bufferIndex].clip.x = D_8005F0F8->rect_b[0].f6 + 512;
+            g_drawEnvs[(s16)g_bufferIndex].clip.x = D_8005F0F8->rect_b[0].f6 + 512;
         }
-        D_80067388[(s16)g_bufferIndex].clip.y = D_8005F0F8->rect_b[0].f0;
-        D_80067388[(s16)g_bufferIndex].clip.w =
+        g_drawEnvs[(s16)g_bufferIndex].clip.y = D_8005F0F8->rect_b[0].f0;
+        g_drawEnvs[(s16)g_bufferIndex].clip.w =
             D_8005F0F8->rect_b[0].f4 - D_8005F0F8->rect_b[0].f6;
-        D_80067388[(s16)g_bufferIndex].clip.h =
+        g_drawEnvs[(s16)g_bufferIndex].clip.h =
             D_8005F0F8->rect_b[0].f2 - D_8005F0F8->rect_b[0].f0;
-        func_80049B78(&D_800C71E0->drawEnvPrim, &D_80067388[(s16)g_bufferIndex]);
+        SetDrawEnv(&D_800C71E0->drawEnvPrim, &g_drawEnvs[(s16)g_bufferIndex]);
 
         addPrim(&D_800C71E0->ot[0xFFF], &D_800C71E0->drawEnvPrim);
         addPrim(&D_800C71E0->ot[1], &D_800C71E0->unk4F00);
 
         if (func_800BE274()) {
-            renderAndUpdateDisplay(D_800704A8.unk1AC);
+            renderAndUpdateDisplay(g_fieldEntity.unk1AC);
         } else {
             renderAndUpdateDisplay(2);
         }
         renderBattleDisplayList((s32 *)D_800C71E0->ot);
 
-        if (D_800704A8.mode == 6) {
-            D_8005F158 = 9;
+        if (g_fieldEntity.mode == 6) {
+            g_vsyncRate = 9;
             func_800A59D0();
             break;
         }
-        if (D_800704A8.mode == 4) {
+        if (g_fieldEntity.mode == 4) {
             func_800A59D0();
             break;
         }
-        if (D_800704A8.mode == 3 || D_800704A8.mode == 8) {
-            D_800704A8.position_x = D_80085224[D_8005F148].posX / 4096;
-            D_800704A8.position_y = D_80085224[D_8005F148].posY / 4096;
-            D_800704A8.spawnTriIdx = D_80085224[D_8005F148].triIdx;
+        if (g_fieldEntity.mode == 3 || g_fieldEntity.mode == 8) {
+            g_fieldEntity.position_x = D_80085224[D_8005F148].posX / 4096;
+            g_fieldEntity.position_y = D_80085224[D_8005F148].posY / 4096;
+            g_fieldEntity.spawnTriIdx = D_80085224[D_8005F148].triIdx;
             func_8009912C();
-            mode = D_800704A8.mode;
+            mode = g_fieldEntity.mode;
             if (mode == 3) {
-                D_8005F158 = mode;
+                g_vsyncRate = mode;
             } else {
-                D_8005F158 = 8;
+                g_vsyncRate = 8;
             }
             func_800A59D0();
             break;
@@ -820,12 +820,12 @@ void func_80099348(void) {
 
         if ((g_fieldVars->stateFlags & FIELD_STATE_CAMERA_SHAKE) && g_gameState.mainData.countdownTimer == 0
             && (g_fieldVars->fieldB6 & 0x100) == 0) {
-            D_800704A8.counter = 0x4B;
-            D_800704A8.mode = 1;
-            D_800704A8.spawnTriIdx = 0x7FFF;
+            g_fieldEntity.counter = 0x4B;
+            g_fieldEntity.mode = 1;
+            g_fieldEntity.spawnTriIdx = 0x7FFF;
             func_800A59D0();
         }
-        if (D_800704A8.mode == 1 || D_800704A8.mode == 7) {
+        if (g_fieldEntity.mode == 1 || g_fieldEntity.mode == 7) {
             func_8009912C();
             while (DrawSync(1) != 0) {
             }
@@ -840,40 +840,40 @@ void func_80099348(void) {
         /* Called for its side effect only, func_800BE274 dispatches into the
            overlay when D_800DE4FD bit 1 is set; the original discards the result. */
         func_800BE274();
-        func_8002A150(0, 0x18, 0xBE);
-        D_800D5EA0 = func_80042634(1);
+        encodeCardFilename(0, 0x18, 0xBE);
+        D_800D5EA0 = VSync(1);
         while (DrawSync(1) != 0) {
         }
         if (func_800BE274()) {
-            func_80042634(D_800704A8.unk1AC);
+            VSync(g_fieldEntity.unk1AC);
         } else {
-            func_80042634(2);
+            VSync(2);
         }
         if (frames == 0) {
             SetDispMask(1);
         } else {
             frames--;
         }
-        func_80049480(&D_80067440[(s16)g_bufferIndex]);
+        PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
 
-        if ((D_800704A8.padHeld & 0x800) && !(D_800704A8.padHeldPrev & 0x800)
-            && func_800BE274() == 0 && (s16)D_800704A8.dialogState != 4
-            && (s16)D_800704A8.dialogState != 3
-            && (s16)D_800704A8.dialogState != 2 && D_800704A8.unk1A3 == 0) {
+        if ((g_fieldEntity.padHeld & 0x800) && !(g_fieldEntity.padHeldPrev & 0x800)
+            && func_800BE274() == 0 && (s16)g_fieldEntity.dialogState != 4
+            && (s16)g_fieldEntity.dialogState != 3
+            && (s16)g_fieldEntity.dialogState != 2 && g_fieldEntity.unk1A3 == 0) {
             func_800AD7AC(0);
         }
 
-        if (D_800704A8.unk1AA == 1) {
-            ClearImage(&D_80067388[(s16)g_bufferIndex].clip, 0, 0, 0);
+        if (g_fieldEntity.unk1AA == 1) {
+            ClearImage(&g_drawEnvs[(s16)g_bufferIndex].clip, 0, 0, 0);
         }
-        if (D_800704A8.unk1B1 == 1) {
-            D_800704A8.unk1B1 = 2;
+        if (g_fieldEntity.unk1B1 == 1) {
+            g_fieldEntity.unk1B1 = 2;
             func_800A1C64();
         }
         func_800393C8();
         func_800BE2DC();
-        if (D_800704A8.unk1A1 == 0) {
-            func_80049244(&D_800C71E0->ot[0xFFF]);
+        if (g_fieldEntity.unk1A1 == 0) {
+            DrawOTag(&D_800C71E0->ot[0xFFF]);
         }
     }
     func_800BE2AC();
@@ -1085,10 +1085,10 @@ s32 func_8009A4C0(Actor *actor, Eline *records, VECTOR *pt) {
                 }
             }
             if (fc->unk19D == 1 && ((fc->unk19C - actor->unk23F + 0x20) & 0xFF) < 0x40) {
-                if ((D_800704A8.unk150 & 0x40) && !(D_800704A8.unk154 & 0x40)) {
+                if ((g_fieldEntity.unk150 & 0x40) && !(g_fieldEntity.unk154 & 0x40)) {
                     fc->trigger7 = 1;
                 }
-                if ((D_800704A8.unk150 & 0x80) && !(D_800704A8.unk154 & 0x80)) {
+                if ((g_fieldEntity.unk150 & 0x80) && !(g_fieldEntity.unk154 & 0x80)) {
                     fc->trigger7 = 2;
                 }
             }
@@ -1114,7 +1114,7 @@ s32 func_8009A4C0(Actor *actor, Eline *records, VECTOR *pt) {
  *   - @c unk19D == @c activeMarker (so @c unk19D == 1)
  *   - @c entity->unk19C falls within a @c +/-32 window of @c actor->unk23F
  *
- * writes @c trigger7 from the @c D_800704A8.unk150 / @c unk154 pair:
+ * writes @c trigger7 from the @c g_fieldEntity.unk150 / @c unk154 pair:
  *   - bit 6 set in @c unk150 and clear in @c unk154 → @c trigger7 = @c unk19D (= 1)
  *   - bit 7 set in @c unk150 and clear in @c unk154 → @c trigger7 = 2
  *
@@ -1130,13 +1130,13 @@ void func_8009A7E8(Actor *actor, Eline *pool) {
             if (actor->msgActive == 0) {
                 if (pool->unk19D == pool->activeMarker) {
                     if ((s32)(((s32)pool->unk19C - (s32)actor->unk23F + 0x20) & 0xFF) < 0x40) {
-                        if (D_800704A8.unk150 & 0x40) {
-                            if (!(D_800704A8.unk154 & 0x40)) {
+                        if (g_fieldEntity.unk150 & 0x40) {
+                            if (!(g_fieldEntity.unk154 & 0x40)) {
                                 pool->trigger7 = pool->unk19D;
                             }
                         }
-                        if (D_800704A8.unk150 & 0x80) {
-                            if (!(D_800704A8.unk154 & 0x80)) {
+                        if (g_fieldEntity.unk150 & 0x80) {
+                            if (!(g_fieldEntity.unk154 & 0x80)) {
                                 pool->trigger7 = 2;
                             }
                         }
@@ -1230,10 +1230,10 @@ void func_8009A920(Actor *actor, Eline *entities) {
 }
 
 /**
- * @brief Restore an event-entry snapshot into the live @c D_800704A8.
+ * @brief Restore an event-entry snapshot into the live @c g_fieldEntity.
  *
  * Copies the 5 snapshot fields stored in an @c EventEntry slot back into
- * the corresponding live fields of @c D_800704A8, and selects the
+ * the corresponding live fields of @c g_fieldEntity, and selects the
  * engine @c mode from the snapshotted @c counter:
  *   - @c counter < 72 → @c mode = 7 (e.g. resume an in-progress event)
  *   - otherwise → @c mode = 1 (e.g. start a fresh interaction)
@@ -1242,15 +1242,15 @@ void func_8009A920(Actor *actor, Eline *entities) {
  */
 void func_8009AA64(EventEntry *e) {
     if (e->counter < 72) {
-        D_800704A8.mode = 7;
+        g_fieldEntity.mode = 7;
     } else {
-        D_800704A8.mode = 1;
+        g_fieldEntity.mode = 1;
     }
-    D_800704A8.counter = e->counter;
-    D_800704A8.position_x = e->position_x;
-    D_800704A8.position_y = e->position_y;
-    D_800704A8.spawnTriIdx = e->spawnTriIdx;
-    D_800704A8.anim_state = e->anim_state;
+    g_fieldEntity.counter = e->counter;
+    g_fieldEntity.position_x = e->position_x;
+    g_fieldEntity.position_y = e->position_y;
+    g_fieldEntity.spawnTriIdx = e->spawnTriIdx;
+    g_fieldEntity.anim_state = e->anim_state;
 }
 
 /**
@@ -1397,18 +1397,18 @@ s16 func_8009AC9C(s16 px, s16 py, s16 pz, TriangleList *list) {
     return (s16)bestIdx;
 }
 
-/** @brief Scale applied to @c D_800704A8.unk00A when seeding @c Actor::moveSpeed. */
+/** @brief Scale applied to @c g_fieldEntity.unk00A when seeding @c Actor::moveSpeed. */
 #define FIELD_CHANNEL_SCALE 0x4367
 
-/** @brief Sentinel in @c D_800704A8.spawnTriIdx / @c position_x meaning "no override". */
+/** @brief Sentinel in @c g_fieldEntity.spawnTriIdx / @c position_x meaning "no override". */
 #define SPAWN_UNSET 0x7FFF
 
 /**
  * @brief Place every field entity on the navmesh when a field is entered.
  *
  * For each of the @c D_80085388 entities:
- *  - The player entity (@c D_8005F148, taken from @c D_800704A8.entityIndex[0])
- *    is handled specially. When @c D_800704A8.spawnTriIdx carries a triangle index
+ *  - The player entity (@c D_8005F148, taken from @c g_fieldEntity.entityIndex[0])
+ *    is handled specially. When @c g_fieldEntity.spawnTriIdx carries a triangle index
  *    (i.e. is not @c SPAWN_UNSET) the entity is moved onto that triangle:
  *    with no X override it is dropped at the triangle centroid, otherwise its
  *    existing X/Y are kept and only Z is re-derived from the triangle plane.
@@ -1441,14 +1441,14 @@ void func_8009AEC0(void) {
     s16 i;
 
     D_8005F102 = 0;
-    D_800704A8.unk00A = 20;
-    D_8005F148 = D_800704A8.entityIndex[0];
+    g_fieldEntity.unk00A = 20;
+    D_8005F148 = g_fieldEntity.entityIndex[0];
 
     for (i = 0; i < D_80085388; i++) {
         if (i == D_8005F148) {
-            if (D_800704A8.spawnTriIdx != SPAWN_UNSET) {
-                D_80085224[i].triIdx = D_800704A8.spawnTriIdx;
-                if (D_800704A8.position_x == SPAWN_UNSET) {
+            if (g_fieldEntity.spawnTriIdx != SPAWN_UNSET) {
+                D_80085224[i].triIdx = g_fieldEntity.spawnTriIdx;
+                if (g_fieldEntity.position_x == SPAWN_UNSET) {
                     D_80085224[i].posX = ((D_800C71F0[D_80085224[i].triIdx * 3].sx +
                                            D_800C71F0[D_80085224[i].triIdx * 3 + 1].sx +
                                            D_800C71F0[D_80085224[i].triIdx * 3 + 2].sx) / 3) << 12;
@@ -1477,7 +1477,7 @@ void func_8009AEC0(void) {
                 D_80085224[D_8005F148].field_0x251 = 2;
                 /* Same scale func_800B6738 applies to D_800704B2 (there as *69020>>9), so
                    the entity starts exactly at the threshold that picks field_0x251. */
-                D_80085224[D_8005F148].moveSpeed = ((u32)(D_800704A8.unk00A * 17255)) >> 7;
+                D_80085224[D_8005F148].moveSpeed = ((u32)(g_fieldEntity.unk00A * 17255)) >> 7;
                 D_80085224[D_8005F148].radius = 0x30;
                 D_80085224[D_8005F148].triIdx = 0;
                 D_80085224[D_8005F148].posX =
@@ -1600,14 +1600,14 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
 void func_8009B74C(s16 slotIdx, u16 paramIdx, PathEntry *params, s16 multiplier) {
     u8 entityIdx;
 
-    entityIdx = D_800704A8.entityIndex[slotIdx];
+    entityIdx = g_fieldEntity.entityIndex[slotIdx];
 
     if (entityIdx == 0xFF) {
         return;
     }
 
-    D_80085224[D_800704A8.entityIndex[(s16)slotIdx]].field_0x241 = params[paramIdx].field_0B;
-    D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x24C = 1;
+    D_80085224[g_fieldEntity.entityIndex[(s16)slotIdx]].field_0x241 = params[paramIdx].field_0B;
+    D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x24C = 1;
 
     if (slotIdx == 1) {
         if (D_8005F160 > D_8005F118) {
@@ -1621,28 +1621,28 @@ void func_8009B74C(s16 slotIdx, u16 paramIdx, PathEntry *params, s16 multiplier)
 
     switch (params[paramIdx].field_0A) {
     case 0:
-        entityIdx = D_800704A8.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x250, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldEntity.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x250, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 1:
-        entityIdx = D_800704A8.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x251, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldEntity.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x251, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 2:
-        entityIdx = D_800704A8.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x24F, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldEntity.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x24F, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 3:
-        entityIdx = D_800704A8.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x252, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldEntity.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x252, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 4:
-        entityIdx = D_800704A8.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[D_800704A8.entityIndex[slotIdx]].field_0x253, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldEntity.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x253, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 5:
-        entityIdx = D_800704A8.entityIndex[slotIdx];
-        func_8009B4A8(D_800704A8.entityIndex[slotIdx], D_80085224[entityIdx].field_0x254, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldEntity.entityIndex[slotIdx];
+        func_8009B4A8(g_fieldEntity.entityIndex[slotIdx], D_80085224[entityIdx].field_0x254, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     }
 }
@@ -1661,21 +1661,21 @@ void func_8009B74C(s16 slotIdx, u16 paramIdx, PathEntry *params, s16 multiplier)
 void func_8009BB18(void) {
     u16 angle;
 
-    if (D_800704A8.entityIndex[2] != 0xFF) {
+    if (g_fieldEntity.entityIndex[2] != 0xFF) {
         angle = (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK;
-        D_80085224[D_800704A8.entityIndex[2]].posX   = D_80070A60[angle].x << 12;
-        D_80085224[D_800704A8.entityIndex[2]].posY   = D_80070A60[angle].y << 12;
-        D_80085224[D_800704A8.entityIndex[2]].posZ   = D_80070A60[angle].z << 12;
-        D_80085224[D_800704A8.entityIndex[2]].triIdx = D_80070A60[angle].unk6;
-        D_80085224[D_800704A8.entityIndex[2]].unk258 = D_80070A60[angle].unk8;
+        D_80085224[g_fieldEntity.entityIndex[2]].posX   = D_80070A60[angle].x << 12;
+        D_80085224[g_fieldEntity.entityIndex[2]].posY   = D_80070A60[angle].y << 12;
+        D_80085224[g_fieldEntity.entityIndex[2]].posZ   = D_80070A60[angle].z << 12;
+        D_80085224[g_fieldEntity.entityIndex[2]].triIdx = D_80070A60[angle].unk6;
+        D_80085224[g_fieldEntity.entityIndex[2]].unk258 = D_80070A60[angle].unk8;
     }
-    if (D_800704A8.entityIndex[1] != 0xFF) {
+    if (g_fieldEntity.entityIndex[1] != 0xFF) {
         angle = (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK;
-        D_80085224[D_800704A8.entityIndex[1]].posX   = D_80070760[angle].x << 12;
-        D_80085224[D_800704A8.entityIndex[1]].posY   = D_80070760[angle].y << 12;
-        D_80085224[D_800704A8.entityIndex[1]].posZ   = D_80070760[angle].z << 12;
-        D_80085224[D_800704A8.entityIndex[1]].triIdx = D_80070760[angle].unk6;
-        D_80085224[D_800704A8.entityIndex[1]].unk258 = D_80070760[angle].unk8;
+        D_80085224[g_fieldEntity.entityIndex[1]].posX   = D_80070760[angle].x << 12;
+        D_80085224[g_fieldEntity.entityIndex[1]].posY   = D_80070760[angle].y << 12;
+        D_80085224[g_fieldEntity.entityIndex[1]].posZ   = D_80070760[angle].z << 12;
+        D_80085224[g_fieldEntity.entityIndex[1]].triIdx = D_80070760[angle].unk6;
+        D_80085224[g_fieldEntity.entityIndex[1]].unk258 = D_80070760[angle].unk8;
     }
 }
 
@@ -1751,7 +1751,7 @@ void func_8009BD50(Actor *actor, s16 mode, s8 b9, u8 b8) {
  * Runs nine sequential passes over the @c D_80085388 entities of @p ents:
  *  1. Re-arm each entity's @c unk258 tick flag.
  *  2. Advance the global heading lerp (@c unk100 -> @c unk102 over @c unk104
- *     frames) into @c D_800704A8.unk1A8.
+ *     frames) into @c g_fieldEntity.unk1A8.
  *  3. Advance each entity's heading lerp (@c field_0x244: 1 = linear,
  *     2 = sine, 3 = finished).
  *  4. Advance each entity's position-offset lerp (@c unk245, same encoding).
@@ -1786,12 +1786,12 @@ void func_8009BEC8(Actor *ents, s32 flags) {
         ents[i].unk258 = 1;
     }
 
-    if (D_800704A8.unk106 < D_800704A8.unk104) {
-        D_800704A8.unk106++;
-        D_800704A8.unk1A8 = func_800A0E54((s16)D_800704A8.unk100, (s16)D_800704A8.unk102,
-                                          D_800704A8.unk104, D_800704A8.unk106);
-        if (D_800704A8.unk104 == D_800704A8.unk106) {
-            D_800704A8.unk100 = D_800704A8.unk1A8;
+    if (g_fieldEntity.unk106 < g_fieldEntity.unk104) {
+        g_fieldEntity.unk106++;
+        g_fieldEntity.unk1A8 = func_800A0E54((s16)g_fieldEntity.unk100, (s16)g_fieldEntity.unk102,
+                                          g_fieldEntity.unk104, g_fieldEntity.unk106);
+        if (g_fieldEntity.unk104 == g_fieldEntity.unk106) {
+            g_fieldEntity.unk100 = g_fieldEntity.unk1A8;
         }
     }
 
@@ -1859,8 +1859,8 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             continue;
         }
         step = 0;
-        D_800704A8.fieldStepDelta = 0;
-        if (D_800704A8.unk015 == 1 || (s16)D_800704A8.dialogState == 4) {
+        g_fieldEntity.fieldStepDelta = 0;
+        if (g_fieldEntity.unk015 == 1 || (s16)g_fieldEntity.dialogState == 4) {
             continue;
         }
         if (func_80027DB4(0, PAD_AXIS_X, 0) != -1) {
@@ -1898,7 +1898,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].unk23F = 0x40;
                     }
                 }
-                ents[i].unk23F += D_800704A8.unk1A8 + ents[i].headingBase;
+                ents[i].unk23F += g_fieldEntity.unk1A8 + ents[i].headingBase;
             } else {
                 if (!(flags & FIELD_PAD_WALK)) {
                     if (dist[0] >= 0x79) {
@@ -1907,37 +1907,37 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         flags |= FIELD_PAD_WALK;
                     }
                 }
-                ents[i].unk23F = dir + (D_800704A8.unk1A8 + D_8005F0F8->slotHeadingBias[D_800704A8.unk1A6]);
+                ents[i].unk23F = dir + (g_fieldEntity.unk1A8 + D_8005F0F8->slotHeadingBias[g_fieldEntity.unk1A6]);
             }
-            if ((flags & FIELD_PAD_WALK) || D_800704A8.unk1A4 == 1) {
+            if ((flags & FIELD_PAD_WALK) || g_fieldEntity.unk1A4 == 1) {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(D_800704A8.unk00A * 0x4367) >> 7;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x4367) >> 7;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(D_800704A8.unk00A * 0x4367) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x4367) >> 6;
                 }
             } else {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(D_800704A8.unk00A * 0x631F) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x631F) >> 6;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(D_800704A8.unk00A * 0x631F) >> 5;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x631F) >> 5;
                 }
             }
             SCRATCH_STACK_ENTER();
             step = func_8009D598((s16)i);
             SCRATCH_STACK_LEAVE();
             if (step == 1) {
-                if ((flags & FIELD_PAD_WALK) || D_800704A8.unk1A4 == step) {
+                if ((flags & FIELD_PAD_WALK) || g_fieldEntity.unk1A4 == step) {
                     func_8009B4A8((s16)i, ents[i].field_0x250, 1, 1);
                     trail = D_8005F144;
                     D_80070A60[trail].field_0A = 0;
                     D_80070760[trail].field_0A = 0;
-                    D_800704A8.fieldStepDelta = 3;
+                    g_fieldEntity.fieldStepDelta = 3;
                 } else {
                     func_8009B4A8((s16)i, ents[i].field_0x251, 1, 1);
                     trail = D_8005F144;
                     D_80070A60[trail].field_0A = step;
                     D_80070760[trail].field_0A = step;
-                    D_800704A8.fieldStepDelta = 5;
+                    g_fieldEntity.fieldStepDelta = 5;
                 }
                 func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
                 func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
@@ -1947,28 +1947,28 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                 D_80070760[trail].field_0B = heading;
         } else {
             func_8009B4A8((s16)i, ents[i].field_0x24F, 0, 1);
-            if (D_800704A8.entityIndex[2] != 0xFF) {
-                func_8009B4A8(D_800704A8.entityIndex[2], ents[D_800704A8.entityIndex[2]].field_0x24F, 0, 1);
+            if (g_fieldEntity.entityIndex[2] != 0xFF) {
+                func_8009B4A8(g_fieldEntity.entityIndex[2], ents[g_fieldEntity.entityIndex[2]].field_0x24F, 0, 1);
             }
-            if (D_800704A8.entityIndex[1] != 0xFF) {
-                func_8009B4A8(D_800704A8.entityIndex[1], ents[D_800704A8.entityIndex[1]].field_0x24F, 0, 1);
+            if (g_fieldEntity.entityIndex[1] != 0xFF) {
+                func_8009B4A8(g_fieldEntity.entityIndex[1], ents[g_fieldEntity.entityIndex[1]].field_0x24F, 0, 1);
             }
         }
         if (ents[i].field_0x240 == 0) {
             ents[i].field_0x241 = ents[i].unk23F;
         }
-        if (D_800704A8.mode != 1 && D_800704A8.mode != 7 && step == 1) {
+        if (g_fieldEntity.mode != 1 && g_fieldEntity.mode != 7 && step == 1) {
             func_800A5D28();
         }
             func_8009BD50(&ents[i], step, 1, 1);
             func_8009BB18();
         } else {
             func_8009B4A8((s16)i, ents[i].field_0x24F, 0, 1);
-            if (D_800704A8.entityIndex[2] != 0xFF) {
-                func_8009B4A8(D_800704A8.entityIndex[2], ents[D_800704A8.entityIndex[2]].field_0x24F, 0, 1);
+            if (g_fieldEntity.entityIndex[2] != 0xFF) {
+                func_8009B4A8(g_fieldEntity.entityIndex[2], ents[g_fieldEntity.entityIndex[2]].field_0x24F, 0, 1);
             }
-            if (D_800704A8.entityIndex[1] != 0xFF) {
-                func_8009B4A8(D_800704A8.entityIndex[1], ents[D_800704A8.entityIndex[1]].field_0x24F, 0, 1);
+            if (g_fieldEntity.entityIndex[1] != 0xFF) {
+                func_8009B4A8(g_fieldEntity.entityIndex[1], ents[g_fieldEntity.entityIndex[1]].field_0x24F, 0, 1);
             }
             func_8009BD50(&ents[i], step, 1, 1);
             func_8009BB18();
@@ -1977,7 +1977,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
 
 
     for (i = 0; i < D_80085388; i++) {
-        if (ents[i].msgActive == 1 && D_800704A8.pad001 != 1) {
+        if (ents[i].msgActive == 1 && g_fieldEntity.pad001 != 1) {
             ents[i].headingBase = 0;
             if (func_8009D274(&ents[i], ents[i].windowId) == 0) {
                 ents[i].msgState = 2;
@@ -2052,7 +2052,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             a.vy = (ents[i].msgPosX - ents[i].moveStartY) / 1024;
             a.vz = (ents[i].msgPosY - ents[i].moveStartZ) / 1024;
             dist[0] = SquareRoot0(a.vx * a.vx + a.vy * a.vy + a.vz * a.vz);
-            ents[i].field_0x1D8 = dist[0] / D_800704A8.unk1AE;
+            ents[i].field_0x1D8 = dist[0] / g_fieldEntity.unk1AE;
             ents[i].field_0x1DA = 0;
             ents[i].msgState = 1;
             if (i == D_8005F148) {
@@ -2060,7 +2060,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             }
             continue;
         }
-        if (i == D_8005F148 && D_800704A8.unk015 == 0) {
+        if (i == D_8005F148 && g_fieldEntity.unk015 == 0) {
             if (ents[i].windowId == 0) {
                 if (flags & (FIELD_PAD_YLOW | FIELD_PAD_XHIGH)) {
                     if (ents[i].field_0x1DA == 0) {
@@ -2120,7 +2120,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
  *
  * The self entity is @c D_80085224[D_8005F148]; its position is taken in whole
  * units (fixed-point @c >>12). A @c mode (0/1/2) is derived from the current and
- * previous pad-held bits in @c D_800704A8 (@c unk150 / @c unk154, bits @c 0x80
+ * previous pad-held bits in @c g_fieldEntity (@c unk150 / @c unk154, bits @c 0x80
  * and @c 0x40). If the field is busy (@c D_800704BD != 0) or @c mode is 0, the
  * scan is skipped entirely.
  *
@@ -2149,7 +2149,7 @@ void func_8009CEE8(void) {
     selfPos[1] = D_80085224[D_8005F148].posY >> 12;
     selfPos[2] = D_80085224[D_8005F148].posZ >> 12;
 
-    sys = &D_800704A8;
+    sys = &g_fieldEntity;
     mode = 0;
     if (sys->unk150 & 0x80) {
         mode = ((sys->unk154 & 0x80) == 0) << 1;
@@ -2566,10 +2566,10 @@ s32 func_8009D598(s16 index) {
 
     blocked = func_8009DF18(&D_80085224[self].triIdx, (Vec3i *)&sc->srcX, &sc->dx,
                             (s32 *)sc);
-    if (self == D_8005F148 && D_800704A8.unk015 == 0) {
+    if (self == D_8005F148 && g_fieldEntity.unk015 == 0) {
         func_8009A4C0(&D_80085224[self], D_8008538C, (VECTOR *)&sc->srcX);
         D_8005F102 = 0;
-        if (D_800704A8.unk1A2 == 0) {
+        if (g_fieldEntity.unk1A2 == 0) {
             func_8009AAC8(&D_80085224[self],
                           (EventEntry *)&D_8005F0F8->entries[0].z0,
                           (Vec3i *)&sc->srcX);
@@ -2627,7 +2627,7 @@ void func_8009DED8(Vec3i *out, SVert *a, SVert *b) {
  *    (@ref func_8009E338), returning 0 or the last edge classification;
  *  - otherwise, for the first failing edge: moves to that edge's neighbor
  *    triangle (@c *pTriIdx updated) when one exists and its
- *    @c D_800704A8.statusBits lock bit is clear, else returns +/-8 by the
+ *    @c g_fieldEntity.statusBits lock bit is clear, else returns +/-8 by the
  *    sign of the edge direction dotted with the movement delta @p dxy
  *    (which side of the blocking edge the motion crosses).
  *
@@ -2695,7 +2695,7 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
         }
         if (nc0 < 0) {
             nb = D_800D5E98[*pTriIdx].neighbor[0];
-            if (nb >= 0 && !((D_800704A8.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
+            if (nb >= 0 && !((g_fieldEntity.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
                 *pTriIdx = D_800D5E98[*pTriIdx].neighbor[0];
                 continue;
             }
@@ -2703,7 +2703,7 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
             break;
         } else if (nc1 < 0) {
             nb = D_800D5E98[*pTriIdx].neighbor[1];
-            if (nb >= 0 && !((D_800704A8.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
+            if (nb >= 0 && !((g_fieldEntity.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
                 *pTriIdx = D_800D5E98[*pTriIdx].neighbor[1];
                 continue;
             }
@@ -2711,7 +2711,7 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
             break;
         } else if (nc2 < 0) {
             nb = D_800D5E98[*pTriIdx].neighbor[2];
-            if (nb >= 0 && !((D_800704A8.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
+            if (nb >= 0 && !((g_fieldEntity.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
                 *pTriIdx = D_800D5E98[*pTriIdx].neighbor[2];
                 continue;
             }
@@ -2929,9 +2929,9 @@ void func_8009E660(void) {
                applies to D_800704B2; written *4 >> 9 because that is the shift pair
                the original emits. */
             x -= func_8009D234(D_80085224[D_8005F148].field_0x241) *
-                 ((D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
+                 ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
             y -= -(func_8009D254(D_80085224[D_8005F148].field_0x241) *
-                   ((D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
+                   ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
         }
     }
 }
@@ -2990,7 +2990,7 @@ void func_8009ECA4(void) {
     trail1.vy = D_80085224[g_fieldVars->memberSlot[1]].posY / 4096;
     trail2.vy = D_80085224[g_fieldVars->memberSlot[2]].posY / 4096;
 
-    stride = (D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9;
+    stride = (g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9;
     dir1 = func_8009A0E8(&trail1.vx, &lead.vx, &slots1);
     slots1 = (slots1 << 8) / stride;
     dir2 = func_8009A0E8(&trail2.vx, &lead.vx, &slots2);
@@ -3008,10 +3008,10 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail1.vx / 4096), (s16)(trail1.vy / 4096),
                               (s16)(trail1.vz / 4096), *D_800C7204);
             trail1.vx -= func_8009D234((u8)dir1)
-                         * ((D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail1.vy -= -(func_8009D254((u8)dir1)
-                           * ((D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070760[63 - i].z =
@@ -3047,10 +3047,10 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail2.vx / 4096), (s16)(trail2.vy / 4096),
                               (s16)(trail2.vz / 4096), *D_800C7204);
             trail2.vx -= func_8009D234((u8)dir2)
-                         * ((D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail2.vy -= -(func_8009D254((u8)dir2)
-                           * ((D_800704A8.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070A60[63 - i].z =
@@ -3430,9 +3430,9 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
         D_80070760[p].field_0A = D_80070A60[p].field_0A = 2;
         func_8009F7F4((s16)idx, -1, actor->field_0x24F, 1);
         if (actor->field_0x1DA == 0) {
-            if (D_800704A8.entityIndex[2] != 0xFF) {
+            if (g_fieldEntity.entityIndex[2] != 0xFF) {
                 actor->field_0x1D8 = 32;
-            } else if (D_800704A8.entityIndex[1] != 0xFF) {
+            } else if (g_fieldEntity.entityIndex[1] != 0xFF) {
                 actor->field_0x1D8 = 16;
             } else {
                 actor->field_0x1D8 = 1;
@@ -3500,7 +3500,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1", func_800A06F0);
  *     content.
  *
  * Each transfer is sandwiched by @c DrawSync(1) polls (GPU-busy
- * waits); @c func_80042634(0) is called once per strip to set up the
+ * waits); @c VSync(0) is called once per strip to set up the
  * mode for the upcoming StoreImage.
  *
  * @return Restores VRAM in-place; no return value.
@@ -3517,7 +3517,7 @@ void func_800A0D6C(u8 *buf) {
     while (DrawSync(1) != 0) {}
     buf += 0x3000;
     for (i = 0; i < 16; i++) {
-        func_80042634(0);
+        VSync(0);
         rect.x = 0;
         rect.y = i * 16 + 0x100;
         rect.w = 0x340;
@@ -3584,26 +3584,26 @@ s32 func_800A0EB8(s32 start, s32 end, s32 total, s32 angle) {
 
 /**
  * @brief Project a 3D point through the current world transform and
- *        return the @c func_80040DE4 projection result.
+ *        return the @c RotTransPers projection result.
  *
  * Pushes the GTE matrix stack, installs the current world transform
  * (rotation and translation) from @c D_800C71F8, resets the geometric
  * offset to @c (0, 0), then projects @p v to screen space, writing the
  * resulting on-screen XY into @c *sxy and discarding the @c p and flag
  * outputs into stack locals. Pops the matrix stack via
- * @c func_8003FF88 (return discarded) and returns @c func_80040DE4 's
- * result, the saved value survives @c func_8003FF88 by being copied
+ * @c PopMatrix (return discarded) and returns @c RotTransPers 's
+ * result, the saved value survives @c PopMatrix by being copied
  * out of @c v0 in the @c jal delay slot.
  */
 s32 func_800A0F34(SVECTOR *v, s32 *sxy) {
     s32 result;
     s32 unk_p, unk_flag;
-    func_8003FEE4();
+    PushMatrix();
     SetRotMatrix((u8 *)D_800C71F8);
     SetTransMatrix((u8 *)D_800C71F8);
     SetGeomOffset(0, 0);
-    result = func_80040DE4(v, sxy, &unk_p, &unk_flag);
-    func_8003FF88();
+    result = RotTransPers(v, sxy, &unk_p, &unk_flag);
+    PopMatrix();
     return result;
 }
 

@@ -20,13 +20,11 @@ extern u32 D_800C0900[];         /**< Streaming table, primary {sector,size} pai
 extern u32 D_800C0908[];         /**< Streaming table, secondary {sector,size} pair. */
 extern CdFileDesc D_800C0910[];  /**< Streaming table, third descriptor (passed by address). */
 
-/** @brief Field id currently being streamed in (compared against @c D_8005F100). */
-extern s16 D_8005F14E;
 
 /** @brief Section-pointer table bases published by the loaded field bundle. */
 extern u8 **D_800C7208;          /**< Event-queue block; assigned to @c D_8005F0F8. */
 extern u8 **D_800C71EC;          /**< Walkmesh/section block; assigned to @c D_800D5EA4. */
-extern s32 *D_800D5EAC;          /**< Word copied into @c D_800704A8.unk018. */
+extern s32 *D_800D5EAC;          /**< Word copied into @c g_fieldEntity.unk018. */
 extern u8 **D_800D5E8C;          /**< End of the script region (used to size the copy). */
 extern u8 **D_800D5ED4;          /**< Start of the script region; advanced past the header. */
 extern u8 **D_800D5E94;          /**< Field-file header pointer. */
@@ -145,8 +143,6 @@ extern FieldView **D_800C71E8;
 extern s32 D_800C7210;
 /** @brief Vertical centre of the field clamp rect, derived on every load. */
 extern s32 D_800C7214;
-/** @brief Cleared alongside the framebuffer copy that @c func_8009895C kicks off. */
-extern u8 D_8005F0FC;
 /**
  * @brief Field-exit state code handed back to the engine dispatcher: 2 when the engine
  *        leaves on state 7, and 6 / 8 / 9 / 10 or the engine mode from @c func_80099348 .
@@ -154,7 +150,7 @@ extern u8 D_8005F0FC;
  * @c volatile so the stores are not sunk into branch delay slots, which is what
  * @c func_80099348 's original does.
  */
-extern volatile s16 D_8005F158;
+extern volatile s16 g_vsyncRate;
 /** @brief Camera/view block used instead of the field's own while @c func_800BE274 reports
  *         the overlay subsystem active; assigned to @c D_800C71F8 . */
 extern FieldView *D_8005F108;
@@ -165,10 +161,10 @@ extern s32 D_8005F110;
 extern FieldFrameBuf *D_800C71E0;
 /** @brief The two per-frame GPU work areas @ref D_800C71E0 alternates between. */
 extern FieldFrameBuf D_800C7218[2];
-/** @brief Handle returned by @c func_80042634 each frame. */
+/** @brief Handle returned by @c VSync each frame. */
 extern s32 D_800D5EA0;
 /** @brief Field render/present request byte; 1 = normal, 9 = post-copy. */
-extern volatile u8 D_8005F116;
+extern volatile u8 g_fadeMode;
 
 /** @brief Field-data section pointer to the navmesh triangle list (@c *D_800C7204 + 4 is @c D_800C71F0). */
 extern TriangleList **D_800C7204;
@@ -421,7 +417,7 @@ typedef struct {
  *
  * @note The field overlay links it by address, so it keeps its @c func_ name.
  */
-extern s32 func_80040E14(ObjVertex *v0, ObjVertex *v1, ObjVertex *v2, s32 *sxy0,
+extern s32 RotTransPers3(ObjVertex *v0, ObjVertex *v1, ObjVertex *v2, s32 *sxy0,
                          s32 *sxy1, s32 *sxy2, s32 *p, s32 *flag);
 
 /** @brief Palette selector for the ribbon colour ramp (scaled by 16 to index it). */
@@ -519,7 +515,7 @@ extern u16 D_8005F118;
 extern u16 D_8005F11A;
 extern u16 D_8005F144;
 extern s16 D_8005F148;
-extern volatile u8 D_8005F116;   /**< Encounter-disable flag (1 = no random battles); also spun on by the field loader. */
+extern volatile u8 g_fadeMode;   /**< Encounter-disable flag (1 = no random battles); also spun on by the field loader. */
 extern u16 D_8005F0FE;           /**< Accumulated battle chance; compared against the encounter RNG roll. */
 extern s16 D_8005F120;           /**< Previous battle formation id (avoid immediate repeats). */
 extern u8 D_8005F130;            /**< Encounter-pending marker set when a battle triggers. */
@@ -537,9 +533,7 @@ extern u8 D_800C6D90;            /**< PRNG counter advanced 13/step by func_800A
 extern u8 D_8005F150;            /**< Outer PRNG counter, D_800C3520 lookup offset, advanced 13/step per 256 calls of func_800A5C9C */
 extern u8 D_8005F151;            /**< Inner PRNG counter, D_800C3520 lookup index, advanced 1/call by func_800A5C9C */
 
-extern s32 func_8004D564(s32 a, s32 b);
-extern void func_80048F5C(RECT *r, u16 *src);
-extern s32 func_8004D524(s32, s32, s32, s32);
+extern s32 GetClut(s32 a, s32 b);
 extern void func_8004D684(void *p);
 
 extern u16 **D_800D5E9C;         /**< Pointer-to-pointer of u16 count for func_800A29C0's iteration */
@@ -611,7 +605,7 @@ extern u8 D_8005F103;
 
 extern PathEntry D_80070A60[FIELD_PATH_RING_LEN];
 extern PathEntry D_80070760[FIELD_PATH_RING_LEN];
-extern DRAWENV D_80067388[2];   /**< Double-buffered draw environments. */
-extern DISPENV D_80067440[2];   /**< Double-buffered display environments. */
+extern DRAWENV g_drawEnvs[2];   /**< Double-buffered draw environments. */
+extern DISPENV g_dispEnvs[2];   /**< Double-buffered display environments. */
 
 #endif

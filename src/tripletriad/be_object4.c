@@ -227,13 +227,13 @@ void showCardDetail(s32 cardId) {
         g_cardDetailMsg[0] = 6;
         g_cardDetailMsg[1] = 0x22;
         strcpy((char *)&g_cardDetailMsg[2], func_80023A54(cardId));
-        func_80047C74(g_cardDetailMsg, g_cardDetailSuffix);
+        strcat(g_cardDetailMsg, g_cardDetailSuffix);
         func_800A1D68(0, g_cardDetailMsg, 1);
     } else {
         g_cardDetailMsg[0] = 6;
         g_cardDetailMsg[1] = 0x25;
         strcpy((char *)&g_cardDetailMsg[2], func_80023A54(cardId));
-        func_80047C74(g_cardDetailMsg, g_cardDetailSuffix);
+        strcat(g_cardDetailMsg, g_cardDetailSuffix);
         func_800A1D68(0, g_cardDetailMsg, 1);
     }
 }
@@ -353,7 +353,7 @@ s32 func_800A238C(SndTaskNode *node) {
             buf = D_80063388;
         }
         g_battleConfig[9] ^= 1;
-        func_800485C4(buf, D_801A1B88, (s32)&g_tripleTriadActiveList - (s32)D_801A1B88);
+        memmove(buf, D_801A1B88, (s32)&g_tripleTriadActiveList - (s32)D_801A1B88);
         sample = sndCmd10((s32)buf);
         D_8005F11C = sample;
         sndCmdC0(sample, 0x7F);
@@ -402,45 +402,45 @@ void func_800A24B4(u8 *dst) {
     s32 flag;
 
     dst[0] = 0;
-    func_80047C74(dst, (u8 *)tbl + D_8018269E);                  /* "Rules" */
+    strcat(dst, (u8 *)tbl + D_8018269E);                  /* "Rules" */
 
     if (g_tripleTriadRules & TT_RULE_OPEN) {
-        func_80047C74(dst, (u8 *)tbl + tbl->openStr);            /* ": Open" */
+        strcat(dst, (u8 *)tbl + tbl->openStr);            /* ": Open" */
     }
     if (g_tripleTriadRules & TT_RULE_SUDDEN_DEATH) {
-        func_80047C74(dst, (u8 *)tbl + tbl->suddenDeathStr);     /* ": Sudden Death" */
+        strcat(dst, (u8 *)tbl + tbl->suddenDeathStr);     /* ": Sudden Death" */
     }
     if (g_tripleTriadRules & TT_RULE_RANDOM) {
-        func_80047C74(dst, (u8 *)tbl + tbl->randomStr);          /* ": Random" */
+        strcat(dst, (u8 *)tbl + tbl->randomStr);          /* ": Random" */
     }
     if (g_tripleTriadRules & (TT_RULE_SAME | TT_RULE_PLUS)) {
         flag = 0;
-        func_80047C74(dst, (u8 *)tbl + tbl->sameOrPlus0);        /* clause lead-in */
-        func_80047C74(dst, (u8 *)tbl + tbl->sameOrPlus1);        /* ": " */
+        strcat(dst, (u8 *)tbl + tbl->sameOrPlus0);        /* clause lead-in */
+        strcat(dst, (u8 *)tbl + tbl->sameOrPlus1);        /* ": " */
         if (g_tripleTriadRules & TT_RULE_SAME) {
-            func_80047C74(dst, (u8 *)tbl + tbl->sameStr);        /* "Same" */
+            strcat(dst, (u8 *)tbl + tbl->sameStr);        /* "Same" */
             flag = 1;
         }
         if (g_tripleTriadRules & TT_RULE_PLUS) {
             if (flag) {
-                func_80047C74(dst, (u8 *)tbl + tbl->plusConj);   /* "," */
+                strcat(dst, (u8 *)tbl + tbl->plusConj);   /* "," */
             }
-            func_80047C74(dst, (u8 *)tbl + tbl->plusStr);        /* "Plus" */
+            strcat(dst, (u8 *)tbl + tbl->plusStr);        /* "Plus" */
             flag = 1;
         }
         if ((g_tripleTriadRules & (TT_RULE_SAME | TT_RULE_SAME_WALL)) == (TT_RULE_SAME | TT_RULE_SAME_WALL)) {
             if (flag) {
-                func_80047C74(dst, (u8 *)&D_801826A6 - 0x26 + D_801826A6);   /* "," */
+                strcat(dst, (u8 *)&D_801826A6 - 0x26 + D_801826A6);   /* "," */
             }
-            func_80047C74(dst, (u8 *)&D_801826C2 - 0x42 + D_801826C2);       /* "Same Wall" */
+            strcat(dst, (u8 *)&D_801826C2 - 0x42 + D_801826C2);       /* "Same Wall" */
         }
     }
     if (g_tripleTriadRules & TT_RULE_ELEMENTAL) {
-        func_80047C74(dst, (u8 *)&D_801826C6 - 0x46 + D_801826C6);           /* ": Elemental" */
+        strcat(dst, (u8 *)&D_801826C6 - 0x46 + D_801826C6);           /* ": Elemental" */
     }
-    func_80047C74(dst, (u8 *)&D_801826CA - 0x4A + D_801826CA);               /* ": Trade Rule" */
+    strcat(dst, (u8 *)&D_801826CA - 0x4A + D_801826CA);               /* ": Trade Rule" */
     /* active trade-rule name (Null/One/Diff/Direct/All), indexed by D_801A2C44 */
-    func_80047C74(dst, (u8 *)&D_801826CA - 0x4A + *(u16 *)((u8 *)&D_801826CA + D_801A2C44 * 4 + 4));
+    strcat(dst, (u8 *)&D_801826CA - 0x4A + *(u16 *)((u8 *)&D_801826CA + D_801A2C44 * 4 + 4));
 }
 
 /**
@@ -471,14 +471,14 @@ void closeMenu(void) {
  * @brief Add a rendering command entry based on the alternate screen index.
  *
  * Reads g_drawBufferIndex, XORs with 1 to get the alternate index, computes
- * an offset of index * 92 into g_drawEnvs, and calls queueLoadImage
+ * an offset of index * 92 into g_ttDrawEnvs, and calls queueLoadImage
  * with the resulting pointer and D_8012E66C.
  *
  * @return Always 0.
  */
 s32 func_800A274C(void) {
     s32 idx = g_drawBufferIndex ^ 1;
-    queueLoadImage(&g_drawEnvs[idx].clip, D_8012E66C);
+    queueLoadImage(&g_ttDrawEnvs[idx].clip, D_8012E66C);
     return 0;
 }
 
@@ -495,7 +495,7 @@ enum PlayQuitPhase {
  * Three-phase state machine (@ref PlayQuitPhase) clocked once per frame off @c node->state:
  *  - @ref PLAYQUIT_SHOW: on entry start a fade-to-black; after @c TT_HOLD_FRAMES_FADE frames
  *    build the rules description plus its "Play / Quit" suffix into @c D_801D4568 (func_800A24B4
- *    then func_80047C74), show it (func_800A1D68), and advance to @ref PLAYQUIT_POLL.
+ *    then strcat), show it (func_800A1D68), and advance to @ref PLAYQUIT_POLL.
  *  - @ref PLAYQUIT_POLL: bump the Triple Triad RNG-seed field, then poll the player-input gate
  *    (func_800A20F4). A negative result keeps waiting; otherwise acknowledge it (func_800A2054)
  *    and act on the choice: "play again" (0) re-enters @c TT_STATE_SCRIPT, "quit" (1) advances
@@ -523,7 +523,7 @@ s32 updatePlayQuitPrompt(PromptScreenNode *node) {
                 func_800A24B4(D_801D4568);
                 /* Suffix string pointer = rule-string block base + offset; the block base is
                    recovered from the carved offset symbol (&D_801826E2 - 0x62 == 0x80182680). */
-                func_80047C74(D_801D4568, (u8 *)&D_801826E2 - 0x62 + D_801826E2);
+                strcat(D_801D4568, (u8 *)&D_801826E2 - 0x62 + D_801826E2);
                 func_800A1D68(5, D_801D4568, 0);
                 node->state = PLAYQUIT_POLL;
                 node->counter = 0;
@@ -713,7 +713,7 @@ void readPads(void)
 
     func_800275D4();
 
-    padRaw = func_80030F10(getAnimFrameParam(0, 0));
+    padRaw = remapControllerInput(getAnimFrameParam(0, 0));
     oldPad = D_801D4B20[0];
     held = func_80027DB4(0, PAD_AXIS_X, 0);
     if (!(padRaw & 0xF000) && held >= 0) {
@@ -724,7 +724,7 @@ void readPads(void)
     repeat = func_800A2A8C(0, padRaw & 0xFFFF) & 0xFFFF;
     D_801D4B28[0] = repeat;
 
-    padRaw = func_80030F10(getAnimFrameParam(1, 0));
+    padRaw = remapControllerInput(getAnimFrameParam(1, 0));
     oldPad = D_801D4B20[1];
     held = func_80027DB4(1, PAD_AXIS_X, 0);
     if (!(padRaw & 0xF000) && held >= 0) {
@@ -742,7 +742,7 @@ void readPads(void)
  * Clears the per-(entity, side) bookkeeping tables — previous edge flags
  * (@c D_801D4AF8), edge countdown timers (@c D_801D4B08), and the three
  * @c D_801D4B20 / @c D_801D4B28 / @c D_801D4B30 word tables — for both
- * animation entities, then seeds @c func_800281A4 with the fixed per-side
+ * animation entities, then seeds @c setAnimUnk10Both with the fixed per-side
  * parameters (one set per side 0..3) for each entity.
  */
 void func_800A2D34(void)
@@ -763,14 +763,14 @@ void func_800A2D34(void)
         D_801D4B30[i] = 0;
     }
 
-    func_800281A4(0, 0, 0xFFF);
-    func_800281A4(0, 1, 0x5000);
-    func_800281A4(0, 2, 0xA000);
-    func_800281A4(0, 3, 0x900);
-    func_800281A4(1, 0, 0xFFF);
-    func_800281A4(1, 1, 0x5000);
-    func_800281A4(1, 2, 0xA000);
-    func_800281A4(1, 3, 0x900);
+    setAnimUnk10Both(0, 0, 0xFFF);
+    setAnimUnk10Both(0, 1, 0x5000);
+    setAnimUnk10Both(0, 2, 0xA000);
+    setAnimUnk10Both(0, 3, 0x900);
+    setAnimUnk10Both(1, 0, 0xFFF);
+    setAnimUnk10Both(1, 1, 0x5000);
+    setAnimUnk10Both(1, 2, 0xA000);
+    setAnimUnk10Both(1, 3, 0x900);
 }
 
 /**

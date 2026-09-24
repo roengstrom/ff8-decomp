@@ -1,6 +1,7 @@
 #include "common.h"
 #include "battle.h"
-#include "gf.h"
+#include "battle/scene_data.h"
+#include "game.h"
 #include "gamestate.h"
 #include "battle/bc_object4.h"
 extern void func_800E1850(void);
@@ -187,7 +188,7 @@ void func_800A65B0(void) {
     }
 
     D_800ED148.unk131A = D_800ED148.unk12EF;
-    val = D_80078E00.unk49F8[D_800ED148.unk131A];
+    val = g_gfData.unk49F8[D_800ED148.unk131A];
     D_800ED148.unk12EF = 254;
     D_800ED148.unk131B = val;
     
@@ -796,11 +797,11 @@ void func_800A7518(s32 arg0) {
     temp_s0->unk80 = temp_s1->displayStatus;
     temp_s0->unk7C = 34817;
 
-    if (D_80078E00.array35BD[temp_s1->classId].unk6 & 1) {
+    if (g_gfData.array35BD[temp_s1->classId].unk6 & 1) {
         temp_s0->unk7C |= 0x1000;
     }
 
-    if (D_80078E00.array37A6[temp_s0->unkBB].unk1 & 1) {
+    if (g_gfData.array37A6[temp_s0->unkBB].unk1 & 1) {
         temp_s0->unk7C |= 0x100;
     }
 
@@ -957,13 +958,13 @@ void func_800A79A0(void) {
  *
  * Reads @c BattleCharData[a0].classId, then returns
  * @c g_gfData.levelCurve12[classId].field09 (offset @c 0x35C1 in the
- * shared @c D_80078E00 / @c g_gfData block).
+ * shared @c g_gfData / @c g_gfData block).
  *
  * @param a0 Entity index (stride 0x1D0 in @c g_battleChars).
  * @return The @c field09 byte for that entity's class.
  */
 u8 func_800A7A44(s32 arg0) {
-    return D_80078E00.array35BD[g_battleChars.chars[arg0].classId].unk4;
+    return g_gfData.array35BD[g_battleChars.chars[arg0].classId].unk4;
 }
 
 /**
@@ -1271,16 +1272,16 @@ void func_800A8578(void) {
     for (i = 0; i < 32; i++) {
         D_800EE9E8.animSlots[i].unk4 = 0;
         
-        if (D_80078E00.abilities[D_800EE9E8.animSlots[i].id].unk2 & 0x80) {
+        if (g_gfData.abilities[D_800EE9E8.animSlots[i].id].unk2 & 0x80) {
             D_800EE9E8.animSlots[i].unk4 = 1;
         }
         
-        if (!(D_80078E00.abilities[D_800EE9E8.animSlots[i].id].unk2 & 0x20)) {
+        if (!(g_gfData.abilities[D_800EE9E8.animSlots[i].id].unk2 & 0x20)) {
             D_800EE9E8.animSlots[i].unk4 |= 2;
         }
 
-        D_800EE9E8.animSlots[i].unk3 = D_80078E00.abilities[D_800EE9E8.animSlots[i].id].abilityId;
-        D_800EE9E8.animSlots[i].unk2 = D_80078E00.abilities[D_800EE9E8.animSlots[i].id].unk0;
+        D_800EE9E8.animSlots[i].unk3 = g_gfData.abilities[D_800EE9E8.animSlots[i].id].abilityId;
+        D_800EE9E8.animSlots[i].unk2 = g_gfData.abilities[D_800EE9E8.animSlots[i].id].unk0;
     }
 }
 
@@ -1407,7 +1408,7 @@ s32 func_800A89B8(s32 arg0, s32 arg1) {
 
 void func_800A8A48(BattleCharData* arg0, s32 arg1, u8 arg2, s32 arg3) {
     arg0->unkSlots[arg1].unk0 = arg2;
-    arg0->unkSlots[arg1].unk2 = D_80078E00.unkE8[arg0->unkSlots[arg1].unk0].unk2;
+    arg0->unkSlots[arg1].unk2 = g_gfData.unkE8[arg0->unkSlots[arg1].unk0].unk2;
     
     if (arg3 == 0) {
         arg0->unkSlots[arg1].unk1 = arg0->cmdSlots[findCommandSlot(arg0, 13)].unk1;
@@ -1485,19 +1486,19 @@ void func_800A8D7C(s32 arg0, s32 arg1) {
 
     temp_s0 = &g_battleChars.chars[arg0];
     temp_s0->pad0[0] = 10;
-    temp_s0->pad0[1] = D_80078E00.unk0139;
-    temp_s0->pad0[2] = D_80078E00.unk013A;
+    temp_s0->pad0[1] = g_gfData.unk0139;
+    temp_s0->pad0[2] = g_gfData.unk013A;
     temp_s0->pad0[3] = 0;
     if (arg1 < 64) {
         temp_s0->pad0[4] = 9;
-        temp_s0->pad0[5] = D_80078E00.spells[arg1].unk5;
-        temp_s0->pad0[6] = D_80078E00.spells[arg1].magicId;
+        temp_s0->pad0[5] = g_gfData.spells[arg1].unk5;
+        temp_s0->pad0[6] = g_gfData.spells[arg1].magicId;
         temp_s0->pad0[7] = 0;
         
-        if (D_80078E00.spells[arg1].unk7 & 0x80) {
+        if (g_gfData.spells[arg1].unk7 & 0x80) {
             temp_s0->pad0[7] = 1;
             
-            if (D_80078E00.spells[arg1].unk7 & 0x80) {
+            if (g_gfData.spells[arg1].unk7 & 0x80) {
                 temp_s0->pad0[3] |= 1;
             }
         }
@@ -1517,12 +1518,12 @@ void func_800A8D7C(s32 arg0, s32 arg1) {
 
 void func_800A8E90(BattleCharData* arg0, s32 arg1) {
     arg0->testSlots[0].unk0 = arg1;
-    arg0->testSlots[0].unk2 = D_80078E00.array4484[arg1].unk5;
-    arg0->testSlots[0].unk3 = D_80078E00.array4484[arg1].unk6;
+    arg0->testSlots[0].unk2 = g_gfData.array4484[arg1].unk5;
+    arg0->testSlots[0].unk3 = g_gfData.array4484[arg1].unk6;
     arg0->testSlots[0].unk4 = 0;
     arg0->testSlots[0].unk1 = 1;
     
-    if (D_80078E00.array4484[arg1].unk7 & 0x80) {
+    if (g_gfData.array4484[arg1].unk7 & 0x80) {
         arg0->testSlots[0].unk4 |= 1;
     }
 }
@@ -1538,13 +1539,13 @@ s32 func_800A8EFC(BattleCharData* arg0) {
     for (i = 0; i < 16; i++) {
         if (g_gameState.mainData.limitBreaks.quistisLimits & bit) {
             arg0->testSlots[val].unk0 = i;
-            arg0->testSlots[val].unk2 = D_80078E00.array44FC[i].unk4;
-            arg0->testSlots[val].unk3 = D_80078E00.array44FC[i].unk5;
+            arg0->testSlots[val].unk2 = g_gfData.array44FC[i].unk4;
+            arg0->testSlots[val].unk3 = g_gfData.array44FC[i].unk5;
             arg0->testSlots[val].unk4 = 0;
             arg0->testSlots[val].unk1 = 1;
             arg0->testSlots[val].unk4 &= 0xEF;
             
-            if (D_80078E00.array44FC[i].unk6 & 0x80) {
+            if (g_gfData.array44FC[i].unk6 & 0x80) {
                 arg0->testSlots[val].unk4 |= 1;
             }
             
@@ -1561,7 +1562,7 @@ s32 func_800A8EFC(BattleCharData* arg0) {
 * @brief Initialize entity ability fields from the ability table.
 *
 * Writes a1 as the ability ID at offset 0x32 of the entity entry
-* (computed as a0 + a2*5). Looks up ability data in D_80078E00
+* (computed as a0 + a2*5). Looks up ability data in g_gfData
 * (offset 0x4A60, stride 8) and copies two bytes to offsets 0x34-0x35.
 * Clears offset 0x36 and sets offset 0x33 to 1.
 *
@@ -1572,8 +1573,8 @@ s32 func_800A8EFC(BattleCharData* arg0) {
 
 void func_800A8F98(BattleCharData* arg0, s32 arg1, s32 arg2) {
     arg0->testSlots[arg2].unk0 = arg1;
-    arg0->testSlots[arg2].unk2 = D_80078E00.rows8[arg1].unk2;
-    arg0->testSlots[arg2].unk3 = D_80078E00.rows8[arg1].unk3;
+    arg0->testSlots[arg2].unk2 = g_gfData.rows8[arg1].unk2;
+    arg0->testSlots[arg2].unk3 = g_gfData.rows8[arg1].unk3;
     arg0->testSlots[arg2].unk4 = 0;
     arg0->testSlots[arg2].unk1 = 1;
 }
@@ -1652,7 +1653,7 @@ s32 func_800A9284(BattleCharData* arg0) {
         if ((g_gameState.mainData.limitBreaks.irvineLimits & mask) || (temp_a0 != 0)) {
             arg0->testSlots[val].unk0 = var_s1;
             arg0->testSlots[val].unk2 = 0x80;
-            arg0->testSlots[val].unk3 = D_80078E00.unk015A;
+            arg0->testSlots[val].unk3 = g_gfData.unk015A;
             arg0->testSlots[val].unk4 = 0;
             arg0->testSlots[val].unk1 = temp_a0;
             arg0->testSlots[val].unk4 &= 0xEF;
@@ -1848,16 +1849,16 @@ void func_800A960C(s32 arg0) {
 /**
 * @brief Compute paired lookup results from entity table and return combined.
 *
-* Computes D_80078E00 + a0 * 20 as the base address, loads the byte at
+* Computes g_gfData + a0 * 20 as the base address, loads the byte at
 * offset 0x3EE7, calls func_800B0F9C and func_800B0F7C with it, and
 * returns the bitwise OR of both results masked to 16 bits.
 *
-* @param a0 Entity index (stride 20 in D_80078E00).
+* @param a0 Entity index (stride 20 in g_gfData).
 * @return Combined result from both lookups, masked to u16.
 */
 
 s32 func_800A972C(s32 arg0) {
-    return func_800B0F9C(D_80078E00.entriesA0[arg0].unk7) | func_800B0F7C(D_80078E00.entriesA0[arg0].unk7);
+    return func_800B0F9C(g_gfData.entriesA0[arg0].unk7) | func_800B0F7C(g_gfData.entriesA0[arg0].unk7);
 }
 
 /**

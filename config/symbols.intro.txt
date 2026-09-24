@@ -1,5 +1,3 @@
-getMagicNamePtr = 0x80020C08;
-getCharName = 0x80020E4C;
 g_introAssetTable = 0x800990B8; // type:u32
 g_introDispCtx = 0x800991D8; // type:DispCtx
 g_introOdeLatch = 0x8009928C; // type:s32
@@ -21,5 +19,4 @@ func_8009869C = 0x8009869C; // type:func
 waitForCorrectDisc = 0x8009879C; // type:func
 playBootIntro = 0x80098974; // type:func
 func_80098FD4 = 0x80098FD4; // type:func
-g_fieldVars = 0x800562C4;
 g_introVSyncBase = 0x800992B0; // size:0x4

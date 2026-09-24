@@ -163,7 +163,7 @@ s32 opHandler_PUSHOFF(Actor *actor) {
  *        @c e->field_0x255, then disables that entity: clears flag
  *        bit @c 0x4, calls @c func_800B912C with the entity's
  *        animation byte, sets the @c 0x2040 flag pair, and marks the
- *        slot in @c D_800704A8.entityIndex as inactive (@c 0xFF).
+ *        slot in @c g_fieldEntity.entityIndex as inactive (@c 0xFF).
  *
  * @return 2 (continue processing).
  */
@@ -174,7 +174,7 @@ s32 opHandler_FOLLOWOFF(Actor *actor) {
             actor->context.flags &= ~4;
             func_800B912C(actor, actor->field_0x24F);
             actor->context.flags |= 0x2040;
-            D_800704A8.entityIndex[i] = 0xFF;
+            g_fieldEntity.entityIndex[i] = 0xFF;
             break;
         }
     }
@@ -184,7 +184,7 @@ s32 opHandler_FOLLOWOFF(Actor *actor) {
 /**
  * @brief op0AC — locate the active-party slot whose @c battleParty
  *        member matches @c e->field_0x255, then snapshot
- *        @c e->field_0x256 into @c D_800704A8.entityIndex for that
+ *        @c e->field_0x256 into @c g_fieldEntity.entityIndex for that
  *        slot and clear the entity's "needs broadcast" flag (0x40).
  *
  * @return 2 (continue processing).
@@ -194,7 +194,7 @@ s32 opHandler_FOLLOWON(Actor *actor) {
     for (i = 0; i < 3; i++) {
         if (g_gameState.battleParty[i] == actor->field_0x255) {
             actor->context.flags &= ~0x40;
-            D_800704A8.entityIndex[i] = actor->field_0x256;
+            g_fieldEntity.entityIndex[i] = actor->field_0x256;
             break;
         }
     }
@@ -314,7 +314,7 @@ s32 opHandler_WHOAMI(ScriptContext *context) {
  *     active party.
  *
  * Bit 1 (only meaningful with bit 0 set) chooses between:
- *   - bit 1 set: park @c D_800704A8 into mode-5 (active-party swap
+ *   - bit 1 set: park @c g_fieldEntity into mode-5 (active-party swap
  *     animation) with a @c 0x16-frame counter and @c unk1AB copied
  *     from the bottom 3 bits of @c stateFlags.
  *   - bit 1 clear: defer to @c func_80036D44 with those same 3 bits.
@@ -341,9 +341,9 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
         }
 
         if (popped & 2) {
-            D_800704A8.mode = 5;
-            D_800704A8.counter = 0x16;
-            D_800704A8.unk1AB = g_fieldVars->stateFlags & 7;
+            g_fieldEntity.mode = 5;
+            g_fieldEntity.counter = 0x16;
+            g_fieldEntity.unk1AB = g_fieldVars->stateFlags & 7;
         } else {
             func_80036D44(g_fieldVars->stateFlags & 7);
         }
@@ -569,7 +569,7 @@ s32 opHandler_MOVIE(ScriptContext *context) {
  * @brief Halve the rate triple (@c moveSpeed / @c msgChannel /
  *        @c field_0x208 ) of every active entity,
  *        clear the @c 0x1000 bit of the state flags, and reset two
- *        re-arm flags ( @c D_800704A8.unk1A3 — only if @c unk015 is
+ *        re-arm flags ( @c g_fieldEntity.unk1A3 — only if @c unk015 is
  *        clear — and @c D_800DE4FD[0] ). Counterpart of @c
  *        opHandler_MOVIE's doubling step — called as part of the
  *        cinematic / movie postlude to restore the dialog channels
@@ -590,8 +590,8 @@ void func_800B14C8(void) {
         p->field_0x208 = (s16)p->field_0x208 / 2;
         p++;
     }
-    if (D_800704A8.unk015 == 0) {
-        D_800704A8.unk1A3 = 0;
+    if (g_fieldEntity.unk015 == 0) {
+        g_fieldEntity.unk1A3 = 0;
     }
     D_800DE4FD[0] = 0;
 }

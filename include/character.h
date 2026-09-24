@@ -250,10 +250,18 @@ typedef struct {
 #define PARTY_SLOT_COUNT 3
 #define PARTY_SLOT_EMPTY 0xFF
 
+/**
+ * @brief The roster addressed from one field instead of the record start:
+ * element c is character c, at the 152-byte stride, starting at that field.
+ */
+typedef struct {
+    u8 bytes[sizeof(CharacterData)];
+} CharacterSlice;
+
 /* Sub-symbols into the character array, as described in the file comment above.
  * Left unsized so the compiler self-expands their addresses rather than going
  * GP-relative, which is what the original codegen does. */
-extern u8 g_characterMagic[];     /**< g_gameState + 0x4A0: magic slots (offset 0x10). */
-extern u8 g_characterAbilities[]; /**< g_gameState + 0x4EC: junction abilities (offset 0x5C). */
+extern CharacterSlice g_characterMagic[];     /**< g_gameState + 0x4A0: each character's magic slots (offset 0x10). */
+extern CharacterSlice g_characterAbilities[]; /**< g_gameState + 0x4EC: each character's junctions (offset 0x5C). */
 
 #endif /* CHARACTER_H */
