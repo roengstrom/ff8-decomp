@@ -3,13 +3,10 @@
 #include "battle.h"
 #include "menumain.h"
 #include "menushop2.h"
+#include "btl_color.h"
+#include "btl_sfx.h"
 
-#define WHITE  7
-#define RED    2
-#define YELLOW 3
-
-#define ICON_UP_ARROW   109
-#define ICON_DOWN_ARROW 110
+#define SYMBOL_PERCENT 20 // Passed as argument to func_801F6AFC
 
 typedef struct {
     u8 pad00[0x10];                 /* 0x00 */
@@ -17,12 +14,12 @@ typedef struct {
     u8 pad12[0xD];                  /* 0x12 */
     u8 *weaponName;                 /**< 0x20: pointer to the weapon name. */
     u8 pad24[4];                    /* 0x24 */
-    u32 gil;                        /**< 0x28: gil */
-    u8 *unk2C;                      /**< 0x2C: pointer to a string */
-    s16 unk30;                      /* 0x30 */
-    s16 unk32;                      /* 0x32 */
-    s16 unk34;                      /* 0x34 */
-    u16 unk36;                      /* 0x36 */
+    u32 gil;                        /**< 0x28: current player's gil. */
+    u8 *shopkeeperMessage;          /**< 0x2C: shopkeeper message displayed in the message panel. */
+    s16 priceMultiplier;            /**< 0x30: weapon upgrade multiplier (1000 = 100% full price, 750 = 75% discounted price). */
+    s16 menuTransitionProgress;     /**< 0x32: transition progress for the ingredients panel (slide-in/out animation). */
+    s16 menuColorIntensity;         /**< 0x34: menu color intensity level (fade in/out animation). */
+    s16 scrollOffset;               /**< 0x36: scroll offset progress for page transition animation (unused in junk shop menu). */
     u16 availableCharactersMask;    /**< 0x38: bit mask of the available characters. */
     u16 listedCharactersMask;       /**< 0x3A: bit mask of the listed characters in the junk shop. */
     u8 pad3C[2];                    /* 0x3C */
@@ -31,12 +28,12 @@ typedef struct {
     s8 selCharacterIndex;           /**< 0x40: selected index of the character list. */
     s8 selWeaponIndex;              /**< 0x41: selected index of the weapon list. */
     s8 cursorPosition;              /**< 0x42: cursor position. */
-    u8 unk43;                       /* 0x43 */
+    s8 menuPhase;                   /**< 0x43: junk shop menu phase: 0 = character select, 1 = weapon select, 2 = disabled. */
     s8 equippedWeapons[8];          /**< 0x44: equipped weapons of the listed characters. */
-    u16 unk4C;                      /* 0x4C */ 
+    s16 unk4C;                      /* 0x4C */ 
 } JunkShopMenuState;
 
-extern s32 D_801EB160;
+extern u8 D_801EB160[256]; /**< Temporary buffer for the weapon remodel confirmation message. */
 extern s32 D_801EB260[30]; /**< Strength per weapon id. */
 
 static void func_801E81A4(JunkShopMenuState*);
@@ -50,9 +47,18 @@ static void func_801E9020(s32);
 static void func_801E90BC(void);
 static s32 func_801E90F8(JunkShopMenuState*, s32, s32, s32, s32);
 static s32 func_801E9554(JunkShopMenuState*, s32, s32, s32, s32);
-static s32 func_801E95DC(s32, s32, s32, s32, s32);
+static s32 func_801E95DC(u8*, s32, s32, s32, s32);
 static s32 func_801E9684(JunkShopMenuState*, s32, s32);
 
+/**
+ * @brief Updates the junk shop menu state machine.
+ *
+ * Handles menu transitions, character and weapon selection, weapon
+ * remodel confirmation, message notifications, and the menu fade
+ * in/out.
+ *
+ * @param s Pointer to the junk shop menu state.
+ */
 static void func_801E81A4(JunkShopMenuState *s) {
     u16 btnFlags;
     u32 cfgFlags;
@@ -65,26 +71,30 @@ static void func_801E81A4(JunkShopMenuState *s) {
     switch (*statePtr) {
     case 0:
         s->weaponName = NULL;
-        s->unk34 = 0;
+        s->menuColorIntensity = 0;
         *statePtr = 1;
         /* fallthrough */
+
     case 1:
-        s->unk34 += 0x100;
-        if ((s16) s->unk34 >= 0x1000) {
-            s->unk34 = 0x1000U;
+        s->menuColorIntensity += 256;
+        if (s->menuColorIntensity >= 4096) {
+            s->menuColorIntensity = 4096;
             *statePtr = 2;
         }
         if (s->availableCharactersMask != 0) {
             func_801E8134(1, s->selCharacterIndex);
         }
         break;
+
     case 2:
         if (s->availableCharactersMask == 0) {
-            *statePtr = 0xC;
+            *statePtr = 12;
             break;
         }
-        s->unk2C = (u8*)func_801F6AA4(0x45);
+        s->shopkeeperMessage = func_801F6AA4(STRING_JUNK_SHOP_WELCOME_WHO_NEEDS_TO_REMODEL);
         *statePtr = 3;
+        /* fallthrough */
+
     case 3:
         if (btnFlags & PADLdown) {
             sendSpuCommand(1);
@@ -104,21 +114,21 @@ static void func_801E81A4(JunkShopMenuState *s) {
         func_801E8134(1, s->selCharacterIndex);
         if (cfgFlags & PADRup) {
             sendSpuCommand(3);
-            *statePtr = 0xF;
+            *statePtr = 15;
         }
         if (cfgFlags & PADRdown) {
-            s32 result;
-            result = findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
-            if ((g_gameState.mainData.partyLockFlag & 1) || !(((u16) s->listedCharactersMask >> result) & 1)) {
+            s32 charId;
+            charId = findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
+            if ((g_gameState.mainData.partyLockFlag & 1) || !((s->listedCharactersMask >> charId) & 1)) {
                 sendSpuCommand(5);
-                if (!((0x3F >> result) & 1)) {
-                    s32 tmp;
-                    tmp = func_801F6AA4(0x4E);
-                    initSfxPlayback(0, tmp);
-                    func_801F23D0(0, 0x68, (void *)tmp);
+                if (!((0x3F >> charId) & 1)) {
+                    u8 *msg;
+                    msg = func_801F6AA4(STRING_JUNK_SHOP_CANT_REMODEL_YOUR_WEAPON);
+                    initSfxPlayback(0, msg);
+                    func_801F23D0(0, 0x68, msg);
                     setSfxPitch(0, 0);
                     startSfxNormal(0);
-                    s->unk4C = 0x258;
+                    s->unk4C = 600;
                     *statePtr = 4;
                 }
             } else {
@@ -127,117 +137,120 @@ static void func_801E81A4(JunkShopMenuState *s) {
             }
         }
         break;
+
     case 4:
-        s->unk4C -= 1;
+        s->unk4C--;
         if (cfgFlags & (PADRup | PADRdown)) {
             func_801F7BEC(cfgFlags);
             s->unk4C = 0;
         }
-        if ((s16) s->unk4C <= 0) {
+        if (s->unk4C <= 0) {
             fadeOutSfxFast(0);
             *statePtr = 3;
         }
         break;
+
     case 5:
-        s->unk43 = 1;
+        s->menuPhase = 1;
         s->selWeaponIndex = 0;
-        s->unk32 = 0x1000U;
-        s->unk2C = (u8*)func_801F6AA4(0x4B);
+        s->menuTransitionProgress = 4096;
+        s->shopkeeperMessage = func_801F6AA4(STRING_JUNK_SHOP_REMODEL_TO_WHICH_WEAPON);
         *statePtr = 6;
         /* fallthrough */
+
     case 6:
-        s->unk32 -= 0x100;
-        if ((s->unk32 << 0x10) <= 0) {
-            s->unk32 = 0U;
+        s->menuTransitionProgress -= 256;
+        if ((s->menuTransitionProgress * 4096) <= 0) {
+            s->menuTransitionProgress = 0;
             *statePtr = 7;
         }
         break;
+
     case 7:
-        func_801E816C(1, (s8) s->selWeaponIndex);
+        func_801E816C(1, s->selWeaponIndex);
         s->selWeaponIndex = func_801F6768(btnFlags, s->weaponCount, s->selWeaponIndex);
         s->weaponName = func_801E7CFC((s32)D_801EB150[s->selWeaponIndex]);
         if (cfgFlags & PADRup) {
             sendSpuCommand(3);
-            s->unk43 = 0;
+            s->menuPhase = 0;
             *statePtr = 8;
         }
         if (cfgFlags & PADRdown) {
-            u8 val1;
-            val1 = D_801EB150[(s8)s->selWeaponIndex];
-            if (val1 & 0x80) {
-                s32 val2;
-                val2 = s->equippedWeapons[s->selCharacterIndex];
+            u8 selectedWeaponId;
+            selectedWeaponId = D_801EB150[s->selWeaponIndex];
+            if (selectedWeaponId & 0x80) {
+                s32 equippedWeaponId;
+                equippedWeaponId = s->equippedWeapons[s->selCharacterIndex];
                 
-                if ((val1 & 0x3F) == val2) {
-                    s32 tmp;
+                if ((selectedWeaponId & 0x3F) == equippedWeaponId) {
+                    u8 *msg;
                     sendSpuCommand(5);
-                    tmp = func_801F6AA4(0x4C);
-                    initSfxPlayback(0, tmp);
-                    func_801F23D0(0, 0x68, (u8 *)tmp);
+                    msg = func_801F6AA4(STRING_JUNK_SHOP_YOU_HAVE_IT_ALREADY);
+                    initSfxPlayback(0, msg);
+                    func_801F23D0(0, 0x68, msg);
                     setSfxPitch(0, 0);
                     startSfxNormal(0);
-                    s->unk4C = 0x258;
+                    s->unk4C = 600;
                     *statePtr = 9;
                 } else {
                     sendSpuCommand(2);
-                    *statePtr = 0xA;
+                    *statePtr = 10;
                 }
             } else {
-                s32 tmp;
+                u8 *msg;
                 sendSpuCommand(5);
-                if (func_801E7E68(val1 & 0x3F, s->gil) != 0) {
-                    tmp = func_801F6AA4(0x3E);
+                if (func_801E7E68(selectedWeaponId & 0x3F, s->gil) != 0) {
+                    msg = func_801F6AA4(STRING_JUNK_SHOP_NOT_ENOUGH_ITEMS);
                 } else {
-                    tmp = func_801F6AA4(0x3F);
+                    msg = func_801F6AA4(STRING_JUNK_SHOP_NOT_ENOUGH_MONEY);
                 }
-                initSfxPlayback(0, tmp);
-                func_801F23D0(0, 0x68, (u8 *)tmp);
+                initSfxPlayback(0, msg);
+                func_801F23D0(0, 0x68, msg);
                 setSfxPitch(0, 0);
                 startSfxNormal(0);
-                s->unk4C = 0x258;
+                s->unk4C = 600;
                 *statePtr = 9;
             }
         }
         break;
+
     case 9:
-        s->unk4C -= 1;
+        s->unk4C--;
         if (cfgFlags & (PADRup | PADRdown)) {
             func_801F7BEC(cfgFlags);
             s->unk4C = 0;
         }
-        if ((s16) s->unk4C <= 0) {
+        if (s->unk4C <= 0) {
             fadeOutSfxFast(0);
             *statePtr = 7;
         }
         break;
+
     case 8:
         s->weaponName = NULL;
-        s->unk32 += 0x100;
-        if ((s16) s->unk32 >= 0x1000) {
-            s32 k = 0x45;
-            s->unk32 = 0x1000;
-            s->unk2C = (u8*)func_801F6AA4(k);
+        s->menuTransitionProgress += 256;
+        if (s->menuTransitionProgress >= 4096) {
+            s->menuTransitionProgress = 4096;
+            s->shopkeeperMessage = func_801F6AA4(STRING_JUNK_SHOP_WELCOME_WHO_NEEDS_TO_REMODEL);
             *statePtr = 3;
         }
         break;
+
     case 10: {
-        s32 ret;
-        s32 *ptrE4;
-        s32 *ptrE8;
+        s32 charId;
         s->cursorPosition = 1;
-        ptrE4 = &D_801EB2E4;
-        ptrE8 = &D_801EB2E8;
-        ret = findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
-        *ptrE4 = D_801EB150[(s8)s->selWeaponIndex] & 0x3F;
-        *ptrE8 = ret;
-        func_801E7D30((u8 *)func_801F6AA4(0x3B), (u8 *)&D_801EB160);
-        func_801F728C((s32) &D_801EB160, 0x4B);
-        *statePtr = 0xB;
+        charId = findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
+        D_801EB2E4 = D_801EB150[s->selWeaponIndex] & 0x3F;
+        D_801EB2E8 = charId;
+        func_801E7D30(func_801F6AA4(STRING_JUNK_SHOP_REMODEL_WEAPON_TO), D_801EB160);
+        func_801F728C(D_801EB160, 75);
+        *statePtr = 11;
         /* fallthrough */
     }
+
     case 11:
-        s->cursorPosition = func_801F6768(btnFlags, 2, (s8) s->cursorPosition);
-        func_801F6F88((s32)s->cursorPosition);
+        s->cursorPosition = func_801F6768(btnFlags, 2, s->cursorPosition);
+        func_801F6F88(s->cursorPosition);
         
         if (cfgFlags & PADRup) {
             s->cursorPosition = -1;
@@ -247,40 +260,39 @@ static void func_801E81A4(JunkShopMenuState *s) {
         
         if (cfgFlags & PADRdown) {
             if (s->cursorPosition == 0) {
-                u8 val1;
-                val1 = D_801EB150[(s8)s->selWeaponIndex];
-                if (val1 & 0x80) {
-                    WeaponRecipe *basePtr;
-                    u8 *ptr;
-                    s32 val2;
-                    s32 charIdx;
+                s32 weaponId;
+                weaponId = D_801EB150[s->selWeaponIndex];
+                if (weaponId & 0x80) {
+                    WeaponRecipe *recipePtr;
+                    u8 *ingredients;
+                    s32 charId;
                     s32 i;
 
-                    playSoundEffect(0x19);
-                    val2 = val1 & 0x3F;
-                    s->gil -= ((u32)func_801E7E1C(val2) * s->unk30) / 1000;
-                    charIdx = findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
+                    playSoundEffect(25);
+                    weaponId &= 0x3F;
+                    s->gil -= (func_801E7E1C(weaponId) * s->priceMultiplier) / 1000;
+                    charId = findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
                     
-                    basePtr = D_801E9BA0;
-                    basePtr += val2;
+                    recipePtr = D_801E9BA0;
+                    recipePtr += weaponId;
                     
-                    ptr = basePtr->ingredients;
+                    ingredients = recipePtr->ingredients;
 
-                    g_gameState.chars[charIdx].weaponId = val2;
-                    s->equippedWeapons[s->selCharacterIndex] = val2;
+                    g_gameState.chars[charId].weaponId = weaponId;
+                    s->equippedWeapons[s->selCharacterIndex] = weaponId;
 
-                    for (i = 0; i < 4; i++) {
+                    for (i = 0; i < WEAPON_RECIPE_INGREDIENT_COUNT; i++) {
                         s32 itemId;
                         s32 quantity;
                         
-                        itemId = *ptr++;
-                        quantity = *ptr++;
+                        itemId = *ingredients++;
+                        quantity = *ingredients++;
                         
                         if (itemId != 0) {
                             D_801EB088[itemId] -= quantity;
                         }
                     }
-                    func_801E7F4C(charIdx, s->gil);
+                    func_801E7F4C(charId, s->gil);
                 } else {
                     sendSpuCommand(5);
                 }
@@ -293,33 +305,38 @@ static void func_801E81A4(JunkShopMenuState *s) {
         }
                 
         break;
+
     case 12:
         sendSpuCommand(5);
-        s->unk43 = 2;
-        s->unk32 = 0x1000U;
-        *statePtr = 0xD;
+        s->menuPhase = 2;
+        s->menuTransitionProgress = 4096;
+        *statePtr = 13;
         break;
+
     case 13:
         if (cfgFlags & (PADRup | PADRdown)) {
             func_801F7BEC(cfgFlags);
-            *statePtr = 0xE;
+            *statePtr = 14;
         }
         break;
+
     case 14:
-        s->unk32 -= 0x100;
-        if ((s->unk32 << 0x10) <= 0) {
-            s->unk32 = 0U;
-            *statePtr = 0xF;
+        s->menuTransitionProgress -= 256;
+        if ((s->menuTransitionProgress * 4096) <= 0) {
+            s->menuTransitionProgress = 0;
+            *statePtr = 15;
         }
         break;
+
     case 15:
-        s->unk2C = (u8 *)func_801F6AA4(0x4D);
-        *statePtr = 0x10;
+        s->shopkeeperMessage = func_801F6AA4(STRING_JUNK_SHOP_COME_BACK_SOON);
+        *statePtr = 16;
         /* fallthrough */
+
     case 16:
-        s->unk34 -= 0x100;
-        if ((s->unk34 << 0x10) <= 0) {
-            s->unk34 = 0U;
+        s->menuColorIntensity -= 256;
+        if ((s->menuColorIntensity * 4096) <= 0) {
+            s->menuColorIntensity = 0;
             func_801E5C08(s->gil);
             func_801F7B60();
             func_801F18FC(s);
@@ -331,10 +348,26 @@ static void func_801E81A4(JunkShopMenuState *s) {
         break;
     }
 
-    func_801F0948(s->unk34);
+    func_801F0948(s->menuColorIntensity);
 }
 
-static s32 func_801E8978(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5) {
+/**
+ * @brief Renders the character list for the junk shop menu.
+ *
+ * Iterates over the eight character slots selected by the available
+ * characters mask and draws each character name. Characters whose
+ * bit is also set in the listed characters mask are drawn in white;
+ * available but unlisted characters are drawn in gray.
+ *
+ * @param arg0 First callback parameter.
+ * @param arg1 Second callback parameter.
+ * @param arg2 X position of the panel.
+ * @param arg3 Y position of the panel.
+ * @param availableCharacters Bit mask of the available characters.
+ * @param listedCharacters Bit mask of the listed characters.
+ * @return The updated second callback parameter.
+ */
+static s32 func_801E8978(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 availableCharacters, s32 listedCharacters) {
     MenuDisplayConfig *cfg;
     s32 x;
     s32 y;
@@ -344,138 +377,161 @@ static s32 func_801E8978(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 a
     s32 charName;
 
     cfg = &g_menuDisplayCfg;
-    x = arg2 + 0xC;
+    x = arg2 + 12;
     y = arg3 + 9;
 
     for (i = 0; i < 8; i++) {
         mask = 1 << i;
-        if (arg4 & mask) {
-            color = 1;
-            if (arg5 & mask) {
-                color = 7;
+        if (availableCharacters & mask) {
+            color = COLOR_GRAY;
+            if (listedCharacters & mask) {
+                color = COLOR_WHITE;
             }
             charName = getCharName(g_gameState.chars[i].characterId);
             arg1 = func_801F0FEC(arg0, arg1, x, y, charName, color);
-            y += 0xD;
+            y += 13;
         }
     }
 
-    cfg->iconType = 0x49;
+    cfg->iconType = ICON_NAME;
     cfg->iconSubType = 0;
     cfg->x = arg2;
     cfg->y = arg3;
-    cfg->w = 0x88;
-    cfg->h = 0x69;
+    cfg->w = 136;
+    cfg->h = 105;
 
-    arg1 = func_801EF9AC(arg0, arg1, 0x1000, g_menuColor);
-    return arg1;
-}
-
-static s32 func_801E8AB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    MenuDisplayConfig *cfg;
-    u8 buffer[128];
-    s32 dataVal;
-    s32 x;
-    s32 y;
-    s32 tmp;
-
-    cfg = &g_menuDisplayCfg;
-    dataVal = ((s32*)cfg->dataPtr)[arg2];
-    
-    if (dataVal != 0) {
-        tmp = arg4 + 0xA;
-        x = cfg->x + tmp;
-        y = cfg->y + 4;
-        decodeMessage(dataVal, buffer, -1);
-        arg1 = func_801F0FEC(arg0, arg1, x, y, (s32)buffer, 7);
-    }
-
+    arg1 = func_801EF9AC(arg0, arg1, 4096, g_menuColor);
     return arg1;
 }
 
 /**
- * @brief Configure display parameters and invoke callback for shop sell rendering.
+ * @brief Draws a string text for a panel.
  *
- * Sets up the g_menuDisplayCfg display configuration structure with the given
- * position and size values, stores the pointer at a0+0x20 as the data source,
- * reads a halfword at a0+0x36 as the display ID, then calls func_801EFBB4
- * with func_801E8AB0 as the render callback.
+ * Check whether dataPtr at the specified index contains a valid
+ * string. If so, decodes the string and renders it at the menu
+ * display position.
+ * 
+ * @param arg0 First callback parameter.
+ * @param arg1 Second callback parameter.
+ * @param arg2 Index for dataPtr.
+ * @param arg3 Unused.
+ * @param arg4 X position for the display configuration.
+ * @return The updated value of the second callback parameter.
+ * 
+ * @note Identical to func_801E6EB0, except for the Y offset.
+ */
+static s32 func_801E8AB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    u8 buffer[128];
+    s32 msg;
+    s32 x;
+    s32 y;
+    s32 xOffset;
+
+    msg = ((s32 *)(g_menuDisplayCfg.dataPtr))[arg2];
+    if (msg != 0) {
+        xOffset = arg4 + 10;
+        x = g_menuDisplayCfg.x + xOffset;
+        y = g_menuDisplayCfg.y + 4;
+        decodeMessage(msg, buffer, -1);
+        arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, COLOR_WHITE);
+    }
+    return arg1;
+}
+
+/**
+ * @brief Renders the weapon name panel for the junk shop menu.
+ *
+ * The weapon name panel renders the name of currently selected weapon.
  *
  * @param a0 Pointer to source data structure.
- * @param a1 First callback parameter (passed as a0 to func_801EFBB4).
- * @param a2 Second callback parameter (passed as a1 to func_801EFBB4).
+ * @param a1 First callback parameter.
+ * @param a2 Second callback parameter.
  * @param a3 Y position for the display configuration.
  * @param a4 X position for the display configuration.
+ * @return The updated value of the second callback parameter.
  */
 static s32 func_801E8B60(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
-    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 0x144;
-    g_menuDisplayCfg.h = 0x14;
+    g_menuDisplayCfg.w = 324;
+    g_menuDisplayCfg.h = 20;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
     g_menuDisplayCfg.y = a4;
-    g_menuDisplayCfg.scrollOffset = s->unk36;
+    g_menuDisplayCfg.scrollOffset = s->scrollOffset;
     g_menuDisplayCfg.dataPtr = (s32)&s->weaponName;
-    {
-        return func_801EFBB4(a1, a2, (s32)&func_801E8AB0);
-    }
+    return func_801EFBB4(a1, a2, (s32)&func_801E8AB0);
 }
 
-static s32 func_801E8BD8(JunkShopMenuState* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+/**
+ * @brief Renders the weapon list panel for the selected character in the junk shop menu.
+ *
+ * If the weapon upgrade is enabled, iterates over the weapon ID's
+ * and skips entries marked with 0xFF. For each valid entry, draws
+ * the weapon name and its remodel price. Bit 0x40 selects the alternate
+ * availability color, while bit 0x80 selects white.
+ *
+ * @param s Pointer to the junk shop state.
+ * @param arg1 Render context passed to the text and panel helpers.
+ * @param arg2 Current render cursor / display-list position.
+ * @param arg3 X position of the panel.
+ * @param arg4 Y position of the panel.
+ * @return The updated render cursor after drawing the list and panel.
+ */
+static s32 func_801E8BD8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     MenuDisplayConfig *cfg;
     s32 x;
     s32 y;
     s32 i;
-    u8 *ptr;
-    s32 val;
+    u8 *weaponIdPtr;
+    s32 weaponId;
     s32 mask;
     s32 color;
-    s32 result;
+    s32 price;
 
     cfg = &g_menuDisplayCfg;
 
     if (!(g_gameState.mainData.partyLockFlag & 1)) {
         y = arg4 + 8;
-        ptr = D_801EB150;
+        weaponIdPtr = D_801EB150;
 
         for (i = 0; i < 8; i++) {
-            val = *ptr;
-            ptr++;
+            weaponId = *weaponIdPtr;
+            weaponIdPtr++;
 
-            if (val != 0xff) {
+            if (weaponId != 0xFF) {
                 x = arg3 + 9;
-                mask = val & 0x40;
+                mask = weaponId & 0x40;
                 color = mask != 0;
-                if (val & 0x80) {
-                    color = 7;
+                if (weaponId & 0x80) {
+                    color = COLOR_WHITE;
                 }
-                arg2 = func_801F0FEC(arg1, arg2, x, y, getLevelCurveData(val & 0x3F), color);
-                x = arg3 + 0xBD;
-                result = ((u32)func_801E7E1C(val & 0x3F) * arg0->unk30) / 1000;
-                arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), result, color);
-                y += 0xD;
+                arg2 = func_801F0FEC(arg1, arg2, x, y, getLevelCurveData(weaponId & 0x3F), color);
+                x = arg3 + 189;
+                price = func_801E7E1C(weaponId & 0x3F) * s->priceMultiplier / 1000;
+                arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), price, color);
+                y += 13;
             }
         }
     }
 
-    cfg->iconType = 0x57;
+    cfg->iconType = ICON_INFO;
     cfg->iconSubType = 0;
     cfg->x = arg3;
     cfg->y = arg4;
-    cfg->w = 0xC8;
-    cfg->h = 0x69;
+    cfg->w = 200;
+    cfg->h = 105;
 
-    arg2 = func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+    arg2 = func_801EF9AC(arg1, arg2, 4096, g_menuColor);
     return arg2;
 }
 
 /**
- * @brief Render the list of required materials for the selected weapon.
+ * @brief Render the list of ingredients for the selected weapon.
  *
- * Draws each item name and the required quantity, followed by the amount
+ * Draws each item name and quantity, followed by the amount
  * currently in the inventory for that item.
  *
  * @param s Pointer to source data structure.
@@ -483,7 +539,7 @@ static s32 func_801E8BD8(JunkShopMenuState* arg0, s32 arg1, s32 arg2, s32 arg3, 
  * @param a2 Second callback parameter.
  * @param a3 X position for the display configuration.
  * @param a4 Y position for the display configuration.
- * @return The updated value of a1 after rendering all items.
+ * @return The updated value of a2 after rendering all items.
  */
 static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
     u8 numStr[16];
@@ -499,7 +555,7 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
     s32 quantity;
     u8 *text;
 
-    if (s->unk32 == 0x1000) {
+    if (s->menuTransitionProgress == 4096) {
         return a2;
     }
 
@@ -510,18 +566,18 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
     x = a3 + 12;
     y = a4 + 9;
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < WEAPON_RECIPE_INGREDIENT_COUNT; i++) {
         itemId = *itemsPtr++;
         quantity = *itemsPtr++;
 
         if (itemId) {
             text = getStatName(itemId);
-            a2 = func_801F0FEC(a1, a2, x, y, text, 7);
+            a2 = func_801F0FEC(a1, a2, x, y, text, COLOR_WHITE);
 
-            text = func_801F6AFC(0x32);
+            text = func_801F6AFC(50);
 
-            intToDecStringShort(quantity, numStr, ((u8 *)getMenuString(0xB))[1]);
-            replaceLeadingZeros(numStr, 4, ((u8 *)getMenuString(0xB))[1], ((u8 *)getMenuString(0xB))[0]);
+            intToDecStringShort(quantity, numStr, ((u8 *)getMenuString(11))[1]);
+            replaceLeadingZeros(numStr, 4, ((u8 *)getMenuString(11))[1], ((u8 *)getMenuString(11))[0]);
 
             y2 = y + 13;
             y += 23;
@@ -529,52 +585,62 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
             copyString(buffer, numStr + 2);
             btlStrcat2(buffer, text);
 
-            intToDecStringShort(D_801EB088[itemId], numStr, ((u8 *)getMenuString(0xB))[1]);
-            replaceLeadingZeros(numStr, 4, ((u8 *)getMenuString(0xB))[1], ((u8 *)getMenuString(0xB))[0]);
+            intToDecStringShort(D_801EB088[itemId], numStr, ((u8 *)getMenuString(11))[1]);
+            replaceLeadingZeros(numStr, 4, ((u8 *)getMenuString(11))[1], ((u8 *)getMenuString(11))[0]);
 
             btlStrcat2(buffer, numStr + 2);
 
-            text = func_801F6AFC(0x33);
+            text = func_801F6AFC(51);
             btlStrcat2(buffer, text);
     
-            a2 = func_8002C56C(a1, a2, x + 52, y2, buffer, 7);
+            a2 = func_8002C56C(a1, a2, x + 52, y2, buffer, COLOR_WHITE);
         }
     }
 
-    cfg->iconType = 76;
+    cfg->iconType = ICON_ITEM;
     cfg->iconSubType = 0;
     cfg->x = a3;
     cfg->y = a4;
     cfg->w = 136;
     cfg->h = 105;
 
-    a2 = func_801EF9AC(a1, a2, 0x1000, g_menuColor);
+    a2 = func_801EF9AC(a1, a2, 4096, g_menuColor);
     return a2;
 }
 
-/** @brief Return color code: 7 (equal), 3 (a0 > a1), 2 (a0 < a1). */
+/** @brief Return color code: white (equal), yellow (a0 > a1), red (a0 < a1). */
 static s32 func_801E8FF8(s32 a0, s32 a1) {
-    s32 color = 7;
-    if (a0 > a1) color = 3;
-    if (a0 < a1) color = 2;
+    s32 color = COLOR_WHITE;
+    if (a0 > a1) color = COLOR_YELLOW;
+    if (a0 < a1) color = COLOR_RED;
     return color;
 }
 
-static void func_801E9020(s32 arg0) {
+/**
+ * @brief Calculate and cache a weapon's strength value.
+ *
+ * Temporarily equips the given weapon on its associated character,
+ * calculates the character's battle data, stores the resulting
+ * strength in D_801EB260, and restores the character's previously
+ * equipped weapon.
+ *
+ * @param weaponId Weapon index used for the strength calculation.
+ */
+static void func_801E9020(s32 weaponId) {
     BattleCharData charData;
     u8 charId;
-    u8 weaponId;
+    u8 currentWeaponId;
 
-    charId = D_8007C3B8[arg0].characterId;
-    weaponId = g_gameState.chars[charId].weaponId;
-    g_gameState.chars[charId].weaponId = arg0;
-    func_801F537C(charId, &charData);
-    D_801EB260[arg0] = charData.stats[0];
+    charId = D_8007C3B8[weaponId].characterId;
+    currentWeaponId = g_gameState.chars[charId].weaponId;
     g_gameState.chars[charId].weaponId = weaponId;
+    func_801F537C(charId, &charData);
+    D_801EB260[weaponId] = charData.stats[0];
+    g_gameState.chars[charId].weaponId = currentWeaponId;
 }
 
 /**
- * @brief Initialize all 30 shop item entries.
+ * @brief Initialize all 30 weapon strength values.
  *
  * Calls func_801E9020 for indices 0 through 29.
  */
@@ -592,12 +658,13 @@ static void func_801E90BC(void) {
  * the result of func_801E8FF8. Aditionally, if the selected weapon's value is
  * higher or lower, an arrow icon is drawn next to the value to indicate the
  * change.
+ * 
  * @param s Pointer to source data structure.
  * @param arg1 First callback parameter.
  * @param arg2 Second callback parameter.
  * @param arg3 X position for the display configuration.
  * @param arg4 Y position for the display configuration.
- * @return The updated value of arg1 after rendering all items.
+ * @return The updated value of the second callback parameter.
  */
 static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     s32 oldWeaponId;
@@ -613,7 +680,7 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
     s32 tmp;
     WeaponInfo *weapons;
 
-    color = WHITE;
+    color = COLOR_WHITE;
 
     findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
 
@@ -623,7 +690,7 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
     oldWeaponStrength = D_801EB260[oldWeaponId];
     oldWeaponHit = weapons[oldWeaponId].hit;
 
-    tmp = func_801F6AA4(0x33);
+    tmp = func_801F6AA4(STRING_MONEY);
     x = arg3 + 249;
     y = arg4 + 7;
     arg2 = func_801F0FEC(arg1, arg2, x, y, tmp, color);
@@ -634,11 +701,11 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
 
     x = arg3 + 323;
     y = arg4 + 23;
-    arg2 = func_8002FF34(arg1, arg2, 0xB, x, y, g_menuColor);
+    arg2 = func_8002FF34(arg1, arg2, ICON_GIL, x, y, g_menuColor);
 
     x = arg3 + 128;
     y = arg4 + 5;
-    arg2 = func_800300F8(arg1, arg2, 0x131, x, y, g_menuColor, 0x80);
+    arg2 = func_800300F8(arg1, arg2, ICON_STR, x, y, g_menuColor, 0x80);
 
     x = arg3 + 184;
     y = arg4 + 7;
@@ -647,24 +714,24 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
     // Dead code added to match with the original game binary.
     while (0);
 
-    func_801F6AA4(0x3A);
+    func_801F6AA4(STRING_HIT);
 
     x = arg3 + 128;
     y = arg4 + 19;
-    arg2 = func_800300F8(arg1, arg2, 311, x, y, g_menuColor, 0x80);
+    arg2 = func_800300F8(arg1, arg2, ICON_HIT, x, y, g_menuColor, 0x80);
 
     x = arg3 + 184;
     y = arg4 + 21;
     arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), func_801F7BE4(oldWeaponHit), color);
 
     // Dead code added to match with the original game binary.
-    if (color == YELLOW) {
+    if (color == COLOR_YELLOW) {
         color++; color--;
-    } else if (color == RED) {
+    } else if (color == COLOR_RED) {
         color++; color--;
     }
 
-    tmp = func_801F6AFC(0x14);
+    tmp = func_801F6AFC(SYMBOL_PERCENT);
     y2 = arg4 + 23;
     arg2 = func_8002C56C(arg1, arg2, x, y2, tmp, color);
 
@@ -673,7 +740,7 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
     y = arg4 + 7;
     arg2 = func_801F0FEC(arg1, arg2, x, y, tmp, color);
 
-    if (s->unk43 & 1) {
+    if (s->menuPhase & 1) {
         newWeaponId = D_801EB150[s->selWeaponIndex];
         newWeaponId &= 0x3F;
 
@@ -694,11 +761,11 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
         y = arg4 + 9;
 
         tmp = 0;
-        if (color == YELLOW) {
-            tmp = ICON_UP_ARROW;
+        if (color == COLOR_YELLOW) {
+            tmp = ICON_ARROW_UP;
         }
-        if (color == RED) {
-            tmp = ICON_DOWN_ARROW;
+        if (color == COLOR_RED) {
+            tmp = ICON_ARROW_DOWN;
         }
         if (tmp != 0) {
             arg2 = func_800300F8(arg1, arg2, tmp, x, y, g_menuColor, (color * 64) + 2);
@@ -711,18 +778,18 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
         tmp = func_801F7BE4(newWeaponHit);
         arg2 = drawColorByMenuPalette(arg1, arg2, (y << 0x10) | (x & 0xFFFF), tmp, color);
 
-        tmp = func_801F6AFC(0x14);
+        tmp = func_801F6AFC(SYMBOL_PERCENT);
         arg2 = func_8002C56C(arg1, arg2, x, y2, tmp, color);
         
         x = arg3 + 195;
         y = y2;
         
         tmp = 0;
-        if (color == YELLOW) {
-            tmp = ICON_UP_ARROW;
+        if (color == COLOR_YELLOW) {
+            tmp = ICON_ARROW_UP;
         }
-        if (color == RED) {
-            tmp = ICON_DOWN_ARROW;
+        if (color == COLOR_RED) {
+            tmp = ICON_ARROW_DOWN;
         }
         if (tmp != 0) {
             arg2 = func_800300F8(arg1, arg2, tmp, x, y, g_menuColor, (color * 64) + 2);
@@ -733,104 +800,130 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
 }
 
 /**
- * @brief Configure shop display and render with g_menuDisplayCfg settings.
+ * @brief Draws the weapon comparison panel for the junk shop menu.
  *
- * Calls func_801E90F8 with all parameters, then sets up g_menuDisplayCfg
- * display config (icon 0x57, 0x150 x 0x26, x=a3, y=arg5) and calls
- * func_801EF9AC to render.
+ * The draw of panel content is delegated to func_801E90F8.
  *
- * @param a0 Context pointer for func_801E90F8.
- * @param a1 Render context passed to func_801EF9AC.
- * @param a2 Parameter for func_801E90F8.
+ * @param s Pointer to the shop state.
+ * @param a1 First callback parameter.
+ * @param a2 Second callback parameter.
  * @param a3 X position for display config.
- * @param arg4 Y position for display config.
+ * @param a4 Y position for display config.
+ * @return The updated value of the second callback parameter.
  */
-static s32 func_801E9554(JunkShopMenuState *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    s32 result;
-
-    result = func_801E90F8(a0, a1, a2, a3, arg4);
-    g_menuDisplayCfg.iconType = 0x57;
+static s32 func_801E9554(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
+    a2 = func_801E90F8(s, a1, a2, a3, a4);
+    g_menuDisplayCfg.iconType = ICON_INFO;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 0x150;
-    g_menuDisplayCfg.y = arg4;
-    g_menuDisplayCfg.h = 0x26;
-    return func_801EF9AC(a1, result, 0x1000, g_menuColor);
+    g_menuDisplayCfg.w = 336;
+    g_menuDisplayCfg.y = a4;
+    g_menuDisplayCfg.h = 38;
+    return func_801EF9AC(a1, a2, 4096, g_menuColor);
 }
 
-static s32 func_801E95DC(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
-    if (arg0 != 0) {
-        arg2 = func_801F0FEC(arg1, arg2, arg3 + 0xC, arg4 + 5, arg0, 7);
+/**
+ * @brief Draws the message panel for the junk shop menu.
+ * 
+ * The message panel displays the messages sent by the shopkeeper to
+ * the player depending on the current shop state.
+ * 
+ * @param msg The message string to display.
+ * @param arg1 First callback parameter.
+ * @param arg2 Second callback parameter.
+ * @param arg3 X position for display config.
+ * @param arg4 Y position for display config.
+ * @return The updated value of the second callback parameter.
+ * 
+ * @note Identical to func_801E791C, except for the panel width and height.
+ */
+static s32 func_801E95DC(u8 *msg, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
+    if (msg != NULL) {
+        arg2 = func_801F0FEC(arg1, arg2, arg3 + 12, arg4 + 5, msg, COLOR_WHITE);
     }
-    g_menuDisplayCfg.iconType = 0;
+    g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.x = arg3;
-    g_menuDisplayCfg.w = 0x150;
-    g_menuDisplayCfg.y = (s16) arg4;
-    g_menuDisplayCfg.h = 0x14;
-    return func_801EF9AC(arg1, arg2, 0x1000, g_menuColor);
+    g_menuDisplayCfg.w = 336;
+    g_menuDisplayCfg.y = arg4;
+    g_menuDisplayCfg.h = 20;
+    return func_801EF9AC(arg1, arg2, 4096, g_menuColor);
 }
 
+/**
+ * @brief Renders the junk shop menu frame.
+ *
+ * Sets the menu color intensity, then draws the title, message and
+ * weapon name panels. If the weapon upgrade is disabled, displays a
+ * "not enough items" dialog. Otherwise, it draws the cursor,
+ * ingredients, character list, weapon list, and weapon comparison
+ * panels. The completed display list is finalized and stored for GPU
+ * submission.
+ *
+ * @param s Pointer to the junk shop state.
+ * @param arg1 Render context passed to the menu rendering helpers.
+ * @param arg2 Current render cursor.
+ * @return The updated render cursor after drawing the menu frame.
+ */
 static s32 func_801E9684(JunkShopMenuState *s, s32 arg1, s32 arg2) {
-    s32 val1;
-    s16 idx;
+    s32 fieldShopId;
     s32 pkt;
-    s32 param1;
-    s32 param2;
+    s32 x;
+    s32 y;
 
     pkt = getDisplayListHead();
     func_801F1AFC();
-    setMenuColorIntensity(s->unk34);
+    setMenuColorIntensity(s->menuColorIntensity);
     
-    if ((s->unk43 & 2) && (s->unk32 != 0) && (s->unk34 == 0x1000)) {
-        arg2 = func_801F4168(arg1, arg2, func_801F6AA4(0x3D), 0xC0, 0x52, s->unk32, 0);
+    if ((s->menuPhase & 2) && (s->menuTransitionProgress != 0) && (s->menuColorIntensity == 4096)) {
+        u8 *msg;
+        msg = func_801F6AA4(STRING_JUNK_SHOP_NOT_ENOUGH_ITEMS_COME_BACK_LATER);
+        arg2 = func_801F4168(arg1, arg2, msg, 192, 82, s->menuTransitionProgress, 0);
     }
 
-    param2 = 0x32;
-    arg2 = func_801E8B60(s, arg1, arg2, 0x1E, param2);
+    x = 30;
+    y = 50;
+    arg2 = func_801E8B60(s, arg1, arg2, x, y);
 
-    param1 = 0x18;
-    param2 = 8;
+    x = 24;
+    y = 8;
 
-    if (func_801EFFB8() == 0x17) {
-        val1 = func_801EFFF0();
+    if (func_801EFFB8() == 23) {
+        fieldShopId = func_801EFFF0();
     } else {
-        val1 = -1;
+        fieldShopId = -1;
     }
 
-    arg2 = func_801E77EC(val1, arg1, arg2, param1, param2);
+    arg2 = func_801E77EC(fieldShopId, arg1, arg2, x, y);
 
-    param1 = 0x18;
-    param2 = 0x1D;
-    arg2 = func_801E95DC((s32)s->unk2C, arg1, arg2, param1, param2);
+    x = 24;
+    y = 29;
+    arg2 = func_801E95DC(s->shopkeeperMessage, arg1, arg2, x, y);
 
-    if (!(s->unk43 & 2)) {
+    if (!(s->menuPhase & 2)) {
         if (s->cursorPosition >= 0) {
-            arg2 = func_801F6FE4(arg1, arg2, 1, 0x1000);
+            arg2 = func_801F6FE4(arg1, arg2, 1, 4096);
         }
 
-        param1 = 0x18;
-        param2 = 0x47;
-        idx = s->unk32;
-        if (idx != 0x1000) {
-            val1 = D_801FA3C8[idx / 64] * 0x96;
-            if (val1 < 0) {
-                val1 += 0xFFF;
-            }
-            pkt = func_801E8D84(s, arg1, pkt, param1 - (val1 >> 0xC), param2);
+        x = 24;
+        y = 71;
+        if (s->menuTransitionProgress != 4096) {
+            s32 val;
+            val = D_801FA3C8[s->menuTransitionProgress / 64] * 150;
+            pkt = func_801E8D84(s, arg1, pkt, x - (val / 4096), y);
         }
 
-        param1 = 0x18;
-        param2 = 0x47;
-        arg2 = func_801E8978(arg1, arg2, param1, param2, s->availableCharactersMask, (u16)s->listedCharactersMask);
+        x = 24;
+        y = 71;
+        arg2 = func_801E8978(arg1, arg2, x, y, s->availableCharactersMask, s->listedCharactersMask);
         
-        param1 = 0xA0;
-        param2 = 0x47;
-        arg2 = func_801E8BD8(s, arg1, arg2, param1, param2);
+        x = 160;
+        y = 71;
+        arg2 = func_801E8BD8(s, arg1, arg2, x, y);
 
-        param1 = 0x18;
-        param2 = 0xB2;
-        pkt = func_801E9554(s, arg1, pkt, param1, param2);
+        x = 24;
+        y = 178;
+        pkt = func_801E9554(s, arg1, pkt, x, y);
     }
 
     func_801F1B10();
@@ -838,6 +931,16 @@ static s32 func_801E9684(JunkShopMenuState *s, s32 arg1, s32 arg2) {
     return arg2;
 }
 
+/**
+ * @brief Initializes and starts the junk shop menu.
+ *
+ * Creates the menu task with the junk shop update and draw callbacks, loads
+ * the weapon recipe and message data, computes the gil and character masks,
+ * initializes the weapon and menu animation state, caches the equipped
+ * weapon ID's, and enters the initial state of the menu state machine.
+ *
+ * @param arg0 Unused.
+ */
 void func_801E9900(s32 arg0) {
     BattleCharData charData;
     JunkShopMenuState* s;
@@ -852,28 +955,28 @@ void func_801E9900(s32 arg0) {
     if (s != NULL) {
         s->gil = func_801E5D28();
         s->availableCharactersMask = func_80036EC0();
-        s->listedCharactersMask = func_801E8058((s32) s->gil);
-        if (func_801EFFB8() == 0x17) {
+        s->listedCharactersMask = func_801E8058(s->gil);
+        if (func_801EFFB8() == 23) {
             s->availableCharactersMask = s->listedCharactersMask;
         }
         s->characterCount = popcount(s->availableCharactersMask);
-        func_801E7F4C(findNthSetBit(s->availableCharactersMask, 0), (s32) s->gil);
-        s->unk30 = 0x3E8;
-        s->unk32 = 0x1000;
+        func_801E7F4C(findNthSetBit(s->availableCharactersMask, 0), s->gil);
+        s->priceMultiplier = 1000;
+        s->menuTransitionProgress = 4096;
         s->cursorPosition = -1;
         if (s->availableCharactersMask != 0) {
-            s->unk43 = 0;
-            s->unk2C = (u8 *)func_801F6AA4(0x45);
+            s->menuPhase = 0;
+            s->shopkeeperMessage = func_801F6AA4(STRING_JUNK_SHOP_WELCOME_WHO_NEEDS_TO_REMODEL);
         } else {
-            s->unk43 = 2;
-            s->unk2C = NULL;
+            s->menuPhase = 2;
+            s->shopkeeperMessage = NULL;
         }
         if (func_801F72B4() & 1) {
-            s->unk30 = 0x2EE;
+            s->priceMultiplier = 750;
         }
 
         for (i = 0, ptr = s->equippedWeapons; i < 8; i++) {
-            if (((s32) s->availableCharactersMask >> i) & 1) {
+            if ((s->availableCharactersMask >> i) & 1) {
                 func_801F537C(i, &charData);
                 *ptr = charData.classId;
                 ptr++;
