@@ -132,8 +132,6 @@ s32  func_801F7394(s32);
 /* Main-executable helpers without an owner header yet. */
 void func_80027C00(s32, s32);
 void func_80027C90(s32, s32);
-s32  getDisplayListHead(void);
-void storeGpuPacket(u32);
 
 /* ======================================================================== */
 /* Data (unit-owned, menumain overlay region)                               */

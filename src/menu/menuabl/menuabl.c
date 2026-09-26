@@ -3,13 +3,13 @@
 #include "gamestate.h"
 #include "menuabl.h"
 #include "numstr.h"
+#include "btl_anim.h"
+#include "btl_anim_packet.h"
 
 extern AbilityEntry  D_8007CEE0[];
 
 extern s32  getAbilityDesc(s32 id);
 extern u8  *getAbilityName(s32 abilityId);
-extern s32  getDisplayListHead(void);
-extern void storeGpuPacket(u32 pkt);
 extern void setMenuColorIntensity(s32 intensity);
 extern s32  func_8002FF34(s32 ctx, s32 a1, s32 a2, s32 x, s32 y, s32 color);
 extern s32  func_801EF9AC(s32 dl, s32 ot, s32 opaque, s32 color);

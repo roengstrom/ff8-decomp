@@ -7,6 +7,7 @@
 #include "game.h"
 #include "gf.h"
 #include "btl_anim.h"
+#include "btl_anim_packet.h"
 #include "btl_color.h"
 #include "btl_sfx.h"
 #include "numstr.h"

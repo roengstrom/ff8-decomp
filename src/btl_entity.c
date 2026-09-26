@@ -239,7 +239,7 @@ void setSfxEntryTimings(s32 idx, s32 val29, s32 val2A, s32 val2C) {
     SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->field29 = val29;
     entry->field2A = val2A;
-    entry->field2C = val2C;
+    entry->ctrl.fields.field2C = val2C;
 }
 
 

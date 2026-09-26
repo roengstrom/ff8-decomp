@@ -4,6 +4,7 @@
 #include "psxsdk/libc.h"
 #include "battle.h"
 #include "btl_anim.h"
+#include "btl_anim_packet.h"
 #include "thread.h"
 
 

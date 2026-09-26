@@ -3,6 +3,99 @@
 #include "battle.h"
 #include "btl_sfx.h"
 #include "btl_entity.h"
+#include "btl_anim.h"
+#include "btl_anim_packet.h"
+#include "btl_color.h"
+
+/**
+ * @brief One 8-byte sprite cell of a glyph in the @c D_80052A68 font table.
+ *
+ * A glyph is drawn from one or more of these cells, and both words are baked in
+ * the layout the GPU packet wants so the emitters only mask and add.
+ *
+ * @c texInfo: bits 0-15 are u and v; bits 16-19 and 22-26 are the two pieces of
+ * a CLUT offset that is added to the font CLUT (@ref GLYPH_UVCLUT_MASK keeps
+ * exactly these and u/v); bit 27 is the semi-transparency flag and bits 30-31
+ * the blend rate. Bit 21 is set in every cell of the shipped table, but no
+ * emitter reads it.
+ *
+ * @c metrics packs four bytes: the sprite width, a signed X offset, the sprite
+ * height and a signed Y offset, so width + X offset is the cell's right edge
+ * and height + Y offset its bottom edge.
+ */
+typedef struct {
+    /* 0x00 */ u32 texInfo; /**< u | v<<8 | CLUT offset bits | abe<<27 | abr<<30. */
+    /* 0x04 */ u32 metrics; /**< w | (s8)xOffset<<8 | h<<16 | (s8)yOffset<<24. */
+} GlyphCell;
+
+/**
+ * @brief Header view of the @c D_80052A68 font table (baked into executable data).
+ *
+ * A glyph count followed by one descriptor per glyph. Each descriptor packs the
+ * glyph's cell @c count (high 16 bits) and the byte offset from the table base
+ * to that glyph's @ref GlyphCell list (low 16 bits). The cell lists themselves
+ * live in the trailing area the descriptors point at.
+ */
+typedef struct {
+    /* 0x00 */ u32 glyphCount;
+    /* 0x04 */ u32 descriptors[1]; /**< cellCount<<16 | byteOffsetToCells. */
+} GlyphTable;
+
+/** @brief Font glyph table (glyph count + per-glyph descriptors + cell lists). */
+extern GlyphTable D_80052A68;
+
+/** @brief u, v and CLUT-offset bits of @c GlyphCell.texInfo. */
+#define GLYPH_UVCLUT_MASK 0x07CFFFFF
+
+/** @brief Width and height bytes of @c GlyphCell.metrics. */
+#define GLYPH_WH_MASK 0x00FF00FF
+
+/** @brief Shift that brings the blend rate of @c GlyphCell.texInfo (bits 30-31)
+ *  down to bit 0. */
+#define GLYPH_ABR_SHIFT 30
+
+/** @brief Width of the blend rate once shifted down. getTPage masks again, but
+ *  dropping this one costs the match. */
+#define GLYPH_ABR_MASK 3
+
+/** @brief Shift that lands the semi-transparency flag of @c GlyphCell.texInfo
+ *  (bit 27) on @ref SPRT_CODE_ABE. */
+#define GLYPH_ABE_SHIFT 26
+
+/** @brief Semi-transparency option bit of a primitive's code byte. */
+#define SPRT_CODE_ABE 0x02
+
+/** @brief Position of the code byte inside the colour word. */
+#define SPRT_CODE_SHIFT 24
+
+/** @brief r, g, b and the two option bits of the code byte in the colour word. */
+#define SPRT_RGB_MASK 0x03FFFFFF
+
+/** @brief Primitive code 0x64 (SPRT) in the colour word. */
+#define SPRT_CODE 0x64000000
+
+/** @brief VRAM position of the font's CLUT row; a cell's CLUT offset is added to it. */
+#define GLYPH_CLUT_X 256
+#define GLYPH_CLUT_Y 224
+
+/** @brief VRAM position of the font's texture page. */
+#define GLYPH_TPAGE_X 896
+#define GLYPH_TPAGE_Y 256
+
+/** @brief The window marker sits this many pixels in from the bottom-right corner. */
+#define GLYPH_MARKER_INSET 24
+
+/** @brief Glyph drawn in the bottom-right corner of a message window. */
+#define GLYPH_WINDOW_MARKER 6
+
+/* Whole-word setters for a TSPRT's r0/g0/b0/code, u0/v0/clut and w/h groups: the
+ * glyph cells hold those groups ready-made, so they are stored in one piece.
+ * The do/while(0) of setGlyphUVClut is load-bearing: the scheduler moves nothing
+ * across it, which keeps the u/v/CLUT store ahead of the texture-page code.
+ * Wrapping the colour setter the same way breaks func_8002CAE0's match. */
+#define setGlyphRGBC(p, word)   (*(u32 *)&(p)->r0 = (word))
+#define setGlyphUVClut(p, word) do { *(u32 *)&(p)->u0 = (word); } while (0)
+#define setGlyphWH(p, word)     (*(u32 *)&(p)->w = (word))
 
 extern SfxSystem g_sfxEntries;
 extern s32 g_flashColor;
@@ -13,6 +106,8 @@ extern s32 g_menuColor[2];
 extern u8 D_800834D8[];
 void func_8002D970(void);
 void func_8002DBF8(void);
+void func_8002CAE0(P_TAG *ot, SfxEntry *entry);
+TSPRT *func_8002E298(P_TAG *ot, TSPRT *head, s32 idx, s32 x, s32 y);
 void func_8002CC4C(s32 idx, s32 arg0);
 void func_8002CDE4(RECT *rect, s32 scale, s32 arg2);
 void setBattleEntityBoundRect(s32 idx, RECT *src);
@@ -165,7 +260,101 @@ s32 getSfxField1C(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CAE0);
+/**
+ * @brief Draw the blinking corner marker of a message window.
+ *
+ * While the entry's marker bit is set and its blink counter is in the visible
+ * half of its cycle, emits glyph @ref GLYPH_WINDOW_MARKER of the @c D_80052A68
+ * font table @ref GLYPH_MARKER_INSET pixels in from the window's bottom-right
+ * corner, tinted with @c g_gpuColor. Every cell of the glyph becomes one
+ * @c TSPRT taken from the display-list packet buffer and linked into @p ot;
+ * the advanced packet cursor is stored back afterwards.
+ *
+ * Per cell: the u/v/CLUT word is the cell's own plus the font CLUT; the
+ * texture page is the font page with the cell's blend rate; the colour word
+ * gets the cell's semi-transparency bit and is forced to a SPRT code;
+ * width/height are copied and the cell's signed offsets are added to the
+ * position.
+ *
+ * @note Same emitter as @ref func_8002E298 plus the colour masking, with the
+ *       same two load-bearing spellings. The @c (u8) narrowing of the blend
+ *       rate is a no-op on the value (at most 0x60) but hides its range from
+ *       the compiler, which otherwise proves @c _get_mode's 0x9FF mask
+ *       redundant and drops it; the original keeps it. The colour word is
+ *       built one operation per statement because the original computes the
+ *       whole chain in the result's own register, which a single expression
+ *       does not. @c head is handed to @c p and taken back after the loop,
+ *       the way btl_anim.c threads its packet cursor.
+ *
+ * @param ot    Ordering-table slot the sprites are linked into.
+ * @param entry SFX entry (message window) the marker belongs to.
+ */
+void func_8002CAE0(P_TAG *ot, SfxEntry *entry) {
+    GlyphTable *table;
+    GlyphCell *cell;
+    TSPRT *p;
+    s32 head;
+    u32 link;
+    u32 flags;
+    u32 word;
+    s32 tpage;
+    u32 val;
+    u32 color;
+    s32 n;
+    s32 x;
+    s32 y;
+
+    flags = entry->ctrl.raw;
+    if (!(flags & SFX_CTRL_MARKER) ||
+        ((flags >> SFX_CTRL_MARKER_BLINK_SHIFT) & SFX_MARKER_BLINK_OFF)) {
+        return;
+    }
+
+    table = &D_80052A68;
+    head = getDisplayListHead();
+    cell = (GlyphCell *)table;
+    p = (TSPRT *)head;
+    word = table->descriptors[GLYPH_WINDOW_MARKER];
+    n = word >> 16;
+    word &= 0xFFFF;
+    cell = (GlyphCell *)((u8 *)cell + word);
+    x = entry->rect.w - GLYPH_MARKER_INSET;
+    y = entry->rect.h - GLYPH_MARKER_INSET;
+    color = g_gpuColor;
+
+    for (; n > 0; p++, cell++, n--) {
+        word = cell->texInfo;
+        val = word & GLYPH_UVCLUT_MASK;
+        val += getClut(GLYPH_CLUT_X, GLYPH_CLUT_Y) << 16;
+        setGlyphUVClut(p, val);
+
+        val = (word >> GLYPH_ABR_SHIFT) & GLYPH_ABR_MASK;
+        val = (u8)getTPage(0, val, 0, 0);
+        tpage = val;
+        tpage |= getTPage(0, 0, GLYPH_TPAGE_X, GLYPH_TPAGE_Y);
+
+        val = word >> GLYPH_ABE_SHIFT;
+        val &= SPRT_CODE_ABE;
+        val <<= SPRT_CODE_SHIFT;
+        val |= color;
+        setTSprt(p, 1, 0, tpage);
+        val &= SPRT_RGB_MASK;
+        val |= SPRT_CODE;
+        setGlyphRGBC(p, val);
+
+        word = cell->metrics;
+        val = word & GLYPH_WH_MASK;
+        setGlyphWH(p, val);
+        val = (s8)(word >> 24);  /* signed Y offset, byte 3 */
+        word <<= 16;
+        word = (s8)(word >> 24); /* signed X offset, byte 1 */
+        setXY0(p, x + word, y + val);
+
+        addPrimFastWithTempOperand(ot, p, link);
+    }
+    head = (s32)p;
+    storeGpuPacket(head);
+}
 
 
 INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002CC4C);
@@ -457,7 +646,7 @@ void configureSfxPlayback(s32 idx, s32 rate, s32 mode) {
     SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->flags.fields.state = 1;
     entry->rateDelta = rate;
-    entry->mode = mode;
+    entry->ctrl.fields.mode = mode;
 }
 
 
@@ -565,7 +754,7 @@ s32 readSfxEntityType(s32 idx) {
  */
 void setSfxField2F(s32 idx, s32 val) {
     SfxEntry *entry = &g_sfxEntries.entries[idx];
-    entry->field2F = val;
+    entry->ctrl.fields.field2F = val;
 }
 
 
@@ -583,7 +772,7 @@ void initSfxSlot(s32 idx) {
     SfxEntry *entry = &g_sfxEntries.entries[idx];
     entry->flags.fields.field14 = 0;
     entry->field19 = 0;
-    entry->field2F = 0;
+    entry->ctrl.fields.field2F = 0;
     initSfxPlayback(idx, nullData);
     setSfxPitch(idx, 0x1000);
     swapSfxState(idx, 0);
@@ -626,7 +815,7 @@ void func_8002DF5C(s32 idx) {
     entry->seqState = 0;
     entry->field30 = 0;
     entry->field32 = 0;
-    *(u32 *)&entry->field2C &= 0xFF7FFFFF;
+    entry->ctrl.raw &= ~SFX_CTRL_MARKER;
 
     setSfxEntryField34(idx, 0);
     setSfxEntryField38(idx, 0);
@@ -745,44 +934,87 @@ void dispatchSfxAnimSpeed(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/btl_sfx", func_8002E298);
-
-
 /**
- * @brief One 8-byte sprite cell of a glyph in the @c D_80052A68 font table.
+ * @brief Draw one glyph of the font table as a run of sprites.
  *
- * A glyph is drawn from one or more of these cells. @c texInfo carries the PS1
- * sprite attributes (texture page / CLUT / UV) and @c metrics packs the cell's
- * placement as four bytes: @c x + (s8)@c xExtent give the cell's right edge,
- * @c y + (s8)@c yExtent its bottom edge.
- */
-typedef struct {
-    /* 0x00 */ u32 texInfo; /**< PS1 sprite/texture attributes for the cell. */
-    /* 0x04 */ u32 metrics; /**< x | (s8)xExtent<<8 | y<<16 | (s8)yExtent<<24. */
-} GlyphCell;
-
-/**
- * @brief Header view of the @c D_80052A68 font table (baked into executable data).
+ * Emits every cell of glyph @p idx of the @c D_80052A68 font table as one
+ * @ref TSPRT, tinted with @c g_flashColor and linked into @p ot. Per cell:
+ * the u/v/CLUT word is the cell's own plus the font CLUT; the texture page is
+ * the font page with the cell's blend rate; the colour word gets the cell's
+ * semi-transparency bit; width/height are copied and the cell's signed offsets
+ * are added to (@p x, @p y).
  *
- * A glyph count followed by one descriptor per glyph. Each descriptor packs the
- * glyph's cell @c count (high 16 bits) and the byte offset from the table base
- * to that glyph's @ref GlyphCell list (low 16 bits). The cell lists themselves
- * live in the trailing area the descriptors point at.
+ * @note @c head is handed to @c p and taken back for the return, the way
+ *       @ref func_8002CAE0 threads its packet cursor; returning @c p directly
+ *       moves the cursor copy in the prologue. The @c (u8) narrowing of the
+ *       blend rate keeps @c _get_mode's mask, see @ref func_8002CAE0.
+ *
+ * @param ot   Ordering-table slot the sprites are linked into.
+ * @param head First free packet.
+ * @param idx  Glyph index into @c D_80052A68.
+ * @param x    Left edge of the glyph.
+ * @param y    Top edge of the glyph.
+ * @return The first free packet after the ones written.
  */
-typedef struct {
-    /* 0x00 */ u32 glyphCount;
-    /* 0x04 */ u32 descriptors[1]; /**< cellCount<<16 | byteOffsetToCells. */
-} GlyphTable;
+TSPRT *func_8002E298(P_TAG *ot, TSPRT *head, s32 idx, s32 x, s32 y) {
+    GlyphTable *table;
+    GlyphCell *cell;
+    TSPRT *p;
+    u32 link;
+    u32 word;
+    s32 tpage;
+    u32 val;
+    u32 color;
+    s32 n;
 
-/** @brief Font glyph table (glyph count + per-glyph descriptors + cell lists). */
-extern GlyphTable D_80052A68;
+    p = head;
+    table = &D_80052A68;
+    cell = (GlyphCell *)table;
+    word = table->descriptors[idx];
+    n = word >> 16;
+    word &= 0xFFFF;
+    cell = (GlyphCell *)((u8 *)cell + word);
+    color = g_flashColor;
+
+    for (; n > 0; p++, cell++, n--) {
+        word = cell->texInfo;
+        val = word & GLYPH_UVCLUT_MASK;
+        val += getClut(GLYPH_CLUT_X, GLYPH_CLUT_Y) << 16;
+        setGlyphUVClut(p, val);
+
+        val = (word >> GLYPH_ABR_SHIFT) & GLYPH_ABR_MASK;
+        val = (u8)getTPage(0, val, 0, 0);
+        tpage = val;
+        tpage |= getTPage(0, 0, GLYPH_TPAGE_X, GLYPH_TPAGE_Y);
+
+        val = word >> GLYPH_ABE_SHIFT;
+        val &= SPRT_CODE_ABE;
+        val <<= SPRT_CODE_SHIFT;
+        val |= color;
+        setTSprt(p, 1, 0, tpage);
+        setGlyphRGBC(p, val);
+
+        word = cell->metrics;
+        val = word & GLYPH_WH_MASK;
+        setGlyphWH(p, val);
+        val = (s8)(word >> 24);  /* signed Y offset, byte 3 */
+        word <<= 16;
+        word = (s8)(word >> 24); /* signed X offset, byte 1 */
+        setXY0(p, x + word, y + val);
+
+        addPrimFastWithTempOperand(ot, p, link);
+    }
+    head = p;
+    return head;
+}
+
 
 /**
  * @brief Compute the bounding width of a multi-cell glyph.
  *
  * Walks glyph @p idx's cells and tracks the unsigned running maximum of each
- * cell's right edge (@c x + (s8)@c xExtent) and bottom edge (@c y +
- * (s8)@c yExtent), returning the peak width (low byte).
+ * cell's right edge (width + signed X offset) and bottom edge (height + signed
+ * Y offset), returning the peak width (low byte).
  *
  * @note The peak height is computed but unused by the return value — the caller
  *       presumably only needs the advance width. Purpose inferred from the

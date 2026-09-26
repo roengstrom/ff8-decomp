@@ -133,6 +133,12 @@ typedef struct {
 #define getClut(x, y) \
     (((y) << 6) | (((x) >> 4) & 0x3f))
 
+/* Pack a draw-mode command word (GP0 0xE1): dfe = drawing to the display
+ * area allowed, dtd = dithering on, tpage = a getTPage() value. */
+#define _get_mode(dfe, dtd, tpage) \
+    ((0xe1000000) | ((dtd) ? 0x0200 : 0) | \
+     ((dfe) ? 0x0400 : 0) | ((tpage) & 0x9ff))
+
 /* Store a tpage / clut into a primitive's tpage / clut field. */
 #define setTPage(p, tp, abr, x, y) \
     ((p)->tpage = getTPage((tp), (abr), (x), (y)))
@@ -430,6 +436,15 @@ typedef struct {
     u8 u0, v0; u16 clut;     /* +0x10: texture UV + CLUT */
     u16 w, h;                 /* +0x14: sprite dimensions */
 } TSPRT;
+
+/**
+ * @brief Set the tag length and draw-mode word of a TSPRT.
+ *
+ * The TSPRT counterpart of the SDK's setDrawTPage, which cannot be used on it:
+ * that one sets the length to 1, a TSPRT carries 5 words under its tag.
+ */
+#define setTSprt(p, dfe, dtd, tpage) \
+    (setlen(p, 5), (p)->drawMode = _get_mode(dfe, dtd, tpage))
 
 /* --- GPU function declarations --- */
 

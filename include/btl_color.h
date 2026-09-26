@@ -50,6 +50,7 @@ typedef char camera_transition_scratch_size_ok[
 
 /* --- Data externs (sorted by address) --- */
 
+extern s32              g_gpuColor;           /* 0x800834C8 */
 extern BattleCameraState g_cameraShake;       /* 0x800834D0 */
 extern u16              g_cameraVibrateIntensity; /* 0x800834D4 */
 extern PaletteTransition D_80083754;          /* 0x80083754 */

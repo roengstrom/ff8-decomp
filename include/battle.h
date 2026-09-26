@@ -74,6 +74,25 @@ typedef struct {
     u8 dstData2[12];
 } BlitParams;
 
+/**
+ * @brief Bit of @c SfxEntry.ctrl.raw: the window shows its blinking corner marker.
+ *
+ * It is bit 7 of @c ctrl.fields.markerBlink; the blink bit below is spelled on
+ * the shifted byte instead, because the two tests only compile to the original
+ * instruction pair when written that way.
+ */
+#define SFX_CTRL_MARKER 0x00800000
+
+/** @brief Position of @c SfxEntry.ctrl.fields.markerBlink inside @c ctrl.raw. */
+#define SFX_CTRL_MARKER_BLINK_SHIFT 16
+
+/**
+ * @brief Bit of the 7-bit blink counter in @c SfxEntry.ctrl.fields.markerBlink.
+ *
+ * Set for 16 of every 32 ticks; the corner marker is blanked while it is set.
+ */
+#define SFX_MARKER_BLINK_OFF 0x10
+
 typedef struct {
     RECT rect;
     u8 *dataPtr;
@@ -102,10 +121,15 @@ typedef struct {
     u8 field29;
     u8 field2A;
     u8 field2B;
-    u8 field2C;
-    u8 mode;
-    u8 pad2E;
-    u8 field2F;
+    union {
+        u32 raw;
+        struct {
+            u8 field2C;
+            u8 mode;
+            u8 markerBlink; /**< Bits 0-6: blink counter; bit 7: @ref SFX_CTRL_MARKER. */
+            u8 field2F;
+        } fields;
+    } ctrl;
     u16 field30;
     u8 field32;
     u8 pad33;

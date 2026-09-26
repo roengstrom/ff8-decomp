@@ -4,6 +4,8 @@
 #include "menu.h"
 #include "menushop.h"
 #include "menumain.h"
+#include "btl_anim.h"
+#include "btl_anim_packet.h"
 
 #define SHOP_ITEM_COUNT 16
 #define ITEM_SLOT_COUNT 198

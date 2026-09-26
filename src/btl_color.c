@@ -38,7 +38,6 @@ extern HudDisplayBuf *D_80083918;    /* 0x80083918 — active HUD display buffer
 extern HudDisplayBuf *D_80083920[];  /* 0x80083920 — HUD display buffer pair */
 extern u8 D_80083938[];              /* 0x80083938 — battle OT data */
 extern u8 D_80085134[];              /* 0x80085134 — battle display buffer */
-extern s32 g_gpuColor;               /* 0x800834C8 — GPU color value */
 extern s32 g_battleTimer;               /* 0x80083750 — battle timer */
 extern u8 g_animCurveFadeOut[];         /* 0x800837B0 — 65-step fade curve */
 extern u8 D_80052A64[];
