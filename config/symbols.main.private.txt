@@ -1,0 +1,8 @@
+// Read by the executable's config only. These addresses lie in the overlay
+// window, so the overlays, which will read symbols.main.txt, must not see them.
+// tripleTriadMainLoop and SmInitEventAll are overlay entry points called from
+// main's C; g_meshRenderCtx is main's own scratch buffer, inside menumain's
+// image, used while no menu is loaded.
+tripleTriadMainLoop = 0x80098304;
+SmInitEventAll = 0x800C00C8; // type:func
+g_meshRenderCtx = 0x801F0000;

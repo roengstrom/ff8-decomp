@@ -1,11 +1,6 @@
-getMagicNamePtr = 0x80020C08; // type:func
-getCharName = 0x80020E4C; // type:func
-copyString = 0x8002A2A8; // type:func
-decodeMessage = 0x8002F688;
 D_80077818 = 0x80077818;
 D_80077864 = 0x80077864;
 g_gfData = 0x80078E00;
-g_menuColor = 0x80083848;
 menumgc_formatSpellCharName = 0x801E5800; // type:func
 _getJunctionableCharMask = 0x801E5918; // type:func
 func_801E599C = 0x801E599C; // type:func
@@ -52,5 +47,3 @@ func_801EC43C = 0x801EC43C; // type:func
 D_801ECF60 = 0x801ECF60;
 D_801ECF90 = 0x801ECF90;
 D_801ED010 = 0x801ED010;
-menumain_getPartyMemberMask = 0x801F2298; // type:func
-g_menuDisplayCfg = 0x801FAB00;

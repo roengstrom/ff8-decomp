@@ -1,8 +1,3 @@
-getMagicNamePtr = 0x80020C08; // type:func
-getCharName = 0x80020E4C; // type:func
-copyString = 0x8002A2A8; // type:func
-decodeMessage = 0x8002F688;
-g_menuColor = 0x80083848;
 jtbl_801E4D38 = 0x801E4D38; // type:jtbl function_owner:func_801E2820
 func_801E2820 = 0x801E2820; // type:func
 func_801E28E4 = 0x801E28E4; // type:func
@@ -26,4 +21,3 @@ func_801E47F8 = 0x801E47F8; // type:func
 func_801E48C0 = 0x801E48C0; // type:func
 func_801E4CB0 = 0x801E4CB0; // type:func
 func_801E4CE4 = 0x801E4CE4; // type:func
-g_menuDisplayCfg = 0x801FAB00;

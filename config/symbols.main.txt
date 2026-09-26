@@ -1,5 +1,3 @@
-D_800EE4C0 = 0x800EE4C0; // size:0x64
-D_800ED148 = 0x800ED148; // size:0x133C
 jtbl_80010018 = 0x80010018; // type:jtbl function_owner:main size:40
 jtbl_8001025C = 0x8001025C; // type:jtbl function_owner:decodeMessage size:264
 jtbl_80010364 = 0x80010364; // type:jtbl function_owner:decodeMessage size:160
@@ -1413,7 +1411,3 @@ g_battleCmdTable = 0x80083878;
 g_ovlCmdQueue = 0x80085168;
 g_biosPadEnableFn = 0x8008CB68; // type:u32 BIOS pad-enable entry set by _patch_pad, EnablePAD jumps through it
 g_biosPadDisableFn = 0x8008CB6C; // type:u32 BIOS pad-disable entry set by _patch_pad, DisablePAD jumps through it
-tripleTriadMainLoop = 0x80098304;
-SmInitEventAll = 0x800C00C8; // type:func
-g_seedSalaryTable = 0x800C5F70;
-g_meshRenderCtx = 0x801F0000;
