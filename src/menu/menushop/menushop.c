@@ -416,8 +416,8 @@ static void func_801E5E90(ShopMenuState *s) {
     u16 state;
 
     statePtr = &s->state;
-    btnFlags = g_menuDisplayCfg.inputNew;
-    cfgFlags = g_menuDisplayCfg.inputRepeat;
+    btnFlags = g_menuDisplayCfg.inputRepeat;
+    cfgFlags = g_menuDisplayCfg.inputNew;
     state = s->state;
 
 restart:

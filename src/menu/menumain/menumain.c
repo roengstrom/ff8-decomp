@@ -1380,20 +1380,16 @@ void func_801F5340(void) {
     }
 }
 
-/** @brief Recalculate stats for a party slot and copy result table to dst. */
-void func_801F537C(s32 a0, CopyBlock16 *a1) {
-    CopyBlock16 *src;
-    CopyBlock16 *end;
-
+/**
+ * @brief Recalculate party slot @p a0's stats and copy the result to @p dst.
+ *
+ * @param a0  Party slot to recalculate.
+ * @param dst Receives the computed stat sheet (g_battleChars' first entry).
+ */
+void func_801F537C(s32 a0, BattleCharData *dst) {
     func_801F5300();
     func_801F5190(a0);
-
-    src = (CopyBlock16 *)&g_battleChars;
-    end = (CopyBlock16 *)((u8 *)&g_battleChars + 0x1D0);
-    do {
-        *a1++ = *src++;
-    } while (src != end);
-
+    *dst = g_battleChars.chars[0];
     func_801F5340();
     recalcPartyStats();
 }
@@ -1877,15 +1873,13 @@ void func_801F66B0(s32 ctx, s32 dl, s32 x, s32 y, s32 charIdx) {
 }
 
 /**
- * @brief Adjust cursor position based on D-pad input with wrapping and guard.
+ * @brief Step a cursor down or up the D-pad, wrapping at both ends.
  *
  * If max == 1 (single option), returns 0 immediately.
- * Checks bit flags for up (0x4000) and down (0x1000) input.
- * On up: increments position, wraps to 0 if >= max.
- * On down: decrements position, wraps to max-1 if < 0.
+ * Down advances the cursor and wraps to 0; up retreats it and wraps to max-1.
  * Plays a sound effect on each valid input.
  *
- * @param flags   Input button flags.
+ * @param flags   One of the g_menuDisplayCfg input words.
  * @param max     Maximum position value (exclusive).
  * @param current Current cursor position.
  * @return Updated cursor position, or 0 if max == 1.
@@ -1894,14 +1888,14 @@ s32 func_801F6768(u16 flags, s32 max, s32 current) {
     if (max == 1) {
         return 0;
     }
-    if (flags & 0x4000) {
+    if (flags & PADLdown) {
         sendSpuCommand(1);
         current++;
         if (current >= max) {
             current = 0;
         }
     }
-    if (flags & 0x1000) {
+    if (flags & PADLup) {
         sendSpuCommand(1);
         current--;
         if (current < 0) {
@@ -1912,27 +1906,25 @@ s32 func_801F6768(u16 flags, s32 max, s32 current) {
 }
 
 /**
- * @brief Adjust cursor position based on D-pad input with wrapping.
+ * @brief Step a cursor right or left the D-pad, wrapping at both ends.
  *
- * Checks bit flags for right (0x2000) and left (0x8000) input.
- * On right: increments position, wraps to 0 if >= max.
- * On left: decrements position, wraps to max-1 if < 0.
+ * Right advances the cursor and wraps to 0; left retreats it and wraps to max-1.
  * Plays a sound effect on each valid input.
  *
- * @param flags   Input button flags.
+ * @param flags   One of the g_menuDisplayCfg input words.
  * @param max     Maximum position value (exclusive).
  * @param current Current cursor position.
  * @return Updated cursor position.
  */
 s32 func_801F6800(u16 flags, s32 max, s32 current) {
-    if (flags & 0x2000) {
+    if (flags & PADLright) {
         sendSpuCommand(1);
         current++;
         if (current >= max) {
             current = 0;
         }
     }
-    if (flags & 0x8000) {
+    if (flags & PADLleft) {
         sendSpuCommand(1);
         current--;
         if (current < 0) {
@@ -2175,19 +2167,18 @@ void func_801F76A8(s32 a0) {
 }
 
 /**
- * @brief Handle left/right D-pad input for value adjustment.
+ * @brief Nudge a value right or left with the D-pad.
  *
- * If right pressed (0x2000), increments; if left (0x8000), decrements.
  * Plays a sound effect if the value changed.
  */
 s32 func_801F76E0(s32 flags, s32 a1, s32 a2) {
     s32 result = a2;
     s32 orig = a2;
 
-    if (flags & 0x2000) {
+    if (flags & PADLright) {
         result = func_80035B28(a1, result);
     }
-    if (flags & 0x8000) {
+    if (flags & PADLleft) {
         result = func_80035B70(a1, orig);
     }
     if (result != orig) {
@@ -2381,9 +2372,9 @@ s32 func_801F7BE4(s32 a0) {
     return a0;
 }
 
-/** @brief Play toggle sound effect (sound 2 if bit 6 set, else sound 3). */
+/** @brief Click confirm or cancel, from a press-edge input word. */
 void func_801F7BEC(s32 a0) {
-    if (a0 & 0x40) {
+    if (a0 & PADRdown) {
         sendSpuCommand(2);
     } else {
         sendSpuCommand(3);

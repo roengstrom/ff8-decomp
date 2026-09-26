@@ -58,8 +58,8 @@ static void func_801E81A4(JunkShopMenuState *s) {
     u32 cfgFlags;
     u16 *statePtr;
 
-    btnFlags = g_menuDisplayCfg.inputNew;
-    cfgFlags = g_menuDisplayCfg.inputRepeat;
+    btnFlags = g_menuDisplayCfg.inputRepeat;
+    cfgFlags = g_menuDisplayCfg.inputNew;
     statePtr = &s->state;
 
     switch (*statePtr) {

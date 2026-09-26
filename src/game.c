@@ -305,7 +305,7 @@ u8 *getMagicNamePtr(s32 magicId) {
  * @param spellId Spell/ability index.
  * @return Resolved data pointer via resolveKernelPtr.
  */
-s32 getSpellEntityData(s32 spellId) {
+u8 *getSpellEntityData(s32 spellId) {
     if (spellId < 0x40) {
         return resolveKernelPtr(g_gfData.junctionData[spellId].nameParam1, g_gfData.ptrGfSpellData);
     }

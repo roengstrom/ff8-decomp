@@ -12,6 +12,9 @@ void gameStateLoop(void);
 /** @brief Look up entry @p stringId of the kernel string table. */
 u8 *getMenuString(s32 stringId);
 
+/** @brief Look up the kernel record of magic spell @p spellId. */
+u8 *getSpellEntityData(s32 spellId);
+
 /** @brief Look up the name string for stat/command @p statId. */
 u8 *getStatName(s32 statId);
 

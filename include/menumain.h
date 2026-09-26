@@ -39,9 +39,6 @@ void func_801F7B60(void);                     /**< Menu teardown/exit helper. */
 /* Private typedefs/structs                                                 */
 /* ======================================================================== */
 
-/** @brief 16-byte block used to copy stat tables word-wise (func_801F537C). */
-typedef struct { s32 w0, w1, w2, w3; } CopyBlock16;
-
 /**
  * @brief Menu task node: pool slot linked into the active-task ring.
  *

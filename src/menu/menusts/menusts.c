@@ -56,20 +56,16 @@ s32 func_801E586C(s32 index) {
 }
 
 /**
- * @brief Wrapper that calls getMagicNamePtr with a0 offset by 0x33.
- *
- * @param a0 Base pointer to a menu entry structure.
+ * @brief Wrapper that calls getMagicNamePtr with @p a0 offset by 0x33.
  */
-void func_801E5890(u8 *a0) {
+void func_801E5890(s32 a0) {
     getMagicNamePtr(a0 + 0x33);
 }
 
 /**
- * @brief Wrapper that calls getSpellEntityData with a0 offset by 0x33.
- *
- * @param a0 Base pointer to a menu entry structure.
+ * @brief Wrapper that calls getSpellEntityData with @p a0 offset by 0x33.
  */
-void func_801E58B0(u8 *a0) {
+void func_801E58B0(s32 a0) {
     getSpellEntityData(a0 + 0x33);
 }
 

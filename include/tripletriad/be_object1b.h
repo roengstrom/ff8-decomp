@@ -36,11 +36,10 @@ extern void highlightCardSlot(s32 groupId, s32 priority);
 
 /* Enums / defines / consts */
 
-/** matchFlowHandler hold-frame durations + result-screen cancel bit. */
+/** matchFlowHandler hold-frame durations. */
 #define TT_HOLD_FRAMES_RULE  0x1E    /**< Hold after a combo capture (MATCH_FLOW_RULES). */
 #define TT_HOLD_FRAMES_TALLY 0x0C    /**< Hold on the card-count tally (MATCH_FLOW_TALLY). */
 #define TT_HOLD_FRAMES_FADE  0x0F    /**< Hold during the result fade (MATCH_FLOW_FADE). */
-#define PAD_UP               0x4000  /**< Result-screen cancel bit (g_padPressed[2]). */
 
 /** @brief @c D_80082C9C match-result category (also picks the @c TripleTriadData record bumped). */
 #define TT_RESULT_VICTORY 0

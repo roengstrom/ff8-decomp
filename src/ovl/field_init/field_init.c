@@ -59,7 +59,6 @@ typedef struct {
 
 /* --- Externs (sorted by address) --- */
 
-extern s8 D_8005F170;
 extern BattleConfig g_battleConfig;
 extern CardDataBlock g_cardData;
 extern u8 D_8008369C[];
