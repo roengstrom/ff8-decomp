@@ -52,6 +52,9 @@ typedef struct {
     u8 fieldC3;
 } PadPort;
 
+/** @brief PadPort.fieldC3 bit 7: the analog option (CONFIG_ANALOG); bits 0-6 hold the dead zone. */
+#define PAD_ANALOG_FLAG 0x80
+
 #define OT_SIZE 18
 
 /** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
@@ -89,15 +92,14 @@ typedef struct {
 /** @brief Engine state every module shares: display lists, message windows, the HUD and more. */
 typedef struct {
     /* 0x000 */ PadPort ports[2]; /**< The two controller ports. */
-    /* 0x188 */ u8 cdBufA[0x24];             /**< CD audio buffer A. */
-    /* 0x1AC */ u8 cdBufB[0x24];             /**< CD audio buffer B. */
+    /* 0x188 */ u8 padBufs[2][0x24]; /**< Each port's raw read from the pad driver: status, type, buttons, sticks. */
     /* 0x1D0 */ s16 globalCoords[2][2];      /**< Per-slot coords [slot][axis]. */
-    /* 0x1D8 */ u16 clipLeft;               /**< Clip region left edge. */
-    /* 0x1DA */ u16 clipTop;                /**< Clip region top edge. */
-    /* 0x1DC */ u16 clipRight;              /**< Clip region right edge. */
-    /* 0x1DE */ u16 clipBottom;             /**< Clip region bottom edge. */
+    /* 0x1D8 */ s16 clipLeft;               /**< Clip region left edge. */
+    /* 0x1DA */ s16 clipTop;                /**< Clip region top edge. */
+    /* 0x1DC */ s16 clipRight;              /**< Clip region right edge. */
+    /* 0x1DE */ s16 clipBottom;             /**< Clip region bottom edge. */
     /* 0x1E0 */ U16Split repeatDelays;       /**< Pad auto-repeat timing (autoRepeatPadChannel): restart delay in @c b.lo, repeat interval in @c b.hi. */
-    /* 0x1E2 */ u8 pad1E2; /**< Unknown. */
+    /* 0x1E2 */ u8 padInputOn; /**< While 0, every pad reads as no buttons held. */
     /* 0x1E3 */ u8 animFlag; /**< Also addressed directly as @c g_animFlag. */
     /* 0x1E4 */ u8 pad1E4[0x3C]; /**< Unknown. */
     /* 0x220 */ DialogSystem dialogs;               /**< Message windows; also addressed directly as @c g_dialogs. */
