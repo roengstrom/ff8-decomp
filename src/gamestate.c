@@ -745,7 +745,7 @@ void func_80037FB0(s32 variant, s32 bank, s32 buf) {
 /**
  * @brief Start the battle music and the battle-start sound effects.
  *
- * Unless bit 0x10 of g_battleConfig.unk2 is set: waits for the sound engine,
+ * Unless the battle keeps the field's music: waits for the sound engine,
  * loads the battleMusicId bank into @p buf (func_80037FB0), waits for the load
  * and starts it. Then plays the three battle-start effects, another three for
  * a boss battle.
@@ -755,7 +755,7 @@ void func_80037FB0(s32 variant, s32 bank, s32 buf) {
 void func_80038030(s32 buf) {
     FieldVars *ptr = (FieldVars *)D_800780D8;
 
-    if (!(g_battleConfig.unk2 & 0x10)) {
+    if (!(g_battleConfig.unk2 & BATTLE_FLAG_KEEP_MUSIC)) {
         while (sndGetStatus() == 2) {
             func_800393C8();
         }

@@ -17,6 +17,10 @@
  * instead of the play time, and a battle ends when it reaches 0. */
 #define BATTLE_FLAG_COUNTDOWN 0x04
 
+/** @brief BattleConfig.unk2 flag: the battle keeps the field's music. No battle music is
+ * loaded before it and the field's is not reloaded after. */
+#define BATTLE_FLAG_KEEP_MUSIC 0x10
+
 #define GET_OFFSET(type, ptr, var) ((type*)(var + (intrptr_t)ptr))
 
 /** @brief Battle command config (g_battleConfig). */
