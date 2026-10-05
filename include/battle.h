@@ -29,6 +29,13 @@ typedef struct {
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
 } BattleConfig;
 
+/** @brief Bits of BattleConfig.unk8 (D_80082C10) that turn battle commands off. */
+#define BATTLE_CMDS_OFF_4_13 0x01 /**< Commands 4 and 13. */
+#define BATTLE_CMDS_OFF_2 0x02
+#define BATTLE_CMDS_OFF_3 0x04
+#define BATTLE_CMDS_OFF_6 0x08
+#define BATTLE_CMDS_OFF_OTHER 0x10 /**< Every other command except 0. */
+
 /** @brief Clipped rectangle result: the clipped rect + saved pre-clip position. */
 typedef struct {
     RECT rect; /* 0x00: clipped rectangle */
@@ -512,6 +519,15 @@ typedef struct {
     u8 unk3;
 } BattleCmdSlot;
 
+/** @brief Flag bits of a battle menu entry: BattleMagicSlot.unk4, BattleCmdSlot.unk3, BattleItemSlot.unk4. */
+#define MENU_ENTRY_TARGETS_KO 0x01 /**< Can target KO'd units (the kernel's ATTACK_FLAG_TARGET_KO). */
+#define MENU_ENTRY_UNAVAILABLE 0x02 /**< Turned off by the battle, or a GF at 0 HP. */
+#define MENU_ENTRY_JUNCTIONED 0x04 /**< The spell is junctioned to one of the character's stats. */
+#define MENU_ENTRY_UNK08 0x08 /**< Set on command 0x0D. */
+
+/** @brief Battle ID of GF 0; GF n is BATTLE_GF_ID_BASE + n. */
+#define BATTLE_GF_ID_BASE 0x40
+
 typedef struct {
     u8 unk0;
     u8 unk1;
@@ -538,7 +554,7 @@ typedef struct {
     /* 0x01C */ u8 unk1C;
     /* 0x01D */ u8 unk1D;
     /* 0x01E */ BattleCmdSlot cmdSlots[4];
-    /* 0x02E */ u8 pad2E[4];
+    /* 0x02E */ BattleCmdSlot limitSlot; /**< The limit break command, beside the four in cmdSlots. */
     /* 0x032 */ BattleTestSlot testSlots[16];
     /* 0x082 */ BattleMagicSlot magicSlots[32];
     /* 0x122 */ BattleItemSlot itemSlots[16];

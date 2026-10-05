@@ -10,6 +10,7 @@ void vsyncGameHandler(void);
 void gameStateLoop(void);
 
 s32 isBossBattle(void);
+s32 hasJunctionedAbility(s32 partySlot, s32 abilityId);
 
 u8 *getBattleCommandName(s32 id);
 

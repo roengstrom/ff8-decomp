@@ -4,9 +4,32 @@
 #include "gamestate.h"
 #include "gf.h"
 #include "gf_anim.h"
+#include "game.h"
+
+/** @brief A GF's battle stats (12 bytes). */
+typedef struct {
+    /* 0x0 */ s16 hp;
+    /* 0x2 */ s16 maxHp;
+    /* 0x4 */ u32 exp;
+    /* 0x8 */ u8 level;
+    /* 0x9 */ u8 unk9;
+    /* 0xA */ u8 hpPercent; /**< Max HP as a percentage of the level's curve value: 100 plus the learned GF HP+ abilities. */
+    /* 0xB */ u8 flags;
+} BattleGfStats;
+
+/** BattleGfStats.flags: HP is below a quarter of max. */
+#define GF_STATS_LOW_HP 0x80
+/** Bit of BattleCharData.statusFlags: the first command is 0x0C instead of 1. */
+#define ABILITY_FIRST_CMD_0C 0x01
+/** Ability IDs that index g_kernel.commandAbilities and g_kernel.gfAbilities. */
+#define COMMAND_ABILITY_FIRST 0x14
+#define COMMAND_ABILITY_END 0x27
+#define GF_ABILITY_FIRST 0x53
+#define GF_ABILITY_END 0x5C
 
 extern u8 D_80082C10;
 extern CharacterData g_characters[];
+extern BattleGfStats D_80078D38[16]; /**< One per GF, inside g_battleChars. */
 
 extern s32 getXpToNextLevel(u32 exp, s32 charIdx);
 extern s32 findCharXpLevel(u32 exp, s32 charIdx);
@@ -21,36 +44,60 @@ extern s32 getAtkElemBonus(s32 charIdx);
 extern s32 decodeAtkStatusMask(s32 charIdx);
 extern s32 getAtkStatusFlags(s32 charIdx);
 extern s32 calcAtkStatusHit(s32 charIdx);
+extern s32 getAbilityModifier(s32 charIdx, s32 a1);
+extern s32 findAbilityLevel(s32 a0, s32 a1);
+extern s32 evalStatCurve(s32 a0, s32 a1);
+/** gf_curve.c defines it with a fallback argument too; func_80022E08 calls it with one, as the original does. */
+extern s32 func_80021B58(s32 charIdx);
 
-INCLUDE_ASM("asm/nonmatchings/gf_anim", func_800229FC);
-
-
-/** @brief GF animation slot (4 bytes, inside GfAnimState at +0x1E). */
-typedef struct {
-    u8 gfId;            /* 0x00: GF/animation index. */
-    u8 frameStart;      /* 0x01: start frame from g_kernel. */
-    u8 frameEnd;        /* 0x02: end frame from g_kernel. */
-    u8 frameCounter;    /* 0x03: current frame counter. */
-} GfAnimSlot;
-
-/** @brief GF animation state block. */
-typedef struct {
-    u8 pad[0x1E];
-    GfAnimSlot slots[16];
-} GfAnimState;
+static void initCommandSlot(BattleCharData *bc, s32 index, s32 cmdType);
+static s32 getStatusImmunityFlags(u32 a0);
+static s32 hasCommandType6(BattleCharData *charData);
+static s32 getMagicAvailFlags(BattleCharData *charData);
+static void applyPartyAbilityFlags(s32 charIdx);
+static s32 func_80022CDC(s32 cmd);
+static void clearCharSlotData(BattleCharData *charData);
 
 /**
- * @brief Initialize a GF animation slot with look-up data from g_kernel.
+ * @brief Refresh the flags and kernel bytes of a party member's battle magic list.
  *
- * @param state Animation state block.
- * @param index Slot index.
- * @param gfId GF/animation index to set.
+ * For each of the 32 magic slots of @c g_battleChars.chars[slot], the flag byte
+ * becomes 1 when bit 0x80 of the spell's kernel attack flags is set, and gets
+ * bit 2 when the spell is junctioned to one of the character's stats. The
+ * spell's target info and status window flags are copied from the kernel.
+ *
+ * @param slot Party slot (0-2).
  */
-void initGfAnimEntry(GfAnimState *state, s32 index, s32 gfId) {
-    state->slots[index].gfId = gfId;
-    state->slots[index].frameStart = g_kernel.battleCommands[state->slots[index].gfId].menuFlags;
-    state->slots[index].frameCounter = 0;
-    state->slots[index].frameEnd = g_kernel.battleCommands[state->slots[index].gfId].targetInfo;
+void func_800229FC(s32 slot) {
+    BattleCharData *bc = &g_battleChars.chars[slot];
+    s32 i;
+
+    for (i = 0; i < 32; i++) {
+        bc->magicSlots[i].unk4 = 0;
+        if (g_kernel.magic[bc->magicSlots[i].unk0].attackFlags & ATTACK_FLAG_TARGET_KO) {
+            bc->magicSlots[i].unk4 = MENU_ENTRY_TARGETS_KO;
+        }
+        if (hasJunctionedAbility(slot, bc->magicSlots[i].unk0)) {
+            bc->magicSlots[i].unk4 |= MENU_ENTRY_JUNCTIONED;
+        }
+        bc->magicSlots[i].unk3 = g_kernel.magic[bc->magicSlots[i].unk0].targetInfo;
+        bc->magicSlots[i].unk2 = g_kernel.magic[bc->magicSlots[i].unk0].statusWindowFlags;
+    }
+}
+
+
+/**
+ * @brief Fill in one of a party member's battle command slots.
+ *
+ * @param bc Battle character data.
+ * @param index Command slot index.
+ * @param cmdType Battle command ID; the slot's menu flags and target info come from g_kernel.
+ */
+static void initCommandSlot(BattleCharData *bc, s32 index, s32 cmdType) {
+    bc->cmdSlots[index].cmdType = cmdType;
+    bc->cmdSlots[index].unk1 = g_kernel.battleCommands[bc->cmdSlots[index].cmdType].menuFlags;
+    bc->cmdSlots[index].unk3 = 0;
+    bc->cmdSlots[index].unk2 = g_kernel.battleCommands[bc->cmdSlots[index].cmdType].targetInfo;
 }
 
 
@@ -61,7 +108,7 @@ void initGfAnimEntry(GfAnimState *state, s32 index, s32 gfId) {
  * @note Abilities in range 0x3A..0x4D are status immunity abilities; each has R/G/B
  *       immunity bytes looked up from g_kernel.characterAbilities[].
  */
-s32 getStatusImmunityFlags(u32 a0) {
+static s32 getStatusImmunityFlags(u32 a0) {
     s32 result = 0;
     s32 i = 0;
     do {
@@ -84,7 +131,7 @@ s32 getStatusImmunityFlags(u32 a0) {
  * @param charData Battle character data.
  * @return 1 if any slot has type == 6, 0 otherwise.
  */
-s32 hasCommandType6(BattleCharData *charData) {
+static s32 hasCommandType6(BattleCharData *charData) {
     s32 i;
     for (i = 0; i < 4; i++) {
         if (charData->cmdSlots[i].cmdType == 6) return 1;
@@ -99,12 +146,12 @@ s32 hasCommandType6(BattleCharData *charData) {
  * @return Flags: bit 0 set if status bit 0x20000 is active; bit 1 set if magic commands present
  *         (unless D_80082C10 bit 3 is set, which suppresses the magic flag).
  */
-s32 getMagicAvailFlags(BattleCharData *charData) {
+static s32 getMagicAvailFlags(BattleCharData *charData) {
     s32 val = charData->statusFlags;
     s32 masked = val & 0x20000;
     s32 flag = masked != 0;
     if (hasCommandType6(charData)) {
-        if (D_80082C10 & 8) {
+        if (D_80082C10 & BATTLE_CMDS_OFF_6) {
             return flag;
         }
         flag |= 2;
@@ -120,7 +167,7 @@ s32 getMagicAvailFlags(BattleCharData *charData) {
  *       in g_kernel.partyAbilities[] and OR'd into g_battleChars party ability flags
  *       at offset 0x6D8. Likely enables field/world abilities (encounter-none, rare-item).
  */
-void applyPartyAbilityFlags(s32 charIdx) {
+static void applyPartyAbilityFlags(s32 charIdx) {
     s32 i;
     for (i = 0; i < 4; i++) {
         u8 ability = g_gameState.chars[charIdx].abilities[i];
@@ -131,7 +178,49 @@ void applyPartyAbilityFlags(s32 charIdx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022CDC);
+/**
+ * @brief Test whether the battle's command flags turn off command @p cmd.
+ *
+ * The flag byte D_80082C10 (g_battleConfig.unk8) has one bit per group of
+ * commands: 0x02 for command 2, 0x04 for 3, 0x08 for 6, 0x01 for 4 and 13,
+ * and 0x10 for every other command except 0, which is never turned off.
+ *
+ * @param cmd Battle command ID.
+ * @return 1 if the command is turned off, 0 otherwise.
+ */
+static s32 func_80022CDC(s32 cmd) {
+    switch (cmd) {
+    case 2:
+        if (D_80082C10 & BATTLE_CMDS_OFF_2) {
+            return 1;
+        }
+        break;
+    case 3:
+        if (D_80082C10 & BATTLE_CMDS_OFF_3) {
+            return 1;
+        }
+        break;
+    case 6:
+        if (D_80082C10 & BATTLE_CMDS_OFF_6) {
+            return 1;
+        }
+        break;
+    case 4:
+    case 13:
+        if (D_80082C10 & BATTLE_CMDS_OFF_4_13) {
+            return 1;
+        }
+        break;
+    case 0:
+        break;
+    default:
+        if (D_80082C10 & BATTLE_CMDS_OFF_OTHER) {
+            return 1;
+        }
+        break;
+    }
+    return 0;
+}
 
 
 /**
@@ -141,7 +230,7 @@ INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022CDC);
  *       16 entries of 5 bytes at offset 0x122 (item inventory), 4 entries of 4 bytes at
  *       offset 0x1E (command slots), plus fields at 0x1C, 0x1D, and a u16 at 0x14.
  */
-void clearCharSlotData(BattleCharData *charData) {
+static void clearCharSlotData(BattleCharData *charData) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
@@ -173,7 +262,100 @@ void clearCharSlotData(BattleCharData *charData) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gf_anim", func_80022E08);
+/**
+ * @brief Set up a party member's battle data from their save data.
+ *
+ * Copies the character's ID, HP, experience, level and statuses into
+ * @c g_battleChars.chars[slot], then builds its battle menus: the junctioned
+ * GFs (one at 0 HP is unavailable), the three junctioned commands with their
+ * kernel bytes and flags, the first command (command 1, or 0x0C when bit 0 of
+ * the ability flags is set) and the limit break. An empty slot (@p charIdx
+ * 0xFF) only gets its character ID set to 0xFF.
+ *
+ * @param charIdx Character ID (0-7) into g_gameState.chars[], or 0xFF if empty.
+ * @param slot Party slot (0-2) into g_battleChars.chars[].
+ */
+void func_80022E08(s32 charIdx, s32 slot) {
+    CharacterData *cd = &g_gameState.chars[charIdx];
+    BattleCharData *bc = &g_battleChars.chars[slot];
+    u16 gfBits;
+    s32 i;
+    s32 j;
+    s32 data;
+
+    bc->characterId = cd->characterId;
+    if (charIdx == 0xFF) {
+        bc->characterId = 0xFF;
+        return;
+    }
+    bc->unk172 = cd->currentHp;
+    bc->exp = cd->experience;
+    bc->xpToNext = getXpToNextLevel(cd->experience, charIdx);
+    bc->level = findCharXpLevel(cd->experience, charIdx);
+    bc->unk1B9 = cd->alternateModel;
+    bc->classId = func_80021B58(charIdx);
+    bc->displayStatus = cd->statusFlags;
+    bc->unk188 = 0;
+    bc->statusFlags = getStatusImmunityFlags(charIdx);
+    applyPartyAbilityFlags(charIdx);
+    clearCharSlotData(bc);
+
+    j = 0;
+    gfBits = cd->junctedGfs;
+    for (i = 0; i < 16; i++) {
+        if (gfBits & 1) {
+            bc->itemSlots[j].unk0 = BATTLE_GF_ID_BASE + i;
+            bc->itemSlots[j].unk1 = 1;
+            bc->itemSlots[j].unk4 = 0;
+            if (g_gameState.gfs[i].hp == 0) {
+                bc->itemSlots[j].unk4 = MENU_ENTRY_UNAVAILABLE;
+            }
+            bc->itemSlots[j].unk3 = g_kernel.junctionableGfs[i].targetInfo;
+            bc->itemSlots[j].unk2 = g_kernel.junctionableGfs[i].statusWindowFlags;
+            j++;
+        }
+        /* The do/while adds a loop level to gfBits's uses: without it the
+         * register allocator swaps gfBits and the kernel entry pointer ($a1/$a2). */
+        do {
+            gfBits >>= 1;
+        } while (0);
+    }
+
+    for (i = 1, j = 0; i < 4; i++, j++) {
+        if (cd->commands[j] >= COMMAND_ABILITY_FIRST && cd->commands[j] < COMMAND_ABILITY_END) {
+            bc->cmdSlots[i].cmdType = g_kernel.commandAbilities[cd->commands[j] - COMMAND_ABILITY_FIRST].typeField;
+            bc->cmdSlots[i].unk1 = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].menuFlags;
+            bc->cmdSlots[i].unk3 = 0;
+            bc->cmdSlots[i].unk2 = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].targetInfo;
+            if (bc->cmdSlots[i].cmdType == 0xD) {
+                bc->cmdSlots[i].unk3 |= MENU_ENTRY_UNK08;
+            }
+            data = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].abilityDataId;
+            if (data != 0xFF && (g_kernel.commandAbilityData[data].attackFlags & ATTACK_FLAG_TARGET_KO)) {
+                bc->cmdSlots[i].unk3 |= MENU_ENTRY_TARGETS_KO;
+            }
+            if (func_80022CDC(bc->cmdSlots[i].cmdType)) {
+                bc->cmdSlots[i].unk3 |= MENU_ENTRY_UNAVAILABLE;
+            }
+        }
+    }
+
+    i = 1;
+    if (bc->statusFlags & ABILITY_FIRST_CMD_0C) {
+        i = 0xC;
+    }
+    initCommandSlot(bc, 0, i);
+
+    bc->limitSlot.cmdType = g_kernel.characters[bc->characterId].limitBreakId;
+    bc->limitSlot.unk2 = g_kernel.battleCommands[bc->limitSlot.cmdType].targetInfo;
+    bc->limitSlot.unk1 = g_kernel.battleCommands[bc->limitSlot.cmdType].menuFlags;
+    bc->limitSlot.unk3 = 0;
+
+    for (i = 0; i < 9; i++) {
+        bc->statCoefs[i] = getAbilityModifier(charIdx, i);
+    }
+    bc->fieldStatusByte = getMagicAvailFlags(bc);
+}
 
 
 /**
@@ -295,7 +477,59 @@ void func_800231E0(s32 charIdx, s32 battleSlot)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gf_anim", func_8002363C);
+/**
+ * @brief Recalculate one GF's battle stats from its save data.
+ *
+ * Sets the GF's level from its experience, then goes through the GF
+ * abilities it has learned (IDs 0x53 to 0x5B, in the third and fourth words of
+ * the learned-ability bits): each ORs its kernel type bits into the flags and
+ * adds its value to unk9 or to the HP percentage. Max HP is the level's curve
+ * value times that percentage, capped at 9999. The saved HP is clamped to it
+ * and copied in, and flag 0x80 marks HP below a quarter of max.
+ *
+ * @param gfIdx GF index (0-15).
+ */
+void func_8002363C(s32 gfIdx) {
+    BattleGfStats *gs = &D_80078D38[gfIdx];
+    GfSaveData *save = &g_gameState.gfs[gfIdx];
+    u32 bits;
+    s32 ability;
+    s32 k;
+    s32 b;
+    s32 hp;
+
+    gs->hpPercent = 100;
+    gs->flags = 0;
+    gs->unk9 = 0;
+    gs->level = findAbilityLevel(save->exp, gfIdx);
+    gs->exp = save->exp;
+    ability = 2 * 32;
+    for (k = 2; k < 4; k++) {
+        bits = save->completeAbilities[k];
+        for (b = 0; b < 32; b++) {
+            if ((bits & 1) && ability >= GF_ABILITY_FIRST && ability < GF_ABILITY_END) {
+                gs->flags |= g_kernel.gfAbilities[ability - GF_ABILITY_FIRST].typeField;
+                if (g_kernel.gfAbilities[ability - GF_ABILITY_FIRST].bonusField == 0) {
+                    gs->unk9 += g_kernel.gfAbilities[ability - GF_ABILITY_FIRST].extraField;
+                }
+                if (g_kernel.gfAbilities[ability - GF_ABILITY_FIRST].bonusField == 1) {
+                    gs->hpPercent += g_kernel.gfAbilities[ability - GF_ABILITY_FIRST].extraField;
+                }
+            }
+            bits >>= 1;
+            ability++;
+        }
+    }
+    gs->maxHp = clampToMaxHp(gs->hpPercent * evalStatCurve(gs->level, gfIdx) / 100);
+    if (gs->maxHp < save->hp) {
+        save->hp = gs->maxHp;
+    }
+    gs->hp = save->hp;
+    hp = gs->hp;
+    if (hp < gs->maxHp >> 2) {
+        gs->flags |= GF_STATS_LOW_HP;
+    }
+}
 
 
 /**
