@@ -314,10 +314,6 @@ extern u8 D_80063388[];
  *         indicate a known SPU sample slot and can be popped immediately. */
 extern u32 D_800772B8;
 
-/** @brief Load a sample bank into SPU RAM at the given destination address.
- *         @c a0 = mode (0 = standard), @c bank = sound-bank id,
- *         @c fileLba = staging buffer / file address. */
-extern void func_80037FB0(s32 variant, s32 bank, s32 buf);
 
 
 #endif /* SOUND_H */

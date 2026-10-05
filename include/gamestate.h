@@ -434,9 +434,11 @@ extern u16 g_textSpeeds[];
  *         callback during field-engine init. */
 extern void stopAllSounds(void);
 
-/** @brief Draw callback installed by @c SmInitEventAll (gamestate.c).
- *  @note Purpose uncertain — body still in assembly. */
-extern void func_80037D40();
+/** @brief Draw callback: bring the music and effects back up and replay the queued effects. */
+extern void func_80037D40(void);
+
+/** @brief Start reading sound bank @p bank into @p buf; @p variant picks the callback that finishes the load. */
+extern void func_80037FB0(s32 variant, s32 bank, s32 buf);
 
 /* Render dispatch mode + fade bytes (main-binary state shared across units). */
 extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the field, world and battle engines spin on, each with its own value. */
@@ -459,7 +461,7 @@ extern u16 *D_800852F0;
 extern void setGfExists(s32 gfId);
 extern void clearEntityFlags(void);
 extern void func_800370AC(s32 arg0);
-extern void func_80038030(s32 mapAddr);
+extern void func_80038030(s32 buf);
 extern void func_80038490(u8 *src, u8 *dst);
 extern void enableChocoboWorld(void);
 

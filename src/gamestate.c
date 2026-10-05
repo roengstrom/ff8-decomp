@@ -592,7 +592,7 @@ s32 func_80037C6C(s32 charId) {
     u8 id = charId;
     s32 i;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < PARTY_SLOT_COUNT; i++) {
         if (g_gameState.mainData.party.party[i] != PARTY_SLOT_EMPTY
             && g_gameState.chars[g_gameState.mainData.party.party[i]].characterId == id) {
             /* The original returns a u8; its callers see the int of gamestate.h. */
@@ -742,7 +742,17 @@ void func_80037FB0(s32 variant, s32 bank, s32 buf) {
 }
 
 
-void func_80038030(s32 arg0) {
+/**
+ * @brief Start the battle music and the battle-start sound effects.
+ *
+ * Unless bit 0x10 of g_battleConfig.unk2 is set: waits for the sound engine,
+ * loads the battleMusicId bank into @p buf (func_80037FB0), waits for the load
+ * and starts it. Then plays the three battle-start effects, another three for
+ * a boss battle.
+ *
+ * @param buf Where the music bank is loaded.
+ */
+void func_80038030(s32 buf) {
     FieldVars *ptr = (FieldVars *)D_800780D8;
 
     if (!(g_battleConfig.unk2 & 0x10)) {
@@ -755,8 +765,8 @@ void func_80038030(s32 arg0) {
         }
 
         sndCmd40();
-        D_80085220 = arg0;
-        func_80037FB0(0, ptr->battleMusicId, arg0);
+        D_80085220 = buf;
+        func_80037FB0(0, ptr->battleMusicId, buf);
 
         if (ptr->soundLoadComplete == 0) {
             do {
