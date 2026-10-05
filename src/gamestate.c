@@ -9,6 +9,9 @@
 #include "cdread.h"
 #include "battle.h"
 #include "game.h"
+#include "cd.h"
+#include "sound.h"
+#include "snd_init.h"
 
 extern u8 D_8007809B[];
 extern u8 g_chocoboWorld;
@@ -17,6 +20,8 @@ extern FieldVars *g_fieldVars;
 extern u8 D_8005F388[];
 extern u8 D_80063388[];
 extern s32 D_80085220;
+/** Sector and size of each sound bank's file: master file table entries 30 on, as flat pairs. */
+extern u32 D_800974F0[];
 extern u8 D_8005644B[];
 extern s32 D_800562D4;
 extern s32 findNthSetBit(s32, s32);
@@ -574,7 +579,28 @@ u8 findCharacterSlot(u8 characterId) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037C6C);
+/**
+ * @brief Find the active party slot whose member has character ID @p charId.
+ *
+ * Unlike findPartySlot, which compares the party entries themselves, this
+ * compares each member's CharacterData.characterId.
+ *
+ * @param charId Character ID (low 8 bits used).
+ * @return Party slot (0-2), or PARTY_SLOT_EMPTY if no member has it.
+ */
+s32 func_80037C6C(s32 charId) {
+    u8 id = charId;
+    s32 i;
+
+    for (i = 0; i < 3; i++) {
+        if (g_gameState.mainData.party.party[i] != PARTY_SLOT_EMPTY
+            && g_gameState.chars[g_gameState.mainData.party.party[i]].characterId == id) {
+            /* The original returns a u8; its callers see the int of gamestate.h. */
+            return (u8)i;
+        }
+    }
+    return PARTY_SLOT_EMPTY;
+}
 
 
 /**
@@ -596,7 +622,29 @@ void stopAllSounds(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037D40);
+/**
+ * @brief Draw callback: bring the music and effects back up and replay the queued effects.
+ *
+ * Sets channel 0 to musicVolume and, if it plays, channel 1 to sfxVolume, then
+ * plays each pending D_80074F20 entry: a negative command through
+ * sndPlayBankSfx, a positive one through sndPlaySfx as command - 1.
+ */
+void func_80037D40(void) {
+    s32 i;
+
+    sndCmdC1(g_fieldVars->soundHandle0, 15, g_fieldVars->musicVolume);
+    if (g_fieldVars->soundHandle1 != SND_HANDLE_NONE) {
+        sndCmdC1(g_fieldVars->soundHandle1, 15, g_fieldVars->sfxVolume);
+    }
+    for (i = 0; i < 12; i++) {
+        if (D_80074F20[i].cmd < 0) {
+            sndPlayBankSfx(D_80074F20[i].cmd, D_80074F20[i].arg1, D_80074F20[i].fieldC, D_80074F20[i].field8);
+        } else if (D_80074F20[i].cmd > 0) {
+            sndPlaySfx(D_80074F20[i].cmd - 1, D_80074F20[i].arg1, D_80074F20[i].fieldC, D_80074F20[i].field8);
+        }
+    }
+    sndCmd45();
+}
 
 
 /**
@@ -673,7 +721,25 @@ void loadSoundBankB(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037FB0);
+/**
+ * @brief Start reading sound bank @p bank from the disc into @p buf.
+ *
+ * Clears soundLoadComplete; when the read finishes, loadSoundBankA (variant 0)
+ * or loadSoundBankB processes the data and sets it again.
+ *
+ * @param variant 0 to finish with loadSoundBankA, otherwise loadSoundBankB.
+ * @param bank Sound bank index.
+ * @param buf Load address, also kept in D_80085220.
+ */
+void func_80037FB0(s32 variant, s32 bank, s32 buf) {
+    D_80085220 = buf;
+    g_fieldVars->soundLoadComplete = 0;
+    if (variant == 0) {
+        cdRead(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankA);
+    } else {
+        cdRead(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankB);
+    }
+}
 
 
 void func_80038030(s32 arg0) {
@@ -698,7 +764,7 @@ void func_80038030(s32 arg0) {
             } while (ptr->soundLoadComplete == 0);
         }
 
-        D_8005F11C = sndCmd10(toggleSoundBank());
+        D_8005F11C = sndCmd10((s32)toggleSoundBank());
         sndCmdC0(0, 0x7F);
     }
 
@@ -807,7 +873,28 @@ s32 getPackedField2Bit(s32 entryIdx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_800383B8);
+/**
+ * @brief Store a 2-bit value in the packed table at g_fieldVars->drawPointFlag.
+ *
+ * The setter twin of getPackedField2Bit: four entries per byte, entry @p key
+ * at bits ((key % 4) * 2) of byte key / 4.
+ *
+ * @param key Entry index (low 8 bits used).
+ * @param status Value to store (low 2 bits used).
+ */
+void func_800383B8(s32 key, s32 status) {
+    s32 shift;
+    s32 mask;
+
+    status &= 3;
+    key &= 0xFF;
+    shift = key % 4;
+    shift *= 2;
+    status <<= shift;
+    mask = 3 << shift;
+    g_fieldVars->drawPointFlag[key / 4] &= ~mask;
+    g_fieldVars->drawPointFlag[key / 4] |= status;
+}
 
 
 /** @brief Looks up byte from D_8005644B table at index a0 (masked to 8 bits).

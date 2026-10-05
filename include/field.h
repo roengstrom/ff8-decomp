@@ -267,7 +267,7 @@ typedef struct {
     /* 0xD3 */ u8 dialogStartMask;         /**< Per-slot dialog start bitmask (set when shown). */
     /* 0xD4 */ u8 dialogEntryMask;         /**< Per-slot dialog entry-table bitmask (set when the slot is registered in @c D_80085300). */
     /* 0xD5 */ u8 nextSoundBank;        /**< Sound bank ID staged by MUSICCHANGE; copied into @c audioChannel0State on swap. */
-    /* 0xD6 */ u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
+    /* 0xD6 */ volatile u8 soundLoadComplete; /**< Set to 1 by the CD read callback once a sound bank is loaded. */
     /* 0xD7 */ u8 padD7;
     /* 0xD8 */ s16 dialogStateMirror;   /**< Mirror of @c g_fieldEntity.dialogState (kept in sync by fe_object9). */
     /* 0xDA */ u16 fieldDA;

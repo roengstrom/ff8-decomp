@@ -317,7 +317,7 @@ extern u32 D_800772B8;
 /** @brief Load a sample bank into SPU RAM at the given destination address.
  *         @c a0 = mode (0 = standard), @c bank = sound-bank id,
  *         @c fileLba = staging buffer / file address. */
-extern s32 func_80037FB0(s32 a0, s8 bank, s32 fileLba);
+extern void func_80037FB0(s32 variant, s32 bank, s32 buf);
 
 
 #endif /* SOUND_H */
