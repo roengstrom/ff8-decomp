@@ -493,60 +493,37 @@ typedef struct {
     u8 freeSpace[4];
 } BattleOtBuf;
 
-/** @brief Battle magic slot entry (5 bytes). */
+/** @brief An entry of a party member's battle magic, GF or limit break list (5 bytes). */
 typedef struct {
-    u8 unk0;
-    s8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-} BattleMagicSlot;
+    /* 0x0 */ u8 id; /**< A magic ID, a GF's battle ID, or what the limit break lists (a Blue Magic, an ammo item...). */
+    /* 0x1 */ s8 count; /**< The spell's stock or the ammo Irvine holds; 1 for anything else. */
+    /* 0x2 */ u8 statusWindowFlags;
+    /* 0x3 */ u8 targetInfo;
+    /* 0x4 */ u8 flags; /**< MENU_ENTRY_* bits. */
+} BattleMenuEntry;
 
-/** @brief Battle item slot entry (5 bytes). */
+/** @brief A battle command slot (4 bytes). */
 typedef struct {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-} BattleItemSlot;
-
-/** @brief Battle command slot entry (4 bytes). */
-typedef struct {
-    u8 cmdType;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
+    /* 0x0 */ u8 cmdType; /**< Index into g_kernel.battleCommands. */
+    /* 0x1 */ u8 menuFlags;
+    /* 0x2 */ u8 targetInfo;
+    /* 0x3 */ u8 flags; /**< MENU_ENTRY_* bits. */
 } BattleCmdSlot;
 
-/** @brief Flag bits of a battle menu entry: BattleMagicSlot.unk4, BattleCmdSlot.unk3, BattleItemSlot.unk4. */
+/** @brief Bits of BattleMenuEntry.flags and BattleCmdSlot.flags. */
 #define MENU_ENTRY_TARGETS_KO 0x01 /**< Can target KO'd units (the kernel's ATTACK_FLAG_TARGET_KO). */
-#define MENU_ENTRY_UNAVAILABLE 0x02 /**< Turned off by the battle, or a GF at 0 HP. */
-#define MENU_ENTRY_JUNCTIONED 0x04 /**< The spell is junctioned to one of the character's stats. */
+#define MENU_ENTRY_UNAVAILABLE 0x02 /**< Greyed out: turned off by the battle, a GF at 0 HP, ammo Irvine doesn't hold. */
+#define MENU_ENTRY_JUNCTIONED 0x04 /**< On a spell: junctioned to a stat. On the first command: a limit break is ready. */
 #define MENU_ENTRY_UNK08 0x08 /**< Set on command 0x0D. */
+#define MENU_ENTRY_UNK10 0x10 /**< On the Magic command: Double or Triple is active. On a limit entry: the slot is empty. */
 
 /** @brief Battle ID of GF 0; GF n is BATTLE_GF_ID_BASE + n. */
 #define BATTLE_GF_ID_BASE 0x40
 
-typedef struct {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-} BattleUnkSlot;
-
-typedef struct{
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-} BattleTestSlot;
-
 /** @brief Battle character render data (g_battleChars, stride 0x1D0 = 464 bytes). */
 typedef struct {
     /* 0x000 */ u8 pad0[0x008 - 0x000];
-    /* 0x008 */ BattleUnkSlot unkSlots[3];
+    /* 0x008 */ BattleCmdSlot subCmdSlots[3];
     /* 0x014 */ u16 unk14;
     /* 0x016 */ u16 unk16;
     /* 0x018 */ s16 currentHp;          /**< Current HP in battle. */
@@ -554,10 +531,10 @@ typedef struct {
     /* 0x01C */ u8 unk1C;
     /* 0x01D */ u8 unk1D;
     /* 0x01E */ BattleCmdSlot cmdSlots[4];
-    /* 0x02E */ BattleCmdSlot limitSlot; /**< The limit break command, beside the four in cmdSlots. */
-    /* 0x032 */ BattleTestSlot testSlots[16];
-    /* 0x082 */ BattleMagicSlot magicSlots[32];
-    /* 0x122 */ BattleItemSlot itemSlots[16];
+    /* 0x02E */ BattleCmdSlot limitCmdSlot; /**< The limit break command, beside the four in cmdSlots. */
+    /* 0x032 */ BattleMenuEntry limitSlots[16]; /**< What the limit break lists, e.g. Quistis' Blue Magic or Irvine's ammo. */
+    /* 0x082 */ BattleMenuEntry magicSlots[32];
+    /* 0x122 */ BattleMenuEntry gfSlots[16]; /**< The junctioned GFs. */
     /* 0x172 */ s16 unk172;          /**< Mirrored HP cap (set with hpRegenCap when battle HP is reduced). */
     /* 0x174 */ s16 hpRegenCap;        /**< HP regen cap (field-walk tick stops when currentHp reaches this). */
     /* 0x176 */ u8 pad176[0x178 - 0x176];

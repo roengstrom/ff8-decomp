@@ -1401,8 +1401,8 @@ void func_8009EAEC(s32 charIdx) {
             func_8002363C(sp10[i]);
 
             for (j = 0; j < 16; j++) {
-                if (g_battleChars.chars[charIdx].itemSlots[j].unk0 == sp10[i] + 64) {
-                    g_battleChars.chars[charIdx].itemSlots[j].unk4 &= 253;
+                if (g_battleChars.chars[charIdx].gfSlots[j].id == sp10[i] + 64) {
+                    g_battleChars.chars[charIdx].gfSlots[j].flags &= 253;
                     break;
                 }
             }
@@ -2649,36 +2649,36 @@ void func_800A1760(s32 arg0, BattleCharData* arg1) {
             case 2:
                 if (arg0 == 0) {
                     if (!(g_battleConfig.unk8 & 2)) {
-                        arg1->cmdSlots[i].unk3 &= ~2;
+                        arg1->cmdSlots[i].flags &= ~2;
                     }
                 } 
                 
                 else {
-                    arg1->cmdSlots[i].unk3 |= 2;
+                    arg1->cmdSlots[i].flags |= 2;
                 }
             break;
 
             case 3:
                 if (arg0 == 0) {
                     if (!(g_battleConfig.unk8 & 4)) {
-                        arg1->cmdSlots[i].unk3 &= ~2;
+                        arg1->cmdSlots[i].flags &= ~2;
                     }
                 } 
                 
                 else {
-                    arg1->cmdSlots[i].unk3 |= 2;
+                    arg1->cmdSlots[i].flags |= 2;
                 }
             break;
 
             case 6:
                 if (arg0 == 0) {
                     if (!(g_battleConfig.unk8 & 8)) {
-                        arg1->cmdSlots[i].unk3 &= ~2;
+                        arg1->cmdSlots[i].flags &= ~2;
                     }
                 } 
                 
                 else {
-                    arg1->cmdSlots[i].unk3 |= 2;
+                    arg1->cmdSlots[i].flags |= 2;
                 }
             break;
         }

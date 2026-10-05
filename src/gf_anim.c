@@ -73,15 +73,15 @@ void func_800229FC(s32 slot) {
     s32 i;
 
     for (i = 0; i < 32; i++) {
-        bc->magicSlots[i].unk4 = 0;
-        if (g_kernel.magic[bc->magicSlots[i].unk0].attackFlags & ATTACK_FLAG_TARGET_KO) {
-            bc->magicSlots[i].unk4 = MENU_ENTRY_TARGETS_KO;
+        bc->magicSlots[i].flags = 0;
+        if (g_kernel.magic[bc->magicSlots[i].id].attackFlags & ATTACK_FLAG_TARGET_KO) {
+            bc->magicSlots[i].flags = MENU_ENTRY_TARGETS_KO;
         }
-        if (hasJunctionedAbility(slot, bc->magicSlots[i].unk0)) {
-            bc->magicSlots[i].unk4 |= MENU_ENTRY_JUNCTIONED;
+        if (hasJunctionedAbility(slot, bc->magicSlots[i].id)) {
+            bc->magicSlots[i].flags |= MENU_ENTRY_JUNCTIONED;
         }
-        bc->magicSlots[i].unk3 = g_kernel.magic[bc->magicSlots[i].unk0].targetInfo;
-        bc->magicSlots[i].unk2 = g_kernel.magic[bc->magicSlots[i].unk0].statusWindowFlags;
+        bc->magicSlots[i].targetInfo = g_kernel.magic[bc->magicSlots[i].id].targetInfo;
+        bc->magicSlots[i].statusWindowFlags = g_kernel.magic[bc->magicSlots[i].id].statusWindowFlags;
     }
 }
 
@@ -95,9 +95,9 @@ void func_800229FC(s32 slot) {
  */
 static void initCommandSlot(BattleCharData *bc, s32 index, s32 cmdType) {
     bc->cmdSlots[index].cmdType = cmdType;
-    bc->cmdSlots[index].unk1 = g_kernel.battleCommands[bc->cmdSlots[index].cmdType].menuFlags;
-    bc->cmdSlots[index].unk3 = 0;
-    bc->cmdSlots[index].unk2 = g_kernel.battleCommands[bc->cmdSlots[index].cmdType].targetInfo;
+    bc->cmdSlots[index].menuFlags = g_kernel.battleCommands[bc->cmdSlots[index].cmdType].menuFlags;
+    bc->cmdSlots[index].flags = 0;
+    bc->cmdSlots[index].targetInfo = g_kernel.battleCommands[bc->cmdSlots[index].cmdType].targetInfo;
 }
 
 
@@ -224,35 +224,35 @@ static s32 func_80022CDC(s32 cmd) {
 
 
 /**
- * @brief Clear a character's magic, item, and command slot data.
- * @param a0 Pointer to a character data structure.
- * @note Zeroes out three arrays: 32 entries of 5 bytes at offset 0x82 (magic inventory),
- *       16 entries of 5 bytes at offset 0x122 (item inventory), 4 entries of 4 bytes at
- *       offset 0x1E (command slots), plus fields at 0x1C, 0x1D, and a u16 at 0x14.
+ * @brief Clear a party member's battle magic list, GF list and command slots.
+ *
+ * Also zeroes unk1C, unk1D and unk14.
+ *
+ * @param charData The party member's battle data.
  */
 static void clearCharSlotData(BattleCharData *charData) {
     s32 i;
 
     for (i = 0; i < 0x20; i++) {
-        charData->magicSlots[i].unk2 = 0;
-        charData->magicSlots[i].unk3 = 0;
-        charData->magicSlots[i].unk4 = 0;
-        charData->magicSlots[i].unk1 = 0;
-        charData->magicSlots[i].unk0 = 0;
+        charData->magicSlots[i].statusWindowFlags = 0;
+        charData->magicSlots[i].targetInfo = 0;
+        charData->magicSlots[i].flags = 0;
+        charData->magicSlots[i].count = 0;
+        charData->magicSlots[i].id = 0;
     }
 
     for (i = 0; i < 0x10; i++) {
-        charData->itemSlots[i].unk2 = 0;
-        charData->itemSlots[i].unk3 = 0;
-        charData->itemSlots[i].unk4 = 0;
-        charData->itemSlots[i].unk1 = 0;
-        charData->itemSlots[i].unk0 = 0;
+        charData->gfSlots[i].statusWindowFlags = 0;
+        charData->gfSlots[i].targetInfo = 0;
+        charData->gfSlots[i].flags = 0;
+        charData->gfSlots[i].count = 0;
+        charData->gfSlots[i].id = 0;
     }
 
     for (i = 0; i < 4; i++) {
-        charData->cmdSlots[i].unk2 = 0;
-        charData->cmdSlots[i].unk3 = 0;
-        charData->cmdSlots[i].unk1 = 0;
+        charData->cmdSlots[i].targetInfo = 0;
+        charData->cmdSlots[i].flags = 0;
+        charData->cmdSlots[i].menuFlags = 0;
         charData->cmdSlots[i].cmdType = 0;
     }
 
@@ -304,14 +304,14 @@ void func_80022E08(s32 charIdx, s32 slot) {
     gfBits = cd->junctedGfs;
     for (i = 0; i < 16; i++) {
         if (gfBits & 1) {
-            bc->itemSlots[j].unk0 = BATTLE_GF_ID_BASE + i;
-            bc->itemSlots[j].unk1 = 1;
-            bc->itemSlots[j].unk4 = 0;
+            bc->gfSlots[j].id = BATTLE_GF_ID_BASE + i;
+            bc->gfSlots[j].count = 1;
+            bc->gfSlots[j].flags = 0;
             if (g_gameState.gfs[i].hp == 0) {
-                bc->itemSlots[j].unk4 = MENU_ENTRY_UNAVAILABLE;
+                bc->gfSlots[j].flags = MENU_ENTRY_UNAVAILABLE;
             }
-            bc->itemSlots[j].unk3 = g_kernel.junctionableGfs[i].targetInfo;
-            bc->itemSlots[j].unk2 = g_kernel.junctionableGfs[i].statusWindowFlags;
+            bc->gfSlots[j].targetInfo = g_kernel.junctionableGfs[i].targetInfo;
+            bc->gfSlots[j].statusWindowFlags = g_kernel.junctionableGfs[i].statusWindowFlags;
             j++;
         }
         /* The do/while adds a loop level to gfBits's uses: without it the
@@ -324,18 +324,18 @@ void func_80022E08(s32 charIdx, s32 slot) {
     for (i = 1, j = 0; i < 4; i++, j++) {
         if (cd->commands[j] >= COMMAND_ABILITY_FIRST && cd->commands[j] < COMMAND_ABILITY_END) {
             bc->cmdSlots[i].cmdType = g_kernel.commandAbilities[cd->commands[j] - COMMAND_ABILITY_FIRST].typeField;
-            bc->cmdSlots[i].unk1 = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].menuFlags;
-            bc->cmdSlots[i].unk3 = 0;
-            bc->cmdSlots[i].unk2 = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].targetInfo;
+            bc->cmdSlots[i].menuFlags = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].menuFlags;
+            bc->cmdSlots[i].flags = 0;
+            bc->cmdSlots[i].targetInfo = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].targetInfo;
             if (bc->cmdSlots[i].cmdType == 0xD) {
-                bc->cmdSlots[i].unk3 |= MENU_ENTRY_UNK08;
+                bc->cmdSlots[i].flags |= MENU_ENTRY_UNK08;
             }
             data = g_kernel.battleCommands[bc->cmdSlots[i].cmdType].abilityDataId;
             if (data != 0xFF && (g_kernel.commandAbilityData[data].attackFlags & ATTACK_FLAG_TARGET_KO)) {
-                bc->cmdSlots[i].unk3 |= MENU_ENTRY_TARGETS_KO;
+                bc->cmdSlots[i].flags |= MENU_ENTRY_TARGETS_KO;
             }
             if (func_80022CDC(bc->cmdSlots[i].cmdType)) {
-                bc->cmdSlots[i].unk3 |= MENU_ENTRY_UNAVAILABLE;
+                bc->cmdSlots[i].flags |= MENU_ENTRY_UNAVAILABLE;
             }
         }
     }
@@ -346,10 +346,10 @@ void func_80022E08(s32 charIdx, s32 slot) {
     }
     initCommandSlot(bc, 0, i);
 
-    bc->limitSlot.cmdType = g_kernel.characters[bc->characterId].limitBreakId;
-    bc->limitSlot.unk2 = g_kernel.battleCommands[bc->limitSlot.cmdType].targetInfo;
-    bc->limitSlot.unk1 = g_kernel.battleCommands[bc->limitSlot.cmdType].menuFlags;
-    bc->limitSlot.unk3 = 0;
+    bc->limitCmdSlot.cmdType = g_kernel.characters[bc->characterId].limitBreakId;
+    bc->limitCmdSlot.targetInfo = g_kernel.battleCommands[bc->limitCmdSlot.cmdType].targetInfo;
+    bc->limitCmdSlot.menuFlags = g_kernel.battleCommands[bc->limitCmdSlot.cmdType].menuFlags;
+    bc->limitCmdSlot.flags = 0;
 
     for (i = 0; i < 9; i++) {
         bc->statCoefs[i] = getAbilityModifier(charIdx, i);
@@ -407,8 +407,8 @@ s32 clampToMaxHp(s32 a0) {
  * Copies a character's magic inventory, level/XP, derived stats, element
  * resistances, and status data from g_characters[charIdx] into the battle
  * character render block at g_battleChars.chars[battleSlot]. Returns
- * immediately if charIdx is 0xFF (empty slot). Finally toggles bit 4 of a
- * matching command slot's status byte based on bit 0x60000 of field188.
+ * immediately if charIdx is 0xFF (empty slot). Finally sets MENU_ENTRY_UNK10 on
+ * the command 2 slot while unk188 has Double or Triple, and clears it otherwise.
  *
  * @param charIdx    Character ID (0-7) into g_characters[], or 0xFF if empty.
  * @param battleSlot Party slot (0-2) into g_battleChars.chars[].
@@ -423,8 +423,8 @@ void func_800231E0(s32 charIdx, s32 battleSlot)
     if (charIdx == 0xFF) return;
 
     for (i = 0; i < 32; i++) {
-        bc->magicSlots[i].unk0 = cd->magic[i].magicId;
-        bc->magicSlots[i].unk1 = cd->magic[i].quantity;
+        bc->magicSlots[i].id = cd->magic[i].magicId;
+        bc->magicSlots[i].count = cd->magic[i].quantity;
     }
 
     func_800229FC(battleSlot);
@@ -467,12 +467,12 @@ void func_800231E0(s32 charIdx, s32 battleSlot)
         s32 idx;
         if (findCommandSlot((u8 *)bc, 2) == 0xFF) return;
         idx = findCommandSlot((u8 *)bc, 2);
-        bc->cmdSlots[idx].unk3 |= 0x10;
+        bc->cmdSlots[idx].flags |= MENU_ENTRY_UNK10;
     } else {
         s32 idx;
         if (findCommandSlot((u8 *)bc, 2) == 0xFF) return;
         idx = findCommandSlot((u8 *)bc, 2);
-        bc->cmdSlots[idx].unk3 &= ~0x10;
+        bc->cmdSlots[idx].flags &= ~MENU_ENTRY_UNK10;
     }
 }
 
