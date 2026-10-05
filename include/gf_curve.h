@@ -13,6 +13,9 @@
 #include "common.h"
 #include "character.h"
 
+/** @brief Raise party member @p partySlot's stat @p stat (0 STR .. 5 LCK) by 1. */
+void func_8002153C(s32 partySlot, s32 stat);
+
 /** @brief Evaluate the shared quadratic stat curve. */
 s32 evalQuadraticCurve(s32 a0, s32 a1, s32 a2);
 
@@ -31,8 +34,8 @@ s32 evalEntityXpCurve(s32 entityIdx, s32 a1);
 /** @brief Invert the character XP curve: the level for a given XP total. */
 s32 findCharXpLevel(s32 a0, s32 a1);
 
-/** @brief Add @p exp to party member @p idx's EXP; returns the new level. */
-s32 func_8002257C(s32 idx, u16 exp);
+/** @brief Add @p exp to party member @p partySlot's EXP; returns the new level. */
+s32 func_8002257C(s32 partySlot, u16 exp);
 
 /** @brief XP remaining until the next level. */
 s32 getXpToNextLevel(s32 a0, s32 a1);
@@ -51,6 +54,9 @@ s32 getAbilityModifier(s32 charIdx, s32 a1);
 
 /** @brief Character HP at @p level. */
 s32 calcHpFromLevel(s32 level, s32 charIdx);
+
+/** @brief Party member @p charIdx's stat @p kind (a JunctionType, STR..LCK) at @p level. */
+s32 func_80021C10(s32 level, s32 charIdx, s32 kind);
 
 /** @brief Hit rate stat for character @p charIdx. */
 s32 calcHitStat(s32 charIdx, s32 a1);

@@ -81,14 +81,13 @@ typedef struct {
     u8 limitBreakParam;          /**< +0x05: Power of each Renzokuken hit before the finisher. */
     u8 linearCoeff;              /**< +0x06: XP curve linear coefficient. */
     u8 quadDivisor;              /**< +0x07: XP curve quadratic divisor. */
-    u8 constant;                 /**< +0x08: XP curve constant term. */
-    u8 pad09[3];                 /**< +0x09..+0x0B: Unknown. */
-    u8 field0C;                  /**< +0x0C: Unknown. */
-    u8 field0D;                  /**< +0x0D: Unknown. */
-    u8 subIdx;                   /**< +0x0E: calcHpFromLevel multiplier. */
-    u8 divisorField;             /**< +0x0F: calcHpFromLevel divisor. */
-    u8 addend;                   /**< +0x10: calcHpFromLevel addend. */
-    u8 pad11[0x13];              /**< +0x11..+0x23: Unknown. */
+    u8 hpCurve[4]; /**< +0x08: HP growth: per level, divisor of 10 x level squared, base. */
+    u8 strCurve[4]; /**< +0x0C: STR growth; VIT..LCK follow in the same form. */
+    u8 vitCurve[4]; /**< +0x10 */
+    u8 magCurve[4]; /**< +0x14 */
+    u8 sprCurve[4]; /**< +0x18 */
+    u8 spdCurve[4]; /**< +0x1C */
+    u8 lckCurve[4]; /**< +0x20 */
 } CharacterEntry; /* 36 bytes */
 
 /** @brief CharacterEntry.gender of a female character. */

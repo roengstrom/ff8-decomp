@@ -544,7 +544,7 @@ typedef struct {
     /* 0x184 */ u32 unk184;
     /* 0x188 */ u32 unk188;          /**< Status/ability mask checked for bit 0x60000. */
     /* 0x18C */ s32 abilityFlags;
-    /* 0x190 */ s32 statusFlags;
+    /* 0x190 */ s32 statusFlags; /**< The equipped character abilities: CHAR_ABILITY_* bits. */
     /* 0x194 */ u16 elemResistances[8];/**< Element resistance values (8 × s16). */
     /* 0x1A4 */ u8 statusResistances[13];/**< Status resistance values (13 × u8). */
     /* 0x1B1 */ u8 pad1B1;
@@ -561,6 +561,14 @@ typedef struct {
     /* 0x1C6 */ u8 fieldStatusByte;    /**< Status byte checked by field script (bit 1 = greyed out). */
     /* 0x1C7 */ u8 statCoefs[9];       /**< Stat coefficient table (HP, str, vit, mag, spr, spd, ?, eva, hit). */
 } BattleCharData;    /* 0x1D0: 464 bytes */
+
+/** @brief Bits of BattleCharData.statusFlags, from each character ability's kernel entry. */
+#define CHAR_ABILITY_MUG 0x01 /**< Mug replaces the Attack command. */
+#define CHAR_ABILITY_HP_BONUS 0x80 /**< +30 max HP per level gained. */
+#define CHAR_ABILITY_STR_BONUS 0x100 /**< +1 STR per level gained. */
+#define CHAR_ABILITY_VIT_BONUS 0x200 /**< +1 VIT per level gained. */
+#define CHAR_ABILITY_MAG_BONUS 0x400 /**< +1 MAG per level gained. */
+#define CHAR_ABILITY_SPR_BONUS 0x800 /**< +1 SPR per level gained. */
 
 /** @brief GF battle entry (12 bytes, used for GF HP in battle). */
 typedef struct {

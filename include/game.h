@@ -12,6 +12,9 @@ void gameStateLoop(void);
 s32 isBossBattle(void);
 s32 hasJunctionedAbility(s32 partySlot, s32 abilityId);
 
+/** @brief Add @p amount to party member @p partyIdx's max HP, capped at 9999. */
+void addCharMaxHp(s32 partyIdx, s32 amount);
+
 u8 *getBattleCommandName(s32 id);
 
 /** @brief Look up entry @p stringId of the kernel's misc text table. */

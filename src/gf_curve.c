@@ -4,8 +4,37 @@
 #include "gf.h"
 #include "gamestate.h"
 #include "gf_curve.h"
+#include "game.h"
 
-INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002153C);
+/**
+ * @brief Raise one of a party member's stats by 1, capped at 255.
+ * @param partySlot Party slot (0-2).
+ * @param stat 0 STR, 1 VIT, 2 MAG, 3 SPR, 4 SPD, 5 LCK.
+ */
+void func_8002153C(s32 partySlot, s32 stat) {
+    CharacterData *cd = &g_gameState.chars[g_gameState.mainData.party.party[partySlot]];
+
+    switch (stat) {
+    case 0:
+        cd->str = clampToByte(cd->str + 1);
+        break;
+    case 1:
+        cd->vit = clampToByte(cd->vit + 1);
+        break;
+    case 2:
+        cd->mag = clampToByte(cd->mag + 1);
+        break;
+    case 3:
+        cd->spr = clampToByte(cd->spr + 1);
+        break;
+    case 4:
+        cd->spd = clampToByte(cd->spd + 1);
+        break;
+    case 5:
+        cd->lck = clampToByte(cd->lck + 1);
+        break;
+    }
+}
 
 
 /**
@@ -197,8 +226,6 @@ s32 getAbilityModifier(s32 charIdx, s32 a1) {
 * @param level Character level.
 * @param charIdx Character slot index (stride 152 in g_gameState).
 * @return HP value computed as: level*coef - level²×10/div + base + maxHp + junctionBonus.
-* @note Uses xpCurves36[characterClass] fields at +0x08 (coef), +0x09 (div), +0x0A (base).
-*       The junction bonus is: junctionData[hpSlot].pad12[5] * getMagicQuantity().
 */
 s32 calcHpFromLevel(s32 level, s32 charIdx) {
     u8 hpJunc;
@@ -215,9 +242,9 @@ s32 calcHpFromLevel(s32 level, s32 charIdx) {
     charId = g_gameState.chars[charIdx].characterId;
     count = getMagicQuantity(charIdx, hpJunc);
     juncMult = multiply(g_kernel.magic[hpJunc].statJunction[JUNCTION_HP], count);
-    _div = g_kernel.characters[charId].pad09[0];
-    coef = g_kernel.characters[charId].constant;
-    addBase = g_kernel.characters[charId].pad09[1];
+    _div = g_kernel.characters[charId].hpCurve[1];
+    coef = g_kernel.characters[charId].hpCurve[0];
+    addBase = g_kernel.characters[charId].hpCurve[2];
     maxHp = g_gameState.chars[charIdx].maxHp;
     result = level * coef - (level * level * 10) / _div + addBase + maxHp + juncMult;
     return result;
@@ -257,7 +284,72 @@ s32 func_80021B58(s32 charIdx, s32 fallback) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gf_curve", func_80021C10);
+/**
+ * @brief A party member's STR, VIT, MAG, SPR, SPD or LCK before the percentage abilities.
+ *
+ * The stat's growth curve at @p level, plus the character's own bonus to the
+ * stat, the junctioned spell's value scaled by its stock and, for STR, the
+ * weapon's STR bonus. SPD and LCK grow linearly; the other four with a
+ * quadratic term, a quarter as fast.
+ *
+ * @param level Character level.
+ * @param charIdx Character index into g_gameState.chars.
+ * @param kind JUNCTION_STR..JUNCTION_SPD or JUNCTION_LCK.
+ * @return The stat, clamped to 255.
+ */
+s32 func_80021C10(s32 level, s32 charIdx, s32 kind) {
+    u8 charId = g_gameState.chars[charIdx].characterId;
+    u8 *curve;
+    s32 magicId;
+    s32 jValue;
+    s32 bonus;
+    s32 weaponStr = 0;
+
+    switch (kind) {
+    case JUNCTION_STR:
+        curve = g_kernel.characters[charId].strCurve;
+        magicId = g_gameState.chars[charIdx].junctions[JUNCTION_STR];
+        bonus = g_gameState.chars[charIdx].str;
+        jValue = g_kernel.magic[magicId].statJunction[JUNCTION_STR];
+        /* The original passes no fallback, so func_80021B58 reads whatever is left in a1. */
+        weaponStr = g_kernel.weapons[((s32 (*)())func_80021B58)(charIdx)].strBonus;
+        break;
+    case JUNCTION_VIT:
+        curve = g_kernel.characters[charId].vitCurve;
+        magicId = g_gameState.chars[charIdx].junctions[JUNCTION_VIT];
+        bonus = g_gameState.chars[charIdx].vit;
+        jValue = g_kernel.magic[magicId].statJunction[JUNCTION_VIT];
+        break;
+    case JUNCTION_MAG:
+        curve = g_kernel.characters[charId].magCurve;
+        magicId = g_gameState.chars[charIdx].junctions[JUNCTION_MAG];
+        bonus = g_gameState.chars[charIdx].mag;
+        jValue = g_kernel.magic[magicId].statJunction[JUNCTION_MAG];
+        break;
+    case JUNCTION_SPR:
+        curve = g_kernel.characters[charId].sprCurve;
+        magicId = g_gameState.chars[charIdx].junctions[JUNCTION_SPR];
+        bonus = g_gameState.chars[charIdx].spr;
+        jValue = g_kernel.magic[magicId].statJunction[JUNCTION_SPR];
+        break;
+    case JUNCTION_SPD:
+        curve = g_kernel.characters[charId].spdCurve;
+        magicId = g_gameState.chars[charIdx].junctions[JUNCTION_SPD];
+        bonus = g_gameState.chars[charIdx].spd;
+        jValue = g_kernel.magic[magicId].statJunction[JUNCTION_SPD];
+        break;
+    case JUNCTION_LCK:
+        curve = g_kernel.characters[charId].lckCurve;
+        magicId = g_gameState.chars[charIdx].junctions[JUNCTION_LCK];
+        bonus = g_gameState.chars[charIdx].lck;
+        jValue = g_kernel.magic[magicId].statJunction[JUNCTION_LCK];
+        break;
+    }
+    if (kind == JUNCTION_SPD || kind == JUNCTION_LCK) {
+        return clampToByte(level * curve[0] + level / curve[1] + curve[2] - level / curve[3] + bonus + multiplyDiv100(jValue, getMagicQuantity(charIdx, magicId)) + weaponStr);
+    }
+    return clampToByte((level * curve[0] / 10 + level / curve[1] + curve[2] - level * level / curve[3] / 2) / 4 + bonus + multiplyDiv100(jValue, getMagicQuantity(charIdx, magicId)) + weaponStr);
+}
 
 
 /**
@@ -407,7 +499,59 @@ s32 getStatusResistance(s32 charIdx, s32 shiftBit) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gf_curve", func_8002257C);
+/**
+ * @brief Add battle EXP to a party member and apply the level-up bonuses.
+ *
+ * At level 100 the EXP is set to exactly what level 100 needs. For each level
+ * gained, HP Bonus adds 30 max HP and Str/Vit/Mag/Spr Bonus raise their stat by 1.
+ *
+ * @param partySlot Party slot (0-2).
+ * @param exp EXP to add.
+ * @return The new level, or PARTY_SLOT_EMPTY for an empty slot.
+ */
+s32 func_8002257C(s32 partySlot, u16 exp) {
+    s32 charIdx = g_gameState.mainData.party.party[partySlot];
+    CharacterData *cd;
+    BattleCharData *bc;
+    s32 oldLevel;
+    s32 level;
+    s32 i;
+
+    if (charIdx == PARTY_SLOT_EMPTY) {
+        return PARTY_SLOT_EMPTY;
+    }
+    cd = &g_gameState.chars[charIdx];
+    bc = &g_battleChars.chars[partySlot];
+    oldLevel = findCharXpLevel(cd->experience, charIdx);
+    cd->experience += exp;
+    bc->exp = cd->experience;
+    level = findCharXpLevel(cd->experience, charIdx);
+    if (level >= 100) {
+        level = 100;
+        cd->experience = evalQuadraticCurve(99, g_kernel.characters[charIdx].linearCoeff, g_kernel.characters[charIdx].quadDivisor);
+        bc->exp = cd->experience;
+    }
+    if (oldLevel != 100) {
+        for (i = 0; i < level - oldLevel; i++) {
+            if (bc->statusFlags & CHAR_ABILITY_HP_BONUS) {
+                addCharMaxHp(partySlot, 30);
+            }
+            if (bc->statusFlags & CHAR_ABILITY_STR_BONUS) {
+                func_8002153C(partySlot, 0);
+            }
+            if (bc->statusFlags & CHAR_ABILITY_VIT_BONUS) {
+                func_8002153C(partySlot, 1);
+            }
+            if (bc->statusFlags & CHAR_ABILITY_MAG_BONUS) {
+                func_8002153C(partySlot, 2);
+            }
+            if (bc->statusFlags & CHAR_ABILITY_SPR_BONUS) {
+                func_8002153C(partySlot, 3);
+            }
+        }
+    }
+    return level;
+}
 
 
 /**

@@ -5,6 +5,7 @@
 #include "gf.h"
 #include "gf_anim.h"
 #include "game.h"
+#include "gf_curve.h"
 
 /** @brief A GF's battle stats (12 bytes). */
 typedef struct {
@@ -19,8 +20,6 @@ typedef struct {
 
 /** BattleGfStats.flags: HP is below a quarter of max. */
 #define GF_STATS_LOW_HP 0x80
-/** Bit of BattleCharData.statusFlags: the first command is 0x0C instead of 1. */
-#define ABILITY_FIRST_CMD_0C 0x01
 /** Ability IDs that index g_kernel.commandAbilities and g_kernel.gfAbilities. */
 #define COMMAND_ABILITY_FIRST 0x14
 #define COMMAND_ABILITY_END 0x27
@@ -30,25 +29,6 @@ typedef struct {
 extern u8 D_80082C10;
 extern CharacterData g_characters[];
 extern BattleGfStats D_80078D38[16]; /**< One per GF, inside g_battleChars. */
-
-extern s32 getXpToNextLevel(u32 exp, s32 charIdx);
-extern s32 findCharXpLevel(u32 exp, s32 charIdx);
-extern s32 calcHpFromLevel(s32 level, s32 charIdx);
-extern s32 func_80021C10(s32 level, s32 charIdx, s32 kind);
-extern s32 getElemResistance(s32 charIdx, s32 shiftBit);
-extern s32 getStatusResistance(s32 charIdx, s32 shiftBit);
-extern s32 calcHitStat(s32 charIdx);
-extern s32 calcEvaStat(s32 charIdx, s32 hit);
-extern s32 getAtkElemBase(s32 charIdx);
-extern s32 getAtkElemBonus(s32 charIdx);
-extern s32 decodeAtkStatusMask(s32 charIdx);
-extern s32 getAtkStatusFlags(s32 charIdx);
-extern s32 calcAtkStatusHit(s32 charIdx);
-extern s32 getAbilityModifier(s32 charIdx, s32 a1);
-extern s32 findAbilityLevel(s32 a0, s32 a1);
-extern s32 evalStatCurve(s32 a0, s32 a1);
-/** gf_curve.c defines it with a fallback argument too; func_80022E08 calls it with one, as the original does. */
-extern s32 func_80021B58(s32 charIdx);
 
 static void initCommandSlot(BattleCharData *bc, s32 index, s32 cmdType);
 static s32 getStatusImmunityFlags(u32 a0);
@@ -293,7 +273,8 @@ void func_80022E08(s32 charIdx, s32 slot) {
     bc->xpToNext = getXpToNextLevel(cd->experience, charIdx);
     bc->level = findCharXpLevel(cd->experience, charIdx);
     bc->unk1B9 = cd->alternateModel;
-    bc->classId = func_80021B58(charIdx);
+    /* The original passes no fallback, so func_80021B58 reads whatever is left in a1. */
+    bc->classId = ((s32 (*)())func_80021B58)(charIdx);
     bc->displayStatus = cd->statusFlags;
     bc->unk188 = 0;
     bc->statusFlags = getStatusImmunityFlags(charIdx);
@@ -341,7 +322,7 @@ void func_80022E08(s32 charIdx, s32 slot) {
     }
 
     i = 1;
-    if (bc->statusFlags & ABILITY_FIRST_CMD_0C) {
+    if (bc->statusFlags & CHAR_ABILITY_MUG) {
         i = 0xC;
     }
     initCommandSlot(bc, 0, i);
@@ -445,7 +426,8 @@ void func_800231E0(s32 charIdx, s32 battleSlot)
     bc->stats[3] = clampToByte(bc->statCoefs[4] * func_80021C10(bc->level, charIdx, 4) / 100);
     bc->stats[4] = clampToByte(bc->statCoefs[5] * func_80021C10(bc->level, charIdx, 5) / 100);
     bc->stats[5] = clampToByte(bc->statCoefs[8] * func_80021C10(bc->level, charIdx, 8) / 100);
-    bc->stats[7] = clampToByte(bc->statCoefs[7] * calcHitStat(charIdx) / 100);
+    /* The original passes no second argument, so calcHitStat reads whatever is left in a1. */
+    bc->stats[7] = clampToByte(bc->statCoefs[7] * ((s32 (*)())calcHitStat)(charIdx) / 100);
     bc->stats[6] = clampToByte(bc->statCoefs[6] * calcEvaStat(charIdx, bc->stats[4]) / 100);
 
     bc->atkElemBase = getAtkElemBase(charIdx);
