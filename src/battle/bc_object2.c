@@ -1396,7 +1396,7 @@ void func_8009EAEC(s32 charIdx) {
 
     if (count != 0) {
         for (i = 0; i < count; i++) {
-            g_gameState.gfs[sp10[i]].hp += (D_800ED148.effectMult * g_battleChars.levelEntries[sp10[i]].hp) / 100;
+            g_gameState.gfs[sp10[i]].hp += (D_800ED148.effectMult * g_battleChars.levelEntries[sp10[i]].maxHp) / 100;
 
             func_8002363C(sp10[i]);
 
@@ -1410,7 +1410,7 @@ void func_8009EAEC(s32 charIdx) {
 
         if (D_800ED148.entities[charIdx].flags & 0x80000000) {
             id = g_battleChars.chars[charIdx].unk1D - 64;
-            g_battleChars.chars[charIdx].currentHp = g_battleChars.levelEntries[id].maxHp;
+            g_battleChars.chars[charIdx].currentHp = g_battleChars.levelEntries[id].hp;
             D_800ED148.entities[charIdx].hpDisplay = g_battleChars.chars[charIdx].currentHp;
         }
     }
@@ -2096,7 +2096,7 @@ void func_8009FE14(s32 arg0) {
             break;
 
         case 254:
-            D_800EEBC0 = g_battleChars.levelEntries[D_800EE4C0.statusCode - 64].unk9;
+            D_800EEBC0 = g_battleChars.levelEntries[D_800EE4C0.statusCode - 64].sumMagBonus;
             D_800EEBB9 = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].element;
             D_800EEBBA = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].statusAccuracy;
             D_800EEBC2 = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].status1;

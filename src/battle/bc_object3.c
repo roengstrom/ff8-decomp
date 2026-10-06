@@ -1045,7 +1045,7 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                 break;
             }
             
-            if (g_battleChars.levelEntries[arg2 - 64].unkB & 1) {
+            if (g_battleChars.levelEntries[arg2 - 64].flags & 1) {
                 D_800ED148.unk12F7 = 1;
             }
     
@@ -1461,7 +1461,7 @@ void func_800A4618(s16 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     temp_v0_2 = g_gameState.gfs[arg3 - 64].hp;
     temp_s0->currentHp = temp_v0_2;
     D_800ED148.entities[arg1].hpDisplay = temp_v0_2;
-    temp_s0->unk1A = g_battleChars.levelEntries[arg3 - 64].hp; 
+    temp_s0->unk1A = g_battleChars.levelEntries[arg3 - 64].maxHp; 
     D_800ED148.entities[arg1].flags |= 0x80000000;
     temp_s0->unk1C |= 1;
 }

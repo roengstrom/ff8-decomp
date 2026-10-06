@@ -1037,10 +1037,10 @@ s32 func_801F2238(s32 a0) {
 }
 
 /**
- * @brief Get entity health condition from g_battleChars.levelEntries table.
+ * @brief Get a GF's health condition.
  *
- * Returns 1 if dead (HP <= 0), 0x100 if critical (HP < 25% max),
- * or 0 for normal health.
+ * @param arg0 GF index (0-15).
+ * @return 1 if its HP is 0 or less, 0x100 if it's below a quarter of max HP, otherwise 0.
  */
 s32 func_801F2240(s32 arg0) {
     BattleLevelEntry* temp_v1;
@@ -1049,11 +1049,11 @@ s32 func_801F2240(s32 arg0) {
     temp_v1 = &g_battleChars.levelEntries[arg0];
 
     var = 0;
-    if (temp_v1->maxHp < 1) {
+    if (temp_v1->hp < 1) {
         var = 1;
     }
         
-    else if (temp_v1->maxHp < (temp_v1->hp >> 2)) {
+    else if (temp_v1->hp < (temp_v1->maxHp >> 2)) {
         var = 256;
     }
     return var;

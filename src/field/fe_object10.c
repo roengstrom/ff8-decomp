@@ -164,13 +164,7 @@ void updateSeedLevel(void) {
 }
 
 /**
- * @brief Tick all active GFs' HP up by 1 toward their battle max.
- *
- * Identical body to @c func_800C48C0 in we_object13. Iterates the 16
- * GF save entries; for each unlocked GF (@c exists bit 0) with
- * non-zero HP, if the current HP is below the GF's battle max (at
- * @c g_battleChars.levelEntries[i].hp), increments it by 1. Runs once
- * per field step to slowly regenerate GF HP while walking.
+ * @brief Add 1 HP to every owned GF that has HP left, up to its max HP.
  */
 void func_800BD5E0(void) {
     s32 i;
@@ -179,7 +173,7 @@ void func_800BD5E0(void) {
         if (g_gameState.gfs[i].exists & 1) {
             u16 hp = g_gameState.gfs[i].hp;
             if (hp != 0) {
-                if (g_gameState.gfs[i].hp < g_battleChars.levelEntries[i].hp) {
+                if (g_gameState.gfs[i].hp < g_battleChars.levelEntries[i].maxHp) {
                     g_gameState.gfs[i].hp++;
                 }
             }

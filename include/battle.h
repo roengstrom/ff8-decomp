@@ -571,17 +571,18 @@ typedef struct {
 
 /** @brief GF battle level entry (12 bytes). */
 typedef struct {
-    s16 maxHp;
-    s16 hp;
-    u8 pad4;
-    u8 pad5;
-    u8 pad6;
-    u8 pad7;
-    u8 level;
-    u8 unk9;
-    u8 padA;
-    u8 unkB;
+    /** 0x0 */ s16 hp;
+    /** 0x2 */ s16 maxHp;
+    /** 0x4 */ u32 exp;
+    /** 0x8 */ u8 level;
+    /** 0x9 */ u8 sumMagBonus; // Summon magic bonus, in percent
+    /** 0xA */ u8 hpPercent; // Max HP as a percentage of the level's curve value
+    /** 0xB */ u8 flags;
 } BattleLevelEntry;
+
+// Bits of BattleLevelEntry.flags
+#define GF_STATS_BOOST 0x01
+#define GF_STATS_LOW_HP 0x80 // HP is below a quarter of max HP
 
 typedef struct{
     u8 unk0;
