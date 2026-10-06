@@ -13,7 +13,7 @@
 #include "ui/text.h"
 #include "game.h"
 #include "gamestate.h"
-#include "gf_anim.h"
+#include "party_stats.h"
 #include "gf_curve.h"
 #include "thread.h"
 #include "kernel.h"

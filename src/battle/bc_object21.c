@@ -261,13 +261,13 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800E0214);
 /**
  * @brief Get pointer to entity data at given index.
  *
- * returns a pointer to g_battleChars.chars[index].testSlots.
+ * returns a pointer to g_battleChars.chars[index].limitSlots.
  *
  * @param index Entity index.
  * @return Pointer to entity data.
  */
-BattleTestSlot* func_800E034C(s32 index) {
-    return g_battleChars.chars[index].testSlots;
+BattleMenuEntry* func_800E034C(s32 index) {
+    return g_battleChars.chars[index].limitSlots;
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object21", func_800E0370);
