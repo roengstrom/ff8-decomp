@@ -440,6 +440,12 @@ extern void func_80037D40(void);
 /** @brief Start reading sound bank @p bank into @p buf; @p variant picks the callback that finishes the load. */
 extern void func_80037FB0(s32 variant, s32 bank, s32 buf);
 
+/** @brief Copy a field script's entry-point table into @p table and set @p *codeBase just past it; returns the count. */
+extern s32 loadScriptEntryTable(u8 *header, u16 *table, s32 **codeBase);
+
+/** @brief Split the field script instruction at @p word into @p *opcode and @p *arg. */
+extern void decodeScriptOpcode(s32 *word, s32 *opcode, s32 *arg);
+
 /* Render dispatch mode + fade bytes (main-binary state shared across units). */
 extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the field, world and battle engines spin on, each with its own value. */
 extern u8 D_8005F150;
