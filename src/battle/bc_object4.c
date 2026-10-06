@@ -709,7 +709,7 @@ void func_800A71C0(s32 idx) {
     temp_a0->unkBD[6] = temp_a3->stats[6];
     
     for (i = 0; i < 32; i++) {
-        if (temp_a3->magicSlots[i].unk0 != 0) {
+        if (temp_a3->magicSlots[i].id != 0) {
             temp_a0->flags |= 0x40000000;
             goto found;
         }
@@ -1453,13 +1453,13 @@ s32 func_800A89B8(s32 arg0, s32 arg1) {
     temp_a0 = &g_battleChars.chars[arg0];
   
     for (i = 0; i < 32; i++) {
-        if (temp_a0->magicSlots[i].unk0 == arg1) {
-            return temp_a0->magicSlots[i].unk1 == 100;
+        if (temp_a0->magicSlots[i].id == arg1) {
+            return temp_a0->magicSlots[i].count == 100;
         }
     }
   
     for (i = 0; i < 32; i++) {
-        if (temp_a0->magicSlots[i].unk0 == 0) {
+        if (temp_a0->magicSlots[i].id == 0) {
             return 0;
         }
     }
@@ -1479,17 +1479,17 @@ s32 func_800A89B8(s32 arg0, s32 arg1) {
  * @param arg3 Nonzero to copy from the Magic slot.
  */
 void func_800A8A48(BattleCharData* arg0, s32 arg1, u8 arg2, s32 arg3) {
-    arg0->unkSlots[arg1].unk0 = arg2;
-    arg0->unkSlots[arg1].unk2 = g_kernel.battleCommands[arg0->unkSlots[arg1].unk0].targetInfo;
+    arg0->subCmdSlots[arg1].cmdType = arg2;
+    arg0->subCmdSlots[arg1].targetInfo = g_kernel.battleCommands[arg0->subCmdSlots[arg1].cmdType].targetInfo;
     
     if (arg3 == 0) {
-        arg0->unkSlots[arg1].unk1 = arg0->cmdSlots[findCommandSlot(arg0, 13)].unk1;
-        arg0->unkSlots[arg1].unk3 = arg0->cmdSlots[findCommandSlot(arg0, 13)].unk3;
+        arg0->subCmdSlots[arg1].menuFlags = arg0->cmdSlots[findCommandSlot(arg0, 13)].menuFlags;
+        arg0->subCmdSlots[arg1].flags = arg0->cmdSlots[findCommandSlot(arg0, 13)].flags;
     }
     
     else {
-        arg0->unkSlots[arg1].unk1 = arg0->cmdSlots[findCommandSlot(arg0, 2)].unk1;
-        arg0->unkSlots[arg1].unk3 = arg0->cmdSlots[findCommandSlot(arg0, 2)].unk3;
+        arg0->subCmdSlots[arg1].menuFlags = arg0->cmdSlots[findCommandSlot(arg0, 2)].menuFlags;
+        arg0->subCmdSlots[arg1].flags = arg0->cmdSlots[findCommandSlot(arg0, 2)].flags;
     }
 }
 
@@ -1604,14 +1604,14 @@ void func_800A8D7C(s32 arg0, s32 arg1) {
  * @param arg1 Temporary limit break index.
  */
 void func_800A8E90(BattleCharData* arg0, s32 arg1) {
-    arg0->testSlots[0].unk0 = arg1;
-    arg0->testSlots[0].unk2 = g_kernel.tempLimitBreaks[arg1].statusWindowFlags;
-    arg0->testSlots[0].unk3 = g_kernel.tempLimitBreaks[arg1].targetInfo;
-    arg0->testSlots[0].unk4 = 0;
-    arg0->testSlots[0].unk1 = 1;
+    arg0->limitSlots[0].id = arg1;
+    arg0->limitSlots[0].statusWindowFlags = g_kernel.tempLimitBreaks[arg1].statusWindowFlags;
+    arg0->limitSlots[0].targetInfo = g_kernel.tempLimitBreaks[arg1].targetInfo;
+    arg0->limitSlots[0].flags = 0;
+    arg0->limitSlots[0].count = 1;
     
     if (g_kernel.tempLimitBreaks[arg1].attackFlags & ATTACK_FLAG_TARGET_KO) {
-        arg0->testSlots[0].unk4 |= 1;
+        arg0->limitSlots[0].flags |= 1;
     }
 }
 
@@ -1631,15 +1631,15 @@ s32 func_800A8EFC(BattleCharData* arg0) {
 
     for (i = 0; i < 16; i++) {
         if (g_gameState.mainData.limitBreaks.quistisLimits & bit) {
-            arg0->testSlots[val].unk0 = i;
-            arg0->testSlots[val].unk2 = g_kernel.blueMagic[i].statusWindowFlags;
-            arg0->testSlots[val].unk3 = g_kernel.blueMagic[i].targetInfo;
-            arg0->testSlots[val].unk4 = 0;
-            arg0->testSlots[val].unk1 = 1;
-            arg0->testSlots[val].unk4 &= 0xEF;
+            arg0->limitSlots[val].id = i;
+            arg0->limitSlots[val].statusWindowFlags = g_kernel.blueMagic[i].statusWindowFlags;
+            arg0->limitSlots[val].targetInfo = g_kernel.blueMagic[i].targetInfo;
+            arg0->limitSlots[val].flags = 0;
+            arg0->limitSlots[val].count = 1;
+            arg0->limitSlots[val].flags &= ~MENU_ENTRY_EMPTY;
             
             if (g_kernel.blueMagic[i].attackFlags & ATTACK_FLAG_TARGET_KO) {
-                arg0->testSlots[val].unk4 |= 1;
+                arg0->limitSlots[val].flags |= 1;
             }
             
             val++;
@@ -1665,11 +1665,11 @@ s32 func_800A8EFC(BattleCharData* arg0) {
 */
 
 void func_800A8F98(BattleCharData* arg0, s32 arg1, s32 arg2) {
-    arg0->testSlots[arg2].unk0 = arg1;
-    arg0->testSlots[arg2].unk2 = g_kernel.rinoaLimitBreaks1[arg1].statusWindowFlags;
-    arg0->testSlots[arg2].unk3 = g_kernel.rinoaLimitBreaks1[arg1].targetInfo;
-    arg0->testSlots[arg2].unk4 = 0;
-    arg0->testSlots[arg2].unk1 = 1;
+    arg0->limitSlots[arg2].id = arg1;
+    arg0->limitSlots[arg2].statusWindowFlags = g_kernel.rinoaLimitBreaks1[arg1].statusWindowFlags;
+    arg0->limitSlots[arg2].targetInfo = g_kernel.rinoaLimitBreaks1[arg1].targetInfo;
+    arg0->limitSlots[arg2].flags = 0;
+    arg0->limitSlots[arg2].count = 1;
 }
 
 s32 func_800A8FDC(BattleCharData* arg0) {
@@ -1696,9 +1696,9 @@ s32 func_800A8FDC(BattleCharData* arg0) {
 */
 
 s32 func_800A9064(BattleCharData* arg0) {
-    arg0->testSlots[0].unk0 = 65;
-    arg0->testSlots[1].unk0 = 67;
-    arg0->testSlots[2].unk0 = 66;
+    arg0->limitSlots[0].id = 65;
+    arg0->limitSlots[1].id = 67;
+    arg0->limitSlots[2].id = 66;
     
     return 3;
 }
@@ -1799,15 +1799,15 @@ s32 func_800A9284(BattleCharData* arg0) {
     for (i = 0; i < 8; i++) {
         temp_a0 = func_800A9240(var_s1);
         if ((g_gameState.mainData.limitBreaks.irvineLimits & mask) || (temp_a0 != 0)) {
-            arg0->testSlots[val].unk0 = var_s1;
-            arg0->testSlots[val].unk2 = 128;
-            arg0->testSlots[val].unk3 = g_kernel.battleCommands[BATTLE_CMD_SHOT].targetInfo;
-            arg0->testSlots[val].unk4 = 0;
-            arg0->testSlots[val].unk1 = temp_a0;
-            arg0->testSlots[val].unk4 &= 0xEF;
+            arg0->limitSlots[val].id = var_s1;
+            arg0->limitSlots[val].statusWindowFlags = 128;
+            arg0->limitSlots[val].targetInfo = g_kernel.battleCommands[BATTLE_CMD_SHOT].targetInfo;
+            arg0->limitSlots[val].flags = 0;
+            arg0->limitSlots[val].count = temp_a0;
+            arg0->limitSlots[val].flags &= ~MENU_ENTRY_EMPTY;
             
             if (temp_a0 == 0) {
-                arg0->testSlots[val].unk4 |= 2;
+                arg0->limitSlots[val].flags |= 2;
             }
           
             val++;
@@ -1827,12 +1827,12 @@ s32 func_800A9370(s32 arg0) {
     temp_a0 = &g_battleChars.chars[arg0];
     
     for (i = 0; i < 16; i++) {
-        temp_a0->testSlots[i].unk4 = 0;
-        temp_a0->testSlots[i].unk1 = 0;
-        temp_a0->testSlots[i].unk3 = 0;
-        temp_a0->testSlots[i].unk2 = 0;
-        temp_a0->testSlots[i].unk0 = 0;
-        temp_a0->testSlots[i].unk4 |= 0x10;
+        temp_a0->limitSlots[i].flags = 0;
+        temp_a0->limitSlots[i].count = 0;
+        temp_a0->limitSlots[i].targetInfo = 0;
+        temp_a0->limitSlots[i].statusWindowFlags = 0;
+        temp_a0->limitSlots[i].id = 0;
+        temp_a0->limitSlots[i].flags |= MENU_ENTRY_EMPTY;
     }
     
     switch (temp_a0->characterId) {

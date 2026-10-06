@@ -488,12 +488,12 @@ u16 getGfAvailabilityMask(void) {
 
 
 /**
- * @brief Copy a GF's current HP from the battle character table to the save data.
+ * @brief Set a GF's saved HP to its max HP.
  *
  * @param gfIdx GF index (0-15).
  */
 void copyGfHpToSave(s32 gfIdx) {
-    g_gameState.gfs[gfIdx].hp = g_battleChars.levelEntries[gfIdx].hp;
+    g_gameState.gfs[gfIdx].hp = g_battleChars.levelEntries[gfIdx].maxHp;
 }
 
 

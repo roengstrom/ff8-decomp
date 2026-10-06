@@ -37,9 +37,47 @@ typedef struct {
 } BattleCommandEntry; /* 8 bytes */
 
 /** @brief Battle command IDs, indexing Kernel.battleCommands. */
-#define BATTLE_CMD_CAST  9
-#define BATTLE_CMD_STOCK 10
-#define BATTLE_CMD_SHOT  14
+enum BattleCommandId {
+    BATTLE_CMD_NONE = 0,
+    BATTLE_CMD_ATTACK = 1,
+    BATTLE_CMD_MAGIC = 2,
+    BATTLE_CMD_GF = 3,
+    BATTLE_CMD_ITEM = 4,
+    BATTLE_CMD_RENZOKUKEN = 5,
+    BATTLE_CMD_DRAW = 6,
+    BATTLE_CMD_DEVOUR = 7,
+    BATTLE_CMD_UNK8 = 8,
+    BATTLE_CMD_CAST = 9,
+    BATTLE_CMD_STOCK = 10,
+    BATTLE_CMD_DUEL = 11,
+    BATTLE_CMD_MUG = 12,
+    BATTLE_CMD_UNK13 = 13,
+    BATTLE_CMD_SHOT = 14,
+    BATTLE_CMD_BLUE_MAGIC = 15,
+    BATTLE_CMD_SLOT = 16,
+    BATTLE_CMD_FIRE_CROSS = 17,
+    BATTLE_CMD_SORCERY = 18,
+    BATTLE_CMD_COMBINE = 19,
+    BATTLE_CMD_LIMIT_20 = 20,
+    BATTLE_CMD_LIMIT_21 = 21,
+    BATTLE_CMD_LIMIT_22 = 22,
+    BATTLE_CMD_DEFEND = 23,
+    BATTLE_CMD_MAD_RUSH = 24,
+    BATTLE_CMD_TREATMENT = 25,
+    BATTLE_CMD_RECOVER = 26,
+    BATTLE_CMD_REVIVE = 27,
+    BATTLE_CMD_DARKSIDE = 28,
+    BATTLE_CMD_CARD = 29,
+    BATTLE_CMD_DOOM = 30,
+    BATTLE_CMD_KAMIKAZE = 31,
+    BATTLE_CMD_ABSORB = 32,
+    BATTLE_CMD_LV_DOWN = 33,
+    BATTLE_CMD_LV_UP = 34,
+    BATTLE_CMD_SINGLE = 35,
+    BATTLE_CMD_DOUBLE = 36,
+    BATTLE_CMD_TRIPLE = 37,
+    BATTLE_CMD_MINIMOG = 38
+};
 
 /** @brief Magic entry (60 bytes). */
 typedef struct {

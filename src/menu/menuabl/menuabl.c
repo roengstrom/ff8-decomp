@@ -3,6 +3,7 @@
 #include "menumain.h"
 #include "gamestate.h"
 #include "menuabl.h"
+#include "menuabl_data.h"
 #include "psxsdk/libetc.h"
 #include "numstr.h"
 #include "btl_anim.h"

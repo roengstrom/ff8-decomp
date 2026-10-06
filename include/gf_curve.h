@@ -80,6 +80,8 @@ s32 calcAtkStatusHit(s32 charIdx);
 s32 getStatusResistance(s32 charIdx, s32 shiftBit);
 
 s32 func_80021B58(s32 charIdx, s32 fallback);
+// Character charIdx's stat at the given level, where kind is the stat's JunctionType
+s32 func_80021C10(s32 level, s32 charIdx, s32 kind);
 s32 func_8002274C(s32 gfIdx, u16 delta);
 
 #endif /* GF_CURVE_H */

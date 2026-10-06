@@ -29,6 +29,13 @@ typedef struct {
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
 } BattleConfig;
 
+/** @brief Bits of BattleConfig.unk8 (D_80082C10) that turn battle commands off. */
+#define BATTLE_CMDS_OFF_ITEM 0x01 // Item and command 13
+#define BATTLE_CMDS_OFF_MAGIC 0x02
+#define BATTLE_CMDS_OFF_GF 0x04
+#define BATTLE_CMDS_OFF_DRAW 0x08
+#define BATTLE_CMDS_OFF_OTHER 0x10 /**< Every other command except 0. */
+
 /** @brief Clipped rectangle result: the clipped rect + saved pre-clip position. */
 typedef struct {
     RECT rect; /* 0x00: clipped rectangle */
@@ -486,51 +493,42 @@ typedef struct {
     u8 freeSpace[4];
 } BattleOtBuf;
 
-/** @brief Battle magic slot entry (5 bytes). */
+// An entry in a party member's battle magic, GF or limit break list
 typedef struct {
-    u8 unk0;
-    s8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-} BattleMagicSlot;
+    /** 0x0 */ u8 id; // A magic ID, a GF's battle ID, or a limit break entry such as a Blue Magic
+    /** 0x1 */ s8 count; // The spell's stock or the ammo Irvine holds; 1 for anything else
+    /** 0x2 */ u8 statusWindowFlags;
+    /** 0x3 */ u8 targetInfo;
+    /** 0x4 */ u8 flags; // MENU_ENTRY_* bits
+} BattleMenuEntry;
 
-/** @brief Battle item slot entry (5 bytes). */
 typedef struct {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-} BattleItemSlot;
-
-/** @brief Battle command slot entry (4 bytes). */
-typedef struct {
-    u8 cmdType;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
+    /** 0x0 */ u8 cmdType; // Index into g_kernel.battleCommands
+    /** 0x1 */ u8 menuFlags;
+    /** 0x2 */ u8 targetInfo;
+    /** 0x3 */ u8 flags; // MENU_ENTRY_* and CMD_SLOT_* bits
 } BattleCmdSlot;
 
-typedef struct {
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-} BattleUnkSlot;
+// Bits of both BattleMenuEntry.flags and BattleCmdSlot.flags
+#define MENU_ENTRY_TARGETS_KO 0x01
+#define MENU_ENTRY_UNAVAILABLE 0x02
 
-typedef struct{
-    u8 unk0;
-    u8 unk1;
-    u8 unk2;
-    u8 unk3;
-    u8 unk4;
-} BattleTestSlot;
+// Bits of BattleMenuEntry.flags only
+#define MENU_ENTRY_JUNCTIONED 0x04
+#define MENU_ENTRY_EMPTY 0x10
+
+// Bits of BattleCmdSlot.flags only
+#define CMD_SLOT_LIMIT_READY 0x04
+#define CMD_SLOT_UNK08 0x08
+#define CMD_SLOT_MULTICAST 0x10
+
+/** @brief Battle ID of GF 0; GF n is BATTLE_GF_ID_BASE + n. */
+#define BATTLE_GF_ID_BASE 0x40
 
 /** @brief Battle character render data (g_battleChars, stride 0x1D0 = 464 bytes). */
 typedef struct {
     /* 0x000 */ u8 pad0[0x008 - 0x000];
-    /* 0x008 */ BattleUnkSlot unkSlots[3];
+    /* 0x008 */ BattleCmdSlot subCmdSlots[3];
     /* 0x014 */ u16 unk14;
     /* 0x016 */ u16 unk16;
     /* 0x018 */ s16 currentHp;          /**< Current HP in battle. */
@@ -538,10 +536,10 @@ typedef struct {
     /* 0x01C */ u8 unk1C;
     /* 0x01D */ u8 unk1D;
     /* 0x01E */ BattleCmdSlot cmdSlots[4];
-    /* 0x02E */ u8 pad2E[4];
-    /* 0x032 */ BattleTestSlot testSlots[16];
-    /* 0x082 */ BattleMagicSlot magicSlots[32];
-    /* 0x122 */ BattleItemSlot itemSlots[16];
+    /* 0x02E */ BattleCmdSlot limitCmdSlot; /**< The limit break command, beside the four in cmdSlots. */
+    /* 0x032 */ BattleMenuEntry limitSlots[16]; /**< What the limit break lists, e.g. Quistis' Blue Magic or Irvine's ammo. */
+    /* 0x082 */ BattleMenuEntry magicSlots[32];
+    /* 0x122 */ BattleMenuEntry gfSlots[16]; /**< The junctioned GFs. */
     /* 0x172 */ s16 unk172;          /**< Mirrored HP cap (set with hpRegenCap when battle HP is reduced). */
     /* 0x174 */ s16 hpRegenCap;        /**< HP regen cap (field-walk tick stops when currentHp reaches this). */
     /* 0x176 */ u8 pad176[0x178 - 0x176];
@@ -569,19 +567,58 @@ typedef struct {
     /* 0x1C7 */ u8 statCoefs[9];       /**< Stat coefficient table (HP, str, vit, mag, spr, spd, ?, eva, hit). */
 } BattleCharData;    /* 0x1D0: 464 bytes */
 
+// Bits of BattleCharData.statusFlags, one per equipped character ability
+#define CHAR_ABILITY_MUG 0x01
+#define CHAR_ABILITY_MED_DATA 0x02
+#define CHAR_ABILITY_COUNTER 0x04
+#define CHAR_ABILITY_RETURN_DAMAGE 0x08
+#define CHAR_ABILITY_COVER 0x10
+#define CHAR_ABILITY_EXPENDX2_1 0x20
+#define CHAR_ABILITY_EXPENDX3_1 0x40
+#define CHAR_ABILITY_HP_BONUS 0x80
+#define CHAR_ABILITY_STR_BONUS 0x100
+#define CHAR_ABILITY_VIT_BONUS 0x200
+#define CHAR_ABILITY_MAG_BONUS 0x400
+#define CHAR_ABILITY_SPR_BONUS 0x800
+#define CHAR_ABILITY_AUTO_REFLECT 0x1000
+#define CHAR_ABILITY_AUTO_SHELL 0x2000
+#define CHAR_ABILITY_AUTO_PROTECT 0x4000
+#define CHAR_ABILITY_AUTO_HASTE 0x8000
+#define CHAR_ABILITY_INITIATIVE 0x10000
+#define CHAR_ABILITY_MOVE_HP_UP 0x20000
+#define CHAR_ABILITY_AUTO_POTION 0x40000
+#define CHAR_ABILITY_RIBBON 0x80000
+
+// Bits of BattleCharData.unk188, the character's battle-only statuses
+#define BATTLE_STATUS_SLEEP 0x01
+#define BATTLE_STATUS_HASTE 0x02
+#define BATTLE_STATUS_SLOW 0x04
+#define BATTLE_STATUS_STOP 0x08
+#define BATTLE_STATUS_PROTECT 0x20
+#define BATTLE_STATUS_SHELL 0x40
+#define BATTLE_STATUS_REFLECT 0x80
+#define BATTLE_STATUS_CURSE 0x200
+#define BATTLE_STATUS_DOUBLE 0x20000
+#define BATTLE_STATUS_TRIPLE 0x40000
+
+// Bits of BattleCharData.fieldStatusByte
+#define FIELD_STATUS_MOVE_HP_UP 0x01
+#define FIELD_STATUS_DRAW 0x02
+
 /** @brief GF battle level entry (12 bytes). */
 typedef struct {
-    s16 maxHp;
-    s16 hp;
-    u8 pad4;
-    u8 pad5;
-    u8 pad6;
-    u8 pad7;
-    u8 level;
-    u8 unk9;
-    u8 padA;
-    u8 unkB;
+    /** 0x0 */ s16 hp;
+    /** 0x2 */ s16 maxHp;
+    /** 0x4 */ u32 exp;
+    /** 0x8 */ u8 level;
+    /** 0x9 */ u8 sumMagBonus; // Summon magic bonus, in percent
+    /** 0xA */ u8 hpPercent; // Max HP as a percentage of the level's curve value
+    /** 0xB */ u8 flags;
 } BattleLevelEntry;
+
+// Bits of BattleLevelEntry.flags
+#define GF_STATS_BOOST 0x01
+#define GF_STATS_LOW_HP 0x80 // HP is below a quarter of max HP
 
 typedef struct{
     u8 unk0;

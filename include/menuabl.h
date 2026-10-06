@@ -85,9 +85,6 @@ typedef struct {
 /* Data symbols                                                             */
 /* ======================================================================== */
 
-/** @brief GF kind table indexed by GF id (defined in @c menuabl_data.c). */
-extern const u8 D_801E3D70[20];
-
 /** @brief Ability id list indexed by visible-slot (0..@c D_801E3D9C-1). */
 extern u8 D_801E3D84[];
 
