@@ -518,12 +518,29 @@ u32 isMcBusy(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037AEC);
+/**
+ * @brief Copy a field script's entry-point table and set the code base just past it.
+ *
+ * Handwritten. Copies each 16-bit start position, with its bit 15 flag cleared, into
+ * @c table, points @c *codeBase at the next 4-byte boundary and returns the entry count.
+ */
+INCLUDE_ASM("asm/nonmatchings/gamestate", loadScriptEntryTable);
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B44);
+/**
+ * @brief Count a field script's entry points.
+ *
+ * Handwritten and never called. It counts into $a2 but returns the end pointer in $v0.
+ */
+INCLUDE_ASM("asm/nonmatchings/gamestate", countScriptEntries);
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037B7C);
+/**
+ * @brief Split a field script instruction word into its opcode and argument.
+ *
+ * Handwritten. A nonzero top byte is the opcode and the low 24 bits a signed argument;
+ * otherwise the whole word is the opcode and @c *arg is left unset.
+ */
+INCLUDE_ASM("asm/nonmatchings/gamestate", decodeScriptOpcode);
 
 /**
  * @brief Search battle party slots for a matching character ID.

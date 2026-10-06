@@ -11,7 +11,7 @@
  *
  *   Indices 0x012-0x187 (374 entries) — main field-VM opcode dispatch.
  *     The runtime dispatcher (fe_object10 func_800BEBD0/func_800BD9C4)
- *     reads packed bytecode words (@c func_80037B7C extracts the
+ *     reads packed bytecode words (@c decodeScriptOpcode extracts the
  *     high byte as the opcode and sign-extends the lower 24 bits as
  *     the arg) and indexes @c g_fieldOpcodeTable + 0x48 (i.e. our 0x012) by
  *     @c opcode * 4. So wiki opcode N (0x000-0x175) corresponds to

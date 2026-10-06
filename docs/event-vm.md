@@ -20,7 +20,7 @@ One instruction is a 32-bit little-endian word:
    1 byte             3 bytes
 ```
 
-`func_80037B7C` (`asm/nonmatchings/gamestate/func_80037B7C.s`) splits a
+`decodeScriptOpcode` (`asm/nonmatchings/gamestate/decodeScriptOpcode.s`) splits a
 word into `(opcode, arg)`. The arg is sign-extended from 24 bits to 32.
 
 The script PC is a `u16` instruction index (not a byte offset) stored at
@@ -70,7 +70,7 @@ lhu  pc,  0x176(eline)
 sll  pc,  pc, 2
 lw   base, D_80085380(scriptId)
 addu fetch, base, pc
-jal  func_80037B7C            ; split → (opcode, arg)
+jal  decodeScriptOpcode       ; split → (opcode, arg)
 lw   opcode, 0x50(sp)
 lw   arg,    0x54(sp)
 sll  opcode, opcode, 2
@@ -211,14 +211,14 @@ Current C coverage: **174 / 374 = 46.5 %**.
 | `src/field/fe_object7.c:855` (`opHandler_MES`)                    | Canonical message-opcode handler (opcode 0x3E)                |
 | `asm/field/nonmatchings/fe_object10/func_800BD9C4.s`              | Main per-frame VM tick (4 dispatch loops)                     |
 | `asm/field/nonmatchings/fe_object10/func_800BEBD0.s`              | Camera dispatch loop (5th); contains the opcode-6/arg<9 skip  |
-| `asm/nonmatchings/gamestate/func_80037B7C.s`                      | Opcode/arg word splitter                                      |
+| `asm/nonmatchings/gamestate/decodeScriptOpcode.s`                 | Opcode/arg word splitter                                      |
 | `config/symbols.field.txt`                                   | Symbol map — `opHandler_MES = 0x800B68EC` lives here          |
 
 ## World Overlay (no VM)
 
 The world overlay does **not** have a table-based VM. Verified by:
 
-- `func_80037B7C` (the opcode unpacker) has zero callers under `asm/ovl/world/`.
+- `decodeScriptOpcode` (the opcode unpacker) has zero callers under `asm/ovl/world/`.
 - `D_800C67A8` / `D_800C6760` are referenced only from field-overlay code.
 - The only `jalr` in the world overlay is an animation callback in
   `asm/ovl/world/nonmatchings/we_object1/func_8009CAE0.s:43`, not a dispatcher.

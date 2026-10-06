@@ -328,7 +328,7 @@ void func_800BD804(s32 stepDelta) {
  *   - @c D_800852F4 / @c D_80085391 — @c Bganime pool (stride 0x1B4);
  *     plain script tick, finalized by @c func_800B2BA0.
  *
- * Each inner VM iteration reads an opcode via @c func_80037B7C, dispatches
+ * Each inner VM iteration reads an opcode via @c decodeScriptOpcode, dispatches
  * @c g_fieldOpcodeTable[opcode + @ref FIELD_OPCODE_BASE], and processes the return bits:
  *   - bit 0 (0x1) — terminate this entity's tick (zeros the iteration counter)
  *   - bit 1 (0x2) — advance @c pc, set @c activeMask bit
@@ -412,7 +412,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
                 if (!(e->context.flags & 1)) {
                     do {
                         s32 ret;
-                        func_80037B7C(&D_80085380[e->context.pc], &sp50, &sp54);
+                        decodeScriptOpcode(&D_80085380[e->context.pc], &sp50, &sp54);
                         ret = g_fieldOpcodeTable[sp50 + FIELD_OPCODE_BASE](e, sp54);
                         if (!(ret & 4)) {
                             e->context.activeMask &= ~(1 << e->context.scriptSlot);
@@ -476,7 +476,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 
                 do {
                     s32 ret;
-                    func_80037B7C(&D_80085380[eb->context.pc], &sp50, &sp54);
+                    decodeScriptOpcode(&D_80085380[eb->context.pc], &sp50, &sp54);
                     ret = g_fieldOpcodeTable[sp50 + FIELD_OPCODE_BASE](eb, sp54);
                     if (!(ret & 4)) {
                         eb->context.activeMask &= ~(1 << eb->context.scriptSlot);
@@ -518,7 +518,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 
                 do {
                     s32 ret;
-                    func_80037B7C(&D_80085380[ec->context.pc], &sp50, &sp54);
+                    decodeScriptOpcode(&D_80085380[ec->context.pc], &sp50, &sp54);
                     ret = g_fieldOpcodeTable[sp50 + FIELD_OPCODE_BASE](ec, sp54);
                     if (!(ret & 4)) {
                         ec->context.activeMask &= ~(1 << ec->context.scriptSlot);
@@ -546,7 +546,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
                 s1 = 0x10;
                 do {
                     s32 ret;
-                    func_80037B7C(&D_80085380[ed->context.pc], &sp50, &sp54);
+                    decodeScriptOpcode(&D_80085380[ed->context.pc], &sp50, &sp54);
                     ret = g_fieldOpcodeTable[sp50 + FIELD_OPCODE_BASE](ed, sp54);
                     if (!(ret & 4)) {
                         ed->context.activeMask &= ~(1 << ed->context.scriptSlot);
@@ -694,7 +694,7 @@ s32 func_800BE44C(s32 val) {
  * and overwrites @c table[k] with the new slice index. Skipped groups
  * keep their original @c table[k] value.
  *
- * @param header Forwarded to @c func_80037AEC for pool sizing.
+ * @param header The field script file, whose entry-point table @c loadScriptEntryTable copies.
  * @param table  Group @c (lo,hi) array — also receives the rewritten lo values.
  * @return Pointer to the first free slot past the compacted slice.
  */
@@ -704,7 +704,7 @@ s32 *func_800BE4B0(u8 *header, u16 *table) {
     s32 k;
 
     D_800852F0 = table;
-    count = func_80037AEC(header, table, &D_80085380);
+    count = loadScriptEntryTable(header, table, &D_80085380);
 
     dstIdx = 0;
     for (k = 0; k < count - 1; k++) {
@@ -924,9 +924,9 @@ Dline *func_800BEA84(Dline *buf) {
  *
  * Iterates pools in order D, C, B, A (large stride first). For each
  * entity, runs the script VM: calls @c func_800393C8 (yield-poll),
- * fetches the next opcode via @c func_80037B7C, dispatches
+ * fetches the next opcode via @c decodeScriptOpcode, dispatches
  * @c g_fieldOpcodeTable[opcode + @ref FIELD_OPCODE_BASE] with the arg from
- * @c func_80037B7C, and processes the return bits exactly like
+ * @c decodeScriptOpcode, and processes the return bits exactly like
  * @c func_800BD9C4's per-iter dispatch (bit 2 keeps the @c activeMask
  * bit; bit 1 advances @c pc and sets the bit). Unlike the main tick,
  * the inner loop runs unbounded until the script yields with
@@ -950,7 +950,7 @@ void func_800BEBD0(void) {
                 while (1) {
                     s32 ret;
                     func_800393C8();
-                    func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
+                    decodeScriptOpcode(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
                     if (!(ret & 4)) {
@@ -976,7 +976,7 @@ void func_800BEBD0(void) {
                 while (1) {
                     s32 ret;
                     func_800393C8();
-                    func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
+                    decodeScriptOpcode(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
                     if (!(ret & 4)) {
@@ -1002,7 +1002,7 @@ void func_800BEBD0(void) {
                 while (1) {
                     s32 ret;
                     func_800393C8();
-                    func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
+                    decodeScriptOpcode(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
                     if (!(ret & 4)) {
@@ -1028,7 +1028,7 @@ void func_800BEBD0(void) {
                 while (1) {
                     s32 ret;
                     func_800393C8();
-                    func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
+                    decodeScriptOpcode(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
                     if (!(ret & 4)) {

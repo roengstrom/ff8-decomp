@@ -738,7 +738,8 @@ extern s32 *D_80085380;
 /** @brief Field-engine bit-0 lock byte read by Block C of @c func_800BD9C4. */
 extern u8 D_800704BD;
 
-extern void func_80037B7C(s32 *base, s32 *outA, s32 *outB);
+/** @brief Split the field script instruction at @p word into @p *opcode and @p *arg. */
+extern void decodeScriptOpcode(s32 *word, s32 *opcode, s32 *arg);
 extern s32  func_801E8B58(void);
 
 /**
@@ -991,8 +992,8 @@ extern u8  D_8007809A;
 /** @brief Mirror of @c g_fieldVars->stepCounter (s32). */
 extern u32 D_80082C14;
 
-/** @brief Pool sizer for entity/script tables; called from @c fe_object10. */
-extern s32 func_80037AEC(u8 *header, u16 *table, s32 **outBase);
+/** @brief Copy a field script's entry-point table into @p table and set @p *codeBase just past it; returns the count. */
+extern s32 loadScriptEntryTable(u8 *header, u16 *table, s32 **codeBase);
 
 /** @brief Reset to 20 on field entry by @c func_8009AEC0 and scaled by
  *         134.8046875 (@c *69020>>9) in @c func_800B6738 to form the threshold
