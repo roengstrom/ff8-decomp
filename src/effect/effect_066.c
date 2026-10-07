@@ -3,6 +3,24 @@
  * @brief Griever + Ultimecia Death
  */
 #include "common.h"
+#include "effect.h"
+#include "effect/effect_066.h"
+
+#define GRIEVER_DETACH_ORDER_RANGE 320
+#define GRIEVER_DETACH_HEIGHT -6000
+
+typedef struct {
+    /* 0x00 */ EffectMeshTri *triangles;
+    /* 0x04 */ SVECTOR *vertices;
+    /* 0x08 */ u16 triangleCount;
+    /* 0x0A */ u16 quadCount;
+    /* 0x0C */ u8 pad00C[0x2C - 0x0C];
+    /* 0x2C */ u16 *faceState;
+    /* 0x30 */ u8 pad030[0x58 - 0x30];
+    /* 0x58 */ SVECTOR faceVertices[4];
+} GrieverMesh;
+
+static void func_801A6EAC(GrieverMesh *mesh);
 
 INCLUDE_ASM("asm/ovl/effect_066/nonmatchings/effect_066", func_801A0000);
 
@@ -52,7 +70,29 @@ INCLUDE_ASM("asm/ovl/effect_066/nonmatchings/effect_066", func_801A5B24);
 
 INCLUDE_ASM("asm/ovl/effect_066/nonmatchings/effect_066", func_801A5CB8);
 
-INCLUDE_ASM("asm/ovl/effect_066/nonmatchings/effect_066", func_801A6EAC);
+/** @brief Initializes the height-based order in which mesh faces detach. */
+static void func_801A6EAC(GrieverMesh *mesh) {
+    u16 *faceState = mesh->faceState;
+    EffectMeshTri *triangles = mesh->triangles;
+    SVECTOR *vertices = mesh->vertices;
+    EffectMeshQuad *quads;
+    s32 i;
+
+    for (i = 0; i < mesh->triangleCount; i++, triangles++) {
+        mesh->faceVertices[1] = vertices[triangles->idx1 & EFFECT_MESH_INDEX_MASK];
+        *faceState++ |= GRIEVER_DETACH_ORDER_RANGE -
+            mesh->faceVertices[1].vy * GRIEVER_DETACH_ORDER_RANGE / GRIEVER_DETACH_HEIGHT;
+    }
+
+    /* The quad records immediately follow the triangle records in the mesh stream. */
+    quads = (EffectMeshQuad *)triangles;
+    for (i = 0; i < mesh->quadCount; i++, quads++) {
+        mesh->faceVertices[1] = vertices[quads->idx1 & EFFECT_MESH_INDEX_MASK];
+        *faceState++ |= GRIEVER_DETACH_ORDER_RANGE -
+            mesh->faceVertices[1].vy * GRIEVER_DETACH_ORDER_RANGE / GRIEVER_DETACH_HEIGHT;
+    }
+    mesh->faceState = faceState;
+}
 
 INCLUDE_ASM("asm/ovl/effect_066/nonmatchings/effect_066", func_801A7008);
 
