@@ -164,7 +164,7 @@ A more detailed progress report is available on [decomp.dev](https://decomp.dev/
 ## Development
 
 Any help is greatly appreciated! Before opening a pull request, please read the
-[contribution guidelines](CONTRIBUTE.md).
+[contribution guidelines](CONTRIBUTING.md).
 
 Below are some basic steps to get started and building the project.
 
