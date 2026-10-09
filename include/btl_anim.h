@@ -19,6 +19,7 @@ extern s32 setAnimGlobalState(s32 value);
 extern void setPadMotors(s32 idx, s32 motor1, s32 motor0);
 extern void setPadVibration(s32 idx, s32 val);
 extern void setPadRepeatMask(s32 unused, s32 channel, s32 mask);
+extern s32 btlStrlen(u8 *str);
 
 /* Public data */
 extern u8 g_animCurveFadeOut[]; /**< Easing curve: 65 entries that rise exponentially to 64. */

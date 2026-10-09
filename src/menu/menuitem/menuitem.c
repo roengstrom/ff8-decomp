@@ -1,7 +1,34 @@
 #include "common.h"
 #include "menu.h"
 #include "menuitem.h"
+#include "game.h"
+#include "btl_anim.h"
 
+#define ITEM_LIST_ROWS 11
+#define ITEM_LIST_ROW_HEIGHT 13
+
+/**
+ * Makes item @p id, of which @p count are held, the selected item of @p menu.
+ * An empty slot (no id or none held) selects nothing. The callers only
+ * match the original when @p count is read inside the do-block.
+ */
+#define SET_SELECTED_ITEM(menu, id, count)                \
+    do {                                                  \
+        s32 n = (count);                                  \
+                                                          \
+        (menu)->itemId = (id);                            \
+        if ((id) != 0 && n != 0) {                        \
+            (menu)->itemDesc = getItemDesc(id);           \
+        } else {                                          \
+            (menu)->itemDesc = NULL;                      \
+        }                                                 \
+    } while (0)
+
+static s32 func_801E457C(s32 unused, ItemSlot *slots, s32 index);
+static void func_801E476C(s32 a0, ItemMenu *menu);
+static void func_801E47E0(s32 a0, s32 index);
+static void func_801E4BB4(ItemMenu *menu);
+static void func_801E4C14(ItemMenu *menu);
 s32 func_801E80D0(s32, s32, s32, s32, s32);
 s32 func_801E95C4(s32, s32, s32);
 
@@ -100,7 +127,7 @@ s32 func_801E2C44(u8 *a0, s32 a1, s32 a2) {
  * @param a0 Item list index.
  * @return Pointer to item name string, or NULL if index out of bounds.
  */
-s32 func_801E2C80(s32 a0) {
+u8 *func_801E2C80(s32 a0) {
     if (a0 < D_801ECC10) {
         return getAbilityDesc(D_801ECB60[a0 * 8]);
     }
@@ -336,30 +363,31 @@ INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E42F8);
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4394);
 
 /**
- * @brief Decrement item count at table entry and clear first byte if depleted.
+ * @brief Uses up one item from an inventory slot.
  *
- * Given a base pointer a1 and index a2, accesses the 2-byte entry at
- * a1[a2*2]. If byte 1 (count) is positive, decrements it. If the count
- * reaches zero after decrement, also clears byte 0 (item ID).
+ * Clears the slot's item id once its count reaches zero.
  *
- * @param a0 Unused.
- * @param a1 Base pointer to item table.
- * @param a2 Entry index.
- * @return 1 if count was decremented but not depleted, 0 otherwise.
+ * @param unused Unused.
+ * @param slots Item inventory.
+ * @param index Slot to take the item from.
+ * @return 1 if the slot still holds items afterwards, otherwise 0.
  */
-/**
- * @brief Decrement item count at table entry and clear first byte if depleted.
- *
- * Given a base pointer a1 and index a2, accesses the 2-byte entry at
- * a1[a2*2]. If byte 1 (count) is positive, decrements it. If the count
- * reaches zero after decrement, also clears byte 0 (item ID).
- *
- * @param a0 Unused.
- * @param a1 Base pointer to item table.
- * @param a2 Entry index.
- * @return 1 if count was decremented but not depleted, 0 otherwise.
- */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E457C);
+static s32 func_801E457C(s32 unused, ItemSlot *slots, s32 index) {
+    ItemSlot *slot = &slots[index];
+    s32 count = slot->count;
+    s32 remaining = 0;
+
+    if (count > 0) {
+        count--;
+        slot->count = count;
+        if (count != 0) {
+            remaining = 1;
+        } else {
+            slot->id = 0;
+        }
+    }
+    return remaining;
+}
 
 /**
  * @brief Find and consume an item from the byte-pair table.
@@ -420,18 +448,30 @@ void func_801E4708(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, buf[a1] + 0x32, 0xD);
 }
 
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E476C);
+/**
+ * @brief Draws the cursor next to the item list row of @p menu's second slot index.
+ * @param a0 Passed through to func_801F0A34.
+ * @param menu Item menu state.
+ */
+static void func_801E476C(s32 a0, ItemMenu *menu) {
+    s32 index = menu->unk58;
+    s32 y = index % ITEM_LIST_ROWS;
+
+    y *= ITEM_LIST_ROW_HEIGHT;
+    func_801F0A34(a0, 0, 205, y + 65);
+}
 
 /**
- * @brief Render a visual indicator at a column position derived from an index.
- *
- * Computes column = index % 11, then draws at y=0x41 offset by column * 13.
- * Uses func_801F0A34 for the actual rendering with a height of 0x27.
- *
- * @param a0 First argument passed through to func_801F0A34.
- * @param a1 Index value, divided by 11 to determine column.
+ * @brief Draws the cursor next to the item list row of slot @p index.
+ * @param a0 Passed through to func_801F0A34.
+ * @param index Slot index in the item list.
  */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E47E0);
+static void func_801E47E0(s32 a0, s32 index) {
+    s32 y = index % ITEM_LIST_ROWS;
+
+    y *= ITEM_LIST_ROW_HEIGHT;
+    func_801F0A34(a0, 0, 39, y + 65);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4848);
 
@@ -493,25 +533,26 @@ void func_801E4B80(s32 a0, s32 a1) {
 }
 
 /**
- * @brief Load item entry data for the primary list index.
- *
- * Reads the current list index from @p a0[0x54], uses it to look up
- * a byte pair from the item table at @p a0[0x20]. Stores the first
- * byte (item ID) at @p a0[0x65]. If both bytes are nonzero, calls
- * getItemDesc to get the item description and stores it at @p a0[0x28].
- *
- * @param a0 Pointer to item menu context.
+ * @brief Loads the id and description of the item under the cursor.
+ * @param menu Item menu state.
  */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4BB4);
+static void func_801E4BB4(ItemMenu *menu) {
+    ItemSlot *slot = &menu->items[menu->cursor];
+    s32 id = slot->id;
+
+    SET_SELECTED_ITEM(menu, id, slot->count);
+}
 
 /**
- * @brief Load item entry data for the secondary list index.
- *
- * Same as func_801E4BB4 but uses the secondary index at @p a0[0x58].
- *
- * @param a0 Pointer to item menu context.
+ * @brief Same as func_801E4BB4, for the slot at @p menu's second slot index.
+ * @param menu Item menu state.
  */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4C14);
+static void func_801E4C14(ItemMenu *menu) {
+    ItemSlot *slot = &menu->items[menu->unk58];
+    s32 id = slot->id;
+
+    SET_SELECTED_ITEM(menu, id, slot->count);
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E4C74);
 
@@ -722,26 +763,26 @@ void func_801E9B98(void) {
 }
 
 /**
- * @brief Count leading non-null bytes in a string, capped at limit-1.
- *
- * Scans up to a1 bytes from a0, counting non-null bytes. Returns the count
- * of consecutive non-null bytes found, or (a1 - 1) if the limit is reached.
- *
- * @param a0 Pointer to byte string.
- * @param a1 Maximum number of bytes to scan.
- * @return Count of leading non-null bytes, capped at a1-1.
+ * @brief Length of a string, scanning at most @p max bytes.
+ * @param str String to measure.
+ * @param max Size of the buffer holding @p str.
+ * @return Number of bytes before the terminator, at most @p max - 1.
  */
-/**
- * @brief Count leading non-null bytes in a string, capped at limit-1.
- *
- * Scans up to a1 bytes from a0, counting non-null bytes. Returns the count
- * of consecutive non-null bytes found, or (a1 - 1) if the limit is reached.
- *
- * @param a0 Pointer to byte string.
- * @param a1 Maximum number of bytes to scan.
- * @return Count of leading non-null bytes, capped at a1-1.
- */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9C90);
+s32 func_801E9C90(u8 *str, s32 max) {
+    s32 i;
+    s32 len = 0;
+
+    for (i = 0; i < max; i++) {
+        if (*str++ == 0) {
+            break;
+        }
+        len++;
+    }
+    if (len >= max) {
+        len = max - 1;
+    }
+    return len;
+}
 
 INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9CD4);
 
@@ -764,17 +805,31 @@ void func_801E9DE4(u8 *a0) {
 }
 
 /**
- * @brief Check if all bytes in string match the first byte of entry 0xB.
+ * @brief Checks whether a string holds anything besides the filler character.
  *
- * Calls btlStrlen first as a precondition. If it returns 0, returns 0.
- * Otherwise iterates through each byte at a0 until a zero terminator,
- * comparing against the first byte of the entry returned by getMenuString(0xB).
- * Returns 1 as soon as a mismatch is found, 0 if all match or string is empty.
+ * The filler is the first character of menu string 11.
  *
- * @param a0 Pointer to a null-terminated byte string.
- * @return 1 if a mismatch is found, 0 otherwise.
+ * @param str String to check.
+ * @return 1 if @p str has a character other than the filler, 0 if it is
+ *         empty or all filler.
+ * @note A guess: likely used to reject blank names.
  */
-INCLUDE_ASM("asm/ovl/menuitem/nonmatchings/menuitem", func_801E9E10);
+s32 func_801E9E10(u8 *str) {
+    s32 c;
+
+    if (btlStrlen(str) == 0) {
+        return 0;
+    }
+    while (1) {
+        c = *str++;
+        if (c == 0) {
+            return 0;
+        }
+        if (c != *getMenuString(11)) {
+            return 1;
+        }
+    }
+}
 
 /** @brief Look up string @p a0 in menu text category 5. */
 u8 *func_801E9E7C(s32 a0) {
