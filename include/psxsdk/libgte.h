@@ -84,6 +84,7 @@ s32 SquareRoot0(s32 a);
 s32 SquareRoot12(s32 a);   /**< Square root of a 20.12 fixed-point value. */
 s32 VectorNormal(VECTOR *v0, VECTOR *v1);   /**< Normalise @p v0 into @p v1; returns the squared length. */
 s32 VectorNormalS(VECTOR *v0, SVECTOR *v1);   /**< Normalise @p v0 into short @p v1; returns the squared length. */
+s32 VectorNormalSS(SVECTOR *v0, SVECTOR *v1);   /**< Normalise a short vector; returns the squared length. */
 s32 rsin(s32 a);
 s32 rcos(s32 a);
 s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */

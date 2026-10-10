@@ -135,4 +135,27 @@
     ".word  0x4BA8003E"                                  \
     : : )
 
+/* Load the 3x3 of a MATRIX into the colour matrix (LR1..LB3). */
+#define gte_SetColorMatrix(r0) __asm__ volatile (         \
+    "lw     $12, 0( %0 );"                                \
+    "lw     $13, 4( %0 );"                                \
+    "ctc2   $12, $16;"                                    \
+    "ctc2   $13, $17;"                                    \
+    "lw     $12, 8( %0 );"                                \
+    "lw     $13, 12( %0 );"                               \
+    "lw     $14, 16( %0 );"                               \
+    "ctc2   $12, $18;"                                    \
+    "ctc2   $13, $19;"                                    \
+    "ctc2   $14, $20"                                     \
+    :                                                     \
+    : "r"(r0)                                             \
+    : "$12", "$13", "$14")
+
+/* Load packed screen coordinates for the NCLIP winding test. */
+#define gte_ldsxy3(r0, r1, r2) __asm__ volatile (         \
+    "mtc2 %0, $12;"                                       \
+    "mtc2 %2, $14;"                                       \
+    "mtc2 %1, $13"                                        \
+    : : "r"(r0), "r"(r1), "r"(r2))
+
 #endif /* INLINE_C_H */

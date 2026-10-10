@@ -1499,15 +1499,44 @@ binaries:
     target_path: original/effect/effect_042.bin
     src_path: src/effect
     symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle.txt, config/symbols.effect_042.txt]
+    section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: effect_042
     type: code
     start: 0x0
     vram: 0x801A0000
     subsegments:
-    - [0x0, c, effect_042]
-    - [0xE498, .rodata, effect_042]
-    - [0xE4AC, bin, effect_042]
+    - [0x0, c, effect_042_entry]
+    - [0x208, c, lib/common]
+    - [0x978, c, lib/rotz]
+    - [0xB04, c, effect_042_basis]
+    - [0xC10, c, lib/heading]
+    - [0xC40, c, lib/entity]
+    - [0x17B0, c, lib/vector]
+    - [0x1F1C, c, lib/emit]
+    - [0x3D50, c, lib/packet]
+    - [0x3F58, c, lib/particlestep]
+    - [0x524C, c, lib/particlealloc]
+    - [0x5368, c, lib/draw]
+    - [0x5FC4, c, lib/emitteralloc]
+    - [0x60E4, c, lib/spawn]
+    - [0x7E98, c, lib/list]
+    - [0x84B4, c, lib/trail]
+    - [0x8628, c, lib/strands]
+    - [0x8B14, c, lib/tables]
+    - [0x8E28, c, lib/bankclear]
+    - [0x8E7C, c, effect_042_script]
+    - [0x970C, c, lib/sprite]
+    - [0x97A8, c, lib/step]
+    - [0x97F0, c, effect_042_warp]
+    - [0xC5E4, c, lib/fill]
+    - [0xC608, c, effect_042_model]
+    - [0xCCCC, c, lib/pose]
+    - [0xD6C8, c, effect_042]
+    - [0xE498, .rodata, lib/particlestep]
+    - [0xE4AC, pad]
+    - [0xE4B0, .rodata, lib/list]
+    - [0xE4DC, bin, effect_042]
   - [0x3C5A0]
 - name: effect_043
   sha1: d0bc38383514f26db82d199e58142355bdd21067
