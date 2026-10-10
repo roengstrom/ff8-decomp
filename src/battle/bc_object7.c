@@ -1,16 +1,10 @@
 #include "common.h"
 #include "battle.h"
+#include "game.h"
 #include "gamestate.h"
 #include "kernel.h"
-#include "psxsdk/libetc.h"
 #include "battle/bc_object7.h"
 
-extern u8 D_800EE490[];
-extern u8 D_800EEBE8[];
-s32 func_800B0204(u8*, s32, s32, s32);
-void func_800A4C84(s32);
-void func_800AE524(s32);
-extern u8 D_800EE4E8[];
 
 void func_800AF254(void) {
     func_800AF740();
@@ -51,11 +45,137 @@ void func_800AF254(void) {
     func_800D0B24();
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF358);
+s32 func_800AF358(s32 arg0, s32 arg1, s32 arg2) {
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF4BC);
+    if (arg1 == 0) {
+        return 0;
+    }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF5E0);
+    if (arg2 == 0) {
+        for (i = 0; i < 32; i++) {
+            if (g_battleChars.chars[arg0].magicSlots[i].unk0 == arg1) {
+                if (g_battleChars.chars[arg0].magicSlots[i].unk1 < 100) {
+                    g_battleChars.chars[arg0].magicSlots[i].unk1++;
+                    return 0;
+                }
+                
+                return 1;
+            }
+        }
+        
+        for (i = 0; i < 32; i++) {
+            if (g_battleChars.chars[arg0].magicSlots[i].unk0 == 0) {
+                g_battleChars.chars[arg0].magicSlots[i].unk0 = arg1;
+                g_battleChars.chars[arg0].magicSlots[i].unk1++;
+                func_800229FC(arg0);
+                return 0;
+            }
+        }
+        
+        return 1;
+    }
+    
+    for (i = 0; i < 32; i++) {
+        if (g_battleChars.chars[arg0].magicSlots[i].unk0 == arg1) {
+            if (g_battleChars.chars[arg0].magicSlots[i].unk1 != 0) {
+                g_battleChars.chars[arg0].magicSlots[i].unk1--;
+                
+                if (g_battleChars.chars[arg0].magicSlots[i].unk1 == 0) {
+                    g_battleChars.chars[arg0].magicSlots[i].unk0 = 0;
+                    func_800229FC(arg0);
+                    return 255;
+                }
+                
+                return 0;
+            }
+            
+            return 255;
+        }
+    }
+    
+    return 255;
+}
+
+s32 func_800AF4BC(s32 arg0, s32 arg1) {
+    s32 i;
+
+    if (arg0 == 0) {
+        return 0;
+    }
+    
+    if (arg1 == 0) {
+        for (i = 0; i < 32; i++) {
+            if (D_800EE9E8.animSlots[i].id == arg0) {
+                if (D_800EE9E8.animSlots[i].value < 100) {
+                    D_800EE9E8.animSlots[i].value++;
+                    return 0;
+                }
+                
+                return 1;
+            }
+        }
+      
+  
+        for (i = 0; i < 32; i++) {
+            if (D_800EE9E8.animSlots[i].id == 0) {
+                D_800EE9E8.animSlots[i].id = arg0;
+                D_800EE9E8.animSlots[i].value++;
+                func_800A8578();
+                return 0;
+            }
+        }
+
+        return 1;
+    }
+
+    
+    else {
+        for (i = 0; i < 32; i++) {
+            if (D_800EE9E8.animSlots[i].id == arg0) {
+                if (D_800EE9E8.animSlots[i].value != 0) {
+                    D_800EE9E8.animSlots[i].value--;
+            
+                    if ((D_800EE9E8.animSlots[i].value) == 0) {
+                        D_800EE9E8.animSlots[i].id = 0;
+                    }
+                    
+                    return 0;
+                }
+                
+                return 1;
+            }
+        }
+    }
+    
+    return 1;
+}
+
+void func_800AF5E0(s32 arg0, s32 arg1, ItemSlot* arg2) {
+    ItemSlot* slot;
+    s32 i;
+    
+    if (arg0 == 0) {
+        return;
+    }
+
+    slot = arg2;
+    for (i = 0; i < 198; i++, slot++) {
+        if (slot->id == arg0) {
+            slot->count = arg1;
+            return;
+        }
+    }
+
+    slot = arg2;
+    for (i = 0; i < 198; i++, slot++) {
+        if (slot->id == 0) {
+            slot->id = arg0;
+            slot->count = arg1;
+            return;
+        }
+    }    
+}
 
 /**
  * @brief Re-init the 32-slot anim init table at @c D_800EE9E8 by feeding
@@ -116,7 +236,38 @@ void func_800AF740(void) {
     func_800AF654();
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF7C4);
+void func_800AF7C4(void) {
+    s32 i;
+    s32 j;
+    s32 k;
+    CharacterData* temp_a3;
+    BattleCharData* character;
+    
+    for (i = 0; i < 3; i++) {
+        if (D_800ED148.entities[i].comFileId == 255) {
+            continue;
+        }
+        
+        temp_a3 = &g_gameState.chars[g_gameState.mainData.party.partyMembers[i]];
+        character = &g_battleChars.chars[i];
+        
+        for (j = 0; j < 32; j++) {
+            temp_a3->magic[j].magicId  = character->magicSlots[j].unk0;
+            temp_a3->magic[j].quantity = character->magicSlots[j].unk1;
+        }
+        
+        for (k = 0; k < 20; k++) {
+            for (j = 0; j < 32; j++) {
+                if (temp_a3->junctions[k] == temp_a3->magic[j].magicId) {
+                    goto skip;
+                }
+            }
+             
+            temp_a3->junctions[k] = 0;
+            skip:
+        }
+    }
+}
 
 /**
  * @brief Clear two flag bits in the entity's @c controlFlags and bracket
@@ -131,7 +282,25 @@ void func_800AF8A4(s32 a0) {
     func_800A5778(a0);
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF918);
+s32 func_800AF918(s32 arg0, u8* arg1) {
+    s32 bit;
+    s32 i;
+    s32 count;
+
+    count = 0;
+    bit = 1;
+
+    for (i = 0; i < 16; i++) {
+        if (g_gameState.chars[g_gameState.mainData.party.partyMembers[arg0]].junctedGfs & bit) {
+            *arg1++ = i;
+            count++; // counts how many elements of arg1 have a value inside
+        }
+        
+        bit <<= 1;
+    }
+        
+    return count;
+}
 
 /**
  * @brief Read the byte at offset 0x14F of the entity's linked data block.
@@ -149,15 +318,121 @@ s32 func_800AF988(s32 a0) {
  * @param a0 Input value (low 16 bits used).
  * @return min(a0 & 0xFFFF, 60000).
  */
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF9C4);
+u32 func_800AF9C4(u16 arg0) {
+    
+    if (arg0 > 60000) {
+        return 60000;
+    }
+    
+    return arg0;
+}
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AF9E8);
+u16 func_800AF9E8(s32 arg0, s32 arg1) {
+    s32 result;
+    s32 temp_v1;
+    BattleEntity* entity; 
+    
+    temp_v1 = (*D_800ED148.entities[arg0].entityData)->unk100;
+    entity = &D_800ED148.entities[arg0];
+    result = (entity->level * 5 * temp_v1) / arg1 - temp_v1;
+    
+    if (temp_v1 == 0) {
+        result = 0;
+    } 
+    
+    else if (result < 1) {
+        result = 1;
+    }
+    
+    return result;
+}
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AFA64);
+u16 func_800AFA64(s32 arg0) {
+    BattleEntity* temp_s0;
+    BattleEntityData* temp_s1;
+    s32 result;
+
+    temp_s1 = *D_800ED148.entities[arg0].entityData;
+    temp_s0 = &D_800ED148.entities[arg0];
+    
+    if (temp_s1->unk102 == 0) {
+        result = 0;
+    } 
+    
+    else if (temp_s0->maxHp == temp_s0->currentHp) {
+        result = 0;
+    } 
+    
+    else {
+        result = ((temp_s0->level * 5 * temp_s1->unk102) / func_800A6DD8() - temp_s1->unk102) * (temp_s0->maxHp - temp_s0->currentHp) / temp_s0->maxHp;
+
+        if (temp_s1->unk102 == 0) {
+            result = 0;
+        } 
+        
+        else if (result < 1) {
+            result = 1;
+        }
+    }
+    
+    return result;
+}
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AFB5C);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800AFD0C);
+void func_800AFD0C(void) {
+    s32 i;
+    s32 j;
+    s32 idx;
+    u16 tmp;
+    u16 temp_s2;
+    u8 sp10[16];
+    
+    for (i = 3; i < 7; i++) {
+        if (!(D_800ED148.entities[i].status & 1)) {
+            g_battleChars.unk574[0] = func_800AF9C4(g_battleChars.unk574[0] + func_800AF9C4(func_800AFA64(i)));
+        }
+    }
+    
+    tmp = g_battleChars.unk574[0];
+    for (i = 0; i < 3; i++) {
+        if ((D_800ED148.entities[i].status & 1) || (D_800ED148.entities[i].status & 4)) {
+            g_battleChars.unk574[i] = 0;
+            g_battleChars.unk57A[i] = 0;
+        } 
+        
+        else {
+            g_battleChars.unk574[i] = tmp;
+        }
+    }
+
+    temp_s2 = g_battleChars.unk5C0[0];
+    g_battleChars.unk5C0[0] = 0;
+    for (i = 0; i < 3; i++) {
+        if (!(D_800ED148.entities[i].controlFlags & 1) || ((D_800ED148.entities[i].status & 1) && (D_800ED148.entities[i].status & 4))) {
+              continue;  
+        }
+        
+        idx = func_800AF918(i, sp10);
+        if (idx != 0) {
+            u16 div = tmp / idx;
+            for (j = 0; j < idx; j++) {
+                if (g_gameState.gfs[sp10[j]].hp != 0) {
+                    g_battleChars.unk580[sp10[j]] = div;
+                    g_battleChars.unk5C0[sp10[j]] = temp_s2;
+                } 
+                
+                else {
+                    g_battleChars.unk5A0[sp10[j]] = 0;
+                }
+            }
+        }
+    }
+    
+    if (g_battleConfig.unk2 & 8) {
+        func_800A9490();
+    }
+}
 
 /**
  * @brief Return the name of non-junctionable GF attack @p a0.
@@ -174,7 +449,7 @@ u8* func_800AFF30(s32 a0) {
  * @param a0 Index into @c g_kernel.junctionableGfs, offset by @c 0x40.
  */
 u8* func_800AFF70(s32 a0) {
-    return resolveKernelPtr(g_kernel.junctionableGfs[a0 - 0x40].nameOffset, g_kernel.junctionableGfsText);
+    return resolveKernelPtr(g_kernel.junctionableGfs[a0 - 64].nameOffset, g_kernel.junctionableGfsText);
 }
 
 /**
@@ -237,419 +512,3 @@ void func_800B00A8(void) {
 void func_800B00C8(void) {
     getMenuString(0x10);
 }
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B00E8);
-
-/**
- * @brief Copy a null-terminated string from src to dst.
- *
- * @param dst Destination buffer.
- * @param src Source string.
- */
-void func_800B01E8(u8 *dst, u8 *src) {
-    u8 ch;
-    do {
-        ch = *src++;
-        *dst++ = ch;
-    } while (ch != 0);
-}
-
-/**
- * @brief Copy string with optional terminator replacement.
- *
- * Copies bytes from src to dst until a null byte is found, counting
- * the number of non-null bytes copied (added to initial len). After
- * copying, if the terminator byte (masked to 8 bits) equals 7, returns
- * the length. Otherwise, overwrites the null with the terminator byte
- * and returns length + 1.
- *
- * @param a0 Destination buffer.
- * @param a1 Source buffer (as integer).
- * @param a2 Initial length counter.
- * @param a3 Terminator byte (only low 8 bits used).
- * @return Final length of written data.
- */
-s32 func_800B0204(u8 *a0, s32 a1, s32 a2, s32 a3) {
-    u8 ch;
-    goto mid;
-copy:
-    a2++;
-mid:
-    ch = *(u8 *)a1;
-    a1++;
-    *a0 = ch;
-    a0++;
-    if (ch) goto copy;
-    if ((u8)a3 == 7) {
-        return a2;
-    }
-    *(a0 - 1) = (u8)a3;
-    return a2 + 1;
-}
-
-/**
- * @brief Build a string in D_800EEBE8 from two parts using func_800B0204.
- *
- * Writes the first part with a1 as length byte, then appends the
- * second part starting at the returned offset.
- *
- * @param a0 First part data.
- * @param a1 Length/type byte for first part (masked to 8 bits).
- * @param a2 Second part data.
- * @return Pointer to D_800EEBE8 buffer.
- */
-u8 *func_800B0248(u8* a0, u8 a1, u8* a2) {
-    u8 *buf = D_800EEBE8;
-    s32 offset = func_800B0204(buf, a0, 0, (u8)a1);
-    func_800B0204(buf + offset, a2, offset, 0);
-    return buf;
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B02AC);
-
-/**
- * @brief Copy a string to D_800EE490 and return the buffer pointer.
- *
- * @param src Source string to copy.
- * @return Pointer to D_800EE490.
- */
-u8 *func_800B0328(u8 *src) {
-    u8 *dst = D_800EE490;
-    func_800B01E8(dst, src);
-    return dst;
-}
-
-/**
- * @brief Return the description of Rinoa limit break (part 1) @p a0.
- *
- * @param a0 Index into @c g_kernel.rinoaLimitBreaks1.
- */
-u8* func_800B0360(s32 a0) {
-    return resolveKernelPtr(g_kernel.rinoaLimitBreaks1[a0].descOffset, g_kernel.rinoaLimitBreaks1Text);
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0398);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0414);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B04A0);
-
-static s32 func_800B054C(u32 arg0) {
-    s32 i;
-
-    for (i = 0; i < 32; i++) {
-        if (arg0 == 1) {
-            return i;
-        }
-
-        arg0 >>= 1;
-    }
-    
-    return i;
-}
-
-/**
- * @brief Store scaled animation value at entity's bit position offset.
- *
- * Calls func_800B054C to find the lowest set bit in a1. If the result
- * is less than 14, computes a scale factor from @c GameConfig.battleSpeed and the
- * status's kernel timer, multiplies them, and stores the result at the
- * entity's bit-indexed halfword slot.
- *
- * @param a0 Entity index (stride 0xD0).
- * @param a1 Bitmask to find lowest set bit.
- */
-void func_800B0574(s32 arg0, u32 arg1) {
-    s32 temp_v0;
-    
-    temp_v0 = func_800B054C(arg1);
-    if (temp_v0 < 14) {
-        u8 val = g_kernel.misc.statusTimers[temp_v0];
-        s32 temp = ((g_gameState.config.battleSpeed + 1) * 4);
-        D_800ED148.entities[arg0].perBit[temp_v0] = val * temp;
-    }
-}
-
-/**
- * @brief Store the reset sentinel @c -0x457 in the entity's per-bit
- *        halfword slot indexed by the lowest set bit of @p a1.
- *
- * @param a0 Entity index into @c D_800ED148.entities.
- * @param a1 Bitmask whose lowest set bit selects the slot in @c timers.
- */
-void func_800B0600(s32 a0, s32 a1) {
-    s32 bitPos = func_800B054C(a1);
-    if (bitPos < 14) {
-        D_800ED148.entities[a0].perBit[bitPos] = -0x457;
-    }
-}
-
-/**
- * @brief Test whether the entity's per-bit halfword slot (selected by the
- *        lowest set bit of @p a1) currently holds the reset sentinel.
- *
- * @param a0 Entity index into @c D_800ED148.entities.
- * @param a1 Bitmask whose lowest set bit selects the slot in @c timers.
- * @return 1 if @c timers[bitPos] == -0x457, 0 otherwise.
- */
-s32 func_800B0668(s32 a0, s32 a1) {
-    s32 bitPos = func_800B054C(a1);
-    if (bitPos < 14) {
-        if (D_800ED148.entities[a0].perBit[bitPos] == -0x457) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-/**
- * @brief Process entity ability and trigger state transitions.
- *
- * Masks @p arg0 to 16 bits and calls @c func_800A4C84. If @c sys->unkE
- * is zero, transitions to state 5, calls @c func_800AE524 with the
- * preceding entry index (@c sys->unk5C0 - 1), clears that entry's
- * @c unk10 byte, then transitions to state 6.
- *
- * @param arg0 Entity bitmask (16-bit).
- */
-void func_800B06DC(u16 arg0) {
-    func_800A4C84(arg0);
-    if (D_800ED148.header.unkE == 0) {
-        func_8009AE08(5);
-        func_800AE524(D_800ED148.unk5C0 - 1);
-        D_800ED148.entries[D_800ED148.unk5C0 - 1].unk11 = 0;
-        func_8009AE08(6);
-    }
-}
-
-/**
- * @brief Set up extended parameters and call two processing functions.
- *
- * Saves the 16-bit truncation of a3, calls func_800A30F8 with 7 args
- * (a0, a1, a2 passed through, a3 zeroed, plus a0, truncated a3, and 0
- * on the stack), then calls func_800B06DC with the truncated a3 value.
- *
- * @param a0 First parameter (also passed as 5th arg).
- * @param a1 Second parameter passed through.
- * @param a2 Third parameter passed through.
- * @param a3 Fourth parameter (16-bit truncated, passed as 6th arg).
- */
-void func_800B0754(s32 a0, s32 a1, s32 a2, u16 a3) {
-    func_800A30F8(a0, a1, a2, 0, a0, a3, 0);
-    func_800B06DC(a3);
-}
-
-/**
- * @brief Handle special battle action flags for an entity.
- *
- * If @p a1 has bit @c 0x400 set, calls @c func_800A59AC with mode 5 and
- * returns 1. If @p a1 has bit @c 0x1000 set, sets bit 2 in the entity's
- * @c status field and calls @c func_800A2520. Otherwise returns 0.
- *
- * @param a0 Entity index into @c D_800ED148.entities.
- * @param a1 Action flags bitmask.
- * @return 1 if bit @c 0x400 action taken, 0 otherwise.
- */
-s32 func_800B0794(s32 a0, s32 a1) {
-    if (a1 & 0x400) {
-        func_800A59AC(a0, 5, 0);
-        return 1;
-    }
-    if (a1 & 0x1000) {
-        D_800ED148.entities[a0].status |= 4;
-        func_800A2520(a0);
-    }
-    return 0;
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0808);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B08AC);
-
-/**
- * @brief Call func_800A59AC with a1=6 and a2=0.
- *
- * @param a0 First argument passed through.
- */
-void func_800B095C(s32 a0) {
-    func_800A59AC(a0, 6, 0);
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0980);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B09F0);
-
-/**
- * @brief Process entities whose @c status has neither bit 0 nor bit 2 set.
- *
- * Walks @c D_800ED148.entities[0..6]; for each slot whose @c status & 5
- * is zero, calls @c func_800B09F0(i).
- */
-void func_800B0C08(void) {
-    s32 i;
-    for (i = 0; i < 7; i++) {
-        if ((D_800ED148.entities[i].status & 5) == 0) {
-            func_800B09F0(i);
-        }
-    }
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0C68);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0CC4);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0D8C);
-
-/**
- * @brief Dispatch call based on @ref SEALED_FLAG_02 in D_80082C10.
- *
- * If @ref SEALED_FLAG_02 is set, passes 0xFF to func_800B0CC4.
- * Otherwise calls func_800B0D8C with a0 and mode 2, then passes
- * the result to func_800B0CC4.
- *
- * @param a0 Entity parameter for func_800B0D8C and func_800B0CC4.
- */
-s32 func_800B0DDC(s32 a0) {
-    s32 val;
-    if (g_battleConfig.unk8 & SEALED_FLAG_02) {
-        val = 0xFF;
-    } else {
-        val = func_800B0D8C(a0, 2);
-    }
-    return func_800B0CC4(a0, val);
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0E30);
-
-/**
- * @brief Dispatch call based on @ref SEALED_FLAG_01 in g_battleConfig.unk8.
- *
- * If @ref SEALED_FLAG_01 is set, passes 0xFF to func_800B0E30.
- * Otherwise calls func_800B0D8C with a0 and mode 4, then passes
- * the result to func_800B0E30.
- *
- * @param a0 Entity parameter for func_800B0D8C.
- */
-s32 func_800B0F3C(s32 a0) {
-    s32 val;
-    if (g_battleConfig.unk8 & SEALED_FLAG_01) {
-        val = 0xFF;
-    } else {
-        val = func_800B0D8C(a0, 4);
-    }
-    return func_800B0E30(val);
-}
-
-/**
- * @brief Convert ability flag bits to GF compatibility bitmask.
- *
- * Bit 0 of the input maps to bit 14 (0x4000) of the result,
- * and bit 1 maps to bit 13 (0x2000).
- *
- * @param arg0 Ability flags.
- * @return Bitmask with bits 14 and/or 13 set.
- */
-s32 func_800B0F7C(s32 arg0) {
-    s32 temp_v1;
-    int new_var;
-    s32 var_v0;
-
-    temp_v1 = (arg0 & 1) << 0xE;
-    new_var = arg0 & 2;
-    var_v0 = temp_v1;
-    if (new_var) {
-        var_v0 = temp_v1 | 0x2000;
-        var_v0 = temp_v1;
-        var_v0 = var_v0 | 0x2000;
-    }
-    return var_v0;
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B0F9C);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B1050);
-
-/**
- * @brief Compute combined ability flags for the spell record at the given ID.
- *
- * Reads the spell's target info, passes it to func_800B1050 and
- * func_800B0F7C, and returns the OR of both results masked to 16 bits.
- *
- * @param a0 Spell ID (index into g_kernel.magic).
- * @return Combined 16-bit ability flags.
- */
-u16 func_800B1104(s32 a0) {
-    return func_800B1050(g_kernel.magic[a0].targetInfo) | func_800B0F7C(g_kernel.magic[a0].targetInfo);
-}
-
-/**
- * @brief Resolve the action ID and flags for one of the player's command slots.
- *
- * Picks a deterministic-but-pseudorandom variant via func_8009B15C() % 3 and
- * dispatches on the command type stored at g_battleChars.chars[selfIdx].cmdSlots[cmdIdx].
- *
- * - cmd 1 / 12 (Attack-like): writes only *outFlags (no ID resolved).
- * - cmd 2 (Magic): resolves a spell ID via func_800B0DDC; combined element/status flags
- *   are read from g_kernel.magic[id].targetInfo via func_800B0F9C/F7C/1104.
- * - cmd 4 (GF/Item): resolves an ability ID via func_800B0F3C, calls func_800AF4BC(id, 1)
- *   to consume a charge, then reads flags from g_kernel.battleItems[id].targetInfo via
- *   func_800B1050/F9C/F7C.
- *
- * @param selfIdx     Party slot index into g_battleChars.chars (0..2).
- * @param cmdIdx      Command slot index (0..3) within the chosen char.
- * @param outId       Output: resolved action ID, or 0xFF on lookup failure.
- * @param outFlags    Output: combined 16-bit element/status flags.
- * @return The command type that was dispatched, or 0 if no match / lookup failed.
- */
-s32 func_800B115C(s32 selfIdx, s32 cmdIdx, s32 *outId, u16 *outFlags) {
-    u8 m = func_8009B15C() % 3;
-    s32 cmd = g_battleChars.chars[selfIdx].cmdSlots[cmdIdx].cmdType;
-    s32 a;
-    u16 v1;
-
-    *outId = 0;
-
-    switch (cmd) {
-    case 1:
-    case 12:
-        if ((m & 0xFF) != 0) {
-            *outFlags = func_800A980C();
-        } else {
-            *outFlags = func_800A9888();
-        }
-        return cmd;
-    case 2:
-        a = func_800B0DDC(selfIdx);
-        *outId = a;
-        if (a == 0xFF) {
-            return 0;
-        }
-        if ((m & 0xFF) != 0) {
-            *outFlags = func_800B1104(a);
-        } else {
-            *outFlags = func_800B0F9C(g_kernel.magic[a].targetInfo) | func_800B0F7C(g_kernel.magic[*outId].targetInfo);
-        }
-        return cmd;
-    case 4:
-        a = func_800B0F3C(selfIdx);
-        *outId = a;
-        if (a == 0xFF) {
-            return 0;
-        }
-        func_800AF4BC(a, 1);
-        if ((m & 0xFF) != 0) {
-            *outFlags = func_800B1050(g_kernel.battleItems[*outId].targetInfo) | func_800B0F7C(g_kernel.battleItems[*outId].targetInfo);
-        } else {
-            *outFlags = func_800B0F9C(g_kernel.battleItems[*outId].targetInfo) | func_800B0F7C(g_kernel.battleItems[*outId].targetInfo);
-        }
-        
-        return cmd;
-    }
-    return 0;
-}
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B13A0);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B1438);
-
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object7", func_800B1564);

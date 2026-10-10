@@ -6,7 +6,7 @@
 #include "psxsdk/libetc.h"
 #include "battle/bc_object1.h"
 #include "battle/bc_object7.h"
-#include "battle/bc_object9.h"
+#include "battle/bc_object10.h"
 #include "battle/bc_object17.h"
 
 /**

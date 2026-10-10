@@ -5,7 +5,6 @@
 #include "battle/bc_object4.h"
 #include "battle/bc_object22.h"
 
-
 void func_800A6184(s32 arg0, s32 arg1, s32 arg2, u16 arg3) {
     func_800A5A7C(arg0, arg1, arg2, 0, arg3, 0, &D_800ED148.unk1244[arg0].unk0);
 }
@@ -1503,7 +1502,7 @@ s32 func_800A8AFC(s32 arg0) {
     return 2;
 }
 
-#include "battle/bc_object7.h"
+#include "battle/bc_object9.h" // probably there s a split here
 
 s32 func_800A8B7C(s32 arg0) {
     BattleCharData* temp_s0;
@@ -2580,4 +2579,19 @@ s32 func_800AA530(s32 arg0) {
     return 255;
 }
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object4", func_800AA57C);
+BattleEntity* func_800AA57C(s32 arg0, s32 arg1) {
+    switch (arg0) {
+        case 203:
+            return &D_800ED148.entities[D_800ED148.entities[arg1].unk88];
+        
+        case 200:
+            return &D_800ED148.entities[arg1];
+
+        case 220 ... 227:
+            return &D_800ED148.entities[D_800ED148.entities[arg1].unk24[arg0 - 220]];
+
+        case 0 ... 199:
+        default:
+            return &D_800ED148.entities[func_800AA4F8(arg0)];
+    }
+}

@@ -5,7 +5,7 @@
 #include "psxsdk/libgte.h"
 #include "battle.h"
 #include "battle/bc_object15.h"
-#include "battle/bc_object8.h"
+#include "battle/bc_object9.h"
 #include "battle/bc_object11.h"
 #include "battle/bc_object12.h"
 #include "battle/bc_object13.h"
