@@ -23,9 +23,9 @@ INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001A674);
 
 INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001AA28);
 
-extern void func_80017D14(SoundMusicConfig *config, s32 *tracks);
+extern void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
 
-void func_8001ACCC(SoundMusicConfig *config, s32 *tracks) {
+void func_8001ACCC(SoundMusicConfig *config, SoundSeqTrack *tracks) {
     s32 savedUnk04;
     s32 newVal;
 

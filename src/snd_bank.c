@@ -222,22 +222,20 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
  */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
 
-void func_80017D14(SoundMusicConfig *config, s32 *tracks) {
+void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks) {
     s32 value = config->activeMask;
     s32 mask;
     s32 bit;
-    s32 *flags;
 
     if (value != 0) {
         mask = value;
         bit = 1;
-        flags = (s32 *)((s32)tracks + 0xF8);
         do {
             if (mask & bit) {
                 mask ^= bit;
-                *flags |= 3;
+                tracks->updateFlags |= 3;
             }
-            flags = (s32 *)((s32)flags + 0x110);
+            tracks++;
             bit <<= 1;
         } while (mask != 0);
     }
@@ -288,12 +286,12 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
  *
  * @param a0 Pointer to a sound config structure (word 0 = track ID, halfword 8 = sequence ID).
  */
-void func_80018158(s32 *args) {
-    if (D_80073DF0.musicId != 0 && D_80073DF0.musicId == args[2]) {
-        func_80017DB0(args[0], 0);
+void func_80018158(SndVoice *voice) {
+    if (D_80073DF0.musicId != 0 && D_80073DF0.musicId == voice->params[2]) {
+        func_80017DB0(voice->params[0], 0);
     } else {
-        func_8001708C(args[0], -1);
-        g_sndSeqState->musicId = args[2];
+        func_8001708C(voice->params[0], -1);
+        g_sndSeqState->musicId = voice->params[2];
     }
 }
 
@@ -634,9 +632,9 @@ void func_800190B4(s32 *args) {
 }
 
 void func_80019130(s32 *args) {
+    u32 bit = 0x1000;
     SoundSeqTrack *track = D_80072F70;
     u32 active = D_80075028.activeMask;
-    u32 bit = 0x1000;
     u32 i;
     s16 steps;
 
@@ -742,9 +740,9 @@ void func_80019450(s32 *args) {
 }
 
 void func_800194C8(s32 *args) {
+    u32 bit = 0x1000;
     SoundSeqTrack *track = D_80072F70;
     u32 active = D_80075028.activeMask;
-    u32 bit = 0x1000;
     u32 i;
     s16 steps;
 
