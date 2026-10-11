@@ -9,6 +9,8 @@
 #include "cdread.h"
 #include "battle.h"
 #include "game.h"
+#include "main.h"
+#include "sound.h"
 
 extern u8 D_80085218;
 extern FieldVars *g_fieldVars;
@@ -571,7 +573,18 @@ u8 findCharacterSlot(u8 characterId) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037C6C);
+s32 func_80037C6C(s32 charId) {
+    u8 id = charId;
+    s32 i;
+
+    for (i = 0; i < PARTY_SLOT_COUNT; i++) {
+        if (g_gameState.mainData.party.partyMembers[i] != PARTY_SLOT_EMPTY
+            && g_gameState.chars[g_gameState.mainData.party.partyMembers[i]].characterId == id) {
+            return (u8)i;
+        }
+    }
+    return PARTY_SLOT_EMPTY;
+}
 
 
 /**
@@ -593,7 +606,22 @@ void stopAllSounds(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037D40);
+void func_80037D40(void) {
+    s32 i;
+
+    sndCmdC1(g_fieldVars->soundHandle0, 15, g_fieldVars->musicVolume);
+    if (g_fieldVars->soundHandle1 != SND_HANDLE_NONE) {
+        sndCmdC1(g_fieldVars->soundHandle1, 15, g_fieldVars->sfxVolume);
+    }
+    for (i = 0; i < 12; i++) {
+        if (D_80074F20[i].cmd < 0) {
+            sndPlayBankSfx(D_80074F20[i].cmd, D_80074F20[i].arg1, D_80074F20[i].fieldC, D_80074F20[i].field8);
+        } else if (D_80074F20[i].cmd > 0) {
+            sndPlaySfx(D_80074F20[i].cmd - 1, D_80074F20[i].arg1, D_80074F20[i].fieldC, D_80074F20[i].field8);
+        }
+    }
+    sndCmd45();
+}
 
 
 /**
@@ -670,7 +698,15 @@ void loadSoundBankB(void) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_80037FB0);
+void func_80037FB0(s32 variant, s32 bank, s32 buf) {
+    D_80085220 = buf;
+    g_fieldVars->soundLoadComplete = 0;
+    if (variant == 0) {
+        cdRead(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankA);
+    } else {
+        cdRead(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankB);
+    }
+}
 
 
 void func_80038030(s32 arg0) {
@@ -804,7 +840,19 @@ s32 getPackedField2Bit(s32 entryIdx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/gamestate", func_800383B8);
+void func_800383B8(s32 key, s32 status) {
+    s32 shift;
+    s32 mask;
+
+    status &= 3;
+    key &= 0xFF;
+    shift = key % 4;
+    shift *= 2;
+    status <<= shift;
+    mask = 3 << shift;
+    g_fieldVars->drawPointFlag[key / 4] &= ~mask;
+    g_fieldVars->drawPointFlag[key / 4] |= status;
+}
 
 
 /** @brief Looks up byte from D_8005644B table at index a0 (masked to 8 bits).

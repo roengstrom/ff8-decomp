@@ -433,9 +433,8 @@ extern u16 g_textSpeeds[];
  *         callback during field-engine init. */
 extern void stopAllSounds(void);
 
-/** @brief Draw callback installed by @c SmInitEventAll (gamestate.c).
- *  @note Purpose uncertain — body still in assembly. */
-extern void func_80037D40();
+extern void func_80037D40(void);
+extern void func_80037FB0(s32 variant, s32 bank, s32 buf);
 
 /* Render dispatch mode + fade bytes (main-binary state shared across units). */
 extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the field, world and battle engines spin on, each with its own value. */
