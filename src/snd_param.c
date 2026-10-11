@@ -1,7 +1,6 @@
 #include "common.h"
 #include "sound.h"
 
-extern s32 D_80075028;
 extern u16 D_80073E62;
 extern s32 D_80077284;
 extern u16 D_80073E60;
@@ -134,7 +133,7 @@ void sndSetTempoAllTracks(s32 *a0) {
 
 /** @brief Copies halfword from a0 to offset 0x60 in struct pointed to by g_sndSeqState. */
 void sndSetSequenceOffset(u16 *a0) {
-    g_sndSeqState->voiceActive = *a0;
+    g_sndSeqState->condition = *a0;
 }
 
 /**
@@ -150,11 +149,11 @@ void func_80019DB0(void) {
     s32 unusedMask;
     s32 bit;
     s32 voice;
-    SoundSeqTrack *ptr;
+    SoundMusicConfig *ptr;
     s32 tmp;
 
-    if (g_sndSeqState->instParams != 0) {
-        unusedMask = ~(D_80075028 | D_800772A4) & 0xFFFFFF;
+    if (g_sndSeqState->activeMask != 0) {
+        unusedMask = ~(D_80075028.activeMask | D_800772A4) & 0xFFFFFF;
         if (unusedMask != 0) {
             bit = 1;
             voice = 0;
@@ -171,9 +170,9 @@ void func_80019DB0(void) {
             } while (unusedMask != 0);
         }
         ptr = g_sndSeqState;
-        tmp = ptr->instParams;
-        ptr->instParams = 0;
-        ptr->keyOnPending = tmp;
+        tmp = ptr->activeMask;
+        ptr->activeMask = 0;
+        ptr->activeMaskStored = tmp;
     }
     D_800772F4 |= 1;
 }
@@ -205,10 +204,10 @@ void func_80019F3C(void) {
     s32 voice;
     s32 counter;
     s32 *trackPtr;
-    s32 *ctrlPtr;
+    SoundSfxConfig *ctrl;
 
-    if (D_80075028 != 0) {
-        voiceMask = D_80075028;
+    if (D_80075028.activeMask != 0) {
+        voiceMask = D_80075028.activeMask;
         trackPtr = (s32 *)((s32)D_80072F70);
         bit = 0x1000;
         counter = 0;
@@ -225,9 +224,9 @@ void func_80019F3C(void) {
 
         bit = 0x1000;
         voice = 12;
-        ctrlPtr = (s32 *)((s32)&D_80075028);
-        ctrlPtr[4] = voiceMask;
-        D_80075028 &= ~voiceMask;
+        ctrl = &D_80075028;
+        ctrl->activeMaskStored = voiceMask;
+        D_80075028.activeMask &= ~voiceMask;
         if (voiceMask != 0) {
             do {
                 if (voiceMask & bit) {

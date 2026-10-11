@@ -206,7 +206,7 @@ extern s32 D_80074F1C;
  * @param a0 Pointer to a sequence track structure.
  */
 void sndStoreTrackTiming(u8 *a0) {
-    ((SoundSeqTrack *)a0)->timing = D_80074F1C;
+    ((SoundSeqTrack *)a0)->fineTunePitch = D_80074F1C;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);

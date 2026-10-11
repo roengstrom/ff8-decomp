@@ -30,25 +30,25 @@ typedef struct {
 } UnkStruct80074F10;
 
 extern UnkStruct80074F10 D_80074F10;
-extern void func_80017D14(SoundSeqTrack *seq, s32 *tracks);
+extern void func_80017D14(SoundMusicConfig *config, s32 *tracks);
 
-void func_8001ACCC(SoundSeqTrack *track, s32 *tracks) {
+void func_8001ACCC(SoundMusicConfig *config, s32 *tracks) {
     s32 savedUnk04;
     s32 newVal;
 
     if (D_80074F10.unk08 != 0) {
         if (--D_80074F10.unk08 == 0) {
-            savedUnk04 = track->instParams;
-            track->field5E = 0;
-            track->instParams = 0;
-            track->voiceIdx = 0;
-            track->field14 = 0;
-            track->field18 = savedUnk04;
+            savedUnk04 = config->activeMask;
+            config->musicId = 0;
+            config->activeMask = 0;
+            config->unk10 = 0;
+            config->unk14 = 0;
+            config->unk18 = savedUnk04;
         } else {
             newVal = D_80074F10.unk00 + D_80074F10.unk04;
 
             if ((newVal & 0xFFFF0000) != (D_80074F10.unk00 & 0xFFFF0000)) {
-                func_80017D14(track, tracks);
+                func_80017D14(config, tracks);
             }
 
             D_80074F10.unk00 = newVal;

@@ -21,76 +21,90 @@
  * at D_80070D60 holds all active tracks.
  */
 typedef struct {
-    /* 0x00 */ s32 field00;       /**< Status/control flags; bit 0x400 selects the alternate SPU transfer address. */
-    /* 0x04 */ s32 instParams;
-    /* 0x08 */ s32 field08;       /**< Flag accumulator (set/cleared via sndTrackSetFlags/ClearFlags). */
-    /* 0x0C */ u16 field0C;
-    /* 0x0E */ u16 field0E;
-    /* 0x10 */ s32 voiceIdx;
-    /* 0x14 */ s32 field14;
-    /* 0x18 */ s32 field18;
-    /* 0x1C */ s32 keyOnPending;
-    /* 0x20 */ s32 tempoRaw;
+    /* 0x00 */ u8 *seqPtr;
+    /* 0x04 */ u8 *loopPoint[4];
+    /* 0x14 */ u8 *drumOffset;
+    /* 0x18 */ s16 *vibratoWave;
+    /* 0x1C */ s16 *tremoloWave;
+    /* 0x20 */ s16 *panLfoWave;
     /* 0x24 */ s32 keyOnMask;
-    /* 0x28 */ s32 loopCounter;
+    /* 0x28 */ s32 basePitch;
     /* 0x2C */ s32 cmdDataPtr;
     /* 0x30 */ s32 flags;
     /* 0x34 */ s32 bankPtr;
     /* 0x38 */ s32 keyOffMask;
     /* 0x3C */ s32 loopLimit;
     /* 0x40 */ s32 panRaw;
-    /* 0x44 */ s32 panShifted;
-    /* 0x48 */ s32 panTarget;
+    /* 0x44 */ s32 volumeLevel;
+    /* 0x48 */ s32 volSlideStep;
     /* 0x4C */ u8 pad4C[4];
-    /* 0x50 */ s32 timing;
+    /* 0x50 */ s32 fineTunePitch;
     /* 0x54 */ u8 pad54[4];
     /* 0x58 */ s32 pitchValue;
-    /* 0x5C */ u16 field5C;
-    /* 0x5E */ u16 field5E;
-    /* 0x60 */ u16 voiceActive;
+    /* 0x5C */ s32 pitchValueSlideStep;
+    /* 0x60 */ u16 playingType;
     /* 0x62 */ u16 volume;
     /* 0x64 */ u16 volumeBase;
     /* 0x66 */ u16 instrument;
     /* 0x68 */ u16 pad68;
     /* 0x6A */ u16 pitchModDepth;
     /* 0x6C */ u16 pitchModCounter;
-    /* 0x6E */ u16 pad6E;
-    /* 0x70 */ u8 pad70[16];
+    /* 0x6E */ u16 unk6E;
+    /* 0x70 */ u16 loopTimes[4];
+    /* 0x78 */ u16 loopUnk6E[4];
     /* 0x80 */ u16 pitchBend;
-    /* 0x82 */ u8 pad82[2];
+    /* 0x82 */ u16 unk82;
     /* 0x84 */ u16 pitchFadeCounter;
-    /* 0x86 */ u16 panFade;
-    /* 0x88 */ u16 panFadeTarget;
-    /* 0x8A */ u16 exprFade;
-    /* 0x8C */ u16 notePitch;
-    /* 0x8E */ u16 notePitchFade;
+    /* 0x86 */ u16 volSlideSteps;
+    /* 0x88 */ u16 pitchValueSlideSteps;
+    /* 0x8A */ u16 volBalanceSlideSteps;
+    /* 0x8C */ u16 volPan;
+    /* 0x8E */ u16 volPanSlideSteps;
     /* 0x90 */ u16 pad90;
     /* 0x92 */ u16 panpot;
     /* 0x94 */ u16 durationDelta;
     /* 0x96 */ u16 durationCounter;
     /* 0x98 */ u16 duration;
     /* 0x9A */ u16 timerActive;
-    /* 0x9C */ u8 pad9C[14];
-    /* 0xAA */ u16 delaySend;
-    /* 0xAC */ u16 delaySendTarget;
-    /* 0xAE */ u8 padAE[14];
-    /* 0xBC */ u16 volumeLfo;
-    /* 0xBE */ u16 volumeLfoTarget;
-    /* 0xC0 */ u8 padC0[10];
-    /* 0xCA */ u16 panLfo;
-    /* 0xCC */ u16 panLfoTarget;
-    /* 0xCE */ u8 padCE[2];
+    /* 0x9C */ u16 unk9C;
+    /* 0x9E */ u16 vibratoDelay;
+    /* 0xA0 */ u16 vibratoDelayCur;
+    /* 0xA2 */ u16 vibratoRate;
+    /* 0xA4 */ u16 vibratoRateCur;
+    /* 0xA6 */ u16 vibratoType;
+    /* 0xA8 */ u16 vibratoBase;
+    /* 0xAA */ u16 vibratoDepth;
+    /* 0xAC */ u16 vibratoDepthSlideSteps;
+    /* 0xAE */ s16 vibratoDepthSlideStep;
+    /* 0xB0 */ u16 unkB0;
+    /* 0xB2 */ u16 tremoloDelay;
+    /* 0xB4 */ u16 tremoloDelayCur;
+    /* 0xB6 */ u16 tremoloRate;
+    /* 0xB8 */ u16 tremoloRateCur;
+    /* 0xBA */ u16 tremoloType;
+    /* 0xBC */ u16 tremoloDepth;
+    /* 0xBE */ u16 tremoloDepthSlideSteps;
+    /* 0xC0 */ s16 tremoloDepthSlideStep;
+    /* 0xC2 */ u16 unkC2;
+    /* 0xC4 */ u16 panLfoRate;
+    /* 0xC6 */ u16 panLfoRateCur;
+    /* 0xC8 */ u16 panLfoType;
+    /* 0xCA */ u16 panLfoDepth;
+    /* 0xCC */ u16 panLfoDepthSlideSteps;
+    /* 0xCE */ s16 panLfoDepthSlideStep;
     /* 0xD0 */ u16 noiseDuration;
     /* 0xD2 */ u16 reverbDuration;
-    /* 0xD4 */ u16 panEnvSpeed;
+    /* 0xD4 */ u16 loopId;
     /* 0xD6 */ u16 volumeDelta;
     /* 0xD8 */ u16 volumeAccum;
-    /* 0xDA */ u8 padDA[4];
-    /* 0xDE */ u16 expression;
-    /* 0xE0 */ u8 padE0[4];
+    /* 0xDA */ s16 unkDA;
+    /* 0xDC */ s16 unkDC;
+    /* 0xDE */ u16 volBalance;
+    /* 0xE0 */ s16 volBalanceSlideStep;
+    /* 0xE2 */ s16 volPanSlideStep;
     /* 0xE4 */ u16 detune;
-    /* 0xE6 */ u16 detuneTarget;
-    /* 0xE8 */ u8 padE8[2];
+    /* 0xE6 */ s16 fineTuning;
+    /* 0xE8 */ u16 unkE8;
     /* 0xEA */ u16 durationDelta2;
     /* 0xEC */ u16 ecField;
     /* 0xEE */ u16 portamento;
@@ -177,7 +191,68 @@ typedef struct {
  * Paired with the @c D_80070D60 track array as the primary sound source
  * (see @c sndTransferData).
  */
-extern SoundSeqTrack *g_sndSeqState;
+typedef struct {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ u32 activeMask;
+    /* 0x08 */ u32 unk08;
+    /* 0x0C */ u32 unk0C;
+    /* 0x10 */ u32 unk10;
+    /* 0x14 */ u32 unk14;
+    /* 0x18 */ u32 unk18;
+    /* 0x1C */ u32 activeMaskStored;
+    /* 0x20 */ s32 tempo;
+    /* 0x24 */ s32 tempoSlideStep;
+    /* 0x28 */ s32 unk28;
+    /* 0x2C */ s32 unk2C;
+    /* 0x30 */ s16 *unk30;
+    /* 0x34 */ s32 drumMap;
+    /* 0x38 */ s32 unk38;
+    /* 0x3C */ u32 noiseMask;
+    /* 0x40 */ u32 reverbMask;
+    /* 0x44 */ u32 pitchLfoMask;
+    /* 0x48 */ s32 reverbDepth;
+    /* 0x4C */ s32 reverbDepthSlideStep;
+    /* 0x50 */ s32 volMul;
+    /* 0x54 */ s32 unk54;
+    /* 0x58 */ s16 volMulSlideSteps;
+    /* 0x5A */ s16 reverbDepthSlideSteps;
+    /* 0x5C */ u16 tempoSlideSteps;
+    /* 0x5E */ u16 musicId;
+    /* 0x60 */ u16 condition;
+    /* 0x62 */ u16 noiseClock;
+    /* 0x64 */ u16 timerUpper;
+    /* 0x66 */ u16 timerUpperCur;
+    /* 0x68 */ u16 timerLower;
+    /* 0x6A */ u16 timerLowerCur;
+    /* 0x6C */ u16 timerTopCur;
+    /* 0x6E */ u16 unk6E;
+    /* 0x70 */ u8 unk70[16];
+} SoundMusicConfig;
+
+typedef struct {
+    /* 0x00 */ u32 activeMask;
+    /* 0x04 */ u32 unk04;
+    /* 0x08 */ u32 unk08;
+    /* 0x0C */ u32 unk0C;
+    /* 0x10 */ u32 activeMaskStored;
+    /* 0x14 */ s32 tempo;
+    /* 0x18 */ u32 tempoUpdate;
+    /* 0x1C */ u32 noiseMask;
+    /* 0x20 */ u32 reverbMask;
+    /* 0x24 */ u32 pitchLfoMask;
+    /* 0x28 */ u16 noiseClock;
+    /* 0x2A */ u16 unk2A;
+    /* 0x2C */ u32 unk2C;
+} SoundSfxConfig;
+
+extern SoundSfxConfig D_80075028;
+
+extern SoundMusicConfig *g_sndSeqState;
+extern SoundMusicConfig D_80073D70;
+extern SoundMusicConfig D_80073DF0;
+extern s32 D_80074EB0;
+extern s32 D_80074F18;
+extern s16 *D_80052258[];
 
 /** @brief 12-entry SFX play queue, replayed by @c func_800BF718 after a sound reset. */
 extern VoicePoolEntry D_80074F20[12];
@@ -233,12 +308,14 @@ typedef struct {
  * volume/pan, loop counters and IRQ state.
  */
 typedef struct {
-    /* 0x00 */ s32 spuBaseAddr;    /**< SPU base address for stream. */
-    /* 0x04 */ s32 unk04;
+    /* 0x00 */ s32 src;
+    /* 0x04 */ s32 loopSrc;
     /* 0x08 */ s32 flags;          /**< Control flags (bit 24 gates the tick IRQ callback). */
     /* 0x0C */ s32 active;         /**< Active/IRQ voice bitmask (nonzero = playing). */
     /* 0x10 */ s32 voiceIdx;       /**< First SPU voice index for this stream. */
-    /* 0x14 */ u8 pad14[0x0C];
+    /* 0x14 */ u32 remaining;
+    /* 0x18 */ s32 unk18;
+    /* 0x1C */ s32 loopSize;
     /* 0x20 */ s32 unk20;
     /* 0x24 */ s32 tickCounter;    /**< Tick counter (incremented each frame). */
     /* 0x28 */ s32 tickCount;      /**< Running tick accumulator. */
@@ -248,12 +325,31 @@ typedef struct {
     /* 0x38 */ s32 frameCounter;   /**< Frame counter; wraps back to 0 at loopLimit. */
     /* 0x3C */ s32 loopLimit;      /**< Loop/sector limit (sectorCount >> 12). */
     /* 0x40 */ s32 panVolume;      /**< Raw pan/volume value. */
-    /* 0x44 */ u8 pad44[0x04];
+    /* 0x44 */ s32 panStep;
     /* 0x48 */ s32 panTarget;      /**< Pan target (cleared when setting pan). */
-    /* 0x4C */ u8 pad4C[0x0C];
+    /* 0x4C */ s32 unk4C;
+    /* 0x50 */ u8 pad50[8];
     /* 0x58 */ s32 savedPitch;     /**< Saved pitch value for voice restore. */
     /* 0x5C */ u8 pad5C[0x04];
 } SoundStream; /* 0x60 = 96 bytes */
+
+typedef struct {
+    /* 0x00 */ u32 magic;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ u8 pad08[8];
+    /* 0x10 */ u32 size;
+    /* 0x14 */ u32 loopOffset;
+    /* 0x18 */ s32 flags;
+    /* 0x1C */ u16 pitch;
+    /* 0x1E */ u16 pad1E;
+    /* 0x20 */ s32 unk20;
+    /* 0x24 */ s32 unk24;
+    /* 0x28 */ s32 unk28;
+} SndStreamHeader;
+
+extern s32 D_800772D8;
+extern s32 D_800772F0;
+extern s16 D_80051854[];
 
 /** @brief CD audio / streaming sound state instance (at 0x80077298). */
 extern SoundStream g_sndStream;

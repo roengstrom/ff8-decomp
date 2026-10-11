@@ -9,7 +9,6 @@ extern s32 D_80074EB0;
 extern VoicePoolEntry D_80074F20[12];
 extern u16 D_80074FE4;
 extern s32 D_80075078;
-extern s32 D_80075028[];
 
 /**
  * @brief Adjusts instrument index upward if flag 0x400 is set and instrument is in range.
@@ -91,30 +90,30 @@ s32 sndGetBankGroup(s32 a0) {
  */
 void sndInitTrack(SoundSeqTrack *track, s32 bankId) {
     track->pitchBend = 0x6E00;
-    track->panShifted = 0x32000000;
+    track->volumeLevel = 0x32000000;
     *(s32 *)track = bankId;
     track->detune = 0;
-    track->detuneTarget = 0;
+    track->fineTuning = 0;
     track->duration = 0;
     track->cmdDataPtr = 0;
     track->durationDelta2 = 0;
     track->pad90 = 0;
     track->volumeAccum = 0;
     track->volumeDelta = 0;
-    track->panFade = 0;
-    track->timing = 0;
-    track->panEnvSpeed = 0;
+    track->volSlideSteps = 0;
+    track->fineTunePitch = 0;
+    track->loopId = 0;
     track->flags = 0;
     track->panLfoStop = 0;
     track->timerActive = 0;
-    track->pad6E = 0xFFFF;
+    track->unk6E = 0xFFFF;
     track->instOverride = 0;
-    track->panLfo = 0;
-    track->volumeLfo = 0;
-    track->delaySend = 0;
-    track->panLfoTarget = 0;
-    track->volumeLfoTarget = 0;
-    track->delaySendTarget = 0;
+    track->panLfoDepth = 0;
+    track->tremoloDepth = 0;
+    track->vibratoDepth = 0;
+    track->panLfoDepthSlideSteps = 0;
+    track->tremoloDepthSlideSteps = 0;
+    track->vibratoDepthSlideSteps = 0;
     track->reverbDuration = 0;
     track->noiseDuration = 0;
     sndTrackApplyInstrument(track, 0);
@@ -202,8 +201,8 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
  */
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
 
-void func_80017D14(SoundSeqTrack *seq, s32 *tracks) {
-    s32 value = seq->instParams;
+void func_80017D14(SoundMusicConfig *config, s32 *tracks) {
+    s32 value = config->activeMask;
     s32 mask;
     s32 bit;
     s32 *flags;
@@ -224,7 +223,7 @@ void func_80017D14(SoundSeqTrack *seq, s32 *tracks) {
 }
 
 void func_80017D5C(void) {
-    s32 value = D_80075028[0];
+    s32 value = D_80075028.activeMask;
     s32 mask;
     s32 bit;
     SoundSeqTrack *tracks;
@@ -282,7 +281,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018158);
 void sndConfigureTrackPlayback(s32 *a0) {
     s32 val, result;
     func_8001708C(a0[0], a0[3]);
-    g_sndSeqState->field5E = *(u16 *)((u8 *)a0 + 8);
+    g_sndSeqState->musicId = *(u16 *)((u8 *)a0 + 8);
     result = 0;
     /* The val load is block-extracted so result binds to $a0: a plain
        `val = a0[4];` here schedules result into $v1 and mismatches. */
@@ -457,7 +456,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800192D8);
  * @brief Applies expression value to all active tracks matching a bitmask.
  *
  * Iterates 12 tracks in D_80072F70 (stride 0x110). For each track whose
- * bit is set in D_80075028[0] and whose flags do NOT have bit 0x2000000,
+ * bit is set in D_80075028.activeMask and whose flags do NOT have bit 0x2000000,
  * reads the expression byte from a0, clears the halfword at +0x8A,
  * stores (byte & 0x7F) << 8 at +0x6A, and ORs 0x3 into updateFlags.
  *

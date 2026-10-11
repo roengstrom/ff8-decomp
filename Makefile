@@ -81,7 +81,7 @@ NO_EXPAND_DIV := effect_011 effect_012 effect_017 effect_044 effect_063 effect_0
 
 # Sources whose object expands inside a binary that otherwise does not. Only
 # SLUS_008.92 mixes, so only its sources belong here.
-EXPAND_DIV_SRCS :=
+EXPAND_DIV_SRCS := src/snd_bank.c src/snd_param.c src/snd_note.c src/snd_track.c
 
 # $(call expand_div,<binary>,<source>): the source override wins, else effect
 # overlays expand unless listed above, and nothing else expands.
@@ -170,9 +170,9 @@ $(BUILD_DIR)/%.o: %.c
 	$(CPP) -E -lang-c -nostdinc -Iinclude $(NON_MATCHING_FLAGS) $< -o $(BUILD_DIR)/$(*F).i && \
 	$(if $(filter $<,$(PSYQ43_SRCS)), \
 		$(PSYQ43_CC1) -quiet $(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CC_FLAGS))) $(BUILD_DIR)/$(*F).i -o $(BUILD_DIR)/$(*F).s && \
-		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) --run-assembler $(ASFLAGS) -o $@, \
+		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(PSYQ43_MASPSXFLAGS) $(call expand_div,$(TARGET),$<) --run-assembler $(ASFLAGS) -o $@, \
 		$(PSYQ41_CC1) -quiet $(if $(filter $<,$(O0_SRCS)),-O0 -G0,$(if $(filter $<,$(G4_SRCS)),-O2 -G4,$(if $(filter $<,$(NO_G0_SRCS)),-O2,$(CC_FLAGS)))) $(BUILD_DIR)/$(*F).i -o $(BUILD_DIR)/$(*F).s && \
-		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(if $(filter $<,$(O0_SRCS)),$(PSYQ40_MASPSXFLAGS),$(PSYQ41_MASPSXFLAGS)) --run-assembler $(ASFLAGS) -o $@)
+		cat $(BUILD_DIR)/$(*F).s | $(MASPSX) $(if $(filter $<,$(O0_SRCS)),$(PSYQ40_MASPSXFLAGS),$(PSYQ41_MASPSXFLAGS)) $(call expand_div,$(TARGET),$<) --run-assembler $(ASFLAGS) -o $@)
 
 # Link: all .o files -> ELF
 $(ELF): $(LD_SCRIPT)

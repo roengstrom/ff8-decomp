@@ -100,9 +100,9 @@ s32 sndStopAll(void) {
  * @return Status bitfield.
  */
 s32 sndGetStatus(void) {
-    SoundSeqTrack *ptr = g_sndSeqState;
+    SoundMusicConfig *ptr = g_sndSeqState;
     s32 *ptr2 = D_80073CA8;
-    s32 result = ptr->instParams != 0;
+    s32 result = ptr->activeMask != 0;
     if (ptr2 != 0 && ptr2[1] != 0) {
         result |= 2;
     }
@@ -123,7 +123,7 @@ s32 sndGetStatus(void) {
 s32 sndGetMaxVolume(s32 mask) {
     s32 vol = 0;
     if (mask & 1) {
-        vol = (s16)g_sndSeqState->pitchValue;
+        vol = (s16)g_sndSeqState->volMulSlideSteps;
     }
     if (mask & 2) {
         s32 v = D_80073E62;
@@ -212,11 +212,11 @@ s32 sndCmd12(s32 arg0, s32 arg1) {
  * @return Packed position value, or 0 if inactive.
  */
 s32 sndGetSeqPosition(void) {
-    SoundSeqTrack *ptr = g_sndSeqState;
+    SoundMusicConfig *ptr = g_sndSeqState;
     s32 result = 0;
-    if ((ptr->instParams | ptr->keyOnPending) != 0) {
-        result = ptr->pitchModCounter << 16;
-        result |= ptr->instrument + 1;
+    if ((ptr->activeMask | ptr->activeMaskStored) != 0) {
+        result = ptr->timerTopCur << 16;
+        result |= ptr->timerUpperCur + 1;
     }
     return result;
 }
@@ -303,7 +303,7 @@ void sndCmd45(void) {
  * @return Combined key-on mask (24-bit), or 0 if D_80075028 is 0.
  */
 s32 sndGatherKeyOnMask(void) {
-    s32 mask = D_80075028[0];
+    s32 mask = D_80075028.activeMask;
     SoundSeqTrack *track;
     s32 bit;
     s32 result;
@@ -343,7 +343,7 @@ s32 sndFindKeyOnMask(s32 keyOnMask) {
     if (keyOnMask == 0) {
         return 0;
     }
-    mask = D_80075028[0];
+    mask = D_80075028.activeMask;
     if (mask == 0) {
         return 0;
     }
@@ -791,14 +791,14 @@ s32 sndUploadSamples(s32 srcAddr, s32 mode) {
 s32 sndSelectBankSlot(SndBankDesc *desc, s32 *outLevel, s32 *outAddr) {
     s32 flag;
     s32 ctrl;
-    SoundSeqTrack *seq;
+    SoundMusicConfig *seq;
 
     ctrl = D_80077288[0];
     seq = g_sndSeqState;
     D_80077288[0] = ctrl & ~0x10;
 
-    if (seq->instParams == 0) {
-        seq->field00 &= ~0x600;
+    if (seq->activeMask == 0) {
+        seq->unk00 &= ~0x600;
     }
 
     flag = 0;
@@ -806,7 +806,7 @@ s32 sndSelectBankSlot(SndBankDesc *desc, s32 *outLevel, s32 *outAddr) {
         sndCmd11(0);
         D_80077288[1] &= ~0x10000;
     } else {
-        s32 f = g_sndSeqState->field00;
+        s32 f = g_sndSeqState->unk00;
         if ((f & 0x200) || (!(f & 0x400) && (D_80077288[1] & 0x10000))) {
             flag = 1;
             D_80077288[1] &= ~0x10000;
@@ -978,7 +978,7 @@ s32 sndUploadBank(SndBankDesc *desc, s32 arg1) {
     s32 addr;
     s32 result;
 
-    if (g_sndSeqState->field5E != 0) {
+    if (g_sndSeqState->musicId != 0) {
         result = sndSelectBankSlot(desc, &level, &addr);
     } else if (D_80074968 == 0x5D000) {
         result = 0;
@@ -1012,9 +1012,9 @@ s32 sndUploadBank(SndBankDesc *desc, s32 arg1) {
  * @param arg1 Second parameter (passed through to func_800148B0).
  */
 void sndSetPlaybackAddr(s32 arg0, s32 arg1) {
-    SoundSeqTrack *ptr = g_sndSeqState;
+    SoundMusicConfig *ptr = g_sndSeqState;
     s32 addr = 0x5D000;
-    if ((ptr->instParams | ptr->keyOnPending) && (ptr->field00 & 0x400)) {
+    if ((ptr->activeMask | ptr->activeMaskStored) && (ptr->unk00 & 0x400)) {
         addr = 0x3D000;
     }
     func_800148B0(arg0, arg1, 0xB0, addr);
@@ -1041,7 +1041,7 @@ void func_80014094(SndBankDesc *desc, s32 mode, s32 arg2) {
     s32 *q;
     s32 vol;
     s32 addr;
-    SoundSeqTrack *ptr;
+    SoundMusicConfig *ptr;
 
     for (i = 0, q = D_80074EB8; i < 6; i++, q++) {
         if (*q == p->bankId) {
@@ -1071,8 +1071,8 @@ void func_80014094(SndBankDesc *desc, s32 mode, s32 arg2) {
     /* Read field00 through the loop pointer q (it is dead here); reusing it
        keeps q live past the loop, which is what pins the loop's counter to
        $a3 and the array pointer to $t0 to match the original codegen. */
-    q = &ptr->field00;
-    if ((ptr->instParams | ptr->keyOnPending) && (*q & 0x400)) {
+    q = &ptr->unk00;
+    if ((ptr->activeMask | ptr->activeMaskStored) && (*q & 0x400)) {
         addr -= 0x20000;
     }
     func_800148B0((s32)desc, arg2, vol, addr);
@@ -1233,11 +1233,11 @@ s32 sndUploadSampleBank(s32 bank, s32 slot) {
             spuAddr = 0x4B000;
         }
         {
-            SoundSeqTrack *ptr = g_sndSeqState;
+            SoundMusicConfig *ptr = g_sndSeqState;
             /* slot = bank is set in both branches below rather than hoisted after
                the if: the original stores the descriptor pointer twice, and
                collapsing it to a single assignment drops the match. */
-            if ((ptr->instParams | ptr->keyOnPending) && (ptr->field00 & 0x400)) {
+            if ((ptr->activeMask | ptr->activeMaskStored) && (ptr->unk00 & 0x400)) {
                 spuAddr -= 0x20000;
                 slot = bank;
             } else {
@@ -1247,7 +1247,7 @@ s32 sndUploadSampleBank(s32 bank, s32 slot) {
             SpuSetTransferStartAddr(spuAddr);
             sndDmaWriteSpu(bank, ((SndBankDesc *)slot)->spuAddr);
             ((SndBankDesc *)slot)->spuLoadedAddr = spuAddr;
-            func_8001A57C(slot, (s32)D_80073C38, 0x70);
+            func_8001A57C(slot, (s32)&D_80073C38, 0x70);
         }
     } else {
         D_80073C58 = 0;
@@ -1281,7 +1281,7 @@ void sndCmdED(s32 volume, s32 arg1) {
  */
 void sndCmdEC(s32 bank, s32 instrument, s32 slot, s32 arg3) {
     s32 spuAddr;
-    SoundSeqTrack *ptr;
+    SoundMusicConfig *ptr;
 
     if (sndValidateBank((u32 *)bank) == 0) {
         spuAddr = 0x51000;
@@ -1289,7 +1289,7 @@ void sndCmdEC(s32 bank, s32 instrument, s32 slot, s32 arg3) {
             spuAddr = 0x4B000;
         }
         ptr = g_sndSeqState;
-        if ((ptr->instParams | ptr->keyOnPending) && (ptr->field00 & 0x400)) {
+        if ((ptr->activeMask | ptr->activeMaskStored) && (ptr->unk00 & 0x400)) {
             spuAddr -= 0x20000;
         }
         g_sndCmdArgs[0] = bank;
