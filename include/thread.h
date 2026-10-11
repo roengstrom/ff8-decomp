@@ -16,9 +16,10 @@ typedef enum {
     PAD_AXIS_Y  = 3
 } PadAxis;
 
-extern s32  func_80027DB4(s32 pad, PadAxis axis, s32 c); /**< Read one analog axis. */
+extern s32  func_80027DB4(s32 idx, s32 axis, s32 frameOffset); /**< Read one analog axis. */
 
-extern s32  func_80027CF8(s32 a, s32 b, s32 c); /**< Fold a recentred analog stick into d-pad bits. */
+extern s32  func_80027CF8(s32 idx, s32 x, s32 y); /**< Fold a recentred analog stick into d-pad bits. */
+
 
 /* getPadReadButtons (thread.c) returns u16, but consumers like be_object4.c's readPads use the
    result as s32 with no widening mask — an inconsistent caller view that can't share a decl here,
