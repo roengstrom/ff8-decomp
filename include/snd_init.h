@@ -25,8 +25,9 @@ extern u8   D_800516B8[];
 extern CdlATV g_cdMixVolume;
 extern SndStreamHeader D_80073C38;
 extern s32  D_80073C58;
-extern s32 *D_80073CA8;
 extern s32  D_80073DE0[];
+extern s32  D_80073DE8;
+extern s32  D_80073DEC;
 extern s16  D_80073E60;
 extern s16  D_80073E62;
 extern SndInstrument D_80073E68[];
@@ -37,6 +38,9 @@ extern s32  D_80074EC0;          /* bank-ID slot for mode 2 (D_80074EB8[2]) */
 extern s32  D_80074EC4;          /* func_80014190: bank-ID slot, default mode */
 extern s32  D_80074EC8;          /* func_80014190: bank-ID slot, mode 1 */
 extern s32  D_80074ECC;          /* func_80014190: bank-ID slot, mode 2 */
+extern s32  D_80074FE0;
+extern u16  D_80074FE4;
+extern s32  D_80075078;
 extern volatile s32 D_80074ED4;
 extern s32  D_80074FE8[];        /* parsed bank header (level/addr/counts) */
 extern s32  D_80074FF8;          /* decode work buffer / scratch pointer */

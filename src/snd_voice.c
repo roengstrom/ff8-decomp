@@ -124,9 +124,6 @@ s32 sndAllocVoice(void) {
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015FE0);
 
-extern u8 D_80070D60[];
-extern s32 D_80073CA8;
-extern u8 *D_80073C34;
 
 /**
  * @brief Releases a voice from all active sequence tracks.

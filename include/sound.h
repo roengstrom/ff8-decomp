@@ -33,13 +33,13 @@ typedef struct {
     /* 0x30 */ s32 flags;
     /* 0x34 */ s32 bankPtr;
     /* 0x38 */ s32 keyOffMask;
-    /* 0x3C */ s32 loopLimit;
-    /* 0x40 */ s32 panRaw;
+    /* 0x3C */ s32 pitchMulSound;
+    /* 0x40 */ s32 pitchMulSoundSlideStep;
     /* 0x44 */ s32 volumeLevel;
     /* 0x48 */ s32 volSlideStep;
     /* 0x4C */ u8 pad4C[4];
     /* 0x50 */ s32 fineTunePitch;
-    /* 0x54 */ u8 pad54[4];
+    /* 0x54 */ s32 unk54;
     /* 0x58 */ s32 pitchValue;
     /* 0x5C */ s32 pitchValueSlideStep;
     /* 0x60 */ u16 playingType;
@@ -54,7 +54,7 @@ typedef struct {
     /* 0x78 */ u16 loopUnk6E[4];
     /* 0x80 */ u16 pitchBend;
     /* 0x82 */ u16 unk82;
-    /* 0x84 */ u16 pitchFadeCounter;
+    /* 0x84 */ u16 pitchMulSoundSlideSteps;
     /* 0x86 */ u16 volSlideSteps;
     /* 0x88 */ u16 pitchValueSlideSteps;
     /* 0x8A */ u16 volBalanceSlideSteps;
@@ -122,7 +122,9 @@ typedef struct {
 } SoundSeqTrack; /* 0x110 = 272 bytes */
 
 /** @brief 12-entry CD-audio track array (voices 12-23), stride 0x110. */
+extern SoundSeqTrack D_80070D60[];
 extern SoundSeqTrack D_80072F70[];
+extern SoundSeqTrack D_80075080[];
 
 /**
  * @brief Instrument/sample descriptor (D_80073E68, stride 16 bytes).
@@ -191,6 +193,20 @@ typedef struct {
  * Paired with the @c D_80070D60 track array as the primary sound source
  * (see @c sndTransferData).
  */
+typedef struct SndSeqHeader {
+    /* 0x00 */ u8 pad00[0x14];
+    /* 0x14 */ s32 unk14;
+    /* 0x18 */ u8 pad18[8];
+    /* 0x20 */ u32 trackMask;
+    /* 0x24 */ u32 unk24;
+    /* 0x28 */ u32 unk28;
+    /* 0x2C */ u8 pad2C[4];
+    /* 0x30 */ s32 unk30;
+    /* 0x34 */ s32 unk34;
+    /* 0x38 */ u8 pad38[8];
+    /* 0x40 */ u16 trackOffsets[1];
+} SndSeqHeader;
+
 typedef struct {
     /* 0x00 */ s32 unk00;
     /* 0x04 */ u32 activeMask;
@@ -203,7 +219,7 @@ typedef struct {
     /* 0x20 */ s32 tempo;
     /* 0x24 */ s32 tempoSlideStep;
     /* 0x28 */ s32 unk28;
-    /* 0x2C */ s32 unk2C;
+    /* 0x2C */ struct SndSeqHeader *unk2C;
     /* 0x30 */ s16 *unk30;
     /* 0x34 */ s32 drumMap;
     /* 0x38 */ s32 unk38;
@@ -213,7 +229,7 @@ typedef struct {
     /* 0x48 */ s32 reverbDepth;
     /* 0x4C */ s32 reverbDepthSlideStep;
     /* 0x50 */ s32 volMul;
-    /* 0x54 */ s32 unk54;
+    /* 0x54 */ s32 volMulSlideStep;
     /* 0x58 */ s16 volMulSlideSteps;
     /* 0x5A */ s16 reverbDepthSlideSteps;
     /* 0x5C */ u16 tempoSlideSteps;
@@ -247,9 +263,25 @@ typedef struct {
 
 extern SoundSfxConfig D_80075028;
 
+typedef struct {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ s32 unk04;
+    /* 0x08 */ s32 unk08;
+} UnkStruct80074F10;
+
+extern UnkStruct80074F10 D_80074F10;
+extern s32 D_8007506C;
+extern s32 D_800772F4;
+extern s32 D_80073DE4;
+extern u8 D_8005182F;
+extern SoundMusicConfig *D_800772F8[];
+extern u8 D_800517F0[];
+
 extern SoundMusicConfig *g_sndSeqState;
 extern SoundMusicConfig D_80073D70;
 extern SoundMusicConfig D_80073DF0;
+extern SoundMusicConfig *D_80073CA8;
+extern SoundSeqTrack *D_80073C34;
 extern s32 D_80074EB0;
 extern s32 D_80074F18;
 extern s16 *D_80052258[];

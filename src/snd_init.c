@@ -101,9 +101,9 @@ s32 sndStopAll(void) {
  */
 s32 sndGetStatus(void) {
     SoundMusicConfig *ptr = g_sndSeqState;
-    s32 *ptr2 = D_80073CA8;
+    SoundMusicConfig *ptr2 = D_80073CA8;
     s32 result = ptr->activeMask != 0;
-    if (ptr2 != 0 && ptr2[1] != 0) {
+    if (ptr2 != 0 && ptr2->activeMask != 0) {
         result |= 2;
     }
     return result;
