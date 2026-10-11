@@ -122,7 +122,7 @@ static void func_800270B0(PadPort *ports, PadPort *port, s32 portNo) {
 
     i = PadInfoAct(portNo, -1, 0);
     port->field0B = i;
-    for (i--; i >= 0; i--) {
+    while (--i >= 0) {
         info = PadInfoAct(portNo, i, 1);
         if (info == 1) {
             info = PadInfoAct(portNo, i, 2);
