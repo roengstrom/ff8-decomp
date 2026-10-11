@@ -164,24 +164,25 @@ A more detailed progress report is available on [decomp.dev](https://decomp.dev/
 ## Development
 
 Any help is greatly appreciated! Before opening a pull request, please read the
-[contribution guidelines](CONTRIBUTE.md).
+[contribution guidelines](CONTRIBUTING.md).
 
 Below are some basic steps to get started and building the project.
 
-1. **Prerequisites**. This "guide" is for devs using debian/ubuntu or on Windows using **WSL 2**
+The following distributions have been tested:
+
+|    Distro    | Can build? |
+|:------------:|:----------:|
+| Debian 12    |     ✅     |
+| Ubuntu-22.04 |     ✅     |
+| Ubuntu-24.04 |     ✅     |
+| Ubuntu-26.04 |     ❌     |
+
+1. **Prerequisites**. This "guide" is for devs using debian/ubuntu on Windows using **WSL 2**
    ```bash
    sudo apt update
-   sudo apt install git make cpp binutils-mipsel-linux-gnu python3 python3-venv
+   sudo apt install git make cpp gcc-mipsel-linux-gnu binutils-mipsel-linux-gnu binutils-mips-linux-gnu python3 python3-venv
    ```
 
-   The following distributions have been tested for building the project:
-
-   |    Distro    | Can build? |
-   |:------------:|:----------:|
-   | Debian 12    |     ✅     |
-   | Ubuntu-22.04 |     ✅     |
-   | Ubuntu-24.04 |     ✅     |
-   | Ubuntu-26.04 |     ❌     |
 
 2. **Clone the repo with submodules**:
    ```bash
@@ -189,29 +190,25 @@ Below are some basic steps to get started and building the project.
    cd ff8-decomp
    ```
 
-3. **Create a Python venv and install splat**:
+3. **Provide your own disc image** — You need a BIN file of FF8 Disc 1 (USA, SLUS-00892). Once extracted from the disk, place it inside the "rom" folder. 
+
+4. **Run the setup**:
    ```bash
-   python3 -m venv .venv
-   .venv/bin/pip install -e "tools/splat[mips]"
+   make setup
    ```
+   running this command creates a Python venv, install dependencies (such as splat), extract the bin disc and verify its SHA1, then extracts `SLUS_008.92`,    all executables and overlays. 
+   At the end it will run a full rebuild by doing 
 
-4. **Provide your own disc image** — You need a BIN/CUE of
-   FF8 Disc 1 (USA, SLUS-00892).
-
-5. **Extract game data from the disc**:
-   ```bash
-   python3 tools/extract.py /path/to/ff8-disc1.bin
-   ```
-   This verifies the disc SHA1, then extracts `SLUS_008.92`, all executables and overlays.
-
-6. **Full build**:
    ```bash
    make full
    ```
+
    This runs `clean`, `split` (runs splat on the executable + overlays),
    `build-assets` (converts binary assets to C source), and `verify`
    (assembles, links, and checks that each output matches the original SHA1).
-
+   
+   At the end of the command, you should see a list of overlays all with the State `Match`.
+   
    For incremental work, the individual targets are also available:
    ```bash
    make split          # re-run splat
@@ -220,7 +217,7 @@ Below are some basic steps to get started and building the project.
    make verify EFFECTS=all   # ... including all 343 battle effect overlays
    ```
 
-7. **objdiff GUI** (optional). To diff against the original in
+6. **objdiff GUI** (optional). To diff against the original in
    [objdiff](https://github.com/encounter/objdiff):
    ```bash
    make expected       # builds the target objects, on a verified tree
