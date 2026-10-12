@@ -443,6 +443,7 @@ extern u32 D_800772B8;
 #endif /* SOUND_H */
 
 /** @brief snd_note DMA-completion callback; its address is handed to OpenEvent by snd_dma.c. */
+void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
 void func_8001AD60(void);
 void func_800151C4(SoundSeqTrack *track, u32 bit, s32 isSfx);
 void func_8001BAA8(SoundSeqTrack *track, u32 bit);

@@ -247,8 +247,6 @@ u32 func_8001AA28(SoundSeqTrack *tracks, s32 isSecond) {
     return g_sndSeqState->activeMask;
 }
 
-extern void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
-
 void func_8001ACCC(SoundMusicConfig *config, SoundSeqTrack *tracks) {
     s32 savedUnk04;
     s32 newVal;
