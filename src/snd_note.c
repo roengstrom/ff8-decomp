@@ -378,7 +378,124 @@ s32 func_8001AD60(void) {
     return rcnt;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B1F4);
+u8 func_8001B1F4(SoundSeqTrack *track) {
+    u8 *p = track->seqPtr;
+    u32 loopId = track->loopId;
+    u32 op;
+    s32 sub;
+    u32 len;
+
+    while (1) {
+        op = *p;
+    redispatch:
+        if (op < 0x9A) {
+            if (op >= 0x8F) {
+                track->timerActive &= 0xFFFA;
+            }
+            return *p;
+        }
+        if (op < 0xA0) {
+            return 0xA0;
+        }
+        len = D_800516F8[*p - 0xA0];
+        if (len != 0) {
+            p += len;
+            continue;
+        }
+        switch (*p) {
+        case 0xF0:
+        case 0xF1:
+        case 0xF2:
+        case 0xF3:
+        case 0xF4:
+        case 0xF5:
+        case 0xF6:
+        case 0xF7:
+        case 0xF8:
+        case 0xF9:
+        case 0xFA:
+        case 0xFB:
+            return 0x83;
+        case 0xFC:
+            return 0x84;
+        case 0xFD:
+            return 0x8F;
+        case 0xFE:
+            p++;
+            sub = *p;
+            len = D_80051758[sub];
+            if (len != 0) {
+                p += len;
+                continue;
+            }
+            if (sub != 7) {
+                if (sub < 8) {
+                    if (sub != 6) {
+                        /* The binary jumps back to the opcode check with the sub-opcode
+                         * as the opcode, past the load at the top of the loop. Without the
+                         * goto, the best spelling found matches 93.2%. */
+                        op = sub;
+                        goto redispatch;
+                    }
+                } else {
+                    if (sub < 10) {
+                        p++;
+                        if (*p == track->loopTimes[loopId] + 1) {
+                            p++;
+                            loopId--;
+                            loopId &= 3;
+                            op = p[0] + (p[1] << 8);
+                            p += (s16)op;
+                        } else {
+                            p += 3;
+                        }
+                    }
+                    continue;
+                }
+                p++;
+                op = p[0] + (p[1] << 8);
+                p += (s16)op;
+                continue;
+            }
+            p++;
+            op = *p;
+            p++;
+            if (op <= g_sndSeqState->condition) {
+                op = p[0] + (p[1] << 8);
+                p += (s16)op;
+                continue;
+            }
+            p += 2;
+            continue;
+        case 0xC9:
+            p++;
+            if (*p == track->loopTimes[loopId] + 1) {
+                p++;
+                loopId--;
+                loopId &= 3;
+            } else {
+                p = track->loopPoint[loopId];
+            }
+            continue;
+        case 0xCB:
+        case 0xCD:
+        case 0xD1:
+        case 0xDB:
+            track->timerActive &= 0xFFFA;
+            p++;
+            continue;
+        case 0xCA:
+            if (track->flags & 0x200000) {
+                break;
+            }
+            p = track->loopPoint[loopId];
+            continue;
+        }
+        break;
+    }
+    track->timerActive &= 0xFFFA;
+    return 0xA0;
+}
 
 /**
  * @brief Adjusts a note/instrument value based on a flag and range check.

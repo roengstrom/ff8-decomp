@@ -352,6 +352,8 @@ extern SoundSeqTrack *D_80073C34;
 extern s32 D_80074EB0;
 extern s32 D_80074F18;
 extern s16 *D_80052258[];
+extern u8 D_800516F8[];
+extern u8 D_80051758[];
 extern u8 D_80051778[];
 extern u16 D_800517D8[];
 extern void (*D_80052698[])(SoundSeqTrack *track, u32 bit);
