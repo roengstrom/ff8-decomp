@@ -473,9 +473,59 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018908);
  *
  * @param a0 Pointer to a 2-word config struct: [seqId, volumeParam].
  */
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018A74);
+void func_80018A74(s32 *args) {
+    SoundMusicConfig *config;
+    SoundSeqTrack *tracks;
+    s32 id;
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018B28);
+    id = args[0];
+    if (id == 0 || id == g_sndSeqState->musicId) {
+        config = g_sndSeqState;
+        tracks = D_80070D60;
+        config->volMul = (args[1] & 0x7F) << 16;
+        config->volMulSlideSteps = 0;
+        func_80017D14(config, tracks);
+    } else if (D_80073CA8 != 0 && id != 0 && id == D_80073CA8->musicId) {
+        config = D_80073CA8;
+        tracks = D_80073C34;
+        config->volMul = (args[1] & 0x7F) << 16;
+        config->volMulSlideSteps = 0;
+        func_80017D14(config, tracks);
+    }
+}
+
+void func_80018B28(s32 *args) {
+    SoundMusicConfig *config;
+    SoundSeqTrack *tracks;
+    s32 step;
+    s32 steps;
+    s32 target;
+    s32 id;
+
+    steps = 1;
+    if (args[1] != 0) {
+        steps = args[1];
+    }
+    target = (args[2] & 0x7F) << 16;
+    id = args[0];
+    if (id == 0 || id == g_sndSeqState->musicId) {
+        config = g_sndSeqState;
+        tracks = D_80070D60;
+        config->volMulSlideSteps = steps;
+        target -= config->volMul;
+        step = target / steps;
+        config->volMulSlideStep = step;
+        func_80017D14(config, tracks);
+    } else if (D_80073CA8 != 0 && id != 0 && id == D_80073CA8->musicId) {
+        config = D_80073CA8;
+        tracks = D_80073C34;
+        config->volMulSlideSteps = steps;
+        target -= config->volMul;
+        step = target / steps;
+        config->volMulSlideStep = step;
+        func_80017D14(config, tracks);
+    }
+}
 
 void func_80018C48(s32 *args) {
     SoundMusicConfig *config;
