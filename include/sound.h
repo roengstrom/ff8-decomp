@@ -479,6 +479,7 @@ void func_8001AD60(void);
 void func_800151C4(SoundSeqTrack *track, u32 bit, s32 isSfx);
 void func_8001BAA8(SoundSeqTrack *track, u32 bit);
 u8 func_8001B1F4(SoundSeqTrack *track);
+void func_80016C28(u32 *out, u32 maskSecond, u32 maskMain, u32 extra);
 void func_800174E4(s32 id, u32 mode);
 void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
 void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);

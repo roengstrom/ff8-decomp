@@ -673,7 +673,118 @@ void sndStoreTrackTiming(SoundMusicConfig *config, SoundSeqTrack *tracks) {
     config->volMul = D_80074F1C;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);
+void func_800164D8(void) {
+    SoundMusicConfig *config;
+    SoundMusicConfig *main;
+    SoundSeqTrack *track;
+    s32 keyOn;
+    u32 sfxBusy;
+    u32 secondActive;
+    u32 secondFree;
+    u32 active;
+    u32 free;
+    u32 mask;
+    s32 depth;
+
+    sfxBusy = D_80075028.activeMask | D_80075028.activeMaskStored | D_800772A4;
+    keyOn = 0;
+    if ((g_sndSeqState->activeMask & g_sndSeqState->unk10) || (D_80073CA8 != 0 && (D_80073CA8->activeMask & D_80073CA8->unk10))) {
+        func_80016344(sfxBusy);
+    }
+    if (D_80073CA8 != 0) {
+        if (D_80077288[1] & 0x100) {
+            func_80016478(D_80073CA8, D_80073C34);
+        }
+        config = D_80073CA8;
+        g_sndSeqState = config;
+        secondActive = (config->activeMask & config->unk14) & ~(config->unk0C & sfxBusy);
+        secondFree = (secondActive & config->unk0C) & ~sfxBusy;
+        if (secondActive & config->unk08) {
+            func_80015FE0(D_80073C34, secondActive & config->unk08, secondFree, &keyOn);
+            g_sndSeqState->unk10 &= ~g_sndSeqState->unk08;
+            secondActive &= ~g_sndSeqState->unk08;
+        }
+        main = &D_80073D70;
+        g_sndSeqState = main;
+        active = (main->activeMask & main->unk14) & ~(main->unk0C & (secondFree | sfxBusy));
+        free = (active & main->unk0C) & ~(secondFree | sfxBusy);
+        if (active & main->unk08) {
+            func_80015FE0(D_80070D60, active & main->unk08, free, &keyOn);
+            g_sndSeqState->unk10 &= ~g_sndSeqState->unk08;
+            active &= ~g_sndSeqState->unk08;
+        }
+        if (secondActive != 0) {
+            g_sndSeqState = D_80073CA8;
+            secondFree &= ~free;
+            func_80015FE0(D_80073C34, secondActive, secondFree, &keyOn);
+            g_sndSeqState->unk10 = 0;
+            g_sndSeqState = main;
+        }
+        if (active != 0) {
+            func_80015FE0(D_80070D60, active, free, &keyOn);
+            g_sndSeqState->unk10 = 0;
+        }
+        if (D_80077288[1] & 0x100) {
+            sndStoreTrackTiming(D_80073CA8, D_80073C34);
+        }
+    } else {
+        config = g_sndSeqState;
+        active = (config->activeMask & config->unk14) & ~(config->unk0C & sfxBusy);
+        mask = (active & config->unk0C) & ~sfxBusy;
+        if (active & config->unk08) {
+            func_80015FE0(D_80070D60, active & config->unk08, mask, &keyOn);
+            g_sndSeqState->unk10 &= ~g_sndSeqState->unk08;
+            active &= ~g_sndSeqState->unk08;
+        }
+        if (active != 0) {
+            // Matching hack, raises mask's register allocation priority
+            do {
+                func_80015FE0(D_80070D60, active, mask, &keyOn);
+            } while (0);
+            g_sndSeqState->unk10 = 0;
+        }
+    }
+    active = D_80075028.activeMask & D_80075028.unk08;
+    if (active != 0) {
+        mask = 0x1000;
+        track = D_80072F70;
+        keyOn |= D_80075028.unk04;
+        do {
+            if (active & mask) {
+                func_80015AC8(track, mask);
+                if (track->voiceAttr.updateFlags != 0) {
+                    func_800150A8(track->voiceAttr.voice, &track->voiceAttr, track->flags);
+                }
+                active &= ~mask;
+            }
+            mask <<= 1;
+            track++;
+        } while (active != 0);
+        D_80075028.unk04 = 0;
+    }
+    active = D_80077288[2];
+    if (active & 0x80) {
+        depth = (g_sndSeqState->reverbDepth << 4) >> 16;
+        SpuSetReverbModeDepth(depth, depth);
+        D_80077288[2] &= ~0x80;
+    }
+    if (active & 0x10) {
+        SpuSetNoiseClock(D_80075028.activeMask != 0 ? D_80075028.noiseClock : g_sndSeqState->noiseClock);
+        D_80077288[2] &= ~0x10;
+    }
+    if (active & 0x100) {
+        func_80016C28((u32 *)&D_80077368[1], D_80073CA8->noiseMask, g_sndSeqState->noiseMask, D_80075028.noiseMask);
+        func_80016C28((u32 *)&D_80077368[0], D_80073CA8->reverbMask, g_sndSeqState->reverbMask, D_80075028.reverbMask);
+        func_80016C28((u32 *)&D_80077368[2], D_80073CA8->pitchLfoMask, g_sndSeqState->pitchLfoMask, D_80075028.pitchLfoMask);
+        spuSetTransferControl(D_80077368[0]);
+        spuSetDataFifo(D_80077368[1]);
+        spuSetTransferAddr(D_80077368[2]);
+        D_80077288[2] &= ~0x100;
+    }
+    if (keyOn != 0) {
+        spuSetReverbWorkAddr(keyOn);
+    }
+}
 
 /**
  * @brief Builds a voice bitmask from active tracks matching a track bitmask.
