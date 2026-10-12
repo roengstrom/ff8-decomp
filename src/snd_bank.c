@@ -143,7 +143,114 @@ s32 sndBuildVoiceMask(u8 *a0, s32 a1) {
     return result;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_8001708C);
+void func_8001708C(u8 *data, u32 mask) {
+    SoundMusicConfig *config;
+    SoundSeqTrack *track;
+    SndSeqHeader *seq;
+    u32 tracks;
+    u32 bit;
+    u32 i;
+    s32 flags;
+    u32 allVoices;
+    u8 *p;
+
+    seq = (SndSeqHeader *)data;
+    g_sndSeqState->unk2C = seq;
+    tracks = seq->trackMask;
+    bit = (D_80073CA8 != NULL) ? sndBuildVoiceMask((u8 *)D_80073C34, D_80073CA8->activeMask) : 0;
+    allVoices = 0xFFFFFF;
+    D_80075028.unk0C |= ~bit & (~(D_80075028.activeMask | D_800772A4) & allVoices);
+    g_sndSeqState->unk18 = 0;
+    if (D_800772F4 & 1) {
+        g_sndSeqState->activeMask = 0;
+        g_sndSeqState->activeMaskStored |= tracks & mask;
+    } else {
+        g_sndSeqState->activeMaskStored = 0;
+        g_sndSeqState->activeMask |= tracks & mask;
+    }
+    g_sndSeqState->unk08 = seq->unk24;
+    g_sndSeqState->unk0C = seq->unk28;
+    flags = g_sndSeqState->unk00 & ~0x603;
+    g_sndSeqState->unk00 = flags;
+    g_sndSeqState->unk00 = (seq->unk14 == D_80073DE4) ? flags | 0x400 : flags | 0x200;
+    p = (u8 *)&seq->unk30 + seq->unk30;
+    g_sndSeqState->unk30 = seq->unk30 ? (s16 *)p : NULL;
+    p = (u8 *)&seq->unk34 + seq->unk34;
+    g_sndSeqState->drumMap = seq->unk34 ? (SndDrumEntry *)p : NULL;
+    bit = 1;
+    i = 0;
+    track = D_80070D60;
+    data += 0x40;
+    for (; i < 32; track++, i++, bit <<= 1) {
+        if (tracks & bit & mask) {
+            track->seqPtr = data + *(u16 *)data;
+            track->volume = 4;
+            track->volumeBase = 2;
+            track->volumeMultiplier = 0x7F00;
+            track->volumeLevel = 0x3FFF0000;
+            track->volBalance = 0x4000;
+            track->fineTuning = 0;
+            track->detune = 0;
+            track->duration = 0;
+            track->pitchSlide = 0;
+            track->durationDelta2 = 0;
+            track->pitchSlideSteps = 0;
+            track->volumeAccum = 0;
+            track->volumeDelta = 0;
+            track->volPan = 0x8000;
+            track->volPanSlideSteps = 0;
+            track->duration = 0;
+            track->volBalanceSlideSteps = 0;
+            track->volSlideSteps = 0;
+            track->fineTunePitch = 0;
+            track->pitchValueSlideSteps = 0;
+            track->timerActive = 0;
+            track->panLfoVol = 0;
+            track->loopId = 0;
+            data += 2;
+            track->flags = ((g_sndSeqState->unk0C & bit) == 0) << 6;
+            track->panLfoDepth = 0;
+            track->tremoloDepth = 0;
+            track->vibratoDepth = 0;
+            track->panLfoDepthSlideSteps = 0;
+            track->tremoloDepthSlideSteps = 0;
+            track->vibratoDepthSlideSteps = 0;
+            track->pitchLfoSwitchDelay = 0;
+            track->noiseSwitchDelay = 0;
+            sndTrackApplyInstrument(track, 0);
+        } else {
+            if (tracks & bit) {
+                if (!(bit & mask)) {
+                    data += 2;
+                }
+            }
+            track->volume = 3;
+            track->volumeBase = 1;
+            track->seqPtr = D_800517F0;
+            track->voiceAttr.updateFlags |= 0x4400;
+            track->voiceAttr.adsrHigh = (track->voiceAttr.adsrHigh & 0xFFE0) | 5;
+        }
+        track->voiceAttr.voice = 0x18;
+        tracks &= ~bit;
+    }
+    config = g_sndSeqState;
+    config->tempo = 0xFFFF0000;
+    config->unk28 = 1;
+    config->tempoSlideSteps = 0;
+    D_80077288[2] = 0;
+    config->timerLowerCur = 0;
+    config->timerLower = 0;
+    config->timerUpperCur = 0;
+    config->timerTopCur = 0;
+    config->noiseMask = 0;
+    config->reverbMask = 0;
+    config->pitchLfoMask = 0;
+    config->condition = 0;
+    config->unk14 = 0;
+    config->unk10 = 0;
+    config->unk38 = (s32)&D_8005182F;
+    D_80077288[2] |= 0x100;
+}
 
 void func_80017410(SoundMusicConfig *config, SoundSeqTrack *tracks, s32 id) {
     SoundMusicConfig **owner;
@@ -452,7 +559,7 @@ void func_80018158(SndVoice *voice) {
     if (D_80073DF0.musicId != 0 && D_80073DF0.musicId == voice->params[2]) {
         func_80017DB0(voice->params[0], 0);
     } else {
-        func_8001708C(voice->params[0], -1);
+        func_8001708C((u8 *)voice->params[0], -1);
         g_sndSeqState->musicId = voice->params[2];
     }
 }
@@ -468,7 +575,7 @@ void func_80018158(SndVoice *voice) {
  */
 void sndConfigureTrackPlayback(s32 *a0) {
     s32 val, result;
-    func_8001708C(a0[0], a0[3]);
+    func_8001708C((u8 *)a0[0], a0[3]);
     g_sndSeqState->musicId = *(u16 *)((u8 *)a0 + 8);
     result = 0;
     /* The val load is block-extracted so result binds to $a0: a plain
@@ -518,7 +625,7 @@ void func_80018358(s32 *args) {
         func_8001A57C(g_sndSeqState, &D_80073DF0, 0x70);
         func_8001A57C(D_80070D60, D_80073C34, 0x2200);
     }
-    func_8001708C(args[0], -1);
+    func_8001708C((u8 *)args[0], -1);
     g_sndSeqState->volMul = (args[4] & 0x7F) << 16;
     g_sndSeqState->volMulSlideSteps = 0;
     g_sndSeqState->musicId = args[2];
