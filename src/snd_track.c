@@ -171,7 +171,25 @@ void func_8001C3E8(SoundSeqTrack *track) {
     g_sndSeqState->tempoSlideStep = (tempo - g_sndSeqState->tempo) / g_sndSeqState->tempoSlideSteps;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C490);
+void func_8001C490(SoundSeqTrack *track) {
+    s32 target;
+
+    target = (s8)track->seqPtr[1] << 20;
+    target |= track->seqPtr[0] << 12;
+    track->seqPtr += 2;
+    g_sndSeqState->reverbDepthSlideSteps = 0;
+    if (D_80074F10.unk08 == 0) {
+        D_80077288[2] |= 0x80;
+        g_sndSeqState->reverbDepth = target;
+    } else {
+        g_sndSeqState->reverbDepth &= ~0xFFF;
+        if (target != g_sndSeqState->reverbDepth) {
+            g_sndSeqState->reverbDepthSlideSteps = 48;
+            target -= g_sndSeqState->reverbDepth;
+            g_sndSeqState->reverbDepthSlideStep = target / 48;
+        }
+    }
+}
 
 void func_8001C530(SoundSeqTrack *track) {
     u8 *ptr;
