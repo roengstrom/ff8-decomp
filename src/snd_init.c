@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libspu.h"
 #include "snd_init.h"
 #include "snd_dma.h"
 
@@ -78,7 +79,7 @@ s32 sndStopAll(void) {
     SpuSetIRQ(0);
     SpuSetIRQCallback(0);
     if (D_80074ED4 == 1) {
-        sndDmaWriteSpu((s32)D_800516B8, 0x40);
+        sndDmaWriteSpu(D_800516B8, 0x40);
         sndDmaWait();
     }
     for (i = 0; i < 24; i++) {
@@ -421,11 +422,11 @@ void sndDisableReverb(u32 mode) {
 }
 
 /**
- * @brief Multiply input by 256, call func_8003ED24 with sign-extended 16-bit value,
+ * @brief Multiply input by 256, call SpuSetReverbModeDepth with sign-extended 16-bit value,
  *        return full shifted result.
  *
  * Shifts the input left by 8, sign-extends the lower 16 bits, passes
- * the sign-extended value to func_8003ED24 as both arguments, then
+ * the sign-extended value to SpuSetReverbModeDepth as both arguments, then
  * returns the original (non-truncated) shifted value.
  *
  * @param a0 Input value to shift.
@@ -433,7 +434,7 @@ void sndDisableReverb(u32 mode) {
  */
 s32 func_800133D8(s32 arg0) {
     arg0 <<= 8;
-    func_8003ED24((s16)arg0, (s16)arg0);
+    SpuSetReverbModeDepth(arg0, arg0);
     return arg0;
 }
 

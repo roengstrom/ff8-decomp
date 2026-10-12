@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libspu.h"
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _SpuInit);
 
@@ -79,7 +80,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DDA0);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SPU_OBJ_B18);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DDF4);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", _SpuDataCallback);
 
 /**
  * @brief Initializes the SPU (Sound Processing Unit) with default settings.
@@ -88,9 +89,9 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DDF4);
  * including clearing all voice attributes, resetting the SPU control
  * register, and initializing the sound RAM management.
  */
-void InitSpu(void) { _SpuInit(0); }
+void SpuInit(void) { _SpuInit(0); }
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003DE44);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuQuit);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuInitMalloc);
 
@@ -139,7 +140,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003E314);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuRead);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003E3A4);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuWrite);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuSetTransferStartAddr);
 
@@ -168,3 +169,11 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuClearReverbWorkArea);
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", S_CRWA_OBJ_9C);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", S_CRWA_OBJ_170);
+
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuSetReverbModeDepth);
+
+extern s32 D_80056640;
+
+void SpuGetReverbModeType(long *mode) {
+    *mode = D_80056640;
+}

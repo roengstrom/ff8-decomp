@@ -14,8 +14,8 @@
 extern u32 sndValidateBank(u32 *a0);
 extern void sndDmaCompleteCallback(void);
 extern void sndDmaSetActive(void);
-extern void sndDmaWriteSpu(s32 a0, s32 a1);
-extern void sndDmaReadSpu(s32 a0, s32 a1);
+extern void sndDmaWriteSpu(u8 *a0, u32 a1);
+extern void sndDmaReadSpu(u8 *a0, u32 a1);
 extern void sndDmaWait(void);
 extern s32 sndUploadSample(SndBankDesc *a0, s32 a1);
 extern void sndSpuInit(void);

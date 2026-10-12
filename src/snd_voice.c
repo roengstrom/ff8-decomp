@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libspu.h"
 #include "sound.h"
 #include "snd_init.h"
 

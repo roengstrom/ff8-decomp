@@ -114,7 +114,7 @@ void InitHardware(void) {
     StopCallback();
     ResetCallback();
     ResetGraph(0);
-    InitSpu();
+    SpuInit();
     g_vsyncSkip = 0;
     g_renderMode = RENDER_IDLE;
     VSyncCallback(VsyncHandler);

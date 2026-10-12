@@ -1,10 +1,11 @@
 #include "common.h"
+#include "psxsdk/libspu.h"
 #include "sound.h"
 #include "snd_dma.h"
 #include "snd_init.h"
 
 extern volatile s32 D_80074ED4;
-extern s32 D_80074E88;
+extern char D_80074E88[];
 extern u8 D_800516B8[];
 extern s32 D_8005169C;
 
@@ -47,29 +48,29 @@ void sndDmaCompleteCallback(void) {
  */
 void sndDmaSetActive(void) {
     D_80074ED4 = 1;
-    SpuSetTransferCallback((s32)sndDmaCompleteCallback);
+    SpuSetTransferCallback(sndDmaCompleteCallback);
 }
 
 /**
  * @brief Sets the SPU DMA active flag, registers callback, and initiates SPU write.
  *
  * Sets D_80074ED4 to 1, registers sndDmaCompleteCallback as the completion callback,
- * then calls func_8003E3A4 to begin the SPU write with the given address and size.
+ * then calls SpuWrite to begin the SPU write with the given address and size.
  *
- * @param a0 SPU destination address.
+ * @param a0 Source buffer in main RAM.
  * @param a1 Transfer size in bytes.
  */
-void sndDmaWriteSpu(s32 a0, s32 a1) {
+void sndDmaWriteSpu(u8 *a0, u32 a1) {
     D_80074ED4 = 1;
-    SpuSetTransferCallback((s32)sndDmaCompleteCallback);
-    func_8003E3A4(a0, a1);
+    SpuSetTransferCallback(sndDmaCompleteCallback);
+    SpuWrite(a0, a1);
 }
 
 /** @brief Calls sndDmaSetActive, then SpuRead with a0/a1 as arguments.
- *  @param a0 SPU read address.
+ *  @param a0 Destination buffer in main RAM.
  *  @param a1 SPU read size.
  */
-void sndDmaReadSpu(s32 a0, s32 a1) {
+void sndDmaReadSpu(u8 *a0, u32 a1) {
     sndDmaSetActive();
     SpuRead(a0, a1);
 }
@@ -227,10 +228,10 @@ void func_80014974(void) {
  */
 void sndSpuInit(void) {
     SpuStart();
-    SpuInitMalloc(4, (s32)&D_80074E88);
+    SpuInitMalloc(4, D_80074E88);
     SpuSetTransferMode(0);
     SpuSetTransferStartAddr(0x1010);
-    sndDmaWriteSpu((s32)D_800516B8, 0x40);
+    sndDmaWriteSpu(D_800516B8, 0x40);
     sndDmaWait();
     func_80014974();
     SpuSetIRQ(0);
@@ -256,11 +257,11 @@ void sndSpuInit(void) {
  * If playback is active (D_80074ED4 == 1), sends a stop command and waits
  * for DMA completion. Stops root counter 2, undelivers and disables/closes
  * the associated event, resets all voice IRQ addresses, and calls
- * func_8003DE44 (SpuQuit) for final SPU cleanup.
+ * SpuQuit for final SPU cleanup.
  */
 void sndSpuShutdown(void) {
     if (D_80074ED4 == 1) {
-        sndDmaWriteSpu((s32)D_800516B8, 0x40);
+        sndDmaWriteSpu(D_800516B8, 0x40);
         sndDmaWait();
     }
 
@@ -276,7 +277,7 @@ void sndSpuShutdown(void) {
     } while (CloseEvent(D_8005169C) == 0);
 
     spuSetIrqAddr(0xFFFFFF);
-    func_8003DE44();
+    SpuQuit();
 }
 
 /**

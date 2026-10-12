@@ -1592,10 +1592,10 @@ s32 func_8001DFF4(void) {
  *        sndStreamSetupMono, and initiates DMA transfer of 0x800 bytes.
  */
 void sndStreamBeginTransfer(void) {
-    s32 addr = g_sndStream.src + 0x800;
+    u8 *addr = g_sndStream.src + 0x800;
     SpuSetTransferStartAddr(0x2100);
     SpuSetTransferCallback(sndStreamSetupMono);
-    func_8003E3A4(addr, 0x800);
+    SpuWrite(addr, 0x800);
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E0CC);
@@ -1649,7 +1649,7 @@ void func_8001E65C(s32 addr, s32 repeatAddr, s32 size, void (*callback)(void)) {
     if (g_sndStream.active != 0 && g_sndStream.remaining != 0) {
         SpuSetTransferStartAddr(addr);
         sndDmaSetActive();
-        func_8003E3A4(g_sndStream.src, size);
+        SpuWrite(g_sndStream.src, size);
         SpuSetIRQ(0);
         if (g_sndStream.remaining > 0x800) {
             SpuSetIRQCallback(callback);
@@ -1905,7 +1905,7 @@ void func_8001F3D4(s32 addr, s32 repeatAddr, s32 size, void (*callback)(void)) {
             SpuSetTransferStartAddr(addr);
             sndDmaSetActive();
             sndStreamAdvanceLoopCounter(&g_sndStream.unk34);
-            func_8003E3A4(g_sndStream.src + 0x170, size - 0x170);
+            SpuWrite(g_sndStream.src + 0x170, size - 0x170);
             g_sndStream.unk20 = hdr->unk04;
             if (hdr->size > 0x690) {
                 SpuSetIRQCallback(callback);

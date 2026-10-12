@@ -694,7 +694,7 @@ binaries:
     - [0x29F64, c, psxsdk/libpad]
     - [0x2D004, c, psxsdk/softfloat]
     - [0x2D954, c, psxsdk/libspu]
-    - [0x2F524, c, psxsdk/libgte]
+    - [0x2F564, c, psxsdk/libgte]
     - [0x32D94, c, psxsdk/libetc/pad_init]
     - [0x32E34, c, psxsdk/libetc]
     - [0x33AF4, c, psxsdk/libcd]

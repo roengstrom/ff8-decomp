@@ -362,8 +362,8 @@ typedef struct {
  * volume/pan, loop counters and IRQ state.
  */
 typedef struct {
-    /* 0x00 */ s32 src;
-    /* 0x04 */ s32 loopSrc;
+    /* 0x00 */ u8 *src;
+    /* 0x04 */ u8 *loopSrc;
     /* 0x08 */ s32 flags;          /**< Control flags (bit 24 gates the tick IRQ callback). */
     /* 0x0C */ s32 active;         /**< Active/IRQ voice bitmask (nonzero = playing). */
     /* 0x10 */ s32 voiceIdx;       /**< First SPU voice index for this stream. */
