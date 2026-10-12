@@ -495,7 +495,71 @@ void sndReleaseVoiceFromTracks(s32 voiceId) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
+void func_80017AAC(s32 *cmd, s32 sfx1, s32 sfx2, s32 noStop) {
+    SoundSeqTrack *track;
+    u32 bit;
+    u32 busy;
+    s32 i;
+
+    if (sfx1 == 0 && sfx2 == 0) {
+        return;
+    }
+    if (noStop == 0 && cmd[1] != 0) {
+        func_800174E4(0, cmd[1]);
+    }
+    do {
+        track = &D_80072F70[11];
+        bit = 0x800000;
+        busy = D_80075028.activeMask | D_80075028.activeMaskStored | g_sndStream.active;
+        if (sfx1 != 0 && sfx2 != 0) {
+            i = 11;
+            track--;
+            bit = 0x400000;
+            while (1) {
+                if (!(busy & (bit | (bit << 1)))) {
+                    break;
+                }
+                i--;
+                track--;
+                bit >>= 1;
+                if (i == 0) {
+                    break;
+                }
+                // Matching hack, keeps gcc from folding the exit test into the loop branch
+                continue;
+            }
+        } else {
+            for (i = 12; i != 0; i--, track--, bit >>= 1) {
+                if (!(busy & bit)) {
+                    break;
+                }
+            }
+        }
+        if (i != 0) {
+            break;
+        }
+        func_800174E4(0, 0x40000000);
+        if (busy == (D_80075028.activeMask | D_80075028.activeMaskStored | g_sndStream.active)) {
+            return;
+        }
+    } while (i == 0);
+    if (sfx1 != 0) {
+        func_80017880(track, cmd, bit, sfx1);
+        sndReleaseVoiceFromTracks(track->voiceAttr.voice);
+    }
+    if (sfx2 != 0) {
+        if (sfx1 != 0) {
+            track++;
+            bit <<= 1;
+        }
+        func_80017880(track, cmd, bit, sfx2);
+        sndReleaseVoiceFromTracks(track->voiceAttr.voice);
+        if (sfx1 != 0) {
+            track->flags |= 0x10000;
+        }
+    }
+    D_80077288[2] |= 0x110;
+}
 
 /**
  * @brief Resolves two consecutive sample addresses from the instrument table.
