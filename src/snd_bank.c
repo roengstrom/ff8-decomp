@@ -172,7 +172,112 @@ void func_80017410(SoundMusicConfig *config, SoundSeqTrack *tracks, s32 id) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_800174E4);
+void func_800174E4(s32 id, u32 mode) {
+    SoundSeqTrack *track;
+    u32 active;
+    u32 bit;
+    u32 i;
+    s32 age;
+    s32 flags;
+
+    bit = 0x1000;
+    track = D_80072F70;
+    active = D_80075028.activeMask | D_80075028.activeMaskStored;
+    if (mode & 0x0FFFFFFF) {
+        for (i = 0; i < 12; i++, track++, bit <<= 1) {
+            if (active & bit) {
+                if (id == -2) {
+                    if ((track->keyOnMask & mode) && track->keyOffMask < 0) {
+                        flags = track->flags;
+                        if (flags & 0x100000) {
+                            track->flags = flags | 0x200000;
+                        } else {
+                            D_80075028.unk0C |= bit;
+                            sndTrackClearVoiceBits(track, bit);
+                            track->flags = 0;
+                        }
+                    }
+                } else if (track->keyOnMask & mode) {
+                    flags = track->flags;
+                    if (flags & 0x100000) {
+                        track->flags = flags | 0x200000;
+                    } else {
+                        D_80075028.unk0C |= bit;
+                        sndTrackClearVoiceBits(track, bit);
+                        track->flags = 0;
+                    }
+                }
+            }
+        }
+    } else if (mode & 0x80000000) {
+        track = &D_80072F70[id];
+        bit <<= id;
+        if (active & bit) {
+            func_800174E4(track->keyOffMask, 0);
+        }
+        bit <<= 1;
+        track++;
+        if (active & bit) {
+            func_800174E4(track->keyOffMask, 0);
+        }
+        return;
+    } else if (mode & 0x40000000) {
+        for (i = 0; i < 12; i++, track++, bit <<= 1) {
+            if (track->keyOnMask != 0) {
+                active &= ~bit;
+            }
+        }
+        track = D_80072F70;
+        bit = 0x1000;
+        age = 0;
+        for (i = 0; i < 12; i++, track++, bit <<= 1) {
+            if ((active & bit) && age < track->unk54) {
+                age = track->unk54;
+            }
+        }
+        track = D_80072F70;
+        bit = 0x1000;
+        for (i = 0; i < 12; i++, track++, bit <<= 1) {
+            if ((active & bit) && age == track->unk54) {
+                flags = track->flags;
+                if (flags & 0x100000) {
+                    track->flags = flags | 0x200000;
+                } else {
+                    D_80075028.unk0C |= bit;
+                    sndTrackClearVoiceBits(track, bit);
+                    track->flags = 0;
+                }
+            }
+        }
+    } else {
+        for (i = 0; i < 12; i++, track++, bit <<= 1) {
+            if (active & bit) {
+                if (id == -1) {
+                    if (track->keyOffMask < 0) {
+                        flags = track->flags;
+                        if (flags & 0x100000) {
+                            track->flags = flags | 0x200000;
+                        } else {
+                            D_80075028.unk0C |= bit;
+                            sndTrackClearVoiceBits(track, bit);
+                            track->flags = 0;
+                        }
+                    }
+                } else if (track->keyOffMask == id) {
+                    flags = track->flags;
+                    if (flags & 0x100000) {
+                        track->flags = flags | 0x200000;
+                    } else {
+                        D_80075028.unk0C |= bit;
+                        sndTrackClearVoiceBits(track, bit);
+                        track->flags = 0;
+                    }
+                }
+            }
+        }
+    }
+    D_80077288[2] |= 0x110;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017880);
 

@@ -47,8 +47,9 @@ void spuSetVoiceAdsrLow(s32 voice, s32 val);
  *
  * @param a0 SPU voice index (0-23).
  * @param a1 Pointer to the voice parameter structure.
+ * @param a2 The owning track's flags (unused).
  */
-void func_800150A8(s32 a0, SndVoiceParam *a1) {
+void func_800150A8(s32 a0, SndVoiceParam *a1, s32 a2) {
     s32 flags = a1->updateFlags;
 
     if (flags == 0) {
@@ -487,7 +488,75 @@ s32 sndAllocVoice(void) {
     return min_idx;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_voice", func_80015FE0);
+void func_80015FE0(SoundSeqTrack *track, u32 active, u32 newVoices, s32 *keyOn) {
+    SndVoiceEnvelope *env;
+    u32 keyed;
+    u32 bit;
+    s32 i;
+    u32 voice;
+
+    bit = 1;
+    i = 0;
+    keyed = active & g_sndSeqState->unk10;
+    do {
+        if (active & bit) {
+            func_80015668(track, bit);
+            if (track->voiceAttr.updateFlags != 0) {
+                if (D_8007507C & bit) {
+                    track->voiceAttr.volRight = 0;
+                    track->voiceAttr.volLeft = 0;
+                }
+                if (keyed & bit) {
+                    if (newVoices & bit) {
+                        *keyOn |= 1 << i;
+                        track->voiceAttr.voice = i;
+                    } else {
+                        env = D_80073CB0;
+                        voice = 0;
+                        do {
+                            if (env->envelope == 0) {
+                                *keyOn |= 1 << voice;
+                                track->voiceAttr.voice = voice;
+                                env->envelope = 0x7FFF;
+                                break;
+                            }
+                            voice++;
+                            env++;
+                            if (voice == 24) {
+                                g_sndSeqState->unk00 |= 2;
+                                voice = sndAllocVoice();
+                                if (voice != 24) {
+                                    *keyOn |= 1 << voice;
+                                    track->voiceAttr.voice = voice;
+                                    D_80073CB0[voice].envelope = 0x7FFF;
+                                } else {
+                                    track->voiceAttr.voice = voice;
+                                    g_sndSeqState->unk00 |= 1;
+                                }
+                                break;
+                            }
+                        } while (voice < 24);
+                    }
+                    voice = track->voiceAttr.voice;
+                    if (voice < 24) {
+                        func_80014FFC(voice, &track->voiceAttr, track->voiceAttr.volScale);
+                        D_800772F8[track->voiceAttr.voice] = g_sndSeqState;
+                        D_80077288[2] |= 0x100;
+                    }
+                } else {
+                    voice = track->voiceAttr.voice;
+                    if (voice < 24) {
+                        func_800150A8(voice, &track->voiceAttr, track->flags);
+                    }
+                }
+            }
+            active &= ~bit;
+        }
+        bit <<= 1;
+        track++;
+        i++;
+    } while (active != 0);
+}
 
 
 /**
@@ -595,15 +664,13 @@ void func_80016478(SoundMusicConfig *config, SoundSeqTrack *tracks) {
 
 extern s32 D_80074F1C;
 /**
- * @brief Stores the current global tempo/timing value into a track structure.
+ * @brief Copies D_80074F1C into @p config's volMul.
  *
- * Copies D_80074F1C (a global timing or tick counter) into the track
- * structure field at offset 0x50.
- *
- * @param a0 Pointer to a sequence track structure.
+ * @param config Music config to update.
+ * @param tracks The config's track array (unused).
  */
-void sndStoreTrackTiming(u8 *a0) {
-    ((SoundSeqTrack *)a0)->fineTunePitch = D_80074F1C;
+void sndStoreTrackTiming(SoundMusicConfig *config, SoundSeqTrack *tracks) {
+    config->volMul = D_80074F1C;
 }
 
 INCLUDE_ASM("asm/nonmatchings/snd_voice", func_800164D8);

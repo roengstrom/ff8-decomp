@@ -7,6 +7,7 @@ typedef void (*SpuTransferCallbackProc)(void);
 extern void SpuInit (void);
 extern void SpuStart (void);
 extern void SpuQuit (void);
+extern long SpuSetNoiseClock (long n_clock);
 extern long SpuSetReverb (long on_off);
 extern unsigned long SpuWrite (unsigned char *addr, unsigned long size);
 extern unsigned long SpuRead (unsigned char *addr, unsigned long size);
