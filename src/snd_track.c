@@ -28,12 +28,12 @@ void func_8001EB38(void);
  */
 void sndTrackSetInstrumentParams(SoundSeqTrack *track, SndInstrument *inst, s32 a2) {
     u16 v;
-    track->sampleAddr = a2;
-    track->sampleLoop = inst->loopAddr;
-    track->adsrLow = inst->adsrLow;
+    track->voiceAttr.startAddr = a2;
+    track->voiceAttr.repeatAddr = inst->loopAddr;
+    track->voiceAttr.adsrLow = inst->adsrLow;
     v = inst->adsrHigh;
-    track->updateFlags |= 0x1FF80;
-    track->adsrHigh = v;
+    track->voiceAttr.updateFlags |= 0x1FF80;
+    track->voiceAttr.adsrHigh = v;
 }
 
 extern SndInstrument D_80073E68[];
@@ -238,8 +238,8 @@ void sndTrackReadPitchBend(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
     u8 val = *ptr;
     *(u8 **)track = ptr + 1;
-    track->updateFlags |= 3;
-    track->pitchBend = val << 8;
+    track->voiceAttr.updateFlags |= 3;
+    track->volumeMultiplier = val << 8;
 }
 
 /**
@@ -261,10 +261,10 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C684);
 void sndTrackReadPan(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
     s32 val = *(s8 *)ptr;
-    s32 flags = track->updateFlags | 3;
+    s32 flags = track->voiceAttr.updateFlags | 3;
     *(u8 **)track = ptr + 1;
     track->volSlideSteps = 0;
-    track->updateFlags = flags;
+    track->voiceAttr.updateFlags = flags;
     track->pitchValueSlideSteps = 0;
     track->volumeLevel = val << 23;
 }
@@ -333,7 +333,7 @@ void sndTrackReadExpression(SoundSeqTrack *track) {
     track->volBalanceSlideSteps = 0;
     track->volBalance = (val << 8) & 0xFFFF;
     if (flags30 & 0x100) {
-        track->updateFlags = track->updateFlags | 3;
+        track->voiceAttr.updateFlags = track->voiceAttr.updateFlags | 3;
     }
 }
 
@@ -350,10 +350,10 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C8DC);
 void sndTrackReadNotePitch(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
     u32 val = *ptr;
-    s32 flags = track->updateFlags;
+    s32 flags = track->voiceAttr.updateFlags;
     *(u8 **)track = ptr + 1;
     track->volPanSlideSteps = 0;
-    track->updateFlags = flags | 3;
+    track->voiceAttr.updateFlags = flags | 3;
     val += 0x40;
     val &= 0xFF;
     val <<= 8;
@@ -408,7 +408,7 @@ void sndTrackReadInstrumentTransposed(SoundSeqTrack *track) {
     }
     sndTrackSetInstrumentParams(track, &D_80073E68[inst], D_80073E68[inst].sampleAddr);
     track->instrument = inst;
-    track->instOverride = 0;
+    track->voiceAttr.volScale = 0;
     track->flags &= (s32)0xE6FFEFF7;
 }
 
@@ -430,7 +430,7 @@ void sndTrackReadInstrument(SoundSeqTrack *track) {
     inst = sndAdjustNoteOctave(bankPtr->unk00, byte);
     sndTrackSetInstrumentParams(track, &D_80073E68[inst], 0x1010);
     track->instrument = inst;
-    track->instOverride = 0;
+    track->voiceAttr.volScale = 0;
     track->flags &= (s32)0xE6FFEFF7;
 }
 
@@ -452,7 +452,7 @@ void func_8001CBA4(SoundSeqTrack *track) {
     if (table != NULL) {
         offset = table[idx];
         if (offset < 0) {
-            track->instOverride = 0;
+            track->voiceAttr.volScale = 0;
             track->flags &= ~0x1000;
         } else {
             track->drumOffset = (u8 *)table + offset + 0x20;
@@ -467,9 +467,9 @@ void func_8001CBA4(SoundSeqTrack *track) {
  */
 void sndTrackRefreshEnvelope(SoundSeqTrack *track) {
     SndInstrument *inst = &D_80073E68[track->instrument];
-    track->adsrLow = inst->adsrLow;
-    track->adsrHigh = inst->adsrHigh;
-    track->updateFlags |= 0xFF00;
+    track->voiceAttr.adsrLow = inst->adsrLow;
+    track->voiceAttr.adsrHigh = inst->adsrHigh;
+    track->voiceAttr.updateFlags |= 0xFF00;
     track->flags &= (s32)0xE6FFFFFF;
 }
 
@@ -552,7 +552,7 @@ void func_8001CD50(SoundSeqTrack *track) {
         scaled >>= 7;
     }
     track->fineTunePitch = scaled;
-    track->updateFlags |= 0x10;
+    track->voiceAttr.updateFlags |= 0x10;
 }
 
 void func_8001CDB0(SoundSeqTrack *track) {
@@ -566,7 +566,7 @@ void func_8001CDB0(SoundSeqTrack *track) {
         scaled >>= 7;
     }
     track->fineTunePitch = scaled;
-    track->updateFlags |= 0x10;
+    track->voiceAttr.updateFlags |= 0x10;
 }
 
 void func_8001CE14(SoundSeqTrack *track) {
@@ -648,8 +648,8 @@ void func_8001CF6C(SoundSeqTrack *track) {
 /** @brief Clears bit 0x1 in a0+0x30, sets bit 0x10 in a0+0xF8, zeroes a0+0xEE. */
 void sndTrackStopPortamento(SoundSeqTrack *track) {
     track->flags &= ~0x1;
-    track->updateFlags |= 0x10;
-    track->portamento = 0;
+    track->voiceAttr.updateFlags |= 0x10;
+    track->vibratoPitch = 0;
 }
 
 void func_8001CFFC(SoundSeqTrack *track) {
@@ -703,8 +703,8 @@ void func_8001D0D0(SoundSeqTrack *track) {
 /** @brief Clears bit 0x2 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF0. */
 void sndTrackStopVolumeLfo(SoundSeqTrack *track) {
     track->flags &= ~0x2;
-    track->updateFlags |= 0x3;
-    track->volumeLfoStop = 0;
+    track->voiceAttr.updateFlags |= 0x3;
+    track->tremoloVol = 0;
 }
 
 void func_8001D164(SoundSeqTrack *track) {
@@ -748,8 +748,8 @@ void func_8001D1F0(SoundSeqTrack *track) {
 /** @brief Clears bit 0x4 in a0+0x30, sets bits 0x3 in a0+0xF8, zeroes a0+0xF2. */
 void sndTrackStopPanLfo(SoundSeqTrack *track) {
     track->flags &= ~0x4;
-    track->updateFlags |= 0x3;
-    track->panLfoStop = 0;
+    track->voiceAttr.updateFlags |= 0x3;
+    track->panLfoVol = 0;
 }
 
 /**
@@ -790,7 +790,7 @@ void sndTrackDisableNoise(s32 *a0, s32 a1) {
         D_80075028.noiseMask = D_80075028.noiseMask & ~a1;
     }
     D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x110;
-    ((SoundSeqTrack *)a0)->noiseDuration = 0;
+    ((SoundSeqTrack *)a0)->noiseSwitchDelay = 0;
 }
 
 /**
@@ -831,7 +831,7 @@ void sndTrackDisableReverb(s32 *a0, s32 a1) {
         D_80075028.pitchLfoMask = D_80075028.pitchLfoMask & ~a1;
     }
     D_80077288[0x8 / 4] = D_80077288[0x8 / 4] | 0x100;
-    ((SoundSeqTrack *)a0)->reverbDuration = 0;
+    ((SoundSeqTrack *)a0)->pitchLfoSwitchDelay = 0;
 }
 
 /**
@@ -918,9 +918,9 @@ void sndTrackReadAdsrAttack(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
     *(u8 **)track = ptr + 1;
-    track->updateFlags |= 0x900;
+    track->voiceAttr.updateFlags |= 0x900;
     track->flags |= 0x1000000;
-    track->adsrLow = (track->adsrLow & 0x80FF) | (byte << 8);
+    track->voiceAttr.adsrLow = (track->voiceAttr.adsrLow & 0x80FF) | (byte << 8);
 }
 
 /**
@@ -937,8 +937,8 @@ void sndTrackReadAdsrAttack(SoundSeqTrack *track) {
 void sndTrackReadAdsrDecay(s32 a0, s32 a1) {
     s32 byte = *(u8 *)(*(s32 *)a0);
     *(s32 *)a0 = *(s32 *)a0 + 1;
-    ((SoundSeqTrack *)a0)->adsrLow = (((SoundSeqTrack *)a0)->adsrLow & 0xFF0F) | (byte << 4);
-    ((SoundSeqTrack *)a0)->updateFlags = ((SoundSeqTrack *)a0)->updateFlags | 0x1000;
+    ((SoundSeqTrack *)a0)->voiceAttr.adsrLow = (((SoundSeqTrack *)a0)->voiceAttr.adsrLow & 0xFF0F) | (byte << 4);
+    ((SoundSeqTrack *)a0)->voiceAttr.updateFlags = ((SoundSeqTrack *)a0)->voiceAttr.updateFlags | 0x1000;
 }
 
 /**
@@ -951,8 +951,8 @@ void sndTrackReadAdsrSustainLvl(SoundSeqTrack *track, s32 a1) {
     u8 *ptr = *(u8 **)track;
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
-    track->updateFlags |= 0x8000;
-    track->adsrLow = (track->adsrLow & 0xFFF0) | val;
+    track->voiceAttr.updateFlags |= 0x8000;
+    track->voiceAttr.adsrLow = (track->voiceAttr.adsrLow & 0xFFF0) | val;
 }
 
 /**
@@ -965,9 +965,9 @@ void sndTrackReadAdsrSustainRate(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
     s32 byte = *ptr;
     *(u8 **)track = ptr + 1;
-    track->updateFlags |= 0x2200;
+    track->voiceAttr.updateFlags |= 0x2200;
     track->flags |= 0x8000000;
-    track->adsrHigh = (track->adsrHigh & 0xE03F) | (byte << 6);
+    track->voiceAttr.adsrHigh = (track->voiceAttr.adsrHigh & 0xE03F) | (byte << 6);
 }
 
 /**
@@ -978,17 +978,17 @@ void sndTrackReadAdsrSustainRate(SoundSeqTrack *track) {
  */
 void sndTrackReadAdsrRelease(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
-    s32 flags = track->updateFlags;
+    s32 flags = track->voiceAttr.updateFlags;
     s32 val;
     s32 f30;
     u16 f108;
     val = *ptr;
     *(u8 **)track = ptr + 1;
-    track->updateFlags = flags | 0x4400;
+    track->voiceAttr.updateFlags = flags | 0x4400;
     f30 = track->flags;
-    f108 = track->adsrHigh;
+    f108 = track->voiceAttr.adsrHigh;
     track->flags = f30 | 0x10000000;
-    track->adsrHigh = (f108 & 0xFFE0) | val;
+    track->voiceAttr.adsrHigh = (f108 & 0xFFE0) | val;
 }
 
 /**
@@ -998,15 +998,15 @@ void sndTrackReadAdsrRelease(SoundSeqTrack *track) {
  */
 void sndTrackReadAdsrAttackMode(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
-    u16 f106 = track->adsrLow;
+    u16 f106 = track->voiceAttr.adsrLow;
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     f106 &= 0x7FFF;
-    track->adsrLow = f106;
+    track->voiceAttr.adsrLow = f106;
     if (val == 5) {
-        track->adsrLow = f106 | 0x8000;
+        track->voiceAttr.adsrLow = f106 | 0x8000;
     }
-    track->updateFlags = track->updateFlags | 0x100;
+    track->voiceAttr.updateFlags = track->voiceAttr.updateFlags | 0x100;
 }
 
 /**
@@ -1019,24 +1019,24 @@ void sndTrackReadAdsrAttackMode(SoundSeqTrack *track) {
  */
 void func_8001D714(SoundSeqTrack *track) {
     u8 *ptr = track->seqPtr;
-    u16 f108 = track->adsrHigh;
+    u16 f108 = track->voiceAttr.adsrHigh;
     u16 mode = *ptr;
 
     track->seqPtr = ptr + 1;
     f108 &= 0x3FFF;
-    track->adsrHigh = f108;
+    track->voiceAttr.adsrHigh = f108;
     switch (mode) {
     case 3:
-        track->adsrHigh = f108 | 0x4000;
+        track->voiceAttr.adsrHigh = f108 | 0x4000;
         break;
     case 5:
-        track->adsrHigh = f108 | 0x8000;
+        track->voiceAttr.adsrHigh = f108 | 0x8000;
         break;
     case 7:
-        track->adsrHigh = f108 | 0xC000;
+        track->voiceAttr.adsrHigh = f108 | 0xC000;
         break;
     }
-    track->updateFlags |= 0x200;
+    track->voiceAttr.updateFlags |= 0x200;
 }
 
 /**
@@ -1046,15 +1046,15 @@ void func_8001D714(SoundSeqTrack *track) {
  */
 void sndTrackReadAdsrReleaseMode(SoundSeqTrack *track) {
     u8 *ptr = *(u8 **)track;
-    u16 f108 = track->adsrHigh;
+    u16 f108 = track->voiceAttr.adsrHigh;
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     f108 &= 0xFFDF;
-    track->adsrHigh = f108;
+    track->voiceAttr.adsrHigh = f108;
     if (val == 7) {
-        track->adsrHigh = f108 | 0x20;
+        track->voiceAttr.adsrHigh = f108 | 0x20;
     }
-    track->updateFlags = track->updateFlags | 0x400;
+    track->voiceAttr.updateFlags = track->voiceAttr.updateFlags | 0x400;
 }
 
 /** @brief Increments the word at a0 by 1. */
@@ -1210,8 +1210,7 @@ void sndTrackAdjustVolume(SoundSeqTrack *track) {
  * @param a0 Pointer to stream state.
  */
 void sndTrackCheckBankFlags(SoundSeqTrack *track) {
-    s32 check = g_sndSeqState->drumMap;
-    if (check != 0) {
+    if (g_sndSeqState->drumMap != NULL) {
         track->flags = (track->flags & (s32)0xE6FFEFF7) | 8;
     }
 }
@@ -1219,7 +1218,7 @@ void sndTrackCheckBankFlags(SoundSeqTrack *track) {
 /** @brief Clears bit 0x8 in a0+0x30 and zeroes halfword at a0+0x10A. */
 void sndTrackClearOverride(SoundSeqTrack *track) {
     track->flags &= ~0x8;
-    track->instOverride = 0;
+    track->voiceAttr.volScale = 0;
 }
 
 /**
@@ -1289,9 +1288,9 @@ void sndTrackReadNoiseDuration(SoundSeqTrack *track, s32 a1) {
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     if (val != 0) {
-        track->noiseDuration = val + 1;
+        track->noiseSwitchDelay = val + 1;
     } else {
-        track->noiseDuration = 0x101;
+        track->noiseSwitchDelay = 0x101;
     }
     sndTrackEnableNoise((s32 *)track, a1);
 }
@@ -1304,9 +1303,9 @@ void sndTrackSetNoiseDuration(SoundSeqTrack *track) {
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     if (val != 0) {
-        track->noiseDuration = val + 1;
+        track->noiseSwitchDelay = val + 1;
     } else {
-        track->noiseDuration = 0x101;
+        track->noiseSwitchDelay = 0x101;
     }
 }
 
@@ -1321,9 +1320,9 @@ void sndTrackReadReverbDuration(SoundSeqTrack *track, s32 a1) {
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     if (val != 0) {
-        track->reverbDuration = val + 1;
+        track->pitchLfoSwitchDelay = val + 1;
     } else {
-        track->reverbDuration = 0x101;
+        track->pitchLfoSwitchDelay = 0x101;
     }
     sndTrackEnableReverb((s32 *)track, a1);
 }
@@ -1336,9 +1335,9 @@ void sndTrackSetReverbDuration(SoundSeqTrack *track) {
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     if (val != 0) {
-        track->reverbDuration = val + 1;
+        track->pitchLfoSwitchDelay = val + 1;
     } else {
-        track->reverbDuration = 0x101;
+        track->pitchLfoSwitchDelay = 0x101;
     }
 }
 

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "sound.h"
 #include "snd_dma.h"
+#include "snd_init.h"
 
 extern volatile s32 D_80074ED4;
 extern s32 D_80074E88;
@@ -9,7 +10,17 @@ extern s32 D_8005169C;
 
 void spuSetIrqAddr(u32 val);
 
-INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800146F0);
+void func_800146F0(s32 *src, s32 *dst, s32 base, s32 count) {
+    do {
+        dst[0] = src[0] + base;
+        dst[1] = src[1] + base;
+        dst[2] = src[2];
+        dst[3] = src[3];
+        src += 4;
+        dst += 4;
+        count--;
+    } while (count != 0);
+}
 
 /** @brief Adds magic constant 0xB0BEB4BF to value at pointer. */
 u32 sndValidateBank(u32 *a0) {
@@ -94,7 +105,111 @@ s32 sndUploadSample(SndBankDesc *a0, s32 a1) {
 
 INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800148B0);
 
-INCLUDE_ASM("asm/nonmatchings/snd_dma", func_80014974);
+void func_80014974(void) {
+    SoundSeqTrack *t;
+    u16 i;
+    u16 *spu;
+
+    D_80074ED4 = 0;
+    g_sndSeqState = &D_80073D70;
+    D_80073CA8 = NULL;
+    D_80074EE0 = D_80070D60;
+    t = D_80074EE0;
+    D_80073C34 = NULL;
+    D_80073DE0[1] = 0;
+    D_80073DE0[0] = 0;
+    D_80074EB8[5] = 0;
+    D_80074EB8[4] = 0;
+    D_80074EB8[3] = 0;
+    D_80074EB8[2] = 0;
+    D_80074EB8[1] = 0;
+    D_80077288[0] = 0;
+    D_80074EB8[0] = 0;
+    D_80077288[1] = 1;
+    D_80075028.activeMask = 0;
+    g_sndSeqState->activeMask = 0;
+    g_sndSeqState->unk08 = 0;
+    g_sndSeqState->musicId = 0;
+    D_80075028.activeMaskStored = 0;
+    g_sndSeqState->activeMaskStored = 0;
+    D_80073DF0.musicId = 0;
+    D_80073DF0.activeMask = 0;
+    g_sndSeqState->volMul = 0x7F0000;
+    D_80075078 = 0x7FFF0000;
+    D_80073E60 = 0;
+    D_80077280 = 0;
+    D_80073E62 = 0;
+    D_80077284 = 0;
+    g_sndSeqState->volMulSlideSteps = 0;
+    D_80074FE4 = 0;
+    D_80075028.noiseMask = 0;
+    g_sndSeqState->noiseMask = 0;
+    D_80075028.reverbMask = 0;
+    g_sndSeqState->reverbMask = 0;
+    spu = (u16 *)0x1F801D80;
+    *spu = 0x3FFF;
+    spu = (u16 *)0x1F801D82;
+    *spu = 0x3FFF;
+    spu = (u16 *)0x1F801DB0;
+    *spu = 0x7FFF;
+    spu = (u16 *)0x1F801DB2;
+    *spu = 0x7FFF;
+    spu = (u16 *)0x1F801DAA;
+    i = *spu;
+    D_80074EB0 = 0;
+    D_8007507C = 0;
+    D_800772F4 = 0;
+    D_80075028.pitchLfoMask = 0;
+    g_sndSeqState->pitchLfoMask = 0;
+    g_sndSeqState->timerLower = 0;
+    g_sndSeqState->timerUpperCur = 0;
+    g_sndSeqState->timerUpper = 0;
+    g_sndSeqState->timerTopCur = 0;
+    g_sndStream.panVolume = 0x7F00;
+    g_sndStream.panTarget = 0;
+    D_80077368[2] = 0;
+    D_80077368[1] = 0;
+    D_80077368[0] = 0;
+    D_80074F18 = 0;
+    *spu = (i & 0xFFFA) | 1;
+
+    for (i = 0; i < 32; i++, t++) {
+        t->flags = 0;
+        t->voiceAttr.voice = 0x18;
+        t->playingType = 0;
+        t->unk54 = 0;
+    }
+
+    for (t = &D_80072F70[0], i = 12; i < 24; i++, t++) {
+        t->flags = 0;
+        t->voiceAttr.voice = i;
+        t->playingType = 1;
+        t->unk54 = 0;
+        t->volBalance = 0x7F00;
+        t->volBalanceSlideSteps = 0;
+        t->pitchMulSoundSlideSteps = 0;
+        t->pitchMulSound = 0;
+        t->pitchValueSlideSteps = 0;
+    }
+
+    g_sndSeqState->unk18 = 0;
+    g_sndSeqState->unk14 = 0;
+    g_sndSeqState->unk10 = 0;
+    D_80075028.tempoUpdate = 1;
+    D_80075028.tempo = 0x66A80000;
+    D_80075028.unk0C = 0;
+    D_80075028.unk08 = 0;
+    D_80075028.unk04 = 0;
+    g_sndSeqState->reverbDepth = 0x3FFF000;
+    g_sndSeqState->reverbDepthSlideStep = 0;
+    g_sndSeqState->reverbDepthSlideSteps = 0;
+    D_80077288[2] |= 0x80;
+    sndSetReverbMode(4);
+    SpuSetReverb(1);
+    D_80072F60[1] = 0;
+    D_80072F60[0] = 0;
+    D_80072F68 = 0;
+}
 
 /**
  * @brief Initializes the SPU hardware and sets up the sound engine timer.

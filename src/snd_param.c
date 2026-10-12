@@ -2,10 +2,6 @@
 #include "sound.h"
 #include "snd_init.h"
 
-extern s32 D_80077284;
-extern s32 D_80077280;
-extern s32 D_800772A4;
-extern s32 D_8007507C;
 
 /**
  * @brief Clears D_80073E62, stores *a0 << 16 into D_80077284.
@@ -244,7 +240,7 @@ void func_80019EA0(void) {
         do {
             if (pending & bit) {
                 pending &= ~bit;
-                track->updateFlags |= 0x2B13;
+                track->voiceAttr.updateFlags |= 0x2B13;
             }
             bit <<= 1;
             track++;
@@ -328,7 +324,7 @@ void func_8001A058(void) {
         do {
             if (pending & bit) {
                 pending &= ~bit;
-                track->updateFlags |= 0x2B13;
+                track->voiceAttr.updateFlags |= 0x2B13;
             }
             bit <<= 1;
             track++;

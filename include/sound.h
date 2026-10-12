@@ -15,6 +15,25 @@
 #define SND_HANDLE_NONE (-1)
 
 /**
+ * @brief SPU voice parameter block passed to func_800150A8.
+ *
+ * Contains the pending SPU register values for a single voice.
+ * Field updateFlags holds a bitmask indicating which registers need writing.
+ */
+typedef struct {
+    /* 0x00 */ s32 voice;
+    /* 0x04 */ s32 updateFlags;   /**< Bitmask of pending SPU register updates. */
+    /* 0x08 */ u32 startAddr;     /**< SPU sample start address. */
+    /* 0x0C */ u32 repeatAddr;    /**< SPU sample repeat/loop address. */
+    /* 0x10 */ u16 sampleRate;    /**< Voice pitch / sample rate. */
+    /* 0x12 */ u16 adsrLow;       /**< ADSR envelope low halfword. */
+    /* 0x14 */ u16 adsrHigh;      /**< ADSR envelope high halfword. */
+    /* 0x16 */ u16 volScale;
+    /* 0x18 */ s16 volLeft;       /**< Left channel volume. */
+    /* 0x1A */ s16 volRight;      /**< Right channel volume. */
+} SndVoiceParam; /* 0x1C = 28 bytes */
+
+/**
  * @brief Sound sequence track (D_80070D60, stride 272 bytes).
  *
  * Each track controls one voice/channel of a sound sequence. The array
@@ -28,8 +47,8 @@ typedef struct {
     /* 0x1C */ s16 *tremoloWave;
     /* 0x20 */ s16 *panLfoWave;
     /* 0x24 */ s32 keyOnMask;
-    /* 0x28 */ s32 basePitch;
-    /* 0x2C */ s32 cmdDataPtr;
+    /* 0x28 */ u32 basePitch;
+    /* 0x2C */ s32 pitchSlide;
     /* 0x30 */ s32 flags;
     /* 0x34 */ s32 bankPtr;
     /* 0x38 */ s32 keyOffMask;
@@ -37,7 +56,7 @@ typedef struct {
     /* 0x40 */ s32 pitchMulSoundSlideStep;
     /* 0x44 */ s32 volumeLevel;
     /* 0x48 */ s32 volSlideStep;
-    /* 0x4C */ u8 pad4C[4];
+    /* 0x4C */ s32 pitchSlideStep;
     /* 0x50 */ s32 fineTunePitch;
     /* 0x54 */ s32 unk54;
     /* 0x58 */ s32 pitchValue;
@@ -52,15 +71,15 @@ typedef struct {
     /* 0x6E */ u16 unk6E;
     /* 0x70 */ u16 loopTimes[4];
     /* 0x78 */ u16 loopUnk6E[4];
-    /* 0x80 */ u16 pitchBend;
-    /* 0x82 */ u16 unk82;
+    /* 0x80 */ u16 volumeMultiplier;
+    /* 0x82 */ u16 volumeMultiplierSlideSteps;
     /* 0x84 */ u16 pitchMulSoundSlideSteps;
     /* 0x86 */ u16 volSlideSteps;
     /* 0x88 */ u16 pitchValueSlideSteps;
     /* 0x8A */ u16 volBalanceSlideSteps;
     /* 0x8C */ u16 volPan;
     /* 0x8E */ u16 volPanSlideSteps;
-    /* 0x90 */ u16 pad90;
+    /* 0x90 */ u16 pitchSlideSteps;
     /* 0x92 */ u16 panpot;
     /* 0x94 */ u16 durationDelta;
     /* 0x96 */ u16 durationCounter;
@@ -75,7 +94,7 @@ typedef struct {
     /* 0xA8 */ u16 vibratoBase;
     /* 0xAA */ u16 vibratoDepth;
     /* 0xAC */ u16 vibratoDepthSlideSteps;
-    /* 0xAE */ s16 vibratoDepthSlideStep;
+    /* 0xAE */ u16 vibratoDepthSlideStep;
     /* 0xB0 */ u16 unkB0;
     /* 0xB2 */ u16 tremoloDelay;
     /* 0xB4 */ u16 tremoloDelayCur;
@@ -84,41 +103,33 @@ typedef struct {
     /* 0xBA */ u16 tremoloType;
     /* 0xBC */ u16 tremoloDepth;
     /* 0xBE */ u16 tremoloDepthSlideSteps;
-    /* 0xC0 */ s16 tremoloDepthSlideStep;
+    /* 0xC0 */ u16 tremoloDepthSlideStep;
     /* 0xC2 */ u16 unkC2;
     /* 0xC4 */ u16 panLfoRate;
     /* 0xC6 */ u16 panLfoRateCur;
     /* 0xC8 */ u16 panLfoType;
     /* 0xCA */ u16 panLfoDepth;
     /* 0xCC */ u16 panLfoDepthSlideSteps;
-    /* 0xCE */ s16 panLfoDepthSlideStep;
-    /* 0xD0 */ u16 noiseDuration;
-    /* 0xD2 */ u16 reverbDuration;
+    /* 0xCE */ u16 panLfoDepthSlideStep;
+    /* 0xD0 */ u16 noiseSwitchDelay;
+    /* 0xD2 */ u16 pitchLfoSwitchDelay;
     /* 0xD4 */ u16 loopId;
     /* 0xD6 */ u16 volumeDelta;
     /* 0xD8 */ u16 volumeAccum;
-    /* 0xDA */ s16 unkDA;
+    /* 0xDA */ s16 volumeMultiplierSlideStep;
     /* 0xDC */ s16 unkDC;
     /* 0xDE */ u16 volBalance;
     /* 0xE0 */ s16 volBalanceSlideStep;
     /* 0xE2 */ s16 volPanSlideStep;
     /* 0xE4 */ u16 detune;
     /* 0xE6 */ s16 fineTuning;
-    /* 0xE8 */ u16 unkE8;
+    /* 0xE8 */ s16 unkE8;
     /* 0xEA */ u16 durationDelta2;
     /* 0xEC */ u16 ecField;
-    /* 0xEE */ u16 portamento;
-    /* 0xF0 */ u16 volumeLfoStop;
-    /* 0xF2 */ u16 panLfoStop;
-    /* 0xF4 */ s32 voiceMask;
-    /* 0xF8 */ s32 updateFlags;
-    /* 0xFC */ s32 sampleAddr;
-    /* 0x100 */ s32 sampleLoop;
-    /* 0x104 */ u16 pad104;
-    /* 0x106 */ u16 adsrLow;
-    /* 0x108 */ u16 adsrHigh;
-    /* 0x10A */ u16 instOverride;
-    /* 0x10C */ u8 pad10C[4];
+    /* 0xEE */ s16 vibratoPitch;
+    /* 0xF0 */ s16 tremoloVol;
+    /* 0xF2 */ s16 panLfoVol;
+    /* 0xF4 */ SndVoiceParam voiceAttr;
 } SoundSeqTrack; /* 0x110 = 272 bytes */
 
 /** @brief 12-entry CD-audio track array (voices 12-23), stride 0x110. */
@@ -135,7 +146,8 @@ extern SoundSeqTrack D_80075080[];
 typedef struct {
     /* 0x00 */ s32 sampleAddr;    /**< SPU sample start address. */
     /* 0x04 */ s32 loopAddr;      /**< SPU sample loop address. */
-    /* 0x08 */ u8 pad08[4];       /**< Unknown. */
+    /* 0x08 */ s16 unk08;
+    /* 0x0A */ s16 unk0A;
     /* 0x0C */ u16 adsrLow;       /**< ADSR envelope low halfword. */
     /* 0x0E */ u16 adsrHigh;      /**< ADSR envelope high halfword. */
 } SndInstrument; /* 16 bytes */
@@ -193,6 +205,17 @@ typedef struct {
  * Paired with the @c D_80070D60 track array as the primary sound source
  * (see @c sndTransferData).
  */
+typedef struct {
+    /* 0x00 */ u8 instrument;
+    /* 0x01 */ u8 key;
+    /* 0x02 */ u8 adsr0;
+    /* 0x03 */ u8 adsr1;
+    /* 0x04 */ u8 mode;
+    /* 0x05 */ u8 adsr2;
+    /* 0x06 */ u8 volScale;
+    /* 0x07 */ u8 pan;
+} SndDrumEntry;
+
 typedef struct SndSeqHeader {
     /* 0x00 */ u8 pad00[0x14];
     /* 0x14 */ s32 unk14;
@@ -221,7 +244,7 @@ typedef struct {
     /* 0x28 */ s32 unk28;
     /* 0x2C */ struct SndSeqHeader *unk2C;
     /* 0x30 */ s16 *unk30;
-    /* 0x34 */ s32 drumMap;
+    /* 0x34 */ SndDrumEntry *drumMap;
     /* 0x38 */ s32 unk38;
     /* 0x3C */ u32 noiseMask;
     /* 0x40 */ u32 reverbMask;
@@ -267,11 +290,29 @@ typedef struct {
     /* 0x00 */ s32 unk00;
     /* 0x04 */ s32 unk04;
     /* 0x08 */ s32 unk08;
+    /* 0x0C */ s32 unk0C;
 } UnkStruct80074F10;
 
 extern UnkStruct80074F10 D_80074F10;
+
+typedef struct {
+    /* 0x00 */ s32 unk00;
+    /* 0x04 */ s16 envelope;
+    /* 0x06 */ s16 unk06;
+} SndVoiceEnvelope;
+
+extern SndVoiceEnvelope D_80073CB0[];
 extern s32 D_8007506C;
 extern s32 D_800772F4;
+extern u32 D_800772A4;
+extern s32 D_80077280;
+extern s32 D_80077284;
+extern s32 D_8007507C;
+extern s32 D_80077368[];
+extern s32 D_80072F60[];
+extern s32 D_80072F68;
+extern SoundSeqTrack *D_80074EE0;
+extern void sndSetReverbMode(s32 mode);
 extern s32 D_80073DE4;
 extern u8 D_8005182F;
 extern SoundMusicConfig *D_800772F8[];
@@ -288,25 +329,6 @@ extern s16 *D_80052258[];
 
 /** @brief 12-entry SFX play queue, replayed by @c func_800BF718 after a sound reset. */
 extern VoicePoolEntry D_80074F20[12];
-
-/**
- * @brief SPU voice parameter block passed to func_800150A8.
- *
- * Contains the pending SPU register values for a single voice.
- * Field updateFlags holds a bitmask indicating which registers need writing.
- */
-typedef struct {
-    /* 0x00 */ u8 pad00[4];       /**< Unknown / unused. */
-    /* 0x04 */ s32 updateFlags;   /**< Bitmask of pending SPU register updates. */
-    /* 0x08 */ s32 startAddr;     /**< SPU sample start address. */
-    /* 0x0C */ s32 repeatAddr;    /**< SPU sample repeat/loop address. */
-    /* 0x10 */ u16 sampleRate;    /**< Voice pitch / sample rate. */
-    /* 0x12 */ u16 adsrLow;       /**< ADSR envelope low halfword. */
-    /* 0x14 */ u16 adsrHigh;      /**< ADSR envelope high halfword. */
-    /* 0x16 */ u16 sweep;         /**< Volume sweep / scale value. */
-    /* 0x18 */ s16 volLeft;       /**< Left channel volume. */
-    /* 0x1A */ s16 volRight;      /**< Right channel volume. */
-} SndVoiceParam; /* 0x1C = 28 bytes */
 
 /**
  * @brief Sound command parameter block.
@@ -382,6 +404,8 @@ typedef struct {
 extern s32 D_800772D8;
 extern s32 D_800772F0;
 extern s16 D_80051854[];
+extern s16 D_80051954;
+extern s32 D_800517F4[];
 
 /** @brief CD audio / streaming sound state instance (at 0x80077298). */
 extern SoundStream g_sndStream;

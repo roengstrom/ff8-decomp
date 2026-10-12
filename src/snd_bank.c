@@ -20,8 +20,8 @@ s32 func_80016DB4(s32 a0, SoundSeqTrack *a1) {
     if (a0 & 0x400) {
         if ((u32)(a1->instrument - 0x40) < 0x40) {
             s32 adj = 0x20000;
-            a1->sampleAddr = a1->sampleAddr + adj;
-            a1->sampleLoop = a1->sampleLoop + adj;
+            a1->voiceAttr.startAddr = a1->voiceAttr.startAddr + adj;
+            a1->voiceAttr.repeatAddr = a1->voiceAttr.repeatAddr + adj;
             a1->instrument = a1->instrument + 0x20;
         }
     }
@@ -42,8 +42,8 @@ s32 func_80016E08(s32 a0, SoundSeqTrack *a1) {
     if (a0 & 0x400) {
         if ((u32)(a1->instrument - 0x60) < 0x20) {
             s32 adj = (s32)0xFFFE0000;
-            a1->sampleAddr = a1->sampleAddr + adj;
-            a1->sampleLoop = a1->sampleLoop + adj;
+            a1->voiceAttr.startAddr = a1->voiceAttr.startAddr + adj;
+            a1->voiceAttr.repeatAddr = a1->voiceAttr.repeatAddr + adj;
             a1->instrument = a1->instrument - 0x20;
         }
     }
@@ -85,33 +85,33 @@ s32 sndGetBankGroup(s32 a0) {
  * @param a1 Instrument bank ID to assign to this track.
  */
 void sndInitTrack(SoundSeqTrack *track, s32 bankId) {
-    track->pitchBend = 0x6E00;
+    track->volumeMultiplier = 0x6E00;
     track->volumeLevel = 0x32000000;
     *(s32 *)track = bankId;
     track->detune = 0;
     track->fineTuning = 0;
     track->duration = 0;
-    track->cmdDataPtr = 0;
+    track->pitchSlide = 0;
     track->durationDelta2 = 0;
-    track->pad90 = 0;
+    track->pitchSlideSteps = 0;
     track->volumeAccum = 0;
     track->volumeDelta = 0;
     track->volSlideSteps = 0;
     track->fineTunePitch = 0;
     track->loopId = 0;
     track->flags = 0;
-    track->panLfoStop = 0;
+    track->panLfoVol = 0;
     track->timerActive = 0;
     track->unk6E = 0xFFFF;
-    track->instOverride = 0;
+    track->voiceAttr.volScale = 0;
     track->panLfoDepth = 0;
     track->tremoloDepth = 0;
     track->vibratoDepth = 0;
     track->panLfoDepthSlideSteps = 0;
     track->tremoloDepthSlideSteps = 0;
     track->vibratoDepthSlideSteps = 0;
-    track->reverbDuration = 0;
-    track->noiseDuration = 0;
+    track->pitchLfoSwitchDelay = 0;
+    track->noiseSwitchDelay = 0;
     sndTrackApplyInstrument(track, 0);
 }
 
@@ -132,7 +132,7 @@ s32 sndBuildVoiceMask(u8 *a0, s32 a1) {
     s32 bit = 1;
     do {
         if (a1 & (bit << i)) {
-            s32 val = ((SoundSeqTrack *)a0)->voiceMask;
+            s32 val = ((SoundSeqTrack *)a0)->voiceAttr.voice;
             if ((u32)val < 0x18) {
                 result |= (bit << val);
             }
@@ -191,16 +191,16 @@ void sndReleaseVoiceFromTracks(s32 voiceId) {
 
     track = (SoundSeqTrack *)D_80070D60;
     for (i = 32; i != 0; i--) {
-        if (track->voiceMask == voiceId)
-            track->voiceMask = 0x18;
+        if (track->voiceAttr.voice == voiceId)
+            track->voiceAttr.voice = 0x18;
         track++;
     }
 
     if (D_80073CA8 != 0) {
         track = D_80073C34;
         for (i = 32; i != 0; i--) {
-            if (track->voiceMask == voiceId)
-                track->voiceMask = 0x18;
+            if (track->voiceAttr.voice == voiceId)
+                track->voiceAttr.voice = 0x18;
             track++;
         }
     }
@@ -233,7 +233,7 @@ void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks) {
         do {
             if (mask & bit) {
                 mask ^= bit;
-                tracks->updateFlags |= 3;
+                tracks->voiceAttr.updateFlags |= 3;
             }
             tracks++;
             bit <<= 1;
@@ -333,8 +333,8 @@ void func_80018234(void) {
         i = 0;
         mask = D_80073CA8->activeMask;
         while (i < 32) {
-            if ((mask & (1 << i)) && track->voiceMask != 0x18) {
-                D_80075028.unk0C |= 1 << track->voiceMask;
+            if ((mask & (1 << i)) && track->voiceAttr.voice != 0x18) {
+                D_80075028.unk0C |= 1 << track->voiceAttr.voice;
             }
             i++;
             track++;
@@ -565,7 +565,7 @@ void func_80018E4C(s32 *args) {
                 val = args[2];
                 track->volBalanceSlideSteps = 0;
                 track->volBalance = (val & 0x7F) << 8;
-                track->updateFlags |= 3;
+                track->voiceAttr.updateFlags |= 3;
             }
         }
     } else {
@@ -574,7 +574,7 @@ void func_80018E4C(s32 *args) {
                 val = args[2];
                 track->volBalanceSlideSteps = 0;
                 track->volBalance = (val & 0x7F) << 8;
-                track->updateFlags |= 3;
+                track->voiceAttr.updateFlags |= 3;
             }
         }
     }
@@ -623,10 +623,10 @@ void func_800190B4(s32 *args) {
     for (i = 0; i < 12; i++, track++, bit <<= 1) {
         if ((active & bit) && !(track->keyOnMask & 0x2000000)) {
             val = args[0];
-            flags = track->updateFlags;
+            flags = track->voiceAttr.updateFlags;
             track->volBalanceSlideSteps = 0;
             track->volBalance = (val & 0x7F) << 8;
-            track->updateFlags = flags | 3;
+            track->voiceAttr.updateFlags = flags | 3;
         }
     }
 }
@@ -663,7 +663,7 @@ void func_800191F8(s32 *args) {
                 val = (u8)args[2];
                 track->pitchModCounter = 0;
                 track->pitchModDepth = val << 8;
-                track->updateFlags |= 3;
+                track->voiceAttr.updateFlags |= 3;
             }
         }
     } else {
@@ -672,7 +672,7 @@ void func_800191F8(s32 *args) {
                 val = (u8)args[2];
                 track->pitchModCounter = 0;
                 track->pitchModDepth = val << 8;
-                track->updateFlags |= 3;
+                track->voiceAttr.updateFlags |= 3;
             }
         }
     }
@@ -731,10 +731,10 @@ void func_80019450(s32 *args) {
     for (i = 0; i < 12; i++, track++, bit <<= 1) {
         if ((active & bit) && !(track->keyOnMask & 0x2000000)) {
             val = (u8)args[0];
-            flags = track->updateFlags;
+            flags = track->voiceAttr.updateFlags;
             track->pitchModCounter = 0;
             track->pitchModDepth = val << 8;
-            track->updateFlags = flags | 3;
+            track->voiceAttr.updateFlags = flags | 3;
         }
     }
 }
@@ -771,7 +771,7 @@ void func_8001958C(s32 *args) {
                 val = (u8)args[2];
                 track->pitchMulSoundSlideSteps = 0;
                 track->pitchMulSound = val << 8;
-                track->updateFlags |= 0x10;
+                track->voiceAttr.updateFlags |= 0x10;
             }
         }
     } else {
@@ -780,7 +780,7 @@ void func_8001958C(s32 *args) {
                 val = (u8)args[2];
                 track->pitchMulSoundSlideSteps = 0;
                 track->pitchMulSound = val << 8;
-                track->updateFlags |= 0x10;
+                track->voiceAttr.updateFlags |= 0x10;
             }
         }
     }
@@ -836,7 +836,7 @@ void func_800197F4(u8 *param) {
         if (!(track->keyOnMask & 0x2000000)) {
             track->pitchMulSound = *param << 8;
             track->pitchMulSoundSlideSteps = 0;
-            track->updateFlags |= 0x10;
+            track->voiceAttr.updateFlags |= 0x10;
         }
         track++;
     }
