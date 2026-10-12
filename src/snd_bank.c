@@ -325,7 +325,25 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017AAC);
  * @param a1 Output pointer for second sample address.
  * @param a2 Instrument index (low 10 bits used).
  */
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017C9C);
+void func_80017C9C(s32 *a0, s32 *a1, s32 a2) {
+    s32 val;
+
+    a2 &= 0x3FF;
+    a2 <<= 1;
+    if (D_80074ED0[a2] != 0xFFFF) {
+        val = (s32)(D_80074EDC + D_80074ED0[a2]);
+    } else {
+        val = 0;
+    }
+    a2++;
+    *a0 = val;
+    if (D_80074ED0[a2] != 0xFFFF) {
+        val = (s32)(D_80074EDC + D_80074ED0[a2]);
+    } else {
+        val = 0;
+    }
+    *a1 = val;
+}
 
 void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks) {
     s32 value = config->activeMask;
