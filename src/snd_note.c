@@ -1,6 +1,7 @@
 #include "common.h"
 #include "sound.h"
 #include "snd_init.h"
+#include "snd_dma.h"
 
 extern s16 D_8007507A;
 /**
@@ -70,9 +71,181 @@ void func_8001A5FC(u32 *a, u32 *b, u32 size) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001A674);
+void func_8001A674(void) {
+    SoundMusicConfig *config;
+    SoundStream *stream;
+    SoundSeqTrack *track;
+    u32 active;
+    u32 bit;
+    s32 val;
+    s32 vol;
 
-INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001AA28);
+    if (D_80074FE4 != 0) {
+        D_80074FE4--;
+        D_80075078 += D_80074FE0;
+        sndSetCdVolume();
+    }
+    stream = &g_sndStream;
+    if (stream->active != 0 && stream->panTarget != 0) {
+        stream->panTarget--;
+        vol = stream->panVolume;
+        val = vol + stream->panStep;
+        if ((val & 0xFF00) != (vol & 0xFF00)) {
+            if (D_8007728C & 2) {
+                vol = (vol * D_80051954) >> 16;
+                spuSetVoiceVolume(stream->voiceIdx, vol, vol, 0);
+                spuSetVoiceVolume(stream->voiceIdx + 1, vol, vol, 0);
+            } else {
+                vol = val << 15;
+                vol >>= 16;
+                spuSetVoiceVolume(stream->voiceIdx, vol, 0, 0);
+                spuSetVoiceVolume(stream->voiceIdx + 1, 0, vol, 0);
+            }
+        }
+        D_800772D8 = val & 0xFFFF;
+    }
+    if (D_80073E62 != 0) {
+        D_80073E62--;
+        D_80077284 += D_80073DEC;
+    }
+    if (D_80073E60 != 0) {
+        D_80073E60--;
+        val = D_80077280 + D_80073DE8;
+        if ((val & 0xFF0000) != (D_80077280 & 0xFF0000)) {
+            for (bit = 32, track = D_80070D60; bit != 0; bit--, track++) {
+                track->voiceAttr.updateFlags |= 0x10;
+            }
+        }
+        D_80077280 = val;
+    }
+    if (g_sndSeqState->activeMask != 0 && g_sndSeqState->volMulSlideSteps != 0) {
+        g_sndSeqState->volMulSlideSteps--;
+        val = g_sndSeqState->volMul + g_sndSeqState->volMulSlideStep;
+        if ((val & 0x7F0000) != (g_sndSeqState->volMul & 0x7F0000)) {
+            func_80017D14(g_sndSeqState, D_80070D60);
+        }
+        g_sndSeqState->volMul = val;
+    }
+    config = D_80073CA8;
+    if (config != 0 && config->activeMask != 0 && config->volMulSlideSteps != 0) {
+        config->volMulSlideSteps--;
+        val = config->volMul + config->volMulSlideStep;
+        if ((val & 0x7F0000) != (config->volMul & 0x7F0000)) {
+            func_80017D14(config, D_80073C34);
+        }
+        D_80073CA8->volMul = val;
+    }
+    if (D_80075028.activeMask != 0) {
+        active = D_80075028.activeMask;
+        track = D_80072F70;
+        bit = 0x1000;
+        do {
+            if (active & bit) {
+                if (track->volBalanceSlideSteps != 0) {
+                    track->volBalanceSlideSteps--;
+                    val = (s16)track->volBalance + track->volBalanceSlideStep;
+                    if ((val & 0xFF00) != ((s16)track->volBalance & 0xFF00)) {
+                        track->voiceAttr.updateFlags |= 3;
+                    }
+                    track->volBalance = val;
+                }
+                if (track->pitchModCounter != 0) {
+                    track->pitchModCounter--;
+                    val = track->pitchModDepth + track->unkDC;
+                    if ((val & 0xFF00) != (track->pitchModDepth & 0xFF00)) {
+                        track->voiceAttr.updateFlags |= 3;
+                    }
+                    track->pitchModDepth = val;
+                }
+                if (track->pitchMulSoundSlideSteps != 0) {
+                    track->pitchMulSoundSlideSteps--;
+                    val = track->pitchMulSound + track->pitchMulSoundSlideStep;
+                    if ((val & 0xFF00) != (track->pitchMulSound & 0xFF00)) {
+                        track->voiceAttr.updateFlags |= 0x10;
+                    }
+                    track->pitchMulSound = val;
+                }
+                active ^= bit;
+            }
+            bit <<= 1;
+            track++;
+        } while (active != 0);
+    }
+}
+
+u32 func_8001AA28(SoundSeqTrack *tracks, s32 isSecond) {
+    SoundMusicConfig *config;
+    SoundSeqTrack *track;
+    u32 active;
+    u32 bit;
+    u32 tempo;
+    u32 mul;
+    u32 update;
+    u32 flags;
+
+    tempo = (u16)(g_sndSeqState->tempo >> 16);
+    mul = D_80077286;
+    if (mul != 0) {
+        if (mul < 0x80) {
+            tempo += (tempo * mul) >> 7;
+        } else {
+            tempo = (tempo * mul) >> 8;
+        }
+    }
+    config = g_sndSeqState;
+    update = config->unk28 + tempo;
+    config->unk28 = update;
+    if ((update & 0xFFFF0000) != 0 || (D_800772F4 & 4)) {
+        config->unk28 = update & 0xFFFF;
+        do {
+            track = tracks;
+            bit = 1;
+            active = g_sndSeqState->activeMask;
+            do {
+                if (active & bit) {
+                    track->volume--;
+                    track->volumeBase--;
+                    if (track->volume == 0) {
+                        func_8001BAA8(track, bit);
+                    } else if (track->volumeBase == 0) {
+                        g_sndSeqState->unk18 |= bit;
+                    }
+                    func_800151C4(track, bit, 0);
+                    active &= ~bit;
+                }
+                track++;
+                bit <<= 1;
+            } while (active != 0);
+            config = g_sndSeqState;
+            if (config->tempoSlideSteps != 0) {
+                config->tempoSlideSteps--;
+                config->tempo += config->tempoSlideStep;
+            }
+            config = g_sndSeqState;
+            if (config->reverbDepthSlideSteps != 0) {
+                config->reverbDepthSlideSteps--;
+                config->reverbDepth += config->reverbDepthSlideStep;
+                flags = D_80077288[2];
+                if (isSecond == 0) {
+                    do { D_80077288[2] = flags | 0x80; } while (0);
+                }
+            }
+            if (g_sndSeqState->timerLower != 0) {
+                if (++g_sndSeqState->timerLowerCur == g_sndSeqState->timerLower) {
+                    g_sndSeqState->timerLowerCur = 0;
+                    if (++g_sndSeqState->timerUpperCur == g_sndSeqState->timerUpper) {
+                        g_sndSeqState->timerUpperCur = 0;
+                        g_sndSeqState->timerTopCur++;
+                        if (isSecond == 0 && D_80074EB0 != 0) {
+                            D_80074EB0--;
+                        }
+                    }
+                }
+            }
+        } while (isSecond == 0 && D_80074EB0 != 0);
+    }
+    return g_sndSeqState->activeMask;
+}
 
 extern void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
 
