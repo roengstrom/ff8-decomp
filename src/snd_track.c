@@ -1600,7 +1600,41 @@ void sndStreamBeginTransfer(void) {
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E0CC);
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E308);
+void func_8001E308(s32 voice, s32 mode, u32 startAddr, u32 repeatAddr) {
+    s16 volL;
+    s16 volR;
+    s32 pan;
+    s32 left;
+    s32 right;
+
+    if (D_8007728C & 2) {
+        volL = volR = (D_800772D8 * D_80051954) >> 16;
+    } else if (mode == 1) {
+        volL = D_800772D8 >> 1;
+        volR = 0;
+    } else if (mode == 2) {
+        volL = 0;
+        volR = D_800772D8 >> 1;
+    } else if (mode == 3) {
+        volL = D_800772D8 >> 1;
+        volL = volR = (volL >> 1) + (volL >> 2);
+    } else {
+        pan = (g_sndStream.unk4C >> 8) & 0xFF;
+        left = g_sndStream.panVolume * D_80051854[pan];
+        right = g_sndStream.panVolume * D_80051854[pan ^ 0xFF];
+        volL = left >> 16;
+        volR = right >> 16;
+    }
+    spuSetVoiceVolume(voice, volL, volR, 0);
+    spuSetVoicePitch(voice, D_800772F0);
+    spuSetVoiceStartAddr(voice, startAddr);
+    spuSetVoiceRepeatAddr(voice, repeatAddr);
+    spuSetVoiceAttack(voice, 0, 1);
+    spuSetVoiceDecayShift(voice, 0xF);
+    spuSetVoiceSustainLevel(voice, 0xF);
+    spuSetVoiceSustainMode(voice, 0x7F, 3);
+    spuSetVoiceReleaseMode(voice, 6, 3);
+}
 
 void func_8001E4C4(s32 size, s32 irqAddr, void (*callback)(void)) {
     SoundStream *stream = &g_sndStream;
@@ -1742,7 +1776,36 @@ void func_8001E940(s32 *args) {
     g_sndStream.panTarget = steps;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E9C0);
+void func_8001E9C0(s32 *args) {
+    SoundStream *stream = &g_sndStream;
+    s32 val;
+    s32 pan;
+    s32 vol;
+    s32 left;
+    s32 right;
+
+    val = args[0];
+    stream->unk4C = val;
+    if (stream->active != 0) {
+        if (D_8007728C & 2) {
+            vol = (stream->panVolume * D_80051954) >> 16;
+            spuSetVoiceVolume(stream->voiceIdx, vol, vol, 0);
+            spuSetVoiceVolume(stream->voiceIdx + 1, vol, vol, 0);
+        } else if (stream->flags & 1) {
+            vol = stream->panVolume;
+            vol <<= 15;
+            vol >>= 16;
+            spuSetVoiceVolume(stream->voiceIdx, vol, 0, 0);
+            spuSetVoiceVolume(stream->voiceIdx + 1, 0, vol, 0);
+        } else {
+            pan = (u8)(val >> 8);
+            left = (stream->panVolume * D_80051854[pan]) >> 16;
+            right = (stream->panVolume * D_80051854[pan ^ 0xFF]) >> 16;
+            spuSetVoiceVolume(stream->voiceIdx, left, right, 0);
+            spuSetVoiceVolume(stream->voiceIdx + 1, left, right, 0);
+        }
+    }
+}
 
 /** @brief Sets SPU IRQ address to 0x1038 and registers sndStreamDisableIrq as the IRQ callback. */
 void sndStreamSetupIrq(void) {
@@ -1768,7 +1831,50 @@ void func_8001EB38(void) {
     SpuSetIRQ(1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001EC0C);
+void func_8001EC0C(SndStreamHeader *hdr, s32 pan, s32 spuAddr, s32 reverb) {
+    SoundStream *stream;
+    s32 voice;
+    s32 mask;
+    u32 tmp;
+
+    voice = func_8001DFF4();
+    if (voice == -1) {
+        return;
+    }
+    SpuSetIRQ(0);
+    SpuSetIRQCallback(0);
+    stream = &g_sndStream;
+    tmp = stream->active;
+    stream->unk4C = pan;
+    g_sndStream.src = (u8 *)hdr + 0x40;
+    stream->remaining = hdr->size;
+    mask = (1 << voice) | (1 << (voice + 1));
+    stream->unk18 = hdr->unk20;
+    stream->voiceIdx = voice;
+    stream->active = mask;
+    spuSetIrqAddr(mask | tmp);
+    stream->flags = hdr->flags;
+    stream->savedPitch = hdr->pitch;
+    stream->unk2C = spuAddr;
+    SpuSetTransferMode(0);
+    SpuSetTransferStartAddr(spuAddr);
+    D_80074ED4 = 1;
+    SpuSetTransferCallback(func_8001EB38);
+    tmp = stream->remaining;
+    if (tmp > 0x2000) {
+        tmp = 0x2000;
+    }
+    SpuWrite(g_sndStream.src, tmp);
+    g_sndStream.src += tmp;
+    if (reverb != 0) {
+        D_80075028.reverbMask |= stream->active;
+    } else {
+        D_80075028.reverbMask &= ~stream->active;
+    }
+    D_80075028.pitchLfoMask &= ~D_800772A4;
+    D_80075028.noiseMask &= ~D_800772A4;
+    D_80077288[2] |= 0x100;
+}
 
 void func_8001EDD4(s32 unused, s32 reverb) {
     SndStreamHeader *hdr;
@@ -1832,7 +1938,7 @@ void func_8001EDD4(s32 unused, s32 reverb) {
  * @param a0 Pointer to 4-word struct.
  */
 void sndStreamStartPlayback4(s32 *a0) {
-    func_8001EC0C(a0[0], a0[1], a0[2], a0[3]);
+    func_8001EC0C((SndStreamHeader *)a0[0], a0[1], a0[2], a0[3]);
     D_80075028.activeMask &= ~g_sndStream.active;
 }
 
@@ -1865,7 +1971,48 @@ s32 sndStreamAdvanceLoopCounter(s32 *counter) {
     return *counter;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001F118);
+void func_8001F118(void) {
+    SoundStream *stream;
+    SndStreamHeader *hdr;
+    s32 voice;
+    s32 vol;
+    s32 mask;
+
+    voice = func_8001DFF4();
+    if (voice == -1) {
+        return;
+    }
+    SpuSetIRQ(0);
+    SpuSetIRQCallback(0);
+    hdr = (SndStreamHeader *)(g_sndStream.unk2C + 0x100);
+    if (hdr->unk28 != 0 && g_sndStream.panTarget == 0) {
+        vol = g_sndStream.panVolume;
+        g_sndStream.panVolume = 0;
+        sndCmdE5(hdr->unk28, vol >> 8);
+    }
+    stream = &g_sndStream;
+    g_sndStream.src = (u8 *)stream->unk2C;
+    stream->remaining = hdr->size;
+    mask = (1 << voice) | (1 << (voice + 1));
+    stream->unk18 = hdr->unk20;
+    stream->voiceIdx = voice;
+    stream->active = mask;
+    stream->unk34 = 0;
+    spuSetIrqAddr(mask);
+    stream->flags = hdr->flags;
+    stream->savedPitch = hdr->pitch;
+    SpuSetTransferMode(0);
+    SpuSetTransferStartAddr(0x1100);
+    D_80074ED4 = 1;
+    SpuSetTransferCallback(sndStreamSetupStereoAlt);
+    SpuWrite(g_sndStream.src + 0x170, 0x2000);
+    D_80075028.reverbMask &= ~stream->active;
+    D_80075028.pitchLfoMask &= ~stream->active;
+    D_80075028.noiseMask &= ~stream->active;
+    D_80077288[2] |= 0x100;
+    sndStreamAdvanceLoopCounter(&stream->unk34);
+    sndStreamAdvanceLoopCounter(&stream->unk34);
+}
 
 void func_8001F2A8(s32 offset, s32 addr, void (*callback)(void)) {
     if (g_sndStream.active != 0) {
