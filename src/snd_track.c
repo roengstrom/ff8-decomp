@@ -590,9 +590,9 @@ void sndTrackReadDuration(SoundSeqTrack *track) {
     s32 val = *ptr;
     *(u8 **)track = ptr + 1;
     track->duration = val;
-    if (val != 0) goto skip;
-    track->duration = 0x100;
-skip:
+    if (val == 0) {
+        track->duration = 0x100;
+    }
     track->ecField = 0;
     track->durationCounter = 0;
     track->timerActive = 1;
