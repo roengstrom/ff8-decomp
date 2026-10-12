@@ -350,6 +350,9 @@ extern s32 D_80074EB0;
 extern s32 D_80074F18;
 extern s16 *D_80052258[];
 extern u8 D_80051778[];
+extern u16 D_800517D8[];
+extern void (*D_80052698[])(SoundSeqTrack *track, u32 bit);
+extern void (*D_80052818[])(SoundSeqTrack *track, u32 bit);
 
 /** @brief 12-entry SFX play queue, replayed by @c func_800BF718 after a sound reset. */
 extern VoicePoolEntry D_80074F20[12];
@@ -475,6 +478,7 @@ extern u32 D_800772B8;
 void func_8001AD60(void);
 void func_800151C4(SoundSeqTrack *track, u32 bit, s32 isSfx);
 void func_8001BAA8(SoundSeqTrack *track, u32 bit);
+u8 func_8001B1F4(SoundSeqTrack *track);
 void func_800174E4(s32 id, u32 mode);
 void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
 void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);

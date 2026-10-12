@@ -472,4 +472,160 @@ s32 func_8001B820(SoundSeqTrack *track, u32 bit, s32 idx) {
     return pitch;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001BAA8);
+void func_8001BAA8(SoundSeqTrack *track, u32 bit) {
+    u32 op;
+    u32 value;
+    u32 depth;
+    u32 base;
+    u16 len;
+    s32 target;
+    s32 out;
+
+    do {
+        op = *track->seqPtr++;
+        if (op >= 0xA0) {
+            if (op == 0xFE) {
+                value = *track->seqPtr++;
+                D_80052818[value](track, bit);
+            } else if (op - 0xF0 < 0xE) {
+                op = (op - 0xF0) * 11;
+                track->volume = *track->seqPtr++;
+            } else {
+                if (op == 0xFF) {
+                    op = 0xA0;
+                } else if (op == 0xCA && (track->flags & 0x200000)) {
+                    D_80075028.unk0C |= bit;
+                    op = 0xA0;
+                }
+                D_80052698[op - 0xA0](track, bit);
+            }
+        }
+        track->unk6E++;
+    } while (op > 0xA0);
+    if (op == 0xA0) {
+        if (track->playingType == 0) {
+            g_sndSeqState->unk18 |= bit;
+        }
+        return;
+    }
+    value = func_8001B1F4(track);
+    if ((s16)track->volumeAccum != 0) {
+        track->volume = track->volumeBase = track->volumeAccum;
+    }
+    if (track->volume != 0) {
+        if (value >= 0x8F || (value < 0x84 && !(track->timerActive & 5))) {
+            track->volumeBase -= 2;
+        }
+    } else {
+        track->volume = D_800517D8[op % 11];
+        len = track->volume;
+        if ((value < 0x84 || value >= 0x8F) && !(track->timerActive & 5)) {
+            len -= 2;
+        }
+        track->volumeBase = len;
+    }
+    if (track->playingType == 0 && (track->flags & 0x40)) {
+        track->volumeBase = track->volume;
+    }
+    track->volumeDelta = track->volume;
+    track->voiceAttr.updateFlags |= 0x4000;
+    if (op >= 0x8F) {
+        if (track->playingType == 0) {
+            g_sndSeqState->unk14 &= ~bit;
+            if ((u32)track->voiceAttr.voice < 24) {
+                g_sndSeqState->unk18 |= bit;
+            }
+        }
+        track->duration = 0;
+        track->vibratoPitch = 0;
+        track->tremoloVol = 0;
+        track->timerActive &= ~2;
+        return;
+    }
+    if (op < 0x84) {
+        op /= 11;
+        op += track->panpot * 12;
+        if (track->flags & 8) {
+            value = func_8001B820(track, bit, op);
+        } else {
+            if (!(track->timerActive & 2)) {
+                if (track->playingType == 0) {
+                    if (D_8007728C & 0x10) {
+                        // Matching hack, raises op's register allocation priority
+                        do {
+                            op += ((s8 *)g_sndSeqState->unk38)[op % 12];
+                        } while (0);
+                    }
+                    if (track->flags & 0x1000) {
+                        func_8001B42C(track, op);
+                    }
+                    g_sndSeqState->unk10 |= bit;
+                    if (g_sndSeqState->unk14 & bit) {
+                        g_sndSeqState->unk18 |= bit;
+                    }
+                    if (track->pitchValueSlideSteps != 0) {
+                        track->volSlideSteps = track->pitchValueSlideSteps;
+                        track->volumeLevel = track->pitchValue;
+                        track->volSlideStep = track->pitchValueSlideStep;
+                    }
+                } else {
+                    D_80075028.unk04 |= bit;
+                }
+                track->pitchSlideSteps = 0;
+            }
+            if (track->duration != 0 && track->durationCounter != 0) {
+                target = track->detune + op;
+                op = track->durationCounter + (s16)track->ecField;
+                track->durationDelta = track->duration;
+                track->durationDelta2 = target - track->durationCounter - track->ecField;
+                track->unkE8 = track->durationCounter - (track->detune - track->ecField);
+            } else {
+                track->unkE8 = op;
+                op += (s16)track->detune;
+            }
+            value = func_8001B690(&D_80073E68[track->instrument], op, track->fineTuning, &track->fineTunePitch);
+        }
+        track->basePitch = value;
+        if (track->playingType == 0) {
+            g_sndSeqState->unk14 |= bit;
+        } else {
+            D_80075028.unk08 |= bit;
+        }
+        track->voiceAttr.updateFlags |= 0x13;
+        op = track->flags;
+        if (op & 1) {
+            depth = (track->vibratoDepth & 0x7F00) >> 8;
+            if (!(track->vibratoDepth & 0x8000)) {
+                base = (depth * ((value * 15) >> 8)) >> 7;
+            } else {
+                base = (depth * value) >> 7;
+            }
+            track->vibratoBase = base;
+            if (!(track->timerActive & 2)) {
+                track->vibratoWave = D_80052258[track->vibratoType];
+                track->vibratoDelayCur = track->vibratoDelay;
+                track->vibratoRateCur = 1;
+            }
+        }
+        if (op & 2) {
+            if (!(track->timerActive & 2)) {
+                track->tremoloWave = D_80052258[track->tremoloType];
+                track->tremoloDelayCur = track->tremoloDelay;
+                track->tremoloRateCur = 1;
+            }
+        }
+        track->vibratoPitch = 0;
+        track->tremoloVol = 0;
+        track->pitchSlide = 0;
+    }
+    track->timerActive = (track->timerActive & ~2) | ((track->timerActive & 1) << 1);
+    if ((s16)track->durationDelta2 != 0) {
+        track->unkE8 += track->durationDelta2;
+        value = func_8001B690(&D_80073E68[track->instrument], track->unkE8 + (s16)track->detune, track->fineTuning, &out) << 16;
+        track->pitchSlideSteps = track->durationDelta;
+        track->pitchSlideStep = (s32)(value - ((track->basePitch << 16) + track->pitchSlide)) / track->pitchSlideSteps;
+        track->durationDelta2 = 0;
+    }
+    track->durationCounter = track->unkE8;
+    track->ecField = track->detune;
+}
