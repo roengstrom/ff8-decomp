@@ -719,7 +719,39 @@ void func_80018358(s32 *args) {
     D_80077288[1] &= ~0x100;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018438);
+void func_80018438(SndVoice *voice) {
+    s32 flags;
+    s32 steps;
+
+    if (D_80073DF0.musicId != 0 && D_80073DF0.musicId == voice->params[2]) {
+        D_80073CA8 = &D_80073DF0;
+        D_80073C34 = D_80075080;
+        func_80017DB0((u8 *)voice->params[0], 1);
+    } else {
+        if (g_sndSeqState->activeMask != 0 && (D_80073CA8 == NULL || D_80073CA8->musicId == 0)) {
+            D_80073CA8 = &D_80073DF0;
+            D_80073C34 = D_80075080;
+            func_8001A57C(g_sndSeqState, &D_80073DF0, 0x70);
+            func_8001A57C(D_80070D60, D_80073C34, 0x2200);
+        }
+        func_8001708C((u8 *)voice->params[0], -1);
+        g_sndSeqState->musicId = voice->params[2];
+    }
+    flags = D_80077288[1] & ~0x100;
+    D_80077288[1] = flags;
+    if (D_80073CA8 != NULL) {
+        g_sndCmdArgs[5] = D_80073CA8->musicId;
+        steps = voice->unk10;
+        D_80074F10.unk00 = 0x7F0000;
+        D_80077288[1] = flags | 0x100;
+        D_80074F10.unk08 = steps;
+        D_80074F10.unk04 = (s32)0xFF810000 / steps;
+    }
+    g_sndSeqState->volMul = 0;
+    g_sndSeqState->volMulSlideSteps = voice->unk10;
+    g_sndSeqState->volMulSlideStep = (u32)((voice->unk14 & 0x7F) << 16) / (u32)voice->unk10;
+    func_80016E5C();
+}
 
 /**
  * @brief Process a sound voice and compute the remaining play count.
