@@ -50,7 +50,45 @@ s32 func_80016E08(s32 a0, SoundSeqTrack *a1) {
     return a1->instrument;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80016E5C);
+void func_80016E5C(void) {
+    SoundMusicConfig *second;
+    SoundSeqTrack *track;
+    u32 freed;
+    u32 mask;
+    s32 voice;
+    s32 n;
+    u32 mainBits;
+    u32 secondBits;
+
+    second = D_80073CA8;
+    if (second == NULL) {
+        return;
+    }
+    mainBits = g_sndSeqState->unk08 & g_sndSeqState->unk0C;
+    secondBits = second->unk08 & second->unk0C;
+    voice = ~mainBits | secondBits;
+    mask = ~(second->unk0C & voice);
+    mask &= g_sndSeqState->unk0C;
+    mask &= 0xFFFFFF;
+    freed = 0;
+    voice = 0;
+    if (mask != 0) {
+        do {
+            if (mask & (1 << voice)) {
+                track = D_80073C34;
+                for (n = 32; n != 0; n--, track++) {
+                    if (track->voiceAttr.voice == voice) {
+                        track->voiceAttr.voice = 0x18;
+                        freed |= 1 << voice;
+                    }
+                }
+                mask &= ~(1 << voice);
+            }
+            voice++;
+        } while (mask != 0);
+    }
+    D_80075028.unk0C = freed | D_80075028.unk0C;
+}
 
 /**
  * @brief Determines which sound bank group a given identifier belongs to.
