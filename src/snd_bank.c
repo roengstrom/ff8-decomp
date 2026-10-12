@@ -533,7 +533,93 @@ void func_80017D5C(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
+void func_80017DB0(u8 *seq, s32 swap) {
+    SoundSeqTrack *track;
+    SoundMusicConfig *config;
+    SndSeqHeader *old;
+    u32 active;
+    u32 bit;
+    u32 allVoices;
+    s32 flags;
+    s32 delta;
+    s32 i;
+    u32 stored;
+
+    if (swap == 0) {
+        func_8001A57C((u32 *)&D_80073DF0, (u32 *)g_sndSeqState, 0x70);
+        func_8001A57C((u32 *)D_80075080, (u32 *)D_80070D60, 0x2200);
+    } else {
+        func_8001A5FC((u32 *)&D_80073DF0, (u32 *)g_sndSeqState, 0x70);
+        func_8001A5FC((u32 *)D_80075080, (u32 *)D_80070D60, 0x2200);
+    }
+    flags = g_sndSeqState->unk00 & ~0x600;
+    g_sndSeqState->unk00 = flags;
+    g_sndSeqState->unk00 = (((SndSeqHeader *)seq)->unk14 == D_80073DE4) ? flags | 0x400 : flags | 0x200;
+    track = D_80070D60;
+    i = 32;
+    bit = 1;
+    old = g_sndSeqState->unk2C;
+    g_sndSeqState->unk2C = (SndSeqHeader *)seq;
+    D_80077288[2] |= 0x90;
+    delta = seq - (u8 *)old;
+    g_sndSeqState->unk30 = (s16 *)((u8 *)g_sndSeqState->unk30 + delta);
+    active = g_sndSeqState->activeMask;
+    g_sndSeqState->drumMap = (SndDrumEntry *)((u8 *)g_sndSeqState->drumMap + delta);
+    g_sndSeqState->unk10 = g_sndSeqState->unk14;
+    do {
+        if (active & bit) {
+            track->seqPtr += delta;
+            track->drumOffset += delta;
+            track->loopPoint[0] += delta;
+            track->loopPoint[1] += delta;
+            track->loopPoint[2] += delta;
+            track->loopPoint[3] += delta;
+            track->volume += 2;
+            track->volumeBase += 2;
+            track->voiceAttr.updateFlags |= 0x1FF93;
+            func_80016DB4(g_sndSeqState->unk00, track);
+        } else {
+            track->volume = 4;
+            track->volumeBase = 2;
+            track->seqPtr = D_800517F0;
+        }
+        track->voiceAttr.voice = 0x18;
+        i--;
+        track++;
+        bit <<= 1;
+    } while (i != 0);
+    active = (D_80073CA8 != NULL) ? sndBuildVoiceMask((u8 *)D_80073C34, D_80073CA8->activeMask) : 0;
+    allVoices = 0xFFFFFF;
+    g_sndSeqState->unk18 = 0;
+    D_80073DF0.musicId = 0;
+    D_80075028.unk0C |= ~active & (~(D_80075028.activeMask | D_800772A4) & allVoices);
+    D_80077288[2] |= 0x100;
+    if (swap != 0) {
+        bit = 0x30;
+        delta = g_sndSeqState->reverbDepth + g_sndSeqState->reverbDepthSlideStep * g_sndSeqState->reverbDepthSlideSteps;
+        delta &= ~0xFFF;
+        if (g_sndSeqState->reverbDepthSlideSteps != 0) {
+            bit = g_sndSeqState->reverbDepthSlideSteps;
+        }
+        if (D_80073CA8 != NULL) {
+            g_sndSeqState->reverbDepth = D_80073CA8->reverbDepth;
+        }
+        g_sndSeqState->reverbDepth &= ~0xFFF;
+        delta -= g_sndSeqState->reverbDepth;
+        if (delta != 0) {
+            g_sndSeqState->reverbDepthSlideSteps = bit;
+            g_sndSeqState->reverbDepthSlideStep = delta / (s32)bit;
+        } else {
+            g_sndSeqState->reverbDepthSlideSteps = 0;
+        }
+    }
+    if (D_800772F4 & 1) {
+        config = g_sndSeqState;
+        stored = config->activeMask;
+        config->activeMask = 0;
+        config->activeMaskStored = stored;
+    }
+}
 
 /**
  * @brief Plays or stops a sound depending on the active sequence ID.
@@ -557,7 +643,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017DB0);
  */
 void func_80018158(SndVoice *voice) {
     if (D_80073DF0.musicId != 0 && D_80073DF0.musicId == voice->params[2]) {
-        func_80017DB0(voice->params[0], 0);
+        func_80017DB0((u8 *)voice->params[0], 0);
     } else {
         func_8001708C((u8 *)voice->params[0], -1);
         g_sndSeqState->musicId = voice->params[2];
