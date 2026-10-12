@@ -100,11 +100,33 @@ s32 sndUploadSample(SndBankDesc *a0, s32 a1) {
     if (sndValidateBank((u32 *)a0) != 0) {
         return -1;
     }
-    func_800148B0((s32)a0, a1, a0->spuSize, a0->spuAddr);
+    func_800148B0((u32 *)a0, a1, a0->spuSize, a0->spuAddr);
     return 0;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_dma", func_800148B0);
+s32 func_800148B0(u32 *data, s32 wait, s32 slot, s32 spuAddr) {
+    SndBankDesc *header;
+
+    sndDmaWait();
+    if (sndValidateBank(data) == 0) {
+        header = (SndBankDesc *)data;
+        SpuSetTransferStartAddr(spuAddr);
+        data += 0x10;
+        sndDmaWriteSpu((u8 *)(data + (header->sampleCount << 2)), header->dataSize);
+        func_800146F0((s32 *)data, (s32 *)&D_80073E68[slot], spuAddr, header->sampleCount);
+        if (wait != 0) {
+            // Matching hack, always true
+            if (header) {
+                sndDmaWait();
+            } else {
+                sndDmaWait();
+            }
+        }
+        return 0;
+    }
+    D_80074ED4 = -1;
+    return -1;
+}
 
 void func_80014974(void) {
     SoundSeqTrack *t;

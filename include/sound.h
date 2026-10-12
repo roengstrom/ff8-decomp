@@ -216,6 +216,17 @@ typedef struct {
     /* 0x07 */ u8 pan;
 } SndDrumEntry;
 
+typedef struct {
+    /* 0x00 */ u8 instrument;
+    /* 0x01 */ u8 keyHigh;
+    /* 0x02 */ u8 keyLow;
+    /* 0x03 */ u8 adsr0;
+    /* 0x04 */ u8 adsr1;
+    /* 0x05 */ u8 mode;
+    /* 0x06 */ u8 adsr2;
+    /* 0x07 */ u8 volScale;
+} SndKeySplitEntry;
+
 typedef struct SndSeqHeader {
     /* 0x00 */ u8 pad00[0x14];
     /* 0x14 */ s32 unk14;

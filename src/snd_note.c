@@ -292,7 +292,80 @@ s32 sndAdjustNoteOctave(s32 a0, s32 a1) {
     return a1;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B42C);
+void func_8001B42C(SoundSeqTrack *track, u32 key) {
+    SndKeySplitEntry *entry;
+    SndInstrument *inst;
+    s32 flags;
+    s32 id;
+
+    if ((u32)track->unkE8 < key || track->unkE8 == 0xFF) {
+        entry = (SndKeySplitEntry *)track->drumOffset;
+        if (entry[1].mode != 0) {
+            while (1) {
+                if (!(entry->keyLow < key)) {
+                    break;
+                }
+                entry++;
+                if (entry[1].mode == 0) {
+                    break;
+                }
+                // Matching hack, never true
+                if (!track) {
+                }
+            }
+        }
+    } else if (key < (u32)track->unkE8) {
+        entry = (SndKeySplitEntry *)track->drumOffset;
+        if (entry[1].mode != 0) {
+            while (1) {
+                if (key < entry[1].keyHigh) {
+                    break;
+                }
+                entry++;
+                if (entry[1].mode == 0) {
+                    break;
+                }
+            }
+        }
+    } else {
+        return;
+    }
+    flags = track->flags;
+    id = sndAdjustNoteOctave(g_sndSeqState->unk00, entry->instrument);
+    track->instrument = id;
+    inst = &D_80073E68[id];
+    track->voiceAttr.startAddr = inst->sampleAddr;
+    track->voiceAttr.repeatAddr = inst->loopAddr;
+    if (!(flags & 0x1000000)) {
+        track->voiceAttr.adsrLow = entry->adsr0 << 8;
+    } else {
+        track->voiceAttr.adsrLow &= 0x7F00;
+    }
+    track->voiceAttr.adsrLow |= inst->adsrLow & 0x80FF;
+    if (!(flags & 0x8000000)) {
+        track->voiceAttr.adsrHigh &= 0x201F;
+        track->voiceAttr.adsrHigh |= entry->adsr1 << 6;
+    } else {
+        track->voiceAttr.adsrHigh &= 0x3FDF;
+    }
+    switch (entry->mode) {
+    case 3:
+        track->voiceAttr.adsrHigh |= 0x4000;
+        break;
+    case 5:
+        track->voiceAttr.adsrHigh |= 0x8000;
+        break;
+    case 7:
+        track->voiceAttr.adsrHigh |= 0xC000;
+        break;
+    }
+    if (!(flags & 0x10000000)) {
+        track->voiceAttr.adsrHigh &= 0xFFE0;
+        track->voiceAttr.adsrHigh |= entry->adsr2;
+    }
+    track->voiceAttr.adsrHigh |= inst->adsrHigh & 0x20;
+    track->voiceAttr.volScale = entry->volScale;
+}
 
 s32 func_8001B690(SndInstrument *inst, s32 key, u32 fineTuning, s32 *out) {
     s32 pitch;

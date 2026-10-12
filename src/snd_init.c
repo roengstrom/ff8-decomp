@@ -998,7 +998,7 @@ s32 sndUploadBank(SndBankDesc *desc, s32 arg1) {
             D_80073DE0[0] = 0;
         }
     }
-    func_800148B0((s32)desc, arg1, level, addr);
+    func_800148B0((u32 *)desc, arg1, level, addr);
     return result;
 }
 
@@ -1076,7 +1076,7 @@ void func_80014094(SndBankDesc *desc, s32 mode, s32 arg2) {
     if ((ptr->activeMask | ptr->activeMaskStored) && (*q & 0x400)) {
         addr -= 0x20000;
     }
-    func_800148B0((s32)desc, arg2, vol, addr);
+    func_800148B0((u32 *)desc, arg2, vol, addr);
 }
 
 /**
@@ -1126,7 +1126,7 @@ void func_80014190(SndBankDesc *desc, s32 mode, s32 arg2) {
         break;
     }
 
-    func_800148B0((s32)desc, arg2, vol, i);
+    func_800148B0((u32 *)desc, arg2, vol, i);
 }
 
 /**
