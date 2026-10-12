@@ -389,5 +389,103 @@ void sndSetReverbMode(s32 a0) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_param", func_8001A1E8);
+s32 func_8001A1E8(u32 cmd) {
+    SndSeqHeader *seq;
+    SndVoice *block;
+    s32 result;
+    s32 val;
+
+    result = 0;
+    DisableEvent(D_8005169C);
+    cmd &= 0xFF;
+    block = &D_80074E68;
+    switch (cmd) {
+    case 0x10:
+    case 0x12:
+    case 0x14:
+    case 0x19:
+    case 0x1A:
+        if (sndValidateBank((u32 *)g_sndCmdArgs[0]) == 0) {
+            seq = (SndSeqHeader *)g_sndCmdArgs[0];
+            if (g_sndSeqState->musicId != seq->musicId || (D_80073CA8 != NULL && D_80073CA8->musicId != g_sndSeqState->musicId)) {
+                if (cmd != 0x19) {
+                    sndSetReverbMode(seq->reverbMode);
+                }
+                block->params[0] = (s32)seq;
+                block->params[2] = seq->musicId;
+                switch (cmd) {
+                case 0x14:
+                    val = -1;
+                    if (g_sndCmdArgs[1] != 0) {
+                        val = g_sndCmdArgs[1] | 1;
+                    }
+                    block->playCount = val;
+                    block->unk10 = g_sndCmdArgs[2];
+                    break;
+                case 0x12:
+                    block->playCount = g_sndCmdArgs[1];
+                    break;
+                case 0x19:
+                    block->unk10 = g_sndCmdArgs[1];
+                    break;
+                case 0x1A:
+                    val = g_sndCmdArgs[1];
+                    if (val == 0) {
+                        val = 1;
+                    }
+                    block->unk10 = val;
+                    block->unk14 = g_sndCmdArgs[2];
+                    break;
+                }
+                result = seq->musicId;
+            } else {
+                cmd = 0;
+                result = cmd;
+            }
+        } else {
+            cmd = 0;
+            result = -1;
+        }
+        break;
+    case 0xD8:
+        block->params[0] = g_sndCmdArgs[0];
+        D_80052298[0xD0](block);
+        cmd = 0xD4;
+        break;
+    case 0xD9:
+        block->params[0] = g_sndCmdArgs[0];
+        block->params[1] = g_sndCmdArgs[1];
+        D_80052298[0xD1](block);
+        cmd = 0xD5;
+        break;
+    case 0xDA:
+        block->params[0] = g_sndCmdArgs[0];
+        block->params[1] = g_sndCmdArgs[1];
+        block->params[2] = g_sndCmdArgs[2];
+        D_80052298[0xD2](block);
+        cmd = 0xD6;
+        break;
+    case 0x99:
+        D_80052298[0x9B](block);
+        D_80052298[0x9D](block);
+        cmd = 0x9F;
+        break;
+    case 0x98:
+        D_80052298[0x9A](block);
+        D_80052298[0x9C](block);
+        cmd = 0x9E;
+        break;
+    default:
+        block->params[0] = g_sndCmdArgs[0];
+        block->params[1] = g_sndCmdArgs[1];
+        block->params[2] = g_sndCmdArgs[2];
+        block->playCount = g_sndCmdArgs[3];
+        block->unk10 = g_sndCmdArgs[4];
+        block->unk14 = g_sndCmdArgs[5];
+        break;
+    }
+    D_80052298[cmd](block);
+    EnableEvent(D_8005169C);
+    return result;
+}
 

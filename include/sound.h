@@ -228,7 +228,11 @@ typedef struct {
 } SndKeySplitEntry;
 
 typedef struct SndSeqHeader {
-    /* 0x00 */ u8 pad00[0x14];
+    /* 0x00 */ u32 magic;
+    /* 0x04 */ u16 musicId;
+    /* 0x06 */ u16 dataSize;
+    /* 0x08 */ u16 reverbMode;
+    /* 0x0A */ u8 pad0A[0x0A];
     /* 0x14 */ s32 unk14;
     /* 0x18 */ u8 pad18[8];
     /* 0x20 */ u32 trackMask;
@@ -347,7 +351,12 @@ extern VoicePoolEntry D_80074F20[12];
 typedef struct {
     /* 0x00 */ s32 params[3];
     /* 0x0C */ s32 playCount;
+    /* 0x10 */ s32 unk10;
+    /* 0x14 */ s32 unk14;
 } SndVoice;
+
+extern SndVoice D_80074E68;
+extern void (*D_80052298[])(SndVoice *voice);
 
 /**
  * @brief Sound bank descriptor header (passed to sndValidateBank / sndUploadSample).
@@ -454,9 +463,10 @@ extern u32 D_800772B8;
 #endif /* SOUND_H */
 
 /** @brief snd_note DMA-completion callback; its address is handed to OpenEvent by snd_dma.c. */
-void func_800174E4(s32 id, u32 mode);
-void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
-void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);
 void func_8001AD60(void);
 void func_800151C4(SoundSeqTrack *track, u32 bit, s32 isSfx);
 void func_8001BAA8(SoundSeqTrack *track, u32 bit);
+void func_800174E4(s32 id, u32 mode);
+void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
+void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);
+s32 func_8001A1E8(u32 cmd);
