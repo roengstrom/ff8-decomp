@@ -271,7 +271,112 @@ void func_8001ACCC(SoundMusicConfig *config, SoundSeqTrack *tracks) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001AD60);
+s32 func_8001AD60(void) {
+    SoundMusicConfig *config;
+    SoundSeqTrack *track;
+    u32 active;
+    u32 bit;
+    u32 update;
+    s32 ticks;
+    s32 rcnt;
+
+    rcnt = GetRCnt(0xF2000002);
+    D_80072F60[1] = D_80072F60[0];
+    D_80072F60[0] = VSync(-1);
+    active = D_80072F60[0] - D_80072F60[1];
+    ticks = 1;
+    if (active != 0) {
+        if (active < 9) {
+            bit = active * 4;
+            if ((u32)D_80072F68 < bit) {
+                ticks += bit - D_80072F68;
+            }
+            D_80072F68 = (u32)D_80072F68 % bit;
+        }
+    }
+    do {
+        ticks--;
+        D_80072F68++;
+        D_800516A4++;
+        if ((g_sndSeqState->unk18 | D_80075028.unk0C) != 0 || (D_80073CA8 != 0 && D_80073CA8->unk18 != 0)) {
+            func_80016A7C();
+        }
+        if (D_80073CA8 != 0 && D_80073CA8->activeMask == 0) {
+            D_80073CA8 = 0;
+        }
+        if ((D_80077288[2] | g_sndSeqState->unk14 | D_80075028.unk08) != 0) {
+            func_800164D8();
+        } else if (D_80073CA8 != 0 && D_80073CA8->unk14 != 0) {
+            func_800164D8();
+        }
+        if (g_sndSeqState->activeMask != 0) {
+            func_8001AA28(D_80070D60, 0);
+        }
+        if (D_80073CA8 != 0) {
+            if (D_80073CA8->activeMask != 0) {
+                g_sndSeqState = D_80073CA8;
+                func_8001AA28(D_80073C34, 1);
+                g_sndSeqState = &D_80073D70;
+            }
+            if ((D_80077288[1] & 0x100) && (D_800516A4 & 3) == 0) {
+                func_8001ACCC(D_80073CA8, D_80073C34);
+                if (D_80073CA8->activeMask == 0) {
+                    D_80077288[1] &= ~0x100;
+                }
+            }
+            if ((g_sndSeqState->activeMask | g_sndSeqState->activeMaskStored) == 0 && D_80073CA8->activeMask != 0) {
+                func_8001A57C((u32 *)D_80073CA8, (u32 *)g_sndSeqState, 0x70);
+                func_8001A57C((u32 *)D_80073C34, (u32 *)D_80070D60, 0x2200);
+                config = D_80073CA8;
+                D_80073CA8 = 0;
+                config->musicId = 0;
+                config->activeMask = 0;
+            }
+        }
+        if (D_80075028.activeMask != 0) {
+            active = D_80075028.activeMask;
+            update = D_80075028.tempoUpdate + (u16)(D_80075028.tempo >> 16);
+            D_80075028.tempoUpdate = update;
+            if ((update & 0xFFFF0000) != 0 || (D_800772F4 & 4)) {
+                D_80075028.tempoUpdate = update & 0xFFFF;
+                bit = 0x1000;
+                track = D_80072F70;
+                do {
+                    if (active & bit) {
+                        if (!(D_800772F4 & 2) || (track->keyOnMask & 0x2000000)) {
+                            track->unk54++;
+                            track->volume--;
+                            track->volumeBase--;
+                            if (track->volume == 0) {
+                                func_8001BAA8(track, bit);
+                            } else if (track->volumeBase == 0) {
+                                D_80075028.unk0C |= bit;
+                                D_80075028.unk08 &= ~bit;
+                            }
+                            func_800151C4(track, bit, 1);
+                        }
+                        active ^= bit;
+                    }
+                    track++;
+                    bit <<= 1;
+                } while (active != 0);
+            }
+        }
+        if ((D_800516A4 & 3) == 0) {
+            func_8001A674();
+        }
+    } while (ticks != 0);
+    rcnt = GetRCnt(0xF2000002) - rcnt;
+    if (rcnt <= 0) {
+        rcnt += 0x44E8;
+    }
+    D_800516A8[0] = D_800516A8[1];
+    D_800516A8[1] = D_800516A8[2];
+    D_800516A8[2] = D_800516A8[3];
+    D_800516A8[3] = rcnt;
+    D_800516A0 = D_800516A8[0] + D_800516A8[1] + D_800516A8[2] + rcnt;
+    return rcnt;
+}
 
 INCLUDE_ASM("asm/nonmatchings/snd_note", func_8001B1F4);
 

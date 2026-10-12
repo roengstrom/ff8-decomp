@@ -334,6 +334,9 @@ extern s32 D_8007507C;
 extern s32 D_80077368[];
 extern s32 D_80072F60[];
 extern s32 D_80072F68;
+extern s32 D_800516A0;
+extern u16 D_800516A4;
+extern s32 D_800516A8[];
 extern SoundSeqTrack *D_80074EE0;
 extern void sndSetReverbMode(s32 mode);
 extern s32 D_80073DE4;
@@ -475,11 +478,13 @@ extern u32 D_800772B8;
 #endif /* SOUND_H */
 
 /** @brief snd_note DMA-completion callback; its address is handed to OpenEvent by snd_dma.c. */
-void func_8001AD60(void);
+s32 func_8001AD60(void);
 void func_800151C4(SoundSeqTrack *track, u32 bit, s32 isSfx);
 void func_8001BAA8(SoundSeqTrack *track, u32 bit);
 u8 func_8001B1F4(SoundSeqTrack *track);
 void func_80016C28(u32 *out, u32 maskSecond, u32 maskMain, u32 extra);
+void func_800164D8(void);
+void func_80016A7C(void);
 void func_800174E4(s32 id, u32 mode);
 void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
 void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);
