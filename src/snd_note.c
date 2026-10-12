@@ -385,9 +385,8 @@ u8 func_8001B1F4(SoundSeqTrack *track) {
     s32 sub;
     u32 len;
 
+    op = *p;
     while (1) {
-        op = *p;
-    redispatch:
         if (op < 0x9A) {
             if (op >= 0x8F) {
                 track->timerActive &= 0xFFFA;
@@ -400,101 +399,98 @@ u8 func_8001B1F4(SoundSeqTrack *track) {
         len = D_800516F8[*p - 0xA0];
         if (len != 0) {
             p += len;
-            continue;
-        }
-        switch (*p) {
-        case 0xF0:
-        case 0xF1:
-        case 0xF2:
-        case 0xF3:
-        case 0xF4:
-        case 0xF5:
-        case 0xF6:
-        case 0xF7:
-        case 0xF8:
-        case 0xF9:
-        case 0xFA:
-        case 0xFB:
-            return 0x83;
-        case 0xFC:
-            return 0x84;
-        case 0xFD:
-            return 0x8F;
-        case 0xFE:
-            p++;
-            sub = *p;
-            len = D_80051758[sub];
-            if (len != 0) {
-                p += len;
-                continue;
-            }
-            if (sub != 7) {
-                if (sub < 8) {
-                    if (sub != 6) {
-                        /* The binary jumps back to the opcode check with the sub-opcode
-                         * as the opcode, past the load at the top of the loop. Without the
-                         * goto, the best spelling found matches 93.2%. */
-                        op = sub;
-                        goto redispatch;
-                    }
-                } else {
-                    if (sub < 10) {
-                        p++;
-                        if (*p == track->loopTimes[loopId] + 1) {
-                            p++;
-                            loopId--;
-                            loopId &= 3;
-                            op = p[0] + (p[1] << 8);
-                            p += (s16)op;
-                        } else {
-                            p += 3;
+        } else {
+            switch (*p) {
+            case 0xF0:
+            case 0xF1:
+            case 0xF2:
+            case 0xF3:
+            case 0xF4:
+            case 0xF5:
+            case 0xF6:
+            case 0xF7:
+            case 0xF8:
+            case 0xF9:
+            case 0xFA:
+            case 0xFB:
+                return 0x83;
+            case 0xFC:
+                return 0x84;
+            case 0xFD:
+                return 0x8F;
+            case 0xFE:
+                p++;
+                sub = *p;
+                len = D_80051758[sub];
+                if (len != 0) {
+                    p += len;
+                    break;
+                }
+                if (sub != 7) {
+                    if (sub < 8) {
+                        if (sub != 6) {
+                            op = sub;
+                            continue;
                         }
+                    } else {
+                        if (sub < 10) {
+                            p++;
+                            if (*p == track->loopTimes[loopId] + 1) {
+                                p++;
+                                loopId--;
+                                loopId &= 3;
+                                op = p[0] + (p[1] << 8);
+                                p += (s16)op;
+                            } else {
+                                p += 3;
+                            }
+                        }
+                        break;
                     }
-                    continue;
+                    p++;
+                    op = p[0] + (p[1] << 8);
+                    p += (s16)op;
+                    break;
                 }
                 p++;
-                op = p[0] + (p[1] << 8);
-                p += (s16)op;
-                continue;
-            }
-            p++;
-            op = *p;
-            p++;
-            if (op <= g_sndSeqState->condition) {
-                op = p[0] + (p[1] << 8);
-                p += (s16)op;
-                continue;
-            }
-            p += 2;
-            continue;
-        case 0xC9:
-            p++;
-            if (*p == track->loopTimes[loopId] + 1) {
+                op = *p;
                 p++;
-                loopId--;
-                loopId &= 3;
-            } else {
-                p = track->loopPoint[loopId];
-            }
-            continue;
-        case 0xCB:
-        case 0xCD:
-        case 0xD1:
-        case 0xDB:
-            track->timerActive &= 0xFFFA;
-            p++;
-            continue;
-        case 0xCA:
-            if (track->flags & 0x200000) {
+                if (op <= g_sndSeqState->condition) {
+                    op = p[0] + (p[1] << 8);
+                    p += (s16)op;
+                    break;
+                }
+                p += 2;
                 break;
+            case 0xC9:
+                p++;
+                if (*p == track->loopTimes[loopId] + 1) {
+                    p++;
+                    loopId--;
+                    loopId &= 3;
+                } else {
+                    p = track->loopPoint[loopId];
+                }
+                break;
+            case 0xCB:
+            case 0xCD:
+            case 0xD1:
+            case 0xDB:
+                track->timerActive &= 0xFFFA;
+                p++;
+                break;
+            case 0xCA:
+                if (!(track->flags & 0x200000)) {
+                    p = track->loopPoint[loopId];
+                    break;
+                }
+            default:
+                track->timerActive &= 0xFFFA;
+                return 0xA0;
             }
-            p = track->loopPoint[loopId];
-            continue;
         }
-        break;
+        op = *p;
     }
-    track->timerActive &= 0xFFFA;
-    return 0xA0;
 }
 
 /**
