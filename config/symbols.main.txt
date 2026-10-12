@@ -862,6 +862,7 @@ SpuSetTransferStartAddr = 0x8003E404;
 S_STSA_OBJ_4C = 0x8003E450;
 SpuSetTransferMode = 0x8003E464;
 S_STM_OBJ_1C = 0x8003E480;
+SpuSetTransferCallback = 0x8003E494;
 SpuGetVoiceEnvelope = 0x8003E4C4;
 SpuSetReverbModeType = 0x8003E4E4;
 S_SRMT_OBJ_FC = 0x8003E5E0;

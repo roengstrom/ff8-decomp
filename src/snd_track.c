@@ -1602,7 +1602,26 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E0CC);
 
 INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E308);
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E4C4);
+void func_8001E4C4(s32 size, s32 irqAddr, void (*callback)(void)) {
+    SoundStream *stream = &g_sndStream;
+
+    if (stream->active != 0) {
+        SpuSetTransferCallback(NULL);
+        D_80074ED4 = 0;
+        if (stream->remaining > 0x1000) {
+            stream->remaining -= 0x1000;
+            g_sndStream.src += size;
+            SpuSetIRQCallback(callback);
+        } else {
+            SpuSetIRQCallback(sndStreamDisableIrq);
+            irqAddr = 0x1030;
+            stream->remaining = 0;
+        }
+        SpuSetIRQAddr(irqAddr + 8);
+        spuSetReverbWorkAddr(D_800772A4);
+        SpuSetIRQ(1);
+    }
+}
 
 /**
  * @brief Sets up SPU voice parameters for both channels, then registers
