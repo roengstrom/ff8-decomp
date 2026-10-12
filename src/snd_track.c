@@ -1616,7 +1616,55 @@ void sndStreamBeginTransfer(void) {
     SpuWrite(addr, 0x800);
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001E0CC);
+void func_8001E0CC(u8 *data, s32 pan, s32 reverb) {
+    SndStreamHeader *hdr;
+    s32 voice;
+    s32 mask;
+    s32 size;
+
+    voice = func_8001DFF4();
+    if (voice == -1) {
+        return;
+    }
+    g_sndStream.unk4C = pan;
+    SpuSetIRQ(0);
+    SpuSetIRQCallback(0);
+    hdr = (SndStreamHeader *)data;
+    g_sndStream.src = (u8 *)hdr + 0x40;
+    g_sndStream.remaining = hdr->size;
+    mask = (1 << voice) | (1 << (voice + 1));
+    g_sndStream.unk18 = hdr->unk20;
+    g_sndStream.voiceIdx = voice;
+    g_sndStream.active = mask;
+    spuSetIrqAddr(mask);
+    g_sndStream.flags = hdr->flags;
+    g_sndStream.savedPitch = hdr->pitch;
+    g_sndStream.voiceIdx = voice;
+    g_sndStream.active = mask;
+    spuSetIrqAddr(mask);
+    SpuSetTransferMode(0);
+    SpuSetTransferStartAddr(0x1100);
+    D_80074ED4 = 1;
+    g_sndStream.loopSrc = (g_sndStream.flags & 2) ? g_sndStream.src + hdr->loopOffset : 0;
+    if (g_sndStream.flags & 1) {
+        g_sndStream.loopSize = (g_sndStream.flags & 2) ? g_sndStream.remaining - (hdr->loopOffset >> 1) : 0;
+        SpuSetTransferCallback(sndStreamSetupStereo);
+        size = 0x2000;
+    } else {
+        g_sndStream.loopSize = (g_sndStream.flags & 2) ? g_sndStream.remaining - hdr->loopOffset : 0;
+        SpuSetTransferCallback(sndStreamBeginTransfer);
+        size = 0x800;
+    }
+    SpuWrite(g_sndStream.src, size);
+    if (reverb != 0) {
+        D_80075028.reverbMask |= g_sndStream.active;
+    } else {
+        D_80075028.reverbMask &= ~g_sndStream.active;
+    }
+    D_80075028.pitchLfoMask &= ~D_800772A4;
+    D_80075028.noiseMask &= ~D_800772A4;
+    D_80077288[2] |= 0x100;
+}
 
 void func_8001E308(s32 voice, s32 mode, u32 startAddr, u32 repeatAddr) {
     s16 volL;
