@@ -246,6 +246,14 @@ typedef struct SndSeqHeader {
 } SndSeqHeader;
 
 typedef struct {
+    /* 0x00 */ u32 magic;
+    /* 0x04 */ s32 count;
+    /* 0x08 */ s32 bankId;
+    /* 0x0C */ s32 unk0C;
+    /* 0x10 */ s32 offsets[4];
+} SndSfxSet;
+
+typedef struct {
     /* 0x00 */ s32 unk00;
     /* 0x04 */ u32 activeMask;
     /* 0x08 */ u32 unk08;

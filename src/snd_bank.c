@@ -566,7 +566,53 @@ void sndPlaySoundByIndex(s32 *a0) {
     func_80017AAC(a0, local10, local14, 0);
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018784);
+void func_80018784(s32 *args) {
+    SndSfxSet *set;
+    u16 *cur;
+    u8 *base;
+    s32 seq;
+    s32 data;
+    s32 *offsets;
+    s32 count;
+
+    args[4] = sndGetBankGroup(((SndSfxSet *)args[0])->bankId);
+    set = (SndSfxSet *)args[0];
+    base = (u8 *)set->offsets;
+    offsets = (s32 *)base;
+    base += sizeof(set->offsets);
+    count = set->count;
+    cur = (u16 *)(base + offsets[0]);
+    if (*cur != 0xFFFF) {
+        seq = *cur + (s32)cur + 4;
+    } else {
+        seq = 0;
+    }
+    cur++;
+    if (*cur != 0xFFFF) {
+        data = *cur + (s32)cur + 2;
+    } else {
+        data = 0;
+    }
+    func_80017AAC(args, seq, data, 0);
+    count--;
+    while (count != 0) {
+        offsets++;
+        cur = (u16 *)(base + *offsets);
+        if (*cur != 0xFFFF) {
+            seq = *cur + (s32)cur + 4;
+        } else {
+            seq = 0;
+        }
+        cur++;
+        if (*cur != 0xFFFF) {
+            data = *cur + (s32)cur + 2;
+        } else {
+            data = 0;
+        }
+        func_80017AAC(args, seq, data, 1);
+        count--;
+    }
+}
 
 /** @brief Calls func_800174E4 with two words loaded from the input pointer. */
 void sndStopTrack(s32 *a0) {
