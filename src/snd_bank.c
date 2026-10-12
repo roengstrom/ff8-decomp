@@ -279,7 +279,46 @@ void func_800174E4(s32 id, u32 mode) {
     D_80077288[2] |= 0x110;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80017880);
+void func_80017880(SoundSeqTrack *track, s32 *params, u32 bit, s32 bankId) {
+    u32 i;
+
+    track->keyOffMask = params[0];
+    track->keyOnMask = params[1];
+    track->pitchModDepth = (u8)params[2] << 8;
+    track->pitchModCounter = 0;
+    track->volPan = 0x8000;
+    track->volPanSlideSteps = 0;
+    track->volBalance = ((u16)params[3] & 0x7F) << 8;
+    track->volBalanceSlideSteps = 0;
+    track->bankPtr = 1 << params[4];
+    track->volume = 2;
+    track->volumeBase = 1;
+    track->playingType = 1;
+    track->unk54 = -2;
+    track->pitchMulSound = 0;
+    track->pitchMulSoundSlideSteps = 0;
+    sndInitTrack(track, bankId);
+    D_800772F8[track->voiceAttr.voice] = 0;
+    spuSetVoiceReleaseMode(track->voiceAttr.voice, 5, 3);
+    D_80075028.activeMask |= bit;
+    D_80075028.unk0C |= bit;
+    bit = ~bit;
+    D_80075028.unk04 &= bit;
+    D_80075028.unk08 &= bit;
+    D_80075028.noiseMask &= bit;
+    D_80075028.reverbMask &= bit;
+    D_80075028.pitchLfoMask &= bit;
+    if (D_800772F4 & 2) {
+        bit = 0x1000;
+        track = D_80072F70;
+        for (i = 12; i != 0; i--, track++, bit <<= 1) {
+            if ((D_80075028.activeMask & bit) && !(track->keyOnMask & 0x2000000)) {
+                D_80075028.activeMask &= ~bit;
+                D_80075028.activeMaskStored |= bit;
+            }
+        }
+    }
+}
 
 /**
  * @brief Releases a voice from all active sequence tracks (duplicate of sndReleaseVoice).
