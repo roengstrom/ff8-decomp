@@ -251,7 +251,21 @@ void sndTrackReadPitchBend(SoundSeqTrack *track) {
  *
  * @param a0 Pointer to the track structure.
  */
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C684);
+void func_8001C684(SoundSeqTrack *track) {
+    u16 steps;
+    s32 target;
+    s32 cur;
+
+    steps = *track->seqPtr++;
+    track->volumeMultiplierSlideSteps = steps;
+    if (steps == 0) {
+        track->volumeMultiplierSlideSteps = 0x100;
+    }
+    target = *track->seqPtr++ << 8;
+    cur = track->volumeMultiplier & 0x7F00;
+    track->volumeMultiplierSlideStep = (target - cur) / track->volumeMultiplierSlideSteps;
+    track->volumeMultiplier = cur;
+}
 
 /**
  * @brief Reads one byte from stream, advances cursor, ORs 3 into flags,
@@ -337,7 +351,21 @@ void sndTrackReadExpression(SoundSeqTrack *track) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C8DC);
+void func_8001C8DC(SoundSeqTrack *track) {
+    u16 steps;
+    s32 target;
+    s16 cur;
+
+    steps = *track->seqPtr++;
+    track->volBalanceSlideSteps = steps;
+    if (steps == 0) {
+        track->volBalanceSlideSteps = 0x100;
+    }
+    target = *track->seqPtr++ << 8;
+    cur = track->volBalance & 0xFF00;
+    track->volBalanceSlideStep = (target - cur) / track->volBalanceSlideSteps;
+    track->volBalance = cur;
+}
 
 /**
  * @brief Reads a note byte from the stream and sets pitch/flag fields.
@@ -360,7 +388,23 @@ void sndTrackReadNotePitch(SoundSeqTrack *track) {
     track->volPan = val;
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001C99C);
+void func_8001C99C(SoundSeqTrack *track) {
+    u16 steps;
+    u8 pan;
+    s32 target;
+    s32 cur;
+
+    steps = *track->seqPtr++;
+    track->volPanSlideSteps = steps;
+    if (steps == 0) {
+        track->volPanSlideSteps = 0x100;
+    }
+    pan = *track->seqPtr++ + 0x40;
+    target = pan << 8;
+    cur = track->volPan & 0xFF00;
+    track->volPanSlideStep = (target - cur) / track->volPanSlideSteps;
+    track->volPan = cur;
+}
 
 /**
  * @brief Reads one byte from stream, advances cursor, stores byte as
@@ -1441,7 +1485,25 @@ void sndTrackReadPitchModDepth(SoundSeqTrack *track, s32 a1) {
     sndTrackEnablePitchMod(track, a1);
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001DE18);
+void func_8001DE18(SoundSeqTrack *track, s32 a1) {
+    u16 steps;
+    u8 val;
+    s32 target;
+    s32 cur;
+
+    steps = *track->seqPtr++;
+    track->pitchModCounter = steps;
+    if (steps == 0) {
+        track->pitchModCounter = 0x100;
+    }
+    val = *track->seqPtr++;
+    target = (s8)val << 8;
+    cur = track->pitchModDepth & 0xFF00;
+    track->unkDC = (target - cur) / track->pitchModCounter;
+    track->pitchModDepth = cur;
+    track->flags |= 0x800;
+    sndTrackEnablePitchMod(track, a1);
+}
 
 /** @brief Sets bit 0x100000 in word at a0+0x30. */
 void sndTrackSetSustainFlag(SoundSeqTrack *track) {
