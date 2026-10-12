@@ -630,7 +630,77 @@ void sndClearVoicePool(void) {
     }
 }
 
-INCLUDE_ASM("asm/nonmatchings/snd_bank", func_80018908);
+void func_80018908(void) {
+    VoicePoolEntry *entry;
+    u32 active;
+    u32 mask;
+    u32 bit;
+    u8 *p;
+    s32 val;
+    s32 i;
+    s32 voice;
+
+    for (i = 12; i != 0; i--) {
+        D_80074F20[i - 1].cmd = 0;
+    }
+    mask = 0xFFF000;
+    // Matching hack, scheduling barrier
+    do {
+        active = D_80075028.activeMask & mask;
+    } while (0);
+    if (active != 0) {
+        bit = 0x1000;
+        voice = 0;
+        do {
+            if (active & bit) {
+                p = D_80072F70[voice].seqPtr;
+                val = 1;
+                while (val != 0) {
+                    if (*p < 0xA0) {
+                        val = 1;
+                    } else {
+                        val = D_80051778[*p - 0xA0];
+                        if (val == 0) {
+                            break;
+                        }
+                    }
+                    p += val;
+                }
+                if (*p == 0xCA) {
+                    i = 0;
+                    val = D_80072F70[voice].keyOffMask;
+                    val += val >= 0;
+                    if (D_80074F20[0].cmd != 0) {
+                        entry = D_80074F20;
+                        while (1) {
+                            if (entry->cmd == val) {
+                                val = 0;
+                                break;
+                            }
+                            i++;
+                            entry++;
+                            if (i >= 12) {
+                                break;
+                            }
+                            if (entry->cmd == 0) {
+                                break;
+                            }
+                        }
+                    }
+                    if (val != 0) {
+                        D_80074F20[i].cmd = val;
+                        D_80074F20[i].arg1 = D_80072F70[voice].keyOnMask;
+                        D_80074F20[i].field8 = (s8)(D_80072F70[voice].volBalance >> 8);
+                        D_80074F20[i].fieldC = D_80072F70[voice].volPan >> 8;
+                    }
+                }
+                active &= ~bit;
+            }
+            bit <<= 1;
+            voice++;
+        } while (active != 0);
+    }
+}
 
 /**
  * @brief Sets volume/pan on the active sequence and marks dirty tracks.

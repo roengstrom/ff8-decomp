@@ -349,6 +349,7 @@ extern SoundSeqTrack *D_80073C34;
 extern s32 D_80074EB0;
 extern s32 D_80074F18;
 extern s16 *D_80052258[];
+extern u8 D_80051778[];
 
 /** @brief 12-entry SFX play queue, replayed by @c func_800BF718 after a sound reset. */
 extern VoicePoolEntry D_80074F20[12];
