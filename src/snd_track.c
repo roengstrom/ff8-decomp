@@ -1594,7 +1594,7 @@ s32 func_8001DFF4(void) {
 void sndStreamBeginTransfer(void) {
     s32 addr = g_sndStream.src + 0x800;
     SpuSetTransferStartAddr(0x2100);
-    func_8003E494(sndStreamSetupMono);
+    SpuSetTransferCallback(sndStreamSetupMono);
     func_8003E3A4(addr, 0x800);
 }
 
@@ -1869,7 +1869,7 @@ INCLUDE_ASM("asm/nonmatchings/snd_track", func_8001F118);
 
 void func_8001F2A8(s32 offset, s32 addr, void (*callback)(void)) {
     if (g_sndStream.active != 0) {
-        func_8003E494(0);
+        SpuSetTransferCallback(0);
         D_80074ED4 = 0;
         if (g_sndStream.remaining > 0xD20) {
             g_sndStream.src += offset;

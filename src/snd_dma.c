@@ -27,9 +27,9 @@ u32 sndValidateBank(u32 *a0) {
     return *a0 + 0xB0BEB4BF;
 }
 
-/** @brief Calls func_8003E494(0) and clears D_80074ED4. */
+/** @brief Calls SpuSetTransferCallback(0) and clears D_80074ED4. */
 void sndDmaCompleteCallback(void) {
-    func_8003E494(0);
+    SpuSetTransferCallback(0);
     D_80074ED4 = 0;
 }
 
@@ -37,17 +37,17 @@ void sndDmaCompleteCallback(void) {
  * @brief Sets the SPU DMA active flag and registers the completion callback.
  *
  * Sets D_80074ED4 to 1 (DMA active), then registers sndDmaCompleteCallback as
- * the transfer completion callback via func_8003E494.
+ * the transfer completion callback via SpuSetTransferCallback.
  */
 /**
  * @brief Sets the SPU DMA active flag and registers the completion callback.
  *
  * Sets D_80074ED4 to 1 (DMA active), then registers sndDmaCompleteCallback as
- * the transfer completion callback via func_8003E494.
+ * the transfer completion callback via SpuSetTransferCallback.
  */
 void sndDmaSetActive(void) {
     D_80074ED4 = 1;
-    func_8003E494((s32)sndDmaCompleteCallback);
+    SpuSetTransferCallback((s32)sndDmaCompleteCallback);
 }
 
 /**
@@ -61,7 +61,7 @@ void sndDmaSetActive(void) {
  */
 void sndDmaWriteSpu(s32 a0, s32 a1) {
     D_80074ED4 = 1;
-    func_8003E494((s32)sndDmaCompleteCallback);
+    SpuSetTransferCallback((s32)sndDmaCompleteCallback);
     func_8003E3A4(a0, a1);
 }
 

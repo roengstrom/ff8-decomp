@@ -149,7 +149,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuSetTransferMode);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", S_STM_OBJ_1C);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", func_8003E494);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuSetTransferCallback);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libspu", SpuGetVoiceEnvelope);
 
