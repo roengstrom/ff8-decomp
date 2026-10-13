@@ -2,6 +2,7 @@
 #include "psxsdk/libspu.h"
 #include "sound.h"
 #include "snd_init.h"
+#include "snd_track.h"
 
 
 /**

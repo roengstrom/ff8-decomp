@@ -1,6 +1,7 @@
 #include "common.h"
 #include "sound.h"
 #include "snd_init.h"
+#include "snd_track.h"
 
 extern s32 D_80074EB8[];
 extern s32 D_80074EB0;

@@ -489,5 +489,4 @@ void func_800164D8(void);
 void func_80016A7C(void);
 void func_800174E4(s32 id, u32 mode);
 void func_80017D14(SoundMusicConfig *config, SoundSeqTrack *tracks);
-void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);
 s32 func_8001A1E8(u32 cmd);

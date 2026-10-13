@@ -2,6 +2,7 @@
 #include "psxsdk/libspu.h"
 #include "snd_init.h"
 #include "snd_dma.h"
+#include "snd_track.h"
 
 
 /** @brief Initializes the SPU (Sound Processing Unit).

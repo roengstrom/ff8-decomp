@@ -2,19 +2,12 @@
 #include "psxsdk/libspu.h"
 #include "sound.h"
 #include "snd_dma.h"
+#include "snd_track.h"
 #include "snd_init.h"
 
 extern s32 D_80077288[];
 extern s32 D_80074EE8[];
 extern u8 D_80051824;
-
-void sndStreamSetupMono(void);
-void sndStreamCallbackMonoLow(void);
-void sndStreamCallbackStereoLow(void);
-void sndStreamCallbackStereoAltLow(void);
-void sndStreamSetupStereoAlt(void);
-void sndStreamSetupStereo(void);
-void func_8001EB38(void);
 
 /**
  * @brief Copy instrument parameters from a table entry into a track structure.
@@ -1772,8 +1765,6 @@ void func_8001E65C(s32 addr, s32 repeatAddr, s32 size, void (*callback)(void)) {
     }
 }
 
-void sndStreamCallbackMonoHigh(void);
-
 /** @brief Calls func_8001E65C with SPU transfer params (0x1100, 0x1100, 0x800) and callback sndStreamCallbackMonoHigh. */
 void sndStreamCallbackMonoLow(void) {
     func_8001E65C(0x1100, 0x1100, 0x800, sndStreamCallbackMonoHigh);
@@ -1783,8 +1774,6 @@ void sndStreamCallbackMonoLow(void) {
 void sndStreamCallbackMonoHigh(void) {
     func_8001E65C(0x2100, 0x2100, 0x800, sndStreamCallbackMonoLow);
 }
-
-void sndStreamCallbackStereoHigh(void);
 
 /** @brief Calls func_8001E65C with SPU transfer params (0x1100, 0x1900, 0x1000) and callback sndStreamCallbackStereoHigh. */
 void sndStreamCallbackStereoLow(void) {
@@ -2138,8 +2127,6 @@ void func_8001F3D4(s32 addr, s32 repeatAddr, s32 size, void (*callback)(void)) {
         }
     }
 }
-
-void sndStreamCallbackStereoAltHigh(void);
 
 /** @brief Calls func_8001F3D4 with SPU transfer params (0x1100, 0x1900, 0x1000) and callback sndStreamCallbackStereoAltHigh. */
 void sndStreamCallbackStereoAltLow(void) {
