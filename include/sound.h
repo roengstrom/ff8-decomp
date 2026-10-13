@@ -325,7 +325,6 @@ typedef struct {
 } SndVoiceEnvelope;
 
 extern SndVoiceEnvelope D_80073CB0[];
-extern SndInstrument D_80073E68[];
 extern s32 D_8007506C;
 extern s32 D_800772F4;
 extern u32 D_800772A4;
