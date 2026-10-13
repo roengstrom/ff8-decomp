@@ -144,13 +144,13 @@ static void func_801A55C0(EffectEntity *entity) {
     entity->unk050 = 0;
     entity->unk052 = 0xA;
     entity->unk05A = (rand() & 7) + 0x20;
-    ((SVECTOR *)entity->unk060)->vy = -3;
+    entity->scratch.accel.vy = -3;
     entity->pc++;
 }
 
 /** @brief Opcode handler: apply gravity, then rise until the count runs out. */
 static void func_801A5620(EffectEntity *entity) {
-    entity->unk05A += ((SVECTOR *)entity->unk060)->vy;
+    entity->unk05A += entity->scratch.accel.vy;
     if (entity->unk05A < 2) {
         entity->unk05A = 2;
     }

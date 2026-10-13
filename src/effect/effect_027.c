@@ -283,21 +283,20 @@ static void func_801A97A0(EffectEntity *entity) {
 
 /** @brief Opcode handler: start a task running @ref func_801A969C. */
 static void func_801A9830(EffectEntity *entity) {
-    entity->unk063 = 1;
+    entity->scratch.timer.unk063 = 1;
     effectSpawnTask(&D_801D42E4, func_801A969C, 0x58, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: repeat the step until the loop counter runs out. */
 static void func_801A9888(EffectEntity *entity) {
-    if (entity->unk063 == 0) {
+    if (entity->scratch.timer.unk063 == 0) {
         if (entity->unk02A < entity->unk058) {
             entity->unk02A++;
             entity->unk02E++;
             entity->pc--;
         } else {
-            /* The byte trio at unk060 is this script's countdown, one halfword wide. */
-            *(s16 *)entity->unk060 = 10;
+            entity->scratch.timer.countdown = 10;
             entity->pc++;
         }
     }
@@ -305,8 +304,7 @@ static void func_801A9888(EffectEntity *entity) {
 
 /** @brief Opcode handler: spawn the tint fade-out once the wait runs out. */
 static void func_801A98EC(EffectEntity *entity) {
-    /* The byte trio at unk060 is this script's countdown, one halfword wide. */
-    if (--*(s16 *)entity->unk060 <= 0) {
+    if (--entity->scratch.timer.countdown <= 0) {
         effectSpawnTask(&D_801D3854, func_801A9394, 0x40, entity);
         entity->pc++;
     }

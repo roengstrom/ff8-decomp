@@ -3,6 +3,24 @@
  * @brief Curse
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+void func_801A1208(EffectEntity *entity);
+void func_801A02A0(EffectEntity *entity);
+
+/* Opcode handlers dispatched through func_801AF3FC's local table. */
+void func_801AF0FC(EffectEntity *entity);
+void func_801AF140(EffectEntity *entity);
+void func_801AF194(EffectEntity *entity);
+void func_801AF1D8(EffectEntity *entity);
+void func_801AF254(EffectEntity *entity);
+void func_801AF28C(EffectEntity *entity);
+void func_801AF2D0(EffectEntity *entity);
+void func_801AF314(EffectEntity *entity);
+void func_801AF350(EffectEntity *entity);
+void func_801AF394(EffectEntity *entity);
+void func_801AF3D8(EffectEntity *entity);
 
 INCLUDE_ASM("asm/ovl/effect_047/nonmatchings/effect_047", func_801A0000);
 
@@ -442,10 +460,28 @@ INCLUDE_ASM("asm/ovl/effect_047/nonmatchings/effect_047", func_801AF394);
 
 INCLUDE_ASM("asm/ovl/effect_047/nonmatchings/effect_047", func_801AF3D8);
 
-void func_801AF3F4(void) {
+void func_801AF3F4(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_047/nonmatchings/effect_047", func_801AF3FC);
+static s32 func_801AF3FC(EffectEntity *entity) {
+    EffectHandler handlers[12] = {
+        func_801AF0FC, func_801AF140, func_801AF194, func_801AF1D8,
+        func_801AF254, func_801AF28C, func_801AF2D0, func_801AF314,
+        func_801AF350, func_801AF394, func_801AF3D8, func_801AF3F4
+    };
+
+    func_801A02A0(entity);
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_801A1208(entity);
+        return 2;
+    }
+    return 0;
+}
 
 void func_801AF4C0(void) {
 }

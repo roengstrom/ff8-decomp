@@ -3,6 +3,14 @@
  * @brief Invincible Moon
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+void func_801A12D4(EffectEntity *entity);
+
+/* Opcode handlers dispatched through func_801B021C's local table. */
+void func_801B0130(EffectEntity *entity);
+void func_801B01B8(EffectEntity *entity);
 
 INCLUDE_ASM("asm/ovl/effect_088/nonmatchings/effect_088", func_801A0000);
 
@@ -366,10 +374,26 @@ INCLUDE_ASM("asm/ovl/effect_088/nonmatchings/effect_088", func_801B0130);
 
 INCLUDE_ASM("asm/ovl/effect_088/nonmatchings/effect_088", func_801B01B8);
 
-void func_801B0214(void) {
+void func_801B0214(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_088/nonmatchings/effect_088", func_801B021C);
+static s32 func_801B021C(EffectEntity *entity) {
+    EffectHandler handlers[3] = {
+        func_801B0130, func_801B01B8, func_801B0214
+    };
+
+    handlers[entity->pc](entity);
+    entity->unk08E = (entity->unk08E - 2) & 0x7F;
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_801A12D4(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_088/nonmatchings/effect_088", func_801B02CC);
 

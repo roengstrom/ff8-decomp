@@ -3,6 +3,128 @@
  * @brief Siren Summon (Silent Voice)
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+typedef struct {
+    /* 0x000 */ EffectEntity base;
+    /* 0x100 */ u8 pad100[0x288 - 0x100];
+    /* 0x288 */ SVECTOR unk288;
+    /* 0x290 */ u8 pad290[0x298 - 0x290];
+    /* 0x298 */ s16 unk298;  /* Frame at which func_801A12E8 fires. */
+} SirenEntity;
+
+typedef struct {
+    /* 0x00 */ u8 pad000[0x1C];
+    /* 0x1C */ SVECTOR pos;
+    /* 0x24 */ s16 unk024;
+    /* 0x26 */ u16 flags;
+    /* 0x28 */ u8 wait;
+    /* 0x29 */ u8 pc;
+    /* 0x2A */ u8 pad02A[0x30 - 0x2A];
+    /* 0x30 */ VECTOR unk030;
+    /* 0x40 */ u8 pad040[0x48 - 0x40];
+    /* 0x48 */ s16 yaw;
+    /* 0x4A */ u8 pad04A[0x54 - 0x4A];
+    /* 0x54 */ s16 driftX;
+    /* 0x56 */ u8 pad056[0x5E - 0x56];
+    /* 0x5E */ s16 yawStep;
+} SirenSpinEntity; /* Reuses EffectEntity's 0x30..0x5F range with its own layout. */
+
+typedef void (*SirenSpinHandler)(SirenSpinEntity *entity);
+
+s32 func_80190350(s16 stage);
+s32 func_801961D8(EffectEntity *entity);
+s32 func_8019D860(EffectEntity *entity);
+void func_8019C078(SirenEntity *entity);
+void func_8019C320(SirenEntity *entity);
+void func_80196220(SirenSpinEntity *entity);
+void func_80196340(SirenSpinEntity *entity);
+void func_80191234(void *entity);
+void func_801902CC(EffectEntity *entity);
+s32 func_801A1978(EffectEntity *entity, u8 *prims, s32 cursor);
+
+/* Opcode handlers dispatched through the step functions' local tables. */
+void func_8019DB20(EffectEntity *entity);
+void func_8019DBB4(EffectEntity *entity);
+void func_8019DCD4(EffectEntity *entity);
+void func_8019DD68(EffectEntity *entity);
+void func_8019DE78(EffectEntity *entity);
+void func_8019DEE0(EffectEntity *entity);
+void func_8019DF4C(EffectEntity *entity);
+void func_8019DFDC(EffectEntity *entity);
+void func_8019E968(EffectEntity *entity);
+void func_8019E9C4(EffectEntity *entity);
+void func_8019E9F0(EffectEntity *entity);
+void func_8019EA30(EffectEntity *entity);
+void func_801A0880(EffectEntity *entity);
+void func_801A08C8(EffectEntity *entity);
+void func_801A0F0C(EffectEntity *entity);
+void func_801A0F64(EffectEntity *entity);
+void func_801A63CC(EffectEntity *entity);
+void func_801A649C(EffectEntity *entity);
+void func_801A6504(EffectEntity *entity);
+void func_801A664C(EffectEntity *entity);
+void func_801A66E0(EffectEntity *entity);
+void func_801A6868(EffectEntity *entity);
+void func_801A68D0(EffectEntity *entity);
+void func_801A6914(EffectEntity *entity);
+void func_801A6970(EffectEntity *entity);
+void func_801A69CC(EffectEntity *entity);
+void func_801A6A28(EffectEntity *entity);
+void func_801A6A78(EffectEntity *entity);
+void func_801A6AD4(EffectEntity *entity);
+void func_801A6B18(EffectEntity *entity);
+void func_801A6B74(EffectEntity *entity);
+void func_801A6BC8(EffectEntity *entity);
+void func_801A6C10(EffectEntity *entity);
+void func_801A6C70(EffectEntity *entity);
+void func_801A6CB8(EffectEntity *entity);
+void func_801A72F8(EffectEntity *entity);
+void func_801A7370(EffectEntity *entity);
+void func_801A73C0(EffectEntity *entity);
+void func_801A743C(EffectEntity *entity);
+void func_801A74E4(EffectEntity *entity);
+void func_801A7570(EffectEntity *entity);
+void func_801A75C0(EffectEntity *entity);
+void func_801A7714(EffectEntity *entity);
+void func_801A7758(EffectEntity *entity);
+void func_801A77D8(EffectEntity *entity);
+void func_801A781C(EffectEntity *entity);
+void func_801A7870(EffectEntity *entity);
+void func_801A78EC(EffectEntity *entity);
+void func_801A7924(EffectEntity *entity);
+void func_801A7968(EffectEntity *entity);
+void func_801A79AC(EffectEntity *entity);
+void func_801A79F0(EffectEntity *entity);
+void func_801A7A70(EffectEntity *entity);
+void func_801A7AEC(EffectEntity *entity);
+void func_801A7B40(EffectEntity *entity);
+void func_801A7B8C(EffectEntity *entity);
+void func_801A7BC4(EffectEntity *entity);
+void func_801A7C08(EffectEntity *entity);
+void func_801A7C54(EffectEntity *entity);
+void func_801A7CA8(EffectEntity *entity);
+void func_801A7CEC(EffectEntity *entity);
+void func_801A7D68(EffectEntity *entity);
+void func_801A7DA0(EffectEntity *entity);
+void func_801A7DE4(EffectEntity *entity);
+void func_801A7E28(EffectEntity *entity);
+void func_801A7E68(EffectEntity *entity);
+void func_801A7E9C(EffectEntity *entity);
+void func_801A7EF4(EffectEntity *entity);
+void func_801A7F38(EffectEntity *entity);
+void func_801A4A14(SirenSpinEntity *entity);
+void func_801A4C7C(SirenSpinEntity *entity);
+void func_801A4CDC(SirenSpinEntity *entity);
+void func_801A4D10(SirenSpinEntity *entity);
+void func_801A4FD0(SirenSpinEntity *entity);
+void func_801A5044(SirenSpinEntity *entity);
+void func_801A50A4(SirenSpinEntity *entity);
+void func_801A50D8(SirenSpinEntity *entity);
+
+extern s32 D_801C3720;
+extern u8 D_801C68F0;
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_80190000);
 
@@ -301,19 +423,52 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DB20);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DBB4);
 
-void func_8019DC0C(void) {
+void func_8019DC0C(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DC14);
+static s32 func_8019DC14(EffectEntity *entity) {
+    EffectHandler handlers[3] = {
+        func_8019DB20, func_8019DBB4, func_8019DC0C
+    };
+
+    handlers[entity->pc](entity);
+    entity->unk08C = (entity->unk08C + 4) & 0x7F;
+    entity->unk090 = (entity->unk090 - 6) & 0x7F;
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DCD4);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DD68);
 
-void func_8019DDC0(void) {
+void func_8019DDC0(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DDC8);
+static s32 func_8019DDC8(EffectEntity *entity) {
+    EffectHandler handlers[3] = {
+        func_8019DCD4, func_8019DD68, func_8019DDC0
+    };
+
+    handlers[entity->pc](entity);
+    entity->unk08C = (entity->unk08C - 4) & 0x7F;
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DE78);
 
@@ -323,10 +478,27 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DF4C);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019DFDC);
 
-void func_8019E044(void) {
+void func_8019E044(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019E04C);
+static s32 func_8019E04C(EffectEntity *entity) {
+    EffectHandler handlers[5] = {
+        func_8019DE78, func_8019DEE0, func_8019DF4C, func_8019DFDC,
+        func_8019E044
+    };
+
+    handlers[entity->pc](entity);
+    entity->unk08C = (entity->unk08C - 1) & 0x7F;
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019E10C);
 
@@ -386,12 +558,33 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019E9F0);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019EA30);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019EA88);
-
-void func_8019EAE0(void) {
+static void func_8019EA88(EffectEntity *entity) {
+    if (!func_8019D860(entity) || func_80190350(6)) {
+        entity->flags |= EFFECT_FLAG_STOP;
+        entity->pc++;
+    }
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019EAE8);
+void func_8019EAE0(EffectEntity *entity) {
+}
+
+static s32 func_8019EAE8(EffectEntity *entity) {
+    EffectHandler handlers[6] = {
+        func_8019E968, func_8019E9C4, func_8019E9F0, func_8019EA30,
+        func_8019EA88, func_8019EAE0
+    };
+
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_8019EBA0);
 
@@ -483,10 +676,28 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A0880);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A08C8);
 
-void func_801A0B84(void) {
+void func_801A0B84(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A0B8C);
+static s32 func_801A0B8C(EffectEntity *entity) {
+    EffectHandler handlers[3] = {
+        func_801A0880, func_801A08C8, func_801A0B84
+    };
+
+    handlers[entity->pc](entity);
+    if (D_801C3720 == 0) {
+        entity->unk038.vz++;
+    }
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A0C50);
 
@@ -494,10 +705,28 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A0F0C);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A0F64);
 
-void func_801A0F84(void) {
+void func_801A0F84(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A0F8C);
+static s32 func_801A0F8C(EffectEntity *entity) {
+    EffectHandler handlers[3] = {
+        func_801A0F0C, func_801A0F64, func_801A0F84
+    };
+
+    handlers[entity->pc](entity);
+    if (D_801C3720 == 0) {
+        entity->unk038.vz++;
+    }
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A1050);
 
@@ -517,7 +746,16 @@ void func_801A1240(void) {
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A1248);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A12E8);
+static void func_801A12E8(SirenEntity *entity) {
+    if (entity->base.unk024 >= entity->unk298) {
+        entity->unk288.vx = 0;
+        entity->unk288.vy = 0;
+        entity->unk288.vz = 3264;
+        func_8019C078(entity);
+        func_8019C320(entity);
+        entity->base.pc++;
+    }
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A134C);
 
@@ -601,7 +839,12 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A287C);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A29E0);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A2A5C);
+static void func_801A2A5C(EffectEntity *entity) {
+    if (func_801961D8(entity) || func_80190350(2)) {
+        entity->flags |= EFFECT_FLAG_STOP | EFFECT_FLAG_DONE;
+        entity->pc++;
+    }
+}
 
 void func_801A2AB4(void) {
 }
@@ -621,7 +864,12 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A2EF8);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A2FA4);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3020);
+static void func_801A3020(EffectEntity *entity) {
+    if (func_801961D8(entity) || func_80190350(2)) {
+        entity->flags |= EFFECT_FLAG_STOP | EFFECT_FLAG_DONE;
+        entity->pc++;
+    }
+}
 
 void func_801A3078(void) {
 }
@@ -641,7 +889,12 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A34C4);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3570);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A35EC);
+static void func_801A35EC(EffectEntity *entity) {
+    if (func_801961D8(entity) || func_80190350(3)) {
+        entity->flags |= EFFECT_FLAG_STOP | EFFECT_FLAG_DONE;
+        entity->pc++;
+    }
+}
 
 void func_801A3644(void) {
 }
@@ -672,7 +925,12 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3C40);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3CEC);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3D5C);
+static void func_801A3D5C(EffectEntity *entity) {
+    if (func_80190350(3) || func_801961D8(entity)) {
+        entity->flags |= EFFECT_FLAG_STOP | EFFECT_FLAG_DONE;
+        entity->pc++;
+    }
+}
 
 void func_801A3DB8(void) {
 }
@@ -683,7 +941,12 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3F58);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A3FD4);
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A406C);
+static void func_801A406C(EffectEntity *entity) {
+    if (func_80190350(3) || func_801961D8(entity)) {
+        entity->flags |= EFFECT_FLAG_STOP | EFFECT_FLAG_DONE;
+        entity->pc++;
+    }
+}
 
 void func_801A40C8(void) {
 }
@@ -718,10 +981,29 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A4CDC);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A4D10);
 
-void func_801A4D58(void) {
+void func_801A4D58(SirenSpinEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A4D60);
+static s32 func_801A4D60(SirenSpinEntity *entity) {
+    SirenSpinHandler handlers[5] = {
+        func_801A4A14, func_801A4C7C, func_801A4CDC, func_801A4D10,
+        func_801A4D58
+    };
+
+    handlers[entity->pc](entity);
+    entity->yaw = (entity->yaw + entity->yawStep) & 0xFFF;
+    entity->pos.vx += entity->driftX;
+    func_80196340(entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A4E3C);
 
@@ -740,10 +1022,29 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A50A4);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A50D8);
 
-void func_801A5120(void) {
+void func_801A5120(SirenSpinEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A5128);
+static s32 func_801A5128(SirenSpinEntity *entity) {
+    SirenSpinHandler handlers[5] = {
+        func_801A4FD0, func_801A5044, func_801A50A4, func_801A50D8,
+        func_801A5120
+    };
+
+    handlers[entity->pc](entity);
+    entity->yaw = (entity->yaw + entity->yawStep) & 0xFFF;
+    entity->unk030.vx = entity->unk030.vy = entity->unk030.vz += 256;
+    func_80196220(entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A5208);
 
@@ -772,10 +1073,26 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A664C);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A66E0);
 
-void func_801A67A8(void) {
+void func_801A67A8(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A67B0);
+static s32 func_801A67B0(EffectEntity *entity) {
+    EffectHandler handlers[6] = {
+        func_801A63CC, func_801A649C, func_801A6504, func_801A664C,
+        func_801A66E0, func_801A67A8
+    };
+
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A6868);
 
@@ -805,12 +1122,43 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A6C70);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A6CB8);
 
-void func_801A6CF8(void) {
+void func_801A6CF8(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A6D00);
+static s32 func_801A6D00(EffectEntity *entity) {
+    EffectHandler handlers[15] = {
+        func_801A6868, func_801A68D0, func_801A6914, func_801A6970,
+        func_801A69CC, func_801A6A28, func_801A6A78, func_801A6AD4,
+        func_801A6B18, func_801A6B74, func_801A6BC8, func_801A6C10,
+        func_801A6C70, func_801A6CB8, func_801A6CF8
+    };
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A6DD4);
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
+
+static void func_801A6DD4(EffectEntity *entity) {
+    BattleTint *tint = D_800EF738;
+    s32 i;
+
+    entity->pos.vx = 1536;
+    for (i = 0; i < 4; i++) {
+        tint->level = entity->pos.vx;
+        tint->b = 0;
+        tint->g = 0;
+        tint->r = 0;
+        tint++;
+    }
+    entity->pc++;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A6E24);
 
@@ -846,10 +1194,31 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A7570);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A75C0);
 
-void func_801A7610(void) {
+void func_801A7610(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A7618);
+static s32 func_801A7618(EffectEntity *entity) {
+    EffectHandler handlers[8] = {
+        func_801A72F8, func_801A7370, func_801A73C0, func_801A743C,
+        func_801A74E4, func_801A7570, func_801A75C0, func_801A7610
+    };
+
+    handlers[entity->pc](entity);
+    if (!(entity->flags & EFFECT_FLAG_DONE)) {
+        s32 cursor = D_800FA5F0;
+
+        D_800FA5F0 = func_801A1978(entity, &D_801C68F0, cursor);
+    }
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A7714);
 
@@ -905,10 +1274,32 @@ INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A7EF4);
 
 INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A7F38);
 
-void func_801A7F84(void) {
+void func_801A7F84(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_095/nonmatchings/effect_095", func_801A7F8C);
+static s32 func_801A7F8C(EffectEntity *entity) {
+    EffectHandler handlers[28] = {
+        func_801A7714, func_801A7758, func_801A77D8, func_801A781C,
+        func_801A7870, func_801A78EC, func_801A7924, func_801A7968,
+        func_801A79AC, func_801A79F0, func_801A7A70, func_801A7AEC,
+        func_801A7B40, func_801A7B8C, func_801A7BC4, func_801A7C08,
+        func_801A7C54, func_801A7CA8, func_801A7CEC, func_801A7D68,
+        func_801A7DA0, func_801A7DE4, func_801A7E28, func_801A7E68,
+        func_801A7E9C, func_801A7EF4, func_801A7F38, func_801A7F84
+    };
+
+    func_801902CC(entity);
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80191234(entity);
+        return 2;
+    }
+    return 0;
+}
 
 void func_801A8050(void) {
 }

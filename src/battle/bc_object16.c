@@ -96,9 +96,9 @@ s32 func_800CD35C(ParticleEntry *p) {
     prim->flags    = 0x230;
 
     if ((s16)p->frame >= 8) {
-        prim->bgB = 0;
-        prim->bgG = 0;
-        prim->bgR = 0;
+        prim->bg.c.b = 0;
+        prim->bg.c.g = 0;
+        prim->bg.c.r = 0;
         prim->depth = ((s16)p->frame - 8) * 341;
         prim->flags |= 0xC0;
     }
@@ -182,9 +182,9 @@ s32 func_800CDF3C(ParticleEntry *p) {
     prim->flags    = 0x233;
 
     if ((s16)p->frame >= 4) {
-        prim->bgB = 0;
-        prim->bgG = 0;
-        prim->bgR = 0;
+        prim->bg.c.b = 0;
+        prim->bg.c.g = 0;
+        prim->bg.c.r = 0;
         prim->depth = ((s16)p->frame - 4) * 409;
         prim->flags |= 0xC0;
     }

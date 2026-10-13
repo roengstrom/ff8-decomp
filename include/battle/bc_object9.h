@@ -99,6 +99,7 @@ void *func_800B2C58(void *task);
 
 /** @brief Submit @p m to the GTE as the pose for the next model. */
 void func_800B3650(MATRIX *m);
+void func_800B37E0(u16 slots, SVECTOR *centre);
 
 /**
  * @brief Read the point @p id out of @p slot's model into @p out.

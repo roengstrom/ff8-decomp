@@ -1069,7 +1069,7 @@ binaries:
     subsegments:
     - [0x0, c, effect_022]
     - [0x8E58, .rodata, effect_022]
-    - [0x8E74, bin, effect_022]
+    - [0x8F80, bin, effect_022]
   - [0x43DC8]
 - name: effect_023
   sha1: 77449628c073c52aa3eddc5e0aabb31c3aa23e5d
@@ -1616,7 +1616,7 @@ binaries:
     subsegments:
     - [0x0, c, effect_047]
     - [0xFC64, .rodata, effect_047]
-    - [0xFC90, bin, effect_047]
+    - [0xFD8C, bin, effect_047]
   - [0x4829C]
 - name: effect_048
   sha1: ec5bffbc63618c111342be0c39d9cec32351e04b
@@ -2284,7 +2284,7 @@ binaries:
     subsegments:
     - [0x0, c, effect_084]
     - [0x14CD4, .rodata, effect_084]
-    - [0x14D00, bin, effect_084]
+    - [0x14E68, bin, effect_084]
   - [0x5A090]
 - name: effect_085
   sha1: dcd2c7b2ac43389a895bd48488b452d2d8b7e08b
@@ -2348,7 +2348,7 @@ binaries:
     subsegments:
     - [0x0, c, effect_088]
     - [0x15F0C, .rodata, effect_088]
-    - [0x15F50, bin, effect_088]
+    - [0x1614C, bin, effect_088]
   - [0x5A9D8]
 - name: effect_089
   sha1: 0cc6050e91cda6ce91564b4a318aaef6dc0bc73a
@@ -2460,7 +2460,7 @@ binaries:
     subsegments:
     - [0x0, c, effect_095]
     - [0x18D78, .rodata, effect_095]
-    - [0x18D8C, bin, effect_095]
+    - [0x19128, bin, effect_095]
   - [0x4A964]
 - name: effect_096
   sha1: 2c3c2f9042e37f288528aac98b2750decabe2a35
@@ -2540,7 +2540,7 @@ binaries:
     subsegments:
     - [0x0, c, effect_100]
     - [0x14290, .rodata, effect_100]
-    - [0x1429C, bin, effect_100]
+    - [0x144D0, bin, effect_100]
   - [0x53D80]
 - name: effect_101
   sha1: 5d3a569d2c87131105ce3e9d2680def0a290c0d2

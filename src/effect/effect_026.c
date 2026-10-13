@@ -3,6 +3,10 @@
  * @brief Clash
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+s32 func_801A3930(EffectEntity *entity);
 
 INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A0000);
 
@@ -156,7 +160,18 @@ INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A4564);
 
 INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A469C);
 
-INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A46D8);
+static void func_801A46D8(EffectEntity *entity) {
+    entity->unk058 += entity->scratch.accel.vx;
+    entity->unk05A += entity->scratch.accel.vy;
+    entity->unk05C += entity->scratch.accel.vz;
+    entity->pos.vx += entity->unk058;
+    entity->pos.vy += entity->unk05A;
+    entity->pos.vz += entity->unk05C;
+    if (func_801A3930(entity)) {
+        entity->flags |= EFFECT_FLAG_STOP;
+        entity->pc++;
+    }
+}
 
 void func_801A4784(void) {
 }
@@ -185,7 +200,18 @@ INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A4ADC);
 
 INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A4C1C);
 
-INCLUDE_ASM("asm/ovl/effect_026/nonmatchings/effect_026", func_801A4C58);
+static void func_801A4C58(EffectEntity *entity) {
+    entity->unk058 += entity->scratch.accel.vx;
+    entity->unk05A += entity->scratch.accel.vy;
+    entity->unk05C += entity->scratch.accel.vz;
+    entity->pos.vx += entity->unk058;
+    entity->pos.vy += entity->unk05A;
+    entity->pos.vz += entity->unk05C;
+    if (func_801A3930(entity)) {
+        entity->flags |= EFFECT_FLAG_STOP;
+        entity->pc++;
+    }
+}
 
 void func_801A4D04(void) {
 }

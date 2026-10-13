@@ -289,21 +289,20 @@ static void func_801A9ACC(EffectEntity *entity) {
 
 /** @brief Opcode handler: start a task running @ref func_801A9994. */
 static void func_801A9B5C(EffectEntity *entity) {
-    entity->unk063 = 1;
+    entity->scratch.timer.unk063 = 1;
     effectSpawnTask(&D_801D49FC, func_801A9994, 0x58, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: repeat the step until the loop counter runs out. */
 static void func_801A9BB4(EffectEntity *entity) {
-    if (entity->unk063 == 0) {
+    if (entity->scratch.timer.unk063 == 0) {
         if (entity->unk02A < entity->unk058) {
             entity->unk02A++;
             entity->unk02E++;
             entity->pc--;
         } else {
-            /* The byte trio at unk060 is this script's countdown, one halfword wide. */
-            *(s16 *)entity->unk060 = 10;
+            entity->scratch.timer.countdown = 10;
             entity->pc++;
         }
     }
@@ -311,8 +310,7 @@ static void func_801A9BB4(EffectEntity *entity) {
 
 /** @brief Opcode handler: spawn the trailing spark once the wait runs out. */
 static void func_801A9C18(EffectEntity *entity) {
-    /* The byte trio at unk060 is this script's countdown, one halfword wide. */
-    if (--*(s16 *)entity->unk060 <= 0) {
+    if (--entity->scratch.timer.countdown <= 0) {
         effectSpawnTask(&D_801D3F6C, func_801A968C, 0x40, entity);
         entity->pc++;
     }

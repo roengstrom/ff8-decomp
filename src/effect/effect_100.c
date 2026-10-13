@@ -3,6 +3,36 @@
  * @brief ChocoBocle
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+void func_80190DC4(EffectEntity *entity);
+void func_801902CC(EffectEntity *entity);
+
+/* Opcode handlers dispatched through func_801A37F0's local table. */
+void func_801A30EC(EffectEntity *entity);
+void func_801A31B8(EffectEntity *entity);
+void func_801A31FC(EffectEntity *entity);
+void func_801A326C(EffectEntity *entity);
+void func_801A32E0(EffectEntity *entity);
+void func_801A3324(EffectEntity *entity);
+void func_801A337C(EffectEntity *entity);
+void func_801A33C0(EffectEntity *entity);
+void func_801A3404(EffectEntity *entity);
+void func_801A3438(EffectEntity *entity);
+void func_801A347C(EffectEntity *entity);
+void func_801A34C0(EffectEntity *entity);
+void func_801A3504(EffectEntity *entity);
+void func_801A3538(EffectEntity *entity);
+void func_801A357C(EffectEntity *entity);
+void func_801A35D8(EffectEntity *entity);
+void func_801A361C(EffectEntity *entity);
+void func_801A3650(EffectEntity *entity);
+void func_801A3694(EffectEntity *entity);
+void func_801A36C8(EffectEntity *entity);
+void func_801A370C(EffectEntity *entity);
+void func_801A3754(EffectEntity *entity);
+void func_801A3788(EffectEntity *entity);
 
 INCLUDE_ASM("asm/ovl/effect_100/nonmatchings/effect_100", func_80190000);
 
@@ -625,10 +655,31 @@ INCLUDE_ASM("asm/ovl/effect_100/nonmatchings/effect_100", func_801A3754);
 
 INCLUDE_ASM("asm/ovl/effect_100/nonmatchings/effect_100", func_801A3788);
 
-void func_801A37E8(void) {
+void func_801A37E8(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_100/nonmatchings/effect_100", func_801A37F0);
+static s32 func_801A37F0(EffectEntity *entity) {
+    EffectHandler handlers[24] = {
+        func_801A30EC, func_801A31B8, func_801A31FC, func_801A326C,
+        func_801A32E0, func_801A3324, func_801A337C, func_801A33C0,
+        func_801A3404, func_801A3438, func_801A347C, func_801A34C0,
+        func_801A3504, func_801A3538, func_801A357C, func_801A35D8,
+        func_801A361C, func_801A3650, func_801A3694, func_801A36C8,
+        func_801A370C, func_801A3754, func_801A3788, func_801A37E8
+    };
+
+    func_801902CC(entity);
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_80190DC4(entity);
+        return 2;
+    }
+    return 0;
+}
 
 void func_801A38B4(void) {
 }

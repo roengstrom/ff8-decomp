@@ -398,8 +398,8 @@ static void func_801A3C14(EffectEntity *entity) {
     entity->flags |= EFFECT_FLAG_UNK02;
     /* The aim point overlays unk060/unk063, which the loop opcodes use as a
        counter -- the two never overlap in time. */
-    effectSlotAnchor0(entity, (SVECTOR *)entity->unk060);
-    ((SVECTOR *)entity->unk060)->vy = effectModelTop(entity);
+    effectSlotAnchor0(entity, &entity->scratch.anchor);
+    entity->scratch.anchor.vy = effectModelTop(entity);
     span = effectModelHalfWidth(entity);
     entity->unk068 = span * 2;
     if ((s16)(span * 2) >= 0x401) {
@@ -469,7 +469,7 @@ static s32 func_801A3E64(EffectEntity *entity) {
     for (i = 0; i < 4; i++) {
         s32 angle;
 
-        entity->pos = *(SVECTOR *)entity->unk060;
+        entity->pos = entity->scratch.anchor;
         angle = ((entity->unk024 * 4 + i) << 7) & EFFECT_MESH_INDEX_MASK;
         entity->unk040.vy = angle;
         entity->pos.vy += entity->unk05A * (entity->unk024 * 4 + i);
@@ -571,14 +571,14 @@ static void func_801A42CC(EffectEntity *entity) {
 
 /** @brief Opcode handler: start a task running @ref func_801A41C8. */
 static void func_801A42F4(EffectEntity *entity) {
-    entity->unk063 = 1;
+    entity->scratch.timer.unk063 = 1;
     effectSpawnTask(&D_801C5B50, func_801A41C8, 0x58, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: repeat the preceding opcode until the count runs out. */
 static void func_801A434C(EffectEntity *entity) {
-    if (entity->unk063 != 0) {
+    if (entity->scratch.timer.unk063 != 0) {
         return;
     }
     if (entity->unk02A < entity->unk058) {

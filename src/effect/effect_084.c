@@ -3,6 +3,28 @@
  * @brief Angel Wing
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+void func_801A1394(EffectEntity *entity);
+void func_801A02B4(EffectEntity *entity);
+
+/* Opcode handlers dispatched through func_801B443C's local table. */
+void func_801B404C(EffectEntity *entity);
+void func_801B40B0(EffectEntity *entity);
+void func_801B40F4(EffectEntity *entity);
+void func_801B4144(EffectEntity *entity);
+void func_801B417C(EffectEntity *entity);
+void func_801B41C0(EffectEntity *entity);
+void func_801B4204(EffectEntity *entity);
+void func_801B423C(EffectEntity *entity);
+void func_801B4280(EffectEntity *entity);
+void func_801B42C4(EffectEntity *entity);
+void func_801B42FC(EffectEntity *entity);
+void func_801B4340(EffectEntity *entity);
+void func_801B4390(EffectEntity *entity);
+void func_801B43C8(EffectEntity *entity);
+void func_801B4418(EffectEntity *entity);
 
 INCLUDE_ASM("asm/ovl/effect_084/nonmatchings/effect_084", func_801A0000);
 
@@ -561,10 +583,29 @@ INCLUDE_ASM("asm/ovl/effect_084/nonmatchings/effect_084", func_801B43C8);
 
 INCLUDE_ASM("asm/ovl/effect_084/nonmatchings/effect_084", func_801B4418);
 
-void func_801B4434(void) {
+void func_801B4434(EffectEntity *entity) {
 }
 
-INCLUDE_ASM("asm/ovl/effect_084/nonmatchings/effect_084", func_801B443C);
+static s32 func_801B443C(EffectEntity *entity) {
+    EffectHandler handlers[16] = {
+        func_801B404C, func_801B40B0, func_801B40F4, func_801B4144,
+        func_801B417C, func_801B41C0, func_801B4204, func_801B423C,
+        func_801B4280, func_801B42C4, func_801B42FC, func_801B4340,
+        func_801B4390, func_801B43C8, func_801B4418, func_801B4434
+    };
+
+    func_801A02B4(entity);
+    handlers[entity->pc](entity);
+    entity->unk024++;
+    if (entity->flags & EFFECT_FLAG_STOP) {
+        if (entity->wait != 0) {
+            return 0;
+        }
+        func_801A1394(entity);
+        return 2;
+    }
+    return 0;
+}
 
 void func_801B4500(void) {
 }
