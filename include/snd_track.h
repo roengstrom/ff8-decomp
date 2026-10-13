@@ -7,6 +7,9 @@
 
 #include "sound.h"
 
+extern s32 D_80074EE8[];
+extern u8 D_80051824;
+
 extern void sndTrackSetInstrumentParams(SoundSeqTrack *track, SndInstrument *inst, s32 a2);
 extern void sndTrackApplyInstrument(SoundSeqTrack *track, s32 a1);
 extern void sndTrackClearVoiceBits(SoundSeqTrack *track, s32 a1);

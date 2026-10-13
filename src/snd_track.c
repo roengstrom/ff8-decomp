@@ -5,10 +5,6 @@
 #include "snd_track.h"
 #include "snd_init.h"
 
-extern s32 D_80077288[];
-extern s32 D_80074EE8[];
-extern u8 D_80051824;
-
 /**
  * @brief Copy instrument parameters from a table entry into a track structure.
  *
@@ -28,8 +24,6 @@ void sndTrackSetInstrumentParams(SoundSeqTrack *track, SndInstrument *inst, s32 
     track->voiceAttr.updateFlags |= 0x1FF80;
     track->voiceAttr.adsrHigh = v;
 }
-
-extern SndInstrument D_80073E68[];
 
 /**
  * @brief Applies an instrument table entry to a sequence track.
