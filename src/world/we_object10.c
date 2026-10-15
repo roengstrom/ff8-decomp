@@ -122,7 +122,7 @@ s32 func_800BD7E4(s32 charIdx) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", func_800BD82C);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", RegisterSceneObject);
 
 /**
  * @brief Copy 10 flag bytes from D_800780D8 to destination struct.

@@ -44,6 +44,6 @@ extern s32 func_800C4480(s32 src, s32 len, u32 *buf);
 /* Reset the streaming controller; returns its status word. */
 extern s32 func_800C4450(void);
 
-extern void func_800C4AE4(s32 a);
+extern void TickStepCounters(s32 a);
 
 #endif /* WORLD_WE_OBJECT13_H */

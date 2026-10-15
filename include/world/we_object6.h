@@ -9,12 +9,12 @@ extern void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf,
                           SVECTOR *offset);
 
 extern void func_800AD698(SceneState *st, u8 *flags);
-extern void func_800AE31C(u8 *flags);
+extern void InitActors(u8 *flags);
 extern s32  func_800AE518(u8 *flags);
 extern void func_800AEEB0(u8 *flags, void *a, void *b, void *c);
 extern void func_800B04CC(SVECTOR *ang, MATRIX *m, u8 *flags, s32 v);
-extern void func_800B164C(SceneState *st, Slot *slot, u8 *flags, VECTOR *pos);
-extern void func_800B18B8(u8 *flags, VECTOR *pos, SVECTOR *ang);
+extern void InitPlayerPosition(SceneState *st, Slot *slot, u8 *flags, VECTOR *pos);
+extern void SyncSlotsToPlayer(u8 *flags, VECTOR *pos, SVECTOR *ang);
 extern s32  func_800B1BCC(u8 *p);
 
 extern s32 func_800B0010(u32 kind);

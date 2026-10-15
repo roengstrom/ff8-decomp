@@ -75,9 +75,9 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B3AB8);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B3ED0);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B3FD4);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", SaveScenePlacement);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B438C);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", RestoreScenePlacement);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B454C);
 
@@ -87,7 +87,7 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B56A0);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B5974);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B5ADC);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", GetFootprintCorners);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B5C60);
 
@@ -295,7 +295,7 @@ s32 func_800B85DC(s16 *out) {
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B881C);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", ResetPositionHistory);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object7", func_800B893C);
 

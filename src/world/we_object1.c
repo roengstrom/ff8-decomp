@@ -733,7 +733,7 @@ void func_8009C1A4(void) {
  * (cleared when both pass, set otherwise). Then @c func_8009D630 tears down prior
  * state; if a command descriptor @c D_800C4D64 is active, its flag bit is mirrored
  * into @c D_800D226C->unk6C (bit @c 0x100). Finally it stamps the scene state
- * @c D_80082C8C (mode 1, dispatch code, markers), calls @c func_800B3FD4, clears
+ * @c D_80082C8C (mode 1, dispatch code, markers), calls @c SaveScenePlacement, clears
  * the slot's action byte, closes every @c D_800C526C slot's dialog at once, pushes 2 display frames,
  * and submits the scene color tag.
  *
@@ -763,7 +763,7 @@ void func_8009C294(s32 cmd) {
     D_80082C8C.unk02 = cmd;
     D_80082C8C.unk03 = -1;
     D_80082C8C.cmd = D_800C4D38;
-    func_800B3FD4(D_800D226C, 1);
+    SaveScenePlacement(D_800D226C, 1);
     D_800D226C->bytes[1] = 0;
     for (i = 0; i < 13; i++) {
         s32 dialogIdx = D_800C526C[i].field02;

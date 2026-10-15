@@ -177,55 +177,39 @@ void func_800BBD74(ParticleSource *src, s32 visRange) {
                   SPAWN_FLAG_SIZE_JITTER | SPAWN_FLAG_LIFETIME_JITTER);
 }
 
-/*
- * func_800BBF0C: mirrored particle spawn (type 0xF), near-match.
- *
- * Sibling of @c func_800BBD74 but uses @c D_800C4D4C as threshold (vs
- * caller-supplied visRange), @c 0x1A4 as absdx bound, type @c 0xF, and a
- * simpler height jitter (just @c rand - 0x80, no @c *4 scaling).
- *
- * The reference C below produces 102-instruction asm that differs from the
- * target at two places (~95.8% match): gcc 2.8.0's scheduler chooses to
- * emit @c addiu -0x80 on the @c v0 (rand) register rather than on the
- * @c v1 (height) register. Algebraically identical (@c height - 0x80 +
- * rand vs @c height + (rand - 0x80)) but one `addiu`/`addu` instruction
- * pair swaps sides. No C-level expression I've found flips the scheduler's
- * associativity choice — this is a deep scheduling/RTL pass artifact.
- * Permuter best score is 140 over thousands of iterations; kept as
- * INCLUDE_ASM with this reference C until a cleaner fix is found.
- *
- *   void func_800BBF0C(ParticleSource *src) {
- *       Velocity localVel;
- *       PosDesc  localPos;
- *       s32      jitter;
- *       s32      absdx;
- *       s16      dx;
- *       u32      worldCam;
- *
- *       worldCam = D_800C97F4;
- *       localPos = src->pos;
- *       dx       = ((u16) D_800C97F4) - (u16)src->pos.vy;
- *       localPos.vy = worldCam;
- *       if (D_800C4D4C <= (func_8009CC3C() + (dx >> 2))) return;
- *       absdx = (dx >= 0) ? dx : -dx;
- *       if (absdx >= 0x1A4) return;
- *
- *       localVel = src->vel;
- *       localVel.vy += 0x320;
- *       jitter = (func_8009CC3C() - 0x80) * 8;
- *       localVel.vy += jitter;
- *       localVel.vz += func_8009CC3C() - 0x80;
- *       func_800AC0A0(0xF, &localPos, &localVel, 3);
- *
- *       localVel = src->vel;
- *       localVel.vy -= 0x320;
- *       jitter = (func_8009CC3C() - 0x80) * 8;
- *       localVel.vy += jitter;
- *       localVel.vz += func_8009CC3C() - 0x80;
- *       func_800AC0A0(0xF, &localPos, &localVel, 3);
- *   }
- */
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object9", func_800BBF0C);
+// Mirrored particle pair (type 0xF), a sibling of func_800BBD74 gated on D_800C4D4C.
+void func_800BBF0C(ParticleSource *src) {
+    SVECTOR localVel;
+    VECTOR  localPos;
+    s32      jitter;
+    s32      absdx;
+    s16      dx;
+    u32      worldCam;
+
+    worldCam = D_800C97F4;
+    localPos = src->pos;
+    dx       = D_800C97F4 - src->pos.vy;
+    localPos.vy = worldCam;
+    if (D_800C4D4C <= (func_8009CC3C() + (dx >> 2))) return;
+    absdx = (dx >= 0) ? dx : -dx;
+    if (absdx >= 420) return;
+
+    localVel = src->vel;
+    localVel.vy += 800;
+    jitter = (func_8009CC3C() - 0x80) * 8;
+    localVel.vy += jitter;
+    localVel.vz += func_8009CC3C() - 0x80;
+    func_800AC0A0(0xF, &localPos, &localVel,
+                  SPAWN_FLAG_SIZE_JITTER | SPAWN_FLAG_LIFETIME_JITTER);
+
+    localVel = src->vel;
+    localVel.vy -= 800;
+    jitter = (func_8009CC3C() - 0x80) * 8;
+    localVel.vy += jitter;
+    localVel.vz += func_8009CC3C() - 0x80;
+    func_800AC0A0(0xF, &localPos, &localVel,
+                  SPAWN_FLAG_SIZE_JITTER | SPAWN_FLAG_LIFETIME_JITTER);
+}
 
 /**
  * @brief Spawn a mirrored particle pair (type 0x14) gated on a word-angle delta.
@@ -350,14 +334,14 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object9", func_800BC218);
 
 
 /**
- * @brief Thin wrapper that forwards to func_800BFFEC with no arguments.
+ * @brief Thin wrapper that forwards to ResetWorldRenderState with no arguments.
  *
  * @note Purpose uncertain — appears to be a dispatch hook into another
  *       subsystem, possibly for resetting or (re)initializing state
- *       owned by func_800BFFEC's module.
+ *       owned by ResetWorldRenderState's module.
  */
 void func_800BC44C(void) {
-    func_800BFFEC();
+    ResetWorldRenderState();
 }
 
 

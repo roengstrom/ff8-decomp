@@ -200,12 +200,12 @@ s32 func_800987D8(void)
         }
 
         func_800A40C0();
-        func_800AE31C(D_800D23D8);
+        InitActors(D_800D23D8);
         func_800ABD54();
         func_800ABC98();
         func_800A9ED4();
         func_800A9254();
-        func_800B164C(&D_80082C8C, D_800D226C, D_800D23D8, &D_800C9868);
+        InitPlayerPosition(&D_80082C8C, D_800D226C, D_800D23D8, &D_800C9868);
         setupWorldMapView(&D_800C9868, D_800C9770, &D_800D2390, &D_800C9828);
         D_800C9858 = D_800C9868;
         D_800C97F8[0] = D_800C9770[0];
@@ -224,7 +224,7 @@ s32 func_800987D8(void)
         func_800BEECC();
         D_800C4D54 = (D_800C4D38 == 0x31) ? 5 : 0;
         D_800C4D58 = 0;
-        func_800B881C();
+        ResetPositionHistory();
         if (D_800C4D88 >= 0) {
             D_800C4D84 = 1;
             do {
@@ -288,7 +288,7 @@ s32 func_800987D8(void)
                 D_80082C8C.unk02 = code;
                 D_80082C8C.unk03 = -1;
                 D_80082C8C.cmd = D_800C4D38;
-                func_800B3FD4(D_800D226C, 1);
+                SaveScenePlacement(D_800D226C, 1);
                 D_800C987C = 0;
                 D_800C4D08 = D_800D23DC;
                 func_8009D954();
@@ -330,7 +330,7 @@ s32 func_800987D8(void)
                                  D_800CA038.vy * D_800CA038.vy +
                                  D_800CA038.vz * D_800CA038.vz);
 
-        func_800B18B8(D_800D23D8, &D_800C9868, D_800C9770);
+        SyncSlotsToPlayer(D_800D23D8, &D_800C9868, D_800C9770);
         func_800B893C();
         func_800BEC60(D_800D23D8);
         func_800B9D38();
@@ -417,7 +417,7 @@ s32 func_800987D8(void)
         cmd = D_800C4D38;
         if ((u32)cmd < 0xA || cmd == 0x80 || (u32)(cmd - 0x20) < 9 ||
             cmd == 0x84 || cmd == 0x31) {
-            func_800C4AE4(D_800C4D50 / 8);
+            TickStepCounters(D_800C4D50 / 8);
         }
 
         func_800A63F0();

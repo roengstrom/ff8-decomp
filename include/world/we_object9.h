@@ -82,7 +82,7 @@ extern s32             D_800C971C;
 
 /* Per-scene angle bias applied to a placed sprite fan. */
 extern s32 func_800BC5E0(s32 ctx);
-extern void func_800BFFEC(void);
+extern void ResetWorldRenderState(void);
 extern void func_800C2C00(s32 a, s32 b, s32 c, s32 d, s32 e, U64 *f, s32 g, U64 *h);
 extern u8 *func_800BC8D8(u8 *buf, s32 magicId);
 extern u8 *func_800BC974(u8 *buf, s32 id);

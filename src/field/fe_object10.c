@@ -245,7 +245,7 @@ void func_800BD794(void) { s32 i = 0; do { s32 status = getPackedField2Bit(i) - 
 /**
  * @brief Field step tick — accumulates @c stepDelta into all per-step counters.
  *
- * Mirror of @c func_800C4AE4 in we_object13. Drives every per-step
+ * Mirror of @c TickStepCounters in we_object13. Drives every per-step
  * accumulator on @c g_fieldVars for the field map:
  *   - @c stepCounter (mirrored to @c D_80082C14).
  *   - @c packedFlagsStepAcc — fires @c func_800BD794 every @c 0x2800 steps.

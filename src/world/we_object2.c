@@ -305,7 +305,7 @@ u8 collectActiveKeyEntries(s16 *out) {
  * Chains:
  *  1. @c func_8009D630() to tear down prior state.
  *  2. Resets @c D_80082C8C — mode 5, current dispatch code, markers -1.
- *  3. Calls @c func_800B3FD4 with the scene-data pointer @c D_800D226C
+ *  3. Calls @c SaveScenePlacement with the scene-data pointer @c D_800D226C
  *     and sub-mode 5.
  */
 void func_8009D3F4(void) {
@@ -314,7 +314,7 @@ void func_8009D3F4(void) {
     D_80082C8C.cmd = D_800C4D38;
     D_80082C8C.unk02 = -1;
     D_80082C8C.unk03 = -1;
-    func_800B3FD4(D_800D226C, 5);
+    SaveScenePlacement(D_800D226C, 5);
 }
 
 
@@ -327,7 +327,7 @@ void func_8009D3F4(void) {
  *     state via @c func_8009D630, and reset @c D_80082C8C to mode 3
  *     with the marker's two bytes in @c unk02 / @c unk03 and the
  *     current dispatch code (@c D_800C4D38) in @c cmd.
- *  2. @c func_800B3FD4(D_800D226C, 3) re-enters the scene driver.
+ *  2. @c SaveScenePlacement(D_800D226C, 3) re-enters the scene driver.
  *  3. Walk the first 13 @c D_800C526C @c WorldDialogSlot entries: close each
  * active slot's dialog via @c closeDialogInstant and mark it inactive (@c -1).
  *  4. Force a full render: @c renderAndUpdateDisplay(2) then dispatch
@@ -341,7 +341,7 @@ void func_8009D44C(s32 marker) {
     D_80082C8C.unk02 = (s8)marker;
     D_80082C8C.unk03 = (s8)((u32)marker >> 8);
     D_80082C8C.cmd = D_800C4D38;
-    func_800B3FD4(D_800D226C, 3);
+    SaveScenePlacement(D_800D226C, 3);
     g_battleConfig.unk2 = 0;
     for (i = 0; i < 13; i++) {
         s32 dialogIdx = D_800C526C[i].field02;
@@ -679,61 +679,47 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009E5C8);
  * @param limit     max single-step magnitude.
  * @param threshold large-step / small-step decision threshold.
  * @return          0 if snapped, 1 if still moving toward target.
- *
- * @note Decompiled to 99.77% in @c permuter/func_8009F594/base.c with a
- *       clean structure (no double-store / hoist hacks). Reusing the
- *       consumed wrapped-target register for @c limit, and reusing the
- *       wrapped-delta register for the magnitude, pins every register but
- *       one: the sole remaining diff is the @c (s16)delta narrow, which
- *       gcc emits in place (@c sra @c $v1) where the target casts into the
- *       freed @c $a2 then copies @c $a2->$v1 for the magnitude. The net
- *       register state past the abs is identical — a pure cast-destination
- *       reg-alloc tie-break (permuter territory).
- *
- * @verbatim
- * s32 func_8009F594(s16 target, s16 *current, s16 limit, s16 threshold) {
- *     s32 t = target;          // wrapped target; reused for limit once consumed
- *     s32 d = *current;        // wrapped current, then the wrapped delta
- *     s32 changed = 0;
- *
- *     while (t >= 0x1000) t -= 0x1000;
- *     while (t < 0)       t += 0x1000;
- *     while (d >= 0x1000) d -= 0x1000;
- *     while (d < 0)       d += 0x1000;
- *
- *     d = t - d;               // shortest-turn delta
- *     if (d <= -0x800) {
- *         while (d < 0)  d += 0x1000;
- *     } else if (d > 0x800) {
- *         while (d >= 0) d -= 0x1000;
- *     }
- *
- *     t = limit;               // reuse the (now-dead) wrapped-target reg for limit
- *     {
- *         s32 delta = (s16)d;  // signed delta
- *         s32 mag = delta;     // |delta|
- *         if (delta < 0) mag = -delta;
- *
- *         if (t < mag) {
- *             if (delta > 0) {
- *                 s32 c = *current;
- *                 if (threshold < mag) *current = c + t * 2;
- *                 else                 *current = c + t;
- *             } else {
- *                 s32 c = *current;
- *                 if (threshold < mag) *current = c - t * 2;
- *                 else                 *current = c - t;
- *             }
- *             changed = 1;
- *         } else {
- *             *current = target;
- *         }
- *     }
- *     return changed;
- * }
- * @endverbatim
  */
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object2", func_8009F594);
+// abs() is the gcc builtin: its copy-then-negate expansion gives the original register use.
+s32 TurnTowardAngle(s16 target, s16 *current, s16 limit, s16 threshold) {
+    s32 t = target;
+    s32 d = *current;
+    s32 changed = 0;
+
+    while (t >= 0x1000) t -= 0x1000;
+    while (t < 0)       t += 0x1000;
+    while (d >= 0x1000) d -= 0x1000;
+    while (d < 0)       d += 0x1000;
+
+    d = t - d;
+    if (d <= -0x800) {
+        while (d < 0)  d += 0x1000;
+    } else if (d > 0x800) {
+        while (d >= 0) d -= 0x1000;
+    }
+
+    t = limit;
+    {
+        s32 delta = (s16)d; // wrapped to a signed 16-bit angle
+        s32 mag = abs(delta);
+
+        if (t < mag) {
+            if (delta > 0) {
+                s32 c = *current;
+                if (threshold < mag) *current = c + t * 2;
+                else                 *current = c + t;
+            } else {
+                s32 c = *current;
+                if (threshold < mag) *current = c - t * 2;
+                else                 *current = c - t;
+            }
+            changed = 1;
+        } else {
+            *current = target;
+        }
+    }
+    return changed;
+}
 
 /* Map-id classifiers used to pick per-map targets. The three variants differ
    only in whether map 0x30 / 0x32 fall into the "common" set or are handled

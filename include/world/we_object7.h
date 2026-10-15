@@ -46,9 +46,9 @@ extern void addItemToInventory(s32 itemId, s32 count);
 extern s32  func_800B4AA0(void);
 extern void func_800B56A0(void);
 extern void func_800B7240(s8 v);
-extern void func_800B881C(void);
+extern void ResetPositionHistory(void);
 extern void func_800B893C(void);
 
-extern void func_800B3FD4(Slot *slot, s32 mode);
+extern void SaveScenePlacement(Slot *slot, s32 mode);
 
 #endif /* WORLD_WE_OBJECT7_H */

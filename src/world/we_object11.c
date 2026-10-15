@@ -3,13 +3,13 @@
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BF80C);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFBFC);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFCC0);
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFD10);
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800BFFEC);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", DrawSkinnedModel);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", ResetWorldRenderState);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C0084);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C0154);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C0224);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C02D8);
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C0CA4);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", ClaimObjectSlot);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C0D00);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C1718);
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object11", func_800C17E4);

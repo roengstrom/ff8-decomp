@@ -1629,7 +1629,7 @@ static s32 func_800A2920(GlyphHeader *glyph, WorldSprite *st, s16 key, CmdDesc *
  *
  * The second phase re-places the fan from the camera-relative position
  * (@c func_800BC544) spun by the scene angle bias (@c func_800B0010 /
- * @c func_800BC5E0 / @c func_800B5ADC spread points), then asks
+ * @c func_800BC5E0 / @c GetFootprintCorners spread points), then asks
  * @c func_800B21EC to accept the record: negative means placed — the probe
  * writes sprite 0's position (Y = the recorded angle word) to @p hitPos and
  * returns 1. Otherwise the accept code is written to @p hitCell and the next
@@ -1841,7 +1841,7 @@ s32 func_800A2D50(s32 code, s32 angZ, SVECTOR *angles, VECTOR *hitPos, s32 arg4,
         gte_mvmva(1, 0, 0, 0, 0);
         gte_stlvnl(&xf2);
 
-        func_800B5ADC(ctx, pts, 0, 0);
+        GetFootprintCorners(ctx, pts, 0, 0);
         ret = func_800BC5E0(ctx);
         spin.vx = 0;
         spin.vz = 0;
@@ -1902,7 +1902,7 @@ s32 func_800A2D50(s32 code, s32 angZ, SVECTOR *angles, VECTOR *hitPos, s32 arg4,
  *
  * Sprite 0 sits exactly on the slot's own position: the fan is built by
  * transforming the zero vector through an identity rotation, so the offset it
- * yields is (0,0,0). Sprites 1..4 are spread around it — @c func_800B5ADC
+ * yields is (0,0,0). Sprites 1..4 are spread around it — @c GetFootprintCorners
  * supplies four offsets for the scene, and each is rotated by the slot's
  * heading (@c vec.vy) biased by @c func_800BC5E0 before being added to the
  * slot position. Every sprite gets its grid cell from @c worldPosToCell and is
@@ -1958,7 +1958,7 @@ s32 func_800A358C(s32 kind, SlotEntry *slot, SVECTOR *angles, s32 flag) {
     gte_stlvnl(&xf);
 
     pa = pts;
-    func_800B5ADC(ctx, pa, 0, 0);
+    GetFootprintCorners(ctx, pa, 0, 0);
     pa = NULL;
     ret = func_800BC5E0(ctx);
     spin.vx = 0;
@@ -2046,7 +2046,7 @@ CmdDesc *glyphAt(GlyphQuery *v, AngleSlot *out) {
  * Reads the fan's own first sprite for both inputs: @c unk28 becomes the Y angle
  * of the primary rotation, and @c pos is the anchor the five sprites are spread
  * around. The spread itself is built exactly as @c placeWorldSpriteFan does —
- * @c func_800B5ADC supplies four offsets for the current map's scene and
+ * @c GetFootprintCorners supplies four offsets for the current map's scene and
  * @c func_800BC5E0 a per-scene angle bias applied on top of @c D_800C977A, the
  * camera-follow heading. Every sprite is re-projected with @c worldPosToCell and
  * marked placed. A final pass overwrites all five heights with @p h, which is
@@ -2101,7 +2101,7 @@ static void func_800A39BC(WorldSprite *out, s16 h) {
     gte_stlvnl(&xf);
 
     pa = pts;
-    func_800B5ADC(ctx, pa, 0, 0);
+    GetFootprintCorners(ctx, pa, 0, 0);
     pa = NULL;
     ret = func_800BC5E0(ctx);
     yang.vx = 0;
@@ -2402,7 +2402,7 @@ s32 worldPosToCell(VECTOR *pos, SVECTOR *out) {
  * @brief Place a fan of 5 world-map sprites around @p origin, oriented by @p angles.
  *
  * Builds a rotation matrix from @p angles and transforms @p v through it to get a
- * base offset; then asks @c func_800B5ADC for up to 4 spread vectors and
+ * base offset; then asks @c GetFootprintCorners for up to 4 spread vectors and
  * @c func_800BC5E0 for a per-scene angle bias, builds a second (Y-axis) rotation
  * from @c arg4 + that bias whose translation is the base offset, and emits one
  * @ref WorldSprite per source vector at @c origin + transformedOffset. Each sprite
@@ -2413,7 +2413,7 @@ s32 worldPosToCell(VECTOR *pos, SVECTOR *out) {
  * @param out    Output array of 5 @ref WorldSprite entries.
  * @param v      Base offset vector, transformed by the @p angles matrix.
  * @param angles Rotation angles for the primary matrix.
- * @param arg3   Scene context id passed to @c func_800B5ADC / @c func_800BC5E0.
+ * @param arg3   Scene context id passed to @c GetFootprintCorners / @c func_800BC5E0.
  * @param arg4   Base Y-axis angle for the secondary (spread) rotation.
  * @param origin World-space origin the sprites are placed relative to.
  */
@@ -2438,7 +2438,7 @@ static void placeWorldSpriteFan(WorldSprite *out, VECTOR *v, SVECTOR *angles, s3
     gte_mvmva(1, 0, 0, 0, 0);
     gte_stlvnl(&xf);
 
-    func_800B5ADC(arg3, pts, 0, 0);
+    GetFootprintCorners(arg3, pts, 0, 0);
     ret = func_800BC5E0(arg3);
 
     yang.vx = 0;

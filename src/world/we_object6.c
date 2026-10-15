@@ -53,7 +53,7 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800AD698);
  * @brief Walk the placement script and emit slot entries for FF13/FF14 ops.
  *
  * Reads the script returned by @c func_800AF004 (base @c D_800D2288) and
- * dispatches each FF13/FF14 placement opcode to @c func_800BD82C, building
+ * dispatches each FF13/FF14 placement opcode to @c RegisterSceneObject, building
  * the rotation/translation pair from one of:
  *   - @c ctx track A (low byte 0x01)
  *   - @c ctx track B (low byte 0x40 / 0x41)
@@ -97,7 +97,7 @@ s32 func_800ADE24(u8 *actor, SlotEntry *slot, Slot *ctx) {
                     trans.vx = ctx->tracks[0].trans_x;
                     trans.vy = ctx->tracks[0].trans_y;
                     trans.vz = -ctx->tracks[0].trans_z;
-                    func_800BD82C(actor, slot, 1, 0, &rot, &trans);
+                    RegisterSceneObject(actor, slot, 1, 0, &rot, &trans);
                 } else if (lowByte == 0x40) {
                     rot.vz = 0;
                     rot.vx = 0;
@@ -105,7 +105,7 @@ s32 func_800ADE24(u8 *actor, SlotEntry *slot, Slot *ctx) {
                     trans.vx = ctx->tracks[1].trans_x;
                     trans.vy = ctx->tracks[1].trans_y;
                     trans.vz = -ctx->tracks[1].trans_z;
-                    func_800BD82C(actor, slot, 0x40, 0, &rot, &trans);
+                    RegisterSceneObject(actor, slot, 0x40, 0, &rot, &trans);
                 } else if (lowByte == 0x41) {
                     rot.vz = 0;
                     rot.vx = 0;
@@ -113,7 +113,7 @@ s32 func_800ADE24(u8 *actor, SlotEntry *slot, Slot *ctx) {
                     trans.vx = ctx->tracks[1].trans_x;
                     trans.vy = ctx->tracks[1].trans_y;
                     trans.vz = -ctx->tracks[1].trans_z;
-                    func_800BD82C(actor, slot, 0x41, 2, &rot, &trans);
+                    RegisterSceneObject(actor, slot, 0x41, 2, &rot, &trans);
                 } else if ((s8)highByte >= 0) {
                     s32 rz;
                     trans = *(VECTOR *)&D_800D2128[(s8)highByte];
@@ -121,12 +121,12 @@ s32 func_800ADE24(u8 *actor, SlotEntry *slot, Slot *ctx) {
                     rz = D_800D2128[(s8)highByte].rot_z;
                     rot.vz = rz;
                     rot.vx = 0;
-                    func_800BD82C(actor, slot, lowByte, (lowByte == 0x50) ? 4 : 0, &rot, &trans);
+                    RegisterSceneObject(actor, slot, lowByte, (lowByte == 0x50) ? 4 : 0, &rot, &trans);
                 } else {
                     rot.vz = 0;
                     rot.vy = 0;
                     rot.vx = 0;
-                    func_800BD82C(actor, slot, lowByte, 0, &rot, NULL);
+                    RegisterSceneObject(actor, slot, lowByte, 0, &rot, NULL);
                 }
 
                 slot++;
@@ -143,7 +143,7 @@ s32 func_800ADE24(u8 *actor, SlotEntry *slot, Slot *ctx) {
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800AE0C8);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800AE31C);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", InitActors);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800AE518);
 
@@ -239,15 +239,15 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B01A0);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B04CC);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B0EAC);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", DrawBankModel);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B1174);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B13B8);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B164C);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", InitPlayerPosition);
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B18B8);
+INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", SyncSlotsToPlayer);
 
 INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800B1BCC);
 

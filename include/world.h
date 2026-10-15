@@ -580,7 +580,7 @@ extern BattleSceneCtx D_800CA040;       /**< Worldmap "no-battle" sentinel — a
 extern s16         D_800C53B8[];        /**< Bone-id table (used by we_object4). */
 extern s32 func_800AF28C(ScriptOp *p);
 extern s32 func_800BEFC4(void);
-extern void func_800BD82C(u8 *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans);
+extern void RegisterSceneObject(u8 *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans);
 
 /**
  * @brief Pair of rotation source vectors at known offsets. Pointed to by
