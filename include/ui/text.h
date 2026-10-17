@@ -21,8 +21,14 @@ enum {
     MSG_CMD_WAIT = 0x09 /**< Argument is a delay in frames. */
 };
 
-/** @brief Text colour index of white, the colour a message starts in. */
-#define DIALOG_COLOR_WHITE 7
+enum {
+    DIALOG_COLOR_GRAY = 1,
+    DIALOG_COLOR_YELLOW = 2,
+    DIALOG_COLOR_RED = 3,
+
+    /** @brief Text colour index of white, the colour a message starts in. */
+    DIALOG_COLOR_WHITE = 7,
+};
 
 extern s32 getIconWidth(s32 idx);
 extern s32 getNibbleValue(s32 idx);

@@ -10,6 +10,8 @@
 /** @brief Load address of the menus' image data (TIM files). */
 #define MENU_IMAGE_ADDR 0x801CD000
 
+#define MENU_UNK_801D5000_ADDR 0x801D5000
+
 /**
  * @brief Menu task callbacks registered with func_801F179C.
  *
@@ -226,6 +228,22 @@ typedef struct {
 } CharMenuInfo; /* 0x20 = 32 bytes */
 
 extern CharMenuInfo g_charMenuInfo[];
+
+#define WEAPON_RECIPE_COUNT 33
+#define WEAPON_RECIPE_INGREDIENT_COUNT 4
+
+typedef struct {
+    u8 itemId;      /**< 0x00: item id. */
+    u8 quantity;    /**< 0x01: item quantity. */
+} WeaponRecipeIngredient; /* 2 bytes */
+
+/** @brief Weapon upgrade recipes (mwepon.bin content). */
+typedef struct {
+    u16 nameId;                            /**< 0x00: index of the weapon name. */
+    u8 pad3;                               /* 0x02 */
+    u8 basePrice;                          /**< 0x03: weapon base price. */
+    WeaponRecipeIngredient ingredients[WEAPON_RECIPE_INGREDIENT_COUNT]; /**< 0x04: ingredients required to craft the weapon. */
+} WeaponRecipe; /* 12 bytes */
 
 /* menumain-owned shared symbols (canonical signatures from menumain.c). */
 s32 func_801F6AFC(s32);

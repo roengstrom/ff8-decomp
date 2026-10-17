@@ -6,6 +6,7 @@
 #include "menumain.h"
 #include "game.h"
 #include "ui/icon.h"
+#include "ui/text.h"
 #include "snd_sfx.h"
 #include "btl_anim.h"
 #include "btl_anim_packet.h"
@@ -63,13 +64,6 @@ typedef struct {
     u16 basePrice;  /**< 0x0: base price. */
     u8 sellRate;    /**< 0x2: sell rate. */
 } ShopItemPrice; /* 0x3 = 3 bytes */
-
-typedef struct {
-    u8 type;    /**< 0x0: item type. */
-    u8 flags;   /**< 0x1: targeting and usability bitfield. */
-    u8 param1;  /**< 0x2: type-dependent (heal amount, GF id, ability id, magazine start page). */
-    u8 param2;  /**< 0x3: type-dependent (status mask, stat mask, compatibility amount, magazine end page). */
-} MItemEntry; /* 0x4 = 4 bytes */
 
 /**
  * @brief String codes for the item shop menu options.
@@ -318,9 +312,9 @@ static s32 func_801E5A8C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s16 *
     for (i = 0; i < count; i++) {
         x = arg2 + xOffsets[i];
         mask = 1 << i;
-        color = COLOR_GRAY;
+        color = DIALOG_COLOR_GRAY;
         if (stringMask & mask) {
-            color = COLOR_WHITE;
+            color = DIALOG_COLOR_WHITE;
         }
         str = func_801F08D4(1, arg4, stringCodes[i], 0);
         arg1 = func_801F0FEC(arg0, arg1, x, y, str, color);
@@ -1140,7 +1134,7 @@ static s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
         x = g_menuDisplayCfg.x + xOffset;
         y = g_menuDisplayCfg.y + 5;
         decodeMessage(msg, buffer, -1);
-        arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, COLOR_WHITE);
+        arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, DIALOG_COLOR_WHITE);
     }
     return arg1;
 }
@@ -1226,9 +1220,9 @@ static s32 func_801E6FD8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
         s32 x;
         s32 y;
 
-        color = COLOR_WHITE;
+        color = DIALOG_COLOR_WHITE;
         if (s->gil < D_801EAD68[itemId] && s->shopAction == SHOP_BUY) {
-            color = COLOR_GRAY;
+            color = DIALOG_COLOR_GRAY;
         }
 
         itemName = getItemName(itemId);
@@ -1275,7 +1269,7 @@ static s32 func_801E722C(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
     s32 color;
 
     cfg = &g_menuDisplayCfg;
-    color = COLOR_WHITE;
+    color = DIALOG_COLOR_WHITE;
 
     if (s->shopAction == SHOP_BUY) {
         s32 x;
@@ -1367,10 +1361,10 @@ static s32 func_801E7508(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
 
     x = arg3 + 208;
     y = arg4 + 6;
-    arg2 = func_801F0FEC(arg1, arg2, x, y, func_801F6AA4(STRING_MONEY), COLOR_WHITE);
+    arg2 = func_801F0FEC(arg1, arg2, x, y, func_801F6AA4(STRING_MONEY), DIALOG_COLOR_WHITE);
 
     x = arg3 + 322;
-    arg2 = drawNumberMenuTint(arg1, arg2, (y << 0x10) | (x & 0xFFFF), s->gil, COLOR_WHITE);
+    arg2 = drawNumberMenuTint(arg1, arg2, (y << 0x10) | (x & 0xFFFF), s->gil, DIALOG_COLOR_WHITE);
 
     x = arg3 + 323;
     y = arg4 + 8;
@@ -1409,7 +1403,7 @@ static s32 func_801E7628(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
     s32 price;
     MenuDisplayConfig *cfg;
 
-    color = COLOR_WHITE;
+    color = DIALOG_COLOR_WHITE;
     cfg = &g_menuDisplayCfg;
     if (s->unk4A == 0) {
         return arg2;
@@ -1494,7 +1488,7 @@ s32 func_801E77EC(s32 fieldShopId, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     y = 5;
     y += arg4;
 
-    arg2 = func_801F0FEC(arg1, arg2, x, y, name, COLOR_WHITE);
+    arg2 = func_801F0FEC(arg1, arg2, x, y, name, DIALOG_COLOR_WHITE);
 
     cfg->iconType = ICON_NAME;
     cfg->iconSubType = 0;
@@ -1533,7 +1527,7 @@ static void func_801E791C(u8 *msg, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     cfg = &g_menuDisplayCfg;
 
     if (msg != NULL) {
-        arg2 = func_801F0FEC(arg1, arg2, arg3 + 12, arg4 + 5, msg, COLOR_WHITE);
+        arg2 = func_801F0FEC(arg1, arg2, arg3 + 12, arg4 + 5, msg, DIALOG_COLOR_WHITE);
     }
     cfg->iconType = ICON_NONE;
     cfg->iconSubType = 0;

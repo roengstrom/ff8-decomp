@@ -102,7 +102,7 @@ s32  func_801F6234(s32, s32, s32, s32, s32);
 s32  func_801F6358(s32, s32, s32, s32, s32);
 void func_801F66B0(s32, s32, s32, s32, s32);
 s32  func_801F6B54(s32, s32, s32, s32, s32);
-void func_801F6C9C(s32, s32, s32, s32, s32, u16);
+void *func_801F6C9C(s32, s32, s32, s32, s32, u16);
 s32 func_801F22F4(void);
 void func_801F23D0(s32, s32, u8 *);
 u16  func_801F2370(void);
@@ -168,12 +168,16 @@ extern u8  D_801F7F78[];
 extern u8  D_801F7F98[];
 extern u8  D_801F7FB0[];        /**< String table base (two-level offset table). */
 extern FlagEntry D_801F87B8[];
+
 /** @brief Item table entry: four bytes read individually by the item menu. */
 typedef struct {
-    u8 b0, b1, b2, b3;
-} ItemEntry4;
+    u8 type;    /**< 0x0: item type. */
+    u8 flags;   /**< 0x1: targeting and usability bitfield. */
+    u8 param1;  /**< 0x2: type-dependent (heal amount, GF id, ability id, magazine start page). */
+    u8 param2;  /**< 0x3: type-dependent (status mask, stat mask, compatibility amount, magazine end page). */
+} MItemEntry; /* 0x4 = 4 bytes */
 
-extern ItemEntry4 D_801F889C[];
+extern MItemEntry D_801F889C[];
 extern u8  D_801F8BB8[];
 extern u8  D_801FA278;
 extern u8  D_801FA279;

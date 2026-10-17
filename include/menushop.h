@@ -5,8 +5,6 @@
 #include "menushop2.h"
 
 #define WEAPON_INFO_COUNT 28
-#define WEAPON_RECIPE_COUNT 33
-#define WEAPON_RECIPE_INGREDIENT_COUNT 4
 #define ITEM_PRICE_COUNT 200
 
 /** @brief String codes passed as argument to func_801F6AA4. */
@@ -37,28 +35,8 @@ typedef enum {
     STRING_JUNK_SHOP_CANT_REMODEL_YOUR_WEAPON = 78,
 } StringCode;
 
-/** @brief Colors used to draw text in the menu. */
-typedef enum {
-    COLOR_GRAY = 1,
-    COLOR_YELLOW = 2,
-    COLOR_RED = 3,
-    COLOR_WHITE = 7,
-} Color;
-
 /** @brief @c iconType value for a window without a header icon. */
 #define ICON_NONE 0
-
-typedef struct {
-    u8 itemId;      /**< 0x00: item id. */
-    u8 quantity;    /**< 0x01: item quantity. */
-} WeaponRecipeIngredient; /* 2 bytes */
-
-typedef struct {
-    u16 nameId;                            /**< 0x00: index of the weapon name. */
-    u8 pad3;                               /* 0x02 */
-    u8 basePrice;                          /**< 0x03: weapon base price. */
-    WeaponRecipeIngredient ingredients[WEAPON_RECIPE_INGREDIENT_COUNT]; /**< 0x04: ingredients required to craft the weapon. */
-} WeaponRecipe; /* 12 bytes */
 
 extern WeaponRecipe D_801E9BA0[WEAPON_RECIPE_COUNT]; /**< Junk shop weapon recipes (mwepon.bin content). */
 extern u8 D_801E9D2C[68]; /**< Weapon names (mwepon.msg content). */

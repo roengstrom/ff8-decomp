@@ -389,9 +389,9 @@ static s32 func_801E8978(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 availableCh
     for (i = 0; i < 8; i++) {
         mask = 1 << i;
         if (availableCharacters & mask) {
-            color = COLOR_GRAY;
+            color = DIALOG_COLOR_GRAY;
             if (listedCharacters & mask) {
-                color = COLOR_WHITE;
+                color = DIALOG_COLOR_WHITE;
             }
             charName = getCharName(g_gameState.chars[i].characterId);
             arg1 = func_801F0FEC(arg0, arg1, x, y, charName, color);
@@ -439,7 +439,7 @@ static s32 func_801E8AB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
         x = g_menuDisplayCfg.x + xOffset;
         y = g_menuDisplayCfg.y + 4;
         decodeMessage(msg, buffer, -1);
-        arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, COLOR_WHITE);
+        arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, DIALOG_COLOR_WHITE);
     }
     return arg1;
 }
@@ -512,7 +512,7 @@ static s32 func_801E8BD8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
                 mask = weaponId & 0x40;
                 color = mask != 0;
                 if (weaponId & 0x80) {
-                    color = COLOR_WHITE;
+                    color = DIALOG_COLOR_WHITE;
                 }
                 arg2 = func_801F0FEC(arg1, arg2, x, y, getWeaponName(weaponId & 0x3F), color);
                 x = arg3 + 189;
@@ -578,7 +578,7 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
 
         if (itemId) {
             text = getItemName(itemId);
-            a2 = func_801F0FEC(a1, a2, x, y, text, COLOR_WHITE);
+            a2 = func_801F0FEC(a1, a2, x, y, text, DIALOG_COLOR_WHITE);
 
             text = func_801F6AFC(50);
 
@@ -599,7 +599,7 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
             text = func_801F6AFC(51);
             btlStrcat2(buffer, text);
     
-            a2 = func_8002C56C(a1, a2, x + 52, y2, buffer, COLOR_WHITE);
+            a2 = func_8002C56C(a1, a2, x + 52, y2, buffer, DIALOG_COLOR_WHITE);
         }
     }
 
@@ -616,9 +616,9 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
 
 /** @brief Return color code: white (equal), red (a0 > a1, the new value is lower), yellow (a0 < a1). */
 static s32 func_801E8FF8(s32 a0, s32 a1) {
-    s32 color = COLOR_WHITE;
-    if (a0 > a1) color = COLOR_RED;
-    if (a0 < a1) color = COLOR_YELLOW;
+    s32 color = DIALOG_COLOR_WHITE;
+    if (a0 > a1) color = DIALOG_COLOR_RED;
+    if (a0 < a1) color = DIALOG_COLOR_YELLOW;
     return color;
 }
 
@@ -689,7 +689,7 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
     u8 *text;
     WeaponEntry *weapons;
 
-    color = COLOR_WHITE;
+    color = DIALOG_COLOR_WHITE;
 
     findNthSetBit(s->availableCharactersMask, s->selCharacterIndex);
 
@@ -734,9 +734,9 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
     arg2 = drawNumberMenuTint(arg1, arg2, (y << 0x10) | (x & 0xFFFF), func_801F7BE4(oldWeaponHitRate), color);
 
     // Dead code added to match with the original game binary.
-    if (color == COLOR_RED) {
+    if (color == DIALOG_COLOR_RED) {
         color++; color--;
-    } else if (color == COLOR_YELLOW) {
+    } else if (color == DIALOG_COLOR_YELLOW) {
         color++; color--;
     }
 
@@ -770,10 +770,10 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
         y = arg4 + 9;
 
         tmp = 0;
-        if (color == COLOR_RED) {
+        if (color == DIALOG_COLOR_RED) {
             tmp = ICON_ARROW_DOWN;
         }
-        if (color == COLOR_YELLOW) {
+        if (color == DIALOG_COLOR_YELLOW) {
             tmp = ICON_ARROW_UP;
         }
         if (tmp != 0) {
@@ -794,10 +794,10 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
         y = y2;
         
         tmp = 0;
-        if (color == COLOR_RED) {
+        if (color == DIALOG_COLOR_RED) {
             tmp = ICON_ARROW_DOWN;
         }
-        if (color == COLOR_YELLOW) {
+        if (color == DIALOG_COLOR_YELLOW) {
             tmp = ICON_ARROW_UP;
         }
         if (tmp != 0) {
@@ -848,7 +848,7 @@ static s32 func_801E9554(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
  */
 static s32 func_801E95DC(u8 *msg, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     if (msg != NULL) {
-        arg2 = func_801F0FEC(arg1, arg2, arg3 + 12, arg4 + 5, msg, COLOR_WHITE);
+        arg2 = func_801F0FEC(arg1, arg2, arg3 + 12, arg4 + 5, msg, DIALOG_COLOR_WHITE);
     }
     g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;

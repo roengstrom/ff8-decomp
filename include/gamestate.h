@@ -459,6 +459,7 @@ extern void clearEntityFlags(void);
 extern void func_800370AC(s32 arg0);
 extern void func_80038030(s32 mapAddr);
 extern void func_80038490(u8 *src, u8 *dst);
+extern u8 *getChocoboWorldPtr(void);
 extern void enableChocoboWorld(void);
 
 /** @brief Resolve a character ID (e.g. party slot) to its global character code. */

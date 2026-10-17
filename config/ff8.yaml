@@ -305,10 +305,10 @@ binaries:
     vram: 0x801E2800
     subsegments:
     - [0x0, c, menuitem]
-    - [0x7794, c, menuitem2]
+    - [0x7490, c, entity_naming]
     - [0x8654, .rodata, menuitem]
     - [0x897C, rodata]
-    - [0x89A0, .rodata, menuitem2]
+    - [0x89A0, .rodata, entity_naming]
     - [0x89D8, rodata]
     - [0x8B20, rodata]
     - [0x9F1C, data]

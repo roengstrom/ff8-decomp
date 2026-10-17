@@ -2054,7 +2054,7 @@ s32 func_801F6AFC(s32 a0) {
 
 /** @brief Map ability index to display category via double indirection. */
 s32 func_801F6B28(s32 a0) {
-    return D_801F7F98[D_801F889C[a0].b0];
+    return D_801F7F98[D_801F889C[a0].type];
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6B54);
@@ -2074,7 +2074,7 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6B54);
  * @param a4   Passed to func_801EF9AC (intensity/param).
  * @param mask Bitmask of rows to draw, bit index = entry index.
  */
-void func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
+void *func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     s32 tx = x + 8;
     s32 ty = y + 0xA;
@@ -2092,7 +2092,7 @@ void func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
     cfg->x = x;
     cfg->y = y;
     cfg->h = 0x78;
-    func_801EF9AC(ctx, dl, a4, g_menuTint[MENU_TINT_NORMAL]);
+    return func_801EF9AC(ctx, dl, a4, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F6D88);
