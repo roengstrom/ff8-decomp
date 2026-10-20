@@ -3,6 +3,22 @@
 
 #include "common.h"
 
+#define CdlModeSpeed 0x80
+#define CdlModeSize1 0x20
+
+#define CdlStatPlay 0x80
+#define CdlStatSeek 0x40
+#define CdlStatShellOpen 0x10
+
+#define CdlNop 0x01
+#define CdlSetloc 0x02
+#define CdlReadN 0x06
+#define CdlPause 0x09
+#define CdlSetmode 0x0E
+
+#define CdlDataReady 0x01
+#define CdlComplete 0x02
+
 /** @brief CD-ROM disc location (BCD minute / second / sector). */
 typedef struct {
     u8 minute;
@@ -20,7 +36,7 @@ typedef struct {
 } CdlATV;
 
 /** @brief CD callback function pointer. */
-typedef void (*CdlCB)(s32 intr, u8 *result);
+typedef void (*CdlCB)(u8 intr, u8 *result);
 
 /* --- libcd function declarations (signatures match PsyQ 4.6 LIBCD.H) --- */
 
@@ -34,6 +50,7 @@ CdlLOC *CdIntToPos(s32 i, CdlLOC *p);
 CdlCB CdSyncCallback(CdlCB func);
 CdlCB CdReadyCallback(CdlCB func);
 s32 CdSync(s32 mode, u8 *result);
+s32 CdReady(s32 mode, u8 *result);
 s32 CdStatus(void);
 s32 CdMode(void);
 u8 *CdLastPos(void);
