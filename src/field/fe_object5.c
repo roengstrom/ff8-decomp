@@ -616,7 +616,7 @@ void func_800B14C8(void) {
  */
 s32 opHandler_MOVIESYNC(ScriptContext *context) {
     s32 result;
-    result = func_801E8B84(context);
+    result = func_801E8B84();
     if (result != 0) {
         return 1;
     }

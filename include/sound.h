@@ -239,7 +239,7 @@ typedef struct {
     /* 0x0C */ s32 active;         /**< Active/IRQ voice bitmask (nonzero = playing). */
     /* 0x10 */ s32 voiceIdx;       /**< First SPU voice index for this stream. */
     /* 0x14 */ u8 pad14[0x0C];
-    /* 0x20 */ s32 unk20;
+    /* 0x20 */ u32 unk20;
     /* 0x24 */ s32 tickCounter;    /**< Tick counter (incremented each frame). */
     /* 0x28 */ s32 tickCount;      /**< Running tick accumulator. */
     /* 0x2C */ s32 unk2C;          /**< Engine state set by sndStreamInitEngine. */
