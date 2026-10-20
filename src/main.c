@@ -289,7 +289,7 @@ void initBattleAssets(void) {
     while (func_800393C8() != 0)
         ;
 
-    func_80039678((s32)D_8005F188, 0x80090000, 0x200);
+    func_80039678(D_8005F188, (void *)0x80090000, 0x200);
 
     cdRead(D_80097808[2].sector, D_80097808[2].size, 0x80090000, 0);
     while (func_800393C8() != 0)

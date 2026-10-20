@@ -160,7 +160,7 @@ static void loadSoundBankA(void) {
     } else {
         table = D_80063388;
     }
-    func_80039678((s32)table, result, size);
+    func_80039678(table, (void *)result, size);
     g_fieldVars->soundLoadComplete = 1;
 }
 
@@ -187,7 +187,7 @@ static void loadSoundBankB(void) {
     } else {
         table = D_80063388;
     }
-    func_80039678((s32)table, result, size);
+    func_80039678(table, (void *)result, size);
     g_fieldVars->soundLoadComplete = 1;
 }
 

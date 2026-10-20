@@ -18,6 +18,8 @@ typedef struct {
 /** @brief memset-style clear: zeroes @p size bytes at @p dst. */
 extern void func_800396E0(void *dst, s32 size);
 
+extern void func_80039678(void *dest, void *src, u32 size);
+
 /** @brief LZSS-decompress @p src into @p dest. */
 s32 func_80039444(u8 *src, u8 *dest);
 

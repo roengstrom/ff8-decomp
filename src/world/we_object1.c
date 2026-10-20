@@ -4,6 +4,7 @@
 #include "field.h"
 #include "world.h"
 #include "gamestate.h"
+#include "lzs.h"
 #include "world/we_object1.h"
 #include "world/we_object2.h"
 #include "world/we_object3.h"
@@ -114,7 +115,7 @@ void func_80099C84(void) {
     if (key != g_fieldVars->audioChannel0State || mode2) {
         result = getScrollState((s8)key, &b18, &w1C, &w20, &w24, &w28);
         if (result != 0) {
-            func_80039678(w24, result, w28);
+            func_80039678((void *)w24, (void *)result, w28);
             g_fieldVars->soundBankSelector = b18;
             if (mode2 && w1C != 0) {
                 while (sndGetEngineState() > 0) {}

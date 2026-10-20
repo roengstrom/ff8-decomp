@@ -108,7 +108,6 @@ extern s32 getFieldTextSpeed(void); /* defined u16 in 283B0.c; read full-width h
 extern s32  sndProcessAudio(s32 a, s32 b);
 extern s32  sndGetStatus(void);
 extern s32  getScrollState(s32 key, u8 *p18, s32 *p1C, s32 *p20, s32 *p24, s32 *p28);
-extern void func_80039678(s32 a, s32 b, s32 c);
 extern void func_8009CDC4(s32 a, s32 b);
 extern void func_8009CE40(void);
 extern s32  func_8009D7D8(s32 a);

@@ -10,7 +10,6 @@ typedef struct {
 
 extern u8 *D_800D6198[3];
 extern SoundBufDesc D_800D61A8[3];
-extern void func_80039678(u8 *dest, u8 *src, u32 size);
 
 /**
  * Pack three source buffers from their original addresses into a

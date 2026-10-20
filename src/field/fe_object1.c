@@ -72,7 +72,7 @@ void func_80098314(void) {
 #define FIELD_DATA ((FieldData *)FIELD_BUNDLE_BUF)
 
 /** @brief High-RAM staging area the script region is copied into. */
-#define FIELD_SCRIPT_STAGE 0x801B0000
+#define FIELD_SCRIPT_STAGE ((void *)0x801B0000)
 
 /**
  * @brief Upper bound of the field command area handed to @c func_800AA8A0.
@@ -118,7 +118,7 @@ void func_80098314(void) {
  *       its own typed locals, loses the same split.
  */
 s32 *func_800983F0(void) {
-    s32 stageBase;
+    u8 *stageBase;
     FieldParticles *ptr;
     u8 *buf;
     u32 tag;
@@ -151,8 +151,8 @@ s32 *func_800983F0(void) {
     stageBase = FIELD_SCRIPT_STAGE;
     g_fieldEntity.fieldMessages = *g_fieldMessages;
     size = *g_fieldDataEnd - *g_fieldScript;
-    func_80039678(FIELD_SCRIPT_STAGE, (s32)*g_fieldScript, size);
-    D_8005F13C = stageBase + size;
+    func_80039678(FIELD_SCRIPT_STAGE, *g_fieldScript, size);
+    D_8005F13C = (s32)(stageBase + size);
 
     ptr = *g_fieldParticles;
     buf = (u8 *)ptr;
@@ -174,9 +174,9 @@ s32 *func_800983F0(void) {
     D_800704B2 = 20;
 
     if (D_8005F14C == 3) {
-        buf = (u8 *)func_800BFBBC((u8 *)FIELD_SCRIPT_STAGE, (Eline *)0x80090800, (u16 *)*g_fieldScript, 0);
+        buf = (u8 *)func_800BFBBC(FIELD_SCRIPT_STAGE, (Eline *)0x80090800, (u16 *)*g_fieldScript, 0);
     } else {
-        buf = (u8 *)func_800BFBBC((u8 *)FIELD_SCRIPT_STAGE, (Eline *)0x80090800, (u16 *)*g_fieldScript, 1);
+        buf = (u8 *)func_800BFBBC(FIELD_SCRIPT_STAGE, (Eline *)0x80090800, (u16 *)*g_fieldScript, 1);
     }
 
     D_800C6D98[0] = buf;
