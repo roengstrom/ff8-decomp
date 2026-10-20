@@ -24,6 +24,10 @@ Extracts:
                               file table does not index; they are found through
                               a table inside battle.bin instead, and add ~78 MB.
                               See docs/battle-effect-overlays.md.
+
+  - movie.ovl                (LZSS-compressed), which the IMG file table does
+                              not index either; it is found through a table
+                              inside field.bin.
 """
 
 import hashlib
@@ -103,6 +107,12 @@ EFFECT_TABLE_ENTRIES = 1117
 EFFECT_FIRST_INDEX = 767           # first entry that is an effect overlay
 EFFECT_ID_BIAS = 0x2FE
 EFFECT_SUBDIR = "effect"
+
+# movie.ovl: field.bin carries D_800C2D14, a table of (u32 sector, u32 size)
+# pairs for the movie files. Entry 0 is movie.ovl, an LZSS file the IMG's own
+# file table does not index; the other 31 entries are the FMVs.
+MOVIE_TABLE_OFFSET = 0x2AD14       # file offset of D_800C2D14 within field.bin
+MOVIE_OVL_NAME = "movie.ovl"
 
 
 # ---------------------------------------------------------------------------
@@ -367,6 +377,27 @@ def extract_effects(f, mode2, output_dir):
           f"  -> {EFFECT_SUBDIR}/  ({empty} empty slots skipped)")
 
 
+def extract_movie_overlay(f, mode2, output_dir):
+    """Extract movie.ovl, found through field.bin's movie table."""
+    field_path = os.path.join(output_dir, "field.bin")
+    if not os.path.isfile(field_path):
+        print("Error: field.bin must be extracted before movie.ovl")
+        sys.exit(1)
+    with open(field_path, "rb") as ff:
+        field = ff.read()
+
+    sector, _ = struct.unpack_from("<II", field, MOVIE_TABLE_OFFSET)
+    payload_size = struct.unpack_from("<I", read_sector(f, sector, mode2))[0]
+    size = LZSS_HEADER_SIZE + payload_size
+    sector_count = (size + SECTOR_DATA_SIZE - 1) // SECTOR_DATA_SIZE
+    raw = read_sectors(f, sector, sector_count, mode2)[:size]
+    data = lzss_decompress(raw)
+    with open(os.path.join(output_dir, MOVIE_OVL_NAME), "wb") as out:
+        out.write(data)
+    print(f"  {MOVIE_OVL_NAME:<24s} [LZSS] {format_size(size):>10s} → "
+          f"{format_size(len(data)):>10s}  (sector {sector})")
+
+
 def main():
     if len(sys.argv) < 2:
         print(__doc__)
@@ -408,6 +439,10 @@ def main():
         print()
         print("Extracting battle effect overlays...")
         extract_effects(f, mode2, output_dir)
+
+        print()
+        print("Extracting the movie overlay...")
+        extract_movie_overlay(f, mode2, output_dir)
 
     print()
     print("Done.")

@@ -5,6 +5,7 @@
 #include "card.h"
 #include "sound.h"
 #include "cd.h"
+#include "movie.h"
 #include "battle.h"
 #include "input/vibration.h"
 #include "ui/seed_rank.h"

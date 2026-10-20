@@ -137,7 +137,7 @@ MENU_OVERLAYS := menumain menucfg menupty menusts menuabl menushop menuext \
                  menuitem menumgc menugf menujnc2 menusav menucrd menututo \
                  menutmag menutips menutest
 CODE_OVERLAYS := field_init intro field \
-                 tripletriad battle_render battle world
+                 tripletriad battle_render battle world movie
 
 ALL_EFFECT_OVERLAYS := $(filter effect_%,$(SPLAT_BINARIES))
 EFFECTS ?= effect_001 effect_025 effect_028 effect_052 effect_039 effect_056 effect_050 effect_051 effect_036 effect_027 effect_002

@@ -732,8 +732,6 @@ extern s32 *D_80085380;
 /** @brief Field-engine bit-0 lock byte read by Block C of @c func_800BD9C4. */
 extern u8 D_800704BD;
 
-extern s32  func_801E8B58(void);
-
 /**
  * @brief Animation slot record (one of four per actor).
  *
@@ -1064,13 +1062,5 @@ extern u32 D_800C2D14[];
 extern u32 D_800C2E14[];
 /** @brief CD-entry @c {LBA,size} pairs for the SPU-stream loader (op056). */
 extern u32 D_800C2E1C[];
-
-/** @brief Movie overlay (loaded at @c 0x801E0000) entry points called by
- *         the field-VM movie / SPU-stream opcodes. */
-extern void func_801E8000(s32 priority);
-extern s32  func_801E8104(s32 a, s32 b, s32 c, s32 d);
-extern s32  func_801E82CC(void);
-extern void func_801E870C(void);
-extern s32  func_801E8B98(void);
 
 #endif /* FIELD_H */

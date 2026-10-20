@@ -497,6 +497,20 @@ binaries:
     - [0x2538, .rodata, menututo]
     - [0x2618, rodata]
   - [0x26C0]
+- name: movie
+  sha1: 80ad32679374e6fd7d7360fd50ff8aba066bf0c7
+  options:
+    target_path: original/movie.ovl
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt]
+  segments:
+  - name: movie
+    type: code
+    start: 0x0
+    vram: 0x801E8000
+    subsegments:
+    - [0x0, c, movie]
+    - [0x13B4, data]
+  - [0x124F4]
 - name: tripletriad
   sha1: accfe3831595f26c5d6de6f3891736521736f8ef
   options:
