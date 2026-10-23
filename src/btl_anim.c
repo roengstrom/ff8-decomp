@@ -324,7 +324,7 @@ void setAnimFlag(s32 value) {
 void initCdAnimSubsystem(void) {
     EngineState *bas = &g_engine;
     func_800982B8();
-    func_8003BC24(bas->cdBufA, bas->cdBufB);
+    func_8003BC24(bas->field188[0], bas->field188[1]);
     func_8003AB84();
     initAnimStateAndWait();
     bas->cdStreamCounter = 0;

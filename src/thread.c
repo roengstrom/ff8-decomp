@@ -3,13 +3,15 @@
 #include "psxsdk/libgpu.h"
 #include "psxsdk/kernel.h"
 #include "psxsdk/libapi.h"
+#include "psxsdk/libetc.h"
 #include "psxsdk/r3000.h"
 #include "battle.h"
 #include "thread.h"
 
 static s32 func_80027038(EngineState *a0, PadPort *port, u16 a2, u16 a3, s32 a4);
-static void stepPadPort(s32 a0, PadPort *port, s32 a2);
-static void stepPadPorts(s32 a0);
+static void func_800270B0(PadPort *a0, PadPort *port, s32 a2);
+static void stepPadPort(PadPort *a0, PadPort *port, s32 a2);
+static void stepPadPorts(PadPort *a0);
 static u16 getPadReadReleased(s32 idx, s32 offset);
 
 /**
@@ -83,8 +85,10 @@ s32 getThreadControlBlock(s32 a0) {
 u32 getStatusRegister(void) { return GetSr(); }
 
 
-/** @brief Write @p status to the CPU's status register. */
-INCLUDE_ASM("asm/nonmatchings/thread", setStatusRegister);
+/** @brief Write @p sr to the CPU's status register. */
+void setStatusRegister(u32 sr) {
+    __asm__ volatile("mtc0 %0, $12" : : "r"(sr));
+}
 
 
 /**
@@ -138,7 +142,57 @@ static s32 func_80027038(EngineState *a0, PadPort *port, u16 a2, u16 a3, s32 a4)
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_800270B0);
+static void func_800270B0(PadPort *a0, PadPort *port, s32 a2) {
+    s32 i;
+    s32 j;
+    s32 info;
+    s32 motor1Act = -1;
+    s32 motor0Act = -1;
+    s32 motor0Bits;
+    s32 motor1Bits;
+    u8 *align = port->fieldBC;
+    u8 *p;
+
+    i = PadInfoAct(a2, -1, 0);
+    port->field0B = i;
+    while (--i >= 0) {
+        info = PadInfoAct(a2, i, 1);
+        if (info == 1) {
+            info = PadInfoAct(a2, i, 2);
+            if (info == 1) {
+                motor1Act = i;
+                info = PadInfoAct(a2, motor1Act, 3);
+                if (info == 0) {
+                    motor1Bits = 1;
+                } else {
+                    motor1Bits = info << 3;
+                }
+            } else if (info == 2) {
+                motor0Act = i;
+                info = PadInfoAct(a2, motor0Act, 3);
+                if (info == 0) {
+                    motor0Bits = 1;
+                } else {
+                    motor0Bits = info << 3;
+                }
+            }
+        }
+    }
+    p = align;
+    for (j = 0; j < 6; j++) {
+        *p++ = 0xFF;
+    }
+    if (motor0Act != -1) {
+        motor0Bits = 8 - motor0Bits;
+        align[1] = motor0Act;
+        port->field08 = motor0Bits;
+    }
+    if (motor1Act != -1) {
+        motor1Bits = 8 - motor1Bits;
+        align[2] = motor1Act;
+        port->field09 = motor1Bits;
+    }
+}
 
 
 /**
@@ -148,7 +202,7 @@ INCLUDE_ASM("asm/nonmatchings/thread", func_800270B0);
  * @param port Port to update.
  * @param a2 Driver port number: 0x00 for port 0, 0x10 for port 1.
  */
-static void stepPadPort(s32 a0, PadPort *port, s32 a2) {
+static void stepPadPort(PadPort *a0, PadPort *port, s32 a2) {
     s32 status;
     GetSr();
     status = PadGetState(a2);
@@ -253,9 +307,9 @@ void requestPadSetup(s32 idx) {
  * @brief Step both pad ports: port 0 as driver port 0x00, port 1 as 0x10.
  * @param a0 Address of the first port.
  */
-static void stepPadPorts(s32 a0) {
-    stepPadPort(a0, (PadPort *)a0, 0);
-    stepPadPort(a0, (PadPort *)(a0 + 0xC4), 0x10);
+static void stepPadPorts(PadPort *a0) {
+    stepPadPort(a0, &a0[0], 0);
+    stepPadPort(a0, &a0[1], 0x10);
 }
 
 
@@ -271,7 +325,7 @@ void settlePadPorts(void) {
     port->motor[1] = 0;
     for (;;) {
         while (func_8003AB64() == 0) {}
-        stepPadPort((s32)ports, port, 0);
+        stepPadPort(ports, port, 0);
         if (port->field1A == 0 || port->field1A == 2) {
             break;
         }
@@ -288,7 +342,7 @@ void settlePadPorts(void) {
     port->motor[1] = 0;
     for (;;) {
         while (func_8003AB64() == 0) {}
-        stepPadPort((s32)ports, port, 0x10);
+        stepPadPort(ports, port, 0x10);
         if (port->field1A == 0 || port->field1A == 2) {
             break;
         }
@@ -328,7 +382,101 @@ s32 getPadField0B(s32 idx) {
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_800275D4);
+void func_800275D4(void) {
+    EngineState *engine = &g_engine;
+    PadPort *port;
+    u8 *buf;
+    AnimFrame *frame;
+    u32 sr;
+    s32 i;
+    s32 linked;
+    s32 fc;
+    u8 type;
+    s32 prev;
+    s32 held;
+    s32 x;
+    s32 y;
+    s32 dx;
+    s32 dy;
+
+    stepPadPorts(engine->ports);
+    port = engine->ports;
+    sr = GetSr();
+    if (!(sr & SR_IEP)) {
+        EnterCriticalSection();
+    }
+    for (i = 0; i < 2; i++, port++) {
+        buf = engine->field188[i];
+        linked = i;
+        type = buf[1] >> 4;
+        fc = port->frameCounter;
+        prev = port->frames[fc].field02;
+        held = 0;
+        if (port->field1A != 0) {
+            if (buf[0] != 0) {
+                held = prev;
+            } else {
+                held = buf[2] << 8;
+                held += buf[3];
+                held ^= 0xFFFF;
+                if ((held & (PADLleft | PADLright)) == (PADLleft | PADLright)) {
+                    held &= ~(PADLleft | PADLright);
+                }
+                if ((held & (PADLup | PADLdown)) == (PADLup | PADLdown)) {
+                    held &= ~(PADLup | PADLdown);
+                }
+                if (engine->animFlag != 0 && i == 0 && held == 0) {
+                    if (type == 7 || type == 5) {
+                        frame = (AnimFrame *)buf;
+                        dx = frame->params[0] - 0x80;
+                        dy = frame->params[1] - 0x80;
+                        if (dx * dx + dy * dy < 40 * 40) {
+                            dx = frame->params[2] - 0x80;
+                            dy = frame->params[3] - 0x80;
+                            if (dx * dx + dy * dy < 40 * 40) {
+                                linked = 1;
+                            }
+                        }
+                    } else {
+                        linked = 1;
+                    }
+                }
+                if (type == 1) {
+                    x = (s8)buf[4];
+                    y = (s8)buf[5];
+                    x += engine->globalCoords[i][0];
+                    y += engine->globalCoords[i][1];
+                    x = (x < engine->clipLeft) ? engine->clipLeft : (x > engine->clipRight) ? engine->clipRight : x;
+                    y = (y < engine->clipTop) ? engine->clipTop : (y > engine->clipBottom) ? engine->clipBottom : y;
+                    held &= PADL1 | PADR1;
+                    engine->globalCoords[i][0] = x;
+                    engine->globalCoords[i][1] = y;
+                }
+            }
+            if (engine->pad1E2 == 0) {
+                held = 0;
+                prev = 0;
+            }
+        }
+        fc++;
+        fc &= 7;
+        frame = &port->frames[fc];
+        ((u32 *)frame)[0] = ((u32 *)buf)[0];
+        ((u32 *)frame)[1] = ((u32 *)buf)[1];
+        frame->field02 = held;
+        frame->field10 = (prev ^ held) & held;
+        frame->field12 = (prev ^ held) & ~held;
+        frame->field08 = func_80027038(engine, port, prev, held, 0);
+        frame->field0A = func_80027038(engine, port, prev, held, 1);
+        frame->field0C = func_80027038(engine, port, prev, held, 2);
+        frame->field0E = func_80027038(engine, port, prev, held, 3);
+        port->frameCounter = fc;
+        port->linkedIdx = linked;
+    }
+    if (!(sr & SR_IEP)) {
+        ExitCriticalSection();
+    }
+}
 
 
 /**
@@ -428,22 +576,20 @@ static u16 getPadReadReleased(s32 idx, s32 offset) {
  * @param a1 Y component (vertical).
  * @return Angle in fixed-point (0x1000 = 360 degrees).
  */
-s32 computeAngle(s32 a0, s32 a1) {
-    s32 v0;
-    if (a0 != 0) goto a0_nonzero;
-    v0 = 0xC00;
-    if (a1 <= 0) goto end;
-    v0 = 0x400;
-    goto end;
-a0_nonzero:
-    v0 = (a0 < 1);
-    if (a1 != 0) goto both_nonzero;
-    v0 <<= 11;
-    goto end;
-both_nonzero:
-    v0 = ratan2(a0, a1);
-end:
-    return v0;
+inline s32 computeAngle(s32 a0, s32 a1) {
+    s32 angle;
+
+    if (a0 == 0) {
+        angle = 0xC00;
+        if (a1 > 0) {
+            angle = 0x400;
+        }
+    } else if (a1 == 0) {
+        angle = (a0 < 1) << 11;
+    } else {
+        angle = ratan2(a0, a1);
+    }
+    return angle;
 }
 
 
@@ -457,7 +603,7 @@ end:
  * @param a0 Angle in fixed-point (0x1000 = 360 degrees).
  * @return 1 << (quadrant + 12).
  */
-s32 func_80027B7C(s32 a0) {
+inline s32 func_80027B7C(s32 a0) {
     s32 v = a0 + 0x600;
     v = ~v & 0xFFF;
     v = v / 0x400;
@@ -499,7 +645,7 @@ void setPadDeadZone(s32 a0, s32 a1) {
     clamped = (sq < 0) ? 0 : (sq > 0x7F) ? 0x7F : a1;
     sq = clamped * clamped;
     sq = sq / 0x100;
-    linked->fieldC3 = (linked->fieldC3 & 0x80) | sq;
+    linked->fieldC3 = (linked->fieldC3 & PAD_PORT_FLAG_UNK80) | sq;
 }
 
 
@@ -515,17 +661,52 @@ void setPadAnalogFlag(s32 a0, s32 a1) {
     slot = g_engine.ports[a0].linkedIdx;
     linked = &g_engine.ports[slot];
     if (a1) {
-        linked->fieldC3 |= 0x80;
+        linked->fieldC3 |= PAD_PORT_FLAG_UNK80;
     } else {
-        linked->fieldC3 &= 0x7F;
+        linked->fieldC3 &= ~PAD_PORT_FLAG_UNK80;
     }
 }
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_80027CF8);
+s32 func_80027CF8(s32 a, s32 b, s32 c) {
+    s32 zone;
+    u16 bits;
+
+    zone = getPadDeadZone(a);
+    if (b * b + c * c < zone) {
+        return 0;
+    }
+    bits = func_80027B7C(computeAngle(b, c));
+    return bits;
+}
 
 
-INCLUDE_ASM("asm/nonmatchings/thread", func_80027DB4);
+s32 func_80027DB4(s32 pad, s32 axis, s32 c) {
+    PadPort *port;
+    PadPort *linked;
+    AnimFrame *frame;
+    s32 frameSlot;
+    s32 result;
+    s32 type;
+
+    pad &= 1;
+    port = &g_engine.ports[g_engine.ports[pad & 1].linkedIdx];
+    frameSlot = (port->frameCounter - c) & 7;
+    result = -1;
+    linked = &g_engine.ports[g_engine.ports[pad].linkedIdx];
+    frame = &port->frames[frameSlot];
+    if (frame->field00 == 0) {
+        if (linked->fieldC3 & PAD_PORT_FLAG_UNK80) {
+            axis ^= 2;
+        }
+        axis = CLAMP(axis, 0, 3);
+        type = frame->field01 >> 4;
+        if (type == 7 || type == 5) {
+            result = frame->params[axis];
+        }
+    }
+    return result;
+}
 
 
 /**

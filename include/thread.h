@@ -16,7 +16,7 @@ typedef enum {
     PAD_AXIS_Y  = 3
 } PadAxis;
 
-extern s32  func_80027DB4(s32 pad, PadAxis axis, s32 c); /**< Read one analog axis. */
+extern s32 func_80027DB4(s32 pad, s32 axis, s32 c); /**< Read one analog axis. */
 
 extern s32  func_80027CF8(s32 a, s32 b, s32 c); /**< Fold a recentred analog stick into d-pad bits. */
 
@@ -25,7 +25,7 @@ extern s32  func_80027CF8(s32 a, s32 b, s32 c); /**< Fold a recentred analog sti
    so those callers keep their own `extern s32 getPadReadButtons(...)`. */
 
 extern u32 getStatusRegister(void);
-extern void setStatusRegister(u32 status);
+extern void setStatusRegister(u32 sr);
 extern void settlePadPorts(void);
 extern s32 getPadVibration(s32 idx);
 extern void setPadDeadZone(s32 a0, s32 a1);
