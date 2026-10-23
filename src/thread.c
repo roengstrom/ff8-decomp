@@ -576,6 +576,7 @@ static u16 getPadReadReleased(s32 idx, s32 offset) {
  * @param a1 Y component (vertical).
  * @return Angle in fixed-point (0x1000 = 360 degrees).
  */
+// Original devs possibly forgot to make it static
 inline s32 computeAngle(s32 a0, s32 a1) {
     s32 angle;
 
@@ -603,6 +604,7 @@ inline s32 computeAngle(s32 a0, s32 a1) {
  * @param a0 Angle in fixed-point (0x1000 = 360 degrees).
  * @return 1 << (quadrant + 12).
  */
+// Original devs possibly forgot to make it static
 inline s32 func_80027B7C(s32 a0) {
     s32 v = a0 + 0x600;
     v = ~v & 0xFFF;
