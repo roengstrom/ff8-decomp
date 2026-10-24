@@ -723,7 +723,7 @@ s32 opHandler_SETVIBRATE(ScriptContext *context) {
 }
 
 /**
- * @brief Stop controller vibration; does nothing in the retail build.
+ * @brief Stop gamepad vibration; does nothing in the retail build.
  *
  * @note Purpose uncertain -- the body is empty. The pad is left to finish
  *       whatever effect is already running.

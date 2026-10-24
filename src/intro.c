@@ -5,6 +5,7 @@
 #include "intro.h"
 #include "cdrom.h"
 #include "snd_init.h"
+#include "thread.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libcd.h"
@@ -91,7 +92,7 @@ void initIntroOverlay(void) {
  *  - Submit the current buffer's OT via @c DrawOTag, flip @c currBuf,
  *    install the next frame's @c DRAWENV / @c DISPENV pair, and clear
  *    the newly-active OT for the next pass.
- *  - Sample the controllers (@c getPadReadButtons slots 0 and 1) and
+ *  - Sample the gamepads (@c getPadReadButtons slots 0 and 1) and
  *    update the edge-detect mirrors at @c g_introCtrl0Edge (slot 0 rising
  *    edges) and @c g_introCtrl1Edge (slot 1 rising edges) using the
  *    @c g_introCtrl0Inv / @c g_introCtrl1Inv complements latched last frame.
@@ -354,7 +355,7 @@ void func_8009869C(void) {
  *    disc matches @c g_fieldVars->expectedDiscId.
  *  - On mismatch (or if @c func_80038A60 returns nonzero), calls
  *    @c func_8009869C to flash the screen and restarts the wait loop.
- *  - Any button press on controller 1 (high nibble of @c g_introCtrl0Edge)
+ *  - Any button press on gamepad 1 (high nibble of @c g_introCtrl0Edge)
  *    short-circuits the tray wait and jumps straight to the fade-in.
  */
 void waitForCorrectDisc(void) {
@@ -418,7 +419,7 @@ void waitForCorrectDisc(void) {
  * Plays the boot-time intro shown when no save is loaded — Square publisher attribution,
  * Squaresoft logo, then 27 intro slides (stages 5-31, 27
  * pages of text rendered by @c loadIntroSlide), followed by "The End"
- * (stage 32), and the "Final Fantasy VIII" title-screen logo (stage 33 with music fade-out). Any button press on controller 1
+ * (stage 32), and the "Final Fantasy VIII" title-screen logo (stage 33 with music fade-out). Any button press on gamepad 1
  * (@c g_introCtrl0Edge high nibble) skips to the cleanup tail.
  *
  * Each segment fades in / holds / fades out via @c func_80098440 (the

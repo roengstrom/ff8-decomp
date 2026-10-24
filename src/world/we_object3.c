@@ -21,7 +21,7 @@
 #define WORLD_PAD_XLOW   0x8000  /**< Stick/d-pad X-low (left). */
 #define WORLD_PAD_XHIGH  0x2000  /**< Stick/d-pad X-high (right). */
 
-/** Analog axes sampled per frame: X, Y and the second stick's pair, per controller. */
+/** Analog axes sampled per frame: X, Y and the second stick's pair, per gamepad. */
 #define WORLD_PAD_AXES   8
 /** @c D_800D2278 alternates between two banks so the previous frame stays readable. */
 #define WORLD_PAD_BANKS  2
@@ -350,7 +350,7 @@ void func_800A01DC(s32 skipPresent) {
 }
 
 /**
- * @brief Sample both controllers for the frame and derive the newly-pressed mask.
+ * @brief Sample both gamepads for the frame and derive the newly-pressed mask.
  *
  * Flips @c D_800C4D04 so this frame's buttons land in the other half of
  * @c D_800D2278, leaving last frame's readable alongside. Both pads' button

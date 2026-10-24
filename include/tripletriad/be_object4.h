@@ -161,12 +161,12 @@ typedef struct {
 
 /* ───────────────────── be_object4-internal externs ───────────────────── */
 
-/* Imported functions kept as externs here, each for a concrete reason (numstr, controller-
+/* Imported functions kept as externs here, each for a concrete reason (numstr, gamepad-
    input, battle-display and colour-bar GPU helpers were migrated to numstr.h / thread.h /
    btl_anim.h / ui/window.h):
      - getPadReadButtons — returns u16 (thread.c) but this caller needs the s32 view with no
        widening mask; adopting the true u16 measurably breaks the match (see thread.h). */
-extern s32  getPadReadButtons(s32 slot, s32 sub);     /**< Per-controller held buttons. Defined u16 in thread.c, but the original caller uses it as s32 (no widening mask) — match-load-bearing, so kept here rather than via thread.h. */
+extern s32  getPadReadButtons(s32 slot, s32 sub);     /**< Per-gamepad held buttons. Defined u16 in thread.c, but the original caller uses it as s32 (no widening mask) — match-load-bearing, so kept here rather than via thread.h. */
 
 /* File-scope data: a few globals owned elsewhere (battle config / menu palette) plus
    be_object4-private board / SFX / input state — the D_801D4xxx / D_801C2Exx / D_80182Exx
@@ -179,9 +179,9 @@ extern u16 D_801D4B18;
 extern u16 D_801D4B1A;
 extern u16 D_801D4AF8[2][4]; /**< Per-(port,side) previous edge flags (see func_800A29D4). */
 extern s16 D_801D4B08[2][4]; /**< Per-(port,side) edge countdown timer (see func_800A29D4). */
-extern s32 D_801D4B20[]; /**< Per-controller current held-button mask. */
-extern s32 D_801D4B28[]; /**< Per-controller auto-repeat mask. */
-extern s32 D_801D4B30[]; /**< Per-controller newly-pressed mask. */
+extern s32 D_801D4B20[]; /**< Per-gamepad current held-button mask. */
+extern s32 D_801D4B28[]; /**< Per-gamepad auto-repeat mask. */
+extern s32 D_801D4B30[]; /**< Per-gamepad newly-pressed mask. */
 extern s32 D_801D4B24;   /**< = D_801D4B20[1] (player 2); split symbol for the readPads write. */
 extern s32 D_801D4B2C;   /**< = D_801D4B28[1] (player 2). */
 extern s32 D_801D4B34;   /**< = D_801D4B30[1] (player 2). */
@@ -202,7 +202,7 @@ extern void *func_800A3EE0(void *a0, void *a1, s32 a2, s32 a3, s32 a4, s32 a5); 
 extern void *func_800A3D2C(void *otBase, void *pkt, s32 x, s32 y, s32 cardImg, s32 col); /**< Card-image primitive. */
 extern void *func_800A3528(void *otBase, void *pkt, void *(*drawCell)(void *, void *, s32, s32, s32)); /**< Per-cell slide-render iterator. */
 extern s32 func_800A238C();
-extern s32 func_800A29D4(EngineState *base, PadPort *port, u16 arg1, s32 side, s32 entryIndex);
+extern s32 func_800A29D4(EngineState *base, GamePad *port, u16 arg1, s32 side, s32 entryIndex);
 extern s32 func_800A390C(s32 flags0, s32 flags1); /**< Cursor/timer state machine. */
 extern s32 func_800A443C(s32 a0);                 /**< VSync-locked display-list apply. */
 extern void func_800A4504(s32 a0, s32 a1); /**< SFX (60, 32) init. */

@@ -87,7 +87,7 @@ static void drawNextPageMarker(P_TAG *ot, Dialog *entry);
 static inline void updateOpenDialogScale(s32 index);
 static void updateDialog(s32 index, u32 input, u32 repeat);
 static void drawDialogContents(s32 index, P_TAG *ot);
-static s32 autoRepeatPadChannel(EngineState *engine, PadPort *port, DialogSystem *sys, u16 newVal, s32 channel);
+static s32 autoRepeatPadChannel(EngineState *engine, GamePad *port, DialogSystem *sys, u16 newVal, s32 channel);
 static void drawDialog(P_TAG *ot, s32 index);
 static void *renderDialogEntity(void *ot, BattleDisplayEntity *entity, void *pkt);
 static u8 *updateDialogEntity(BattleDisplayEntity *entity, u32 input, u32 repeat);
@@ -592,13 +592,13 @@ s32 getDialogChoice(s32 idx) {
  * fires. Mirrors @c func_800A29D4 (the Triple Triad edge auto-repeat).
  *
  * @param engine Engine state; @c repeatDelays packs the two delays.
- * @param port Pad port; @c unk10[channel] is the channel's button mask.
+ * @param port Pad port; @c autoRepeatButtonMasks[channel] is the channel's button mask.
  * @param sys Dialog system (@c &engine->dialogs); holds the stored bits and counters.
  * @param newVal Raw new edge bitmask for this frame.
  * @param channel Pad channel index, 0..3.
  * @return The masked edge bits that should fire this frame, or 0 while suppressed.
  */
-static s32 autoRepeatPadChannel(EngineState *engine, PadPort *port, DialogSystem *sys, u16 newVal, s32 channel) {
+static s32 autoRepeatPadChannel(EngineState *engine, GamePad *port, DialogSystem *sys, u16 newVal, s32 channel) {
     s32 counter;
     s32 restartDelay;
     s32 repeatInterval;
@@ -609,7 +609,7 @@ static s32 autoRepeatPadChannel(EngineState *engine, PadPort *port, DialogSystem
     sys->state.repeatLatched[channel] = newVal;
     restartDelay = engine->repeatDelays.hword;
     counter = sys->state.repeatCounters[channel];
-    mask = port->unk10[channel];
+    mask = port->autoRepeatButtonMasks[channel];
 
     repeatInterval = restartDelay >> 8;
     restartDelay &= 0xFF;
@@ -646,7 +646,7 @@ s32 autoRepeatPad(s32 input) {
     DialogSystem *sys = &g_engine.dialogs;
     EngineState *engine = &g_engine;
     u16 bits = input;
-    PadPort *port = &engine->ports[engine->ports[0].linkedIdx];
+    GamePad *port = &engine->gamePads[engine->gamePads[0].inputSourceIndex];
     u16 result;
 
     result = 0;

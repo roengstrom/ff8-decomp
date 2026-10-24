@@ -52,11 +52,11 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", PadInfoAct);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", PadInfoComb);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003AF50);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", PadSetActAlign);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003AF88);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", PadSetMainMode);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003AFD0);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", PadSetAct);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003B024);
 
@@ -98,7 +98,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003BBEC);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003BC0C);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003BC24);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", PadInitDirect);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpad", func_8003BD84);
 

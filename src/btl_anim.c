@@ -47,7 +47,7 @@ extern u8 g_paletteIndices[];
  * @param val Nonzero for on.
  */
 void setPadVibration(s32 idx, s32 val) {
-    PadPort *port = &g_engine.ports[idx & 1];
+    GamePad *port = &g_engine.gamePads[idx & 1];
     if (val != 0) {
         port->vibrationMask = 0xFF;
     } else {
@@ -59,21 +59,21 @@ void setPadVibration(s32 idx, s32 val) {
 /**
  * @brief Set a pad port's motor levels.
  *
- * Updates motor[1] and motor[0] (skipped if < 0), then sets field0A to 1.
+ * Updates vibrationIntensity[1] and vibrationIntensity[0] (skipped if < 0), then sets actuatorDataChanged to 1.
  *
  * @param idx Port index (masked to 0 or 1).
- * @param motor1 Level for motor[1] (-1 to skip).
- * @param motor0 Level for motor[0] (-1 to skip).
+ * @param motor1 Level for vibrationIntensity[1] (-1 to skip).
+ * @param motor0 Level for vibrationIntensity[0] (-1 to skip).
  */
 void setPadMotors(s32 idx, s32 motor1, s32 motor0) {
-    PadPort *port = &g_engine.ports[idx & 1];
+    GamePad *port = &g_engine.gamePads[idx & 1];
     if (motor1 >= 0) {
-        port->motor[1] = motor1;
+        port->vibrationIntensity[1] = motor1;
     }
     if (motor0 >= 0) {
-        port->motor[0] = motor0;
+        port->vibrationIntensity[0] = motor0;
     }
-    port->field0A = 1;
+    port->actuatorDataChanged = 1;
 }
 
 
@@ -118,24 +118,24 @@ void setAnimGlobalCoords(s32 idx, s16 x, s16 y) {
  * @param idx Port index (masked to 0 or 1).
  * @param param Byte index (clamped to [0,3]).
  * @param frameOffset How many reads back to look.
- * @return The byte, or -1 if that read failed or its controller type is not 1.
+ * @return The byte, or -1 if that read failed or its gamepad type is not 1.
  */
 static s32 getPadReadByte(s32 idx, s32 param, s32 frameOffset) {
-    PadPort *port;
-    AnimFrame *frame;
+    GamePad *port;
+    GamePadInputFrame *frame;
     s32 frameSlot;
     s32 result;
 
     idx &= 1;
-    port = &g_engine.ports[g_engine.ports[idx].linkedIdx];
+    port = &g_engine.gamePads[g_engine.gamePads[idx].inputSourceIndex];
     frameSlot = (port->frameCounter - frameOffset) & 7;
     result = -1;
     frame = &port->frames[frameSlot];
 
-    if (frame->field00 == 0) {
+    if (frame->inputReadFailed == 0) {
         param = CLAMP(param, 0, 3);
-        if ((frame->field01 >> 4) == 1) {
-            result = frame->params[param];
+        if ((frame->gamePadInputIdentifier >> 4) == 1) {
+            result = frame->analog[param];
         }
     }
 
@@ -153,7 +153,7 @@ s32 isPadConnected(void) {
 
 
 /**
- * @brief Get the controller type of a past read on the port linked to port @p idx.
+ * @brief Get the gamepad type of a past read on the port linked to port @p idx.
  * @param idx Port index (bit 0 selects the port).
  * @param frameOffset How many reads back to look.
  * @return The ID byte's high nibble, or -1 if that read failed.
@@ -161,8 +161,8 @@ s32 isPadConnected(void) {
 static s32 getPadReadType(s32 idx, s32 frameOffset) {
     s32 syncFlag;
     s32 slot;
-    PadPort *port;
-    AnimFrame *frame;
+    GamePad *port;
+    GamePadInputFrame *frame;
     s32 frameSlot;
 
     syncFlag = GetSr() & SR_IEP;
@@ -171,7 +171,7 @@ static s32 getPadReadType(s32 idx, s32 frameOffset) {
     }
 
     slot = idx & 1;
-    port = &g_engine.ports[g_engine.ports[slot].linkedIdx];
+    port = &g_engine.gamePads[g_engine.gamePads[slot].inputSourceIndex];
     frameSlot = (port->frameCounter - frameOffset) & 7;
     frame = &port->frames[frameSlot];
 
@@ -179,10 +179,10 @@ static s32 getPadReadType(s32 idx, s32 frameOffset) {
         ExitCriticalSection();
     }
 
-    if (frame->field00 != 0) {
+    if (frame->inputReadFailed != 0) {
         return -1;
     }
-    return frame->field01 >> 4;
+    return frame->gamePadInputIdentifier >> 4;
 }
 
 
@@ -195,8 +195,8 @@ static s32 getPadReadType(s32 idx, s32 frameOffset) {
 void setPadRepeatMask(s32 unused, s32 channel, s32 mask) {
     int new_var;
     new_var = 1;
-    g_engine.ports[0].unk10[channel] = mask;
-    g_engine.ports[new_var].unk10[channel] = mask;
+    g_engine.gamePads[0].autoRepeatButtonMasks[channel] = mask;
+    g_engine.gamePads[new_var].autoRepeatButtonMasks[channel] = mask;
 }
 
 
@@ -205,40 +205,40 @@ void setPadRepeatMask(s32 unused, s32 channel, s32 mask) {
  *
  * Restarts its read ring and auto-repeat countdowns, and clears all eight reads.
  *
- * @param idx Port index (selects via linkedIdx).
+ * @param idx Port index (selects via inputSourceIndex).
  * @param buttons Held buttons to store in each read.
  */
 static void resetPadInput(s32 idx, s32 buttons) {
-    AnimFrame *fp;
+    GamePadInputFrame *fp;
     s32 fid;
-    PadPort *port;
+    GamePad *port;
     s32 i;
 
-    port = &g_engine.ports[g_engine.ports[idx].linkedIdx];
+    port = &g_engine.gamePads[g_engine.gamePads[idx].inputSourceIndex];
     port->frameCounter = 0;
-    port->field0A = 0;
-    port->field0C[0] = g_engine.repeatDelays.b.lo;
-    port->field0C[1] = g_engine.repeatDelays.b.lo;
-    port->field0C[2] = g_engine.repeatDelays.b.lo;
-    port->field0C[3] = g_engine.repeatDelays.b.lo;
+    port->actuatorDataChanged = 0;
+    port->autoRepeatCountdowns[0] = g_engine.repeatDelays.b.lo;
+    port->autoRepeatCountdowns[1] = g_engine.repeatDelays.b.lo;
+    port->autoRepeatCountdowns[2] = g_engine.repeatDelays.b.lo;
+    port->autoRepeatCountdowns[3] = g_engine.repeatDelays.b.lo;
 
     fid = buttons;
     for (i = 0; 8 > i; i++) {
-        AnimFrame *frame = &port->frames[i];
-        frame->field00 = 0;
-        frame->field01 = 0;
+        GamePadInputFrame *frame = &port->frames[i];
+        frame->inputReadFailed = 0;
+        frame->gamePadInputIdentifier = 0;
         fp = frame;
-        fp->field02 = fid;
-        fp->params[0] = 0;
-        frame->params[1] = 0;
-        frame->params[2] = 0;
-        frame->params[3] = 0;
-        fp->field08 = 0;
-        frame->field0A = 0;
-        frame->field0C = 0;
-        frame->field0E = 0;
-        fp->field10 = 0;
-        fp->field12 = 0;
+        fp->currentlyPressedButtons = fid;
+        fp->analog[0] = 0;
+        frame->analog[1] = 0;
+        frame->analog[2] = 0;
+        frame->analog[3] = 0;
+        fp->autoRepeatedButtons[0] = 0;
+        frame->autoRepeatedButtons[1] = 0;
+        frame->autoRepeatedButtons[2] = 0;
+        frame->autoRepeatedButtons[3] = 0;
+        fp->newlyPressedButtons = 0;
+        fp->newlyReleasedButtons = 0;
     }
 }
 
@@ -253,11 +253,11 @@ static void resetPadInput(s32 idx, s32 buttons) {
  * @param idx Port index (0 or 1).
  */
 void initPadInput(s32 idx) {
-    PadPort *port = &g_engine.ports[idx];
-    port->field0C[0] = g_engine.repeatDelays.b.lo;
-    port->field0C[1] = g_engine.repeatDelays.b.lo;
-    port->field0C[2] = g_engine.repeatDelays.b.lo;
-    port->field0C[3] = g_engine.repeatDelays.b.lo;
+    GamePad *port = &g_engine.gamePads[idx];
+    port->autoRepeatCountdowns[0] = g_engine.repeatDelays.b.lo;
+    port->autoRepeatCountdowns[1] = g_engine.repeatDelays.b.lo;
+    port->autoRepeatCountdowns[2] = g_engine.repeatDelays.b.lo;
+    port->autoRepeatCountdowns[3] = g_engine.repeatDelays.b.lo;
     resetPadInput(idx, 0);
 }
 
@@ -319,12 +319,12 @@ void setAnimFlag(s32 value) {
 /**
  * @brief Initialize or reset the CD audio/streaming subsystem state.
  * @note Calls several initialization functions and resets a counter at g_engine + 0x9C4 to 0.
- *       Passes two g_engine buffer pointers (offsets 0x188 and 0x1AC) to func_8003BC24.
+ *       Passes two g_engine buffer pointers (offsets 0x188 and 0x1AC) to PadInitDirect.
  */
 void initCdAnimSubsystem(void) {
     EngineState *bas = &g_engine;
     func_800982B8();
-    func_8003BC24(bas->field188[0], bas->field188[1]);
+    PadInitDirect(bas->gamePadReceiveBuf[0], bas->gamePadReceiveBuf[1]);
     func_8003AB84();
     initAnimStateAndWait();
     bas->cdStreamCounter = 0;

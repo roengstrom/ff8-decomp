@@ -4,7 +4,7 @@
 #include "common.h"
 
 /* Public prototypes */
-extern void func_800275D4(void);                /**< Refresh the raw controller buffers. */
+extern void func_800275D4(void);                /**< Refresh the raw gamepad buffers. */
 /* Which axis func_80027DB4 reads. These are mutually exclusive selectors, not
    flags -- the value is an index, never OR-ed or masked. X/Y are as documented
    below; the other pair is named from the order callers sample them in, not from

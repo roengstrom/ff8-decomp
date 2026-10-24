@@ -632,7 +632,7 @@ void func_801E7598(void) {
 /**
  * @brief Process save menu input and update state flags.
  *
- * Reads a controller input byte from s0[0x3C], shifts left 4,
+ * Reads a gamepad input byte from s0[0x3C], shifts left 4,
  * passes through func_801EAE98 then func_801E7524. Based on result:
  * - 0: checks flags at s1[0] and updates s0[0x45] with bit manipulation
  * - -1: stores 8 to s0[0x45]
@@ -644,7 +644,7 @@ void func_801E7598(void) {
 /**
  * @brief Process save menu input and update state flags.
  *
- * Reads a controller input byte from a0[0x3C], shifts left 4,
+ * Reads a gamepad input byte from a0[0x3C], shifts left 4,
  * passes through func_801EAE98 then func_801E7524. Based on result:
  * - 0: checks flags at save data and updates a0[0x45] with bit manipulation
  * - -1: stores 8 to a0[0x45]

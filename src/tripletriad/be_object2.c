@@ -594,7 +594,7 @@ void handleCursorSubstate3(SubstateSlot *slot, s32 idx) {
 }
 
 /**
- * @brief Adjust a config parameter (0..4) up or down from controller input.
+ * @brief Adjust a config parameter (0..4) up or down from gamepad input.
  *
  * Left/right input nudges @p param within [0, 4] (with a confirm SFX) and
  * mirrors the result into the menu's display state.
