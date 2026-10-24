@@ -10,8 +10,8 @@
 
 static s32 func_80027038(EngineState *a0, GamePad *port, u16 a2, u16 a3, s32 a4);
 static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port);
-static void stepPadPort(EngineState *engine, GamePad *gamePad, s32 port);
-static void stepPadPorts(EngineState *engine);
+static void UpdateGamePad(EngineState *engine, GamePad *gamePad, s32 port);
+static void UpdateGamePads(EngineState *engine);
 static u16 getPadReadReleased(s32 idx, s32 offset);
 
 /**
@@ -202,7 +202,7 @@ static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port) {
  * @param gamePad Gamepad to update.
  * @param port Driver port number: 0x00 for port 0, 0x10 for port 1.
  */
-static void stepPadPort(EngineState *engine, GamePad *gamePad, s32 port) {
+static void UpdateGamePad(EngineState *engine, GamePad *gamePad, s32 port) {
     s32 state;
     GetSr();
     state = PadGetState(port);
@@ -293,7 +293,7 @@ s32 func_80027360(s32 a0) {
 
 
 /**
- * @brief Make stepPadPort rerun a pad port's setup on its next state-6 tick.
+ * @brief Make UpdateGamePad rerun a pad port's setup on its next state-6 tick.
  * @param idx Index into g_engine.gamePads.
  */
 void requestPadSetup(s32 idx) {
@@ -307,9 +307,9 @@ void requestPadSetup(s32 idx) {
  * @brief Step both pad ports: port 0 as driver port 0x00, port 1 as 0x10.
  * @param engine Engine state holding both gamepads.
  */
-static void stepPadPorts(EngineState *engine) {
-    stepPadPort(engine, &engine->gamePads[0], 0);
-    stepPadPort(engine, &engine->gamePads[1], 0x10);
+static void UpdateGamePads(EngineState *engine) {
+    UpdateGamePad(engine, &engine->gamePads[0], 0);
+    UpdateGamePad(engine, &engine->gamePads[1], 0x10);
 }
 
 
@@ -325,7 +325,7 @@ void settlePadPorts(void) {
     port->vibrationIntensity[1] = 0;
     for (;;) {
         while (func_8003AB64() == 0) {}
-        stepPadPort(engine, port, 0);
+        UpdateGamePad(engine, port, 0);
         if (port->gamePadState == PadStateDiscon || port->gamePadState == PadStateFindCTP1) {
             break;
         }
@@ -342,7 +342,7 @@ void settlePadPorts(void) {
     port->vibrationIntensity[1] = 0;
     for (;;) {
         while (func_8003AB64() == 0) {}
-        stepPadPort(engine, port, 0x10);
+        UpdateGamePad(engine, port, 0x10);
         if (port->gamePadState == PadStateDiscon || port->gamePadState == PadStateFindCTP1) {
             break;
         }
@@ -399,7 +399,7 @@ void func_800275D4(void) {
     s32 dx;
     s32 dy;
 
-    stepPadPorts(engine);
+    UpdateGamePads(engine);
     port = engine->gamePads;
     sr = GetSr();
     if (!(sr & SR_IEP)) {
