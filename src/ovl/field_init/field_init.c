@@ -187,7 +187,7 @@ void func_80098390(void) {
 void func_800983B8(void) {
     s16 clipRect[4];
     s32 i;
-    PadPort *port;
+    Controller *port;
     s32 j;
     EngineState *engine = &g_engine;
 
@@ -201,18 +201,18 @@ void func_800983B8(void) {
     clipRect[3] = 224;
     setBattleAnimClipRect(clipRect);
 
-    port = engine->controllerPorts;
+    port = engine->controllers;
     i = 0;
     do {
         initPadInput(i);
-        port->field19 = 1;
-        port->unk10[0] = 0xFFF;
-        port->unk10[1] = 0x5000;
-        port->unk10[2] = 0xA000;
-        port->unk10[3] = 0x900;
+        port->actuatorSetupPending = 1;
+        port->autoRepeatButtonMasks[0] = 0xFFF;
+        port->autoRepeatButtonMasks[1] = 0x5000;
+        port->autoRepeatButtonMasks[2] = 0xA000;
+        port->autoRepeatButtonMasks[3] = 0x900;
 
         for (j = 0; j < 2; j++) {
-            port->motor[j] = 0;
+            port->vibrationIntensity[j] = 0;
         }
 
         port->controllerTransmitBuf[0] = 0x40;
@@ -223,21 +223,21 @@ void func_800983B8(void) {
         }
 
         /* volatile keeps this store on port's register, not the loop's port + 0xC2 one. */
-        *(volatile u8 *)&port->motor[0] = 0;
+        *(volatile u8 *)&port->vibrationIntensity[0] = 0;
 
         for (j = 0; j < 6; j++) {
-            port->fieldBC[j] = 0xFF;
+            port->actuatorAlign[j] = 0xFF;
         }
 
         port->vibrationMask = 0;
-        port->field0B = 0;
-        port->fieldC3 = 0x31;
+        port->actuatorCount = 0;
+        port->analogStickConfig = 0x31;
         setAnimGlobalCoords(i, 0, 0);
-        port->field0C[0] = 0;
-        port->field0C[1] = 0;
-        port->field0C[2] = 0;
-        port->field0C[3] = 0;
-        port->linkedIdx = i++;
+        port->autoRepeatCountdowns[0] = 0;
+        port->autoRepeatCountdowns[1] = 0;
+        port->autoRepeatCountdowns[2] = 0;
+        port->autoRepeatCountdowns[3] = 0;
+        port->inputSourceIndex = i++;
         port++;
     } while (i < 2);
 }

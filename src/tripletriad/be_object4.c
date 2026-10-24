@@ -603,7 +603,7 @@ u8 *initTripleTriadRenderList(void) {
  *  - Reads last frame's masked bits from @ref D_801D4AF8 [entry][side] and stores
  *    @p newVal there.
  *  - Masks both new and previous bitmasks by the side's relevance mask
- *    (`port->unk10[side]`): @c result = new active bits, @c prevMasked = old.
+ *    (`port->autoRepeatButtonMasks[side]`): @c result = new active bits, @c prevMasked = old.
  *  - @c base->repeatDelays packs the timing: low byte = initial/restart delay,
  *    high byte = repeat interval.
  *  - If the masked new and old bits overlap (a sustained event), ticks the
@@ -616,7 +616,7 @@ u8 *initTripleTriadRenderList(void) {
  * Called four times (once per side) by @ref func_800A2A8C, which ORs the results.
  *
  * @param base Engine state; base->repeatDelays packs the two delays.
- * @param port Pad port; port->unk10[side] is the per-side mask.
+ * @param port Pad port; port->autoRepeatButtonMasks[side] is the per-side mask.
  * @param newVal Raw new edge bitmask for this frame.
  * @param side Card side index, 0..3.
  * @param entry Card slot index.
@@ -624,7 +624,7 @@ u8 *initTripleTriadRenderList(void) {
  *
  * @note Purpose inferred. Decomp scratch: https://decomp.me/scratch/7L33D
  */
-s32 func_800A29D4(EngineState *base, PadPort *port, u16 newVal, s32 side, s32 entry)
+s32 func_800A29D4(EngineState *base, Controller *port, u16 newVal, s32 side, s32 entry)
 {
     s32 repeatTimer;
     s32 restartDelay;
@@ -636,7 +636,7 @@ s32 func_800A29D4(EngineState *base, PadPort *port, u16 newVal, s32 side, s32 en
     D_801D4AF8[entry][side] = newVal;
     restartDelay = base->repeatDelays.hword;
     repeatTimer = D_801D4B08[entry][side];
-    mask = port->unk10[side];
+    mask = port->autoRepeatButtonMasks[side];
 
     repeatInterval = restartDelay >> 8;
     restartDelay &= 0xFF;
@@ -672,7 +672,7 @@ s32 func_800A29D4(EngineState *base, PadPort *port, u16 newVal, s32 side, s32 en
  */
 s32 func_800A2A8C(s32 entryIndex, u16 arg1)
 {
-    PadPort *port = &g_engine.controllerPorts[g_engine.controllerPorts[entryIndex].linkedIdx];
+    Controller *port = &g_engine.controllers[g_engine.controllers[entryIndex].inputSourceIndex];
     u16 result = 0;
 
     result |= func_800A29D4(&g_engine, port, arg1, 0, entryIndex);
