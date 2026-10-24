@@ -203,11 +203,11 @@ static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port) {
  * @param port Driver port number: 0x00 for port 0, 0x10 for port 1.
  */
 static void stepPadPort(EngineState *engine, GamePad *gamePad, s32 port) {
-    s32 status;
+    s32 state;
     GetSr();
-    status = PadGetState(port);
-    gamePad->gamePadState = status;
-    switch (status) {
+    state = PadGetState(port);
+    gamePad->gamePadState = state;
+    switch (state) {
     case PadStateFindPad:
         gamePad->actuatorCount = 0;
         gamePad->actuatorDataChanged = 1;
@@ -233,20 +233,20 @@ static void stepPadPort(EngineState *engine, GamePad *gamePad, s32 port) {
             PadSetActAlign(port, gamePad->actuatorAlign);
             PadSetAct(port, gamePad->gamePadTransmitBuf, 6);
         } else {
-            u8 f6 = gamePad->vibrationIntensity[0];
-            u8 f7 = gamePad->vibrationIntensity[1];
-            u8 sh7 = gamePad->vibrationIntensityShift[1];
-            u8 sh6;
-            s32 v6;
-            s32 v7;
-            /* The do-while(0) wrapper is load-bearing for the byte-match: it
-               keeps the scheduler from tearing the statement pair apart,
-               and likely mirrors a macro in the original source. */
-            do { gamePad->actuatorDataChanged = 1; v6 = f6 & mask; } while (0);
-            v7 = f7 & mask;
-            sh6 = gamePad->vibrationIntensityShift[0];
-            gamePad->gamePadTransmitBuf[2] = v7 >> sh7;
-            gamePad->gamePadTransmitBuf[1] = v6 >> sh6;
+            u8 rightVibrationIntensity = gamePad->vibrationIntensity[0];
+            u8 leftVibrationIntensity = gamePad->vibrationIntensity[1];
+            u8 leftShift = gamePad->vibrationIntensityShift[1];
+            u8 rightShift;
+            s32 rightMasked;
+            s32 leftMasked;
+            do {
+                gamePad->actuatorDataChanged = 1;
+                rightMasked = rightVibrationIntensity & mask;
+            } while (0); // matching hack
+            leftMasked = leftVibrationIntensity & mask;
+            rightShift = gamePad->vibrationIntensityShift[0];
+            gamePad->gamePadTransmitBuf[2] = leftMasked >> leftShift;
+            gamePad->gamePadTransmitBuf[1] = rightMasked >> rightShift;
         }
         break;
     }
