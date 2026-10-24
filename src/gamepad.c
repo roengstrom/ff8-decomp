@@ -180,25 +180,17 @@ static void UpdateGamePad(EngineState *engine, GamePad *gamePad, s32 port) {
     }
 }
 
-
-/**
- * @brief Check the CD stream status, restarting playback if it has ended.
- *
- * @param a0 Stream channel selector.
- * @return 1 if the stream is in state 2, the result of PadSetMainMode if
- *         it is in state 6, 0 otherwise.
- */
-s32 func_80027360(s32 a0) {
+s32 TrySetAnalogMode(s32 port) {
     s32 status;
     s32 ret;
-    status = PadGetState(a0);
+    status = PadGetState(port);
     ret = 0;
     switch (status) {
     case PadStateFindCTP1:
         ret = 1;
         break;
     case PadStateStable:
-        ret = PadSetMainMode(a0, 1, 1);
+        ret = PadSetMainMode(port, 1, 1);
         break;
     case PadStateDiscon:
     case PadStateFindPad:
@@ -872,7 +864,7 @@ void initAnimStateAndWait(void) {
     PadEnableCom(3);
     for (i = 0; i < 24; i++) {
         VSync(0);
-        if (func_80027360(0) != 0) {
+        if (TrySetAnalogMode(0) != 0) {
             break;
         }
     }
