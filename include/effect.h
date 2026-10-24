@@ -53,7 +53,9 @@ typedef struct EffectModel {
     /* 0x5A */ u16 unk05A;        /**< How many strands an effect builds from it. */
     /* 0x5C */ u8 pad05C[0x63 - 0x5C];
     /* 0x63 */ u8 unk063;
-    /* 0x64 */ u8 pad064[0x100 - 0x64];
+    /* 0x64 */ u8 pad064[0x86 - 0x64];
+    /* 0x86 */ s16 unk086;
+    /* 0x88 */ u8 pad088[0x100 - 0x88];
 } EffectModel; /* >= 0x100 */
 
 /** @brief One member of an animated part list; stride 24. */
@@ -220,7 +222,7 @@ typedef struct {
 typedef struct {
     /* 0x00 */ u8 slot;            /**< Battle slot the effect is attached to. */
     /* 0x01 */ u8 flags;          /**< See @c EFFECT_ANIMSET_FLAG_*. */
-    /* 0x02 */ u8 pad002[0x4 - 0x2];
+    /* 0x02 */ u16 unk002;         /* Battle slot mask; Doomtrain centres on it. */
     /* 0x04 */ EffectAnim *anims;
 } EffectAnimSet;
 
@@ -258,15 +260,21 @@ typedef struct EffectEntity {
     /* 0x50 */ s16 unk050;
     /* 0x52 */ s16 unk052;
     /* 0x54 */ s16 unk054;
-    /* 0x56 */ u8 pad056[0x58 - 0x56];
+    /* 0x56 */ s16 unk056;
     /* 0x58 */ s16 unk058;
     /* 0x5A */ s16 unk05A;
     /* 0x5C */ s16 unk05C;
     /* 0x5E */ s16 unk05E;
-    /* 0x60 */ u8 unk060[0x63 - 0x60]; /**< func_801A3C14 aims an SVECTOR across
-                                          this and @c unk063. */
-    /* 0x63 */ u8 unk063;
-    /* 0x64 */ u8 pad064[0x68 - 0x64];
+    /* 0x60 */ union {
+        struct {
+            /* 0x60 */ s16 countdown;
+            /* 0x62 */ u8 unk062;
+            /* 0x63 */ u8 unk063;
+        } timer;
+        SVECTOR accel;
+        SVECTOR anchor;
+        s32 pose[2]; /* effectPoseWalk buffer continues past the union */
+    } scratch;
     /* 0x68 */ s16 unk068;
     /* 0x6A */ u8 pad06A[0x6C - 0x6A];
     /* 0x6C */ s16 unk06C;
@@ -277,7 +285,17 @@ typedef struct EffectEntity {
     /* 0x7A */ s16 unk07A;
     /* 0x7C */ s16 unk07C;
     /* 0x7E */ s16 unk07E;
-    /* 0x80 */ u8 pad080[0xC4 - 0x80];
+    /* 0x80 */ s16 unk080;
+    /* 0x82 */ u8 pad082[0x8C - 0x82];
+    /* 0x8C */ s16 unk08C;
+    /* 0x8E */ s16 unk08E;
+    /* 0x90 */ s16 unk090;
+    /* 0x92 */ u8 pad092[0xA0 - 0x92];
+    /* 0xA0 */ s16 unk0A0;
+    /* 0xA2 */ s16 unk0A2;
+    /* 0xA4 */ s16 unk0A4;
+    /* 0xA6 */ s16 unk0A6;
+    /* 0xA8 */ u8 pad0A8[0xC4 - 0xA8];
     /* 0xC4 */ s16 unk0C4;
     /* 0xC6 */ u8 pad0C6[0x100 - 0xC6];
 } EffectEntity; /* >= 0x100 */

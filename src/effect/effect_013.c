@@ -3,6 +3,15 @@
  * @brief Dark Mist/Poison Mist
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+extern s32 D_801D8970;
+extern s32 D_801D89A0;
+extern s32 D_801DA8E0;
+extern s32 D_801DE760;
+
+void func_801A10D8(void *state, void *arg1, void *arg2, void *arg3, BattleEffectSlot *slot, s32 slotIndex);
 
 INCLUDE_ASM("asm/ovl/effect_013/nonmatchings/effect_013", func_801A0000);
 
@@ -208,7 +217,14 @@ void func_801A5FA4(void) {
 
 INCLUDE_ASM("asm/ovl/effect_013/nonmatchings/effect_013", func_801A5FAC);
 
-INCLUDE_ASM("asm/ovl/effect_013/nonmatchings/effect_013", func_801A604C);
+static void func_801A604C(EffectEntity *entity) {
+    BattleEffectSlot *slot = &D_800EF2D0[entity->unk02D];
+
+    func_801A10D8(&D_801DE760, &D_801DA8E0, &D_801D8970, &D_801D89A0, slot, entity->unk02D);
+    entity->flags |= EFFECT_FLAG_UNK08;
+    slot->flags |= BATTLE_SLOT_FLAG_UNK04;
+    entity->pc++;
+}
 
 INCLUDE_ASM("asm/ovl/effect_013/nonmatchings/effect_013", func_801A60FC);
 

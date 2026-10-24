@@ -3,6 +3,8 @@
  * @brief ChocoFire
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
 
 INCLUDE_ASM("asm/ovl/effect_097/nonmatchings/effect_097", func_80190000);
 
@@ -442,7 +444,20 @@ void func_8019ED40(void) {
 
 INCLUDE_ASM("asm/ovl/effect_097/nonmatchings/effect_097", func_8019ED48);
 
-INCLUDE_ASM("asm/ovl/effect_097/nonmatchings/effect_097", func_8019EDE8);
+static void func_8019EDE8(EffectEntity *entity) {
+    BattleTint *tint = D_800EF738;
+    s32 i;
+
+    entity->pos.vx = 1536;
+    for (i = 0; i < 4; i++) {
+        tint->level = entity->pos.vx;
+        tint->b = 0;
+        tint->g = 0;
+        tint->r = 0;
+        tint++;
+    }
+    entity->pc++;
+}
 
 INCLUDE_ASM("asm/ovl/effect_097/nonmatchings/effect_097", func_8019EE38);
 

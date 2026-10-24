@@ -137,7 +137,7 @@ static void func_801A6A00(s32 *pose, EffectPartPose *part,
 
 /** @brief Opcode handler: load the 0x34-point aim set. */
 static void func_801A6D68(EffectEntity *entity) {
-    effectPoseInit(&D_801D20B8, (s32 *)entity->unk060, 0x34);
+    effectPoseInit(&D_801D20B8, entity->scratch.pose, 0x34);
     entity->pc++;
 }
 
@@ -161,7 +161,7 @@ static void func_801A6DB0(EffectEntity *entity) {
     CompMatrix(&D_800F02C8, &m, &m);
     req.colours = colours;
     req.unk08 = &D_801D3EA4;
-    if (effectPoseWalk((s32 *)entity->unk060, func_801A6A00, &req) == 0) {
+    if (effectPoseWalk(entity->scratch.pose, func_801A6A00, &req) == 0) {
         entity->flags |= EFFECT_FLAG_STOP;
         entity->pc++;
     }
@@ -196,7 +196,7 @@ static void func_801A6F7C(EffectEntity *entity) {
     ((VECTOR *)&entity->unk030)->vx = ONE;
     ((VECTOR *)&entity->unk030)->vy = ONE;
     ((VECTOR *)&entity->unk030)->vz = ONE;
-    effectPoseInit(&D_801D238C, (s32 *)entity->unk060, 0x64);
+    effectPoseInit(&D_801D238C, entity->scratch.pose, 0x64);
     entity->pc++;
 }
 
@@ -221,7 +221,7 @@ static void func_801A6FD4(EffectEntity *entity) {
     CompMatrix(&D_800F02C8, &m, &m);
     req.colours = colours;
     req.unk08 = &D_801D3EA4;
-    if (effectPoseWalk((s32 *)entity->unk060, func_801A6A00, &req) == 0) {
+    if (effectPoseWalk(entity->scratch.pose, func_801A6A00, &req) == 0) {
         entity->flags |= EFFECT_FLAG_STOP;
         entity->pc++;
     }
@@ -658,14 +658,14 @@ static void func_801A80DC(EffectEntity *entity) {
 
 /** @brief Opcode handler: start a task running @ref func_801A7FE8. */
 static void func_801A80F0(EffectEntity *entity) {
-    entity->unk063 = 1;
+    entity->scratch.timer.unk063 = 1;
     effectSpawnTask(&D_801D4104, func_801A7FE8, 0x58, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: loop back one step until the animation list runs out. */
 static void func_801A8148(EffectEntity *entity) {
-    if (entity->unk063 != 0) {
+    if (entity->scratch.timer.unk063 != 0) {
         return;
     }
     if (entity->unk02A < entity->unk058) {

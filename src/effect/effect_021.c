@@ -3,8 +3,56 @@
  * @brief Triple
  */
 #include "common.h"
+#include "effect.h"
+#include "battle/bc_object8.h"
+#include "battle/bc_object11.h"
+#include "battle/bc_object13.h"
 
-INCLUDE_ASM("asm/ovl/effect_021/nonmatchings/effect_021", func_801A0000);
+extern u8 D_801A85B8;
+extern u8 D_801A8F44;
+extern u8 D_801B0F44;
+extern u8 *D_801C9D08;
+extern u8 *D_801C9D0C;
+extern s32 D_801C9BB4;
+extern s32 D_801C9CF4;
+extern s32 D_801C9D14;
+extern s32 D_801C9DE4;
+extern s32 D_801C9DF4;
+extern s32 D_801C9F64;
+extern s32 D_801C9F74;
+extern s32 D_801CA974;
+extern s32 D_801CA984;
+extern s32 D_801D0104;
+extern s32 D_801D0114;
+extern s32 D_801D61F4;
+
+void *func_801A0934(void *pool, void *task, s32 stride, EffectEntity *owner);
+s32 func_801A5A00(EffectEntity *entity);
+
+void *func_801A0000(EffectAnimSet *animSet) {
+    EffectEntity *entity;
+    u8 slot;
+
+    slot = animSet->anims->parts->unk000;
+    func_800B2A00(&D_801C9DE4, &D_801C9D14, 100, 2);
+    entity = func_801A0934(&D_801C9DE4, func_801A5A00, 100, NULL);
+    entity->animSet = animSet;
+    entity->unk02D = slot;
+    entity->unk05A = animSet->anims->unk010;
+    entity->unk058 = animSet->anims->unk011;
+    if (!(animSet->flags & EFFECT_ANIMSET_FLAG_LOADED)) {
+        func_800C3BE0(&D_801A85B8);
+        func_800BB084(&D_801A8F44);
+    }
+    D_801C9D08 = &D_801A8F44;
+    D_801C9D0C = &D_801B0F44;
+    func_800B2A00(&D_801C9F64, &D_801C9DF4, 92, 4);
+    func_800B2A00(&D_801CA974, &D_801C9F74, 64, 40);
+    func_800B2A00(&D_801D0104, &D_801CA984, 112, 200);
+    func_800B2A00(&D_801D61F4, &D_801D0114, 124, 200);
+    func_800B2A00(&D_801C9CF4, &D_801C9BB4, 80, 4);
+    return &D_801C9DE4;
+}
 
 INCLUDE_ASM("asm/ovl/effect_021/nonmatchings/effect_021", func_801A0184);
 

@@ -3,6 +3,11 @@
  * @brief ChocoMeteor
  */
 #include "common.h"
+#include "battle.h"
+#include "effect.h"
+
+s32 func_80190350(s16 stage);
+s32 func_80193810(EffectEntity *entity);
 
 INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_80190000);
 
@@ -558,7 +563,12 @@ INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_801A0828);
 
 INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_801A08E0);
 
-INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_801A090C);
+static void func_801A090C(EffectEntity *entity) {
+    if (func_80193810(entity) || func_80190350(8)) {
+        entity->flags |= EFFECT_FLAG_STOP | EFFECT_FLAG_DONE;
+        entity->pc++;
+    }
+}
 
 void func_801A0964(void) {
 }
@@ -603,7 +613,20 @@ void func_801A148C(void) {
 
 INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_801A1494);
 
-INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_801A1534);
+static void func_801A1534(EffectEntity *entity) {
+    BattleTint *tint = D_800EF738;
+    s32 i;
+
+    entity->pos.vx = 1536;
+    for (i = 0; i < 4; i++) {
+        tint->level = entity->pos.vx;
+        tint->b = 0;
+        tint->g = 0;
+        tint->r = 0;
+        tint++;
+    }
+    entity->pc++;
+}
 
 INCLUDE_ASM("asm/ovl/effect_099/nonmatchings/effect_099", func_801A1584);
 

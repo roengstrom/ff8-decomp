@@ -714,17 +714,22 @@ typedef struct {
  *        by @c func_800CBC68.
  *
  * @c func_800CBC68 dispatches through @c dispatch (an offset list) and feeds
- * the BG color triple at @c bgR/bgG/bgB into the GTE BG color registers
+ * the BG color triple at @c bg into the GTE BG color registers
  * (RBK/GBK/BBK at COP2 $21/$22/$23) after a @c <<4 scale. Most of the
  * remaining bytes are still unmapped.
  */
 typedef struct {
     /* 0x00 */ s32 *dispatch;        /**< Pointer to dispatch list (handler addr at @c [0]). */
     /* 0x04 */ u8  pad04[0x4];       /**< Tail pointer (set to dispatch+8 in some flag paths). */
-    /* 0x08 */ u8  bgR;              /**< GTE background red (loaded into RBK after @c <<4). */
-    /* 0x09 */ u8  bgG;              /**< GTE background green (loaded into GBK). */
-    /* 0x0A */ u8  bgB;              /**< GTE background blue (loaded into BBK). */
-    /* 0x0B */ u8  pad0B;
+    /* 0x08 */ union {
+        struct {
+            /* 0x08 */ u8 r;
+            /* 0x09 */ u8 g;
+            /* 0x0A */ u8 b;
+            /* 0x0B */ u8 pad;
+        } c;
+        /* 0x08 */ u32 word; /* Cleared as one word. */
+    } bg; /* GTE background colour (RBK/GBK/BBK after a <<4). */
     /* 0x0C */ s32 depth;            /**< Depth/sort key. */
     /* 0x10 */ u8  pad10[0x4];
     /* 0x14 */ s32 cmd;              /**< Packet command word (set to @c 0x3867 here). */

@@ -166,14 +166,14 @@ static void func_801A9838(EffectEntity *entity) {
 
 /** @brief Opcode handler: start a task running @ref func_801A9700. */
 static void func_801A98AC(EffectEntity *entity) {
-    entity->unk063 = 1;
+    entity->scratch.timer.unk063 = 1;
     effectSpawnTask(&D_801D4424, func_801A9700, 0x58, entity);
     entity->pc++;
 }
 
 /** @brief Opcode handler: repeat the preceding opcode until the count runs out. */
 static void func_801A9904(EffectEntity *entity) {
-    if (entity->unk063 != 0) {
+    if (entity->scratch.timer.unk063 != 0) {
         return;
     }
     if (entity->unk02A < entity->unk058) {
