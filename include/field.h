@@ -245,7 +245,7 @@ typedef struct {
                                              prints its address as @c "address(DrawPointFlag)". */
     /* 0xB4 */ u16 packedFlagsStepAcc;  /**< Step accumulator: fires packed-flags processing at @c 0x2800. */
     /* 0xB6 */ u16 fieldB6;             /**< Used by fe_object7 dispatch (purpose TBD). */
-    /* 0xB8 */ u16 levelUpDisplayTimer; /**< Frames remaining for the SeeD-rank-up notification (set to 150). */
+    /* 0xB8 */ s16 levelUpDisplayTimer; /**< Frames remaining for the SeeD-rank-up notification (set to 150). */
     /* 0xBA */ u16 prevSeedExp;         /**< Snapshot of @c seedExp from the previous tick (for rank-change detection). */
     /* 0xBC */ u8 partyOrderA[3];       /**< Bench list (members not in active party). */
     /* 0xBF */ u8 partyOrderB[3];       /**< Bench list duplicate (initialized identically). */

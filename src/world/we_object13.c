@@ -8,6 +8,7 @@
 #include "psxsdk/libetc.h"
 #include "world.h"
 #include "world/we_object13.h"
+#include "ui/seed_rank.h"
 
 /** Initializes the CD subsystem: clears callbacks and pauses the drive. */
 void func_800C40F8(void) {
@@ -411,43 +412,41 @@ void func_800C4A74(void) {
  * @c D_8007809A or @c stateFlags bits.
  *
  * @param stepDelta  Step delta to add to all accumulators this tick.
- *
- * @verbatim
- * void func_800C4AE4(s32 stepDelta) {
- *     g_fieldVars->hpRegenStepAcc += stepDelta;
- *     g_fieldVars->stepCounter += stepDelta;
- *     g_fieldVars->angeloLearnStepAcc += stepDelta;
- *     g_fieldVars->packedFlagsStepAcc = (u16)(g_fieldVars->packedFlagsStepAcc + stepDelta);
- *     D_80082C14 = g_fieldVars->stepCounter;
- *     if (g_fieldVars->packedFlagsStepAcc >= 0x2800u) {
- *         g_fieldVars->packedFlagsStepAcc = 0;
- *         func_800C4A74();
- *     }
- *     if (g_fieldVars->hpRegenStepAcc >= 8) {
- *         g_fieldVars->hpRegenStepAcc = 0;
- *         func_800C48C0();
- *         func_800C492C();
- *     }
- *     if (g_gameState.mainData.partyLockFlag & 1) return;
- *     if (!(g_fieldVars->stateFlags & 8)) {
- *         g_fieldVars->seedExpStepAcc += stepDelta;
- *         if ((u32)g_fieldVars->seedExpStepAcc >= 0x6000u) {
- *             g_fieldVars->seedExpStepAcc = 0;
- *             func_800C4688();
- *         }
- *         if ((s16)g_fieldVars->seedExp < 100)         g_fieldVars->seedExp = 100;
- *         else if ((s16)g_fieldVars->seedExp >= 0xC1C) g_fieldVars->seedExp = 0xC1C;
- *     }
- *     if ((s16)g_fieldVars->levelUpDisplayTimer >= 0) {
- *         if ((s16)g_fieldVars->levelUpDisplayTimer == 0) hideSeedRankNotification();
- *         g_fieldVars->levelUpDisplayTimer--;
- *     }
- *     if (g_gameState.mainData.partyLockFlag & 0x10) return;
- *     if ((u32)g_fieldVars->angeloLearnStepAcc >= 0x250u) {
- *         g_fieldVars->angeloLearnStepAcc = 0;
- *         func_800C49CC();
- *     }
- * }
- * @endverbatim
  */
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object13", func_800C4AE4);
+void func_800C4AE4(s32 stepDelta) {
+    s32 minSeedExp = 100; // Keeping 100 in a local is needed for the match.
+    g_fieldVars->stepCounter += stepDelta;
+    g_fieldVars->hpRegenStepAcc += stepDelta;
+    g_fieldVars->packedFlagsStepAcc += stepDelta;
+    g_fieldVars->angeloLearnStepAcc += stepDelta;
+    D_80082C14 = g_fieldVars->stepCounter;
+    if (g_fieldVars->packedFlagsStepAcc >= 10240u) {
+        g_fieldVars->packedFlagsStepAcc = 0;
+        func_800C4A74();
+    }
+    if (g_fieldVars->hpRegenStepAcc >= 8u) {
+        g_fieldVars->hpRegenStepAcc = 0;
+        func_800C48C0();
+        func_800C492C();
+    }
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) return;
+    if (!(g_fieldVars->stateFlags & FIELD_STATE_TRANSITION)) {
+        g_fieldVars->seedExpStepAcc += stepDelta;
+        if (g_fieldVars->seedExpStepAcc >= 24576u) {
+            g_fieldVars->seedExpStepAcc = 0;
+            func_800C4688();
+        }
+        // The signed conversions are needed for the match.
+        if ((s16)g_fieldVars->seedExp < minSeedExp) g_fieldVars->seedExp = minSeedExp;
+        else if ((s16)g_fieldVars->seedExp >= 3100) g_fieldVars->seedExp = 3100;
+    }
+    if (g_fieldVars->levelUpDisplayTimer >= 0) {
+        if (g_fieldVars->levelUpDisplayTimer == 0) hideSeedRankNotification();
+        g_fieldVars->levelUpDisplayTimer--;
+    }
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_FLAG_10) return;
+    if (g_fieldVars->angeloLearnStepAcc >= 592u) {
+        g_fieldVars->angeloLearnStepAcc = 0;
+        func_800C49CC();
+    }
+}
