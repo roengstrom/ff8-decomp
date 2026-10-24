@@ -5,6 +5,7 @@
 #include "intro.h"
 #include "cdrom.h"
 #include "snd_init.h"
+#include "thread.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libcd.h"
