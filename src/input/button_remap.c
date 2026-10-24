@@ -48,7 +48,7 @@ u16 applyButtonRemapTranslation(u16 bitmask) {
 
 
 /**
- * @brief Remap a button index through the controller button table.
+ * @brief Remap a button index through the gamepad button table.
  *
  * If CONFIG_CONTROLLER is set and @p index is within the 12-button range,
  * returns the remapped button value minus 1. Otherwise returns the index
@@ -69,7 +69,7 @@ static s32 remapButtonIndex(s32 index) {
  * @brief Reverse-lookup a logical button index to its physical button.
  *
  * Inverse of remapButtonIndex. Given a logical index, searches the
- * controller remap table for which physical button maps to it.
+ * gamepad remap table for which physical button maps to it.
  * Returns the index unchanged if remapping is inactive or out of range,
  * or -1 if no physical button maps to the given logical index.
  *

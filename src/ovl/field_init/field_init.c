@@ -187,7 +187,7 @@ void func_80098390(void) {
 void func_800983B8(void) {
     s16 clipRect[4];
     s32 i;
-    Controller *port;
+    GamePad *port;
     s32 j;
     EngineState *engine = &g_engine;
 
@@ -201,7 +201,7 @@ void func_800983B8(void) {
     clipRect[3] = 224;
     setBattleAnimClipRect(clipRect);
 
-    port = engine->controllers;
+    port = engine->gamePads;
     i = 0;
     do {
         initPadInput(i);
@@ -215,7 +215,7 @@ void func_800983B8(void) {
             port->vibrationIntensity[j] = 0;
         }
 
-        port->controllerTransmitBuf[0] = 0x40;
+        port->gamePadTransmitBuf[0] = 0x40;
 
         /* The retail code has this loop, with an empty body. */
         for (j = 0; j < 6; j++) {

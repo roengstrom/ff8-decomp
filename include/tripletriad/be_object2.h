@@ -109,9 +109,9 @@ enum TriadMenuSubstate {
 
 /** @brief Pad-input source for the menu tick — @c g_menuPadSource (@ref updateTriadMenu). */
 enum TriadMenuPadSource {
-    TT_PAD_SRC_P0   = 0,  /**< Player 0's controller only. */
-    TT_PAD_SRC_P1   = 1,  /**< Player 1's controller only. */
-    TT_PAD_SRC_BOTH = 2   /**< Both controllers OR'd together. */
+    TT_PAD_SRC_P0   = 0,  /**< Player 0's gamepad only. */
+    TT_PAD_SRC_P1   = 1,  /**< Player 1's gamepad only. */
+    TT_PAD_SRC_BOTH = 2   /**< Both gamepads OR'd together. */
 };
 
 /** @brief Completion phase of the armed substate — @c g_substatePhase. */
@@ -221,7 +221,7 @@ extern u16 g_padHeldLatch;       /**< Latched held mask (from g_padHeld). */
 extern u16 g_padRepeatLatch;       /**< Latched repeat mask (from g_padRepeat). */
 extern u16 g_padPressedLatch;       /**< Latched pressed mask (from g_padPressed). */
 extern s32 g_substateSuppress;       /**< Exits the active substate refuses; see @c TT_SUPPRESS_. */
-extern u8  g_menuPadSource;       /**< Which controller(s) get latched each tick (TriadMenuPadSource); any other value latches nothing. */
+extern u8  g_menuPadSource;       /**< Which gamepad(s) get latched each tick (TriadMenuPadSource); any other value latches nothing. */
 extern u8  g_activeSubstate;       /**< Active substate index (TriadMenuSubstate). */
 
 /** @brief Bits of @c g_substateSuppress, latched by activateMenuSubstate. */

@@ -9,18 +9,18 @@
 
 typedef struct {
     u8 inputReadFailed;
-    u8 controllerInputIdentifier; // high nibble is controller type, low is number of byte pairs (16 bit) in input
+    u8 gamePadInputIdentifier; // high nibble is gamepad type, low is number of byte pairs (16 bit) in input
     u16 currentlyPressedButtons; // buttons currently being pressed down in the frame (1 = pressed)
     u8 analog[4]; // rightX, rightY, leftX, leftY
     u16 autoRepeatedButtons[4]; // used for repeating held down inputs. e.g. useful for scrolling lists by holding up/down
     u16 newlyPressedButtons;
     u16 newlyReleasedButtons;
-} ControllerInputFrame; /* 0x14 = 20 bytes */
+} GamePadInputFrame; /* 0x14 = 20 bytes */
 
-/** @brief The state of one controller port. */
+/** @brief The state of one gamepad port. */
 typedef struct {
-    u8 controllerTransmitBuf[6];
-    u8 vibrationIntensity[2]; // one for each motor in the controller
+    u8 gamePadTransmitBuf[6];
+    u8 vibrationIntensity[2]; // one for each motor in the gamepad
     u8 vibrationIntensityShift[2]; // small motor only goes 0-1 and large 0-255, this scales the vibrationIntensity[] level (0-255) so it fits each motor accurately
     u8 actuatorDataChanged;
     u8 actuatorCount; // number of vibration motors (sdk calls it actuator)
@@ -28,13 +28,13 @@ typedef struct {
     u16 autoRepeatButtonMasks[4];
     u8 frameCounter;
     s8 actuatorSetupPending;
-    s8 controllerState;
+    s8 gamePadState;
     u8 vibrationMask; // 0xFF with vibration on, 0 with it off.
-    ControllerInputFrame frames[8];
+    GamePadInputFrame frames[8];
     u8 actuatorAlign[6]; // actuator parameter transmission bytes (used when calling SDK PadSetActAlign)
-    u8 inputSourceIndex; // this controller's input is read from g_engine.controllers[inputSourceIndex]
+    u8 inputSourceIndex; // this gamepad's input is read from g_engine.gamePads[inputSourceIndex]
     u8 analogStickConfig; // bits 0-6 = value of analog deadzone, bit 7 swaps which analog stick should be used
-} Controller;
+} GamePad;
 
 #define PAD_PORT_SWAP_ANALOG_STICKS 0x80
 
@@ -74,8 +74,8 @@ typedef struct {
 
 /** @brief Engine state every module shares: display lists, message windows, the HUD and more. */
 typedef struct {
-    /* 0x000 */ Controller controllers[2];
-    /* 0x188 */ u8 controllerReceiveBuf[2][0x24]; // what each pad sent back, stored by libpad every VSync
+    /* 0x000 */ GamePad gamePads[2];
+    /* 0x188 */ u8 gamePadReceiveBuf[2][0x24]; // what each pad sent back, stored by libpad every VSync
     /* 0x1D0 */ s16 globalCoords[2][2];      /**< Per-slot coords [slot][axis]. */
     /* 0x1D8 */ s16 clipLeft; /**< Clip region left edge. */
     /* 0x1DA */ s16 clipTop; /**< Clip region top edge. */

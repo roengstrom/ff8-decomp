@@ -87,7 +87,7 @@ static void drawNextPageMarker(P_TAG *ot, Dialog *entry);
 static inline void updateOpenDialogScale(s32 index);
 static void updateDialog(s32 index, u32 input, u32 repeat);
 static void drawDialogContents(s32 index, P_TAG *ot);
-static s32 autoRepeatPadChannel(EngineState *engine, Controller *port, DialogSystem *sys, u16 newVal, s32 channel);
+static s32 autoRepeatPadChannel(EngineState *engine, GamePad *port, DialogSystem *sys, u16 newVal, s32 channel);
 static void drawDialog(P_TAG *ot, s32 index);
 static void *renderDialogEntity(void *ot, BattleDisplayEntity *entity, void *pkt);
 static u8 *updateDialogEntity(BattleDisplayEntity *entity, u32 input, u32 repeat);
@@ -598,7 +598,7 @@ s32 getDialogChoice(s32 idx) {
  * @param channel Pad channel index, 0..3.
  * @return The masked edge bits that should fire this frame, or 0 while suppressed.
  */
-static s32 autoRepeatPadChannel(EngineState *engine, Controller *port, DialogSystem *sys, u16 newVal, s32 channel) {
+static s32 autoRepeatPadChannel(EngineState *engine, GamePad *port, DialogSystem *sys, u16 newVal, s32 channel) {
     s32 counter;
     s32 restartDelay;
     s32 repeatInterval;
@@ -646,7 +646,7 @@ s32 autoRepeatPad(s32 input) {
     DialogSystem *sys = &g_engine.dialogs;
     EngineState *engine = &g_engine;
     u16 bits = input;
-    Controller *port = &engine->controllers[engine->controllers[0].inputSourceIndex];
+    GamePad *port = &engine->gamePads[engine->gamePads[0].inputSourceIndex];
     u16 result;
 
     result = 0;

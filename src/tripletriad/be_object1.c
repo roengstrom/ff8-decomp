@@ -188,7 +188,7 @@ void flipBuffers(void) {
 }
 
 /**
- * @brief Sample the controllers and publish pad 0's button masks.
+ * @brief Sample the gamepads and publish pad 0's button masks.
  *
  * Reads both pads via @c readPads, then writes pad 0's held / pressed / repeat
  * masks into all three slots of @c g_padHeld / @c g_padPressed / @c g_padRepeat.

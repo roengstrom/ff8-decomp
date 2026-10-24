@@ -28,12 +28,12 @@ extern DispCtx g_introDispCtx;       /**< 0x800991D8 — double-buffer display c
 extern s32     g_introOdeLatch;      /**< 0x8009928C — last-seen @c GetODE() < 1 parity. */
 extern s32     g_introRenderMode;    /**< 0x80099290 — sub-renderer dispatch (0..2). */
 extern s32     g_introRenderEnable;  /**< 0x80099294 — non-zero runs the per-frame renderer. */
-extern s32     g_introCtrl0Inv;      /**< 0x80099298 — ~previous controller-0 sample. */
-extern s32     g_introCtrl1Inv;      /**< 0x8009929C — ~previous controller-1 sample. */
-extern s32     g_introCtrl0;         /**< 0x800992A0 — latest controller-0 sample. */
-extern s32     g_introCtrl1;         /**< 0x800992A4 — latest controller-1 sample. */
-extern s32     g_introCtrl0Edge;     /**< 0x800992A8 — controller-0 rising-edge mask (& 0xF0 = ABXY). */
-extern s32     g_introCtrl1Edge;     /**< 0x800992AC — controller-1 rising-edge mask. */
+extern s32     g_introCtrl0Inv;      /**< 0x80099298 — ~previous gamepad-0 sample. */
+extern s32     g_introCtrl1Inv;      /**< 0x8009929C — ~previous gamepad-1 sample. */
+extern s32     g_introCtrl0;         /**< 0x800992A0 — latest gamepad-0 sample. */
+extern s32     g_introCtrl1;         /**< 0x800992A4 — latest gamepad-1 sample. */
+extern s32     g_introCtrl0Edge;     /**< 0x800992A8 — gamepad-0 rising-edge mask (& 0xF0 = ABXY). */
+extern s32     g_introCtrl1Edge;     /**< 0x800992AC — gamepad-1 rising-edge mask. */
 extern s32     g_introVSyncBase;     /**< 0x800992B0 — VSync(-1) baseline for story-page hold timing. */
 
 #endif /* INTRO_STATE_H */

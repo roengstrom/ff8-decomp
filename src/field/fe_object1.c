@@ -534,7 +534,7 @@ extern s32  getPadReadPressed(s32 a, s32 b);          /* per-pad newly-pressed i
 extern s32 applyButtonRemapTranslation(s32 arg); /* s32 view: input/button_remap.h's u16 (u16) masks arg and result, changing codegen */
 
 /**
- * @brief Per-tick controller-input sampling for the field engine's two pad slots.
+ * @brief Per-tick gamepad-input sampling for the field engine's two pad slots.
  *
  * Snapshots the previous held/button state (@c padHeld → @c padHeldPrev,
  * @c unk150 → @c unk154), refreshes the raw pad buffers, then re-reads the held

@@ -8,9 +8,9 @@
 #include "battle.h"
 #include "thread.h"
 
-static s32 func_80027038(EngineState *a0, Controller *port, u16 a2, u16 a3, s32 a4);
-static void func_800270B0(EngineState *engine, Controller *controller, s32 port);
-static void stepPadPort(EngineState *engine, Controller *controller, s32 port);
+static s32 func_80027038(EngineState *a0, GamePad *port, u16 a2, u16 a3, s32 a4);
+static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port);
+static void stepPadPort(EngineState *engine, GamePad *gamePad, s32 port);
 static void stepPadPorts(EngineState *engine);
 static u16 getPadReadReleased(s32 idx, s32 offset);
 
@@ -108,7 +108,7 @@ void switchThread(s32 a0) {
 }
 
 
-static s32 func_80027038(EngineState *a0, Controller *port, u16 a2, u16 a3, s32 a4) {
+static s32 func_80027038(EngineState *a0, GamePad *port, u16 a2, u16 a3, s32 a4) {
     s32 counter;
     s32 interval;
     u16 restartDelay;
@@ -142,7 +142,7 @@ static s32 func_80027038(EngineState *a0, Controller *port, u16 a2, u16 a3, s32 
 }
 
 
-static void func_800270B0(EngineState *engine, Controller *controller, s32 port) {
+static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port) {
     s32 i;
     s32 j;
     s32 info;
@@ -150,11 +150,11 @@ static void func_800270B0(EngineState *engine, Controller *controller, s32 port)
     s32 motor0Act = -1;
     s32 motor0Bits;
     s32 motor1Bits;
-    u8 *align = controller->actuatorAlign;
+    u8 *align = gamePad->actuatorAlign;
     u8 *p;
 
     i = PadInfoAct(port, -1, 0);
-    controller->actuatorCount = i;
+    gamePad->actuatorCount = i;
     while (--i >= 0) {
         info = PadInfoAct(port, i, InfoActFunc);
         if (info == 1) {
@@ -185,12 +185,12 @@ static void func_800270B0(EngineState *engine, Controller *controller, s32 port)
     if (motor0Act != -1) {
         motor0Bits = 8 - motor0Bits;
         align[1] = motor0Act;
-        controller->vibrationIntensityShift[0] = motor0Bits;
+        gamePad->vibrationIntensityShift[0] = motor0Bits;
     }
     if (motor1Act != -1) {
         motor1Bits = 8 - motor1Bits;
         align[2] = motor1Act;
-        controller->vibrationIntensityShift[1] = motor1Bits;
+        gamePad->vibrationIntensityShift[1] = motor1Bits;
     }
 }
 
@@ -198,65 +198,65 @@ static void func_800270B0(EngineState *engine, Controller *controller, s32 port)
 /**
  * @brief Step a pad port's state machine.
  *
- * @param engine Base context passed through to func_800270B0.
- * @param controller Controller to update.
+ * @param engine Engine reference.
+ * @param gamePad Gamepad to update.
  * @param port Driver port number: 0x00 for port 0, 0x10 for port 1.
  */
-static void stepPadPort(EngineState *engine, Controller *controller, s32 port) {
+static void stepPadPort(EngineState *engine, GamePad *gamePad, s32 port) {
     s32 status;
     GetSr();
     status = PadGetState(port);
-    controller->controllerState = status;
+    gamePad->gamePadState = status;
     switch (status) {
     case PadStateFindPad:
-        controller->actuatorCount = 0;
-        controller->actuatorDataChanged = 1;
-        controller->actuatorSetupPending = 1;
+        gamePad->actuatorCount = 0;
+        gamePad->actuatorDataChanged = 1;
+        gamePad->actuatorSetupPending = 1;
         break;
     case PadStateFindCTP1:
-        controller->actuatorCount = 0;
-        controller->actuatorSetupPending = 1;
-        controller->actuatorDataChanged = 1;
-        controller->vibrationMask = 0;
+        gamePad->actuatorCount = 0;
+        gamePad->actuatorSetupPending = 1;
+        gamePad->actuatorDataChanged = 1;
+        gamePad->vibrationMask = 0;
         break;
     case PadStateReqInfo:
     case PadStateExecCmd:
         break;
     case PadStateStable: {
-        u8 mask = controller->vibrationMask;
-        if (controller->actuatorSetupPending == 1) {
-            func_800270B0(engine, controller, port);
-            controller->actuatorDataChanged = 1;
-            controller->actuatorSetupPending = 0;
-            controller->controllerTransmitBuf[1] = 0;
-            controller->controllerTransmitBuf[2] = 0;
-            PadSetActAlign(port, controller->actuatorAlign);
-            PadSetAct(port, controller->controllerTransmitBuf, 6);
+        u8 mask = gamePad->vibrationMask;
+        if (gamePad->actuatorSetupPending == 1) {
+            func_800270B0(engine, gamePad, port);
+            gamePad->actuatorDataChanged = 1;
+            gamePad->actuatorSetupPending = 0;
+            gamePad->gamePadTransmitBuf[1] = 0;
+            gamePad->gamePadTransmitBuf[2] = 0;
+            PadSetActAlign(port, gamePad->actuatorAlign);
+            PadSetAct(port, gamePad->gamePadTransmitBuf, 6);
         } else {
-            u8 f6 = controller->vibrationIntensity[0];
-            u8 f7 = controller->vibrationIntensity[1];
-            u8 sh7 = controller->vibrationIntensityShift[1];
+            u8 f6 = gamePad->vibrationIntensity[0];
+            u8 f7 = gamePad->vibrationIntensity[1];
+            u8 sh7 = gamePad->vibrationIntensityShift[1];
             u8 sh6;
             s32 v6;
             s32 v7;
             /* The do-while(0) wrapper is load-bearing for the byte-match: it
                keeps the scheduler from tearing the statement pair apart,
                and likely mirrors a macro in the original source. */
-            do { controller->actuatorDataChanged = 1; v6 = f6 & mask; } while (0);
+            do { gamePad->actuatorDataChanged = 1; v6 = f6 & mask; } while (0);
             v7 = f7 & mask;
-            sh6 = controller->vibrationIntensityShift[0];
-            controller->controllerTransmitBuf[2] = v7 >> sh7;
-            controller->controllerTransmitBuf[1] = v6 >> sh6;
+            sh6 = gamePad->vibrationIntensityShift[0];
+            gamePad->gamePadTransmitBuf[2] = v7 >> sh7;
+            gamePad->gamePadTransmitBuf[1] = v6 >> sh6;
         }
         break;
     }
     case PadStateDiscon:
     case PadStateFindCTP2:
     default:
-        controller->actuatorCount = 0;
-        controller->actuatorDataChanged = 1;
-        controller->vibrationMask = 0;
-        controller->actuatorSetupPending = 1;
+        gamePad->actuatorCount = 0;
+        gamePad->actuatorDataChanged = 1;
+        gamePad->vibrationMask = 0;
+        gamePad->actuatorSetupPending = 1;
         break;
     }
 }
@@ -294,10 +294,10 @@ s32 func_80027360(s32 a0) {
 
 /**
  * @brief Make stepPadPort rerun a pad port's setup on its next state-6 tick.
- * @param idx Index into g_engine.controllers.
+ * @param idx Index into g_engine.gamePads.
  */
 void requestPadSetup(s32 idx) {
-    Controller *port = &g_engine.controllers[idx];
+    GamePad *port = &g_engine.gamePads[idx];
     port->actuatorSetupPending = 1;
     port->actuatorDataChanged = 1;
 }
@@ -305,16 +305,16 @@ void requestPadSetup(s32 idx) {
 
 /**
  * @brief Step both pad ports: port 0 as driver port 0x00, port 1 as 0x10.
- * @param engine Engine state holding both controllers.
+ * @param engine Engine state holding both gamepads.
  */
 static void stepPadPorts(EngineState *engine) {
-    stepPadPort(engine, &engine->controllers[0], 0);
-    stepPadPort(engine, &engine->controllers[1], 0x10);
+    stepPadPort(engine, &engine->gamePads[0], 0);
+    stepPadPort(engine, &engine->gamePads[1], 0x10);
 }
 
 
 void settlePadPorts(void) {
-    Controller *port = &g_engine.controllers[0];
+    GamePad *port = &g_engine.gamePads[0];
     EngineState *engine = &g_engine;
     s32 count;
     /* Without this barrier the register allocator gives s0 to count
@@ -326,27 +326,27 @@ void settlePadPorts(void) {
     for (;;) {
         while (func_8003AB64() == 0) {}
         stepPadPort(engine, port, 0);
-        if (port->controllerState == PadStateDiscon || port->controllerState == PadStateFindCTP1) {
+        if (port->gamePadState == PadStateDiscon || port->gamePadState == PadStateFindCTP1) {
             break;
         }
-        if (port->controllerState == PadStateStable) {
+        if (port->gamePadState == PadStateStable) {
             count++;
             if (count >= 2) {
                 break;
             }
         }
     }
-    port = &engine->controllers[1];
+    port = &engine->gamePads[1];
     count = 0;
     port->vibrationIntensity[0] = 0;
     port->vibrationIntensity[1] = 0;
     for (;;) {
         while (func_8003AB64() == 0) {}
         stepPadPort(engine, port, 0x10);
-        if (port->controllerState == PadStateDiscon || port->controllerState == PadStateFindCTP1) {
+        if (port->gamePadState == PadStateDiscon || port->gamePadState == PadStateFindCTP1) {
             break;
         }
-        if (port->controllerState == PadStateStable) {
+        if (port->gamePadState == PadStateStable) {
             count++;
             if (count >= 2) {
                 break;
@@ -377,16 +377,16 @@ void setBattleAnimClipRect(RECT *rect) {
  * @param idx Port index.
  */
 s32 getPadField0B(s32 idx) {
-    Controller *port = &g_engine.controllers[idx];
+    GamePad *port = &g_engine.gamePads[idx];
     return port->actuatorCount;
 }
 
 
 void func_800275D4(void) {
     EngineState *engine = &g_engine;
-    Controller *port;
+    GamePad *port;
     u8 *buf;
-    ControllerInputFrame *frame;
+    GamePadInputFrame *frame;
     u32 sr;
     s32 i;
     s32 linked;
@@ -400,19 +400,19 @@ void func_800275D4(void) {
     s32 dy;
 
     stepPadPorts(engine);
-    port = engine->controllers;
+    port = engine->gamePads;
     sr = GetSr();
     if (!(sr & SR_IEP)) {
         EnterCriticalSection();
     }
     for (i = 0; i < 2; i++, port++) {
-        buf = engine->controllerReceiveBuf[i];
+        buf = engine->gamePadReceiveBuf[i];
         linked = i;
         type = buf[1] >> 4;
         fc = port->frameCounter;
         prev = port->frames[fc].currentlyPressedButtons;
         held = 0;
-        if (port->controllerState != PadStateDiscon) {
+        if (port->gamePadState != PadStateDiscon) {
             if (buf[0] != 0) {
                 held = prev;
             } else {
@@ -427,7 +427,7 @@ void func_800275D4(void) {
                 }
                 if (engine->animFlag != 0 && i == 0 && held == 0) {
                     if (type == 7 || type == 5) {
-                        frame = (ControllerInputFrame *)buf;
+                        frame = (GamePadInputFrame *)buf;
                         dx = frame->analog[0] - 0x80;
                         dy = frame->analog[1] - 0x80;
                         if (dx * dx + dy * dy < 40 * 40) {
@@ -487,12 +487,12 @@ void func_800275D4(void) {
  * @note The reads are a ring of eight, indexed by (frameCounter - offset) & 7.
  */
 u16 getPadReadButtons(s32 idx, s32 offset) {
-    Controller *ports;
-    Controller *port;
-    Controller *linked;
+    GamePad *ports;
+    GamePad *port;
+    GamePad *linked;
     s32 sub_idx;
     idx &= 1;
-    ports = g_engine.controllers;
+    ports = g_engine.gamePads;
     port = ports + idx;
     linked = ports + port->inputSourceIndex;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -507,13 +507,13 @@ u16 getPadReadButtons(s32 idx, s32 offset) {
  * @return The four auto-repeat channels' bits (autoRepeatedButtons), ORed.
  */
 u16 getPadReadRepeat(s32 idx, s32 offset) {
-    Controller *ports;
-    Controller *port;
-    Controller *linked;
+    GamePad *ports;
+    GamePad *port;
+    GamePad *linked;
     s32 sub_idx;
-    ControllerInputFrame *frame;
+    GamePadInputFrame *frame;
     idx &= 1;
-    ports = g_engine.controllers;
+    ports = g_engine.gamePads;
     port = ports + idx;
     linked = ports + port->inputSourceIndex;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -529,12 +529,12 @@ u16 getPadReadRepeat(s32 idx, s32 offset) {
  * @return field10: the buttons held in that read but not in the one before.
  */
 u16 getPadReadPressed(s32 idx, s32 offset) {
-    Controller *ports;
-    Controller *port;
-    Controller *linked;
+    GamePad *ports;
+    GamePad *port;
+    GamePad *linked;
     s32 sub_idx;
     idx &= 1;
-    ports = g_engine.controllers;
+    ports = g_engine.gamePads;
     port = ports + idx;
     linked = ports + port->inputSourceIndex;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -549,12 +549,12 @@ u16 getPadReadPressed(s32 idx, s32 offset) {
  * @return field12: the buttons held in the read before but not in that one.
  */
 static u16 getPadReadReleased(s32 idx, s32 offset) {
-    Controller *ports;
-    Controller *port;
-    Controller *linked;
+    GamePad *ports;
+    GamePad *port;
+    GamePad *linked;
     s32 sub_idx;
     idx &= 1;
-    ports = g_engine.controllers;
+    ports = g_engine.gamePads;
     port = ports + idx;
     linked = ports + port->inputSourceIndex;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -621,8 +621,8 @@ inline s32 func_80027B7C(s32 a0) {
 s32 getPadDeadZone(s32 a0) {
     s32 slot;
     a0 &= 1;
-    slot = g_engine.controllers[a0].inputSourceIndex;
-    return (g_engine.controllers[slot].analogStickConfig & 0x7F) << 8;
+    slot = g_engine.gamePads[a0].inputSourceIndex;
+    return (g_engine.gamePads[slot].analogStickConfig & 0x7F) << 8;
 }
 
 
@@ -637,13 +637,13 @@ s32 getPadDeadZone(s32 a0) {
  */
 void setPadDeadZone(s32 a0, s32 a1) {
     s32 slot;
-    Controller *linked;
+    GamePad *linked;
     s32 sq;
     s32 clamped;
     sq = a1;
     a0 &= 1;
-    slot = g_engine.controllers[a0].inputSourceIndex;
-    linked = &g_engine.controllers[slot];
+    slot = g_engine.gamePads[a0].inputSourceIndex;
+    linked = &g_engine.gamePads[slot];
     clamped = (sq < 0) ? 0 : (sq > 0x7F) ? 0x7F : a1;
     sq = clamped * clamped;
     sq = sq / 0x100;
@@ -658,10 +658,10 @@ void setPadDeadZone(s32 a0, s32 a1) {
  */
 void setPadAnalogFlag(s32 a0, s32 a1) {
     s32 slot;
-    Controller *linked;
+    GamePad *linked;
     a0 &= 1;
-    slot = g_engine.controllers[a0].inputSourceIndex;
-    linked = &g_engine.controllers[slot];
+    slot = g_engine.gamePads[a0].inputSourceIndex;
+    linked = &g_engine.gamePads[slot];
     if (a1) {
         linked->analogStickConfig |= PAD_PORT_SWAP_ANALOG_STICKS;
     } else {
@@ -684,25 +684,25 @@ s32 func_80027CF8(s32 a, s32 b, s32 c) {
 
 
 s32 func_80027DB4(s32 pad, s32 axis, s32 c) {
-    Controller *port;
-    Controller *linked;
-    ControllerInputFrame *frame;
+    GamePad *port;
+    GamePad *linked;
+    GamePadInputFrame *frame;
     s32 frameSlot;
     s32 result;
     s32 type;
 
     pad &= 1;
-    port = &g_engine.controllers[g_engine.controllers[pad & 1].inputSourceIndex];
+    port = &g_engine.gamePads[g_engine.gamePads[pad & 1].inputSourceIndex];
     frameSlot = (port->frameCounter - c) & 7;
     result = -1;
-    linked = &g_engine.controllers[g_engine.controllers[pad].inputSourceIndex];
+    linked = &g_engine.gamePads[g_engine.gamePads[pad].inputSourceIndex];
     frame = &port->frames[frameSlot];
     if (frame->inputReadFailed == 0) {
         if (linked->analogStickConfig & PAD_PORT_SWAP_ANALOG_STICKS) {
             axis ^= 2;
         }
         axis = CLAMP(axis, 0, 3);
-        type = frame->controllerInputIdentifier >> 4;
+        type = frame->gamePadInputIdentifier >> 4;
         if (type == 7 || type == 5) {
             result = frame->analog[axis];
         }
@@ -717,7 +717,7 @@ s32 func_80027DB4(s32 pad, s32 axis, s32 c) {
  * @return 0xFF with vibration on, 0 with it off.
  */
 s32 getPadVibration(s32 idx) {
-    Controller *port = &g_engine.controllers[idx & 1];
+    GamePad *port = &g_engine.gamePads[idx & 1];
     return port->vibrationMask;
 }
 

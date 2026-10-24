@@ -624,7 +624,7 @@ u8 *initTripleTriadRenderList(void) {
  *
  * @note Purpose inferred. Decomp scratch: https://decomp.me/scratch/7L33D
  */
-s32 func_800A29D4(EngineState *base, Controller *port, u16 newVal, s32 side, s32 entry)
+s32 func_800A29D4(EngineState *base, GamePad *port, u16 newVal, s32 side, s32 entry)
 {
     s32 repeatTimer;
     s32 restartDelay;
@@ -672,7 +672,7 @@ s32 func_800A29D4(EngineState *base, Controller *port, u16 newVal, s32 side, s32
  */
 s32 func_800A2A8C(s32 entryIndex, u16 arg1)
 {
-    Controller *port = &g_engine.controllers[g_engine.controllers[entryIndex].inputSourceIndex];
+    GamePad *port = &g_engine.gamePads[g_engine.gamePads[entryIndex].inputSourceIndex];
     u16 result = 0;
 
     result |= func_800A29D4(&g_engine, port, arg1, 0, entryIndex);
@@ -699,12 +699,12 @@ s32 getPadRepeat(s32 a0) {
 }
 
 /**
- * @brief Sample both controllers and update the per-pad input state.
+ * @brief Sample both gamepads and update the per-pad input state.
  *
- * For each of the two controllers, reads the raw button mask, and when no d-pad
+ * For each of the two gamepads, reads the raw button mask, and when no d-pad
  * direction is held (no 0xF000 bits) and the analog stick is valid, folds the
  * analog stick — recentred around 0x80 — into directional bits. The result is
- * recorded per controller as the current held mask (@c D_801D4B20[n]), the
+ * recorded per gamepad as the current held mask (@c D_801D4B20[n]), the
  * newly-pressed mask (@c D_801D4B30[n], bits set this frame but not last), and
  * the auto-repeat mask (@c D_801D4B28[n], via @c func_800A2A8C).
  *
@@ -1205,7 +1205,7 @@ void *func_800A3528(void *otBase, void *prim, void *(*drawCell)(void *, void *, 
 /**
  * @brief Step a wrapping cursor by the D-pad input, playing a click per move.
  *
- * @param pad   Controller button word: @c 0x4000 (down) advances the cursor,
+ * @param pad   Gamepad button word: @c 0x4000 (down) advances the cursor,
  *              @c 0x1000 (up) retreats it. Each accepted press plays
  *              @c sendSpuCommand(1).
  * @param count Number of selectable entries (the cursor wraps over this range).
