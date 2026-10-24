@@ -8,8 +8,8 @@
 #include "battle.h"
 #include "thread.h"
 
-static s32 func_80027038(EngineState *a0, GamePad *port, u16 a2, u16 a3, s32 a4);
-static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port);
+static s32 UpdateAutoRepeatForGroup(EngineState *engine, GamePad *gamePad, u16 previousButtons, u16 currentButtons, s32 buttonGroup);
+static void SetupActuators(EngineState *engine, GamePad *gamePad, s32 port);
 static void UpdateGamePad(EngineState *engine, GamePad *gamePad, s32 port);
 static void UpdateGamePads(EngineState *engine);
 static u16 getPadReadReleased(s32 idx, s32 offset);
@@ -108,72 +108,78 @@ void switchThread(s32 a0) {
 }
 
 
-static s32 func_80027038(EngineState *a0, GamePad *port, u16 a2, u16 a3, s32 a4) {
+static s32 UpdateAutoRepeatForGroup(EngineState *engine, GamePad *gamePad, u16 previousButtons, u16 currentButtons, s32 buttonGroup) {
     s32 counter;
     s32 interval;
     u16 restartDelay;
     u16 repeatInterval;
     u16 mask;
 
-    restartDelay = a0->repeatDelays.hword;
-    mask = port->autoRepeatButtonMasks[a4];
-    counter = port->autoRepeatCountdowns[a4];
+    restartDelay = engine->repeatDelays.hword;
+    mask = gamePad->autoRepeatButtonMasks[buttonGroup];
+    counter = gamePad->autoRepeatCountdowns[buttonGroup];
 
     interval = restartDelay >> 8;
     restartDelay &= 0xFF;
     repeatInterval = interval;
-    a3 &= mask;
-    a2 &= mask;
-    if (a3 & a2) {
-        if (a3 != a2) {
+    currentButtons &= mask;
+    previousButtons &= mask;
+    if (currentButtons & previousButtons) {
+        if (currentButtons != previousButtons) {
             counter = restartDelay;
         }
         counter--;
         if (counter < 0) {
             counter = repeatInterval;
         } else {
-            a3 = 0;
+            currentButtons = 0;
         }
     } else {
         counter = restartDelay;
     }
-    port->autoRepeatCountdowns[a4] = counter;
-    return a3;
+    gamePad->autoRepeatCountdowns[buttonGroup] = counter;
+    return currentButtons;
 }
 
-
-static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port) {
-    s32 i;
+/**
+ * @brief Set up actuators (vibration motors) for a given gamepad on the given port
+ *
+ * @param engine Engine reference.
+ * @param gamePad Gamepad to update.
+ * @param port PS1 gamepad port number: 0x00 for port 0, 0x10 for port 1. (assuming no multitap)
+ */
+static void SetupActuators(EngineState *engine, GamePad *gamePad, s32 port) {
+    s32 actuator;
     s32 j;
     s32 info;
-    s32 motor1Act = -1;
-    s32 motor0Act = -1;
-    s32 motor0Bits;
-    s32 motor1Bits;
+    s32 leftActuator = -1;
+    s32 rightActuator = -1;
+    s32 rightIntensityBits;
+    s32 leftIntensityBits;
     u8 *align = gamePad->actuatorAlign;
     u8 *p;
 
-    i = PadInfoAct(port, -1, 0);
-    gamePad->actuatorCount = i;
-    while (--i >= 0) {
-        info = PadInfoAct(port, i, InfoActFunc);
+    actuator = PadInfoAct(port, -1, 0);
+    gamePad->actuatorCount = actuator;
+    while (--actuator >= 0) {
+        info = PadInfoAct(port, actuator, InfoActFunc);
         if (info == 1) {
-            info = PadInfoAct(port, i, InfoActSub);
+            info = PadInfoAct(port, actuator, InfoActSub);
             if (info == 1) {
-                motor1Act = i;
-                info = PadInfoAct(port, motor1Act, InfoActSize);
+                leftActuator = actuator;
+                info = PadInfoAct(port, leftActuator, InfoActSize);
                 if (info == 0) {
-                    motor1Bits = 1;
+                    leftIntensityBits = 1;
                 } else {
-                    motor1Bits = info << 3;
+                    leftIntensityBits = info << 3;
                 }
             } else if (info == 2) {
-                motor0Act = i;
-                info = PadInfoAct(port, motor0Act, InfoActSize);
+                rightActuator = actuator;
+                info = PadInfoAct(port, rightActuator, InfoActSize);
                 if (info == 0) {
-                    motor0Bits = 1;
+                    rightIntensityBits = 1;
                 } else {
-                    motor0Bits = info << 3;
+                    rightIntensityBits = info << 3;
                 }
             }
         }
@@ -182,25 +188,25 @@ static void func_800270B0(EngineState *engine, GamePad *gamePad, s32 port) {
     for (j = 0; j < 6; j++) {
         *p++ = 0xFF;
     }
-    if (motor0Act != -1) {
-        motor0Bits = 8 - motor0Bits;
-        align[1] = motor0Act;
-        gamePad->vibrationIntensityShift[0] = motor0Bits;
+    if (rightActuator != -1) {
+        rightIntensityBits = 8 - rightIntensityBits;
+        align[1] = rightActuator;
+        gamePad->vibrationIntensityShift[0] = rightIntensityBits;
     }
-    if (motor1Act != -1) {
-        motor1Bits = 8 - motor1Bits;
-        align[2] = motor1Act;
-        gamePad->vibrationIntensityShift[1] = motor1Bits;
+    if (leftActuator != -1) {
+        leftIntensityBits = 8 - leftIntensityBits;
+        align[2] = leftActuator;
+        gamePad->vibrationIntensityShift[1] = leftIntensityBits;
     }
 }
 
 
 /**
- * @brief Step a pad port's state machine.
+ * @brief Update the state of a given GamePad using a given port
  *
  * @param engine Engine reference.
  * @param gamePad Gamepad to update.
- * @param port Driver port number: 0x00 for port 0, 0x10 for port 1.
+ * @param port PS1 gamepad port number: 0x00 for port 0, 0x10 for port 1. (assuming no multitap)
  */
 static void UpdateGamePad(EngineState *engine, GamePad *gamePad, s32 port) {
     s32 state;
@@ -225,7 +231,7 @@ static void UpdateGamePad(EngineState *engine, GamePad *gamePad, s32 port) {
     case PadStateStable: {
         u8 mask = gamePad->vibrationMask;
         if (gamePad->actuatorSetupPending == 1) {
-            func_800270B0(engine, gamePad, port);
+            SetupActuators(engine, gamePad, port);
             gamePad->actuatorDataChanged = 1;
             gamePad->actuatorSetupPending = 0;
             gamePad->gamePadTransmitBuf[1] = 0;
@@ -466,10 +472,10 @@ void func_800275D4(void) {
         frame->currentlyPressedButtons = held;
         frame->newlyPressedButtons = (prev ^ held) & held;
         frame->newlyReleasedButtons = (prev ^ held) & ~held;
-        frame->autoRepeatedButtons[0] = func_80027038(engine, port, prev, held, 0);
-        frame->autoRepeatedButtons[1] = func_80027038(engine, port, prev, held, 1);
-        frame->autoRepeatedButtons[2] = func_80027038(engine, port, prev, held, 2);
-        frame->autoRepeatedButtons[3] = func_80027038(engine, port, prev, held, 3);
+        frame->autoRepeatedButtons[0] = UpdateAutoRepeatForGroup(engine, port, prev, held, 0);
+        frame->autoRepeatedButtons[1] = UpdateAutoRepeatForGroup(engine, port, prev, held, 1);
+        frame->autoRepeatedButtons[2] = UpdateAutoRepeatForGroup(engine, port, prev, held, 2);
+        frame->autoRepeatedButtons[3] = UpdateAutoRepeatForGroup(engine, port, prev, held, 3);
         port->frameCounter = fc;
         port->inputSourceIndex = linked;
     }
