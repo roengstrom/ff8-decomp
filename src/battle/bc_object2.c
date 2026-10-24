@@ -100,35 +100,30 @@ BattleEntry* func_8009BBD0(void) {
  * and func_800A5210.
  */
 void func_8009BC28(void) {
-    SubEntry* subs;
+    SubEntry* subEntry;
     s32 count;
     s32 i;
     
     count = g_kernel.renzokukenFinishers[D_800ED148.unk132E].hitCount;
-    subs = func_8009BBD0()->subEntries;
-    D_800ED148.entities[subs->unk0].unkC9 = count;
+    subEntry = func_8009BBD0()->subEntries;
+    D_800ED148.entities[subEntry->unk0].unkC9 = count;
     
     for (i = 0; i < count; i++) {
-        func_800A09D0(subs->unk0);
-        func_800A5210(subs->unk0);
-        subs++;
+        func_800A09D0(subEntry->unk0);
+        func_800A5210(subEntry->unk0);
+        subEntry++;
     }
 }
 
 
 void func_8009BCE4(void) { // might be related to renzokuken finishing blow
     s32 i;
-    SubEntry* var_s0;
+    SubEntry* subEntry;
 
-    var_s0 = func_8009BBD0()->subEntries;
-    if (D_800ED148.unk1305 != 0) {
-        i = 0;
-        do {
-            func_800A09D0(var_s0->unk0); 
-            func_800A5210(var_s0->unk0);
-            var_s0++;
-            i++;
-        } while (i < D_800ED148.unk1305);
+    subEntry = func_8009BBD0()->subEntries;
+    for (i = 0; i < D_800ED148.unk1305; i++, subEntry++) {
+        func_800A09D0(subEntry->unk0); 
+        func_800A5210(subEntry->unk0);
     }
 }
 

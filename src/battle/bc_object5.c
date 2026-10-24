@@ -4,6 +4,229 @@
 #include "battle/bc_object5.h"
 
 
+u16 func_800AA034(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 unused) {
+    s32 i;
+    s32 result;
+    s32 val;
+
+    val = 0;
+    
+    switch (arg3) {
+        case 200 ... 201:
+            func_800A9970(arg3);
+            break;
+        
+        case 0:
+            val = 1;
+            /* fallthrough */
+        case 1  ... 9:
+        case 16 ... 42:
+        case 46 ... 47:
+            func_800A99E8(arg3);
+            break;
+        
+        case 205 ... 220:
+            func_800A9AC0(arg3, arg1);
+            break;
+
+        case 221 ... 236:
+            func_800A9C68(arg3, arg1);
+            break;
+        
+        case 203 ... 204:
+            func_800A9E08(arg3, arg1);
+            break;
+        
+        default:
+            break;
+    }
+    
+    if (arg2 == 3) {
+        func_800A9938();
+    }
+    
+    if (val == 0) {
+        func_800A9FDC();
+    }
+        
+    else {
+        func_800A9F98();
+    }
+    
+    if (arg0 == 0) {
+        switch (arg1) {
+            case 200:
+                do {
+                    i = func_800A97A4(3);
+                } while (D_800EEBE0[i] == 0);
+                result = func_800A97FC(i);
+                break;
+            
+            case 201:
+                do {
+                    i = func_800A97A4(4) + 3;
+                } while (D_800EEBE0[i] == 0);
+                result = func_800A97FC(i);
+                break;
+                
+            default:
+                do {
+                    i = func_800A97A4(7);
+                } while ((D_800EEBE0[i] == 0) || D_800ED148.entities[i].comFileId != arg1);
+                result = func_800A97FC(i);
+                break;
+        }
+    }
+        
+    else {
+        result = 32768;
+        switch (arg1) {
+            case 200:
+                for (i = 0; i < 3; i++) {
+                    if (D_800EEBE0[i] != 0) {
+                        result |= func_800A97FC(i);
+                    }
+                }
+                break;
+            
+            case 201:
+                for (i = 3; i < 7; i++) {
+                    if (D_800EEBE0[i] != 0) {
+                        result |= func_800A97FC(i);
+                    }
+                }
+                break;
+            
+            default:
+                for (i = 0; i < 7; i++) {
+                    if ((D_800ED148.entities[i].comFileId == arg1) && (D_800EEBE0[i] != 0)) {
+                        result |= func_800A97FC(i);
+                    }
+                }
+                break;
+        }
+    }
+    
+    return result;
+}
+
+s32 func_800AA368(s32 arg0) {
+    s32 i;
+    s32 val;
+
+    val = 0;
+    switch(arg0) {
+        case 200:
+            for (i = 0; i < 3; i++) {
+                if (!(D_800ED148.entities[i].status & 1)) {
+                    val++;
+                }
+            }
+            break;
+            
+        case 201:
+            for (i = 3; i < 7; i++) {
+                if (!(D_800ED148.entities[i].status & 1)) {
+                    val++;
+                }
+            }
+            break;
+            
+        default:
+            for (i = 0; i < 7; i++) {
+                if ((D_800ED148.entities[i].comFileId == arg0) && !(D_800ED148.entities[i].status & 1)) {
+                    val++;
+                }
+            }   
+            break;
+    }
+    
+    return val;
+}
+
+u16 func_800AA44C(s32 arg0) {
+    s32 bit;
+
+    if (func_800AA368(201) == 1) {
+        bit = arg0;
+    }
+    
+    else {
+        do {
+            bit = func_800A97A4(4) + 3;
+        } while (bit == arg0 || (D_800ED148.entities[bit].status & 1));
+    }
+    
+    return (1 << bit);
+}
+
+s32 func_800AA4E0(void) {
+    return 32775;
+}
+
+s32 func_800AA4E8(void) {
+    return 33016;
+}
+
+s32 func_800AA4F0(void) {
+    return 33023;
+}
+
+/**
+* @brief Search entity table for a matching byte at offset 0xCB.
+*
+* @param a0 Value to search for.
+* @return Entity index (0-6) if found, or 0xFF if not found.
+*/
+
+s32 func_800AA4F8(s32 arg0) {
+    s32 i;
+
+    for (i = 0; i < 7; i++) {
+        if (D_800ED148.entities[i].comFileId == arg0) {
+            return i;
+        }
+    }
+
+    return 255;    
+}
+
+/**
+ * @brief Search entity table for active entity linked to index a0.
+ *
+ * @param a0 Link index to search for.
+ * @return Entity index if found, 0xFF otherwise.
+ */
+
+s32 func_800AA530(s32 arg0) {
+    s32 i;
+
+    for (i = 0; i < 7; i++) {
+        if (!(D_800ED148.entities[i].status & 1) && ((D_800ED148.entities[i].comFileId == arg0))) {
+            return i;
+        }
+    }
+    
+    return 255;
+}
+
+BattleEntity* func_800AA57C(s32 arg0, s32 arg1) {
+    switch (arg0) {
+        case 203:
+            return &D_800ED148.entities[D_800ED148.entities[arg1].unk88];
+        
+        case 200:
+            return &D_800ED148.entities[arg1];
+
+        case 220 ... 227:
+            return &D_800ED148.entities[D_800ED148.entities[arg1].unk24[arg0 - 220]];
+
+        case 0 ... 199:
+        default:
+            return &D_800ED148.entities[func_800AA4F8(arg0)];
+    }
+}
+
 s32 func_800AA68C(s32 arg0, u32 arg1, u32 arg2) {
     switch (arg1) {
         case 0:

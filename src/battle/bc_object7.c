@@ -293,7 +293,7 @@ s32 func_800AF918(s32 arg0, u8* arg1) {
     for (i = 0; i < 16; i++) {
         if (g_gameState.chars[g_gameState.mainData.party.partyMembers[arg0]].junctedGfs & bit) {
             *arg1++ = i;
-            count++; // counts how many elements of arg1 have a value inside
+            count++;
         }
         
         bit <<= 1;

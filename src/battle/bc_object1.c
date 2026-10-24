@@ -271,7 +271,7 @@ void func_8009A308(void) {
  * into the returned command buffer.
  */
 void func_8009A38C(void) {
-    SoundCmd *cmd = func_8009B134(0x3EA, 0x80, 0);
+    SoundCmd *cmd = func_8009B134(1002, 128, 0);
     cmd->unk0 = D_800ED148.unkCDC;
 }
 
@@ -281,8 +281,8 @@ void func_8009A38C(void) {
  * Plays sound ID 1 and sound ID 0x3EB, both at volume 0x80.
  */
 void func_8009A3BC(void) {
-    func_8009B134(1, 0x80, 0);
-    func_8009B134(0x3EB, 0x80, 0);
+    func_8009B134(1, 128, 0);
+    func_8009B134(1003, 128, 0);
 }
 
 /**
@@ -309,7 +309,7 @@ void func_8009A3F4(void) {
  * @param off Hit-type table index.
  */
 void func_8009A42C(s32 idx, s32 off) {
-    SoundCmd *cmd = func_8009B134(0x66, 0x80, &D_800ED148.entities[idx]);
+    SoundCmd *cmd = func_8009B134(102, 128, &D_800ED148.entities[idx]);
     cmd->unk0 = idx;
     cmd->unk2.hword = D_800ED148.unkD14[off];
 }
@@ -355,7 +355,7 @@ void func_8009A528(s32 idx, s32 off) {
 
     func_8009AFF0(idx);
     func_800A1CFC(idx);
-    cmd = func_8009B134(0x67, 0x80, &D_800ED148.entities[idx]);
+    cmd = func_8009B134(103, 128, &D_800ED148.entities[idx]);
     cmd->unk0 = idx;
     cmd->unk2.b.lo = 1;
     
@@ -409,7 +409,7 @@ void func_8009A6A8(s32 idx) {
     func_800A240C(idx, D_800ED148.entities[idx].currentHp, &D_800ED148.entities[idx].status);
     func_8009AFF0(idx);
     func_800A1AB8(idx, D_800ED148.entities[idx].status, D_800ED148.entities[idx].flags);
-    cmd = func_8009B134(0x67, 0x80, &D_800ED148.entities[idx]);
+    cmd = func_8009B134(103, 128, &D_800ED148.entities[idx]);
     cmd->unk0 = idx;
     cmd->unk2.b.lo = 0;
     cmd->unk2.b.hi = 0;
@@ -442,7 +442,7 @@ void func_8009A74C(void) {
         }
     }
 
-    func_8009B134(0xD, 0x80, 0);
+    func_8009B134(13, 128, 0);
     posIdx = 0;
     for (i = 0; i < 3; i++) {
         if (D_800ED148.entities[i].comFileId != 255) {
@@ -481,7 +481,7 @@ void func_8009A74C(void) {
  * @param idx Entity slot index.
  */
 void func_8009A8B4(s32 idx) {
-    SoundCmd *cmd = func_8009B134(0x66, 0x80, &D_800ED148.entities[idx]);
+    SoundCmd *cmd = func_8009B134(102, 128, &D_800ED148.entities[idx]);
     cmd->unk0 = idx;
     cmd->unk2.hword = D_800ED148.entities[idx].comFileId;
 }

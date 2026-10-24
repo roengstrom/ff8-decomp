@@ -85,7 +85,7 @@ binaries:
     - [0x3AC4, c, bc_object2]
     - [0x98E0, c, bc_object3]
     - [0xE184, c, bc_object4]
-    - [0x1268C, c, bc_object5]
+    - [0x12034, c, bc_object5]
     - [0x134A8, c, bc_object6]
     - [0x17254, c, bc_object7]
     - [0x180E8, c, bc_object8]

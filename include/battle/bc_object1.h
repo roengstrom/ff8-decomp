@@ -108,7 +108,7 @@ void func_8009B320(u8, TaskLink*, u8*);
 
 u8 func_8009B390(TaskLink*, s32);
 
-//s16 func_8009B3D0(void*); this function prototype most likely has been forgotten originally
+// s16 func_8009B3D0(void*); to include this header we must perform a split in the functions
 
 void func_8009B428(void);
 

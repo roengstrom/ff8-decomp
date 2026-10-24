@@ -6,9 +6,7 @@
 #include "game.h"
 #include "battle/bc_object2.h"
 #include "battle/bc_object3.h"
-#include "battle/bc_object7.h"
 
-SoundCmd* func_8009B134(s32 arg0, s32 arg1, void* unused); // cant include bc_object1.h
 static void func_800A4350(s32 arg0, s32 arg1);
 
 
@@ -1408,9 +1406,12 @@ static void func_800A4350(s32 arg0, s32 arg1) {
 
 
 void func_800A43C0(s32 arg0) {
+    SoundCmd* cmd;
+
     if (!(D_800ED148.entities[arg0].status & 1)) {
         func_800AF8A4(arg0);
-        func_8009B134(114, 240, 0)->unk0 = arg0;
+        cmd = func_8009B134(114, 240, 0);
+        cmd->unk0 = arg0;
     }
 }
 
@@ -2229,10 +2230,13 @@ void func_800A5A7C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, u16 arg4, s32 arg5, I
 }
 
 void func_800A5AF4(u32 arg0) {
+    SoundCmd* cmd;
+
     D_800ED148.entities[arg0].flags &= 0xFF77FFFF;
-    func_8009B134(0x6E, 0xF0, 0)->unk0 = arg0;
-    func_8009B088(arg0, 1, 0x13, 0);
-    func_8009B088(arg0, 1, 0x17, 0);
+    cmd = func_8009B134(110, 240, 0);
+    cmd->unk0 = arg0;
+    func_8009B088(arg0, 1, 19, 0);
+    func_8009B088(arg0, 1, 23, 0);
     g_battleChars.chars[arg0].battleStatus = D_800ED148.entities[arg0].flags & 0x030E7FFF;
 }
 

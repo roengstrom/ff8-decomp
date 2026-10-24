@@ -2,6 +2,24 @@
 #define BC_OBJECT5_H
 
 
+u16 func_800AA034(s32, s32, s32, s32, s32);
+
+s32 func_800AA368(s32);
+
+u16 func_800AA44C(s32);
+
+s32 func_800AA4E0(void);
+
+s32 func_800AA4E8(void);
+
+s32 func_800AA4F0(void);
+
+s32 func_800AA4F8(s32);
+
+s32 func_800AA530(s32);
+
+BattleEntity* func_800AA57C(s32, s32);
+
 s32 func_800AA68C(s32, u32, u32);
 
 s32 func_800AA71C(s32, s32);

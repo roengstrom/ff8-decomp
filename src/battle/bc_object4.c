@@ -1,7 +1,7 @@
 #include "common.h"
 #include "ability.h"
 #include "battle.h"
-#include "gf.h"
+#include "kernel.h"
 #include "gamestate.h"
 #include "battle/bc_object4.h"
 #include "battle/bc_object22.h"
@@ -1350,7 +1350,7 @@ void func_800A8578(void) {
 }
 
 void func_800A864C(void) {
-    BattleAnimSlot* temp_v0;
+    BattleAnimSlot* animSlot;
     s32 i;
     s32 idx;
 
@@ -1362,10 +1362,10 @@ void func_800A864C(void) {
     for (i = 0; i < 198; i++) {
         idx = g_gameState.mainData.itemSlots[i].id;
         
-        if ((idx != 0) && (idx < 33)) {
-            temp_v0 = &D_800EE9E8.animSlots[g_gameState.mainData.limitBreaks.angeloPoints[idx+7]]; // hack, not much sense, size 8
-            temp_v0->value = g_gameState.mainData.itemSlots[i].count;
-            temp_v0->id = idx;
+        if ((idx != 0) && (idx <= 32)) {
+            animSlot = &D_800EE9E8.animSlots[g_gameState.mainData.battleOrder[idx-1]];
+            animSlot->value = g_gameState.mainData.itemSlots[i].count;
+            animSlot->id = idx;
         }
     }
     
@@ -1505,8 +1505,6 @@ s32 func_800A8AFC(s32 arg0) {
     
     return 2;
 }
-
-#include "battle/bc_object9.h" // probably there s a split here
 
 s32 func_800A8B7C(s32 arg0) {
     BattleCharData* temp_s0;
@@ -2064,8 +2062,8 @@ void func_800A97D4(void) {
 * @return 16-bit mask with bit at bitPos set.
 */
 
-s32 func_800A97FC(s32 arg0) {
-    return (u16)(1 << arg0); // functions in this folder break with u16 return prototype
+u16 func_800A97FC(s32 arg0) {
+    return (1 << arg0);
 }
 
 /**
@@ -2374,228 +2372,5 @@ void func_800A9FDC(void) {
         if (!(D_800ED148.entities[i].controlFlags & 1) || (D_800ED148.entities[i].status & 1)) {
             D_800EEBE0[i] = 0;
         }
-    }
-}
-
-u16 func_800AA034(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 unused) {
-    s32 i;
-    s32 result;
-    s32 var_s0;
-
-    var_s0 = 0;
-    
-    switch (arg3) {
-        case 200 ... 201:
-            func_800A9970(arg3);
-            break;
-        
-        case 0:
-            var_s0 = 1;
-            /* fallthrough */
-        case 1  ... 9:
-        case 16 ... 42:
-        case 46 ... 47:
-            func_800A99E8(arg3);
-            break;
-        
-        case 205 ... 220:
-            func_800A9AC0(arg3, arg1);
-            break;
-
-        case 221 ... 236:
-            func_800A9C68(arg3, arg1);
-            break;
-        
-        case 203 ... 204:
-            func_800A9E08(arg3, arg1);
-            break;
-        
-        default:
-            break;
-    }
-    
-    if (arg2 == 3) {
-        func_800A9938();
-    }
-    
-    if (var_s0 == 0) {
-        func_800A9FDC();
-    }
-        
-    else {
-        func_800A9F98();
-    }
-    
-    if (arg0 == 0) {
-        switch (arg1) {
-            case 200:
-                do {
-                    i = func_800A97A4(3);
-                } while (D_800EEBE0[i] == 0);
-                result = func_800A97FC(i);
-                break;
-            
-            case 201:
-                do {
-                    i = func_800A97A4(4) + 3;
-                } while (D_800EEBE0[i] == 0);
-                result = func_800A97FC(i);
-                break;
-                
-            default:
-                do {
-                    i = func_800A97A4(7);
-                } while ((D_800EEBE0[i] == 0) || D_800ED148.entities[i].comFileId != arg1);
-                result = func_800A97FC(i);
-                break;
-        }
-    }
-        
-    else {
-        result = 32768;
-        switch (arg1) {
-            case 200:
-                for (i = 0; i < 3; i++) {
-                    if (D_800EEBE0[i] != 0) {
-                        result |= func_800A97FC(i);
-                    }
-                }
-                break;
-            
-            case 201:
-                for (i = 3; i < 7; i++) {
-                    if (D_800EEBE0[i] != 0) {
-                        result |= func_800A97FC(i);
-                    }
-                }
-                break;
-            
-            default:
-                for (i = 0; i < 7; i++) {
-                    if ((D_800ED148.entities[i].comFileId == arg1) && (D_800EEBE0[i] != 0)) {
-                        result |= func_800A97FC(i);
-                    }
-                }
-                break;
-        }
-    }
-    
-    return result;
-}
-
-s32 func_800AA368(s32 arg0) {
-    s32 i;
-    s32 val;
-
-    val = 0;
-    switch(arg0) {
-        case 200:
-            for (i = 0; i < 3; i++) {
-                if (!(D_800ED148.entities[i].status & 1)) {
-                    val++;
-                }
-            }
-            break;
-            
-        case 201:
-            for (i = 3; i < 7; i++) {
-                if (!(D_800ED148.entities[i].status & 1)) {
-                    val++;
-                }
-            }
-            break;
-            
-        default:
-            for (i = 0; i < 7; i++) {
-                if ((D_800ED148.entities[i].comFileId == arg0) && !(D_800ED148.entities[i].status & 1)) {
-                    val++;
-                }
-            }   
-            break;
-    }
-    
-    return val;
-}
-
-u16 func_800AA44C(s32 arg0) {
-    s32 bit;
-
-    if (func_800AA368(201) == 1) {
-        bit = arg0;
-    }
-    
-    else {
-        do {
-            bit = func_800A97A4(4) + 3;
-        } while (bit == arg0 || (D_800ED148.entities[bit].status & 1));
-    }
-    
-    return (1 << bit);
-}
-
-s32 func_800AA4E0(void) {
-    return 32775;
-}
-
-s32 func_800AA4E8(void) {
-    return 33016;
-}
-
-s32 func_800AA4F0(void) {
-    return 33023;
-}
-
-/**
-* @brief Search entity table for a matching byte at offset 0xCB.
-*
-* @param a0 Value to search for.
-* @return Entity index (0-6) if found, or 0xFF if not found.
-*/
-
-s32 func_800AA4F8(s32 arg0) {
-    s32 i;
-
-    for (i = 0; i < 7; i++) {
-        if (D_800ED148.entities[i].comFileId == arg0) {
-            return i;
-        }
-    }
-
-    return 255;    
-}
-
-/**
- * @brief Search entity table for active entity linked to index a0.
- *
- * @param a0 Link index to search for.
- * @return Entity index if found, 0xFF otherwise.
- */
-
-s32 func_800AA530(s32 arg0) {
-    s32 i;
-
-    for (i = 0; i < 7; i++) {
-        if (!(D_800ED148.entities[i].status & 1) && ((D_800ED148.entities[i].comFileId == arg0))) {
-            return i;
-        }
-    }
-    
-    return 255;
-}
-
-BattleEntity* func_800AA57C(s32 arg0, s32 arg1) {
-    switch (arg0) {
-        case 203:
-            return &D_800ED148.entities[D_800ED148.entities[arg1].unk88];
-        
-        case 200:
-            return &D_800ED148.entities[arg1];
-
-        case 220 ... 227:
-            return &D_800ED148.entities[D_800ED148.entities[arg1].unk24[arg0 - 220]];
-
-        case 0 ... 199:
-        default:
-            return &D_800ED148.entities[func_800AA4F8(arg0)];
     }
 }

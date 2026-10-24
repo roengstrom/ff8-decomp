@@ -9,8 +9,6 @@
 #include "battle/bc_object4.h"
 #include "battle/bc_object5.h"
 #include "battle/bc_object6.h"
-#include "battle/bc_object7.h"
-
 
 void func_800A2F54(void); // cant include bc_object3.h
 

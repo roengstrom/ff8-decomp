@@ -188,7 +188,7 @@ s32 func_800A97A4(s32);
 
 void func_800A97D4(void);
 
-s32 func_800A97FC(s32);
+u16 func_800A97FC(s32);
 
 u16 func_800A980C(void);
 
@@ -213,23 +213,5 @@ void func_800A9E08(s32, s32);
 void func_800A9F98(void);
 
 void func_800A9FDC(void);
-
-u16 func_800AA034(s32, s32, s32, s32, s32);
-
-s32 func_800AA368(s32);
-
-u16 func_800AA44C(s32);
-
-s32 func_800AA4E0(void);
-
-s32 func_800AA4E8(void);
-
-s32 func_800AA4F0(void);
-
-s32 func_800AA4F8(s32);
-
-s32 func_800AA530(s32);
-
-BattleEntity* func_800AA57C(s32, s32);
 
 #endif /* BC_OBJECT4_H */
