@@ -10,7 +10,7 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object1b.h"
 #include "field/fe_object10.h"
-#include "thread.h"
+#include "gamepad.h"
 
 /**
  * @brief Initialize the field engine's double-buffered draw/display envs.

@@ -2,7 +2,7 @@
 #include "menu.h"
 #include "menumain.h"
 #include "menucfg.h"
-#include "thread.h"
+#include "gamepad.h"
 
 /** One row of the config table @c D_801E7094: an option id and its state. */
 typedef struct {

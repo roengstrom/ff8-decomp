@@ -3,40 +3,10 @@
 
 #include "common.h"
 #include "psxsdk/libgpu.h"
+#include "gamepad.h"
 #include "ui/dialog.h"
 #include "ui/countdown.h"
 #include "ui/seed_rank.h"
-
-typedef struct {
-    u8 inputReadFailed;
-    u8 gamePadInputIdentifier; // high nibble is gamepad type, low is number of byte pairs (16 bit) in input
-    u16 currentlyPressedButtons; // buttons currently being pressed down in the frame (1 = pressed)
-    u8 analog[4]; // rightX, rightY, leftX, leftY
-    u16 autoRepeatedButtons[4]; // used for repeating held down inputs. e.g. useful for scrolling lists by holding up/down
-    u16 newlyPressedButtons;
-    u16 newlyReleasedButtons;
-} GamePadInputFrame; /* 0x14 = 20 bytes */
-
-/** @brief The state of one gamepad port. */
-typedef struct {
-    u8 gamePadTransmitBuf[6];
-    u8 vibrationIntensity[2]; // one for each motor in the gamepad
-    u8 vibrationIntensityShift[2]; // small motor only goes 0-1 and large 0-255, this scales the vibrationIntensity[] level (0-255) so it fits each motor accurately
-    u8 actuatorDataChanged;
-    u8 actuatorCount; // number of vibration motors (sdk calls it actuator)
-    s8 autoRepeatCountdowns[4];
-    u16 autoRepeatButtonMasks[4];
-    u8 frameCounter;
-    s8 actuatorSetupPending;
-    s8 gamePadState;
-    u8 vibrationMask; // 0xFF with vibration on, 0 with it off.
-    GamePadInputFrame frames[8];
-    u8 actuatorAlign[6]; // actuator parameter transmission bytes (used when calling SDK PadSetActAlign)
-    u8 inputSourceIndex; // this gamepad's input is read from g_engine.gamePads[inputSourceIndex]
-    u8 analogStickConfig; // bits 0-6 = value of analog deadzone, bit 7 swaps which analog stick should be used
-} GamePad;
-
-#define PAD_PORT_SWAP_ANALOG_STICKS 0x80
 
 #define OT_SIZE 18
 

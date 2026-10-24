@@ -1,6 +1,7 @@
 #include "common.h"
 #include "battle_anim.h"
 #include "btl_anim.h"
+#include "gamepad.h"
 #include "input/vibration.h"
 
 /* --- Private types --- */

@@ -6,7 +6,7 @@
 #include "sound.h"
 #include "snd_init.h"
 #include "snd_sfx.h"
-#include "thread.h"
+#include "gamepad.h"
 #include "psxsdk/libc.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"

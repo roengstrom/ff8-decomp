@@ -14,12 +14,6 @@ extern s32  getDisplayListHead(void);              /**< Next free packet in the 
 extern void copyDisplayRect(RECT *dst); /**< Copy the active draw environment's clip rect to @p dst. */
 extern void copyDisplayCoords(u16 *ofs); /**< Copy the active draw environment's draw offset to @p ofs. */
 
-extern s32 getAnimGlobalState(void);
-extern s32 setAnimGlobalState(s32 value);
-extern void setPadMotors(s32 idx, s32 motor1, s32 motor0);
-extern void setPadVibration(s32 idx, s32 val);
-extern void setPadRepeatMask(s32 unused, s32 channel, s32 mask);
-
 /* Public data */
 extern u8 g_animCurveFadeOut[]; /**< Easing curve: 65 entries that rise exponentially to 64. */
 extern u8 g_animCurveFadeIn[]; /**< g_animCurveFadeOut reversed: falls exponentially from 64. */

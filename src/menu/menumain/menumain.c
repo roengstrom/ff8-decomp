@@ -11,7 +11,7 @@
 #include "btl_anim_packet.h"
 #include "ui/icon.h"
 #include "snd_sfx.h"
-#include "thread.h"
+#include "gamepad.h"
 #include "ui/dialog.h"
 #include "ui/text.h"
 #include "ui/sprite.h"

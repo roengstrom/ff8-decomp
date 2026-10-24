@@ -19,7 +19,7 @@
 #include "world/we_object10.h"
 #include "world/we_object13.h"
 #include "main.h"
-#include "thread.h"
+#include "gamepad.h"
 #include "btl_anim.h"
 
 #define SP_SAVE_SCRATCH(slot)                                                  \

@@ -5,12 +5,12 @@
 #include "intro.h"
 #include "cdrom.h"
 #include "snd_init.h"
-#include "thread.h"
+#include "gamepad.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libcd.h"
 
-/* s32 view of thread.c's u16 getPadReadButtons; see thread.h. */
+/* s32 view of gamepad.c's u16 getPadReadButtons; see gamepad.h. */
 extern s32 getPadReadButtons(s32 slot, s32 sub);
 
 /**

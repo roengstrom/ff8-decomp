@@ -164,9 +164,9 @@ typedef struct {
 /* Imported functions kept as externs here, each for a concrete reason (numstr, gamepad-
    input, battle-display and colour-bar GPU helpers were migrated to numstr.h / thread.h /
    btl_anim.h / ui/window.h):
-     - getPadReadButtons — returns u16 (thread.c) but this caller needs the s32 view with no
+     - getPadReadButtons — returns u16 (gamepad.c) but this caller needs the s32 view with no
        widening mask; adopting the true u16 measurably breaks the match (see thread.h). */
-extern s32  getPadReadButtons(s32 slot, s32 sub);     /**< Per-gamepad held buttons. Defined u16 in thread.c, but the original caller uses it as s32 (no widening mask) — match-load-bearing, so kept here rather than via thread.h. */
+extern s32  getPadReadButtons(s32 slot, s32 sub);     /**< Per-gamepad held buttons. Defined u16 in gamepad.c, but the original caller uses it as s32 (no widening mask) — match-load-bearing, so kept here rather than via thread.h. */
 
 /* File-scope data: a few globals owned elsewhere (battle config / menu palette) plus
    be_object4-private board / SFX / input state — the D_801D4xxx / D_801C2Exx / D_80182Exx

@@ -8,7 +8,7 @@
 #include "field.h"
 #include "gamestate.h"
 #include "battle.h"
-#include "thread.h"
+#include "gamepad.h"
 #include "btl_anim.h"
 #include "overlay.h"
 #include "game.h"

@@ -11,7 +11,7 @@
 #include "world/we_object10.h"
 #include "world/we_object11.h"
 #include "world/we_object9.h"
-#include "thread.h"
+#include "gamepad.h"
 
 /* ---- private to renderWorldMapFrame -------------------------------------
  * Direction bits of D_800D2278 (declared in we_object1.h); only this unit
@@ -235,7 +235,7 @@ extern s32              D_800C9ED4;   /**< Pad 1's raw frame parameter, packed i
 extern s32              D_800D2470;   /**< Repeat delay accumulator. */
 extern s32              D_800D2474;   /**< Repeat step counter. */
 
-/* getPadReadButtons returns u16 in thread.c, but every caller uses the result as
+/* getPadReadButtons returns u16 in gamepad.c, but every caller uses the result as
    s32 with no widening mask; thread.h documents that those callers keep their own
    declaration. applyButtonRemapTranslation is u16 (u16) in input/button_remap.h; this caller
    needs the s32 view, which the u16 prototype would mask. */

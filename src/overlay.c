@@ -3,6 +3,7 @@
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
 #include "battle.h"
+#include "gamepad.h"
 #include "ui/seed_rank.h"
 #include "cd.h"
 #include "gamestate.h"
