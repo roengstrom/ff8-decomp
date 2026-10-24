@@ -646,7 +646,7 @@ s32 autoRepeatPad(s32 input) {
     DialogSystem *sys = &g_engine.dialogs;
     EngineState *engine = &g_engine;
     u16 bits = input;
-    PadPort *port = &engine->ports[engine->ports[0].linkedIdx];
+    PadPort *port = &engine->controllerPorts[engine->controllerPorts[0].linkedIdx];
     u16 result;
 
     result = 0;

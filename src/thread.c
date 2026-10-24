@@ -228,10 +228,10 @@ static void stepPadPort(PadPort *a0, PadPort *port, s32 a2) {
             func_800270B0(a0, port, a2);
             port->field0A = 1;
             port->field19 = 0;
-            port->field01 = 0;
-            port->field02 = 0;
+            port->controllerTransmitBuf[1] = 0;
+            port->controllerTransmitBuf[2] = 0;
             func_8003AF50(a2, port->fieldBC);
-            func_8003AFD0(a2, port, 6);
+            func_8003AFD0(a2, port->controllerTransmitBuf, 6);
         } else {
             u8 f6 = port->motor[0];
             u8 f7 = port->motor[1];
@@ -245,8 +245,8 @@ static void stepPadPort(PadPort *a0, PadPort *port, s32 a2) {
             do { port->field0A = 1; v6 = f6 & mask; } while (0);
             v7 = f7 & mask;
             sh6 = port->field08;
-            port->field02 = v7 >> sh7;
-            port->field01 = v6 >> sh6;
+            port->controllerTransmitBuf[2] = v7 >> sh7;
+            port->controllerTransmitBuf[1] = v6 >> sh6;
         }
         break;
     }
@@ -294,10 +294,10 @@ s32 func_80027360(s32 a0) {
 
 /**
  * @brief Make stepPadPort rerun a pad port's setup on its next state-6 tick.
- * @param idx Index into g_engine.ports.
+ * @param idx Index into g_engine.controllerPorts.
  */
 void requestPadSetup(s32 idx) {
-    PadPort *port = &g_engine.ports[idx];
+    PadPort *port = &g_engine.controllerPorts[idx];
     port->field19 = 1;
     port->field0A = 1;
 }
@@ -314,8 +314,8 @@ static void stepPadPorts(PadPort *a0) {
 
 
 void settlePadPorts(void) {
-    PadPort *port = &g_engine.ports[0];
-    PadPort *ports = g_engine.ports;
+    PadPort *port = &g_engine.controllerPorts[0];
+    PadPort *ports = g_engine.controllerPorts;
     s32 count;
     /* Without this barrier the register allocator gives s0 to count
        instead of port. */
@@ -377,7 +377,7 @@ void setBattleAnimClipRect(RECT *rect) {
  * @param idx Port index.
  */
 s32 getPadField0B(s32 idx) {
-    PadPort *port = &g_engine.ports[idx];
+    PadPort *port = &g_engine.controllerPorts[idx];
     return port->field0B;
 }
 
@@ -399,14 +399,14 @@ void func_800275D4(void) {
     s32 dx;
     s32 dy;
 
-    stepPadPorts(engine->ports);
-    port = engine->ports;
+    stepPadPorts(engine->controllerPorts);
+    port = engine->controllerPorts;
     sr = GetSr();
     if (!(sr & SR_IEP)) {
         EnterCriticalSection();
     }
     for (i = 0; i < 2; i++, port++) {
-        buf = engine->field188[i];
+        buf = engine->controllerReceiveBuf[i];
         linked = i;
         type = buf[1] >> 4;
         fc = port->frameCounter;
@@ -492,7 +492,7 @@ u16 getPadReadButtons(s32 idx, s32 offset) {
     PadPort *linked;
     s32 sub_idx;
     idx &= 1;
-    ports = g_engine.ports;
+    ports = g_engine.controllerPorts;
     port = ports + idx;
     linked = ports + port->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -513,7 +513,7 @@ u16 getPadReadRepeat(s32 idx, s32 offset) {
     s32 sub_idx;
     AnimFrame *frame;
     idx &= 1;
-    ports = g_engine.ports;
+    ports = g_engine.controllerPorts;
     port = ports + idx;
     linked = ports + port->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -534,7 +534,7 @@ u16 getPadReadPressed(s32 idx, s32 offset) {
     PadPort *linked;
     s32 sub_idx;
     idx &= 1;
-    ports = g_engine.ports;
+    ports = g_engine.controllerPorts;
     port = ports + idx;
     linked = ports + port->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -554,7 +554,7 @@ static u16 getPadReadReleased(s32 idx, s32 offset) {
     PadPort *linked;
     s32 sub_idx;
     idx &= 1;
-    ports = g_engine.ports;
+    ports = g_engine.controllerPorts;
     port = ports + idx;
     linked = ports + port->linkedIdx;
     sub_idx = (linked->frameCounter - offset) & 7;
@@ -621,8 +621,8 @@ inline s32 func_80027B7C(s32 a0) {
 s32 getPadDeadZone(s32 a0) {
     s32 slot;
     a0 &= 1;
-    slot = g_engine.ports[a0].linkedIdx;
-    return (g_engine.ports[slot].fieldC3 & 0x7F) << 8;
+    slot = g_engine.controllerPorts[a0].linkedIdx;
+    return (g_engine.controllerPorts[slot].fieldC3 & 0x7F) << 8;
 }
 
 
@@ -642,8 +642,8 @@ void setPadDeadZone(s32 a0, s32 a1) {
     s32 clamped;
     sq = a1;
     a0 &= 1;
-    slot = g_engine.ports[a0].linkedIdx;
-    linked = &g_engine.ports[slot];
+    slot = g_engine.controllerPorts[a0].linkedIdx;
+    linked = &g_engine.controllerPorts[slot];
     clamped = (sq < 0) ? 0 : (sq > 0x7F) ? 0x7F : a1;
     sq = clamped * clamped;
     sq = sq / 0x100;
@@ -660,8 +660,8 @@ void setPadAnalogFlag(s32 a0, s32 a1) {
     s32 slot;
     PadPort *linked;
     a0 &= 1;
-    slot = g_engine.ports[a0].linkedIdx;
-    linked = &g_engine.ports[slot];
+    slot = g_engine.controllerPorts[a0].linkedIdx;
+    linked = &g_engine.controllerPorts[slot];
     if (a1) {
         linked->fieldC3 |= PAD_PORT_FLAG_UNK80;
     } else {
@@ -692,10 +692,10 @@ s32 func_80027DB4(s32 pad, s32 axis, s32 c) {
     s32 type;
 
     pad &= 1;
-    port = &g_engine.ports[g_engine.ports[pad & 1].linkedIdx];
+    port = &g_engine.controllerPorts[g_engine.controllerPorts[pad & 1].linkedIdx];
     frameSlot = (port->frameCounter - c) & 7;
     result = -1;
-    linked = &g_engine.ports[g_engine.ports[pad].linkedIdx];
+    linked = &g_engine.controllerPorts[g_engine.controllerPorts[pad].linkedIdx];
     frame = &port->frames[frameSlot];
     if (frame->field00 == 0) {
         if (linked->fieldC3 & PAD_PORT_FLAG_UNK80) {
@@ -717,7 +717,7 @@ s32 func_80027DB4(s32 pad, s32 axis, s32 c) {
  * @return 0xFF with vibration on, 0 with it off.
  */
 s32 getPadVibration(s32 idx) {
-    PadPort *port = &g_engine.ports[idx & 1];
+    PadPort *port = &g_engine.controllerPorts[idx & 1];
     return port->vibrationMask;
 }
 

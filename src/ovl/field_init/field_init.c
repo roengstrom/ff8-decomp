@@ -201,7 +201,7 @@ void func_800983B8(void) {
     clipRect[3] = 224;
     setBattleAnimClipRect(clipRect);
 
-    port = engine->ports;
+    port = engine->controllerPorts;
     i = 0;
     do {
         initPadInput(i);
@@ -215,7 +215,7 @@ void func_800983B8(void) {
             port->motor[j] = 0;
         }
 
-        port->field00 = 0x40;
+        port->controllerTransmitBuf[0] = 0x40;
 
         /* The retail code has this loop, with an empty body. */
         for (j = 0; j < 6; j++) {

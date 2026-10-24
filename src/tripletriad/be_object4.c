@@ -672,7 +672,7 @@ s32 func_800A29D4(EngineState *base, PadPort *port, u16 newVal, s32 side, s32 en
  */
 s32 func_800A2A8C(s32 entryIndex, u16 arg1)
 {
-    PadPort *port = &g_engine.ports[g_engine.ports[entryIndex].linkedIdx];
+    PadPort *port = &g_engine.controllerPorts[g_engine.controllerPorts[entryIndex].linkedIdx];
     u16 result = 0;
 
     result |= func_800A29D4(&g_engine, port, arg1, 0, entryIndex);

@@ -47,7 +47,7 @@ extern u8 g_paletteIndices[];
  * @param val Nonzero for on.
  */
 void setPadVibration(s32 idx, s32 val) {
-    PadPort *port = &g_engine.ports[idx & 1];
+    PadPort *port = &g_engine.controllerPorts[idx & 1];
     if (val != 0) {
         port->vibrationMask = 0xFF;
     } else {
@@ -66,7 +66,7 @@ void setPadVibration(s32 idx, s32 val) {
  * @param motor0 Level for motor[0] (-1 to skip).
  */
 void setPadMotors(s32 idx, s32 motor1, s32 motor0) {
-    PadPort *port = &g_engine.ports[idx & 1];
+    PadPort *port = &g_engine.controllerPorts[idx & 1];
     if (motor1 >= 0) {
         port->motor[1] = motor1;
     }
@@ -127,7 +127,7 @@ static s32 getPadReadByte(s32 idx, s32 param, s32 frameOffset) {
     s32 result;
 
     idx &= 1;
-    port = &g_engine.ports[g_engine.ports[idx].linkedIdx];
+    port = &g_engine.controllerPorts[g_engine.controllerPorts[idx].linkedIdx];
     frameSlot = (port->frameCounter - frameOffset) & 7;
     result = -1;
     frame = &port->frames[frameSlot];
@@ -171,7 +171,7 @@ static s32 getPadReadType(s32 idx, s32 frameOffset) {
     }
 
     slot = idx & 1;
-    port = &g_engine.ports[g_engine.ports[slot].linkedIdx];
+    port = &g_engine.controllerPorts[g_engine.controllerPorts[slot].linkedIdx];
     frameSlot = (port->frameCounter - frameOffset) & 7;
     frame = &port->frames[frameSlot];
 
@@ -195,8 +195,8 @@ static s32 getPadReadType(s32 idx, s32 frameOffset) {
 void setPadRepeatMask(s32 unused, s32 channel, s32 mask) {
     int new_var;
     new_var = 1;
-    g_engine.ports[0].unk10[channel] = mask;
-    g_engine.ports[new_var].unk10[channel] = mask;
+    g_engine.controllerPorts[0].unk10[channel] = mask;
+    g_engine.controllerPorts[new_var].unk10[channel] = mask;
 }
 
 
@@ -214,7 +214,7 @@ static void resetPadInput(s32 idx, s32 buttons) {
     PadPort *port;
     s32 i;
 
-    port = &g_engine.ports[g_engine.ports[idx].linkedIdx];
+    port = &g_engine.controllerPorts[g_engine.controllerPorts[idx].linkedIdx];
     port->frameCounter = 0;
     port->field0A = 0;
     port->field0C[0] = g_engine.repeatDelays.b.lo;
@@ -253,7 +253,7 @@ static void resetPadInput(s32 idx, s32 buttons) {
  * @param idx Port index (0 or 1).
  */
 void initPadInput(s32 idx) {
-    PadPort *port = &g_engine.ports[idx];
+    PadPort *port = &g_engine.controllerPorts[idx];
     port->field0C[0] = g_engine.repeatDelays.b.lo;
     port->field0C[1] = g_engine.repeatDelays.b.lo;
     port->field0C[2] = g_engine.repeatDelays.b.lo;
@@ -324,7 +324,7 @@ void setAnimFlag(s32 value) {
 void initCdAnimSubsystem(void) {
     EngineState *bas = &g_engine;
     func_800982B8();
-    func_8003BC24(bas->field188[0], bas->field188[1]);
+    func_8003BC24(bas->controllerReceiveBuf[0], bas->controllerReceiveBuf[1]);
     func_8003AB84();
     initAnimStateAndWait();
     bas->cdStreamCounter = 0;

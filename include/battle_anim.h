@@ -28,10 +28,7 @@ typedef struct {
 
 /** @brief The state of one controller port. */
 typedef struct {
-    u8 field00;
-    u8 field01; /**< motor[0] masked by vibrationMask, shifted right by field08 (stepPadPort). */
-    u8 field02; /**< motor[1] masked by vibrationMask, shifted right by field09 (stepPadPort). */
-    u8 pad03[3];
+    u8 controllerTransmitBuf[6];
     u8 motor[2]; /**< Vibration motor levels, 0-255. */
     u8 field08; /**< Shift amount applied to motor[0] in stepPadPort. */
     u8 field09; /**< Shift amount applied to motor[1] in stepPadPort. */
@@ -87,8 +84,8 @@ typedef struct {
 
 /** @brief Engine state every module shares: display lists, message windows, the HUD and more. */
 typedef struct {
-    /* 0x000 */ PadPort ports[2]; /**< The two controller ports. */
-    /* 0x188 */ u8 field188[2][0x24];
+    /* 0x000 */ PadPort controllerPorts[2];
+    /* 0x188 */ u8 controllerReceiveBuf[2][0x24]; // Used when calling SDK's PadSetAct
     /* 0x1D0 */ s16 globalCoords[2][2];      /**< Per-slot coords [slot][axis]. */
     /* 0x1D8 */ s16 clipLeft; /**< Clip region left edge. */
     /* 0x1DA */ s16 clipTop; /**< Clip region top edge. */
