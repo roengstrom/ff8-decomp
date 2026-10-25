@@ -168,7 +168,8 @@ Also:
   included, so include it instead.
 - No alignment padding: one space, never extra spaces to line up `=`, types, trailing
   comments or `#define` values.
-- Write an endless loop as `while (1)`, not `for (;;)`.
+- Write an endless loop as `while (1) { ... }`, not `for (;;)` or `do { ... } while (1);`, and a
+  loop that only waits as `while (cond) {}`, not `do {} while (cond);`.
 
 ## Compiler warnings
 
