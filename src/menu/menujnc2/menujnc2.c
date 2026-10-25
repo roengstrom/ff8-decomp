@@ -5259,7 +5259,7 @@ void initJunctionGfTable(void) {
         gf = &g_junctionGfTable[i];
         gf->charIdx = 0xFF;
         gf->abilityFlags = 0;
-        level = g_battleChars.levelEntries[i].level;
+        level = g_battleChars.gfs[i].level;
         gf->cmdSlotCount = 0;
         gf->ablSlotCount = 0;
         gf->maxAbilitySlots = 2;

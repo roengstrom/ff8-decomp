@@ -186,7 +186,7 @@ typedef enum {
  */
 typedef struct {
     /* 0x00 */ u32 abilityFlags;      /**< OR'd into g_junctionChars[].availFlags. */
-    /* 0x04 */ u8 level;              /**< GF level (from g_battleChars.levelEntries). */
+    /* 0x04 */ u8 level;              /**< GF level (from g_battleChars.gfs). */
     /* 0x05 */ u8 charIdx;            /**< Character this GF is junctioned to. */
     /* 0x06 */ u8 cmdSlotCount;       /**< Command slot count from this GF. */
     /* 0x07 */ u8 ablSlotCount;       /**< Ability slot count from this GF. */

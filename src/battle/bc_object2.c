@@ -1393,7 +1393,7 @@ void func_8009EAEC(s32 charIdx) {
 
     if (count != 0) {
         for (i = 0; i < count; i++) {
-            g_gameState.gfs[sp10[i]].hp += (D_800ED148.effectMult * g_battleChars.levelEntries[sp10[i]].maxHp) / 100;
+            g_gameState.gfs[sp10[i]].hp += (D_800ED148.effectMult * g_battleChars.gfs[sp10[i]].maxHp) / 100;
 
             func_8002363C(sp10[i]);
 
@@ -1407,7 +1407,7 @@ void func_8009EAEC(s32 charIdx) {
 
         if (D_800ED148.entities[charIdx].flags & 0x80000000) {
             id = g_battleChars.chars[charIdx].summoningGfId - 64;
-            g_battleChars.chars[charIdx].summoningCurrentHp = g_battleChars.levelEntries[id].hp;
+            g_battleChars.chars[charIdx].summoningCurrentHp = g_battleChars.gfs[id].hp;
             D_800ED148.entities[charIdx].hpDisplay = g_battleChars.chars[charIdx].summoningCurrentHp;
         }
     }
@@ -2093,7 +2093,7 @@ void func_8009FE14(s32 arg0) {
             break;
 
         case 254:
-            D_800EEBC0 = g_battleChars.levelEntries[D_800EE4C0.statusCode - 64].sumMagBonus;
+            D_800EEBC0 = g_battleChars.gfs[D_800EE4C0.statusCode - 64].sumMagBonus;
             D_800EEBB9 = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].element;
             D_800EEBBA = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].statusAccuracy;
             D_800EEBC2 = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].status1;
@@ -2233,7 +2233,7 @@ s32 func_800A085C(void) {
     for (i = 0; i < 16; i++) {
         if (g_gameState.gfs[i].exists & 1) {
             count++;
-            total += g_battleChars.levelEntries[i].level;
+            total += g_battleChars.gfs[i].level;
         }
     }
 
@@ -2575,7 +2575,7 @@ void func_800A09D0(s32 arg0) {
             if (D_800ED148.unk131E != 0) {
                 D_800EEBBD = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].powerModifier;
                 D_800EEBBE = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].levelModifier;
-                D_800EEBBF = g_battleChars.levelEntries[D_800EE4C0.statusCode - 64].level;
+                D_800EEBBF = g_battleChars.gfs[D_800EE4C0.statusCode - 64].level;
                 func_8009FCF4(g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].attackFlags);
                 var_s3 = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].power;
                 D_800EE4C0.unk4 = g_kernel.junctionableGfs[D_800EE4C0.statusCode - 64].hitAnimation;

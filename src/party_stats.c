@@ -349,7 +349,7 @@ void func_800231E0(s32 charIdx, s32 battleSlot) {
 
 
 void func_8002363C(s32 gfIdx) {
-    BattleLevelEntry *gs = &g_battleChars.levelEntries[gfIdx];
+    BattleGfEntry *gs = &g_battleChars.gfs[gfIdx];
     GfSaveData *save = &g_gameState.gfs[gfIdx];
     u32 bits;
     s32 ability;

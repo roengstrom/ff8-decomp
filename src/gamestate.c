@@ -265,7 +265,7 @@ u16 getGfAvailabilityMask(void) {
  * @param gfIdx GF index (0-15).
  */
 static void copyGfHpToSave(s32 gfIdx) {
-    g_gameState.gfs[gfIdx].hp = g_battleChars.levelEntries[gfIdx].maxHp;
+    g_gameState.gfs[gfIdx].hp = g_battleChars.gfs[gfIdx].maxHp;
 }
 
 

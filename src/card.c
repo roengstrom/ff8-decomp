@@ -79,7 +79,7 @@ static s32 func_8003678C(s32 gfIndex, u8 *dest, s32 count) {
     s32 level;
 
     learnedMask = *(u32 *)&g_gameState.gfs[gfIndex].learning; /* learning + forgotten1-3 packed */
-    level = g_battleChars.levelEntries[gfIndex].level;
+    level = g_battleChars.gfs[gfIndex].level;
     learnedMask >>= 8;
 
     for (i = 0; i < 21; i++) {

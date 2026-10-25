@@ -176,7 +176,7 @@ void func_800BD5E0(void) {
         if (g_gameState.gfs[i].exists & 1) {
             u16 hp = g_gameState.gfs[i].hp;
             if (hp != 0) {
-                if (g_gameState.gfs[i].hp < g_battleChars.levelEntries[i].maxHp) {
+                if (g_gameState.gfs[i].hp < g_battleChars.gfs[i].maxHp) {
                     g_gameState.gfs[i].hp++;
                 }
             }

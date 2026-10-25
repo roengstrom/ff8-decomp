@@ -1166,10 +1166,10 @@ s32 func_801F2238(s32 a0) {
  * @return 1 if its HP is 0 or less, 0x100 if it's below a quarter of max HP, otherwise 0.
  */
 s32 func_801F2240(s32 arg0) {
-    BattleLevelEntry* temp_v1;
+    BattleGfEntry* temp_v1;
     s32 var;
 
-    temp_v1 = &g_battleChars.levelEntries[arg0];
+    temp_v1 = &g_battleChars.gfs[arg0];
 
     var = 0;
     if (temp_v1->hp < 1) {
