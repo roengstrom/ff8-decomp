@@ -480,7 +480,7 @@ s32 opHandler_ACTORMODE(Actor *actor) {
  *        @c priorityMode picks one of three priorities:
  *          0 -> 8, 1 -> 0xA, anything else -> 6.
  *        The first invocation (active for this script slot) seeds the
- *        movie subsystem (@c func_800A59D0, then @c func_80038868 with
+ *        movie subsystem (@c func_800A59D0, then @c LoadCompressedDataFromDisc with
  *        @c D_800C2D14[0..1] as the LBA/size pair) and marks
  *        @c D_800DE4FD as in-flight. Subsequent invocations poll
  *        @c func_800393C8 — they return @c 1 to keep the script
@@ -506,7 +506,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
         D_8007064B = 1;
         func_800A59D0();
-        func_80038868(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
+        LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
         D_800DE4FD[0] = 1;
     }
 
@@ -630,7 +630,7 @@ s32 opHandler_MOVIESYNC(ScriptContext *context) {
  *        buffer.
  *
  * The first invocation (active for this script slot) seeds the
- * subsystem via @c func_800A59D0 + @c func_80038868 with
+ * subsystem via @c func_800A59D0 + @c LoadCompressedDataFromDisc with
  * @c D_800C2D14[0..1] as the LBA/size pair and marks
  * @c D_800DE4FD as in-flight. Subsequent invocations poll
  * @c func_800393C8 — returning @c 1 to keep the script blocked
@@ -646,7 +646,7 @@ s32 opHandler_SPUREADY(ScriptContext *context) {
 
     if ((context->activeMask >> context->scriptSlot) & 1) {
         func_800A59D0();
-        func_80038868(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
+        LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
         D_800DE4FD[0] = 1;
     }
     if (func_800393C8() != 0) {
@@ -1146,7 +1146,7 @@ void func_800B2188(void) {
  * @brief Helper for @c EFFECTLOAD (op0BD, @c opHandler_EFFECTLOAD) — looks up
  *        the SFX entry indexed by @c g_fieldVars->audioChannel2State
  *        in the @c D_800C2E1C @c {LBA, size} table and issues a
- *        @c cdRead targeting the @c D_8005F13C SPU staging buffer,
+ *        @c LoadDataFromDisc targeting the @c D_8005F13C SPU staging buffer,
  *        with @c func_800B2188 as the load-complete callback. Also
  *        clears the @c D_800DE8D5 ready-flag so the caller's poll
  *        loop waits for the callback to flip it back on.
@@ -1155,7 +1155,7 @@ void func_800B21E0(void) {
     s32 entryIdx = g_fieldVars->audioChannel2State;
     D_800DE8D5 = 0;
     func_800A59D0();
-    cdRead(D_800C2E1C[entryIdx * 2],
+    LoadDataFromDisc(D_800C2E1C[entryIdx * 2],
            D_800C2E1C[entryIdx * 2 + 1],
            (u8 *)D_8005F13C,
            func_800B2188);
@@ -1166,7 +1166,7 @@ void func_800B21E0(void) {
  *        @c g_fieldVars->audioChannel2State, and kick off a deferred
  *        CD load of the corresponding sample bank via the helper
  *        @c func_800B21E0 (which looks the entry up in
- *        @c D_800C2E1C and issues @c cdRead targeting the SPU staging
+ *        @c D_800C2E1C and issues @c LoadDataFromDisc targeting the SPU staging
  *        buffer).
  *
  * The stack-pop / store / helper-call dance is only performed on the

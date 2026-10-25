@@ -12,6 +12,15 @@
  * Shared between the world overlay (struct view) and the main state machine.
  * Stores the current scene mode, dispatch code, and two marker bytes.
  */
+typedef enum {
+    WORLD_ENTER_FROM_FIELD = 0,
+    WORLD_EXIT_TO_FIELD = 1,
+    WORLD_ENTER_FROM_BATTLE = 2,
+    WORLD_EXIT_TO_BATTLE = 3,
+    WORLD_ENTER_FROM_MENU = 4,
+    WORLD_EXIT_TO_MENU = 5
+} WorldTransition;
+
 typedef struct {
     /* 0x00 */ s8 mode;   /**< Scene mode / kind. */
     /* 0x01 */ s8 cmd;    /**< Current dispatch code (copy of D_800C4D38). */
@@ -409,8 +418,20 @@ extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the f
 extern u8 D_8005F150;
 extern u8 D_8005F151;
 
+typedef enum {
+    GAME_MODE_NONE = 0,
+    GAME_MODE_FIELD = 1,
+    GAME_MODE_WORLD = 2,
+    GAME_MODE_BATTLE = 3,
+    GAME_MODE_BATTLE_DEBUG_MENU = 4,
+    GAME_MODE_MENU = 6,
+    GAME_MODE_CARD = 8,
+    GAME_MODE_DISC_CHANGE = 9,
+    GAME_MODE_SCRIPT_MENU = 10
+} GameMode;
+
 /* Display double-buffer state (main-binary; shared with tripletriad). */
-extern volatile s16 g_vsyncRate;
+extern volatile s16 g_gameMode;
 extern DISPENV      g_dispEnvs[2];
 extern DRAWENV      g_drawEnvs[2];
 extern s8           g_fadeCounter; /* signed: counts toward 0 */

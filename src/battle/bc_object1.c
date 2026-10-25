@@ -1203,17 +1203,17 @@ void func_8009B59C(s32 idx, s32 *out1, s32 *out2) {
 }
 
 /**
- * @brief Issue a CD or memory read for a track and arm the completion callback.
+ * @brief Issue a CD read for a track and arm the completion callback.
  *
  * Looks up a (sector, length) pair from D_800E19BC[idx*2..idx*2+1] and
- * dispatches the read: cdRead when direction is 0 (load from disc), or
- * func_80038868 otherwise (alternate transfer path). Both calls register
+ * dispatches the read: LoadDataFromDisc when dir is 0, or
+ * LoadCompressedDataFromDisc otherwise. Both calls register
  * func_8009B654 as the completion callback. The user data and the data
  * length are cached in D_800ED148.unk128C / unk12D8 for the callback to
  * pick up later.
  * @param idx Index into D_800E19BC (each entry is two s32s).
  * @param dst Destination buffer / target address.
- * @param dir Direction flag (0 = cdRead, else func_80038868).
+ * @param dir 0 = LoadDataFromDisc, else LoadCompressedDataFromDisc.
  * @param userData Opaque value forwarded to the callback via unk128C.
  */
 void func_8009B5C4(s32 idx, s32 dst, s32 dir, s32 userData) {
@@ -1223,9 +1223,9 @@ void func_8009B5C4(s32 idx, s32 dst, s32 dir, s32 userData) {
     s32 sector = D_800E19BC[idx * 2];
     s32 length = D_800E19BC[idx * 2 + 1];
     if (dir == 0) {
-        cdRead(sector, length, dst, &func_8009B654);
+        LoadDataFromDisc(sector, length, dst, &func_8009B654);
     } else {
-        func_80038868(sector, length, dst, &func_8009B654);
+        LoadCompressedDataFromDisc(sector, length, dst, &func_8009B654);
     }
     D_800ED148.unk128C = userData;
     D_800ED148.unk12D8 = length;

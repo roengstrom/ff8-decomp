@@ -131,7 +131,7 @@ s32 func_800987D8(void)
     stall = 0;
     result = 0;
 
-    if (D_80082C8C.mode == 2) {
+    if (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE) {
         func_8009A7C0();
         func_8009CAE0(D_800C4F2C, NULL);
         while (g_renderMode == 4) {
@@ -142,7 +142,7 @@ s32 func_800987D8(void)
     D_800C97EA = WORLD_SCREEN_W;
     D_800C97E8 = WORLD_SCREEN_H;
     D_800D226C = (Slot*)&g_gameState.pad1260;
-    if (D_80082C8C.mode != 0) {
+    if (D_80082C8C.mode != WORLD_ENTER_FROM_FIELD) {
         D_80082C8C.cmd = D_800D226C->scene.cmd;
     } else {
         D_800D226C->scene = D_80082C8C;
@@ -158,12 +158,12 @@ s32 func_800987D8(void)
     initWorldDoubleBuffer();
     func_8009D0F0();
 
-    if (D_80082C8C.mode != 4) {
+    if (D_80082C8C.mode != WORLD_ENTER_FROM_MENU) {
         func_8009A638();
         func_800B7178();
         func_800AD688();
         func_800BC44C();
-        if (D_80082C8C.mode != 2) {
+        if (D_80082C8C.mode != WORLD_ENTER_FROM_BATTLE) {
             func_8009A7C0();
             func_8009CAE0(D_800C4F2C, func_800A5D10);
         }
@@ -250,7 +250,7 @@ s32 func_800987D8(void)
         g_activeDrawEnv = &D_800D244C->drawEnv;
 
         if (firstPass) {
-            D_800C4FC4 = (D_80082C8C.mode == 4) ? WORLD_SETTLE_FRAMES_WARM
+            D_800C4FC4 = (D_80082C8C.mode == WORLD_ENTER_FROM_MENU) ? WORLD_SETTLE_FRAMES_WARM
                                                 : WORLD_SETTLE_FRAMES;
         }
         if (D_800C4FC4 != 0) {
@@ -284,7 +284,7 @@ s32 func_800987D8(void)
                 code = func_800BEB84(1);
             }
             if (code >= 0) {
-                D_80082C8C.mode = 1;
+                D_80082C8C.mode = WORLD_EXIT_TO_FIELD;
                 D_80082C8C.unk02 = code;
                 D_80082C8C.unk03 = -1;
                 D_80082C8C.cmd = D_800C4D38;

@@ -130,7 +130,7 @@ s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
     limit = 0;
     set = 0;
 
-    if (D_80082C8C.mode == 2) {
+    if (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE) {
         bankSel = g_battleConfig.unk9;
     } else {
         bankSel = (g_fieldVars->soundBankSelector == 0);
@@ -310,7 +310,7 @@ u8 collectActiveKeyEntries(s16 *out) {
  */
 void func_8009D3F4(void) {
     func_8009D630();
-    D_80082C8C.mode = 5;
+    D_80082C8C.mode = WORLD_EXIT_TO_MENU;
     D_80082C8C.cmd = D_800C4D38;
     D_80082C8C.unk02 = -1;
     D_80082C8C.unk03 = -1;
@@ -337,7 +337,7 @@ void func_8009D44C(s32 marker) {
     s32 i;
     D_800C8CEA = marker;
     func_8009D630();
-    D_80082C8C.mode = 3;
+    D_80082C8C.mode = WORLD_EXIT_TO_BATTLE;
     D_80082C8C.unk02 = (s8)marker;
     D_80082C8C.unk03 = (s8)((u32)marker >> 8);
     D_80082C8C.cmd = D_800C4D38;

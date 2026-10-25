@@ -196,9 +196,9 @@ void func_80037FB0(s32 variant, s32 bank, s32 buf) {
     D_80085220 = buf;
     g_fieldVars->soundLoadComplete = 0;
     if (variant == 0) {
-        cdRead(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankA);
+        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankA);
     } else {
-        cdRead(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankB);
+        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankB);
     }
 }
 

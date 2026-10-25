@@ -6,7 +6,7 @@
 /** @brief Game-code per-frame VSync handler (dispatched for RENDER_GAME). */
 void vsyncGameHandler(void);
 
-/** @brief Main game state-machine loop, driven by g_vsyncRate. */
+/** @brief Main game state-machine loop, driven by g_gameMode. */
 void gameStateLoop(void);
 
 s32 isBossBattle(void);

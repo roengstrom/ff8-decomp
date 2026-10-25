@@ -630,16 +630,16 @@ s32 isBossBattle(void) {
 
 
 /**
- * @brief Main state machine loop driven by g_vsyncRate.
- * Processes rendering/audio states: 4=render, 3=init+render, 5=transition, 8=alt render.
- * Loops until an unhandled state value is encountered, which sets g_vsyncRate=4 and returns.
+ * @brief Main state machine loop driven by g_gameMode.
+ * Runs a battle (3), the battle debug menu (4), the battle results screen (5) or Triple Triad (8).
+ * Any other value leaves the loop, which sets g_gameMode to 4 and returns.
  */
 void gameStateLoop(void) {
     s32 mode = 4;
     s16 state;
 
 top:
-    state = (s16)g_vsyncRate;
+    state = (s16)g_gameMode;
     if (state == mode) goto case4;
     if (state < 5) {
         if (state == 3) goto case3;
@@ -676,11 +676,11 @@ case5:
     startBattleResults();
     g_renderMode = mode;
     func_8001F5C8();
-    g_vsyncRate = 100;
+    g_gameMode = 100;
     goto top;
 
 default_case:
-    g_vsyncRate = mode;
+    g_gameMode = mode;
 }
 
 

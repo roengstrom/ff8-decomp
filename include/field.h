@@ -234,7 +234,7 @@ typedef struct {
     /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
     /* 0x54 */ u16 field54;             /**< Mirror of @c g_fieldEntity.field120, set by @c func_800BFBBC. */
     /* 0x56 */ u8 field56;              /**< Copy of @c D_80082C8D byte, set by @c func_800BFBBC. */
-    /* 0x57 */ u8 field57;              /**< Low byte of @c D_8005F14C, set by @c func_800BFBBC. */
+    /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
     /* 0x59 */ u8 pad59[0x0F];
     /* 0x68 */ s32 stateFlags;          /**< Field state flags (see FIELD_STATE_*). */
@@ -925,7 +925,7 @@ extern s32 D_8005F13C;
  *         machine (values 0/1/2/3/6/0xA). Read as a signed halfword there
  *         (@c switch dispatch) and copied into @c FieldVars.field57 (low byte)
  *         on full field reset by @c func_800BF718. */
-extern volatile s16 D_8005F14C;
+extern volatile s16 g_previousGameMode;
 
 /** @brief Secondary field-load flag consumed by the @c ff8main state machine
  *         (non-zero enables the incremental @c func_80038490 reload path). */

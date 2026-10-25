@@ -126,7 +126,7 @@ s32 *func_800983F0(void) {
     u8 *heapEnd;
 
     if (D_8005F14A == 0 || g_curFieldId != D_8005F100) {
-        func_80038868(D_800C0900[D_800C2568[g_curFieldId] * 6],
+        LoadCompressedDataFromDisc(D_800C0900[D_800C2568[g_curFieldId] * 6],
                       D_800C0900[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF,
                       NULL);
         while (func_800393C8() != 0) {}
@@ -142,7 +142,7 @@ s32 *func_800983F0(void) {
 
     D_8005F100 = 0;
     D_8005F142 = 0;
-    func_80038868(D_800C0908[D_800C2568[g_curFieldId] * 6],
+    LoadCompressedDataFromDisc(D_800C0908[D_800C2568[g_curFieldId] * 6],
                   D_800C0908[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF, NULL);
     while (func_800393C8() != 0) {}
 
@@ -164,7 +164,7 @@ s32 *func_800983F0(void) {
         func_800A2EE0(ptr);
         buf += sizeof(FieldParticles);
         *g_fieldScript = buf;
-        if (D_8005F14C != 3 && D_8005F14C != 6 && D_8005F14C != 0xA) {
+        if (g_previousGameMode != GAME_MODE_BATTLE && g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != 0xA) {
             func_800A2F28(g_curFieldParticles, &g_fieldEntity);
         }
     } else {
@@ -173,7 +173,7 @@ s32 *func_800983F0(void) {
 
     D_800704B2 = 20;
 
-    if (D_8005F14C == 3) {
+    if (g_previousGameMode == GAME_MODE_BATTLE) {
         buf = (u8 *)func_800BFBBC((u8 *)FIELD_SCRIPT_STAGE, (Eline *)0x80090800, (u16 *)*g_fieldScript, 0);
     } else {
         buf = (u8 *)func_800BFBBC((u8 *)FIELD_SCRIPT_STAGE, (Eline *)0x80090800, (u16 *)*g_fieldScript, 1);
@@ -195,11 +195,11 @@ s32 *func_800983F0(void) {
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
     }
 
-    if ((D_8005F14C != 1 && D_8005F14C != 6) || g_curFieldInfo->unk0D == 1) {
+    if ((g_previousGameMode != GAME_MODE_FIELD && g_previousGameMode != GAME_MODE_MENU) || g_curFieldInfo->unk0D == 1) {
         func_800A1CC0();
     }
 
-    if (D_8005F14C == 3) {
+    if (g_previousGameMode == GAME_MODE_BATTLE) {
         heapEnd = (u8 *)FIELD_CMD_AREA_END_MODE3;
     } else {
         heapEnd = (u8 *)FIELD_CMD_AREA_END;
@@ -221,7 +221,7 @@ s32 *func_800983F0(void) {
     while (g_renderMode == 4) {}
     while (DrawSync(1) != 0) {}
 
-    if (D_8005F14C == 3 || D_8005F14C == 0) {
+    if (g_previousGameMode == GAME_MODE_BATTLE || g_previousGameMode == GAME_MODE_NONE) {
         SetDispMask(0);
     }
 
@@ -241,7 +241,7 @@ void func_80098934(void) {
  * @brief Field engine reset / map-transition orchestrator (the big state machine).
  *
  * Runs the per-frame outer init/reset loop for the field engine. The whole
- * function dispatches on @c D_8005F14C (the field load mode, 0=fresh,
+ * function dispatches on @c g_previousGameMode (the field load mode, 0=fresh,
  * 1=normal, 2=new-area, 3=movie, 6=transition, 0xA=skip-transition) and on
  * @c g_fieldEntity.mode (the engine-level state byte that picks one of several
  * exit paths at the end of each iteration: 4=quit, 5/6=copyFramebuffer +
@@ -267,7 +267,7 @@ void func_80098934(void) {
  *     @c g_fieldWalkmeshVerts (entry-table start = @c *g_fieldWalkmesh + 4) and
  *     @c g_fieldWalkmeshAdjacency (entry-table end = @c g_fieldWalkmeshVerts + count * 3 vertices).
  *   - Dispatch @c func_800BF718 with a mode argument that maps
- *     @c D_8005F14C ∈ {6→2, 0xA→3, 3→0, default→1}.
+ *     @c g_previousGameMode ∈ {6→2, 0xA→3, 3→0, default→1}.
  *
  * @note Two source shapes carry this to a byte match, and both are the
  *       opposite of what reads naturally:
@@ -317,11 +317,11 @@ void func_8009895C(void) {
     g_fieldEntity.unk1A1 = 0;
 
     while (1) {
-        if ((s16)D_8005F14C != 6) {
+        if ((s16)g_previousGameMode != GAME_MODE_MENU) {
             func_800A7194();
         }
 
-        if (D_8005F14C == 0 || (s16)D_8005F14C == 1 || (s16)D_8005F14C == 2) {
+        if (g_previousGameMode == GAME_MODE_NONE || (s16)g_previousGameMode == GAME_MODE_FIELD || (s16)g_previousGameMode == GAME_MODE_WORLD) {
             g_fieldEntity.unk1A6 = 0;
             g_fieldEntity.unk1A9 = 0;
             g_fieldEntity.unk1A7 = 1;
@@ -340,16 +340,16 @@ void func_8009895C(void) {
             func_80098934();
         }
 
-        if (D_8005F14C == 0) {
+        if (g_previousGameMode == GAME_MODE_NONE) {
             func_80098314();
             ClearImage(&g_drawEnvs[0].clip, 0, 0, 0);
             ClearImage(&g_drawEnvs[1].clip, 0, 0, 0);
         }
 
-        if (((s16)D_8005F14C == 1 && g_fieldEntity.unk1A5 == 0) || (s16)D_8005F14C == 2) {
+        if (((s16)g_previousGameMode == GAME_MODE_FIELD && g_fieldEntity.unk1A5 == 0) || (s16)g_previousGameMode == GAME_MODE_WORLD) {
             VSync(0);
             func_80098314();
-            if ((s16)D_8005F14C == 2) {
+            if ((s16)g_previousGameMode == GAME_MODE_WORLD) {
                 g_bufferIndex = 1;
             }
             copyFramebuffer();
@@ -359,7 +359,7 @@ void func_8009895C(void) {
             g_renderMode = 1;
         }
 
-        if ((s16)D_8005F14C != 6) {
+        if ((s16)g_previousGameMode != GAME_MODE_MENU) {
             g_fieldInfo = &FIELD_DATA->info;
             g_fieldViews = &FIELD_DATA->views;
             g_fieldWalkmesh = &FIELD_DATA->walkmesh;
@@ -384,10 +384,10 @@ void func_8009895C(void) {
         SetDrawEnv(&D_800C7218[0].unk4F40, &g_drawEnvs[0]);
         SetDrawEnv(&D_800C7218[1].unk4F40, &g_drawEnvs[1]);
 
-        if (D_8005F14C == 0
-            || (s16)D_8005F14C == 3
-            || (s16)D_8005F14C == 6
-            || (s16)D_8005F14C == 0xA) {
+        if (g_previousGameMode == GAME_MODE_NONE
+            || (s16)g_previousGameMode == GAME_MODE_BATTLE
+            || (s16)g_previousGameMode == GAME_MODE_MENU
+            || (s16)g_previousGameMode == 0xA) {
             g_fieldEntity.mode = 0;
         }
 
@@ -395,7 +395,7 @@ void func_8009895C(void) {
             func_800A3FE0(g_curFieldParticles);
         }
 
-        if (D_8005F14C == 0 || (s16)D_8005F14C == 1 || (s16)D_8005F14C == 2) {
+        if (g_previousGameMode == GAME_MODE_NONE || (s16)g_previousGameMode == GAME_MODE_FIELD || (s16)g_previousGameMode == GAME_MODE_WORLD) {
             func_800A62EC(g_curFieldInfo->triggers);
             q = g_curFieldInfo;
             g_fieldEntity.unk1A4 = 0;
@@ -419,18 +419,18 @@ void func_8009895C(void) {
         g_fieldWalkmeshVerts = (*g_fieldWalkmesh)->tris[0].v;
         g_fieldWalkmeshAdjacency = (AdjRec *)&((Triangle *)g_fieldWalkmeshVerts)[(u16)(*g_fieldWalkmesh)->count];
 
-        if ((s16)D_8005F14C != 6 && (s16)D_8005F14C != 3) {
+        if ((s16)g_previousGameMode != GAME_MODE_MENU && (s16)g_previousGameMode != GAME_MODE_BATTLE) {
             func_8009AEC0();
         }
 
-        if ((s16)D_8005F14C != 6 && (s16)D_8005F14C != 0xA) {
-            if ((s16)D_8005F14C == 3) {
+        if ((s16)g_previousGameMode != GAME_MODE_MENU && (s16)g_previousGameMode != 0xA) {
+            if ((s16)g_previousGameMode == GAME_MODE_BATTLE) {
                 func_800BF718(0);
             } else {
                 func_800BF718(1);
             }
         } else {
-            if ((s16)D_8005F14C == 6) {
+            if ((s16)g_previousGameMode == GAME_MODE_MENU) {
                 func_800BF718(2);
             } else {
                 func_800BF718(3);
@@ -449,7 +449,7 @@ void func_8009895C(void) {
         PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
 
         state = g_fieldEntity.mode;
-        D_8005F14C = 1;
+        g_previousGameMode = GAME_MODE_FIELD;
 
         if (state == 4) {
             VSync(0);
@@ -472,7 +472,7 @@ void func_8009895C(void) {
         }
         if (state == 7) {
             g_fieldEntity.mode = 0;
-            g_vsyncRate = 2;
+            g_gameMode = GAME_MODE_WORLD;
             g_fieldEntity.field_0x120 = g_curFieldId;
             D_80082C8C.unk02 = g_fieldEntity.counter;
             D_80082C8C.cmd = g_fieldEntity.spawnTriIdx;
@@ -619,12 +619,12 @@ void func_80099180(void) {
  * Finally it programs the draw environment from the field's clip rectangle,
  * links the two extra prims into the OT, presents, and dispatches on
  * @c SystemState::mode, modes 3, 4, 6, 8 and the menu leave the loop with a
- * code in @ref g_vsyncRate, mode 1/7 waits for the DMA to drain and leaves, and
+ * code in @ref g_gameMode, mode 1/7 waits for the DMA to drain and leaves, and
  * anything else draws the OT and goes round again.
  *
- * @note @c SystemState::dialogState and @ref g_vsyncRate are @c volatile: the
+ * @note @c SystemState::dialogState and @ref g_gameMode are @c volatile: the
  *       original re-reads @c dialogState for each of the seven comparisons
- *       instead of caching one load, and keeps the @c g_vsyncRate stores out of
+ *       instead of caching one load, and keeps the @c g_gameMode stores out of
  *       branch delay slots.
  * @note The four loop-head assignments are ordered buffer / previous-dispenv /
  *       draw-env / dispenv. That order matters: it keeps the lifetime of
@@ -687,7 +687,7 @@ void func_80099348(void) {
             func_8009912C();
             g_fieldEntity.mode = 5;
             g_fieldEntity.counter = 0;
-            g_vsyncRate = 6;
+            g_gameMode = GAME_MODE_MENU;
             g_fieldEntity.position_x = D_80085224[D_8005F148].posX / 4096;
             g_fieldEntity.position_y = D_80085224[D_8005F148].posY / 4096;
             g_fieldEntity.spawnTriIdx = D_80085224[D_8005F148].triIdx;
@@ -698,7 +698,7 @@ void func_80099348(void) {
 
         if (g_fieldEntity.mode == 5) {
             func_8009912C();
-            g_vsyncRate = 10;
+            g_gameMode = GAME_MODE_SCRIPT_MENU;
             func_800A59D0();
             break;
         }
@@ -803,7 +803,7 @@ void func_80099348(void) {
         renderBattleDisplayList((s32 *)D_800C71E0->ot);
 
         if (g_fieldEntity.mode == 6) {
-            g_vsyncRate = 9;
+            g_gameMode = GAME_MODE_DISC_CHANGE;
             func_800A59D0();
             break;
         }
@@ -818,9 +818,9 @@ void func_80099348(void) {
             func_8009912C();
             mode = g_fieldEntity.mode;
             if (mode == 3) {
-                g_vsyncRate = mode;
+                g_gameMode = mode;
             } else {
-                g_vsyncRate = 8;
+                g_gameMode = GAME_MODE_CARD;
             }
             func_800A59D0();
             break;
@@ -1190,7 +1190,7 @@ void func_8009A8E0(Eline *eline) {
  * calls @c func_8009A2BC. The returned distance is compared against
  * @c radius*radius:
  *  - hit (in range): @c trigger4=1; also @c trigger2=1 when
- *    @c D_8005F14C @c == @c 3
+ *    @c g_previousGameMode @c == @c 3
  *  - miss (out of range or @c -1): @c trigger3=1, @c trigger4=0
  *
  * @param actor    Querying entity (position, radius, message state).
@@ -1218,7 +1218,7 @@ void func_8009A920(Actor *actor, Eline *entities) {
             if (entities->activeMarker == 1 && actor->msgActive == 0) {
                 dist = func_8009A2BC((LineSeg *)&entities->x0, scratch, out);
                 if (dist != -1 && dist < actor->radius * actor->radius) {
-                    if (D_8005F14C == 3) {
+                    if (g_previousGameMode == GAME_MODE_BATTLE) {
                         entities->trigger2 = 1;
                     }
                     entities->trigger4 = 1;
@@ -2837,7 +2837,7 @@ s32 func_8009E604(Actor *a, Actor *b) {
  * to their defaults, current (@c D_8005F118 / @c D_8005F11A) and target
  * (@c D_8005F160 / @c D_8005F162) alike.
  *
- * On a fresh load (@c D_8005F14C @c == @c 0) there is no heading to trail along,
+ * On a fresh load (@c g_previousGameMode @c == @c 0) there is no heading to trail along,
  * so every waypoint just gets the player's position, triangle and facing, the
  * followers stand on top of the player until real movement fills the ring.
  *
@@ -2877,7 +2877,7 @@ void func_8009E660(void) {
         D_80070760[i].unk8 = D_80070A60[i].unk8 = 1;
     }
 
-    if (D_8005F14C == 0) {
+    if (g_previousGameMode == GAME_MODE_NONE) {
         for (i = 0; i < 64; i++) {
             D_80070760[i].x = D_80070A60[i].x = D_80085224[D_8005F148].posX / 4096;
             D_80070760[i].y = D_80070A60[i].y = D_80085224[D_8005F148].posY / 4096;
