@@ -411,8 +411,20 @@ extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the f
 extern u8 D_8005F150;
 extern u8 D_8005F151;
 
+typedef enum {
+    GAME_MODE_NONE = 0,
+    GAME_MODE_FIELD = 1,
+    GAME_MODE_WORLD = 2,
+    GAME_MODE_BATTLE = 3,
+    GAME_MODE_BATTLE_DEBUG_MENU = 4,
+    GAME_MODE_MENU = 6,
+    GAME_MODE_CARD = 8,
+    GAME_MODE_DISC_CHANGE = 9,
+    GAME_MODE_SCRIPT_MENU = 10
+} GameMode;
+
 /* Display double-buffer state (main-binary; shared with tripletriad). */
-extern volatile s16 g_vsyncRate;
+extern volatile s16 g_gameMode;
 extern DISPENV      g_dispEnvs[2];
 extern DRAWENV      g_drawEnvs[2];
 extern s8           g_fadeCounter; /* signed: counts toward 0 */

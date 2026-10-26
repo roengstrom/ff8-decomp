@@ -91,7 +91,7 @@ s32 tripleTriadMainLoop(void) {
         flipBuffers();
     }
     clearAllDialogs();
-    g_vsyncRate = 100;
+    g_gameMode = 100;
     return 0;
 }
 

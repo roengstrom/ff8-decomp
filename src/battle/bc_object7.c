@@ -12,17 +12,17 @@ void func_800AF254(void) {
     switch (g_battleConfig.result) {
         case 2:
             g_gameState.mainData.fieldCE2++;
-            g_vsyncRate = 5;
+            g_gameMode = 5;
             break;
             
         case 4:
             g_gameState.mainData.fieldCDC++;
             if (D_800ED148.unkCDD & 0x10) {
-                g_vsyncRate = 100;
+                g_gameMode = 100;
             }
                 
             else {
-                g_vsyncRate = 5;
+                g_gameMode = 5;
             }
             
             break;
@@ -30,11 +30,11 @@ void func_800AF254(void) {
         case 1:
         case 3:
             g_gameState.mainData.fieldCE0++;
-            g_vsyncRate = 100;
+            g_gameMode = 100;
             break;
             
         case 5:
-            g_vsyncRate = 100;
+            g_gameMode = 100;
             break;
     }
     

@@ -119,7 +119,7 @@ void InitHardware(void) {
 void func_80011870(void) {
     s16 i;
 
-    if (D_8005F14C == 2) {
+    if (g_previousGameMode == 2) {
         g_gameState.cameraSnapshot.vsyncRate = 2;
     } else {
         g_gameState.cameraSnapshot.vsyncRate = 1;
@@ -147,9 +147,9 @@ void func_80011870(void) {
 void RestoreSnapshot(void) {
     SystemState *entity;
 
-    g_vsyncRate = g_gameState.cameraSnapshot.vsyncRate;
-    if (g_vsyncRate == 0) {
-        g_vsyncRate = 1;
+    g_gameMode = g_gameState.cameraSnapshot.vsyncRate;
+    if (g_gameMode == 0) {
+        g_gameMode = 1;
     }
 
     g_curFieldId = g_gameState.cameraSnapshot.fieldId;
@@ -171,7 +171,7 @@ void RestoreSnapshot(void) {
  *         doesn't require it, then resets the sound state.
  */
 void loadFieldDataA(void) {
-    if (D_8005F14C != 6 && D_8005F14C != 0xA) {
+    if (g_previousGameMode != 6 && g_previousGameMode != 0xA) {
         func_80038868(D_80097410[0].sector, D_80097410[0].size, 0x80098000, 0);
         while (func_800393C8() != 0)
             ;
@@ -186,7 +186,7 @@ void loadFieldDataA(void) {
  *        field maps or disc configurations.
  */
 void loadFieldDataB(void) {
-    if (D_8005F14C != 6 && D_8005F14C != 0xA) {
+    if (g_previousGameMode != 6 && g_previousGameMode != 0xA) {
         func_80038868(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, 0);
         while (func_800393C8() != 0)
             ;
@@ -325,8 +325,8 @@ void ff8main(void) {
 
         func_80098FD4(0);
         initBattleAssets();
-        g_vsyncRate = 1;
-        D_8005F14C = 0;
+        g_gameMode = 1;
+        g_previousGameMode = 0;
         g_fieldEntity.unk1A3 = 0;
         D_8005F14A = 0;
         D_8005F100 = 0x49;
@@ -355,7 +355,7 @@ void ff8main(void) {
             LoadWm2FieldTable();
         }
         do {
-            mode = g_vsyncRate - 1;
+            mode = g_gameMode - 1;
             do {
             switch (mode) {
             case 0:
@@ -363,7 +363,7 @@ void ff8main(void) {
                 func_8009895C();
                 break;
             case 1:
-                switch (D_8005F14C) {
+                switch (g_previousGameMode) {
                 case 1:
                     func_800B4F40();
                     D_80082C8C.mode = 0;
@@ -378,7 +378,7 @@ void ff8main(void) {
                     D_80082C8C.mode = 6;
                     break;
                 }
-                if (((D_8005F14C == 1) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
+                if (((g_previousGameMode == 1) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
                     while (func_800393C8() != 0) { do {} while (0); }
                     func_80038490(D_8005F104, 0x80098000);
                 } else {
@@ -392,7 +392,7 @@ void ff8main(void) {
                     sndStopAll();
                     break;
                 }
-                D_8005F14C = 2;
+                g_previousGameMode = 2;
                 switch (D_80082C8C.mode) {
                 case 1:
                     entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
@@ -402,25 +402,25 @@ void ff8main(void) {
                     g_fieldEntity.spawnTriIdx = entry->spawnTriIdx;
                     g_curFieldId = fieldId;
                     g_fieldEntity.facingDirection = entry->facingDirection;
-                    g_vsyncRate = 1;
+                    g_gameMode = 1;
                     sndCmd21(-1, 0);
                     break;
                 case 3:
-                    g_vsyncRate = 3;
+                    g_gameMode = 3;
                     break;
                 case 5:
-                    g_vsyncRate = 6;
+                    g_gameMode = 6;
                     break;
                 }
                 break;
             case 7:
                 gameStateLoop();
-                D_8005F14C = 3;
-                g_vsyncRate = 1;
+                g_previousGameMode = 3;
+                g_gameMode = 1;
                 break;
             case 2:
             case 3:
-                if (D_8005F14C == 1) {
+                if (g_previousGameMode == 1) {
                     g_battleConfig.battleSceneId = g_fieldEntity.counter;
                     mapAddr = D_8005F13C;
                 } else {
@@ -440,8 +440,8 @@ void ff8main(void) {
                 }
                 if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
                     g_curFieldId = FIELD_ID_GOVER;
-                    D_8005F14C = 0;
-                    g_vsyncRate = 1;
+                    g_previousGameMode = 0;
+                    g_gameMode = 1;
                     break;
                 }
                 if (g_battleConfig.result == 3) {
@@ -449,17 +449,17 @@ void ff8main(void) {
                         g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
                     } else {
                         g_curFieldId = FIELD_ID_GOVER;
-                        D_8005F14C = 0;
-                        g_vsyncRate = 1;
+                        g_previousGameMode = 0;
+                        g_gameMode = 1;
                         break;
                     }
                 }
-                if (D_8005F14C == 1) {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 1;
+                if (g_previousGameMode == 1) {
+                    g_previousGameMode = 3;
+                    g_gameMode = 1;
                 } else {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 2;
+                    g_previousGameMode = 3;
+                    g_gameMode = 2;
                 }
                 for (i = 0; i < 3; i++) {
                     if (g_battleConfig.unk4[i] != 0xFF) {
@@ -474,31 +474,31 @@ void ff8main(void) {
                 while (g_renderMode != 0) {}
                 SetDispMask(0);
                 func_80011870();
-                if (D_8005F14C == 1) {
+                if (g_previousGameMode == 1) {
                     result = func_8003646C(g_fieldEntity.counter, g_fieldEntity.unk1AB);
                     if (result & 1) {
                         clearEntityFlags();
-                        if (g_vsyncRate == 6) {
-                            D_8005F14C = 0xA;
+                        if (g_gameMode == 6) {
+                            g_previousGameMode = 0xA;
                         } else {
-                            D_8005F14C = 6;
+                            g_previousGameMode = 6;
                         }
                     } else {
-                        D_8005F14C = 6;
+                        g_previousGameMode = 6;
                     }
-                    g_vsyncRate = 1;
+                    g_gameMode = 1;
                 } else {
                     result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | 1);
-                    D_8005F14C = 6;
-                    g_vsyncRate = 2;
+                    g_previousGameMode = 6;
+                    g_gameMode = 2;
                 }
                 if (!(result & 4)) {
                     break;
                 }
-                D_8005F14C = g_vsyncRate;
-                g_vsyncRate = 3;
+                g_previousGameMode = g_gameMode;
+                g_gameMode = 3;
                 g_battleConfig.battleSceneId = (u16)(result >> 16);
-                if (g_vsyncRate == 1) {
+                if (g_gameMode == 1) {
                     mapAddr = D_8005F13C;
                 } else {
                     result = 0x801D0000;
@@ -518,8 +518,8 @@ void ff8main(void) {
                 }
                 if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
                     g_curFieldId = FIELD_ID_GOVER;
-                    D_8005F14C = 0;
-                    g_vsyncRate = 1;
+                    g_previousGameMode = 0;
+                    g_gameMode = 1;
                     break;
                 }
                 if (g_battleConfig.result == 3) {
@@ -527,17 +527,17 @@ void ff8main(void) {
                         g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
                     } else {
                         g_curFieldId = FIELD_ID_GOVER;
-                        D_8005F14C = 0;
-                        g_vsyncRate = 1;
+                        g_previousGameMode = 0;
+                        g_gameMode = 1;
                         break;
                     }
                 }
-                if (D_8005F14C == 1) {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 1;
+                if (g_previousGameMode == 1) {
+                    g_previousGameMode = 3;
+                    g_gameMode = 1;
                 } else {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 2;
+                    g_previousGameMode = 3;
+                    g_gameMode = 2;
                 }
                 for (i = 0; i < 3; i++) {
                     if (g_battleConfig.unk4[i] != 0xFF) {
@@ -555,8 +555,8 @@ void ff8main(void) {
                 if (mode == 1) {
                     loadFileTable();
                     LoadWm2FieldTable();
-                    D_8005F14C = 0;
-                    g_vsyncRate = mode;
+                    g_previousGameMode = 0;
+                    g_gameMode = mode;
                     g_curFieldId = g_fieldEntity.counter;
                 }
                 break;
