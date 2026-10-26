@@ -6,6 +6,15 @@
 #include "field.h"
 #include "psxsdk/libgpu.h"
 
+typedef enum {
+    WORLD_ENTER_FROM_FIELD = 0,
+    WORLD_EXIT_TO_FIELD = 1,
+    WORLD_ENTER_FROM_BATTLE = 2,
+    WORLD_EXIT_TO_BATTLE = 3,
+    WORLD_ENTER_FROM_MENU = 4,
+    WORLD_EXIT_TO_MENU = 5
+} WorldTransition;
+
 typedef struct {
     /* 0x00 */ s8 mode;
     /* 0x01 */ s8 cmd;

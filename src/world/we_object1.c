@@ -109,7 +109,7 @@ void func_80099C84(void) {
 
     D_800C4FBC = 0;
     D_800C4FC0 = 0;
-    mode2 = (D_80082C8C.mode == 2);
+    mode2 = (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE);
     key = D_800D2442;
     if (key != g_fieldVars->audioChannel0State || mode2) {
         result = getScrollState((s8)key, &b18, &w1C, &w20, &w24, &w28);
@@ -360,7 +360,7 @@ void func_8009AD3C(void) {
     D_80082C18 = ((CtxDispView *)&D_800CA040)->disp;
     g_activeDrawEnv = &D_80082C30;
     D_8005F138 = (s32)&D_80082C18;
-    if (D_80082C8C.mode == 5) {
+    if (D_80082C8C.mode == WORLD_EXIT_TO_MENU) {
         func_800A5F78(0);
         func_800A5FD4(0);
         for (i = 0; i < 0x10; i++) {
@@ -759,7 +759,7 @@ void func_8009C294(s32 cmd) {
     if (D_800C4D64 != 0) {
         D_800D226C->unk6C = (D_800D226C->unk6C & ~0x100) | ((D_800C4D64->flag << 5) & 0x100);
     }
-    D_80082C8C.mode = 1;
+    D_80082C8C.mode = WORLD_EXIT_TO_FIELD;
     D_80082C8C.param.entrance.entranceIndex = cmd;
     D_80082C8C.param.entrance.facingDirection = -1;
     D_80082C8C.cmd = D_800C4D38;
