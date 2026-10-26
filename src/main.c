@@ -164,29 +164,18 @@ void RestoreSnapshot(void) {
     D_8005F150 = g_gameState.cameraSnapshot.fade0;
 }
 
-/** @brief Loads field data set A from CD, unless the current field mode
- *         doesn't require it, then resets the sound state.
- */
-void loadFieldDataA(void) {
+void LoadFieldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != 0xA) {
         LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, 0x80098000, NULL);
-        while (func_800393C8() != 0)
-            ;
+        while (func_800393C8() != 0) {}
     }
     func_8001F5C8();
 }
 
-/** @brief Loads field data set B from CD - same as loadFieldDataA with a
- *         different source.
- *
- *  @note Purpose uncertain - the A/B distinction may correspond to different
- *        field maps or disc configurations.
- */
-void loadFieldDataB(void) {
+void LoadWorldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != 0xA) {
         LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, NULL);
-        while (func_800393C8() != 0)
-            ;
+        while (func_800393C8() != 0) {}
     }
     func_8001F5C8();
 }
@@ -328,7 +317,7 @@ void ff8main(void) {
         result = func_8003646C(25);
         if (!(result & 2)) {
             RestoreSnapshot();
-            loadFieldDataA();
+            LoadFieldOverlay();
             SmInitEventAll(0);
         } else {
             g_curFieldId = FIELD_ID_START0;
@@ -336,7 +325,7 @@ void ff8main(void) {
             g_gameState.battleParty[1] = 0xFF;
             g_gameState.battleParty[2] = 0xFF;
             g_gameState.battleParty[3] = 0xFF;
-            loadFieldDataA();
+            LoadFieldOverlay();
             SmInitEventAll(1);
         }
         if (g_fieldVars->expectedDiscId != getDiscId()) {
@@ -351,7 +340,7 @@ void ff8main(void) {
             do {
                 switch (g_gameMode) {
                 case GAME_MODE_FIELD:
-                    loadFieldDataA();
+                    LoadFieldOverlay();
                     func_8009895C();
                     break;
                 case GAME_MODE_WORLD:
@@ -374,7 +363,7 @@ void ff8main(void) {
                         while (func_800393C8() != 0) {}
                         func_80038490(D_8005F104, 0x80098000);
                     } else {
-                        loadFieldDataB();
+                        LoadWorldOverlay();
                     }
                     D_8005F14A = 0;
                     if (func_800987D8() == 1) {
