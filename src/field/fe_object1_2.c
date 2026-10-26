@@ -2250,7 +2250,7 @@ void func_800A5A14(s16 a0) {
  * already pending. The destination pointer @c D_8005F104 is floored to
  * @c 0x801A0000, and when the nearest field differs from the one already loaded
  * (@c D_8005F100) and its data still fits below @c 0x801FE000, the previous load
- * is cancelled and a new @c cdRead is issued: field ids from @c 0x49 up are
+ * is cancelled and a new @c LoadDataFromDisc is issued: field ids from @c 0x49 up are
  * looked up through @c D_800C2568 into the streaming table, lower ids use the
  * fixed descriptor @c D_800974D0. @c D_8005F14A is left at 1 to mark the read
  * in flight.
@@ -2311,10 +2311,10 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
         D_8005F100 = D_8005F142;
         if (D_8005F142 >= 0x49) {
             idx = D_800C2568[D_8005F142];
-            cdRead(D_800C0904[idx * FIELD_STREAM_STRIDE - 1],
+            LoadDataFromDisc(D_800C0904[idx * FIELD_STREAM_STRIDE - 1],
                    D_800C0904[idx * FIELD_STREAM_STRIDE], (u8 *)D_8005F104, NULL);
         } else {
-            cdRead(D_800974D0[0].sector, D_800974D0[0].size, (u8 *)D_8005F104, NULL);
+            LoadDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, (u8 *)D_8005F104, NULL);
         }
         D_8005F14A = 1;
     }

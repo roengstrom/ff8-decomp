@@ -172,7 +172,7 @@ void RestoreSnapshot(void) {
  */
 void loadFieldDataA(void) {
     if (g_previousGameMode != 6 && g_previousGameMode != 0xA) {
-        func_80038868(D_80097410[0].sector, D_80097410[0].size, 0x80098000, 0);
+        LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, 0x80098000, 0);
         while (func_800393C8() != 0)
             ;
     }
@@ -187,7 +187,7 @@ void loadFieldDataA(void) {
  */
 void loadFieldDataB(void) {
     if (g_previousGameMode != 6 && g_previousGameMode != 0xA) {
-        func_80038868(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, 0);
+        LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, 0);
         while (func_800393C8() != 0)
             ;
     }
@@ -195,7 +195,7 @@ void loadFieldDataB(void) {
 }
 
 void LoadWm2FieldTable(void) {
-    cdRead(D_80097410[1].sector, D_80097410[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
+    LoadDataFromDisc(D_80097410[1].sector, D_80097410[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
     while (func_800393C8() != 0) {}
 }
 
@@ -205,19 +205,19 @@ void LoadWm2FieldTable(void) {
 void initSoundEngine(void) {
     sndInit();
 
-    cdRead(D_800974D8[0].sector, D_800974D8[0].size, (s32)D_80067468, 0);
+    LoadDataFromDisc(D_800974D8[0].sector, D_800974D8[0].size, (s32)D_80067468, 0);
     while (func_800393C8() != 0)
         ;
 
     sndLoadBank((s32)D_80067468);
 
-    cdRead(D_800974D8[1].sector, D_800974D8[1].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_800974D8[1].sector, D_800974D8[1].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
 
     sndUploadSamples(0x801B0000, 1);
 
-    cdRead(D_800974D8[2].sector, D_800974D8[2].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_800974D8[2].sector, D_800974D8[2].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
 
@@ -229,7 +229,7 @@ void initSoundEngine(void) {
  *         loaded depends on the file table set up by loadFileTable.
  */
 void loadCdOverlay(void) {
-    cdRead(D_80097400[0].sector, D_80097400[0].size, 0x80098000, 0);
+    LoadDataFromDisc(D_80097400[0].sector, D_80097400[0].size, 0x80098000, 0);
     while (func_800393C8() != 0)
         ;
 }
@@ -237,7 +237,7 @@ void loadCdOverlay(void) {
 
 /** @brief Loads texture data from CD and uploads it to VRAM. */
 void loadAndUploadTextures(void) {
-    cdRead(D_80097808[0].sector, D_80097808[0].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_80097808[0].sector, D_80097808[0].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
     func_8002C3AC(0x801B0000, 0);
@@ -260,19 +260,19 @@ void initBattleAssets(void) {
     initBattleAnimSystem((s32)D_8006A468, 0x6000);
     loadAndUploadTextures();
 
-    cdRead(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, 0);
     while (func_800393C8() != 0)
         ;
 
     loadBattleTimImage(0x801B0000);
 
-    cdRead(D_80097808[3].sector, D_80097808[3].size, 0x80090000, 0);
+    LoadDataFromDisc(D_80097808[3].sector, D_80097808[3].size, 0x80090000, 0);
     while (func_800393C8() != 0)
         ;
 
     func_80039678((s32)D_8005F188, 0x80090000, 0x200);
 
-    cdRead(D_80097808[2].sector, D_80097808[2].size, 0x80090000, 0);
+    LoadDataFromDisc(D_80097808[2].sector, D_80097808[2].size, 0x80090000, 0);
     while (func_800393C8() != 0)
         ;
 
@@ -284,7 +284,7 @@ void initBattleAssets(void) {
  *         other CD load, since every other load descriptor lives in this table.
  */
 void loadFileTable(void) {
-    cdRead(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, 0);
+    LoadDataFromDisc(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, 0);
     while (func_800393C8() != 0)
         ;
 }
@@ -320,7 +320,7 @@ void ff8main(void) {
     initFieldModule();
     LoadWm2FieldTable();
     while (1) {
-        func_80038868(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
+        LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
         while (func_800393C8() != 0) {}
 
         func_80098FD4(0);
@@ -347,7 +347,7 @@ void ff8main(void) {
             SmInitEventAll(1);
         }
         if (g_fieldVars->expectedDiscId != getDiscId()) {
-            func_80038868(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
+            LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
             while (func_800393C8() != 0) {}
 
             func_80098FD4(1);
@@ -548,7 +548,7 @@ void ff8main(void) {
                 }
                 break;
             case 8:
-                func_80038868(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
+                LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
                 while (func_800393C8() != 0) {}
                 func_80098FD4(g_fieldEntity.unk1A0);
                 mode = g_fieldEntity.unk1A0;

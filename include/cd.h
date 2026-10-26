@@ -6,7 +6,7 @@
 
 /** @brief CD-ROM file descriptor (sector + size pair).
  *
- *  Used by func_8003882C / func_80038868 to identify data on disc.
+ *  Used by LoadDataFromDisc / LoadCompressedDataFromDisc to identify data on disc.
  *  The master file table at 0x80097400 is an array of these descriptors,
  *  loaded from a hard-coded bootstrap descriptor (g_fileTableDesc).
  */
@@ -57,16 +57,16 @@ extern CdReadState D_8008A3D8;
 /* Shared CD driver state / buffers (used by both cdrom.c and cdread.c). */
 extern CdDriveState D_8008A3C8; /**< CD drive timeout / state machine. */
 extern u8  D_8008A3DC[];        /**< CD command parameter buffer (aliases @c D_8008A3D8.params). */
-extern s32 D_8008A3B8;          /**< Rolling read-cursor LBA (set by @c func_80038868). */
+extern s32 D_8008A3B8;          /**< Rolling read-cursor LBA. */
 extern u8  D_800853B8[];        /**< CD read staging buffer. */
 
 extern s32 cdReadAsyncSync(s32 lba, u32 size, u8 *dest, void (*callback)(void));
 
 /** @brief Initiate an asynchronous CD read with a completion callback. */
-extern s32 cdRead(s32 lba, u32 size, void *dest, void (*callback)(void));
+extern s32 LoadDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void));
 
-/** @brief Lower-level async CD read used by @ref cdRead. */
-extern s32 func_80038868(s32 lba, u32 size, u8 *dest, void (*callback)(void));
+/** @brief Read LZS-compressed data from disc and decompress it into dest. */
+extern s32 LoadCompressedDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void));
 
 /** @brief Poll the async CD read pipeline; returns @c 0 once the read has completed.
  *         Returns the CD state byte zero-extended to @c s32 — callers compare

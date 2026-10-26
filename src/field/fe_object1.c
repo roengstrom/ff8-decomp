@@ -126,7 +126,7 @@ s32 *func_800983F0(void) {
     u8 *heapEnd;
 
     if (D_8005F14A == 0 || g_curFieldId != D_8005F100) {
-        func_80038868(D_800C0900[D_800C2568[g_curFieldId] * 6],
+        LoadCompressedDataFromDisc(D_800C0900[D_800C2568[g_curFieldId] * 6],
                       D_800C0900[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF,
                       NULL);
         while (func_800393C8() != 0) {}
@@ -142,7 +142,7 @@ s32 *func_800983F0(void) {
 
     D_8005F100 = 0;
     D_8005F142 = 0;
-    func_80038868(D_800C0908[D_800C2568[g_curFieldId] * 6],
+    LoadCompressedDataFromDisc(D_800C0908[D_800C2568[g_curFieldId] * 6],
                   D_800C0908[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF, NULL);
     while (func_800393C8() != 0) {}
 

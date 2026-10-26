@@ -45,7 +45,7 @@ typedef struct {
 /** Section descriptor: provides the base sector that object ids index from. */
 typedef struct {
     u8  pad0[8];
-    s32 baseLba; /* sector number of id 0; cdRead reads baseLba + id */
+    s32 baseLba; /* sector number of id 0; LoadDataFromDisc reads baseLba + id */
 } CdSection;
 
 extern u8        D_800C4DCC[];

@@ -22,15 +22,15 @@ void ovlStubB(void) {
 }
 
 
-/** @brief Wrapper that initiates a CD-ROM read via cdRead. */
+/** @brief Wrapper that initiates a CD-ROM read via LoadDataFromDisc. */
 void startCdRead(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
-    cdRead(lba, size, dest, callback);
+    LoadDataFromDisc(lba, size, dest, callback);
 }
 
 
-/** @brief Wrapper that initiates an async CD-ROM read via func_80038868. */
+/** @brief Wrapper that initiates an async CD-ROM read via LoadCompressedDataFromDisc. */
 void startCdReadAsync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
-    func_80038868(lba, size, dest, callback);
+    LoadCompressedDataFromDisc(lba, size, dest, callback);
 }
 
 

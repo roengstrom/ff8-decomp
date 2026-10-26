@@ -1138,10 +1138,10 @@ s32 func_8009CA34(s32 *src, ImageDesc *desc) {
 
 
 /**
- * @brief Walk a NULL-terminated @ref CdLoadEntry list, issuing a @c cdRead
+ * @brief Walk a NULL-terminated @ref CdLoadEntry list, issuing a @c LoadDataFromDisc
  *        for each entry and spinning on @c func_800393C8 between entries.
  *
- * For each non-terminator entry, kicks off @c cdRead(lba, size, dest, NULL)
+ * For each non-terminator entry, kicks off @c LoadDataFromDisc(lba, size, dest, NULL)
  * then busy-waits in a poll loop on @c func_800393C8 until it returns 0
  * (read complete). While polling, optionally calls @p spin_cb each iteration
  * after a @c VSync(0) prep step — used by callers to keep the frame
@@ -1164,7 +1164,7 @@ void func_8009CAE0(CdLoadEntry *entries, void (*spin_cb)(void)) {
     if (entries->marker == 0) return;
     e = entries;
 top:
-    cdRead(e->lba, e->size, e->dest, 0);
+    LoadDataFromDisc(e->lba, e->size, e->dest, 0);
     while (func_800393C8() != 0) {
         if (spin_cb != 0) {
             VSync(0);
@@ -1206,7 +1206,7 @@ void func_8009CB70(u8 *desc, CdSection *section, u8 *dest0, u8 *dest1) {
         return;
     }
     /* hold the terminator in a local so it stays in a saved register across
-       the cdRead / func_800393C8 calls rather than being reloaded each pass */
+       the LoadDataFromDisc / func_800393C8 calls rather than being reloaded each pass */
     term = ID_LIST_END;
     p = desc;
     end = p + ID_LIST_MAX;
@@ -1218,7 +1218,7 @@ loop:
         goto done;
     }
     id = p[ID_OFFSET];
-    cdRead(section->baseLba + id, CD_SECTOR_SIZE, (p == first) ? dest0 : dest1, NULL);
+    LoadDataFromDisc(section->baseLba + id, CD_SECTOR_SIZE, (p == first) ? dest0 : dest1, NULL);
     while (func_800393C8()) {
         ;
     }
