@@ -31,7 +31,7 @@
 
 DR_AREA *func_801EF800(P_TAG *, DR_AREA *, u8 *);  /**< Link a custom-rect DR_AREA prim. */
 DR_AREA *func_801EF8D8(P_TAG *, DR_AREA *);   /**< Link a clip-restore DR_AREA prim. */
-s32  func_801EF9AC(s32, s32, s32, s32);       /**< Panel/window render helper. */
+void *func_801EF9AC(void *ot, void *prim, s32 progress, u32 color);       /**< Panel/window render helper. */
 u8  *func_801F6AA4(s32);                      /**< Look up a string in menu text category 3. */
 u8  *func_801F6AD0(s32);                      /**< Look up a string in menu text category 0. */
 void func_801F7B60(void);                     /**< Menu teardown/exit helper. */

@@ -60,6 +60,60 @@ typedef struct {
     /* 0x4B */ u8 field4B;
 } MainMenuCtx;
 
+#define setRGBCWord(p, c) (*(u32 *)&(p)->r0 = (c)) // NOTE: duplicated from sprite.c
+#define setUVClutWord(p, uv) (*(u32 *)&(p)->u0 = (uv))
+#define setWHWord(p, wh) (*(u32 *)&(p)->w = (wh))
+
+#define setIconCellTexInfo(p, texInfo, color) do { \
+    u32 bits_; \
+    s32 tpage_; \
+    bits_ = (texInfo) & ICON_UVCLUT_MASK; \
+    bits_ += getClut(ICON_CLUT_X, ICON_CLUT_Y) << 16; \
+    setUVClutWord(p, bits_); \
+    bits_ = ((texInfo) >> ICON_ABR_SHIFT) & ICON_ABR_MASK; \
+    bits_ = (u8)getTPage(0, bits_, 0, 0); \
+    tpage_ = bits_ | getTPage(0, 0, ICON_TPAGE_X, ICON_TPAGE_Y); \
+    bits_ = (texInfo) >> ICON_ABE_SHIFT; \
+    bits_ &= SPRT_CODE_ABE; \
+    bits_ <<= SPRT_CODE_SHIFT; \
+    bits_ |= (color); \
+    setTSprt(p, 1, 0, tpage_); \
+    setRGBCWord(p, bits_); \
+} while (0)
+
+#define setIconCellMetrics(p, metrics, x, y) do { \
+    u32 bits_; \
+    bits_ = (metrics) & ICON_WH_MASK; \
+    setWHWord(p, bits_); \
+    bits_ = (s8)((metrics) >> 24); \
+    (metrics) <<= 16; \
+    (metrics) = (s8)((metrics) >> 24); \
+    setXY0(p, (x) + (metrics), (y) + bits_); \
+} while (0)
+
+/** @brief Draws an icon from the icon table. */
+static inline void *DrawIconFromTable(void *ot, TSPRT *head, IconTable *table, s32 idx, s32 x, s32 y, u32 color) {
+    void *cellAddr = table;
+    u32 tableWord;
+    s32 cellCount;
+
+    tableWord = table->descriptors[idx];
+    cellCount = tableWord >> 16;
+    tableWord &= 0xFFFF;
+    cellAddr += tableWord;
+    while (cellCount > 0) {
+        tableWord = ((IconCell *)cellAddr)->texInfo;
+        setIconCellTexInfo(head, tableWord, color);
+        tableWord = ((IconCell *)cellAddr)->metrics;
+        setIconCellMetrics(head, tableWord, x, y);
+        addPrimFast(ot, head);
+        head++;
+        cellCount--;
+        cellAddr = (IconCell *)cellAddr + 1;
+    }
+    return head;
+}
+
 static void func_801F1E20(MainMenuCtx *ctx);
 static void func_801F1E54(MainMenuCtx *ctx);
 static void func_801F1F98(MainMenuCtx *ctx);
@@ -129,20 +183,54 @@ DR_AREA *func_801EF8D8(P_TAG *ot, DR_AREA *prim) {
  * Shrinks the rect by 1 pixel on each side, draws the panel via
  * func_801EF800, then restores the original rect dimensions.
  */
-void func_801EF934(s32 a0, s32 a1, s32 *a2) {
-    s32 save0 = a2[0];
-    s32 save1 = a2[1];
-    u16 *rect = (u16 *)a2;
-    rect[0] += 1;
-    rect[1] += 1;
-    rect[2] -= 2;
-    rect[3] -= 2;
-    ((DR_AREA *(*)())func_801EF800)(a0, a1);
-    a2[0] = save0;
-    a2[1] = save1;
+void *func_801EF934(void *ot, void *prim, RECT *rect) {
+    s32 save0 = ((s32 *)rect)[0];
+    s32 save1 = ((s32 *)rect)[1];
+    rect->x += 1;
+    rect->y += 1;
+    rect->w -= 2;
+    rect->h -= 2;
+    prim = func_801EF800(ot, prim, rect);
+    ((s32 *)rect)[0] = save0;
+    ((s32 *)rect)[1] = save1;
+    return prim;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801EF9AC);
+/**
+ * @brief Draws a menu window.
+ *
+ * Draws the window background, border, and optional corner icon.
+ * When progress is below 4096, draw a proportional portion of the
+ * window.
+ *
+ * Called continuously while the menu is open.
+ *
+ * @param ot Ordering table to which the primitives are added.
+ * @param prim Pointer to the next GPU primitive to allocate.
+ * @param progress Animation progress.
+ * @param color Color used to draw the window.
+ * @return Pointer to the next available GPU primitive.
+ */
+void *func_801EF9AC(void *ot, void *prim, s32 progress, u32 color) {
+    IconTable *iconTable = &g_iconTable;
+    MenuDisplayConfig *window = &g_menuDisplayCfg;
+    progress = abs(progress);
+    if (progress != 0) {
+        scaleWindowRect(progress, &window->x, &window->x2);
+        if (progress < 4096) {
+            prim = func_801EF934(ot, prim, &window->x2);
+        }
+        if (window->iconType != 0) {
+            prim = DrawIconFromTable(ot, prim, iconTable, window->iconType, window->x, window->y, color);
+        }
+        prim = func_8002B898(ot, prim, &window->x2, color);
+        prim = func_8002B8BC(ot, prim, &window->x, color, 8);
+        if (progress < 4096) {
+            prim = func_801EF800(ot, prim, &window->x2);
+        }
+    }
+    return prim;
+}
 
 /**
  * @brief Renders the rows of a menu list within a window frame.
@@ -1148,10 +1236,9 @@ s32 func_801F21D0(s32 a0) {
 }
 
 /** @brief Set character status flags and sync to secondary table. */
-void func_801F21FC(s32 a0, s32 a1) {
-    s32 base2 = (s32)D_801FABC8;
-    g_gameState.chars[a0].statusFlags = a1;
-    *(s16 *)(base2 + a0 * 32 + 0xE) = a1;
+void func_801F21FC(s32 charId, s32 statusFlags) {
+    g_gameState.chars[charId].statusFlags = statusFlags;
+    D_801FABC8[charId].statusFlags = statusFlags;
 }
 
 /** @brief Get GF status (stub, always returns 0). */
@@ -1671,40 +1758,34 @@ u16 func_801F57DC(s32 a0) {
 }
 
 /** @brief Set entity current HP (updates both primary and cache tables). */
-void func_801F5868(s32 a0, s32 a1) {
-    if (a0 >= 16) {
-        s32 idx = a0 - 16;
-        s32 base2 = (s32)&g_battleChars;
-        g_gameState.gfs[idx].hp = a1;
-        *(s16 *)(base2 + idx * 12 + 0x618) = a1;
+void func_801F5868(s32 entityId, s32 hp) {
+    if (entityId >= 16) {
+        s32 gfId = entityId - 16;
+        g_gameState.gfs[gfId].hp = hp;
+        g_battleChars.gfs[gfId].hp = hp;
     } else {
-        s32 base2 = (s32)D_801FABC8;
-        g_gameState.chars[a0].currentHp = a1;
-        *(s16 *)(base2 + a0 * 32 + 0x8) = a1;
+        g_gameState.chars[entityId].currentHp = hp;
+        D_801FABC8[entityId].currentHp = hp;
     }
 }
 
 /** @brief Get entity max HP. */
-s32 func_801F58EC(s32 a0) {
-    if (a0 < 16) {
-        s32 base = (s32)D_801FABC8;
-        return *(s16 *)(base + a0 * 32 + 0xA);
+s32 func_801F58EC(s32 entityId) {
+    if (entityId < 16) {
+        return D_801FABC8[entityId].maxHp;
     } else {
-        s32 idx = a0 - 16;
-        s32 base = (s32)&g_battleChars;
-        return *(s16 *)(base + idx * 12 + 0x61A);
+        s32 gfId = entityId - 16;
+        return g_battleChars.gfs[gfId].maxHp;
     }
 }
 
 /** @brief Get entity level. */
-s32 func_801F5938(s32 a0) {
-    if (a0 < 16) {
-        s32 base = (s32)D_801FABC8;
-        return *(u8 *)(base + a0 * 32 + 0xC);
+s32 func_801F5938(s32 entityId) {
+    if (entityId < 16) {
+        return D_801FABC8[entityId].currentLevel;
     } else {
-        s32 idx = a0 - 16;
-        s32 base = (s32)&g_battleChars;
-        return *(u8 *)(base + idx * 12 + 0x620);
+        s32 gfId = entityId - 16;
+        return g_battleChars.gfs[gfId].level;
     }
 }
 
