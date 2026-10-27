@@ -165,7 +165,7 @@ void RestoreSnapshot(void) {
 }
 
 void LoadFieldOverlay(void) {
-    if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != 0xA) {
+    if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
         LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, 0x80098000, NULL);
         while (func_800393C8() != 0) {}
     }
@@ -173,7 +173,7 @@ void LoadFieldOverlay(void) {
 }
 
 void LoadWorldOverlay(void) {
-    if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != 0xA) {
+    if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
         LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, NULL);
         while (func_800393C8() != 0) {}
     }
@@ -461,7 +461,7 @@ void ff8main(void) {
                         if (result & 1) {
                             clearEntityFlags();
                             if (g_gameMode == GAME_MODE_MENU) {
-                                g_previousGameMode = 0xA;
+                                g_previousGameMode = GAME_MODE_SCRIPT_MENU;
                             } else {
                                 g_previousGameMode = GAME_MODE_MENU;
                             }

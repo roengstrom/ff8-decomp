@@ -426,10 +426,12 @@ typedef enum {
     GAME_MODE_WORLD = 2,
     GAME_MODE_BATTLE = 3,
     GAME_MODE_BATTLE_DEBUG_MENU = 4,
+    GAME_MODE_BATTLE_RESULTS = 5,
     GAME_MODE_MENU = 6,
     GAME_MODE_CARD = 8,
     GAME_MODE_DISC_CHANGE = 9,
-    GAME_MODE_SCRIPT_MENU = 10
+    GAME_MODE_SCRIPT_MENU = 10,
+    GAME_MODE_EXIT = 100
 } GameMode;
 
 /* Display double-buffer state (main-binary; shared with tripletriad). */

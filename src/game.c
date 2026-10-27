@@ -642,11 +642,11 @@ top:
     state = (s16)g_gameMode;
     if (state == mode) goto case4;
     if (state < 5) {
-        if (state == 3) goto case3;
+        if (state == GAME_MODE_BATTLE) goto case3;
         goto default_case;
     }
-    if (state == 5) goto case5;
-    if (state == 8) goto case8;
+    if (state == GAME_MODE_BATTLE_RESULTS) goto case5;
+    if (state == GAME_MODE_CARD) goto case8;
     goto default_case;
 
 case4:
@@ -676,7 +676,7 @@ case5:
     startBattleResults();
     g_renderMode = mode;
     func_8001F5C8();
-    g_gameMode = 100;
+    g_gameMode = GAME_MODE_EXIT;
     goto top;
 
 default_case:

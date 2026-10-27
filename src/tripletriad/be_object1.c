@@ -91,7 +91,7 @@ s32 tripleTriadMainLoop(void) {
         flipBuffers();
     }
     clearAllDialogs();
-    g_gameMode = 100;
+    g_gameMode = GAME_MODE_EXIT;
     return 0;
 }
 

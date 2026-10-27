@@ -164,7 +164,7 @@ s32 *func_800983F0(void) {
         func_800A2EE0(ptr);
         buf += sizeof(FieldParticles);
         *g_fieldScript = buf;
-        if (g_previousGameMode != GAME_MODE_BATTLE && g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != 0xA) {
+        if (g_previousGameMode != GAME_MODE_BATTLE && g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
             func_800A2F28(g_curFieldParticles, &g_fieldEntity);
         }
     } else {
@@ -387,7 +387,7 @@ void func_8009895C(void) {
         if (g_previousGameMode == GAME_MODE_NONE
             || (s16)g_previousGameMode == GAME_MODE_BATTLE
             || (s16)g_previousGameMode == GAME_MODE_MENU
-            || (s16)g_previousGameMode == 0xA) {
+            || (s16)g_previousGameMode == GAME_MODE_SCRIPT_MENU) {
             g_fieldEntity.mode = 0;
         }
 
@@ -423,7 +423,7 @@ void func_8009895C(void) {
             func_8009AEC0();
         }
 
-        if ((s16)g_previousGameMode != GAME_MODE_MENU && (s16)g_previousGameMode != 0xA) {
+        if ((s16)g_previousGameMode != GAME_MODE_MENU && (s16)g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
             if ((s16)g_previousGameMode == GAME_MODE_BATTLE) {
                 func_800BF718(0);
             } else {
