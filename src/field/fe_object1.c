@@ -317,11 +317,11 @@ void func_8009895C(void) {
     g_fieldEntity.unk1A1 = 0;
 
     while (1) {
-        if ((s16)g_previousGameMode != GAME_MODE_MENU) {
+        if (g_previousGameMode != GAME_MODE_MENU) {
             func_800A7194();
         }
 
-        if (g_previousGameMode == GAME_MODE_NONE || (s16)g_previousGameMode == GAME_MODE_FIELD || (s16)g_previousGameMode == GAME_MODE_WORLD) {
+        if (g_previousGameMode == GAME_MODE_NONE || g_previousGameMode == GAME_MODE_FIELD || g_previousGameMode == GAME_MODE_WORLD) {
             g_fieldEntity.unk1A6 = 0;
             g_fieldEntity.unk1A9 = 0;
             g_fieldEntity.unk1A7 = 1;
@@ -346,10 +346,10 @@ void func_8009895C(void) {
             ClearImage(&g_drawEnvs[1].clip, 0, 0, 0);
         }
 
-        if (((s16)g_previousGameMode == GAME_MODE_FIELD && g_fieldEntity.unk1A5 == 0) || (s16)g_previousGameMode == GAME_MODE_WORLD) {
+        if ((g_previousGameMode == GAME_MODE_FIELD && g_fieldEntity.unk1A5 == 0) || g_previousGameMode == GAME_MODE_WORLD) {
             VSync(0);
             func_80098314();
-            if ((s16)g_previousGameMode == GAME_MODE_WORLD) {
+            if (g_previousGameMode == GAME_MODE_WORLD) {
                 g_bufferIndex = 1;
             }
             copyFramebuffer();
@@ -359,7 +359,7 @@ void func_8009895C(void) {
             g_renderMode = 1;
         }
 
-        if ((s16)g_previousGameMode != GAME_MODE_MENU) {
+        if (g_previousGameMode != GAME_MODE_MENU) {
             g_fieldInfo = &FIELD_DATA->info;
             g_fieldViews = &FIELD_DATA->views;
             g_fieldWalkmesh = &FIELD_DATA->walkmesh;
@@ -385,9 +385,9 @@ void func_8009895C(void) {
         SetDrawEnv(&D_800C7218[1].unk4F40, &g_drawEnvs[1]);
 
         if (g_previousGameMode == GAME_MODE_NONE
-            || (s16)g_previousGameMode == GAME_MODE_BATTLE
-            || (s16)g_previousGameMode == GAME_MODE_MENU
-            || (s16)g_previousGameMode == GAME_MODE_SCRIPT_MENU) {
+            || g_previousGameMode == GAME_MODE_BATTLE
+            || g_previousGameMode == GAME_MODE_MENU
+            || g_previousGameMode == GAME_MODE_SCRIPT_MENU) {
             g_fieldEntity.mode = 0;
         }
 
@@ -395,7 +395,7 @@ void func_8009895C(void) {
             func_800A3FE0(g_curFieldParticles);
         }
 
-        if (g_previousGameMode == GAME_MODE_NONE || (s16)g_previousGameMode == GAME_MODE_FIELD || (s16)g_previousGameMode == GAME_MODE_WORLD) {
+        if (g_previousGameMode == GAME_MODE_NONE || g_previousGameMode == GAME_MODE_FIELD || g_previousGameMode == GAME_MODE_WORLD) {
             func_800A62EC(g_curFieldInfo->triggers);
             q = g_curFieldInfo;
             g_fieldEntity.unk1A4 = 0;
@@ -419,18 +419,18 @@ void func_8009895C(void) {
         g_fieldWalkmeshVerts = (*g_fieldWalkmesh)->tris[0].v;
         g_fieldWalkmeshAdjacency = (AdjRec *)&((Triangle *)g_fieldWalkmeshVerts)[(u16)(*g_fieldWalkmesh)->count];
 
-        if ((s16)g_previousGameMode != GAME_MODE_MENU && (s16)g_previousGameMode != GAME_MODE_BATTLE) {
+        if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_BATTLE) {
             func_8009AEC0();
         }
 
-        if ((s16)g_previousGameMode != GAME_MODE_MENU && (s16)g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
-            if ((s16)g_previousGameMode == GAME_MODE_BATTLE) {
+        if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
+            if (g_previousGameMode == GAME_MODE_BATTLE) {
                 func_800BF718(0);
             } else {
                 func_800BF718(1);
             }
         } else {
-            if ((s16)g_previousGameMode == GAME_MODE_MENU) {
+            if (g_previousGameMode == GAME_MODE_MENU) {
                 func_800BF718(2);
             } else {
                 func_800BF718(3);

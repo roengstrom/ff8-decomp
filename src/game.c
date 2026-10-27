@@ -639,7 +639,7 @@ void gameStateLoop(void) {
     s16 state;
 
 top:
-    state = (s16)g_gameMode;
+    state = g_gameMode;
     if (state == mode) goto case4;
     if (state < 5) {
         if (state == GAME_MODE_BATTLE) goto case3;
