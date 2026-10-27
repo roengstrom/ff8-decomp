@@ -91,7 +91,6 @@ typedef struct {
     setXY0(p, (x) + (metrics), (y) + bits_); \
 } while (0)
 
-/** @brief Draws an icon from the icon table. */
 static inline void *DrawIconFromTable(void *ot, TSPRT *head, IconTable *table, s32 idx, s32 x, s32 y, u32 color) {
     void *cellAddr = table;
     u32 tableWord;
@@ -200,14 +199,15 @@ void *func_801EF934(void *ot, void *prim, RECT *rect) {
  * @brief Draws a menu window.
  *
  * Draws the window background, border, and optional corner icon.
- * When progress is below 4096, draw a proportional portion of the
+ * When progress is below 1.0, draw a proportional portion of the
  * window.
  *
  * Called continuously while the menu is open.
  *
  * @param ot Ordering table to which the primitives are added.
  * @param prim Pointer to the next GPU primitive to allocate.
- * @param progress Animation progress.
+ * @param progress Window expansion progress as fixed point
+ *                 division where 4096 (int) = 1.0 (float).
  * @param color Color used to draw the window.
  * @return Pointer to the next available GPU primitive.
  */
@@ -217,7 +217,7 @@ void *func_801EF9AC(void *ot, void *prim, s32 progress, u32 color) {
     progress = abs(progress);
     if (progress != 0) {
         scaleWindowRect(progress, &window->x, &window->x2);
-        if (progress < 4096) {
+        if (progress < ONE) {
             prim = func_801EF934(ot, prim, &window->x2);
         }
         if (window->iconType != 0) {
@@ -225,7 +225,7 @@ void *func_801EF9AC(void *ot, void *prim, s32 progress, u32 color) {
         }
         prim = func_8002B898(ot, prim, &window->x2, color);
         prim = func_8002B8BC(ot, prim, &window->x, color, 8);
-        if (progress < 4096) {
+        if (progress < ONE) {
             prim = func_801EF800(ot, prim, &window->x2);
         }
     }
