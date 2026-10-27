@@ -38,8 +38,7 @@ void flushGpuOt(void) {
     addPrim(ot, &prim);
     DrawOTag(ot);
 
-    do {
-    } while (DrawSync(1) != 0);
+    while (DrawSync(1) != 0) {}
 }
 
 /** @brief VSync callback handler, registered via VSyncCallback in InitHardware.
@@ -93,7 +92,6 @@ void VsyncHandler(void) {
     D_8005F11E = 1;
 }
 
-
 /** @brief Initializes the PS1 hardware (memory, callbacks, GPU, GTE, SPU) and
  *         registers the VSync handler. Called once at startup.
  */
@@ -119,7 +117,7 @@ void InitHardware(void) {
 void func_80011870(void) {
     s16 i;
 
-    if (D_8005F14C == 2) {
+    if (g_previousGameMode == GAME_MODE_WORLD) {
         g_gameState.cameraSnapshot.vsyncRate = 2;
     } else {
         g_gameState.cameraSnapshot.vsyncRate = 1;
@@ -131,7 +129,7 @@ void func_80011870(void) {
     for (i = 0; i < 3; i++) {
         g_gameState.cameraSnapshot.positionsX[i] = D_80085224[g_fieldEntity.entityIndex[i]].posX >> 12;
         g_gameState.cameraSnapshot.positionsY[i] = D_80085224[g_fieldEntity.entityIndex[i]].posY >> 12;
-        g_gameState.cameraSnapshot.triIdxs[i]   = D_80085224[g_fieldEntity.entityIndex[i]].triIdx;
+        g_gameState.cameraSnapshot.triIdxs[i] = D_80085224[g_fieldEntity.entityIndex[i]].triIdx;
         g_gameState.cameraSnapshot.animStates[i] = D_80085224[g_fieldEntity.entityIndex[i]].field_0x241;
     }
 
@@ -147,9 +145,9 @@ void func_80011870(void) {
 void RestoreSnapshot(void) {
     SystemState *entity;
 
-    g_vsyncRate = g_gameState.cameraSnapshot.vsyncRate;
-    if (g_vsyncRate == 0) {
-        g_vsyncRate = 1;
+    g_gameMode = g_gameState.cameraSnapshot.vsyncRate;
+    if (g_gameMode == GAME_MODE_NONE) {
+        g_gameMode = GAME_MODE_FIELD;
     }
 
     g_curFieldId = g_gameState.cameraSnapshot.fieldId;
@@ -166,36 +164,24 @@ void RestoreSnapshot(void) {
     D_8005F150 = g_gameState.cameraSnapshot.fade0;
 }
 
-
-/** @brief Loads field data set A from CD, unless the current field mode
- *         doesn't require it, then resets the sound state.
- */
-void loadFieldDataA(void) {
-    if (D_8005F14C != 6 && D_8005F14C != 0xA) {
-        func_80038868(D_80097410[0].sector, D_80097410[0].size, 0x80098000, 0);
-        while (func_800393C8() != 0)
-            ;
+void LoadFieldOverlay(void) {
+    if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
+        LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, 0x80098000, NULL);
+        while (func_800393C8() != 0) {}
     }
     func_8001F5C8();
 }
 
-/** @brief Loads field data set B from CD - same as loadFieldDataA with a
- *         different source.
- *
- *  @note Purpose uncertain - the A/B distinction may correspond to different
- *        field maps or disc configurations.
- */
-void loadFieldDataB(void) {
-    if (D_8005F14C != 6 && D_8005F14C != 0xA) {
-        func_80038868(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, 0);
-        while (func_800393C8() != 0)
-            ;
+void LoadWorldOverlay(void) {
+    if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
+        LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, NULL);
+        while (func_800393C8() != 0) {}
     }
     func_8001F5C8();
 }
 
 void LoadWm2FieldTable(void) {
-    cdRead(D_80097410[1].sector, D_80097410[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
+    LoadDataFromDisc(D_80097410[1].sector, D_80097410[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
     while (func_800393C8() != 0) {}
 }
 
@@ -205,39 +191,37 @@ void LoadWm2FieldTable(void) {
 void initSoundEngine(void) {
     sndInit();
 
-    cdRead(D_800974D8[0].sector, D_800974D8[0].size, (s32)D_80067468, 0);
+    LoadDataFromDisc(D_800974D8[0].sector, D_800974D8[0].size, D_80067468, NULL);
     while (func_800393C8() != 0)
         ;
 
-    sndLoadBank((s32)D_80067468);
+    sndLoadBank(D_80067468);
 
-    cdRead(D_800974D8[1].sector, D_800974D8[1].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_800974D8[1].sector, D_800974D8[1].size, 0x801B0000, NULL);
     while (func_800393C8() != 0)
         ;
 
     sndUploadSamples(0x801B0000, 1);
 
-    cdRead(D_800974D8[2].sector, D_800974D8[2].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_800974D8[2].sector, D_800974D8[2].size, 0x801B0000, NULL);
     while (func_800393C8() != 0)
         ;
 
     sndUploadSamples(0x801B0000, 1);
 }
-
 
 /** @brief Loads an overlay from CD into the overlay region; which overlay is
  *         loaded depends on the file table set up by loadFileTable.
  */
 void loadCdOverlay(void) {
-    cdRead(D_80097400[0].sector, D_80097400[0].size, 0x80098000, 0);
+    LoadDataFromDisc(D_80097400[0].sector, D_80097400[0].size, 0x80098000, NULL);
     while (func_800393C8() != 0)
         ;
 }
 
-
 /** @brief Loads texture data from CD and uploads it to VRAM. */
 void loadAndUploadTextures(void) {
-    cdRead(D_80097808[0].sector, D_80097808[0].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_80097808[0].sector, D_80097808[0].size, 0x801B0000, NULL);
     while (func_800393C8() != 0)
         ;
     func_8002C3AC(0x801B0000, 0);
@@ -260,38 +244,36 @@ void initBattleAssets(void) {
     initBattleAnimSystem((s32)D_8006A468, 0x6000);
     loadAndUploadTextures();
 
-    cdRead(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, 0);
+    LoadDataFromDisc(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, NULL);
     while (func_800393C8() != 0)
         ;
 
     loadBattleTimImage(0x801B0000);
 
-    cdRead(D_80097808[3].sector, D_80097808[3].size, 0x80090000, 0);
+    LoadDataFromDisc(D_80097808[3].sector, D_80097808[3].size, 0x80090000, NULL);
     while (func_800393C8() != 0)
         ;
 
     func_80039678((s32)D_8005F188, 0x80090000, 0x200);
 
-    cdRead(D_80097808[2].sector, D_80097808[2].size, 0x80090000, 0);
+    LoadDataFromDisc(D_80097808[2].sector, D_80097808[2].size, 0x80090000, NULL);
     while (func_800393C8() != 0)
         ;
 
     setBattleEntityBase(0x80090000);
 }
 
-
 /** @brief Loads the master file descriptor table from CD. Must run before any
  *         other CD load, since every other load descriptor lives in this table.
  */
 void loadFileTable(void) {
-    cdRead(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, 0);
+    LoadDataFromDisc(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, NULL);
     while (func_800393C8() != 0)
         ;
 }
 
 /* ff8main's post-battle handling reads several g_fieldVars fields (continue /
  * game-over flags and the expected disc id) to choose the next transition. */
-
 
 /** @brief Game main function and primary state-machine loop.
  *
@@ -320,13 +302,13 @@ void ff8main(void) {
     initFieldModule();
     LoadWm2FieldTable();
     while (1) {
-        func_80038868(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
+        LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
         while (func_800393C8() != 0) {}
 
         func_80098FD4(0);
         initBattleAssets();
-        g_vsyncRate = 1;
-        D_8005F14C = 0;
+        g_gameMode = GAME_MODE_FIELD;
+        g_previousGameMode = GAME_MODE_NONE;
         g_fieldEntity.unk1A3 = 0;
         D_8005F14A = 0;
         D_8005F100 = 0x49;
@@ -335,7 +317,7 @@ void ff8main(void) {
         result = func_8003646C(25);
         if (!(result & 2)) {
             RestoreSnapshot();
-            loadFieldDataA();
+            LoadFieldOverlay();
             SmInitEventAll(0);
         } else {
             g_curFieldId = FIELD_ID_START0;
@@ -343,11 +325,11 @@ void ff8main(void) {
             g_gameState.battleParty[1] = 0xFF;
             g_gameState.battleParty[2] = 0xFF;
             g_gameState.battleParty[3] = 0xFF;
-            loadFieldDataA();
+            LoadFieldOverlay();
             SmInitEventAll(1);
         }
         if (g_fieldVars->expectedDiscId != getDiscId()) {
-            func_80038868(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
+            LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
             while (func_800393C8() != 0) {}
 
             func_80098FD4(1);
@@ -355,221 +337,221 @@ void ff8main(void) {
             LoadWm2FieldTable();
         }
         do {
-            mode = g_vsyncRate - 1;
             do {
-            switch (mode) {
-            case 0:
-                loadFieldDataA();
-                func_8009895C();
-                break;
-            case 1:
-                switch (D_8005F14C) {
-                case 1:
-                    func_800B4F40();
-                    D_80082C8C.mode = 0;
+                switch (g_gameMode) {
+                case GAME_MODE_FIELD:
+                    LoadFieldOverlay();
+                    func_8009895C();
                     break;
-                case 3:
-                    D_80082C8C.mode = 2;
-                    break;
-                case 6:
-                    D_80082C8C.mode = 4;
-                    break;
-                case 0:
-                    D_80082C8C.mode = 6;
-                    break;
-                }
-                if (((D_8005F14C == 1) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
-                    while (func_800393C8() != 0) { do {} while (0); }
-                    func_80038490(D_8005F104, 0x80098000);
-                } else {
-                    loadFieldDataB();
-                }
-                D_8005F14A = 0;
-                if (func_800987D8() == 1) {
-                    g_fieldEntity.counter = 0;
-                    g_fieldEntity.mode = 4;
-                    g_fieldEntity.spawnTriIdx = 0x7FFF;
-                    sndStopAll();
-                    break;
-                }
-                D_8005F14C = 2;
-                switch (D_80082C8C.mode) {
-                case 1:
-                    entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
-                    fieldId = entry->fieldId;
-                    g_fieldEntity.position_x = entry->position_x;
-                    g_fieldEntity.position_y = entry->position_y;
-                    g_fieldEntity.spawnTriIdx = entry->spawnTriIdx;
-                    g_curFieldId = fieldId;
-                    g_fieldEntity.facingDirection = entry->facingDirection;
-                    g_vsyncRate = 1;
-                    sndCmd21(-1, 0);
-                    break;
-                case 3:
-                    g_vsyncRate = 3;
-                    break;
-                case 5:
-                    g_vsyncRate = 6;
-                    break;
-                }
-                break;
-            case 7:
-                gameStateLoop();
-                D_8005F14C = 3;
-                g_vsyncRate = 1;
-                break;
-            case 2:
-            case 3:
-                if (D_8005F14C == 1) {
-                    g_battleConfig.battleSceneId = g_fieldEntity.counter;
-                    mapAddr = D_8005F13C;
-                } else {
-                    g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
-                    mapAddr = 0x801D0000;
-                }
-                func_80038030(mapAddr);
-                gameStateLoop();
-                if (g_renderMode != 4) {
-                    flushGpuOt();
-                }
-                if (g_battleConfig.result == 5) {
-                    g_fieldEntity.counter = 0;
-                    g_fieldEntity.mode = 4;
-                    g_fieldEntity.spawnTriIdx = 0x7FFF;
-                    break;
-                }
-                if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
-                    g_curFieldId = FIELD_ID_GOVER;
-                    D_8005F14C = 0;
-                    g_vsyncRate = 1;
-                    break;
-                }
-                if (g_battleConfig.result == 3) {
-                    if (g_fieldVars->fieldB6 & 0x100) {
-                        g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
-                    } else {
-                        g_curFieldId = FIELD_ID_GOVER;
-                        D_8005F14C = 0;
-                        g_vsyncRate = 1;
+                case GAME_MODE_WORLD:
+                    switch (g_previousGameMode) {
+                    case GAME_MODE_FIELD:
+                        func_800B4F40();
+                        D_80082C8C.mode = WORLD_ENTER_FROM_FIELD;
+                        break;
+                    case GAME_MODE_BATTLE:
+                        D_80082C8C.mode = WORLD_ENTER_FROM_BATTLE;
+                        break;
+                    case GAME_MODE_MENU:
+                        D_80082C8C.mode = WORLD_ENTER_FROM_MENU;
+                        break;
+                    case GAME_MODE_NONE:
+                        D_80082C8C.mode = 6;
                         break;
                     }
-                }
-                if (D_8005F14C == 1) {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 1;
-                } else {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 2;
-                }
-                for (i = 0; i < 3; i++) {
-                    if (g_battleConfig.unk4[i] != 0xFF) {
-                        do {} while (g_renderMode == 4);
-                        while (DrawSync(1) != 0) {}
-                        func_8003646C(g_battleConfig.unk4[i] + 5);
+                    if (((g_previousGameMode == GAME_MODE_FIELD) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
+                        while (func_800393C8() != 0) {}
+                        func_80038490(D_8005F104, 0x80098000);
+                    } else {
+                        LoadWorldOverlay();
                     }
-                }
-                break;
-            case 5:
-            case 9:
-                while (g_renderMode != 0) {}
-                SetDispMask(0);
-                func_80011870();
-                if (D_8005F14C == 1) {
-                    result = func_8003646C(g_fieldEntity.counter, g_fieldEntity.unk1AB);
-                    if (result & 1) {
-                        clearEntityFlags();
-                        if (g_vsyncRate == 6) {
-                            D_8005F14C = 0xA;
+                    D_8005F14A = 0;
+                    if (func_800987D8() == 1) {
+                        g_fieldEntity.counter = 0;
+                        g_fieldEntity.mode = 4;
+                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        sndStopAll();
+                        break;
+                    }
+                    g_previousGameMode = GAME_MODE_WORLD;
+                    switch (D_80082C8C.mode) {
+                    case WORLD_EXIT_TO_FIELD:
+                        entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
+                        fieldId = entry->fieldId;
+                        g_fieldEntity.position_x = entry->position_x;
+                        g_fieldEntity.position_y = entry->position_y;
+                        g_fieldEntity.spawnTriIdx = entry->spawnTriIdx;
+                        g_curFieldId = fieldId;
+                        g_fieldEntity.facingDirection = entry->facingDirection;
+                        g_gameMode = GAME_MODE_FIELD;
+                        sndCmd21(-1, 0);
+                        break;
+                    case WORLD_EXIT_TO_BATTLE:
+                        g_gameMode = GAME_MODE_BATTLE;
+                        break;
+                    case WORLD_EXIT_TO_MENU:
+                        g_gameMode = GAME_MODE_MENU;
+                        break;
+                    }
+                    break;
+                case GAME_MODE_CARD:
+                    gameStateLoop();
+                    g_previousGameMode = GAME_MODE_BATTLE;
+                    g_gameMode = GAME_MODE_FIELD;
+                    break;
+                case GAME_MODE_BATTLE:
+                case GAME_MODE_BATTLE_DEBUG_MENU:
+                    if (g_previousGameMode == GAME_MODE_FIELD) {
+                        g_battleConfig.battleSceneId = g_fieldEntity.counter;
+                        mapAddr = D_8005F13C;
+                    } else {
+                        g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
+                        mapAddr = 0x801D0000;
+                    }
+                    func_80038030(mapAddr);
+                    gameStateLoop();
+                    if (g_renderMode != 4) {
+                        flushGpuOt();
+                    }
+                    if (g_battleConfig.result == 5) {
+                        g_fieldEntity.counter = 0;
+                        g_fieldEntity.mode = 4;
+                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        break;
+                    }
+                    if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
+                        g_curFieldId = FIELD_ID_GOVER;
+                        g_previousGameMode = GAME_MODE_NONE;
+                        g_gameMode = GAME_MODE_FIELD;
+                        break;
+                    }
+                    if (g_battleConfig.result == 3) {
+                        if (g_fieldVars->fieldB6 & 0x100) {
+                            g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
                         } else {
-                            D_8005F14C = 6;
+                            g_curFieldId = FIELD_ID_GOVER;
+                            g_previousGameMode = GAME_MODE_NONE;
+                            g_gameMode = GAME_MODE_FIELD;
+                            break;
                         }
-                    } else {
-                        D_8005F14C = 6;
                     }
-                    g_vsyncRate = 1;
-                } else {
-                    result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | 1);
-                    D_8005F14C = 6;
-                    g_vsyncRate = 2;
-                }
-                if (!(result & 4)) {
-                    break;
-                }
-                D_8005F14C = g_vsyncRate;
-                g_vsyncRate = 3;
-                g_battleConfig.battleSceneId = (u16)(result >> 16);
-                if (g_vsyncRate == 1) {
-                    mapAddr = D_8005F13C;
-                } else {
-                    result = 0x801D0000;
-                    mapAddr = result;
-                }
-                func_80038030(mapAddr);
-                gameStateLoop();
-                if (g_renderMode != 4) {
-                    flushGpuOt();
-                }
-                if (g_battleConfig.result == 5) {
-                    do { } while (0);
-                    g_fieldEntity.counter = 0;
-                    g_fieldEntity.mode = 4;
-                    g_fieldEntity.spawnTriIdx = 0x7FFF;
-                    break;
-                }
-                if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
-                    g_curFieldId = FIELD_ID_GOVER;
-                    D_8005F14C = 0;
-                    g_vsyncRate = 1;
-                    break;
-                }
-                if (g_battleConfig.result == 3) {
-                    if (g_fieldVars->fieldB6 & 0x100) {
-                        g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
+                    if (g_previousGameMode == GAME_MODE_FIELD) {
+                        g_previousGameMode = GAME_MODE_BATTLE;
+                        g_gameMode = GAME_MODE_FIELD;
                     } else {
-                        g_curFieldId = FIELD_ID_GOVER;
-                        D_8005F14C = 0;
-                        g_vsyncRate = 1;
+                        g_previousGameMode = GAME_MODE_BATTLE;
+                        g_gameMode = GAME_MODE_WORLD;
+                    }
+                    for (i = 0; i < 3; i++) {
+                        if (g_battleConfig.unk4[i] != 0xFF) {
+                            do {
+                            } while (g_renderMode == 4);
+                            while (DrawSync(1) != 0) {}
+                            func_8003646C(g_battleConfig.unk4[i] + 5);
+                        }
+                    }
+                    break;
+                case GAME_MODE_MENU:
+                case GAME_MODE_SCRIPT_MENU:
+                    while (g_renderMode != 0) {}
+                    SetDispMask(0);
+                    func_80011870();
+                    if (g_previousGameMode == GAME_MODE_FIELD) {
+                        result = func_8003646C(g_fieldEntity.counter, g_fieldEntity.unk1AB);
+                        if (result & 1) {
+                            clearEntityFlags();
+                            if (g_gameMode == GAME_MODE_MENU) {
+                                g_previousGameMode = GAME_MODE_SCRIPT_MENU;
+                            } else {
+                                g_previousGameMode = GAME_MODE_MENU;
+                            }
+                        } else {
+                            g_previousGameMode = GAME_MODE_MENU;
+                        }
+                        g_gameMode = GAME_MODE_FIELD;
+                    } else {
+                        result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | 1);
+                        g_previousGameMode = GAME_MODE_MENU;
+                        g_gameMode = GAME_MODE_WORLD;
+                    }
+                    if (!(result & 4)) {
                         break;
                     }
-                }
-                if (D_8005F14C == 1) {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 1;
-                } else {
-                    D_8005F14C = 3;
-                    g_vsyncRate = 2;
-                }
-                for (i = 0; i < 3; i++) {
-                    if (g_battleConfig.unk4[i] != 0xFF) {
-                        do {} while (g_renderMode == 4);
-                        while (DrawSync(1) != 0) {}
-                        func_8003646C(g_battleConfig.unk4[i] + 5);
+                    g_previousGameMode = g_gameMode;
+                    g_gameMode = GAME_MODE_BATTLE;
+                    g_battleConfig.battleSceneId = (u16)(result >> 16);
+                    if (g_gameMode == GAME_MODE_FIELD) {
+                        mapAddr = D_8005F13C;
+                    } else {
+                        result = 0x801D0000;
+                        mapAddr = result;
                     }
+                    func_80038030(mapAddr);
+                    gameStateLoop();
+                    if (g_renderMode != 4) {
+                        flushGpuOt();
+                    }
+                    if (g_battleConfig.result == 5) {
+                        do {
+                        } while (0);
+                        g_fieldEntity.counter = 0;
+                        g_fieldEntity.mode = 4;
+                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        break;
+                    }
+                    if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
+                        g_curFieldId = FIELD_ID_GOVER;
+                        g_previousGameMode = GAME_MODE_NONE;
+                        g_gameMode = GAME_MODE_FIELD;
+                        break;
+                    }
+                    if (g_battleConfig.result == 3) {
+                        if (g_fieldVars->fieldB6 & 0x100) {
+                            g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
+                        } else {
+                            g_curFieldId = FIELD_ID_GOVER;
+                            g_previousGameMode = GAME_MODE_NONE;
+                            g_gameMode = GAME_MODE_FIELD;
+                            break;
+                        }
+                    }
+                    if (g_previousGameMode == GAME_MODE_FIELD) {
+                        g_previousGameMode = GAME_MODE_BATTLE;
+                        g_gameMode = GAME_MODE_FIELD;
+                    } else {
+                        g_previousGameMode = GAME_MODE_BATTLE;
+                        g_gameMode = GAME_MODE_WORLD;
+                    }
+                    for (i = 0; i < 3; i++) {
+                        if (g_battleConfig.unk4[i] != 0xFF) {
+                            do {
+                            } while (g_renderMode == 4);
+                            while (DrawSync(1) != 0) {}
+                            func_8003646C(g_battleConfig.unk4[i] + 5);
+                        }
+                    }
+                    break;
+                case GAME_MODE_DISC_CHANGE:
+                    LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
+                    while (func_800393C8() != 0) {}
+                    func_80098FD4(g_fieldEntity.unk1A0);
+                    mode = g_fieldEntity.unk1A0;
+                    if (mode == 1) {
+                        loadFileTable();
+                        LoadWm2FieldTable();
+                        g_previousGameMode = GAME_MODE_NONE;
+                        g_gameMode = mode;
+                        g_curFieldId = g_fieldEntity.counter;
+                    }
+                    break;
                 }
-                break;
-            case 8:
-                func_80038868(D_80097400[1].sector, D_80097400[1].size, 0x80098000, 0);
-                while (func_800393C8() != 0) {}
-                func_80098FD4(g_fieldEntity.unk1A0);
-                mode = g_fieldEntity.unk1A0;
-                if (mode == 1) {
-                    loadFileTable();
-                    LoadWm2FieldTable();
-                    D_8005F14C = 0;
-                    g_vsyncRate = mode;
-                    g_curFieldId = g_fieldEntity.counter;
-                }
-                break;
-            }
             } while (0);
-        }
-        while (g_fieldEntity.mode != 4);
+        } while (g_fieldEntity.mode != 4);
         sndStopAll();
         SetPlayTimePaused(0);
         WaitForGamePadDetection();
         ResetGraph(3);
     }
-
 }
 
 /** @brief Sets the GPU draw mode (texture page) for both display buffers.
@@ -602,7 +584,9 @@ top:
     tile->x0 = 0;
     tile->y0 = 0;
     tile += 2;
-    if (++i < 2) goto top;
+    if (++i < 2) {
+        goto top;
+    }
 }
 
 /** @brief Copies the current display buffer to the other so both framebuffers
@@ -617,14 +601,10 @@ void copyFramebuffer(void) {
     ofs1 = (s16)g_bufferIndex * 20;
     base = g_dispEnvs;
 
-    MoveImage(
-        (void *)(ofs1 + base),
-        *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base),
-        *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base + 2)
-    );
+    MoveImage((void *)(ofs1 + base), *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base),
+              *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base + 2));
 
-    do {
-    } while (DrawSync(1) != 0);
+    while (DrawSync(1) != 0) {}
 }
 
 /** @brief Builds the per-frame GPU primitive list (clear tile + draw mode) for

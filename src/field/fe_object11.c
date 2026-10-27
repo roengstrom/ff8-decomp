@@ -195,7 +195,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     u8 *gs_bytes;
 
     g_fieldVars = &g_gameState.fieldVars;
-    t57 = D_8005F14C;
+    t57 = g_previousGameMode;
     t14 = g_gameState.mainData.fieldCDC;
     t18 = g_gameState.mainData.fieldCE0;
     t1A = g_gameState.mainData.fieldCE2;

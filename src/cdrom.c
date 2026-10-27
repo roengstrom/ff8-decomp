@@ -202,7 +202,7 @@ void flushCdAndWait(void) {
  * with sector count, destination buffer, callback, and the requested
  * mode/state byte. The drive timeout is reset.
  *
- * @param mode     Mode/state byte to install (typically 3 for cdRead).
+ * @param mode     Mode/state byte to install (typically 3 for LoadDataFromDisc).
  * @param lba      Linear block address of the read.
  * @param size     Read size in bytes (rounded up to 2048-byte sectors).
  * @param dest     Destination buffer pointer (stored at readBuffer/0x1C).
@@ -248,7 +248,7 @@ s32 func_800387F8(s32 lba, void (*callback)(void)) {
  * @param callback  Completion callback (may be NULL).
  * @return Always 0.
  */
-s32 cdRead(s32 lba, u32 size, void *dest, void (*callback)(void)) {
+s32 LoadDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void)) {
     func_80038760(3, lba, size, dest, callback);
     return 0;
 }
@@ -268,7 +268,7 @@ s32 cdRead(s32 lba, u32 size, void *dest, void (*callback)(void)) {
  * @param dest     Destination buffer.
  * @param callback Completion callback (may be NULL).
  */
-s32 func_80038868(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
+s32 LoadCompressedDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void)) {
     func_80038760(7, lba, size, dest, callback);
     D_8008A3B8 = lba;
     return func_80039444(D_800853B8, dest);
@@ -297,7 +297,7 @@ s32 cdReadRetry(s32 lba, void (*callback)(void)) {
 /**
  * @brief Perform a synchronous (blocking) CD-ROM read.
  *
- * Initiates a CD read via cdRead, then busy-waits on func_800393C8
+ * Initiates a CD read via LoadDataFromDisc, then busy-waits on func_800393C8
  * until the read is complete.
  *
  * @param a0 First CD read parameter.
@@ -308,7 +308,7 @@ s32 cdReadRetry(s32 lba, void (*callback)(void)) {
  */
 s32 cdReadSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
     do {
-    } while (cdRead(lba, size, dest, callback) != 0);
+    } while (LoadDataFromDisc(lba, size, dest, callback) != 0);
     do {
     } while (func_800393C8() != 0);
     return 0;
@@ -318,13 +318,13 @@ s32 cdReadSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
 /**
  * @brief Perform a synchronous async-initiated CD-ROM read.
  *
- * Calls func_80038868 to start an async read, saves its return value,
+ * Calls LoadCompressedDataFromDisc to start an async read, saves its return value,
  * then busy-waits on func_800393C8 until the read completes.
  *
- * @return The value returned by func_80038868 (async read handle/status).
+ * @return The value returned by LoadCompressedDataFromDisc (async read handle/status).
  */
 s32 cdReadAsyncSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
-    s32 saved = func_80038868(lba, size, dest, callback);
+    s32 saved = LoadCompressedDataFromDisc(lba, size, dest, callback);
     do {
     } while (func_800393C8() != 0);
     return saved;
