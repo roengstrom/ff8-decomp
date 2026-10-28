@@ -1616,8 +1616,7 @@ s32 func_8009F23C(s32 arg0, s32 arg1) {
 
 s32 func_8009F350(s32 arg0) {
     s32 val;
-    s32 calc;
-
+    
     val = func_8009B15C();
     D_800EE4C0.unk4 = 5;
 

@@ -42,15 +42,21 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B4BAC);
  * @param a1 Bit position to modify.
  * @param a2 If nonzero, set the bit; if zero, clear it.
  */
-void func_800B4DE8(s32 a0, s32 a1, s32 a2) {
-    u8 *entity = (u8 *)&D_800EF2D0[a0];
-    s32 mask = 1 << a1;
-    s32 flags = *(s32 *)(entity + 8) & ~mask;
-    if (a2 != 0) {
-        flags |= mask;
+void func_800B4DE8(s32 arg0, s32 arg1, s32 arg2) {
+    BattleEffectSlot* effectSlot;
+    s32 mask;
+    s32 var_a1;
+
+    effectSlot = &D_800EF2D0[arg0];
+    mask = 1 << arg1;
+    var_a1 = effectSlot->unk8 & ~mask;
+
+    if (arg2 != 0) {
+        var_a1 |= mask;
     }
-    func_800B5C10(entity, flags);
-    func_800B56B8(entity);
+
+    func_800B5C10(effectSlot, var_a1);
+    func_800B56B8(effectSlot);
 }
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B4E54);
@@ -70,14 +76,14 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B53F8);
  * @param a1 Target position data.
  * @param a2 Output delta structure.
  */
-void func_800B54A0(s32 a0, s32 a1, s32 a2) {
-    s32 dst = a2;
-    *(s32 *)(dst + 0x14) = *(s32 *)(a1 + 0x14) - *(s32 *)(a0 + 0x14);
-    *(s32 *)(dst + 0x18) = *(s32 *)(a1 + 0x18) - *(s32 *)(a0 + 0x18);
-    *(s32 *)(dst + 0x1C) = *(s32 *)(a1 + 0x1C) - *(s32 *)(a0 + 0x1C);
-    TransposeMatrix((MATRIX *)a0, (MATRIX *)dst);
-    ApplyMatrixLV((MATRIX *)dst, (VECTOR *)(dst + 0x14), (VECTOR *)(dst + 0x14));
-    MulMatrix((MATRIX *)dst, (MATRIX *)a1);
+void func_800B54A0(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2) {
+    arg2->t[0] = arg1->t[0] - arg0->t[0];
+    arg2->t[1] = arg1->t[1] - arg0->t[1];
+    arg2->t[2] = arg1->t[2] - arg0->t[2];
+    
+    TransposeMatrix(arg0, arg2);
+    ApplyMatrixLV(arg2, arg2->t, arg2->t);
+    MulMatrix(arg2, arg1);
 }
 
 /**
@@ -95,7 +101,47 @@ s32 func_800B5528(s32 a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B555C);
 
-INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object10", func_800B5604);
+s32 func_800B5604(BattleEffectSlot* arg0) {
+    s32 mask;
+    s32 ret;
+
+    if (arg0->unk4 < 0x10) {
+        mask = arg0->unk8;
+        ret = 1;
+        
+        if (mask & 2) {
+            ret = 3;
+        } 
+        
+        else if (!(mask & 0x1000)) {
+            if (mask & 0x01000000) {
+                ret = 0x10;
+            }
+            
+            else if (mask & 0x800000) {
+                ret = 0x13;
+            }
+            
+            else if (mask & 0x200000) {
+                ret = 0x1D;
+            }
+            
+            else if (mask & 0x41021) {
+                   ret = 2;
+            }
+        }
+        
+        else {
+            ret = 2;
+        }
+    } 
+    
+    else {
+        ret = arg0->unk074->unk2;
+    }
+    
+    return ret;
+}
 
 /**
  * @brief Update entity render state based on computed attribute.

@@ -70,13 +70,13 @@ void func_800C2B88(s32 a0, s32 a1) {
  * @param arg1 Ignored; the one call site passes 4.
  * @return 0 if the slot was reset, -1 if its flags did not ask for one.
  */
-s32 func_800C2BD0(BattleEffectSlot *slot, s32 arg1) {
-    u16 flags = *(u16 *)(slot->unk074 + 0x2C);
-    if ((flags & (BATTLE_ENTITY_FLAG_UNK40 | BATTLE_ENTITY_FLAG_UNK100)) != 0) {
-        func_800C2AB0((s32)slot);
-        return 0;
+s32 func_800C2BD0(BattleEffectSlot *slot, s32 unused) {
+    if (!(slot->unk074->unk2C & (BATTLE_ENTITY_FLAG_UNK40 | BATTLE_ENTITY_FLAG_UNK100))) {
+        return -1;
     }
-    return -1;
+    
+    func_800C2AB0(slot);
+    return 0;
 }
 
 /**

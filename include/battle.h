@@ -733,6 +733,15 @@ typedef struct {
     /* 0x20 */ u8  pad20[0x38];      /**< Working pointer + remaining unmapped fields. */
 } BattleEffectPrim; /* 0x58 */
 
+typedef struct {
+    u16 unk0;
+    u16 unk2;
+    s32 unk4;
+    u16* unk8;
+    s16 unkC;
+    s16 unkE;
+} func_800B2A38_Struct;
+
 /* ---------------------------------------------------------------- *
  *  Battle data symbols (battle overlay region).
  * ---------------------------------------------------------------- */
@@ -827,6 +836,15 @@ struct EffectAttachment {
     /* 0x04 */ struct EffectMesh *mesh;
 };
 
+typedef struct {
+    u8 unk0;
+    u8 unk1;
+    u8 unk2;
+    u8 unk3;
+    u8 pad4[0x2C - 4];
+    u16 unk2C;
+} effectStruct;
+
 /**
  * @brief One battle entity slot; @ref D_800EF2D0 holds seven of them.
  *
@@ -838,7 +856,9 @@ struct EffectAttachment {
 typedef struct BattleEffectSlot {
     /* 0x00 */ u16 flags;          /**< See @c BATTLE_SLOT_FLAG_*. */
     /* 0x02 */ u16 unk02;          // flags again?
-    /* 0x04 */ u8 pad04[0xC - 0x4];
+    /* 0x04 */ u8 unk4;
+    /* 0x05 */ u8 pad5[3];
+    /* 0x08 */ s32 unk8;
     /* 0x0C */ u16 unkC;
     /* 0x0E */ s16 facing;         /**< Angle the slot's model is turned to. */
     /* 0x10 */ u16 unk10;
@@ -859,7 +879,7 @@ typedef struct BattleEffectSlot {
     /* 0x64 */ struct EffectMesh *mesh;
     /* 0x68 */ u8 pad068[0x6C - 0x68];
     /* 0x6C */ u8 unk06C[0x74 - 0x6C];
-    /* 0x74 */ u8 *unk074;         /**< The battle entity behind the slot;
+    /* 0x74 */ effectStruct *unk074;         /**< The battle entity behind the slot;
                                         its @c 0x2C halfword carries the flags. */
     /* 0x78 */ struct EffectAttachment *unk078;
     /* 0x7C */ u32 unk07C;         /**< Bit @c n set: mesh part @c n is drawn. */
