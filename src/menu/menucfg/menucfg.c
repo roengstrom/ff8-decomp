@@ -1,8 +1,8 @@
 #include "common.h"
 #include "menu.h"
-#include "menumain.h"
 #include "menucfg.h"
 #include "input/gamepad.h"
+#include "psxsdk/libgte.h"
 
 /** One row of the config table @c D_801E7094: an option id and its state. */
 typedef struct {

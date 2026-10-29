@@ -1,7 +1,7 @@
 #include "common.h"
 #include "psxsdk/libetc.h"
 #include "battle.h"
-#include "menumain.h"
+#include "menu.h"
 #include "btl_anim.h"
 #include "btl_anim_packet.h"
 #include "menushop2.h"

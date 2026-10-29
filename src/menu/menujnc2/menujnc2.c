@@ -52,6 +52,8 @@
 static inline s32 fixedToInt(s32 v);
 static inline s32 signedEase(s32 t);
 
+extern u8 D_801EF1B0[];
+
 /**
  * @brief Decode FF8 encoded text string with escape sequence handling.
  *

@@ -1,8 +1,10 @@
 #ifndef MENU_H
 #define MENU_H
 
+#include "battle.h"
 #include "common.h"
 #include "menu_tint.h"
+#include "psxsdk/libgpu.h"
 
 /** @brief Load address of the menu sub-overlays and their page data. */
 #define MENU_SUBOVERLAY_ADDR 0x801D1000
@@ -245,26 +247,131 @@ typedef struct {
     WeaponRecipeIngredient ingredients[WEAPON_RECIPE_INGREDIENT_COUNT]; /**< 0x04: ingredients required to craft the weapon. */
 } WeaponRecipe; /* 12 bytes */
 
-/* menumain-owned shared symbols (canonical signatures from menumain.c). */
-s32 func_801F6AFC(s32);
+/** @brief Magic availability entry: one 4-byte record per spell. */
+typedef struct {
+    u8 flags;
+    u8 pad[3];
+} FlagEntry;
+
+/** @brief Item table entry: four bytes read individually by the item menu. */
+typedef struct {
+    u8 type;    /**< 0x0: item type. */
+    u8 flags;   /**< 0x1: targeting and usability bitfield. */
+    u8 param1;  /**< 0x2: type-dependent (heal amount, GF id, ability id, magazine start page). */
+    u8 param2;  /**< 0x3: type-dependent (status mask, stat mask, compatibility amount, magazine end page). */
+} MItemEntry; /* 0x4 = 4 bytes */
+
+/** @brief Menu ability entry. */
+typedef struct {
+    u8 id; /**< 0x0: Ability ID. */
+    u8 category; /**< 0x1: Ability category. */
+} MenuAbilityEntry; /* 0x2 bytes */
+
+/** @brief Character data used for display in the menu. */
+typedef struct {
+    u32 currentExp; /**< 0x0: Current experience. */
+    s32 expToNextLevel; /**< 0x4: Remaining experience to next level. */
+    s16 currentHp; /**< 0x8: Current HP. */
+    s16 maxHp; /**< 0xA: Max HP. */
+    u8 currentLevel; /**< 0xC: Current level. */
+    s8 hpRatio; /**< 0xD: Current HP as a fraction of max HP. */
+    u16 statusFlags; /**< 0xE: Status flags. */
+    u8 charId; /**< 0x10: Character ID. */
+    u8 mag; /**< 0x11: Bonus MAG stat. */
+    u8 commandIds[4]; /**< 0x12: Command IDs. */
+    MenuAbilityEntry abilities[4]; /**< 0x16: Abilities. */
+    u8 pad1E[0x2];
+} MenuCharData; /* 0x20 bytes */
+
+/* ======================================================================== */
+/* menumain.c shared functions                                              */
+/* ======================================================================== */
+
+DR_AREA *func_801EF800(P_TAG *, DR_AREA *, u8 *);  /**< Link a custom-rect DR_AREA prim. */
+DR_AREA *func_801EF8D8(P_TAG *, DR_AREA *);   /**< Link a clip-restore DR_AREA prim. */
+void *DrawMenuWindow(void *, void *, s32, u32);
+void func_801EFFE4(s32);
 void *func_801EFBB4(void *, void *, MenuRowCallback);
+
+/* ======================================================================== */
+/* menumain2.c shared functions                                             */
+/* ======================================================================== */
+
+u8 *func_801F08D4(s32, s32, s32, s32);
+void func_801F0954(s32, s32, s32, s32);
+void func_801F0A34(s32, s32, s32, s32);
+void func_801F0A78(s32, s32, s32, s32, s32);
+s32 func_801F0BB0(void);
+void func_801F0BF8(s32);
+void func_801F0C5C(u8, void *);
+s32 func_801F0D84(void);
+s32 func_801F0F20(s32, SPRT *, s32, u32, s32);
+void func_801F0FD0(s32, s32);
 u32 func_801F0FEC(s32, s32, s32, s32, u8 *, s32);
+void *func_801F179C(MenuTickCallback, MenuDrawCallback);
+void func_801F1AFC(void);
+void func_801F1B10(void);
+void func_801F1B4C(s32);
+void func_801F202C(void);
+s32 menumain_getPartyMemberMask(void);
+s32 func_801F22F4(void);
+u16 func_801F2370(void);
+void func_801F23D0(s32, s32, u8 *);
+s32 func_801F3DE4(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801F3FB4(s32);
 s32 func_801F5104(s32);
 s32 func_801F510C(s32);
 s32 func_801F5144(s32);
+s32 func_801F5150(s32, s32, s32);
+void func_801F537C(s32, BattleCharData *);
+void func_801F5400(s32);
+s32 func_801F565C(s32, s32);
+s32 func_801F56E4(s32, s32);
+void func_801F576C(s32, s32);
+s32 func_801F57A4(s32);
+void func_801F5868(s32, s32);
+s32 func_801F58EC(s32);
 s32 func_801F5F30(s32, s32, s32, s32, s32, s32);
 s32 func_801F5F60(s32, s32, s32, s32);
+s32 func_801F605C(s32, s32, s32, s32, s32);
+s32 func_801F6234(s32, s32, s32, s32, s32);
+void *MenuDrawPortrait(s32, void *, void *, s32, s32, u32);
+s32 func_801F64A4(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801F65F0(s32, s32, s32, s32, s32, s32);
+void func_801F66B0(s32, s32, s32, s32, s32);
+s32 func_801F6768(u16, s32, s32);
+u8 *func_801F6AA4(s32);                      /**< Look up a string in menu text category 3. */
+u8 *func_801F6AD0(s32);                      /**< Look up a string in menu text category 0. */
+s32 func_801F6AFC(s32);
+void *func_801F6C9C(s32, s32, s32, s32, s32, u16);
+void func_801F6F88(s32);
+s32 func_801F72B4(void);
+void func_801F72C4(void);
+s32 func_801F7394(s32);
+s32 func_801F76E0(s32, s32, s32);
+
+/* ======================================================================== */
+/* menumain3.c shared functions                                             */
+/* ======================================================================== */
+
 s32 func_801F776C(s32, s32);
+void func_801F798C(void);
 s32 func_801F79F8(s32);
+void func_801F7AD4(s32);
+void func_801F7B10(s32);
+void func_801F7B60(void);                     /**< Menu teardown/exit helper. */
 s32 func_801F7BAC(s32);
 s32 func_801F7BE4(s32);
-void *func_801F179C(MenuTickCallback, MenuDrawCallback);
-u8 *func_801F08D4(s32, s32, s32, s32);
-extern u8 D_801EF1A4;
-extern u8 D_801EF1A5;
-extern u8 D_801EF1B0[];
+void func_801F7BEC(s32);
+
+/* ======================================================================== */
+/* menu shared data                                                         */
+/* ======================================================================== */
+
+extern u8 D_801F7F98[];
+extern FlagEntry D_801F87B8[];
+extern MItemEntry D_801F889C[];
 extern u16 D_801FA3C8[];  /**< 65-entry falloff table, built by menumain func_801EFF64. */
+extern MenuCharData D_801FABC8[];
 
 #endif /* MENU_H */

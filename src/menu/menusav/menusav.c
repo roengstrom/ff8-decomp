@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "menu_tint.h"
 #include "menusav.h"
 #include "gamestate.h"
@@ -10,7 +11,6 @@ extern u8 D_80097424[];
 extern u8 D_801EBD5C[];
 extern u16 D_801EBD24[];
 extern s32 D_801EC2E4;
-extern u16 g_menuDisplayCfg[];
 
 /**
  * @brief Compute save slot data address.
@@ -817,11 +817,11 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4); /* 0xB0 */
  * @param src Pointer to source rectangle (4 halfwords: x, y, w, h).
  */
 void func_801E9D84(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
-    g_menuDisplayCfg[0] = src[0] + a2;
-    g_menuDisplayCfg[1] = src[1] + a3;
-    g_menuDisplayCfg[2] = src[2];
-    g_menuDisplayCfg[3] = src[3];
-    func_801E9CD4(a0, a1, (s32)g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], (s32)src);
+    g_menuDisplayCfg.x = src[0] + a2;
+    g_menuDisplayCfg.y = src[1] + a3;
+    g_menuDisplayCfg.w = src[2];
+    g_menuDisplayCfg.h = src[3];
+    func_801E9CD4(a0, a1, (s32)&g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], (s32)src);
 }
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9DE8); /* 0x128 */

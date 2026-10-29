@@ -338,6 +338,7 @@ binaries:
     target_path: original/bin/menu/menumain.ovl
     src_path: src/menu/menumain
     symbol_addrs_path: [config/symbols.main.txt, config/symbols.menumain.txt]
+    section_order: [.text, .rodata, .data, .bss]
   segments:
   - name: menumain
     type: code
@@ -345,9 +346,12 @@ binaries:
     vram: 0x801EF800
     subsegments:
     - [0x0, c, menumain]
-    - [0x84E4, rodata]
-    - [0x8664, .rodata, menumain]
-    - [0x866C, rodata]
+    - [0xA74, c, menumain2]
+    - [0x7F6C, c, menumain3]
+    - [0x84E4, .rodata, menumain2]
+    - [0x85F4, rodata]
+    - [0x8618, .rodata, menumain3]
+    - [0x8664, rodata]
     - [0x8BB8, data]
   - [0xAA78]
 - name: menumgc

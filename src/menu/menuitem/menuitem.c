@@ -11,7 +11,6 @@
 #include "gf.h"
 #include "kernel.h"
 #include "menu.h"
-#include "menumain.h"
 #include "numstr.h"
 #include "overlay.h"
 #include "party_stats.h"

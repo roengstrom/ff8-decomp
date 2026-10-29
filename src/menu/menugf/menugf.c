@@ -1,11 +1,10 @@
 #include "common.h"
+#include "gamestate.h"
+#include "menu.h"
 #include "menu_tint.h"
 #include "card.h"
 #include "menugf.h"
 #include "psxsdk/libgte.h"
-
-extern u8 g_menuDisplayCfg[];
-extern u8 g_gameState[];
 
 s32 func_801E6A8C(s32, s32, s32, s32, s32);
 
@@ -80,11 +79,11 @@ INCLUDE_ASM("asm/ovl/menugf/nonmatchings/menugf", func_801E6A8C);
  * @param arg4 Y position for display config.
  */
 void func_801E6B3C(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
-    u8 *cfg = g_menuDisplayCfg;
+    u8 *cfg = &g_menuDisplayCfg;
 
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&g_menuDisplayCfg[0] = a3;
+    g_menuDisplayCfg.x = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x1A;
     *(u8 *)(cfg + 0x13) = 1;
@@ -117,10 +116,10 @@ void func_801E6C84(s32 a0, s32 a1) {
 
     result = getGfAvailabilityMask() & 0xFFFF;
     result = func_801E69B0(ctx, renderCtx, 0x18, 0x38, result);
-    cfg = g_menuDisplayCfg;
+    cfg = &g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x50;
     *(u8 *)(cfg + 0x11) = 0;
-    *(s16 *)&g_menuDisplayCfg[0] = 0x18;
+    g_menuDisplayCfg.x = 0x18;
     *(s16 *)(cfg + 0x02) = 0x38;
     *(s16 *)(cfg + 0x04) = 0x150;
     *(s16 *)(cfg + 0x06) = 0xA0;
@@ -159,7 +158,7 @@ void func_801E6D20(s32 a0, s32 a1, s32 a2, s32 a3, s32 arg4, volatile unsigned i
     ret = getCharName(new_var);
     new_var3 = 2;
     new_var5 = 0x4E8;
-    base = (s32)g_gameState;
+    base = (s32)&g_gameState;
     new_var2 = arg4;
 
     if (((*((u16 *)((base + ((2 * new_var2) * 76)) + new_var5))) >> arg6) & 1) {

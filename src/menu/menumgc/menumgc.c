@@ -5,7 +5,6 @@
 #include "gamestate.h"
 #include "gf.h"
 #include "menu.h"
-#include "menumain.h"
 #include "card.h"
 #include "menumgc.h"
 #include "numstr.h"
