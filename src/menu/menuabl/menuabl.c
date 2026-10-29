@@ -1,5 +1,8 @@
 #include "common.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
+#include "menumain3.h"
 #include "gamestate.h"
 #include "menuabl.h"
 #include "menuabl_data.h"

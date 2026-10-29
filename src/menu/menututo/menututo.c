@@ -3,6 +3,8 @@
 #include "gamestate.h"
 #include "overlay.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "menututo.h"
 #include "numstr.h"
 #include "psxsdk/libetc.h"

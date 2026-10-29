@@ -14,11 +14,18 @@
 #define MENUMAIN_H
 
 #include "common.h"
+#include "menu.h"
+#include "psxsdk/libgpu.h"
 
 extern u8 D_801FA27C;
 extern u8 D_801FA280[];
 extern s32 D_801FA3C0;
 
+DR_AREA *func_801EF800(P_TAG *, DR_AREA *, u8 *);  /**< Link a custom-rect DR_AREA prim. */
+DR_AREA *func_801EF8D8(P_TAG *, DR_AREA *);   /**< Link a clip-restore DR_AREA prim. */
+void *DrawMenuWindow(void *, void *, s32, u32);
 void func_801EFF64(void);
+void func_801EFFE4(s32);
+void *func_801EFBB4(void *, void *, MenuRowCallback);
 
 #endif /* MENUMAIN_H */

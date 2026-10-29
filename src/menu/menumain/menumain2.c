@@ -9,6 +9,8 @@
 #include "main.h"
 #include "menu.h"
 #include "menumain.h"
+#include "menumain2.h"
+#include "menumain3.h"
 #include "numstr.h"
 #include "party_stats.h"
 #include "psxsdk/libetc.h"

@@ -2,6 +2,8 @@
 #include "memcard.h"
 #include "battle.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "menusts.h"
 #include "numstr.h"
 #include "gamestate.h"

@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gamestate.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "menucrd.h"
 #include "overlay.h"
 #include "ui/sprite.h"

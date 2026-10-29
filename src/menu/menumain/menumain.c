@@ -5,6 +5,7 @@
 #include "menu.h"
 #include "menu_tint.h"
 #include "menumain.h"
+#include "menumain2.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgte.h"
 #include "ui/icon.h"

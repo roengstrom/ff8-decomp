@@ -1,5 +1,7 @@
 #include "common.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "menutest.h"
 #include "gamestate.h"
 #include "psxsdk/libgte.h"

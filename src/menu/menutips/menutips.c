@@ -1,5 +1,7 @@
 #include "common.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "menutips.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"

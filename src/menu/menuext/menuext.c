@@ -1,6 +1,8 @@
 #include "common.h"
 #include "battle_results/number.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "character.h"
 #include "menuext.h"
 #include "gamestate.h"

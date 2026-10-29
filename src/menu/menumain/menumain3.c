@@ -2,6 +2,8 @@
 #include "gamestate.h"
 #include "input/gamepad.h"
 #include "menu.h"
+#include "menumain2.h"
+#include "menumain3.h"
 #include "numstr.h"
 #include "psxsdk/libetc.h"
 #include "snd_init.h"

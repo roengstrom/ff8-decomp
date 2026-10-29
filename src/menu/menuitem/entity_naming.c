@@ -2,6 +2,8 @@
 #include "game.h"
 #include "gamestate.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "party_stats.h"
 #include "psxsdk/libetc.h"
 #include "snd_sfx.h"

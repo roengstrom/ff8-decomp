@@ -1,6 +1,8 @@
 #include "common.h"
 #include "gamestate.h"
 #include "menu.h"
+#include "menumain.h"
+#include "menumain2.h"
 #include "menu_tint.h"
 #include "card.h"
 #include "menugf.h"
