@@ -353,7 +353,7 @@ typedef struct {
     /* 0x18 */ u8 facingDirection[3];
     /* 0x1B */ u8 fieldRngIndex;
     /* 0x1C */ u8 fieldRngOffset;
-} ReturnState; /* 0x1E = 30 bytes (29 data + 1 trailing pad, u16-aligned) */
+} FieldStateSnapshot; /* 0x1E = 30 bytes (29 data + 1 trailing pad, u16-aligned) */
 
 /**
  * @brief Full game state (g_gameState at 0x80077378, 0x13A0 bytes).
@@ -379,7 +379,7 @@ typedef struct {
     /* 0xAF4 */ SaveMainData      mainData;                     /**< Party/items/battle state (580 bytes). */
     /* 0xD38 */ u8                battleParty[4];              /**< Battle party member IDs (mirrors party.partyMembers). */
     /* 0xD3C */ u8                padD3C[4];        /**< Battle vars / misc. */
-    /* 0xD40 */ ReturnState returnState;
+    /* 0xD40 */ FieldStateSnapshot fieldStateSnapshot;
     /* 0xD5E */ u8                padD5D[2];        /**< Battle vars / misc (continued). */
     /* 0xD60 */ FieldVars         fieldVars;                   /**< Steps, SeeD rank, counters (@c &g_gameState.fieldVars == @c g_fieldVars). */
     /* 0xE58 */ u8                padE58[0x08];                /**< Trailing 8 bytes of the 0xD60 region; not part of @ref FieldVars (the field-reset wipe stops at 0xE58) and read by nothing so far. */

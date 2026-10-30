@@ -29,6 +29,8 @@
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 
 static void DisableStpBit(void);
+static void SaveFieldSnapshot(void);
+static void RestoreFieldSnapshot(void);
 
 static void DisableStpBit(void) {
     DR_STP prim;
@@ -104,49 +106,45 @@ void InitHardware(void) {
     InitGeom();
 }
 
-void func_80011870(void) {
+static void SaveFieldSnapshot(void) {
     s16 i;
 
     if (g_previousGameMode == GAME_MODE_WORLD) {
-        g_gameState.returnState.gameMode = GAME_MODE_WORLD;
+        g_gameState.fieldStateSnapshot.gameMode = GAME_MODE_WORLD;
     } else {
-        g_gameState.returnState.gameMode = GAME_MODE_FIELD;
+        g_gameState.fieldStateSnapshot.gameMode = GAME_MODE_FIELD;
     }
 
-    g_gameState.returnState.fieldId = g_curFieldId;
-    g_gameState.returnState.previousFieldId = g_fieldContext.previousFieldId;
+    g_gameState.fieldStateSnapshot.fieldId = g_curFieldId;
+    g_gameState.fieldStateSnapshot.previousFieldId = g_fieldContext.previousFieldId;
 
     for (i = 0; i < 3; i++) {
-        g_gameState.returnState.positionsX[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posX >> 12;
-        g_gameState.returnState.positionsY[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posY >> 12;
-        g_gameState.returnState.triIdxs[i] = g_fieldActors[g_fieldContext.entityIndex[i]].triIdx;
-        g_gameState.returnState.facingDirection[i] = g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
+        g_gameState.fieldStateSnapshot.positionsX[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posX >> 12;
+        g_gameState.fieldStateSnapshot.positionsY[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posY >> 12;
+        g_gameState.fieldStateSnapshot.triIdxs[i] = g_fieldActors[g_fieldContext.entityIndex[i]].triIdx;
+        g_gameState.fieldStateSnapshot.facingDirection[i] = g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
     }
 
-    g_gameState.returnState.fieldRngIndex = g_fieldRngIndex;
-    g_gameState.returnState.fieldRngOffset = g_fieldRngOffset;
+    g_gameState.fieldStateSnapshot.fieldRngIndex = g_fieldRngIndex;
+    g_gameState.fieldStateSnapshot.fieldRngOffset = g_fieldRngOffset;
 }
 
-void RestoreSnapshot(void) {
-    FieldContext *entity;
-
-    g_gameMode = g_gameState.returnState.gameMode;
+static void RestoreFieldSnapshot(void) {
+    g_gameMode = g_gameState.fieldStateSnapshot.gameMode;
     if (g_gameMode == GAME_MODE_NONE) {
         g_gameMode = GAME_MODE_FIELD;
     }
 
-    g_curFieldId = g_gameState.returnState.fieldId;
+    g_curFieldId = g_gameState.fieldStateSnapshot.fieldId;
 
-    entity = &g_fieldContext;
+    g_fieldContext.previousFieldId = g_gameState.fieldStateSnapshot.previousFieldId;
+    g_fieldContext.position_x = g_gameState.fieldStateSnapshot.positionsX[0];
+    g_fieldContext.position_y = g_gameState.fieldStateSnapshot.positionsY[0];
+    g_fieldContext.spawnTriIdx = g_gameState.fieldStateSnapshot.triIdxs[0];
+    g_fieldContext.facingDirection = g_gameState.fieldStateSnapshot.facingDirection[0];
 
-    entity->previousFieldId = g_gameState.returnState.previousFieldId;
-    entity->position_x = g_gameState.returnState.positionsX[0];
-    entity->position_y = g_gameState.returnState.positionsY[0];
-    entity->spawnTriIdx = g_gameState.returnState.triIdxs[0];
-    entity->facingDirection = g_gameState.returnState.facingDirection[0];
-
-    g_fieldRngIndex = g_gameState.returnState.fieldRngIndex;
-    g_fieldRngOffset = g_gameState.returnState.fieldRngOffset;
+    g_fieldRngIndex = g_gameState.fieldStateSnapshot.fieldRngIndex;
+    g_fieldRngOffset = g_gameState.fieldStateSnapshot.fieldRngOffset;
 }
 
 void LoadFieldOverlay(void) {
@@ -301,7 +299,7 @@ void ff8main(void) {
         g_fieldContext.unk1A2 = 0;
         result = func_8003646C(25);
         if (!(result & 2)) {
-            RestoreSnapshot();
+            RestoreFieldSnapshot();
             LoadFieldOverlay();
             SmInitEventAll(0);
         } else {
@@ -440,7 +438,7 @@ void ff8main(void) {
                 case GAME_MODE_SCRIPT_MENU:
                     while (g_renderMode != RENDER_IDLE) {}
                     SetDispMask(0);
-                    func_80011870();
+                    SaveFieldSnapshot();
                     if (g_previousGameMode == GAME_MODE_FIELD) {
                         result = func_8003646C(g_fieldContext.counter, g_fieldContext.unk1AB);
                         if (result & 1) {

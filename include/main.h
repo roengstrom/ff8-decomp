@@ -56,8 +56,6 @@ extern u8             D_80070468[];
 
 void VsyncHandler(void);
 void InitHardware(void);
-void func_80011870(void);
-void RestoreSnapshot(void);
 void LoadFieldOverlay(void);
 void LoadWorldOverlay(void);
 void LoadWm2FieldTable(void);
