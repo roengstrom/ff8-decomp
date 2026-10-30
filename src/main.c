@@ -90,9 +90,6 @@ void VsyncHandler(void) {
     g_vsyncDone = 1;
 }
 
-/** @brief Initializes the PS1 hardware (memory, callbacks, GPU, GTE, SPU) and
- *         registers the VSync handler. Called once at startup.
- */
 void InitHardware(void) {
     SetMem(2);
     StopCallback();
