@@ -123,8 +123,8 @@ void func_80011870(void) {
         g_gameState.returnState.facingDirection[i] = g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
     }
 
-    g_gameState.returnState.fade1 = D_8005F151;
-    g_gameState.returnState.fade0 = D_8005F150;
+    g_gameState.returnState.fieldRngIndex = g_fieldRngIndex;
+    g_gameState.returnState.fieldRngOffset = g_fieldRngOffset;
 }
 
 void RestoreSnapshot(void) {
@@ -145,8 +145,8 @@ void RestoreSnapshot(void) {
     entity->spawnTriIdx = g_gameState.returnState.triIdxs[0];
     entity->facingDirection = g_gameState.returnState.facingDirection[0];
 
-    D_8005F151 = g_gameState.returnState.fade1;
-    D_8005F150 = g_gameState.returnState.fade0;
+    g_fieldRngIndex = g_gameState.returnState.fieldRngIndex;
+    g_fieldRngOffset = g_gameState.returnState.fieldRngOffset;
 }
 
 void LoadFieldOverlay(void) {

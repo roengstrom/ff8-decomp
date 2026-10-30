@@ -2325,12 +2325,12 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
  *        with a slow-moving outer counter.
  *
  * Two-level counter design:
- *   - @c D_8005F151 is the inner counter, incremented by 1 each call;
+ *   - @c g_fieldRngIndex is the inner counter, incremented by 1 each call;
  *     it wraps every 256 calls.
- *   - @c D_8005F150 is the outer counter, bumped by 13 only when the
+ *   - @c g_fieldRngOffset is the outer counter, bumped by 13 only when the
  *     inner counter wraps to 0 (so it advances roughly once per 256 calls).
  *
- * The return is @c D_800C3520[D_8005F151] + @c D_8005F150 truncated to
+ * The return is @c D_800C3520[g_fieldRngIndex] + @c g_fieldRngOffset truncated to
  * a byte, the lookup-table byte mixed with the slow drift counter.
  *
  * Same @c D_800C3520 lookup table that @c func_800A2EA4 and
@@ -2338,11 +2338,11 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
  * produce byte-scale pseudo-randomness for the field engine.
  */
 s32 func_800A5C9C(void) {
-    D_8005F151++;
-    if (D_8005F151 == 0) {
-        D_8005F150 += 13;
+    g_fieldRngIndex++;
+    if (g_fieldRngIndex == 0) {
+        g_fieldRngOffset += 13;
     }
-    return (u8)(D_800C3520[D_8005F151] + D_8005F150);
+    return (u8)(D_800C3520[g_fieldRngIndex] + g_fieldRngOffset);
 }
 
 /**

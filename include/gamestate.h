@@ -351,8 +351,8 @@ typedef struct {
     /* 0x0C */ u16 positionsY[3];    /**< Party member Y positions (>>12 integer). */
     /* 0x12 */ u16 triIdxs[3]; /**< Navmesh triangle each party member stands on. */
     /* 0x18 */ u8 facingDirection[3];
-    /* 0x1B */ u8  fade1;
-    /* 0x1C */ u8  fade0;
+    /* 0x1B */ u8 fieldRngIndex;
+    /* 0x1C */ u8 fieldRngOffset;
 } ReturnState; /* 0x1E = 30 bytes (29 data + 1 trailing pad, u16-aligned) */
 
 /**
@@ -416,8 +416,8 @@ typedef enum {
 } RenderMode;
 
 extern volatile s16 g_renderMode;
-extern u8 D_8005F150;
-extern u8 D_8005F151;
+extern u8 g_fieldRngOffset;
+extern u8 g_fieldRngIndex;
 
 typedef enum {
     GAME_MODE_NONE = 0,
