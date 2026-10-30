@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-/** @brief Game-code per-frame VSync handler (dispatched for RENDER_GAME). */
+/** @brief Game-code per-frame VSync handler (dispatched for RENDER_BATTLE_RESULTS). */
 void vsyncGameHandler(void);
 
 /** @brief Main game state-machine loop, driven by g_gameMode. */

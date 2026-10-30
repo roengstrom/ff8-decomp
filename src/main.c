@@ -49,18 +49,18 @@ static void DisableStpBit(void) {
  */
 void VsyncHandler(void) {
     switch (g_renderMode) {
-    case 0:
+    case RENDER_IDLE:
         break;
-    case 1:
+    case RENDER_FADE:
         ProcessFade();
         break;
-    case 2:
+    case RENDER_BATTLE_TRANSITION:
         paceBattleTransition();
         break;
-    case 3:
+    case RENDER_BATTLE:
         func_800D0608();
         break;
-    case 4:
+    case RENDER_BATTLE_RESULTS:
         vsyncGameHandler();
         break;
     }
@@ -411,7 +411,7 @@ void ff8main(void) {
                     }
                     func_80038030(mapAddr);
                     gameStateLoop();
-                    if (g_renderMode != 4) {
+                    if (g_renderMode != RENDER_BATTLE_RESULTS) {
                         DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
@@ -446,7 +446,7 @@ void ff8main(void) {
                     for (i = 0; i < 3; i++) {
                         if (g_battleConfig.unk4[i] != 0xFF) {
                             do {
-                            } while (g_renderMode == 4);
+                            } while (g_renderMode == RENDER_BATTLE_RESULTS);
                             while (DrawSync(1) != 0) {}
                             func_8003646C(g_battleConfig.unk4[i] + 5);
                         }
@@ -454,7 +454,7 @@ void ff8main(void) {
                     break;
                 case GAME_MODE_MENU:
                 case GAME_MODE_SCRIPT_MENU:
-                    while (g_renderMode != 0) {}
+                    while (g_renderMode != RENDER_IDLE) {}
                     SetDispMask(0);
                     func_80011870();
                     if (g_previousGameMode == GAME_MODE_FIELD) {
@@ -489,7 +489,7 @@ void ff8main(void) {
                     }
                     func_80038030(mapAddr);
                     gameStateLoop();
-                    if (g_renderMode != 4) {
+                    if (g_renderMode != RENDER_BATTLE_RESULTS) {
                         DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
@@ -526,7 +526,7 @@ void ff8main(void) {
                     for (i = 0; i < 3; i++) {
                         if (g_battleConfig.unk4[i] != 0xFF) {
                             do {
-                            } while (g_renderMode == 4);
+                            } while (g_renderMode == RENDER_BATTLE_RESULTS);
                             while (DrawSync(1) != 0) {}
                             func_8003646C(g_battleConfig.unk4[i] + 5);
                         }

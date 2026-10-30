@@ -26,15 +26,6 @@ typedef enum {
     FADE_OUT  = 2
 } FadeMode;
 
-/** @brief VSync rendering dispatch mode. */
-typedef enum {
-    RENDER_IDLE    = 0,
-    RENDER_FADE    = 1,
-    RENDER_BATTLE  = 2,
-    RENDER_OVERLAY = 3,
-    RENDER_GAME    = 4
-} RenderMode;
-
 /* Display / render state owned by main.c. */
 extern s16 g_curFieldId; /**< Global id of the current field map. */
 extern TILE           g_clearTiles[];

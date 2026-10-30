@@ -218,7 +218,7 @@ s32 *func_800983F0(void) {
     if (D_8007064D == 0) {
         while (g_fadeMode != 0) {}
     }
-    while (g_renderMode == 4) {}
+    while (g_renderMode == RENDER_BATTLE_RESULTS) {}
     while (DrawSync(1) != 0) {}
 
     if (g_previousGameMode == GAME_MODE_BATTLE || g_previousGameMode == GAME_MODE_NONE) {
@@ -356,7 +356,7 @@ void func_8009895C(void) {
             g_fadeMode = 1;
             g_fadeCounter = 0;
             D_8005F11E = 0;
-            g_renderMode = 1;
+            g_renderMode = RENDER_FADE;
         }
 
         if (g_previousGameMode != GAME_MODE_MENU) {
@@ -466,7 +466,7 @@ void func_8009895C(void) {
             g_fadeMode = 9;
             g_fadeCounter = 0;
             D_8005F11E = 0;
-            g_renderMode = 1;
+            g_renderMode = RENDER_FADE;
             D_8005F14A = 0;
             break;
         }

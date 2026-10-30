@@ -35,14 +35,14 @@ void func_800205C8(void) {
 /**
  * @brief Game code VSync handler. Clears render mode if isResultsThreadDone signals completion.
  *
- * Called from the VSync dispatch (g_renderMode == 4). Invokes switchToResultsThread
+ * Called from the VSync dispatch (g_renderMode == RENDER_BATTLE_RESULTS). Invokes switchToResultsThread
  * for per-frame processing, then checks isResultsThreadDone's return. If non-zero,
  * sets g_renderMode to 0 (RENDER_IDLE) to signal the main loop.
  */
 void vsyncGameHandler(void) {
     switchToResultsThread();
     if (isResultsThreadDone() != 0) {
-        g_renderMode = 0;
+        g_renderMode = RENDER_IDLE;
     }
 }
 
@@ -666,7 +666,7 @@ case3:
     goto top;
 
 case8:
-    g_renderMode = 0;
+    g_renderMode = RENDER_IDLE;
     cdReadAsyncSync(D_800974B8[0], D_800974B8[1], 0x80098000, 0);
     func_8001F5C8();
     tripleTriadMainLoop();
