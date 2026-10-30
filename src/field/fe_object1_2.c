@@ -1509,7 +1509,7 @@ void func_800A3FE0(FieldParticles *buf) {
  *     from @c GetTPage() (texture page / semi-transparency selection).
  *  3. **8 shimmer objects**: for each @ref ObjSlot / @ref DrawPoint pair, sample
  *     a perturbation byte from @c D_800C3520 at the current VSync phase
- *     (@c D_8005F154 @c + slot), offset the draw-point corners by it, mirror the
+ *     (@c g_secondTicker @c + slot), offset the draw-point corners by it, mirror the
  *     base @c (x,y,z) into all 8 vertices of both corner buffers, and reset the
  *     per-object tick (@c field80 @c = @c 0x10 @c + slot*2) and @c field82.
  *
@@ -1545,10 +1545,10 @@ void func_800A42EC(POLY_G4 *polys, DR_TPAGE *tpages) {
     } while (++i < 32);
 
     for (i = 0; i < 8; i++) {
-        D_800C6DA0[i].field86 = D_800C3520[(D_8005F154 + i) & 0xFF];
-        D_800C6DA0[i].field87 = D_800C3520[(D_8005F154 + i) & 0xFF];
-        D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(D_8005F154 + i) & 0xFF]) - 0x80;
-        D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(D_8005F154 + i + 8) & 0xFF]) - 0x80;
+        D_800C6DA0[i].field86 = D_800C3520[(g_secondTicker + i) & 0xFF];
+        D_800C6DA0[i].field87 = D_800C3520[(g_secondTicker + i) & 0xFF];
+        D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(g_secondTicker + i) & 0xFF]) - 0x80;
+        D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(g_secondTicker + i + 8) & 0xFF]) - 0x80;
         D_800706A0[i].fieldC = D_800706A0[i].z + 0x40;
         D_800706A0[i].field10 = D_800706A0[i].x;
         D_800706A0[i].field12 = D_800706A0[i].y;
@@ -1649,8 +1649,8 @@ void func_800A455C(s16 entityIdx) {
         D_8005F168[i] = 2;
         D_800C6DA0[i].field86 = angle + 0x40;
         D_800C6DA0[i].field87 = angle - 0x40;
-        D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(D_8005F154 + i) & 0xFF] * 4) - 0x200;
-        D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(D_8005F154 + i + 8) & 0xFF] * 4) - 0x200;
+        D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(g_secondTicker + i) & 0xFF] * 4) - 0x200;
+        D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(g_secondTicker + i + 8) & 0xFF] * 4) - 0x200;
         D_800706A0[i].fieldC = D_800706A0[i].z + (1000 + i * 128);
         D_800706A0[i].field10 = D_80085224[entityIdx].posX >> 12;
         D_800706A0[i].field12 = D_80085224[entityIdx].posY >> 12;
@@ -1673,7 +1673,7 @@ void func_800A455C(s16 entityIdx) {
  * Walks the 8 @ref ObjSlot / @ref DrawPoint pairs. For each slot not yet marked
  * ready (@c D_8005F168[i] == 0) it marks it, then:
  *  - stamps a perturbation byte (@c D_800C3520 indexed by the VSync phase
- *    @c D_8005F154 + slot) into @c field86 / @c field87;
+ *    @c g_secondTicker + slot) into @c field86 / @c field87;
  *  - derives the draw-point's two corner offsets: @c field8/A/C = base minus a
  *    table-perturbed 0x80 bias (X and Y perturbed by the table at phases +i and
  *    +i+8; Z a flat +0x40), and @c field10/12/14 = base plus 0/0/0x80;
@@ -1691,10 +1691,10 @@ void func_800A4758(void) {
     for (i = 0; i < 8; i++) {
         if (D_8005F168[i] == 0) {
             D_8005F168[i] = 1;
-            D_800C6DA0[i].field86 = D_800C3520[(D_8005F154 + i) & 0xFF];
-            D_800C6DA0[i].field87 = D_800C3520[(D_8005F154 + i) & 0xFF];
-            D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(D_8005F154 + i) & 0xFF]) - 0x80;
-            D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(D_8005F154 + i + 8) & 0xFF]) - 0x80;
+            D_800C6DA0[i].field86 = D_800C3520[(g_secondTicker + i) & 0xFF];
+            D_800C6DA0[i].field87 = D_800C3520[(g_secondTicker + i) & 0xFF];
+            D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(g_secondTicker + i) & 0xFF]) - 0x80;
+            D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(g_secondTicker + i + 8) & 0xFF]) - 0x80;
             D_800706A0[i].fieldC = D_800706A0[i].z + 0x40;
             D_800706A0[i].field10 = D_800706A0[i].x;
             D_800706A0[i].field12 = D_800706A0[i].y;

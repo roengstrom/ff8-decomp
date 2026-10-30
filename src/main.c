@@ -42,11 +42,6 @@ static void DisableStpBit(void) {
     while (DrawSync(1));
 }
 
-/** @brief VSync callback handler, registered via VSyncCallback in InitHardware.
- *
- *  Dispatches per-frame rendering by the current render mode and advances the
- * play time and the countdown, both counted in seconds.
- */
 void VsyncHandler(void) {
     switch (g_renderMode) {
     case RENDER_IDLE:
@@ -65,29 +60,31 @@ void VsyncHandler(void) {
         break;
     }
 
-    if (IsPlayTimePaused() != 0) {
+    if (IsPlayTimePaused()) {
         g_vsyncDone = 1;
         return;
     }
-    if (g_vsyncSkip != 0) {
+    if (g_vsyncSkip) {
         g_vsyncDone = 1;
         return;
     }
 
-    D_8005F154 += 0x88F;
-    if (D_8005F154 >> 17) {
+    // This function is called 59.8 times per second on NTSC.
+    // Make use of that fact to tick the in-game clock.
+    g_secondTicker += 0x88F;
+    if (g_secondTicker >> 17) {
         g_gameState.mainData.playTimeSeconds++;
-        D_8005F154 &= 0xFFFF;
+        g_secondTicker &= 0xFFFF;
     }
 
-    D_8005F15C += 0x88F;
-    if (D_8005F15C >> 17) {
+    g_countdownTicker += 0x88F;
+    if (g_countdownTicker >> 17) {
         if (g_gameState.mainData.countdownTimer == 0) {
             g_vsyncDone = 1;
             return;
         }
         g_gameState.mainData.countdownTimer--;
-        D_8005F15C &= 0xFFFF;
+        g_countdownTicker &= 0xFFFF;
     }
 
     g_vsyncDone = 1;

@@ -410,7 +410,6 @@ extern u16 D_800D3E88[];         /**< Saved 256x16 VRAM palette strip, one 16-bi
 extern u8 D_800D5F50[];
 extern u8 D_800D61A8[];
 extern u8 D_8005F168[];
-extern volatile s32 D_8005F154;  /**< VSync frame counter (main.c); phase for the @c D_800C3520 perturbation table. */
 
 /**
  * @brief 24-byte draw-point slot holding a 16-bit (x, y, z) position plus the
