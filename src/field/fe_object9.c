@@ -46,7 +46,7 @@ s32 opHandler_RFACEDIRA(Actor *actor) {
  *
  * Same body as @c opHandler_RFACEDIRA but the popped index is treated as a
  * SeeD party slot — look up @c g_fieldVars->memberSlot[slot] to get
- * the entity index into @c D_80085224, and pass that same byte as the
+ * the entity index into @c g_fieldActors, and pass that same byte as the
  * spatial argument to @c func_800A8DAC.
  */
 s32 opHandler_RFACEDIRP(Actor *actor) {
@@ -57,9 +57,9 @@ s32 opHandler_RFACEDIRP(Actor *actor) {
         actor->turnLen = POP(&actor->context);
         slot = g_fieldVars->memberSlot[POP(&actor->context)];
         func_800A8DAC(slot, 0x1E, (u32)g_curFieldView, buf);
-        actor->turnTgtX = D_80085224[slot].posX / 4096;
-        actor->turnTgtY = D_80085224[slot].posY / 4096;
-        actor->turnTgtZ = buf[2] + D_80085224[slot].posZ / 4096;
+        actor->turnTgtX = g_fieldActors[slot].posX / 4096;
+        actor->turnTgtY = g_fieldActors[slot].posY / 4096;
+        actor->turnTgtZ = buf[2] + g_fieldActors[slot].posZ / 4096;
         actor->turnMode = 1;
         actor->turnTick = 0;
     }

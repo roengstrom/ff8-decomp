@@ -288,12 +288,12 @@ s32 opHandler_PGETINFO(ScriptContext *context) {
     context->stackPtr = idx - 1;
     popped = context->stack[(s8)idx];
     entIdx = seed->memberSlot[popped];
-    context->resultSlots[0] = D_80085224[entIdx].posX / 4096;
-    context->resultSlots[1] = D_80085224[entIdx].posY / 4096;
-    context->resultSlots[2] = D_80085224[entIdx].posZ / 4096;
-    context->resultSlots[4] = D_80085224[entIdx].facingDirection;
-    context->resultSlots[5] = D_80085224[entIdx].triIdx;
-    context->resultSlots[6] = D_80085224[entIdx].moveSpeed;
+    context->resultSlots[0] = g_fieldActors[entIdx].posX / 4096;
+    context->resultSlots[1] = g_fieldActors[entIdx].posY / 4096;
+    context->resultSlots[2] = g_fieldActors[entIdx].posZ / 4096;
+    context->resultSlots[4] = g_fieldActors[entIdx].facingDirection;
+    context->resultSlots[5] = g_fieldActors[entIdx].triIdx;
+    context->resultSlots[6] = g_fieldActors[entIdx].moveSpeed;
     return 2;
 }
 
@@ -373,7 +373,7 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
  *        @c D_80085230 table, and copy six locator fields (pos x/y/z,
  *        @c facingDirection, @c triIdx, @c moveSpeed) from that
  *        entity into the current one. Finally call @c func_8009A8E0
- *        on the global @c D_8008538C anchor to recompute derived
+ *        on the global @c g_fieldLines anchor to recompute derived
  *        coordinates.
  *
  * @return 2 (continue processing).
@@ -391,7 +391,7 @@ s32 opHandler_COPYINFO(Actor *actor) {
     actor->facingDirection = D_80085230[entityId]->facingDirection;
     actor->triIdx = D_80085230[entityId]->triIdx;
     actor->moveSpeed = D_80085230[entityId]->moveSpeed;
-    func_8009A8E0(D_8008538C);
+    func_8009A8E0(g_fieldLines);
     return 2;
 }
 
@@ -401,7 +401,7 @@ s32 opHandler_COPYINFO(Actor *actor) {
  *        party-slot id, look up @c g_fieldVars->memberSlot[party] for
  *        the field-entity index, and copy six locator fields
  *        (pos x/y/z, @c facingDirection, @c triIdx, @c moveSpeed)
- *        into the current entity. Calls @c func_8009A8E0(D_8008538C)
+ *        into the current entity. Calls @c func_8009A8E0(g_fieldLines)
  *        afterwards to recompute derived state.
  *
  * @return 2 (continue processing).
@@ -416,13 +416,13 @@ s32 opHandler_PCOPYINFO(Actor *actor) {
     actor->context.stackPtr = idx - 1;
     popped = actor->context.stack[(s8)idx];
     entIdx = seed->memberSlot[popped];
-    actor->posX = D_80085224[entIdx].posX;
-    actor->posY = D_80085224[entIdx].posY;
-    actor->posZ = D_80085224[entIdx].posZ;
-    actor->facingDirection = D_80085224[entIdx].facingDirection;
-    actor->triIdx = D_80085224[entIdx].triIdx;
-    actor->moveSpeed = D_80085224[entIdx].moveSpeed;
-    func_8009A8E0(D_8008538C);
+    actor->posX = g_fieldActors[entIdx].posX;
+    actor->posY = g_fieldActors[entIdx].posY;
+    actor->posZ = g_fieldActors[entIdx].posZ;
+    actor->facingDirection = g_fieldActors[entIdx].facingDirection;
+    actor->triIdx = g_fieldActors[entIdx].triIdx;
+    actor->moveSpeed = g_fieldActors[entIdx].moveSpeed;
+    func_8009A8E0(g_fieldLines);
     return 2;
 }
 
@@ -550,8 +550,8 @@ s32 opHandler_MOVIE(ScriptContext *context) {
 
     g_fieldVars->stateFlags |= FIELD_STATE_FLAG_1000;
     if (func_801E82CC()) {
-        p = D_80085224;
-        for (i = 0; i < D_80085388; i++) {
+        p = g_fieldActors;
+        for (i = 0; i < g_fieldActorCount; i++) {
             sc = (s16)p->moveSpeed;
             mc = (s16)p->msgChannel;
             fc = (s16)p->field_0x208;
@@ -588,8 +588,8 @@ void func_800B14C8(void) {
     Actor *p;
 
     g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_1000;
-    p = D_80085224;
-    for (i = 0; i < D_80085388; i++) {
+    p = g_fieldActors;
+    for (i = 0; i < g_fieldActorCount; i++) {
         p->moveSpeed = (s16)p->moveSpeed / 2;
         p->msgChannel = (s16)p->msgChannel / 2;
         p->field_0x208 = (s16)p->field_0x208 / 2;

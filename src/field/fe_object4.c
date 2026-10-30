@@ -718,7 +718,7 @@ s32 opHandler_REQEW(ScriptContext *context, s32 a1) {
 
 /**
  * @brief Pop 2 values, look up the entity in slot @c memberSlot[a1] of
- *        @c D_80085224, and forward to @c func_800AE8B4 with derived args.
+ *        @c g_fieldActors, and forward to @c func_800AE8B4 with derived args.
  *
  * Re-reads @c g_fieldVars->memberSlot[a1] twice (matches the asm's two
  * @c lbu reads) rather than caching it — a cached form re-allocates
@@ -728,7 +728,7 @@ s32 opHandler_PREQ(ScriptContext *context, s32 a1) {
     s32 v1_pop = POP(context);
     s32 v2_pop = POP(context);
     if (g_fieldVars->memberSlot[a1] != 0xFF) {
-        Actor *entity = &D_80085224[g_fieldVars->memberSlot[a1]];
+        Actor *entity = &g_fieldActors[g_fieldVars->memberSlot[a1]];
         func_800AE8B4(entity, v2_pop, entity->context.rangeLo + v1_pop);
     }
     return 3;
@@ -737,10 +737,10 @@ s32 opHandler_PREQ(ScriptContext *context, s32 a1) {
 /**
  * @brief Script-VM "send-to-party-member" opcode: looks up
  *        @c g_fieldVars->memberSlot[a1], finds the resolved entity in
- *        @c D_80085224, and dispatches via @c func_800AE8B4.
+ *        @c g_fieldActors, and dispatches via @c func_800AE8B4.
  *
  * AEA44-style routing, but the entity comes from the field-actor table
- * @c D_80085224 (stride 612), indexed via @c g_fieldVars->memberSlot[a1].
+ * @c g_fieldActors (stride 612), indexed via @c g_fieldVars->memberSlot[a1].
  * If the slot is empty (0xFF), pops the 2 peeked values and returns 3.
  */
 s32 opHandler_PREQSW(ScriptContext *context, s32 a1) {
@@ -754,7 +754,7 @@ s32 opHandler_PREQSW(ScriptContext *context, s32 a1) {
 
     if (g_fieldVars->memberSlot[a1] != 0xFF) {
         if ((context->activeMask >> context->scriptSlot) & 1) {
-            entity = &D_80085224[g_fieldVars->memberSlot[a1]];
+            entity = &g_fieldActors[g_fieldVars->memberSlot[a1]];
             callResult = func_800AE8B4(entity, (u8)value,
                                        (u16)(entity->context.rangeLo + top));
             if (callResult == 0) {
@@ -763,7 +763,7 @@ s32 opHandler_PREQSW(ScriptContext *context, s32 a1) {
             }
         }
 
-        if (D_80085224[g_fieldVars->memberSlot[a1]].context.scriptSlot == value) {
+        if (g_fieldActors[g_fieldVars->memberSlot[a1]].context.scriptSlot == value) {
             context->stackPtr -= 2;
             return 3;
         }
@@ -790,7 +790,7 @@ s32 opHandler_PREQEW(ScriptContext *context, s32 a1) {
 
     if (g_fieldVars->memberSlot[a1] != 0xFF) {
         if ((context->activeMask >> context->scriptSlot) & 1) {
-            entity = &D_80085224[g_fieldVars->memberSlot[a1]];
+            entity = &g_fieldActors[g_fieldVars->memberSlot[a1]];
             callResult = func_800AE8B4(entity, (u8)value,
                                        (u16)(entity->context.rangeLo + top));
             if (callResult == 0) {
@@ -799,7 +799,7 @@ s32 opHandler_PREQEW(ScriptContext *context, s32 a1) {
             }
         }
 
-        if (D_80085224[g_fieldVars->memberSlot[a1]].context.scriptSlot < value) {
+        if (g_fieldActors[g_fieldVars->memberSlot[a1]].context.scriptSlot < value) {
             context->stackPtr -= 2;
             return 3;
         }
@@ -833,7 +833,7 @@ s32 opHandler_HALT(ScriptContext *context) {
 
 /**
  * @brief Pop posY, posX (both << 12 fixed-point), set triIdx = arg,
- *        then call func_8009A8E0 with the dereferenced @c D_8008538C.
+ *        then call func_8009A8E0 with the dereferenced @c g_fieldLines.
  *
  * @return 2 (VM continue).
  */
@@ -841,7 +841,7 @@ s32 opHandler_SET(Actor *actor, s32 a1) {
     actor->posY = POP(&actor->context) << 12;
     actor->posX = POP(&actor->context) << 12;
     actor->triIdx = a1;
-    func_8009A8E0(D_8008538C);
+    func_8009A8E0(g_fieldLines);
     return 2;
 }
 
@@ -856,7 +856,7 @@ s32 opHandler_SET3(Actor *actor, s32 a1) {
     actor->posY = POP(&actor->context) << 12;
     actor->posX = POP(&actor->context) << 12;
     actor->triIdx = a1;
-    func_8009A8E0(D_8008538C);
+    func_8009A8E0(g_fieldLines);
     return 2;
 }
 
@@ -1220,21 +1220,21 @@ s32 opHandler_UCON(void) {
     g_fieldContext.unk015 = 0;
 
     if (g_fieldVars->memberSlot[0] != 0xFF
-        && !(D_80085224[g_fieldVars->memberSlot[0]].context.flags & 0x40)) {
+        && !(g_fieldActors[g_fieldVars->memberSlot[0]].context.flags & 0x40)) {
         g_fieldContext.entityIndex[0] = g_fieldVars->memberSlot[0];
-        D_80085224[g_fieldVars->memberSlot[0]].context.flags |= 4;
+        g_fieldActors[g_fieldVars->memberSlot[0]].context.flags |= 4;
     }
 
     if (g_fieldVars->memberSlot[1] != 0xFF
-        && !(D_80085224[g_fieldVars->memberSlot[1]].context.flags & 0x40)) {
+        && !(g_fieldActors[g_fieldVars->memberSlot[1]].context.flags & 0x40)) {
         D_800704BB = g_fieldVars->memberSlot[1];
-        D_80085224[g_fieldVars->memberSlot[1]].context.flags |= 4;
+        g_fieldActors[g_fieldVars->memberSlot[1]].context.flags |= 4;
     }
 
     if (g_fieldVars->memberSlot[2] != 0xFF
-        && !(D_80085224[g_fieldVars->memberSlot[2]].context.flags & 0x40)) {
+        && !(g_fieldActors[g_fieldVars->memberSlot[2]].context.flags & 0x40)) {
         D_800704BC = g_fieldVars->memberSlot[2];
-        D_80085224[g_fieldVars->memberSlot[2]].context.flags |= 4;
+        g_fieldActors[g_fieldVars->memberSlot[2]].context.flags |= 4;
     }
 
     return 2;
@@ -1266,46 +1266,46 @@ s32 opHandler_UCOFF(void) {
 
     if (g_fieldVars->memberSlot[0] != 0xFF) {
         func_800AA46C(g_fieldVars->memberSlot[0], 0xD,
-                      D_80085224[g_fieldVars->memberSlot[0]].field_0x24F, 0);
-        D_80085224[g_fieldVars->memberSlot[0]].field_0x24E =
-            D_80085224[g_fieldVars->memberSlot[0]].field_0x24F;
-        D_80085224[g_fieldVars->memberSlot[0]].field_0x206 = 0;
-        D_80085224[g_fieldVars->memberSlot[0]].field_0x20A = 0;
-        D_80085224[g_fieldVars->memberSlot[0]].field_0x20C =
+                      g_fieldActors[g_fieldVars->memberSlot[0]].field_0x24F, 0);
+        g_fieldActors[g_fieldVars->memberSlot[0]].field_0x24E =
+            g_fieldActors[g_fieldVars->memberSlot[0]].field_0x24F;
+        g_fieldActors[g_fieldVars->memberSlot[0]].field_0x206 = 0;
+        g_fieldActors[g_fieldVars->memberSlot[0]].field_0x20A = 0;
+        g_fieldActors[g_fieldVars->memberSlot[0]].field_0x20C =
             D_800D9630[g_fieldVars->memberSlot[0]]->unk0C;
-        D_80085224[g_fieldVars->memberSlot[0]].context.flags &= 0xFFFF07FF;
-        D_80085224[g_fieldVars->memberSlot[0]].context.flags |= 0x2000;
-        D_80085224[g_fieldVars->memberSlot[0]].context.flags &= ~4;
+        g_fieldActors[g_fieldVars->memberSlot[0]].context.flags &= 0xFFFF07FF;
+        g_fieldActors[g_fieldVars->memberSlot[0]].context.flags |= 0x2000;
+        g_fieldActors[g_fieldVars->memberSlot[0]].context.flags &= ~4;
     }
 
     if (g_fieldContext.entityIndex[1] != 0xFF) {
         func_800AA46C(g_fieldVars->memberSlot[1], 0xD,
-                      D_80085224[g_fieldVars->memberSlot[1]].field_0x24F, 0);
-        D_80085224[g_fieldVars->memberSlot[1]].field_0x24E =
-            D_80085224[g_fieldVars->memberSlot[1]].field_0x24F;
-        D_80085224[g_fieldVars->memberSlot[1]].field_0x206 = 0;
-        D_80085224[g_fieldVars->memberSlot[1]].field_0x20A = 0;
-        D_80085224[g_fieldVars->memberSlot[1]].field_0x20C =
+                      g_fieldActors[g_fieldVars->memberSlot[1]].field_0x24F, 0);
+        g_fieldActors[g_fieldVars->memberSlot[1]].field_0x24E =
+            g_fieldActors[g_fieldVars->memberSlot[1]].field_0x24F;
+        g_fieldActors[g_fieldVars->memberSlot[1]].field_0x206 = 0;
+        g_fieldActors[g_fieldVars->memberSlot[1]].field_0x20A = 0;
+        g_fieldActors[g_fieldVars->memberSlot[1]].field_0x20C =
             D_800D9630[g_fieldVars->memberSlot[1]]->unk0C;
-        D_80085224[g_fieldVars->memberSlot[1]].context.flags &= 0xFFFF07FF;
-        D_80085224[g_fieldVars->memberSlot[1]].context.flags |= 0x2000;
+        g_fieldActors[g_fieldVars->memberSlot[1]].context.flags &= 0xFFFF07FF;
+        g_fieldActors[g_fieldVars->memberSlot[1]].context.flags |= 0x2000;
         g_fieldContext.entityIndex[1] = 0xFF;
-        D_80085224[g_fieldVars->memberSlot[1]].context.flags &= ~4;
+        g_fieldActors[g_fieldVars->memberSlot[1]].context.flags &= ~4;
     }
 
     if (g_fieldContext.entityIndex[2] != 0xFF) {
         func_800AA46C(g_fieldVars->memberSlot[2], 0xD,
-                      D_80085224[g_fieldVars->memberSlot[2]].field_0x24F, 0);
-        D_80085224[g_fieldVars->memberSlot[2]].field_0x24E =
-            D_80085224[g_fieldVars->memberSlot[2]].field_0x24F;
-        D_80085224[g_fieldVars->memberSlot[2]].field_0x206 = 0;
-        D_80085224[g_fieldVars->memberSlot[2]].field_0x20A = 0;
-        D_80085224[g_fieldVars->memberSlot[2]].field_0x20C =
+                      g_fieldActors[g_fieldVars->memberSlot[2]].field_0x24F, 0);
+        g_fieldActors[g_fieldVars->memberSlot[2]].field_0x24E =
+            g_fieldActors[g_fieldVars->memberSlot[2]].field_0x24F;
+        g_fieldActors[g_fieldVars->memberSlot[2]].field_0x206 = 0;
+        g_fieldActors[g_fieldVars->memberSlot[2]].field_0x20A = 0;
+        g_fieldActors[g_fieldVars->memberSlot[2]].field_0x20C =
             D_800D9630[g_fieldVars->memberSlot[2]]->unk0C;
-        D_80085224[g_fieldVars->memberSlot[2]].context.flags &= 0xFFFF07FF;
-        D_80085224[g_fieldVars->memberSlot[2]].context.flags |= 0x2000;
+        g_fieldActors[g_fieldVars->memberSlot[2]].context.flags &= 0xFFFF07FF;
+        g_fieldActors[g_fieldVars->memberSlot[2]].context.flags |= 0x2000;
         g_fieldContext.entityIndex[2] = 0xFF;
-        D_80085224[g_fieldVars->memberSlot[2]].context.flags &= ~4;
+        g_fieldActors[g_fieldVars->memberSlot[2]].context.flags &= ~4;
     }
 
     return 2;

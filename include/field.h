@@ -11,7 +11,7 @@
  * ============================================================================
  *
  * One field entity slot is 612 bytes (0x264). Two typedefs describe
- * the SAME 612-byte memory at @ref D_80085224, each capturing a
+ * the SAME 612-byte memory at @ref g_fieldActors, each capturing a
  * different valid type-interpretation of the bytes:
  *
  *   - @ref Actor       — bytecode VM view (@ref ScriptContext header,
@@ -613,11 +613,10 @@ extern EntityRenderSlot *D_800D9630[];
 /** @brief Entity Actor pointer table; indexed by raw field-entity id. */
 extern Actor *D_80085230[];
 
-/** @brief Actor entity array (count @c D_80085388, stride 612). */
-extern Actor *D_80085224;
+/** @brief Actor entity array (count @c g_fieldActorCount, stride 612). */
+extern Actor *g_fieldActors;
 
-/** @brief Number of entries in the @c D_80085224 entity array. */
-extern u8 D_80085388;
+extern u8 g_fieldActorCount;
 
 /**
  * @brief Block B field entity — stride @c 0x1A0, dispatched by
@@ -692,23 +691,17 @@ typedef struct {
     /* 0x1B3 */ u8  pad1B3;
 } Bganime; /* 0x1B4 = 436 bytes — the game's "bganime" (per the field-init trace). */
 
-/** @brief Self/anchor pointer used by @c func_8009A8E0 after the
- *         party-member copy in @c opHandler_COPYINFO / @c opHandler_PCOPYINFO; also
- *         the base of the Block B entity array dispatched by @c func_800BD9C4. */
-extern Eline *D_8008538C;
+extern Eline *g_fieldLines;
 
-/** @brief Number of entries in the @c D_8008538C entity array. */
-extern u8 D_800852F8;
+extern u8 g_fieldLineCount;
 
-/** @brief Block C entity-array base; count is @c D_80085228. */
-extern Dline *D_80085384;
+extern Dline *g_fieldDoors;
 
-/** @brief Number of entries in the @c D_80085384 entity array. */
-extern u8 D_80085228;
+extern u8 g_fieldDoorCount;
 
 /**
  * @brief Per-entity latch for the line-trigger dispatcher, indexed by
- *        @c FieldLineTrigger::marker (the @ref D_80085384 entity index).
+ *        @c FieldLineTrigger::marker (the @ref g_fieldDoors entity index).
  *
  * @c func_800A5FA4 uses it to make each trigger edge fire once: the even
  * selectors only act while the byte is @c 0 (then set it), the odd ones only
@@ -716,11 +709,9 @@ extern u8 D_80085228;
  */
 extern u8 D_80070628[];
 
-/** @brief Block D entity-array base; count is @c D_80085391. */
-extern Bganime *D_800852F4;
+extern Bganime *g_fieldBgAnims;
 
-/** @brief Number of entries in the @c D_800852F4 entity array. */
-extern u8 D_80085391;
+extern u8 g_fieldBgAnimCount;
 
 /** @brief Per-block iteration counter used by @c func_800BD9C4 inner loops. */
 extern u8 D_800DE4FC;
@@ -756,7 +747,7 @@ typedef struct {
  * @c animOffset / @c mode appear at @c 0xF4 / @c 0xFC. The rest of
  * the struct is identical to @c Actor from offset @c 0x140 onward.
  *
- * Use a cast (@c (ActorAnim *)&D_80085224[idx]) only inside the
+ * Use a cast (@c (ActorAnim *)&g_fieldActors[idx]) only inside the
  * animation engine; everywhere else, access via @c Actor.
  */
 typedef struct {

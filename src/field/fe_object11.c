@@ -30,7 +30,7 @@
  *     on whether @c audioChannel0State is armed. Always writes
  *     @c g_battleConfig.unk2 and pulses @ref sndCmd45.
  *   - @c mode @c == @c 1 — full slot reset: zero the 16-byte
- *     @c g_fieldContext.unkActive180 region, walk the @ref D_80085224
+ *     @c g_fieldContext.unkActive180 region, walk the @ref g_fieldActors
  *     Actor pool and clear the cleanup-trigger bytes / @c flags @c & @c ~8
  *     on each entity flagged @c unk218 @c == @c -1, then fall into
  *     the mode-3 slot-clear block.
@@ -68,9 +68,9 @@ void func_800BF718(s32 mode) {
         for (i = 0; i < 16; i++) {
             g_fieldContext.unkActive180[i] = 0;
         }
-        e = D_80085224;
+        e = g_fieldActors;
         D_800DE4FC = 0;
-        if (D_80085388 != 0) {
+        if (g_fieldActorCount != 0) {
             do {
                 if (e->unk218 == -1) {
                     e->context.flags &= ~8;
@@ -80,7 +80,7 @@ void func_800BF718(s32 mode) {
                 }
                 D_800DE4FC++;
                 e++;
-            } while (D_800DE4FC < D_80085388);
+            } while (D_800DE4FC < g_fieldActorCount);
         }
         /* fall through */
     case 3:
@@ -175,7 +175,7 @@ void func_800BF718(s32 mode) {
  * @param entity  Area / event header passed through to
  *                @ref func_800BE30C / @ref func_800BE36C /
  *                @ref func_800BE4B0.
- * @param eline      Block-B entity table base (stored to @c D_8008538C
+ * @param eline      Block-B entity table base (stored to @c g_fieldLines
  *                and passed to @ref func_800BE7F4).
  * @param a2      Halfword table base forwarded to @ref func_800BE4B0.
  * @param mode    Reset selector: 0 / 2 = common only, 1 / 3 = full
@@ -256,18 +256,18 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         }
         g_fieldVars->fieldF0 = 0;
         g_fieldVars->fieldF1 = 0;
-        D_8008538C = eline;
-        D_80085388 = D_800DE8C0;
-        D_80085228 = D_800DE8D9;
-        D_800852F8 = D_800DE8DA;
-        D_80085391 = D_800DE8D8;
+        g_fieldLines = eline;
+        g_fieldActorCount = D_800DE8C0;
+        g_fieldDoorCount = D_800DE8D9;
+        g_fieldLineCount = D_800DE8DA;
+        g_fieldBgAnimCount = D_800DE8D8;
         D_800852F0 = D_800DE4E4;
         D_80085380 = D_800DE4E8;
         g_battleConfig.unk2 = g_fieldVars->fieldB6;
-        D_80085384 = (Dline *)func_800BE7F4((Eline *)eline);
-        D_800852F4 = (Bganime *)func_800BEA84(D_80085384);
-        D_80085224 = (Actor *)func_800BE924(D_800852F4);
-        func_800BE5E4(D_80085224);
+        g_fieldDoors = (Dline *)func_800BE7F4((Eline *)eline);
+        g_fieldBgAnims = (Bganime *)func_800BEA84(g_fieldDoors);
+        g_fieldActors = (Actor *)func_800BE924(g_fieldBgAnims);
+        func_800BE5E4(g_fieldActors);
 
         gs_bytes = (u8 *)&g_gameState;
         for (i = 0x400; i < 0x500; i++) {
@@ -285,7 +285,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         func_800BE36C(entity);
 
         for (i = 0; i < 3; i++) {
-            for (e = D_80085224, D_800DE4FC = 0; D_800DE4FC < D_80085388; D_800DE4FC++, e++) {
+            for (e = g_fieldActors, D_800DE4FC = 0; D_800DE4FC < g_fieldActorCount; D_800DE4FC++, e++) {
                 if (g_gameState.battleParty[i] == e->field_0x255) {
                     e->posX = g_fieldContext.position_x << 12;
                     e->posY = g_fieldContext.position_y << 12;

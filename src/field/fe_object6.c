@@ -280,7 +280,7 @@ s32 opHandler_FOOTSTEP(Actor *actor, s32 a1) {
 /**
  * Broadcast the current Actor's @c unk188 / @c unk189 script parameter
  * bytes to every active @c Actor slot. Iterates over the
- * @c D_80085224 array (count @c D_80085388, stride 0x264) and writes
+ * @c g_fieldActors array (count @c g_fieldActorCount, stride 0x264) and writes
  * the same pair into each entry's mirror fields at +0x188 / +0x189.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -288,8 +288,8 @@ s32 opHandler_FOOTSTEP(Actor *actor, s32 a1) {
  */
 s32 opHandler_FOOTSTEPCOPY(Actor *actor) {
     s32 i;
-    Actor *p = D_80085224;
-    for (i = 0; i < D_80085388; i++) {
+    Actor *p = g_fieldActors;
+    for (i = 0; i < g_fieldActorCount; i++) {
         p->unk188 = actor->unk188;
         p->unk189 = actor->unk189;
         p++;
@@ -321,7 +321,7 @@ s32 opHandler_FOOTSTEPOFF(ScriptContext *context) {
 
 /**
  * Clear bit 0x80 in the flags word of every active @c Actor
- * slot (count @c D_80085388, stride 0x264 at @c D_80085224). Used by a
+ * slot (count @c g_fieldActorCount, stride 0x264 at @c g_fieldActors). Used by a
  * script opcode to reset a per-entity activation flag across the party.
  *
  * @param actor Pointer to the Actor event-script context (unused).
@@ -329,8 +329,8 @@ s32 opHandler_FOOTSTEPOFF(ScriptContext *context) {
  */
 s32 opHandler_FOOTSTEPOFFALL(ScriptContext *context) {
     s32 i;
-    Actor *p = D_80085224;
-    for (i = 0; i < D_80085388; i++) {
+    Actor *p = g_fieldActors;
+    for (i = 0; i < g_fieldActorCount; i++) {
         p->context.flags &= ~0x80;
         p++;
     }
@@ -1359,7 +1359,7 @@ s32 opHandler_WORLDMAPJUMP(ScriptContext *context) {
 /**
  * Pop a value (masked to 2 bits) into the global mode byte @c D_8007064E
  * and then fire @c func_800A97E4(i, 0x25, 0, 0) once per active
- * @c Actor slot (count from @c D_80085388).
+ * @c Actor slot (count from @c g_fieldActorCount).
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
@@ -1367,7 +1367,7 @@ s32 opHandler_WORLDMAPJUMP(ScriptContext *context) {
 s32 opHandler_SETCAMERA(ScriptContext *context) {
     s32 i;
     D_8007064E = POP(context) & 0x3;
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         func_800A97E4(i, 0x25, 0, 0);
     }
     return 2;

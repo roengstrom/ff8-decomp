@@ -73,9 +73,9 @@ void func_800A10F4(void) {
 void func_800A11E0(Vec2s *out, s16 slotIdx) {
     SVECTOR svec;
 
-    svec.vx = D_80085224[g_fieldContext.slots[g_fieldContext.unk1A6].param].posX >> 12;
-    svec.vy = D_80085224[g_fieldContext.slots[g_fieldContext.unk1A6].param].posY >> 12;
-    svec.vz = (D_80085224[g_fieldContext.slots[g_fieldContext.unk1A6].param].posZ >> 12) +
+    svec.vx = g_fieldActors[g_fieldContext.slots[g_fieldContext.unk1A6].param].posX >> 12;
+    svec.vy = g_fieldActors[g_fieldContext.slots[g_fieldContext.unk1A6].param].posY >> 12;
+    svec.vz = (g_fieldActors[g_fieldContext.slots[g_fieldContext.unk1A6].param].posZ >> 12) +
               g_curFieldInfo->baseZ;
     D_800C71FC = func_800A0F34(&svec, (s32 *)out);
     if (g_fieldContext.unk1A6 == 0) {
@@ -403,7 +403,7 @@ void func_800A1CC0(void) {
 /**
  * @brief Per-frame turn/aim update for every @ref Actor entity, then flush.
  *
- * For each of the @c D_80085388 entities: publishes the render-slot angle
+ * For each of the @c g_fieldActorCount entities: publishes the render-slot angle
  * vector (0, 0, @c facingDirection<<4 + 0x400) via @ref func_800A736C and the
  * world position (@c pos>>12 plus @c posOfs) via @ref func_800A7224. When
  * @c turnMode is 1 and a turn is not in progress (@c turnTick == 0), it
@@ -420,7 +420,7 @@ void func_800A1CC0(void) {
  * Entities also emit op 0x25 whenever @ref func_800BE274 reports active.
  * Finally @ref func_800A63AC flushes with @p arg1.
  *
- * @param ents Actor entity array (@c D_80085224).
+ * @param ents Actor entity array (@c g_fieldActors).
  * @param frame Pass-through context for the @ref func_800A63AC flush.
  */
 void func_800A1CFC(Actor *ents, FieldFrameBuf *frame) {
@@ -442,7 +442,7 @@ void func_800A1CFC(Actor *ents, FieldFrameBuf *frame) {
     s32 d2B;
     s32 v;
 
-    for (i = 0, ent = ents; i < D_80085388; ent++, i++) {
+    for (i = 0, ent = ents; i < g_fieldActorCount; ent++, i++) {
         v38.z = (ent->facingDirection << 4) + 0x400;
         v38.x = 0;
         v38.y = 0;
@@ -632,7 +632,7 @@ void func_800A2128(func_800A2128_arg0 *t) {
  * @param m    Camera matrix loaded into the GTE before projecting.
  * @param prim Triangle arena; advanced eight prims per shadow drawn.
  * @param tp   Tpage commands; advanced one per shadow drawn.
- * @param ents The @ref Actor pool (@c D_80085388 entries).
+ * @param ents The @ref Actor pool (@c g_fieldActorCount entries).
  *
  * @note The scratchpad holds the octagon tables and the nine working points:
  *       cos at @c getScratchAddr(2), sin at @c getScratchAddr(6), points at
@@ -665,7 +665,7 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
     SetRotMatrix(m);
     SetTransMatrix(m);
 
-    for (i = 0; i < D_80085388; ents++, i++) {
+    for (i = 0; i < g_fieldActorCount; ents++, i++) {
         if (ents->context.flags & 8) {
             continue;
         }
@@ -1150,7 +1150,7 @@ static void func_800A3534(FieldParticles *particles) {
  *       - kind == 1: select by actor->mode, pass the actor itself
  *         (mode 1), or fill `pos` via func_800A3488 (mode 2) or
  *         func_800A327C (mode 3).
- *       - kind != 1: read entity (kind & 0x7F) from D_80085224, divide
+ *       - kind != 1: read entity (kind & 0x7F) from g_fieldActors, divide
  *         posX/Y/Z by 4096, pass as `pos`.
  *
  * @param actor Field entity (with rows[4]/timers[4]/animOffset/mode).
@@ -1196,9 +1196,9 @@ void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
                 break;
             }
         } else {
-            pos.vx = D_80085224[g_fieldContext.slotActive[slot] & 0x7F].posX / 4096;
-            pos.vy = D_80085224[g_fieldContext.slotActive[slot] & 0x7F].posY / 4096;
-            pos.vz = D_80085224[g_fieldContext.slotActive[slot] & 0x7F].posZ / 4096;
+            pos.vx = g_fieldActors[g_fieldContext.slotActive[slot] & 0x7F].posX / 4096;
+            pos.vy = g_fieldActors[g_fieldContext.slotActive[slot] & 0x7F].posY / 4096;
+            pos.vz = g_fieldActors[g_fieldContext.slotActive[slot] & 0x7F].posZ / 4096;
             func_800A303C(actor->rows[i].id, a2, &pos, ratio);
         }
     }
@@ -1627,7 +1627,7 @@ void func_800A4550(s16 a0) {
  *  - resets the per-object tick (@c field80 @c = @c 0x18 @c + slot*2) and
  *    @c field82.
  *
- * @param entityIdx Index into the @ref Actor entity array (@c D_80085224) that
+ * @param entityIdx Index into the @ref Actor entity array (@c g_fieldActors) that
  *                  the shimmer objects are aimed at.
  */
 void func_800A455C(s16 entityIdx) {
@@ -1640,8 +1640,8 @@ void func_800A455C(s16 entityIdx) {
     objPos[0] = D_800706A0[0].x;
     objPos[1] = D_800706A0[0].y;
     objPos[2] = 0;
-    entityPos[0] = D_80085224[entityIdx].posX >> 12;
-    entityPos[1] = D_80085224[entityIdx].posY >> 12;
+    entityPos[0] = g_fieldActors[entityIdx].posX >> 12;
+    entityPos[1] = g_fieldActors[entityIdx].posY >> 12;
     entityPos[2] = 0;
     angle = func_8009A0E8(objPos, entityPos, dist);
 
@@ -1652,9 +1652,9 @@ void func_800A455C(s16 entityIdx) {
         D_800706A0[i].field8 = (D_800706A0[i].x + D_800C3520[(g_secondTicker + i) & 0xFF] * 4) - 0x200;
         D_800706A0[i].fieldA = (D_800706A0[i].y + D_800C3520[(g_secondTicker + i + 8) & 0xFF] * 4) - 0x200;
         D_800706A0[i].fieldC = D_800706A0[i].z + (1000 + i * 128);
-        D_800706A0[i].field10 = D_80085224[entityIdx].posX >> 12;
-        D_800706A0[i].field12 = D_80085224[entityIdx].posY >> 12;
-        D_800706A0[i].field14 = (D_80085224[entityIdx].posZ >> 12) + 0xB4;
+        D_800706A0[i].field10 = g_fieldActors[entityIdx].posX >> 12;
+        D_800706A0[i].field12 = g_fieldActors[entityIdx].posY >> 12;
+        D_800706A0[i].field14 = (g_fieldActors[entityIdx].posZ >> 12) + 0xB4;
 
         for (j = 0; j < 8; j++) {
             D_800C6DA0[i].va[j].vx = D_800C6DA0[i].vb[j].vx = D_800706A0[i].x;
@@ -2429,7 +2429,7 @@ void func_800A5D28(void) {
         return;
     }
     D_8005F164 &= 0xFF;
-    D_8005F0FE += (s16)(u16)D_80085224[D_8005F148].moveSpeed / 1348;
+    D_8005F0FE += (s16)(u16)g_fieldActors[D_8005F148].moveSpeed / 1348;
     if ((u8)func_800A5C9C() < D_8005F0FE) {
         g_fieldContext.mode = 3;
         D_8005F0FE = 0;

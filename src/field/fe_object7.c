@@ -888,7 +888,7 @@ s32 opHandler_MOVEA(Actor *actor) {
  *
  * Like opHandler_MOVEA but looks up the entity index through
  * g_fieldVars->memberSlot[] first, then reads position from
- * D_80085224[idx]. Updates message coordinates each frame.
+ * g_fieldActors[idx]. Updates message coordinates each frame.
  *
  * @param actor Pointer to the actor (script context).
  * @return 1 while message is active, 2 when complete.
@@ -911,9 +911,9 @@ s32 opHandler_PMOVEA(Actor *actor) {
     }
 
     idx = g_fieldVars->memberSlot[PEEK(&actor->context)];
-    actor->msgTextPtr = D_80085224[idx].posX;
-    actor->msgPosX = D_80085224[idx].posY;
-    actor->msgPosY = D_80085224[idx].posZ;
+    actor->msgTextPtr = g_fieldActors[idx].posX;
+    actor->msgPosX = g_fieldActors[idx].posY;
+    actor->msgPosY = g_fieldActors[idx].posZ;
     return 1;
 }
 
@@ -1016,7 +1016,7 @@ s32 opHandler_FMOVEA(Actor *actor) {
  *
  * Like opHandler_PMOVEA but clears field_0x1DA instead of calling func_800B6738.
  * Looks up a party slot through g_fieldVars->memberSlot[], then updates the
- * message coordinates from D_80085224[idx]'s position each frame.
+ * message coordinates from g_fieldActors[idx]'s position each frame.
  *
  * @param actor Pointer to the actor (script context).
  * @return 1 while message is active, 2 when complete.
@@ -1039,9 +1039,9 @@ s32 opHandler_FMOVEP(Actor *actor) {
     }
 
     idx = g_fieldVars->memberSlot[PEEK(&actor->context)];
-    actor->msgTextPtr = D_80085224[idx].posX;
-    actor->msgPosX = D_80085224[idx].posY;
-    actor->msgPosY = D_80085224[idx].posZ;
+    actor->msgTextPtr = g_fieldActors[idx].posX;
+    actor->msgPosX = g_fieldActors[idx].posY;
+    actor->msgPosY = g_fieldActors[idx].posZ;
     return 1;
 }
 
@@ -1104,7 +1104,7 @@ s32 opHandler_RMOVEA(Actor *actor) {
  *
  * Sets the pending-message flag, pops a window ID, looks up a party slot
  * through g_fieldVars->memberSlot[POP], then reads initial coordinates from
- * D_80085224[idx]'s position. Returns 3 for deferred completion.
+ * g_fieldActors[idx]'s position. Returns 3 for deferred completion.
  *
  * @param actor Pointer to the actor (script context).
  * @return 3 (message scheduled, deferred completion).
@@ -1120,9 +1120,9 @@ s32 opHandler_RPMOVEA(Actor *actor) {
     func_800B6738(actor);
 
     idx = g_fieldVars->memberSlot[POP(&actor->context)];
-    actor->msgTextPtr = D_80085224[idx].posX;
-    actor->msgPosX = D_80085224[idx].posY;
-    actor->msgPosY = D_80085224[idx].posZ;
+    actor->msgTextPtr = g_fieldActors[idx].posX;
+    actor->msgPosX = g_fieldActors[idx].posY;
+    actor->msgPosY = g_fieldActors[idx].posZ;
     return 3;
 }
 
@@ -1226,10 +1226,10 @@ s32 opHandler_MOVECANCEL(ScriptContext *context) {
 s32 opHandler_PMOVECANCEL(ScriptContext *context) {
     u8 idx = g_fieldVars->memberSlot[POP(context)];
 
-    if (D_80085224[idx].msgActive == 1) {
-        D_80085224[idx].msgActive = 0;
-        func_800B912C(&D_80085224[idx], D_80085224[idx].field_0x24F);
-        D_80085224[idx].context.flags = (D_80085224[idx].context.flags & 0xFFFF07FF) | 0x2000;
+    if (g_fieldActors[idx].msgActive == 1) {
+        g_fieldActors[idx].msgActive = 0;
+        func_800B912C(&g_fieldActors[idx], g_fieldActors[idx].field_0x24F);
+        g_fieldActors[idx].context.flags = (g_fieldActors[idx].context.flags & 0xFFFF07FF) | 0x2000;
     }
     return 2;
 }
@@ -1396,37 +1396,37 @@ s32 opHandler_JOIN(Actor *actor) {
         case 0:
             if (g_fieldVars->memberSlot[1] != 0xFF) {
                 idx = g_fieldVars->memberSlot[1];
-                D_800DE4F0 = &D_80085224[idx];
-                func_800B788C(&D_80085224[idx], actor);
+                D_800DE4F0 = &g_fieldActors[idx];
+                func_800B788C(&g_fieldActors[idx], actor);
             }
             if (g_fieldVars->memberSlot[2] != 0xFF) {
                 idx = g_fieldVars->memberSlot[2];
-                D_800DE4F4 = &D_80085224[idx];
-                func_800B788C(&D_80085224[idx], actor);
+                D_800DE4F4 = &g_fieldActors[idx];
+                func_800B788C(&g_fieldActors[idx], actor);
             }
             break;
         case 1:
             if (g_fieldVars->memberSlot[0] != 0xFF) {
                 idx = g_fieldVars->memberSlot[0];
-                D_800DE4F0 = &D_80085224[idx];
-                func_800B788C(&D_80085224[idx], actor);
+                D_800DE4F0 = &g_fieldActors[idx];
+                func_800B788C(&g_fieldActors[idx], actor);
             }
             if (g_fieldVars->memberSlot[2] != 0xFF) {
                 idx = g_fieldVars->memberSlot[2];
-                D_800DE4F4 = &D_80085224[idx];
-                func_800B788C(&D_80085224[idx], actor);
+                D_800DE4F4 = &g_fieldActors[idx];
+                func_800B788C(&g_fieldActors[idx], actor);
             }
             break;
         case 2:
             if (g_fieldVars->memberSlot[0] != 0xFF) {
                 idx = g_fieldVars->memberSlot[0];
-                D_800DE4F0 = &D_80085224[idx];
-                func_800B788C(&D_80085224[idx], actor);
+                D_800DE4F0 = &g_fieldActors[idx];
+                func_800B788C(&g_fieldActors[idx], actor);
             }
             if (g_fieldVars->memberSlot[1] != 0xFF) {
                 idx = g_fieldVars->memberSlot[1];
-                D_800DE4F4 = &D_80085224[idx];
-                func_800B788C(&D_80085224[idx], actor);
+                D_800DE4F4 = &g_fieldActors[idx];
+                func_800B788C(&g_fieldActors[idx], actor);
             }
             break;
         }
@@ -1541,7 +1541,7 @@ s32 opHandler_SPLIT(Actor *actor) {
         x0 = POP(&actor->context) << 12;
 
         if (g_fieldVars->memberSlot[0] != 0xFF) {
-            D_800DE4F0 = &D_80085224[g_fieldVars->memberSlot[0]];
+            D_800DE4F0 = &g_fieldActors[g_fieldVars->memberSlot[0]];
             func_800B7D44(D_800DE4F0, x0, y0, z0);
             if (g_fieldVars->memberSlot[0] != actor->field_0x256) {
                 D_800DE4F0->context.flags |= 1;
@@ -1549,7 +1549,7 @@ s32 opHandler_SPLIT(Actor *actor) {
         }
 
         if (g_fieldVars->memberSlot[1] != 0xFF) {
-            D_800DE4F4 = &D_80085224[g_fieldVars->memberSlot[1]];
+            D_800DE4F4 = &g_fieldActors[g_fieldVars->memberSlot[1]];
             func_800B7D44(D_800DE4F4, x1, y1, z1);
             if (g_fieldVars->memberSlot[1] != actor->field_0x256) {
                 D_800DE4F4->context.flags |= 1;
@@ -1557,7 +1557,7 @@ s32 opHandler_SPLIT(Actor *actor) {
         }
 
         if (g_fieldVars->memberSlot[2] != 0xFF) {
-            D_800DE4F8 = &D_80085224[g_fieldVars->memberSlot[2]];
+            D_800DE4F8 = &g_fieldActors[g_fieldVars->memberSlot[2]];
             func_800B7D44(D_800DE4F8, x2, y2, z2);
             if (g_fieldVars->memberSlot[2] != actor->field_0x256) {
                 D_800DE4F8->context.flags |= 1;
@@ -1703,10 +1703,10 @@ s32 opHandler_PJUMPA(Actor *actor) {
         actor->msgState = 0;
         actor->field_0x1D8 = POP(&actor->context);
         m = g_fieldVars->memberSlot[POP(&actor->context)];
-        actor->msgTextPtr = D_80085224[m].posX;
-        actor->msgPosX = D_80085224[m].posY;
-        actor->msgPosY = D_80085224[m].posZ;
-        actor->field_0x1FC = D_80085224[m].triIdx;
+        actor->msgTextPtr = g_fieldActors[m].posX;
+        actor->msgPosX = g_fieldActors[m].posY;
+        actor->msgPosY = g_fieldActors[m].posZ;
+        actor->field_0x1FC = g_fieldActors[m].triIdx;
     } while (0);
     return 1;
 }

@@ -20,10 +20,10 @@
  *
  * Both paths require the target entity's @c activeMarker to be @c 1, and the
  * trigger byte itself is only written when the entity index is inside the
- * live array (@c < @c D_80085228); the return value reports the latch flip
+ * live array (@c < @c g_fieldDoorCount); the return value reports the latch flip
  * regardless of that bounds check.
  *
- * @param seg Line-trigger record; its @c marker is the @ref D_80085384 entity index.
+ * @param seg Line-trigger record; its @c marker is the @ref g_fieldDoors entity index.
  * @param sel Selector @c 0..5 — even arms (sets @c trigger6), odd releases
  *            (clears @c trigger7). Any other value is a no-op.
  * @return @c 1 when the latch flipped, @c 0 otherwise.
@@ -36,10 +36,10 @@ s32 func_800A5FA4(FieldLineTrigger *seg, s32 sel) {
     case 0:
     case 2:
     case 4:
-        if (D_80085384[seg->marker].activeMarker == 1 && latch[seg->marker] == 0) {
+        if (g_fieldDoors[seg->marker].activeMarker == 1 && latch[seg->marker] == 0) {
             latch[seg->marker] = 1;
-            if (seg->marker < D_80085228) {
-                D_80085384[seg->marker].trigger6 = 1;
+            if (seg->marker < g_fieldDoorCount) {
+                g_fieldDoors[seg->marker].trigger6 = 1;
             }
             result = 1;
         }
@@ -47,10 +47,10 @@ s32 func_800A5FA4(FieldLineTrigger *seg, s32 sel) {
     case 1:
     case 3:
     case 5:
-        if (D_80085384[seg->marker].activeMarker == 1 && latch[seg->marker] == 1) {
+        if (g_fieldDoors[seg->marker].activeMarker == 1 && latch[seg->marker] == 1) {
             latch[seg->marker] = 0;
-            if (seg->marker < D_80085228) {
-                D_80085384[seg->marker].trigger7 = 0;
+            if (seg->marker < g_fieldDoorCount) {
+                g_fieldDoors[seg->marker].trigger7 = 0;
             }
             result = 1;
         }

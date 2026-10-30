@@ -117,10 +117,10 @@ void func_80011870(void) {
     g_gameState.returnState.previousFieldId = g_fieldContext.previousFieldId;
 
     for (i = 0; i < 3; i++) {
-        g_gameState.returnState.positionsX[i] = D_80085224[g_fieldContext.entityIndex[i]].posX >> 12;
-        g_gameState.returnState.positionsY[i] = D_80085224[g_fieldContext.entityIndex[i]].posY >> 12;
-        g_gameState.returnState.triIdxs[i] = D_80085224[g_fieldContext.entityIndex[i]].triIdx;
-        g_gameState.returnState.facingDirection[i] = D_80085224[g_fieldContext.entityIndex[i]].facingDirection;
+        g_gameState.returnState.positionsX[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posX >> 12;
+        g_gameState.returnState.positionsY[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posY >> 12;
+        g_gameState.returnState.triIdxs[i] = g_fieldActors[g_fieldContext.entityIndex[i]].triIdx;
+        g_gameState.returnState.facingDirection[i] = g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
     }
 
     g_gameState.returnState.fade1 = D_8005F151;

@@ -414,7 +414,7 @@ s32 opHandler_POLYCOLOR(Actor *actor) {
  * @brief Broadcast 3 popped bytes into the unk18A vector of every active entity.
  *
  * Pops three bytes from the script stack into a local buffer, then
- * walks @c D_80085224[0..D_80085388-1] writing the same triple into
+ * walks @c g_fieldActors[0..g_fieldActorCount-1] writing the same triple into
  * each entry's @c unk18A/18B/18C slot. Each iteration where
  * @c D_800DE8CC & 0x2 is clear also dispatches command @c 0x10 to
  * the entity (with the local buffer as the arg).
@@ -428,8 +428,8 @@ s32 opHandler_POLYCOLORALL(ScriptContext *context) {
     bytes[1] = POP_BYTE(context);
     bytes[0] = POP_BYTE(context);
 
-    p = D_80085224;
-    for (i = 0; i < D_80085388; i++) {
+    p = g_fieldActors;
+    for (i = 0; i < g_fieldActorCount; i++) {
         if (!(D_800DE8C8[1] & 0x2)) {
             func_800A97E4(i, 0x10, (s32)bytes, 0);
         }
@@ -588,7 +588,7 @@ s32 opHandler_DIRA(Actor *actor) {
  *
  * Pops one s32 from the stack as a slot index, uses it to read
  * @c g_fieldVars->memberSlot[slot], indexes that into the entity
- * array @c D_80085224 to fetch a target @c Actor, dispatches
+ * array @c g_fieldActors to fetch a target @c Actor, dispatches
  * @c func_8009E604 with the current entity and the target, and writes
  * the byte result into @c facingDirection.
  *
@@ -597,7 +597,7 @@ s32 opHandler_DIRA(Actor *actor) {
  */
 s32 opHandler_PDIRA(Actor *actor) {
     s32 slot = POP(&actor->context);
-    actor->facingDirection = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]);
+    actor->facingDirection = func_8009E604(actor, &g_fieldActors[g_fieldVars->memberSlot[slot]]);
     return 2;
 }
 
@@ -919,7 +919,7 @@ s32 opHandler_CTURN(Actor *actor) {
  *
  * Same control flow as @c opHandler_LTURN, but the index popped after
  * the bearing byte is treated as a SeeD-party slot. The target Actor
- * is obtained via @c &D_80085224[g_fieldVars->memberSlot[slot]].
+ * is obtained via @c &g_fieldActors[g_fieldVars->memberSlot[slot]].
  *
  * @param actor Pointer to the Actor event-script context.
  */
@@ -932,7 +932,7 @@ s32 opHandler_PLTURN(Actor *actor) {
         slot = POP(&actor->context);
         actor->field_0x243 = 0;
         actor->field_0x1DC = actor->facingDirection;
-        actor->field_0x1DE = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]) & 0xFF;
+        actor->field_0x1DE = func_8009E604(actor, &g_fieldActors[g_fieldVars->memberSlot[slot]]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
             return 2;
@@ -964,7 +964,7 @@ s32 opHandler_PCTURN(Actor *actor) {
         slot = POP(&actor->context);
         actor->field_0x243 = 0;
         actor->field_0x1DC = actor->facingDirection;
-        actor->field_0x1DE = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]) & 0xFF;
+        actor->field_0x1DE = func_8009E604(actor, &g_fieldActors[g_fieldVars->memberSlot[slot]]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
             return 2;
@@ -1001,7 +1001,7 @@ s32 opHandler_HASITEM(Actor *actor) {
         slot = POP(&actor->context);
         actor->field_0x243 = 0;
         actor->field_0x1DC = actor->facingDirection;
-        actor->field_0x1DE = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]) & 0xFF;
+        actor->field_0x1DE = func_8009E604(actor, &g_fieldActors[g_fieldVars->memberSlot[slot]]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
             actor->field_0x244 = 3;
@@ -1117,7 +1117,7 @@ s32 opHandler_FACEDIRA(Actor *actor, s32 arg1) {
  *
  * Same body as @c opHandler_FACEDIRA, but the index popped from the stack
  * is treated as a SeeD party-slot. The target entity is the one whose
- * Actor lives at @c &D_80085224[g_fieldVars->memberSlot[slot]], and
+ * Actor lives at @c &g_fieldActors[g_fieldVars->memberSlot[slot]], and
  * that same byte index is the spatial argument to @c func_800A8DAC.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1131,9 +1131,9 @@ s32 opHandler_FACEDIRP(Actor *actor, s32 arg1) {
         actor->turnLen = POP(&actor->context);
         slot = g_fieldVars->memberSlot[POP(&actor->context)];
         func_800A8DAC(slot, 0x1E, (u32)g_curFieldView, buf);
-        actor->turnTgtX = D_80085224[slot].posX / 4096;
-        actor->turnTgtY = D_80085224[slot].posY / 4096;
-        actor->turnTgtZ = buf[2] + D_80085224[slot].posZ / 4096;
+        actor->turnTgtX = g_fieldActors[slot].posX / 4096;
+        actor->turnTgtY = g_fieldActors[slot].posY / 4096;
+        actor->turnTgtZ = buf[2] + g_fieldActors[slot].posZ / 4096;
         actor->turnMode = 1;
         actor->turnTick = 0;
     }
