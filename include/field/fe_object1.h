@@ -220,7 +220,7 @@ typedef struct {
                                  apparently the catch-up gait, though that is inferred from
                                  the lag comparison rather than observed. */
     /* 0x0B */ u8  field_0B; /**< Leader's heading when recorded; replayed into the follower's
-                                 @c field_0x241. This is what makes a stalled follower still
+                                 @c facingDirection. This is what makes a stalled follower still
                                  rotate as though it were walking the trail. */
 } PathEntry;
 

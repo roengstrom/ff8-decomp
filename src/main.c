@@ -104,59 +104,49 @@ void InitHardware(void) {
     InitGeom();
 }
 
-/** @brief Saves the current battle/field camera state to a snapshot buffer.
- *
- *  Records the party's positions, rotations, animation states, and display
- *  parameters so RestoreSnapshot can restore them when returning from battle.
- */
 void func_80011870(void) {
     s16 i;
 
     if (g_previousGameMode == GAME_MODE_WORLD) {
-        g_gameState.cameraSnapshot.vsyncRate = 2;
+        g_gameState.returnState.gameMode = GAME_MODE_WORLD;
     } else {
-        g_gameState.cameraSnapshot.vsyncRate = 1;
+        g_gameState.returnState.gameMode = GAME_MODE_FIELD;
     }
 
-    g_gameState.cameraSnapshot.fieldId = g_curFieldId;
-    g_gameState.cameraSnapshot.field120 = g_fieldEntity.field_0x120;
+    g_gameState.returnState.fieldId = g_curFieldId;
+    g_gameState.returnState.previousFieldId = g_fieldEntity.previousFieldId;
 
     for (i = 0; i < 3; i++) {
-        g_gameState.cameraSnapshot.positionsX[i] = D_80085224[g_fieldEntity.entityIndex[i]].posX >> 12;
-        g_gameState.cameraSnapshot.positionsY[i] = D_80085224[g_fieldEntity.entityIndex[i]].posY >> 12;
-        g_gameState.cameraSnapshot.triIdxs[i] = D_80085224[g_fieldEntity.entityIndex[i]].triIdx;
-        g_gameState.cameraSnapshot.animStates[i] = D_80085224[g_fieldEntity.entityIndex[i]].field_0x241;
+        g_gameState.returnState.positionsX[i] = D_80085224[g_fieldEntity.entityIndex[i]].posX >> 12;
+        g_gameState.returnState.positionsY[i] = D_80085224[g_fieldEntity.entityIndex[i]].posY >> 12;
+        g_gameState.returnState.triIdxs[i] = D_80085224[g_fieldEntity.entityIndex[i]].triIdx;
+        g_gameState.returnState.facingDirection[i] = D_80085224[g_fieldEntity.entityIndex[i]].facingDirection;
     }
 
-    g_gameState.cameraSnapshot.fade1 = D_8005F151;
-    g_gameState.cameraSnapshot.fade0 = D_8005F150;
+    g_gameState.returnState.fade1 = D_8005F151;
+    g_gameState.returnState.fade0 = D_8005F150;
 }
 
-/** @brief Restores a previously saved camera/field state snapshot.
- *
- *  Inverse of func_80011870: writes the saved party positions, rotations,
- *  animation states, and display parameters back into the live field state.
- */
 void RestoreSnapshot(void) {
     SystemState *entity;
 
-    g_gameMode = g_gameState.cameraSnapshot.vsyncRate;
+    g_gameMode = g_gameState.returnState.gameMode;
     if (g_gameMode == GAME_MODE_NONE) {
         g_gameMode = GAME_MODE_FIELD;
     }
 
-    g_curFieldId = g_gameState.cameraSnapshot.fieldId;
+    g_curFieldId = g_gameState.returnState.fieldId;
 
     entity = &g_fieldEntity;
 
-    entity->field_0x120 = g_gameState.cameraSnapshot.field120;
-    entity->position_x = g_gameState.cameraSnapshot.positionsX[0];
-    entity->position_y = g_gameState.cameraSnapshot.positionsY[0];
-    entity->spawnTriIdx = g_gameState.cameraSnapshot.triIdxs[0];
-    entity->facingDirection = g_gameState.cameraSnapshot.animStates[0];
+    entity->previousFieldId = g_gameState.returnState.previousFieldId;
+    entity->position_x = g_gameState.returnState.positionsX[0];
+    entity->position_y = g_gameState.returnState.positionsY[0];
+    entity->spawnTriIdx = g_gameState.returnState.triIdxs[0];
+    entity->facingDirection = g_gameState.returnState.facingDirection[0];
 
-    D_8005F151 = g_gameState.cameraSnapshot.fade1;
-    D_8005F150 = g_gameState.cameraSnapshot.fade0;
+    D_8005F151 = g_gameState.returnState.fade1;
+    D_8005F150 = g_gameState.returnState.fade0;
 }
 
 void LoadFieldOverlay(void) {

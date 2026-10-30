@@ -404,13 +404,13 @@ void func_800A1CC0(void) {
  * @brief Per-frame turn/aim update for every @ref Actor entity, then flush.
  *
  * For each of the @c D_80085388 entities: publishes the render-slot angle
- * vector (0, 0, @c field_0x241<<4 + 0x400) via @ref func_800A736C and the
+ * vector (0, 0, @c facingDirection<<4 + 0x400) via @ref func_800A736C and the
  * world position (@c pos>>12 plus @c posOfs) via @ref func_800A7224. When
  * @c turnMode is 1 and a turn is not in progress (@c turnTick == 0), it
  * queries the target height (@ref func_800A8DAC op 0x1E), computes the XY
  * bearing from the entity (with offsets and height) to @c turnTgt via
  * @ref func_8009A0E8 and stores it rate-clamped (+/- @c turnYawRate around
- * the current @c field_0x241 heading) into @c turnYawDst, then likewise the
+ * the current @c facingDirection heading) into @c turnYawDst, then likewise the
  * elevation bearing into @c turnPitchDst (clamped by @c turnPitchRate).
  * While @c turnTick < @c turnLen it unwraps both destinations into the
  * +/-0x80 window around their committed angles, advances @c turnTick,
@@ -443,7 +443,7 @@ void func_800A1CFC(Actor *ents, FieldFrameBuf *frame) {
     s32 v;
 
     for (i = 0, ent = ents; i < D_80085388; ent++, i++) {
-        v38.z = (ent->field_0x241 << 4) + 0x400;
+        v38.z = (ent->facingDirection << 4) + 0x400;
         v38.x = 0;
         v38.y = 0;
         func_800A736C(i, (u16 *)&v38, 0);
@@ -461,7 +461,7 @@ void func_800A1CFC(Actor *ents, FieldFrameBuf *frame) {
             pA.z = buf[2] + (ent->posZ >> 12) + ent->posOfsZ;
             v = func_8009A0E8((s32 *)&pA, (s32 *)&pB, &dist);
             v &= 0xFF;
-            v -= ent->field_0x241;
+            v -= ent->facingDirection;
             diff = (u8)v;
             cmp = ent->turnYawDst = diff;
             if (cmp < 0x80) {

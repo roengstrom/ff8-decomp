@@ -260,7 +260,7 @@ s32 opHandler_GETINFO(Actor *actor) {
     actor->context.resultSlots[0] = actor->posX / 4096;
     actor->context.resultSlots[1] = actor->posY / 4096;
     actor->context.resultSlots[2] = actor->posZ / 4096;
-    actor->context.resultSlots[4] = actor->field_0x241;
+    actor->context.resultSlots[4] = actor->facingDirection;
     actor->context.resultSlots[5] = actor->triIdx;
     actor->context.resultSlots[6] = actor->moveSpeed;
     return 2;
@@ -291,7 +291,7 @@ s32 opHandler_PGETINFO(ScriptContext *context) {
     context->resultSlots[0] = D_80085224[entIdx].posX / 4096;
     context->resultSlots[1] = D_80085224[entIdx].posY / 4096;
     context->resultSlots[2] = D_80085224[entIdx].posZ / 4096;
-    context->resultSlots[4] = D_80085224[entIdx].field_0x241;
+    context->resultSlots[4] = D_80085224[entIdx].facingDirection;
     context->resultSlots[5] = D_80085224[entIdx].triIdx;
     context->resultSlots[6] = D_80085224[entIdx].moveSpeed;
     return 2;
@@ -371,7 +371,7 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
 /**
  * @brief Pop an entity id, look up the corresponding @c Actor in the
  *        @c D_80085230 table, and copy six locator fields (pos x/y/z,
- *        @c field_0x241, @c triIdx, @c moveSpeed) from that
+ *        @c facingDirection, @c triIdx, @c moveSpeed) from that
  *        entity into the current one. Finally call @c func_8009A8E0
  *        on the global @c D_8008538C anchor to recompute derived
  *        coordinates.
@@ -388,7 +388,7 @@ s32 opHandler_COPYINFO(Actor *actor) {
     actor->posX = D_80085230[entityId]->posX;
     actor->posY = D_80085230[entityId]->posY;
     actor->posZ = D_80085230[entityId]->posZ;
-    actor->field_0x241 = D_80085230[entityId]->field_0x241;
+    actor->facingDirection = D_80085230[entityId]->facingDirection;
     actor->triIdx = D_80085230[entityId]->triIdx;
     actor->moveSpeed = D_80085230[entityId]->moveSpeed;
     func_8009A8E0(D_8008538C);
@@ -400,7 +400,7 @@ s32 opHandler_COPYINFO(Actor *actor) {
  *        through the active-party @c memberSlot[] table — pop a
  *        party-slot id, look up @c g_fieldVars->memberSlot[party] for
  *        the field-entity index, and copy six locator fields
- *        (pos x/y/z, @c field_0x241, @c triIdx, @c moveSpeed)
+ *        (pos x/y/z, @c facingDirection, @c triIdx, @c moveSpeed)
  *        into the current entity. Calls @c func_8009A8E0(D_8008538C)
  *        afterwards to recompute derived state.
  *
@@ -419,7 +419,7 @@ s32 opHandler_PCOPYINFO(Actor *actor) {
     actor->posX = D_80085224[entIdx].posX;
     actor->posY = D_80085224[entIdx].posY;
     actor->posZ = D_80085224[entIdx].posZ;
-    actor->field_0x241 = D_80085224[entIdx].field_0x241;
+    actor->facingDirection = D_80085224[entIdx].facingDirection;
     actor->triIdx = D_80085224[entIdx].triIdx;
     actor->moveSpeed = D_80085224[entIdx].moveSpeed;
     func_8009A8E0(D_8008538C);

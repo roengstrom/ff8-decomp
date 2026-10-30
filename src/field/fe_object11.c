@@ -227,7 +227,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     seed->charKos[6] = g_gameState.chars[6].kos;
     seed->charKos[7] = g_gameState.chars[7].kos;
 
-    seed->field54 = g_fieldEntity.field_0x120;
+    seed->field54 = g_fieldEntity.previousFieldId;
     seed->field56 = D_80082C8D;
     D_800DE8C8[1] = 2;
     ((u8 *)D_800DE8C8)[0xB] = 0;
@@ -289,7 +289,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
                 if (g_gameState.battleParty[i] == e->field_0x255) {
                     e->posX = g_fieldEntity.position_x << 12;
                     e->posY = g_fieldEntity.position_y << 12;
-                    e->field_0x241 = g_fieldEntity.facingDirection;
+                    e->facingDirection = g_fieldEntity.facingDirection;
                     rot = g_fieldEntity.spawnTriIdx;
                     e->context.flags |= 4;
                     e->triIdx = rot;

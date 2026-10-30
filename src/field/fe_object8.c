@@ -528,10 +528,10 @@ s32 opHandler_SHADELEVEL(Actor *actor) {
 }
 
 /**
- * @brief Pop a byte from the script stack into @c field_0x241.
+ * @brief Pop a byte from the script stack into @c facingDirection.
  */
 s32 opHandler_DIR(Actor *actor) {
-    actor->field_0x241 = POP_BYTE(&actor->context);
+    actor->facingDirection = POP_BYTE(&actor->context);
     return 2;
 }
 
@@ -570,15 +570,15 @@ s32 opHandler_DIRP(Actor *actor) {
 }
 
 /**
- * @brief Pop an entity index, dispatch the bearing-resolver, store byte to @c field_0x241.
+ * @brief Pop an entity index, dispatch the bearing-resolver, store byte to @c facingDirection.
  *
  * Pops one s32 from the script stack and uses it as an index into
  * @c D_80085230 to fetch a target @c Actor. Calls @c func_8009E604 with
  * the current entity and the target, and writes the byte result into
- * @c field_0x241 (seeds turn-state for the next CTURN-family helper).
+ * @c facingDirection (seeds turn-state for the next CTURN-family helper).
  */
 s32 opHandler_DIRA(Actor *actor) {
-    actor->field_0x241 = func_8009E604(actor, D_80085230[POP(&actor->context)]);
+    actor->facingDirection = func_8009E604(actor, D_80085230[POP(&actor->context)]);
     return 2;
 }
 
@@ -590,14 +590,14 @@ s32 opHandler_DIRA(Actor *actor) {
  * @c g_fieldVars->memberSlot[slot], indexes that into the entity
  * array @c D_80085224 to fetch a target @c Actor, dispatches
  * @c func_8009E604 with the current entity and the target, and writes
- * the byte result into @c field_0x241.
+ * the byte result into @c facingDirection.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (advance PC).
  */
 s32 opHandler_PDIRA(Actor *actor) {
     s32 slot = POP(&actor->context);
-    actor->field_0x241 = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]);
+    actor->facingDirection = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]);
     return 2;
 }
 
@@ -616,7 +616,7 @@ s32 opHandler_OP16B(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 1;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -634,7 +634,7 @@ s32 opHandler_OP16B(Actor *actor) {
  *
  * Active path: pops a byte (top), then sets up turn state with
  * @c field_0x244=1, @c field_0x243=0, @c field_0x1DC seeded from
- * @c field_0x241, @c field_0x242 set to the popped byte. Then pops
+ * @c facingDirection, @c field_0x242 set to the popped byte. Then pops
  * the next halfword as the requested heading, stores it to
  * @c field_0x1DE, and if the signed value is less than @c field_0x1DC
  * adds @c 0x100 (forces forward rotation).
@@ -649,7 +649,7 @@ s32 opHandler_OP16C(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 1;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -675,7 +675,7 @@ s32 opHandler_OP16D(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 2;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -701,7 +701,7 @@ s32 opHandler_OP16E(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 2;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -762,7 +762,7 @@ s32 opHandler_LTURNR(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 1;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -784,7 +784,7 @@ s32 opHandler_LTURNL(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 1;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -806,7 +806,7 @@ s32 opHandler_CTURNR(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 2;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -828,7 +828,7 @@ s32 opHandler_CTURNL(Actor *actor) {
         byte1 = POP_BYTE(&actor->context);
         actor->field_0x244 = 2;
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x242 = byte1;
         raw = POP(&actor->context);
         actor->field_0x1DE = raw;
@@ -845,7 +845,7 @@ s32 opHandler_CTURNL(Actor *actor) {
  * If the entity's @c activeMask bit (selected by @c scriptSlot) is set,
  * pops two values: the target bearing byte (@c first) and a SeeD-party
  * member index. Looks up the target Actor via @c D_80085230[idx],
- * snapshots @c field_0x241 into @c field_0x1DC, dispatches
+ * snapshots @c facingDirection into @c field_0x1DC, dispatches
  * @c func_8009E604 to compute the target bearing into @c field_0x1DE,
  * and writes @c first into @c field_0x242. If the snapshot matches the
  * new bearing (no turn needed) returns @c 2; otherwise marks
@@ -864,7 +864,7 @@ s32 opHandler_LTURN(Actor *actor) {
         first = POP(&actor->context);
         idx = POP(&actor->context);
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x1DE = func_8009E604(actor, D_80085230[idx]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
@@ -897,7 +897,7 @@ s32 opHandler_CTURN(Actor *actor) {
         first = POP(&actor->context);
         idx = POP(&actor->context);
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x1DE = func_8009E604(actor, D_80085230[idx]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
@@ -931,7 +931,7 @@ s32 opHandler_PLTURN(Actor *actor) {
         first = POP(&actor->context);
         slot = POP(&actor->context);
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x1DE = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
@@ -963,7 +963,7 @@ s32 opHandler_PCTURN(Actor *actor) {
         first = POP(&actor->context);
         slot = POP(&actor->context);
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x1DE = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {
@@ -1000,7 +1000,7 @@ s32 opHandler_HASITEM(Actor *actor) {
         first = POP(&actor->context);
         slot = POP(&actor->context);
         actor->field_0x243 = 0;
-        actor->field_0x1DC = actor->field_0x241;
+        actor->field_0x1DC = actor->facingDirection;
         actor->field_0x1DE = func_8009E604(actor, &D_80085224[g_fieldVars->memberSlot[slot]]) & 0xFF;
         actor->field_0x242 = first;
         if (actor->field_0x1DC == actor->field_0x1DE) {

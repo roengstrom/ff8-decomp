@@ -142,7 +142,7 @@ typedef struct {
     /* 0x11A */ u16 field_0x11A;
     /* 0x11C */ u16 field_0x11C;
     /* 0x11E */ u16 field_0x11E;
-    /* 0x120 */ u16 field_0x120;    /**< Snapshotted misc halfword; preserved across SaveSnapshot/RestoreSnapshot. */
+    /* 0x120 */ u16 previousFieldId;
     /* 0x122 */ Oscillator oscillators[2]; /**< The two field oscillators @c func_800A17B8 advances
                                                each tick; their 14-byte layouts pack back to back
                                                (0x122 and 0x130) and mirror field for field. */
@@ -232,7 +232,7 @@ typedef struct {
     /* 0x48 */ s32 gilMirror;           /**< Mirror of @c g_gameState.mainData.party.gil, kept in sync by fe_object6. */
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
     /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
-    /* 0x54 */ u16 field54;             /**< Mirror of @c g_fieldEntity.field120, set by @c func_800BFBBC. */
+    /* 0x54 */ u16 field54;
     /* 0x56 */ u8 field56;              /**< Copy of @c D_80082C8D byte, set by @c func_800BFBBC. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
@@ -402,7 +402,7 @@ typedef struct {
                                          adding it to the position. Doubled on movie entry and halved
                                          on exit (@c opHandler_MOVIE / @c func_800B14C8) along with
                                          @c msgChannel and @c field_0x208, and saved/restored with the
-                                         position, @c triIdx and @c field_0x241 by fe_object5. */
+                                         position, @c triIdx and @c facingDirection by fe_object5. */
     /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
     /* 0x202 */ u16 field_0x202;    /**< Saved channel for async restore. */
     /* 0x204 */ s16 field_0x204;
@@ -441,7 +441,7 @@ typedef struct {
                                          destination (@c func_8009D274 walk-toward step). */
     /* 0x23F */ u8 unk23F;          /**< Facing/heading angle (8-bit BAM, sin/cos source per FF8 wiki entity-struct). @c func_8009A4C0 / @c func_8009A7E8 compare a trigger's bearing (@c Eline.unk19C) against it in a +/-facing window. */
     /* 0x240 */ u8 field_0x240;
-    /* 0x241 */ u8 field_0x241;
+    /* 0x241 */ u8 facingDirection;
     /* 0x242 */ u8 field_0x242;
     /* 0x243 */ u8 field_0x243;
     /* 0x244 */ u8 field_0x244;
