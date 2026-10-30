@@ -35,7 +35,7 @@ static void DisableStpBit(void) {
     u32 ot[2];
 
     ClearOTag(ot, 2);
-    SetDrawStp(&prim, 0);
+    SetDrawStp(&prim, 0); // semi-transparency bit
     addPrim(ot, &prim);
     DrawOTag(ot);
 
