@@ -26,15 +26,6 @@ typedef enum {
     FADE_OUT  = 2
 } FadeMode;
 
-/** @brief VSync rendering dispatch mode. */
-typedef enum {
-    RENDER_IDLE    = 0,
-    RENDER_FADE    = 1,
-    RENDER_BATTLE  = 2,
-    RENDER_OVERLAY = 3,
-    RENDER_GAME    = 4
-} RenderMode;
-
 /* Display / render state owned by main.c. */
 extern s16 g_curFieldId; /**< Global id of the current field map. */
 extern TILE           g_clearTiles[];
@@ -44,11 +35,10 @@ extern u32            g_orderingTablePtrs[];
 extern DRAWENV       *g_activeDrawEnv;  /**< Draw env of the buffer currently being built. */
 extern s32            D_8005F138;       /**< Active display-environment window (holds a @c DISPENV*). */
 
-/* VSync callback state owned by main.c. */
-extern u8             g_vsyncSkip;
-extern volatile s32   D_8005F154; /**< VSync frame-counter timing accumulator (+0x88F/VSync). */
-extern volatile s32   D_8005F15C; /**< VSync countdown-timer timing accumulator (+0x88F/VSync). */
-extern u16            D_8005F11E; /**< VSync-done / status flag. */
+extern u8 g_vsyncSkip;
+extern volatile s32 g_secondTicker;
+extern volatile s32 g_countdownTicker;
+extern u16 g_vsyncDone;
 
 /* CD file-table descriptors + scratch buffers loaded/managed by main.c. */
 extern CdFileDesc     g_fileTableDesc[];
@@ -64,11 +54,8 @@ extern u8             D_8006A468[];
 extern u8             D_8005F188[];
 extern u8             D_80070468[];
 
-void flushGpuOt(void);
 void VsyncHandler(void);
 void InitHardware(void);
-void func_80011870(void);
-void RestoreSnapshot(void);
 void LoadFieldOverlay(void);
 void LoadWorldOverlay(void);
 void LoadWm2FieldTable(void);

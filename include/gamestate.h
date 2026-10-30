@@ -343,25 +343,17 @@ typedef struct {
     /* 0x240 */ u8           pad40[4];                    /**< Battle vars / misc (continued). */
 } SaveMainData; /* 0x244 = 580 bytes */
 
-/**
- * @brief Camera/field state snapshot saved across a battle transition.
- *
- * Lives at GameState + 0xD40; written by func_80011870 and read back by
- * RestoreSnapshot.
- */
 typedef struct {
-    /* 0x00 */ u16 vsyncRate;
-    /* 0x02 */ u16 fieldId;          /**< Saved @c g_curFieldId. */
-    /* 0x04 */ u16 field120;         /**< Saved copy of g_fieldEntity.field_0x120. */
+    /* 0x00 */ u16 gameMode;
+    /* 0x02 */ u16 fieldId;
+    /* 0x04 */ u16 previousFieldId;
     /* 0x06 */ u16 positionsX[3];    /**< Party member X positions (>>12 integer). */
     /* 0x0C */ u16 positionsY[3];    /**< Party member Y positions (>>12 integer). */
-    /* 0x12 */ u16 triIdxs[3];       /**< Navmesh triangle each party member stands on
-                                         (saved from @c Actor::triIdx, restored into
-                                         @c SystemState::spawnTriIdx). */
-    /* 0x18 */ u8  animStates[3];    /**< Party member animation states. */
-    /* 0x1B */ u8  fade1;
-    /* 0x1C */ u8  fade0;
-} CameraSnapshot; /* 0x1E = 30 bytes (29 data + 1 trailing pad, u16-aligned) */
+    /* 0x12 */ u16 triIdxs[3]; /**< Navmesh triangle each party member stands on. */
+    /* 0x18 */ u8 facingDirection[3];
+    /* 0x1B */ u8 fieldRngIndex;
+    /* 0x1C */ u8 fieldRngOffset;
+} FieldStateSnapshot; /* 0x1E = 30 bytes (29 data + 1 trailing pad, u16-aligned) */
 
 /**
  * @brief Full game state (g_gameState at 0x80077378, 0x13A0 bytes).
@@ -387,7 +379,7 @@ typedef struct {
     /* 0xAF4 */ SaveMainData      mainData;                     /**< Party/items/battle state (580 bytes). */
     /* 0xD38 */ u8                battleParty[4];              /**< Battle party member IDs (mirrors party.partyMembers). */
     /* 0xD3C */ u8                padD3C[4];        /**< Battle vars / misc. */
-    /* 0xD40 */ CameraSnapshot    cameraSnapshot;   /**< Camera/field snapshot (saved across battle). */
+    /* 0xD40 */ FieldStateSnapshot fieldStateSnapshot;
     /* 0xD5E */ u8                padD5D[2];        /**< Battle vars / misc (continued). */
     /* 0xD60 */ FieldVars         fieldVars;                   /**< Steps, SeeD rank, counters (@c &g_gameState.fieldVars == @c g_fieldVars). */
     /* 0xE58 */ u8                padE58[0x08];                /**< Trailing 8 bytes of the 0xD60 region; not part of @ref FieldVars (the field-reset wipe stops at 0xE58) and read by nothing so far. */
@@ -415,10 +407,17 @@ extern FieldVars *g_fieldVars;
  * down to 0x0C00. */
 extern u16 g_textSpeeds[];
 
-/* Render dispatch mode + fade bytes (main-binary state shared across units). */
-extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the field, world and battle engines spin on, each with its own value. */
-extern u8 D_8005F150;
-extern u8 D_8005F151;
+typedef enum {
+    RENDER_IDLE = 0,
+    RENDER_FADE = 1,
+    RENDER_BATTLE_TRANSITION = 2,
+    RENDER_BATTLE = 3,
+    RENDER_BATTLE_RESULTS = 4
+} RenderMode;
+
+extern volatile s16 g_renderMode;
+extern u8 g_fieldRngOffset;
+extern u8 g_fieldRngIndex;
 
 typedef enum {
     GAME_MODE_NONE = 0,

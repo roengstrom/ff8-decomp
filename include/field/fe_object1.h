@@ -220,7 +220,7 @@ typedef struct {
                                  apparently the catch-up gait, though that is inferred from
                                  the lag comparison rather than observed. */
     /* 0x0B */ u8  field_0B; /**< Leader's heading when recorded; replayed into the follower's
-                                 @c field_0x241. This is what makes a stalled follower still
+                                 @c facingDirection. This is what makes a stalled follower still
                                  rotate as though it were walking the trail. */
 } PathEntry;
 
@@ -325,10 +325,6 @@ extern TILE g_clearTiles[];              /**< Per-buffer screen-clear TILEs. */
 /** @brief Raised by @c func_800A5898 when the dialog state reaches @c 4. */
 extern u8 D_80070649;
 
-extern s32  func_800A5FA4(FieldLineTrigger *seg, s32 sel);
-extern void func_800A6100(Actor *actor, FieldLineTrigger *segs, Vec3i *pt);
-extern void func_800A62EC(FieldLineTrigger *segs);
-
 /**
  * @brief Element of a @ref FieldObject part's sub-range (8-byte stride).
  * @note Purpose uncertain — @c func_800A8058 clears @c field06 for every
@@ -399,8 +395,6 @@ extern u8 D_800C32A0[];
 extern u8 D_800C3320[];
 extern u8 D_800C3520[];
 extern u8 D_800C6D90;            /**< PRNG counter advanced 13/step by func_800A2EA4 */
-extern u8 D_8005F150;            /**< Outer PRNG counter, D_800C3520 lookup offset, advanced 13/step per 256 calls of func_800A5C9C */
-extern u8 D_8005F151;            /**< Inner PRNG counter, D_800C3520 lookup index, advanced 1/call by func_800A5C9C */
 
 extern void func_8004D684(void *p);
 
@@ -410,7 +404,6 @@ extern u16 D_800D3E88[];         /**< Saved 256x16 VRAM palette strip, one 16-bi
 extern u8 D_800D5F50[];
 extern u8 D_800D61A8[];
 extern u8 D_8005F168[];
-extern volatile s32 D_8005F154;  /**< VSync frame counter (main.c); phase for the @c D_800C3520 perturbation table. */
 
 /**
  * @brief 24-byte draw-point slot holding a 16-bit (x, y, z) position plus the

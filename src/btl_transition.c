@@ -341,7 +341,7 @@ void startBattleTransition(register s32 boss) {
     g_transitionVsyncs = 0;
     g_transitionBusy = 0;
     openTransitionThread();
-    g_renderMode = RENDER_BATTLE;
+    g_renderMode = RENDER_BATTLE_TRANSITION;
 }
 
 

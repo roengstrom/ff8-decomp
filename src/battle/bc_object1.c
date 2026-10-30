@@ -111,9 +111,9 @@ void func_80099F58(void) {
 }
 
 void func_80099FA0() {
-    while(g_renderMode != 0);
+    while(g_renderMode != RENDER_IDLE);
    
-    g_renderMode = 3;
+    g_renderMode = RENDER_BATTLE;
     func_800D0FB0();
 }
 

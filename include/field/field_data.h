@@ -22,11 +22,11 @@ typedef struct {
     /* 0x06 */ s16 x1;          /**< Exit line end X. */
     /* 0x08 */ s16 y1;          /**< Exit line end Y. */
     /* 0x0A */ s16 z1;          /**< Exit line end Z. */
-    /* 0x0C */ u16 position_x;  /**< Arrival X, copied to @c g_fieldEntity.position_x by @c func_8009AA64. */
-    /* 0x0E */ u16 position_y;  /**< Arrival Y, copied to @c g_fieldEntity.position_y. */
-    /* 0x10 */ u16 spawnTriIdx; /**< Arrival triangle, copied to @c g_fieldEntity.spawnTriIdx;
+    /* 0x0C */ u16 position_x;  /**< Arrival X, copied to @c g_fieldContext.position_x by @c func_8009AA64. */
+    /* 0x0E */ u16 position_y;  /**< Arrival Y, copied to @c g_fieldContext.position_y. */
+    /* 0x10 */ u16 spawnTriIdx; /**< Arrival triangle, copied to @c g_fieldContext.spawnTriIdx;
                                      @c FIELD_GATEWAY_NO_TRIANGLE makes @c func_8009AAC8 skip it. */
-    /* 0x12 */ u16 fieldId;     /**< Destination field, copied to @c g_fieldEntity.counter;
+    /* 0x12 */ u16 fieldId;     /**< Destination field, copied to @c g_fieldContext.counter;
                                      @c FIELD_GATEWAY_UNUSED in an unused slot. */
     /* 0x14 */ u8 pad14[0x08];
     /* 0x1C */ u8 facingDirection;
@@ -80,8 +80,8 @@ typedef struct {
  */
 typedef struct {
     /* 0x000 */ char name[9];         /**< Map name, NUL-padded. */
-    /* 0x009 */ u8 unk09[2];         /**< One byte per camera, indexed by @c SystemState::unk1A6: copied into
-                                          @c SystemState::unk1A8 and @c unk100 on field entry and on a camera change. */
+    /* 0x009 */ u8 unk09[2];         /**< One byte per camera, indexed by @c FieldContext::unk1A6: copied into
+                                          @c FieldContext::unk1A8 and @c unk100 on field entry and on a camera change. */
     /* 0x00B */ u8 slotHeadingBias[2]; /**< Per-party-slot heading bias the field bundle ships;
                                             @c func_8009BEC8 adds it to the global heading before
                                             the analog-stick direction. @note Name inferred from that use. */

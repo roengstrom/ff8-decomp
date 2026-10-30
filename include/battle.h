@@ -813,7 +813,7 @@ u8 *func_800B04A0(u32 a0, u8 *buf);
 
 /* --- Battle animation lifecycle --- */
 
-void func_800D0608(void); /* bc_object17: overlay VSync handler (RENDER_OVERLAY) */
+void func_800D0608(void); /* bc_object17: overlay VSync handler (RENDER_BATTLE) */
 
 
 

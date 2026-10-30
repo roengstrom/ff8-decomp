@@ -134,7 +134,7 @@ s32 func_800987D8(void)
     if (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE) {
         func_8009A7C0();
         func_8009CAE0(D_800C4F2C, NULL);
-        while (g_renderMode == 4) {
+        while (g_renderMode == RENDER_BATTLE_RESULTS) {
         }
     }
     func_800C4644();

@@ -11,7 +11,7 @@
  * ============================================================================
  *
  * One field entity slot is 612 bytes (0x264). Two typedefs describe
- * the SAME 612-byte memory at @ref D_80085224, each capturing a
+ * the SAME 612-byte memory at @ref g_fieldActors, each capturing a
  * different valid type-interpretation of the bytes:
  *
  *   - @ref Actor       — bytecode VM view (@ref ScriptContext header,
@@ -33,8 +33,8 @@
 
 
 /**
- * @brief One slot of the @c SystemState mode-slot table at
- *        @c g_fieldEntity.slots, stride 28 bytes.
+ * @brief One slot of the @c FieldContext mode-slot table at
+ *        @c g_fieldContext.slots, stride 28 bytes.
  *
  * Each slot encodes a mode-dispatched operation: @c mode selects which
  * code path runs in the field engine's per-frame poller, @c param
@@ -80,7 +80,7 @@ typedef struct {
     /* 0x0C */ s16 angle;      /**< Current tick (0..total). */
 } Oscillator;  /* 0x0E = 14 bytes */
 
-/* Analog-stick direction bits carried by @c SystemState::padHeld and by the
+/* Analog-stick direction bits carried by @c FieldContext::padHeld and by the
  * derived pad word @c func_8009BEC8 receives. One bit per direction -- combine
  * them at the use site instead of defining multi-bit masks. */
 #define FIELD_PAD_WALK  0x0010 /**< Selects the slow speed and step tables. Set from the
@@ -92,7 +92,6 @@ typedef struct {
 #define FIELD_PAD_YHIGH 0x4000 /**< Stick/d-pad Y-high. */
 #define FIELD_PAD_XLOW  0x8000 /**< Stick/d-pad X-low. */
 
-/** @brief System state block (@c g_fieldEntity). */
 typedef struct {
     /* 0x000 */ u8 mode;            /**< Top-level engine mode; @c 4 means exit. */
     /* 0x001 */ u8 pad001;
@@ -142,7 +141,7 @@ typedef struct {
     /* 0x11A */ u16 field_0x11A;
     /* 0x11C */ u16 field_0x11C;
     /* 0x11E */ u16 field_0x11E;
-    /* 0x120 */ u16 field_0x120;    /**< Snapshotted misc halfword; preserved across SaveSnapshot/RestoreSnapshot. */
+    /* 0x120 */ u16 previousFieldId;
     /* 0x122 */ Oscillator oscillators[2]; /**< The two field oscillators @c func_800A17B8 advances
                                                each tick; their 14-byte layouts pack back to back
                                                (0x122 and 0x130) and mirror field for field. */
@@ -187,9 +186,9 @@ typedef struct {
     /* 0x1B2 */ u8 pad1B2[0x02];
     /* 0x1B4 */ s32 field1B4;       /**< Initialised to @c 0xFFFFFF by @c func_800BFBBC on full reset. */
     /* 0x1B8 */ u8 statusBits[0x40]; /**< Packed bit-array (512 bits); set by @c opHandler_IDLOCK, cleared by @c opHandler_IDUNLOCK, zeroed during init. */
-} SystemState;
+} FieldContext;
 
-extern SystemState g_fieldEntity;
+extern FieldContext g_fieldContext;
 
 /**
  * @brief Field-engine variable block (248 bytes) — held at @c g_gameState+0xD60
@@ -232,7 +231,7 @@ typedef struct {
     /* 0x48 */ s32 gilMirror;           /**< Mirror of @c g_gameState.mainData.party.gil, kept in sync by fe_object6. */
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
     /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
-    /* 0x54 */ u16 field54;             /**< Mirror of @c g_fieldEntity.field120, set by @c func_800BFBBC. */
+    /* 0x54 */ u16 field54;
     /* 0x56 */ u8 field56;              /**< Copy of @c D_80082C8D byte, set by @c func_800BFBBC. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
@@ -269,7 +268,7 @@ typedef struct {
     /* 0xD5 */ u8 nextSoundBank;        /**< Sound bank ID staged by MUSICCHANGE; copied into @c audioChannel0State on swap. */
     /* 0xD6 */ volatile u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
     /* 0xD7 */ u8 padD7;
-    /* 0xD8 */ s16 dialogStateMirror;   /**< Mirror of @c g_fieldEntity.dialogState (kept in sync by fe_object9). */
+    /* 0xD8 */ s16 dialogStateMirror;   /**< Mirror of @c g_fieldContext.dialogState (kept in sync by fe_object9). */
     /* 0xDA */ u16 fieldDA;
     /* 0xDC */ u16 fieldDC;
     /* 0xDE */ u16 fieldDE;
@@ -395,14 +394,14 @@ typedef struct {
     /* 0x1F8 */ u16 talkRadius;     /**< Set by @c opHandler_TALKRADIUS; read alongside @c radius by @c func_8009F74C 's asymmetric overlap test. */
     /* 0x1FA */ u16 triIdx;         /**< Navmesh triangle the entity stands on; indexes @c g_fieldWalkmeshVerts.
                                          Set from a path-table entry's @c unk6 by @c func_8009BB18 and
-                                         from @c g_fieldEntity.spawnTriIdx on field entry by @c func_8009AEC0. */
+                                         from @c g_fieldContext.spawnTriIdx on field entry by @c func_8009AEC0. */
     /* 0x1FC */ u16 field_0x1FC;
     /* 0x1FE */ s16 moveSpeed;      /**< Per-tick movement speed, 8.8 fixed point (@c 256 @c = 1.0):
                                          @c func_8009D598 scales the sin/cos step vector by it before
                                          adding it to the position. Doubled on movie entry and halved
                                          on exit (@c opHandler_MOVIE / @c func_800B14C8) along with
                                          @c msgChannel and @c field_0x208, and saved/restored with the
-                                         position, @c triIdx and @c field_0x241 by fe_object5. */
+                                         position, @c triIdx and @c facingDirection by fe_object5. */
     /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
     /* 0x202 */ u16 field_0x202;    /**< Saved channel for async restore. */
     /* 0x204 */ s16 field_0x204;
@@ -441,7 +440,7 @@ typedef struct {
                                          destination (@c func_8009D274 walk-toward step). */
     /* 0x23F */ u8 unk23F;          /**< Facing/heading angle (8-bit BAM, sin/cos source per FF8 wiki entity-struct). @c func_8009A4C0 / @c func_8009A7E8 compare a trigger's bearing (@c Eline.unk19C) against it in a +/-facing window. */
     /* 0x240 */ u8 field_0x240;
-    /* 0x241 */ u8 field_0x241;
+    /* 0x241 */ u8 facingDirection;
     /* 0x242 */ u8 field_0x242;
     /* 0x243 */ u8 field_0x243;
     /* 0x244 */ u8 field_0x244;
@@ -614,11 +613,10 @@ extern EntityRenderSlot *D_800D9630[];
 /** @brief Entity Actor pointer table; indexed by raw field-entity id. */
 extern Actor *D_80085230[];
 
-/** @brief Actor entity array (count @c D_80085388, stride 612). */
-extern Actor *D_80085224;
+/** @brief Actor entity array (count @c g_fieldActorCount, stride 612). */
+extern Actor *g_fieldActors;
 
-/** @brief Number of entries in the @c D_80085224 entity array. */
-extern u8 D_80085388;
+extern u8 g_fieldActorCount;
 
 /**
  * @brief Block B field entity — stride @c 0x1A0, dispatched by
@@ -638,7 +636,7 @@ typedef struct {
     /* 0x196 */ u8  trigger4;       /**< In-range latch: @c func_8009A4C0 sets it while the query point projects inside @c actor->radius, clears it when out; cleared with @c unk19D by @c func_8009A8E0. */
     /* 0x197 */ u8  trigger5;       /**< Edge-straddle: @c func_8009A4C0 sets it when self and the query point fall on opposite sides of the segment edge (2D cross-product signs differ). */
     /* 0x198 */ u8  trigger6;       /**< Facing hit: @c func_8009A4C0 sets it when self coincides with the projected point or lies within a +/-64 facing window. */
-    /* 0x199 */ u8  trigger7;       /**< Set to 1/2 by @c func_8009A4C0 / @c func_8009A7E8 from the current pad-hold mode (@c g_fieldEntity unk150/unk154 bits 0x40/0x80) when the active-marker test + diff window pass. */
+    /* 0x199 */ u8  trigger7;       /**< Set to 1/2 by @c func_8009A4C0 / @c func_8009A7E8 from the current pad-hold mode (@c g_fieldContext unk150/unk154 bits 0x40/0x80) when the active-marker test + diff window pass. */
     /* 0x19A */ u8  trigger2;       /**< Entered: @c func_8009A4C0 sets it on the frame the record first comes into range. */
     /* 0x19B */ u8  trigger3;       /**< Exited: @c func_8009A4C0 sets it on the frame the record leaves range. */
     /* 0x19C */ u8  unk19C;         /**< Facing angle to the projected point, written by @c func_8009A4C0 (@ref func_8009A0E8); compared (with diff bias) against @c actor->unk23F by @c func_8009A4C0 / @c func_8009A7E8. */
@@ -693,23 +691,17 @@ typedef struct {
     /* 0x1B3 */ u8  pad1B3;
 } Bganime; /* 0x1B4 = 436 bytes — the game's "bganime" (per the field-init trace). */
 
-/** @brief Self/anchor pointer used by @c func_8009A8E0 after the
- *         party-member copy in @c opHandler_COPYINFO / @c opHandler_PCOPYINFO; also
- *         the base of the Block B entity array dispatched by @c func_800BD9C4. */
-extern Eline *D_8008538C;
+extern Eline *g_fieldLines;
 
-/** @brief Number of entries in the @c D_8008538C entity array. */
-extern u8 D_800852F8;
+extern u8 g_fieldLineCount;
 
-/** @brief Block C entity-array base; count is @c D_80085228. */
-extern Dline *D_80085384;
+extern Dline *g_fieldDoors;
 
-/** @brief Number of entries in the @c D_80085384 entity array. */
-extern u8 D_80085228;
+extern u8 g_fieldDoorCount;
 
 /**
  * @brief Per-entity latch for the line-trigger dispatcher, indexed by
- *        @c FieldLineTrigger::marker (the @ref D_80085384 entity index).
+ *        @c FieldLineTrigger::marker (the @ref g_fieldDoors entity index).
  *
  * @c func_800A5FA4 uses it to make each trigger edge fire once: the even
  * selectors only act while the byte is @c 0 (then set it), the odd ones only
@@ -717,11 +709,9 @@ extern u8 D_80085228;
  */
 extern u8 D_80070628[];
 
-/** @brief Block D entity-array base; count is @c D_80085391. */
-extern Bganime *D_800852F4;
+extern Bganime *g_fieldBgAnims;
 
-/** @brief Number of entries in the @c D_800852F4 entity array. */
-extern u8 D_80085391;
+extern u8 g_fieldBgAnimCount;
 
 /** @brief Per-block iteration counter used by @c func_800BD9C4 inner loops. */
 extern u8 D_800DE4FC;
@@ -757,7 +747,7 @@ typedef struct {
  * @c animOffset / @c mode appear at @c 0xF4 / @c 0xFC. The rest of
  * the struct is identical to @c Actor from offset @c 0x140 onward.
  *
- * Use a cast (@c (ActorAnim *)&D_80085224[idx]) only inside the
+ * Use a cast (@c (ActorAnim *)&g_fieldActors[idx]) only inside the
  * animation engine; everywhere else, access via @c Actor.
  */
 typedef struct {
@@ -852,7 +842,7 @@ typedef struct {
 extern FieldAnimSlot D_80085398[];
 
 
-/** @brief The field's message table; the same word as @c SystemState::fieldMessages. */
+/** @brief The field's message table; the same word as @c FieldContext::fieldMessages. */
 extern OffsetTable *g_curFieldMessages;
 
 /** @brief Spatial-entity dispatch context word (passed to @c func_800A8DAC). */
@@ -959,7 +949,7 @@ extern u32 D_80082C14;
 /** @brief Reset to 20 on field entry by @c func_8009AEC0 and scaled by
  *         134.8046875 (@c *69020>>9) in @c func_800B6738 to form the threshold
  *         the entity's @c moveSpeed is compared against — the same scale
- *         @c func_8009AEC0 applies to @c SystemState::unk00A when seeding it.
+ *         @c func_8009AEC0 applies to @c FieldContext::unk00A when seeding it.
  *  @note Both quantities are unnamed; the pair only ever holds 20. */
 extern s16 D_800704B2;
 
@@ -1026,7 +1016,7 @@ extern u8 D_800704CA;
 /** @brief Field-side rotation/orientation halfword consumed by camera opcodes. */
 extern u16 D_800704AA;
 
-/** @brief Dialog dispatch mode shared with @ref g_fieldEntity.dialogState. */
+/** @brief Dialog dispatch mode shared with @ref g_fieldContext.dialogState. */
 extern u8 D_800DE8D2;
 
 /* ======================================================================== */

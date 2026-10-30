@@ -8,6 +8,7 @@
 #include "psxsdk/libetc.h"
 #include "field/fe_object1.h"
 #include "field/fe_object1_2.h"
+#include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
 #include "field/fe_object10.h"
 #include "input/gamepad.h"
@@ -90,7 +91,7 @@ void func_80098314(void) {
  * Either issues a fresh CD read (when @c D_8005F14A is 0 or the current field
  * @c g_curFieldId differs from the cached @c D_8005F100) or restores from the
  * cached pointer @c D_8005F104. Then loads the field data archive, latches
- * its members into globals (@c g_curFieldInfo, @c g_curFieldSfx, @c g_fieldEntity),
+ * its members into globals (@c g_curFieldInfo, @c g_curFieldSfx, @c g_fieldContext),
  * copies the script member to the @c FIELD_SCRIPT_STAGE staging region, and
  * dispatches the field-VM pool setup via @c func_800BFBBC and friends.
  *
@@ -149,7 +150,7 @@ s32 *func_800983F0(void) {
     g_curFieldInfo = *g_fieldInfo;
     g_curFieldSfx = *g_fieldSfxTable;
     stageBase = FIELD_SCRIPT_STAGE;
-    g_fieldEntity.fieldMessages = *g_fieldMessages;
+    g_fieldContext.fieldMessages = *g_fieldMessages;
     size = *g_fieldDataEnd - *g_fieldScript;
     func_80039678(FIELD_SCRIPT_STAGE, (s32)*g_fieldScript, size);
     D_8005F13C = stageBase + size;
@@ -165,7 +166,7 @@ s32 *func_800983F0(void) {
         buf += sizeof(FieldParticles);
         *g_fieldScript = buf;
         if (g_previousGameMode != GAME_MODE_BATTLE && g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
-            func_800A2F28(g_curFieldParticles, &g_fieldEntity);
+            func_800A2F28(g_curFieldParticles, &g_fieldContext);
         }
     } else {
         g_curFieldParticles = NULL;
@@ -218,7 +219,7 @@ s32 *func_800983F0(void) {
     if (D_8007064D == 0) {
         while (g_fadeMode != 0) {}
     }
-    while (g_renderMode == 4) {}
+    while (g_renderMode == RENDER_BATTLE_RESULTS) {}
     while (DrawSync(1) != 0) {}
 
     if (g_previousGameMode == GAME_MODE_BATTLE || g_previousGameMode == GAME_MODE_NONE) {
@@ -229,11 +230,11 @@ s32 *func_800983F0(void) {
     return (s32 *)ptr;
 }
 
-/** @brief Clear all 512 bits of @c g_fieldEntity.statusBits. */
+/** @brief Clear all 512 bits of @c g_fieldContext.statusBits. */
 void func_80098934(void) {
     s32 i;
     for (i = 0; i < 0x40; i++) {
-        g_fieldEntity.statusBits[i] = 0;
+        g_fieldContext.statusBits[i] = 0;
     }
 }
 
@@ -243,14 +244,14 @@ void func_80098934(void) {
  * Runs the per-frame outer init/reset loop for the field engine. The whole
  * function dispatches on @c g_previousGameMode (the field load mode, 0=fresh,
  * 1=normal, 2=new-area, 3=movie, 6=transition, 0xA=skip-transition) and on
- * @c g_fieldEntity.mode (the engine-level state byte that picks one of several
+ * @c g_fieldContext.mode (the engine-level state byte that picks one of several
  * exit paths at the end of each iteration: 4=quit, 5/6=copyFramebuffer +
  * flag-reset, 7=sndCmd21 + snapshot, 1=loop back, 3/8/etc.=plain exit).
  *
  * Major phases each pass:
  *   - @c memcpy 8 bytes of the overlay header at @c D_80098000 onto the
  *     stack and call @c InitClearTiles.
- *   - For load modes 0/1/2: reset the @c SystemState entity flags
+ *   - For load modes 0/1/2: reset the @c FieldContext entity flags
  *     (@c unk1A6/1A7/1A9/1AE/1B0/1B1) and clear @c fieldStepDelta /
  *     @c unk104 / @c unk106, then call @c func_800A17A4 on the two
  *     16-byte script-VM scratch arrays at @c sys+0x122 and @c sys+0x130
@@ -272,8 +273,8 @@ void func_80098934(void) {
  * @note Two source shapes carry this to a byte match, and both are the
  *       opposite of what reads naturally:
  *
- *       1. Every @c SystemState access goes through @c g_fieldEntity directly
- *          rather than a cached @c SystemState @c *sys. With a pointer local,
+ *       1. Every @c FieldContext access goes through @c g_fieldContext directly
+ *          rather than a cached @c FieldContext @c *sys. With a pointer local,
  *          gcc builds the address in two pseudos (@c lui @c -> @c fp,
  *          @c addiu @c -> @c s2) and the original has three, cse only
  *          manufactures the extra base-pointer pseudo, and the copy into
@@ -289,19 +290,6 @@ void func_80098934(void) {
  *          @c mode variable instead makes gcc collapse the @c 0 / @c 1 arms
  *          into @c xori + @c sltu, unavoidable in every if/else, ternary,
  *          set-override and switch spelling tried.
- *
- *       Several semantic bugs were caught during decomp: the
- *       @c g_fieldEntity.mode = 0 dispatch had an inverted condition;
- *       @c func_800BF718 's argument mapping had 0xA->2 (should be 3) and
- *       3->3 (should be 0); state==7 was missing the @c field_0x120 save;
- *       @c g_fieldWalkmeshAdjacency was missing the @c +4 offset. Three more surfaced
- *       while closing the last 2%: both @c isrgb24 clears on the
- *       @c DISPENV pair were absent before @c PutDispEnv; state==1 stored
- * @c g_curFieldId after @c sndCmd21 instead of before (the original
- *       loads @c counter first and lets dbr sink the store into the jal
- *       delay slot, so doing it after reads a post-call value); and the
- *       loop body ended in an unconditional @c break, dropping out of the
- *       field loop for every state except the six that really exit.
  */
 void func_8009895C(void) {
     u8 *p;
@@ -313,8 +301,8 @@ void func_8009895C(void) {
     memcpy(header, D_80098000, 8);
     InitClearTiles();
 
-    g_fieldEntity.dialogState = 0;
-    g_fieldEntity.unk1A1 = 0;
+    g_fieldContext.dialogState = 0;
+    g_fieldContext.unk1A1 = 0;
 
     while (1) {
         if (g_previousGameMode != GAME_MODE_MENU) {
@@ -322,20 +310,20 @@ void func_8009895C(void) {
         }
 
         if (g_previousGameMode == GAME_MODE_NONE || g_previousGameMode == GAME_MODE_FIELD || g_previousGameMode == GAME_MODE_WORLD) {
-            g_fieldEntity.unk1A6 = 0;
-            g_fieldEntity.unk1A9 = 0;
-            g_fieldEntity.unk1A7 = 1;
-            g_fieldEntity.unk1A2 = 0;
-            g_fieldEntity.unk1AA = 0;
-            g_fieldEntity.unk015 = 0;
-            g_fieldEntity.fieldStepDelta = 0;
-            g_fieldEntity.unk1AE = 0x1C;
-            g_fieldEntity.unk1B0 = 0;
-            g_fieldEntity.unk1B1 = 0;
-            g_fieldEntity.unk104 = 0;
-            g_fieldEntity.unk106 = 0;
-            func_800A17A4(&g_fieldEntity.oscillators[0]);
-            func_800A17A4(&g_fieldEntity.oscillators[1]);
+            g_fieldContext.unk1A6 = 0;
+            g_fieldContext.unk1A9 = 0;
+            g_fieldContext.unk1A7 = 1;
+            g_fieldContext.unk1A2 = 0;
+            g_fieldContext.unk1AA = 0;
+            g_fieldContext.unk015 = 0;
+            g_fieldContext.fieldStepDelta = 0;
+            g_fieldContext.unk1AE = 0x1C;
+            g_fieldContext.unk1B0 = 0;
+            g_fieldContext.unk1B1 = 0;
+            g_fieldContext.unk104 = 0;
+            g_fieldContext.unk106 = 0;
+            func_800A17A4(&g_fieldContext.oscillators[0]);
+            func_800A17A4(&g_fieldContext.oscillators[1]);
             func_800A44D8();
             func_80098934();
         }
@@ -346,7 +334,7 @@ void func_8009895C(void) {
             ClearImage(&g_drawEnvs[1].clip, 0, 0, 0);
         }
 
-        if ((g_previousGameMode == GAME_MODE_FIELD && g_fieldEntity.unk1A5 == 0) || g_previousGameMode == GAME_MODE_WORLD) {
+        if ((g_previousGameMode == GAME_MODE_FIELD && g_fieldContext.unk1A5 == 0) || g_previousGameMode == GAME_MODE_WORLD) {
             VSync(0);
             func_80098314();
             if (g_previousGameMode == GAME_MODE_WORLD) {
@@ -355,8 +343,8 @@ void func_8009895C(void) {
             copyFramebuffer();
             g_fadeMode = 1;
             g_fadeCounter = 0;
-            D_8005F11E = 0;
-            g_renderMode = 1;
+            g_vsyncDone = 0;
+            g_renderMode = RENDER_FADE;
         }
 
         if (g_previousGameMode != GAME_MODE_MENU) {
@@ -388,7 +376,7 @@ void func_8009895C(void) {
             || g_previousGameMode == GAME_MODE_BATTLE
             || g_previousGameMode == GAME_MODE_MENU
             || g_previousGameMode == GAME_MODE_SCRIPT_MENU) {
-            g_fieldEntity.mode = 0;
+            g_fieldContext.mode = 0;
         }
 
         if (g_curFieldParticles != 0) {
@@ -398,11 +386,11 @@ void func_8009895C(void) {
         if (g_previousGameMode == GAME_MODE_NONE || g_previousGameMode == GAME_MODE_FIELD || g_previousGameMode == GAME_MODE_WORLD) {
             func_800A62EC(g_curFieldInfo->triggers);
             q = g_curFieldInfo;
-            g_fieldEntity.unk1A4 = 0;
-            g_fieldEntity.unk1A8 = q->unk09[0];
-            g_fieldEntity.unk100 = q->unk09[0];
+            g_fieldContext.unk1A4 = 0;
+            g_fieldContext.unk1A8 = q->unk09[0];
+            g_fieldContext.unk100 = q->unk09[0];
         } else {
-            g_fieldEntity.unk010 = 2;
+            g_fieldContext.unk010 = 2;
         }
 
         func_800A42EC(D_800CD1B0, &D_800CD1B0[0x5A0]);
@@ -448,7 +436,7 @@ void func_8009895C(void) {
         PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
         PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
 
-        state = g_fieldEntity.mode;
+        state = g_fieldContext.mode;
         g_previousGameMode = GAME_MODE_FIELD;
 
         if (state == 4) {
@@ -465,27 +453,27 @@ void func_8009895C(void) {
             copyFramebuffer();
             g_fadeMode = 9;
             g_fadeCounter = 0;
-            D_8005F11E = 0;
-            g_renderMode = 1;
+            g_vsyncDone = 0;
+            g_renderMode = RENDER_FADE;
             D_8005F14A = 0;
             break;
         }
         if (state == 7) {
-            g_fieldEntity.mode = 0;
+            g_fieldContext.mode = 0;
             g_gameMode = GAME_MODE_WORLD;
-            g_fieldEntity.field_0x120 = g_curFieldId;
-            D_80082C8C.param.entrance.entranceIndex = g_fieldEntity.counter;
-            D_80082C8C.cmd = g_fieldEntity.spawnTriIdx;
-            D_80082C8C.param.entrance.facingDirection = g_fieldEntity.facingDirection;
+            g_fieldContext.previousFieldId = g_curFieldId;
+            D_80082C8C.param.entrance.entranceIndex = g_fieldContext.counter;
+            D_80082C8C.cmd = g_fieldContext.spawnTriIdx;
+            D_80082C8C.param.entrance.facingDirection = g_fieldContext.facingDirection;
             sndCmd21(-1, 0);
             break;
         }
         if (state == 1) {
-            g_fieldEntity.mode = 0;
-            g_fieldEntity.field_0x120 = g_curFieldId;
-            g_curFieldId = g_fieldEntity.counter;
-            sndCmd21(-2, g_fieldEntity.field1B4);
-            if (g_fieldEntity.unk1B0 != 1) {
+            g_fieldContext.mode = 0;
+            g_fieldContext.previousFieldId = g_curFieldId;
+            g_curFieldId = g_fieldContext.counter;
+            sndCmd21(-2, g_fieldContext.field1B4);
+            if (g_fieldContext.unk1B0 != 1) {
                 func_800ACB10();
             } else if (g_curFieldInfo->unk0D == 0) {
                 func_800A1CC0();
@@ -552,35 +540,35 @@ extern s32 applyButtonRemapTranslation(s32 arg); /* s32 view: input/button_remap
 void func_80099180(void) {
     s32 r;
 
-    g_fieldEntity.padHeldPrev = g_fieldEntity.padHeld;
-    g_fieldEntity.unk154 = g_fieldEntity.unk150;
+    g_fieldContext.padHeldPrev = g_fieldContext.padHeld;
+    g_fieldContext.unk154 = g_fieldContext.unk150;
     RecordGamePadInput();
-    g_fieldEntity.padHeld = GetPressedButtons(0, 0);
-    g_fieldEntity.padPressed = GetNewlyPressedButtons(0, 0);
-    g_fieldEntity.field_0x160 = GetPressedButtons(1, 0);
-    g_fieldEntity.field_0x168 = GetNewlyPressedButtons(1, 0);
+    g_fieldContext.padHeld = GetPressedButtons(0, 0);
+    g_fieldContext.padPressed = GetNewlyPressedButtons(0, 0);
+    g_fieldContext.field_0x160 = GetPressedButtons(1, 0);
+    g_fieldContext.field_0x168 = GetNewlyPressedButtons(1, 0);
 
-    if (!(g_fieldEntity.padHeld & 0xF000) && GetAnalogStickAxis(0, PAD_AXIS_X, 0) != -1) {
+    if (!(g_fieldContext.padHeld & 0xF000) && GetAnalogStickAxis(0, PAD_AXIS_X, 0) != -1) {
         r = (s16)GetAnalogStickAxis(0, PAD_AXIS_X, 0);
         if (r < 0x40) {
-            g_fieldEntity.padHeld |= 0x8000;
-            if (!(g_fieldEntity.padHeldPrev & 0x8000)) g_fieldEntity.padPressed |= 0x8000;
+            g_fieldContext.padHeld |= 0x8000;
+            if (!(g_fieldContext.padHeldPrev & 0x8000)) g_fieldContext.padPressed |= 0x8000;
         } else if (r >= 0xC1) {
-            g_fieldEntity.padHeld |= 0x2000;
-            if (!(g_fieldEntity.padHeldPrev & 0x2000)) g_fieldEntity.padPressed |= 0x2000;
+            g_fieldContext.padHeld |= 0x2000;
+            if (!(g_fieldContext.padHeldPrev & 0x2000)) g_fieldContext.padPressed |= 0x2000;
         }
         r = (s16)GetAnalogStickAxis(0, PAD_AXIS_Y, 0);
         if (r < 0x40) {
-            g_fieldEntity.padHeld |= 0x1000;
-            if (!(g_fieldEntity.padHeldPrev & 0x1000)) g_fieldEntity.padPressed |= 0x1000;
+            g_fieldContext.padHeld |= 0x1000;
+            if (!(g_fieldContext.padHeldPrev & 0x1000)) g_fieldContext.padPressed |= 0x1000;
         } else if (r >= 0xC1) {
-            g_fieldEntity.padHeld |= 0x4000;
-            if (!(g_fieldEntity.padHeldPrev & 0x4000)) g_fieldEntity.padPressed |= 0x4000;
+            g_fieldContext.padHeld |= 0x4000;
+            if (!(g_fieldContext.padHeldPrev & 0x4000)) g_fieldContext.padPressed |= 0x4000;
         }
     }
 
-    g_fieldEntity.unk150 = applyButtonRemapTranslation(g_fieldEntity.padHeld);
-    g_fieldEntity.ambientFlags = applyButtonRemapTranslation(g_fieldEntity.padPressed);
+    g_fieldContext.unk150 = applyButtonRemapTranslation(g_fieldContext.padHeld);
+    g_fieldContext.ambientFlags = applyButtonRemapTranslation(g_fieldContext.padPressed);
 }
 
 /* Park the real stack pointer at 0x1F8003FC and run the next call with its
@@ -603,7 +591,7 @@ void func_80099180(void) {
  * @brief The field engine's per-frame loop: run one frame of the field scene
  *        until something asks the engine to leave.
  *
- * Clears both draw environments (unless @c SystemState::unk1A5 suppressed it),
+ * Clears both draw environments (unless @c FieldContext::unk1A5 suppressed it),
  * then loops. Each iteration flips @ref g_bufferIndex, points @ref D_800C71E0
  * at that buffer's GPU work area, snapshots the previous display environment
  * into @ref D_8005F110, clears the ordering table and runs the field VM tick
@@ -612,17 +600,17 @@ void func_80099180(void) {
  * It then checks the two ways the player can leave, the soft-reset pad combo
  * (@c 0x90F held on both this tick and the last) and the menu button, picks
  * the camera view (the playing movie's camera while one runs, otherwise the
- * field's first or second camera, chosen by @c SystemState::unk1A6), and runs
+ * field's first or second camera, chosen by @c FieldContext::unk1A6), and runs
  * the render chain: entity update, targeting, oscillators, projection,
  * character shadows, the shimmer ribbons, the background tiles (or, while a
  * movie plays, the movie mask), and the sub-scene sprite pool.
  * Finally it programs the draw environment from the field's clip rectangle,
  * links the two extra prims into the OT, presents, and dispatches on
- * @c SystemState::mode, modes 3, 4, 6, 8 and the menu leave the loop with a
+ * @c FieldContext::mode, modes 3, 4, 6, 8 and the menu leave the loop with a
  * code in @ref g_gameMode, mode 1/7 waits for the DMA to drain and leaves, and
  * anything else draws the OT and goes round again.
  *
- * @note @c SystemState::dialogState and @ref g_gameMode are @c volatile: the
+ * @note @c FieldContext::dialogState and @ref g_gameMode are @c volatile: the
  *       original re-reads @c dialogState for each of the seven comparisons
  *       instead of caching one load, and keeps the @c g_gameMode stores out of
  *       branch delay slots.
@@ -637,15 +625,15 @@ void func_80099348(void) {
     s16 i;
     s16 frames;
 
-    if (g_fieldEntity.unk1A5 == 0) {
+    if (g_fieldContext.unk1A5 == 0) {
         ClearImage(&g_drawEnvs[0].clip, 0, 0, 0);
         ClearImage(&g_drawEnvs[1].clip, 0, 0, 0);
     } else {
-        g_fieldEntity.unk1A5 = 0;
+        g_fieldContext.unk1A5 = 0;
     }
     frames = 2;
     RequestActuatorSetup(0);
-    func_8009A920(&D_80085224[g_fieldEntity.entityIndex[0]], D_8008538C);
+    func_8009A920(&g_fieldActors[g_fieldContext.entityIndex[0]], g_fieldLines);
 
     while (1) {
         func_80099180();
@@ -664,11 +652,11 @@ void func_80099348(void) {
         /* The whole 0x90F button set held on this tick and the last: tear the
            field down (mode 4) and hand control back to the engine. The bit
            layout of padHeld is not decoded, so the buttons are left unnamed. */
-        if ((g_fieldEntity.padHeld & 0x90F) == 0x90F
-            && (g_fieldEntity.padHeldPrev & 0x90F) == 0x90F) {
-            g_fieldEntity.counter = 0;
-            g_fieldEntity.mode = 4;
-            g_fieldEntity.spawnTriIdx = 0x7FFF;
+        if ((g_fieldContext.padHeld & 0x90F) == 0x90F
+            && (g_fieldContext.padHeldPrev & 0x90F) == 0x90F) {
+            g_fieldContext.counter = 0;
+            g_fieldContext.mode = 4;
+            g_fieldContext.spawnTriIdx = 0x7FFF;
             sndStopAll();
             func_800A59D0();
             VSync(0);
@@ -676,27 +664,27 @@ void func_80099348(void) {
             break;
         }
 
-        if ((g_fieldEntity.unk150 & 0x20) && func_800BE274() == 0
-            && D_80085224[g_fieldEntity.entityIndex[0]].msgActive != 3
-            && D_80085224[g_fieldEntity.entityIndex[0]].msgActive != 4
-            && g_fieldEntity.dialogState != 4
-            && g_fieldEntity.dialogState != 1
-            && g_fieldEntity.dialogState != 3
-            && g_fieldEntity.dialogState != 2
-            && g_fieldEntity.unk1A3 == 0 && g_fieldEntity.mode == 0) {
+        if ((g_fieldContext.unk150 & 0x20) && func_800BE274() == 0
+            && g_fieldActors[g_fieldContext.entityIndex[0]].msgActive != 3
+            && g_fieldActors[g_fieldContext.entityIndex[0]].msgActive != 4
+            && g_fieldContext.dialogState != 4
+            && g_fieldContext.dialogState != 1
+            && g_fieldContext.dialogState != 3
+            && g_fieldContext.dialogState != 2
+            && g_fieldContext.unk1A3 == 0 && g_fieldContext.mode == 0) {
             func_8009912C();
-            g_fieldEntity.mode = 5;
-            g_fieldEntity.counter = 0;
+            g_fieldContext.mode = 5;
+            g_fieldContext.counter = 0;
             g_gameMode = GAME_MODE_MENU;
-            g_fieldEntity.position_x = D_80085224[D_8005F148].posX / 4096;
-            g_fieldEntity.position_y = D_80085224[D_8005F148].posY / 4096;
-            g_fieldEntity.spawnTriIdx = D_80085224[D_8005F148].triIdx;
-            g_fieldEntity.facingDirection = D_80085224[D_8005F148].field_0x241;
+            g_fieldContext.position_x = g_fieldActors[D_8005F148].posX / 4096;
+            g_fieldContext.position_y = g_fieldActors[D_8005F148].posY / 4096;
+            g_fieldContext.spawnTriIdx = g_fieldActors[D_8005F148].triIdx;
+            g_fieldContext.facingDirection = g_fieldActors[D_8005F148].facingDirection;
             func_800A59D0();
             break;
         }
 
-        if (g_fieldEntity.mode == 5) {
+        if (g_fieldContext.mode == 5) {
             func_8009912C();
             g_gameMode = GAME_MODE_SCRIPT_MENU;
             func_800A59D0();
@@ -704,44 +692,44 @@ void func_80099348(void) {
         }
 
         if (func_800BE274() == 0) {
-            if (g_fieldEntity.unk1A6 == 0) {
+            if (g_fieldContext.unk1A6 == 0) {
                 g_curFieldView = *g_fieldViews;
             } else {
                 g_curFieldView = *g_fieldViews + 1;
             }
         } else {
             g_curFieldView = g_movieView;
-            g_fieldEntity.unk1B0 = 1;
-            if (g_fieldEntity.unk1B1 == 0) {
-                g_fieldEntity.unk1B1 = 1;
+            g_fieldContext.unk1B0 = 1;
+            if (g_fieldContext.unk1B1 == 0) {
+                g_fieldContext.unk1B1 = 1;
             }
         }
 
         SetGeomScreen(g_curFieldView->spriteScale);
-        if (g_fieldEntity.unk1A6 != g_fieldEntity.unk1A9) {
-            g_fieldEntity.unk1A9 = g_fieldEntity.unk1A6;
-            g_fieldEntity.unk1A8 = g_fieldEntity.unk100 = g_curFieldInfo->unk09[g_fieldEntity.unk1A6];
+        if (g_fieldContext.unk1A6 != g_fieldContext.unk1A9) {
+            g_fieldContext.unk1A9 = g_fieldContext.unk1A6;
+            g_fieldContext.unk1A8 = g_fieldContext.unk100 = g_curFieldInfo->unk09[g_fieldContext.unk1A6];
         }
-        func_8009BEC8(D_80085224, g_fieldEntity.unk150);
-        func_8009A7E8(&D_80085224[g_fieldEntity.entityIndex[0]], D_8008538C);
+        func_8009BEC8(g_fieldActors, g_fieldContext.unk150);
+        func_8009A7E8(&g_fieldActors[g_fieldContext.entityIndex[0]], g_fieldLines);
         func_8009CEE8();
-        func_800A17B8(&g_fieldEntity.oscillators[0]);
-        func_800A17B8(&g_fieldEntity.oscillators[1]);
+        func_800A17B8(&g_fieldContext.oscillators[0]);
+        func_800A17B8(&g_fieldContext.oscillators[1]);
         func_800A10F4();
         func_800A1318();
-        if (g_fieldEntity.unk1A6 == 1) {
+        if (g_fieldContext.unk1A6 == 1) {
             func_800A15C0(D_800C71E0, g_drawEnvs, 1);
         } else {
             func_800A15C0(D_800C71E0, g_drawEnvs, 0);
         }
 
         if (g_dispEnvs[((s16)g_bufferIndex + 1) & 1].isrgb24 == 0
-            && g_fieldEntity.unk1AD == 0) {
+            && g_fieldContext.unk1AD == 0) {
             SCRATCH_STACK_ENTER();
-            func_800A1CFC(D_80085224, D_800C71E0);
+            func_800A1CFC(g_fieldActors, D_800C71E0);
             SCRATCH_STACK_LEAVE();
             func_800A222C(D_800C71E0->ot, &g_curFieldView->m, D_800C71E0->shadowPrims,
-                          D_800C71E0->shadowTPages, D_80085224);
+                          D_800C71E0->shadowTPages, g_fieldActors);
             func_800A5224(&g_curFieldView->m, D_800C71E0->ot, D_800C71E0->ribbonPrims,
                           D_800C71E0->ribbonTPages);
         }
@@ -750,7 +738,7 @@ void func_80099348(void) {
             func_800A06F0(0, D_800C71E0, D_800C6D98[(s16)g_bufferIndex],
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
-                   && g_fieldEntity.unk1A7 == 0) {
+                   && g_fieldContext.unk1A7 == 0) {
             func_800A2AF8(D_800C71E0, D_800D5EC8[(s16)g_bufferIndex],
                           D_800D5EB8[(s16)g_bufferIndex], g_curFieldView);
         }
@@ -796,27 +784,27 @@ void func_80099348(void) {
         addPrim(&D_800C71E0->ot[1], &D_800C71E0->unk4F00);
 
         if (func_800BE274()) {
-            renderAndUpdateDisplay(g_fieldEntity.unk1AC);
+            renderAndUpdateDisplay(g_fieldContext.unk1AC);
         } else {
             renderAndUpdateDisplay(2);
         }
         renderBattleDisplayList((s32 *)D_800C71E0->ot);
 
-        if (g_fieldEntity.mode == 6) {
+        if (g_fieldContext.mode == 6) {
             g_gameMode = GAME_MODE_DISC_CHANGE;
             func_800A59D0();
             break;
         }
-        if (g_fieldEntity.mode == 4) {
+        if (g_fieldContext.mode == 4) {
             func_800A59D0();
             break;
         }
-        if (g_fieldEntity.mode == 3 || g_fieldEntity.mode == 8) {
-            g_fieldEntity.position_x = D_80085224[D_8005F148].posX / 4096;
-            g_fieldEntity.position_y = D_80085224[D_8005F148].posY / 4096;
-            g_fieldEntity.spawnTriIdx = D_80085224[D_8005F148].triIdx;
+        if (g_fieldContext.mode == 3 || g_fieldContext.mode == 8) {
+            g_fieldContext.position_x = g_fieldActors[D_8005F148].posX / 4096;
+            g_fieldContext.position_y = g_fieldActors[D_8005F148].posY / 4096;
+            g_fieldContext.spawnTriIdx = g_fieldActors[D_8005F148].triIdx;
             func_8009912C();
-            mode = g_fieldEntity.mode;
+            mode = g_fieldContext.mode;
             if (mode == 3) {
                 g_gameMode = mode;
             } else {
@@ -828,19 +816,19 @@ void func_80099348(void) {
 
         if ((g_fieldVars->stateFlags & FIELD_STATE_COUNTDOWN) && g_gameState.mainData.countdownTimer == 0
             && (g_fieldVars->fieldB6 & 0x100) == 0) {
-            g_fieldEntity.counter = 0x4B;
-            g_fieldEntity.mode = 1;
-            g_fieldEntity.spawnTriIdx = 0x7FFF;
+            g_fieldContext.counter = 0x4B;
+            g_fieldContext.mode = 1;
+            g_fieldContext.spawnTriIdx = 0x7FFF;
             func_800A59D0();
         }
-        if (g_fieldEntity.mode == 1 || g_fieldEntity.mode == 7) {
+        if (g_fieldContext.mode == 1 || g_fieldContext.mode == 7) {
             func_8009912C();
             while (DrawSync(1) != 0) {
             }
             break;
         }
 
-        func_800A5A20(&D_80085224[D_8005F148], g_curFieldInfo->gateways);
+        func_800A5A20(&g_fieldActors[D_8005F148], g_curFieldInfo->gateways);
         func_800A5898(D_800C71E0);
         /* Called for its side effect only, func_800BE274 dispatches into the
            overlay when D_800DE4FD bit 1 is set; the original discards the result. */
@@ -850,7 +838,7 @@ void func_80099348(void) {
         while (DrawSync(1) != 0) {
         }
         if (func_800BE274()) {
-            VSync(g_fieldEntity.unk1AC);
+            VSync(g_fieldContext.unk1AC);
         } else {
             VSync(2);
         }
@@ -861,23 +849,23 @@ void func_80099348(void) {
         }
         PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
 
-        if ((g_fieldEntity.padHeld & PADstart) && !(g_fieldEntity.padHeldPrev & PADstart)
-            && func_800BE274() == 0 && g_fieldEntity.dialogState != 4
-            && g_fieldEntity.dialogState != 3
-            && g_fieldEntity.dialogState != 2 && g_fieldEntity.unk1A3 == 0) {
+        if ((g_fieldContext.padHeld & PADstart) && !(g_fieldContext.padHeldPrev & PADstart)
+            && func_800BE274() == 0 && g_fieldContext.dialogState != 4
+            && g_fieldContext.dialogState != 3
+            && g_fieldContext.dialogState != 2 && g_fieldContext.unk1A3 == 0) {
             func_800AD7AC(0);
         }
 
-        if (g_fieldEntity.unk1AA == 1) {
+        if (g_fieldContext.unk1AA == 1) {
             ClearImage(&g_drawEnvs[(s16)g_bufferIndex].clip, 0, 0, 0);
         }
-        if (g_fieldEntity.unk1B1 == 1) {
-            g_fieldEntity.unk1B1 = 2;
+        if (g_fieldContext.unk1B1 == 1) {
+            g_fieldContext.unk1B1 = 2;
             func_800A1C64();
         }
         func_800393C8();
         func_800BE2DC();
-        if (g_fieldEntity.unk1A1 == 0) {
+        if (g_fieldContext.unk1A1 == 0) {
             DrawOTag(&D_800C71E0->ot[0xFFF]);
         }
     }
@@ -1020,7 +1008,7 @@ done:
  * When out of range, @c trigger3 is raised on the frame the record leaves.
  *
  * @param actor    Querying entity.
- * @param records @ref Eline pool (count @c D_800852F8).
+ * @param records @ref Eline pool (count @c g_fieldLineCount).
  * @param pt      Secondary query point; its Z is taken from @p self.
  * @return Always 0.
  *
@@ -1055,7 +1043,7 @@ s32 func_8009A4C0(Actor *actor, Eline *records, VECTOR *pt) {
     fc = records;
     do { } while (0);
 
-    for (i = 0; i < D_800852F8; i++, fc++, rec++) {
+    for (i = 0; i < g_fieldLineCount; i++, fc++, rec++) {
         if (fc->activeMarker != 1) {
             continue;
         }
@@ -1090,10 +1078,10 @@ s32 func_8009A4C0(Actor *actor, Eline *records, VECTOR *pt) {
                 }
             }
             if (fc->unk19D == 1 && ((fc->unk19C - actor->unk23F + 0x20) & 0xFF) < 0x40) {
-                if ((g_fieldEntity.unk150 & 0x40) && !(g_fieldEntity.unk154 & 0x40)) {
+                if ((g_fieldContext.unk150 & 0x40) && !(g_fieldContext.unk154 & 0x40)) {
                     fc->trigger7 = 1;
                 }
-                if ((g_fieldEntity.unk150 & 0x80) && !(g_fieldEntity.unk154 & 0x80)) {
+                if ((g_fieldContext.unk150 & 0x80) && !(g_fieldContext.unk154 & 0x80)) {
                     fc->trigger7 = 2;
                 }
             }
@@ -1112,14 +1100,14 @@ s32 func_8009A4C0(Actor *actor, Eline *records, VECTOR *pt) {
  * @brief Sync per-entity @c trigger7 across the Eline pool from
  *        the global @c unk150 / @c unk154 SFX flag pair.
  *
- * Iterates the @c D_800852F8 entities at @c pool. For each entity that
+ * Iterates the @c g_fieldLineCount entities at @c pool. For each entity that
  * passes the gating tests
  *   - @c activeMarker == 1
  *   - @c actor->msgActive == 0
  *   - @c unk19D == @c activeMarker (so @c unk19D == 1)
  *   - @c entity->unk19C falls within a @c +/-32 window of @c actor->unk23F
  *
- * writes @c trigger7 from the @c g_fieldEntity.unk150 / @c unk154 pair:
+ * writes @c trigger7 from the @c g_fieldContext.unk150 / @c unk154 pair:
  *   - bit 6 set in @c unk150 and clear in @c unk154 → @c trigger7 = @c unk19D (= 1)
  *   - bit 7 set in @c unk150 and clear in @c unk154 → @c trigger7 = 2
  *
@@ -1130,18 +1118,18 @@ s32 func_8009A4C0(Actor *actor, Eline *records, VECTOR *pt) {
  */
 void func_8009A7E8(Actor *actor, Eline *pool) {
     s32 i;
-    for (i = 0; i < D_800852F8; i++, pool++) {
+    for (i = 0; i < g_fieldLineCount; i++, pool++) {
         if (pool->activeMarker == 1) {
             if (actor->msgActive == 0) {
                 if (pool->unk19D == pool->activeMarker) {
                     if ((s32)(((s32)pool->unk19C - (s32)actor->unk23F + 0x20) & 0xFF) < 0x40) {
-                        if (g_fieldEntity.unk150 & 0x40) {
-                            if (!(g_fieldEntity.unk154 & 0x40)) {
+                        if (g_fieldContext.unk150 & 0x40) {
+                            if (!(g_fieldContext.unk154 & 0x40)) {
                                 pool->trigger7 = pool->unk19D;
                             }
                         }
-                        if (g_fieldEntity.unk150 & 0x80) {
-                            if (!(g_fieldEntity.unk154 & 0x80)) {
+                        if (g_fieldContext.unk150 & 0x80) {
+                            if (!(g_fieldContext.unk154 & 0x80)) {
                                 pool->trigger7 = 2;
                             }
                         }
@@ -1155,32 +1143,32 @@ void func_8009A7E8(Actor *actor, Eline *pool) {
 /**
  * @brief Clear @c trigger4 and @c unk19D across every @c Eline in the pool.
  *
- * Walks the entire @c D_8008538C pool (size @c D_800852F8) and zeros each
+ * Walks the entire @c g_fieldLines pool (size @c g_fieldLineCount) and zeros each
  * entity's @c trigger4 (offset 0x196) and @c unk19D (offset 0x19D). Called
- * from the @c PCOPYINFO / @c SET script opcodes via @c func_8009A8E0(D_8008538C)
+ * from the @c PCOPYINFO / @c SET script opcodes via @c func_8009A8E0(g_fieldLines)
  * after copying entity state, likely a reset of trigger-edge / pending-flag
  * bookkeeping so the new state takes effect without leftover triggers.
  *
  * The loop is written do-while with a top-of-iter @c i++ so the count check
  * uses the post-incremented value (@c v1 < count tests "one more iteration
- * is in range"). The pool count @c D_800852F8 is reloaded each iteration
+ * is in range"). The pool count @c g_fieldLineCount is reloaded each iteration
  * because gcc can't prove the stores through @p e don't alias it.
  */
 void func_8009A8E0(Eline *eline) {
     s32 i = 0;
-    if (D_800852F8 != 0) {
+    if (g_fieldLineCount != 0) {
         do {
             i++;
             eline->trigger4 = 0;
             eline->unk19D = 0;
             eline++;
-        } while (i < D_800852F8);
+        } while (i < g_fieldLineCount);
     }
 }
 
 /**
  * @brief Per-frame proximity check, for each @c Eline in
- *        @c D_800852F8 entries, run @c func_8009A2BC against the actor's
+ *        @c g_fieldLineCount entries, run @c func_8009A2BC against the actor's
  *        position and set per-entity trigger bytes based on the hit
  *        distance vs the actor's collision radius.
  *
@@ -1212,7 +1200,7 @@ void func_8009A920(Actor *actor, Eline *entities) {
     i = 0;
     scratch->y = actor->posY >> 12;
     scratch->z = actor->posZ >> 12;
-    if (i < D_800852F8) {
+    if (i < g_fieldLineCount) {
         fc = entities;
         do {
             if (entities->activeMarker == 1 && actor->msgActive == 0) {
@@ -1230,29 +1218,29 @@ void func_8009A920(Actor *actor, Eline *entities) {
             i++;
             fc++;
             entities++;
-        } while (i < D_800852F8);
+        } while (i < g_fieldLineCount);
     }
 }
 
 /**
- * @brief Take gateway @p e: stage its destination in @c g_fieldEntity so the
+ * @brief Take gateway @p e: stage its destination in @c g_fieldContext so the
  *        field loop leaves for that field.
  *
  * Copies the destination field id, arrival position, arrival triangle and
- * @c facingDirection into @c g_fieldEntity, and picks the engine @c mode from the
+ * @c facingDirection into @c g_fieldContext, and picks the engine @c mode from the
  * field id: below 72 selects mode 7, anything else mode 1.
  */
 void func_8009AA64(FieldGateway *e) {
     if (e->fieldId < 72) {
-        g_fieldEntity.mode = 7;
+        g_fieldContext.mode = 7;
     } else {
-        g_fieldEntity.mode = 1;
+        g_fieldContext.mode = 1;
     }
-    g_fieldEntity.counter = e->fieldId;
-    g_fieldEntity.position_x = e->position_x;
-    g_fieldEntity.position_y = e->position_y;
-    g_fieldEntity.spawnTriIdx = e->spawnTriIdx;
-    g_fieldEntity.facingDirection = e->facingDirection;
+    g_fieldContext.counter = e->fieldId;
+    g_fieldContext.position_x = e->position_x;
+    g_fieldContext.position_y = e->position_y;
+    g_fieldContext.spawnTriIdx = e->spawnTriIdx;
+    g_fieldContext.facingDirection = e->facingDirection;
 }
 
 /**
@@ -1400,18 +1388,18 @@ s16 func_8009AC9C(s16 px, s16 py, s16 pz, TriangleList *list) {
     return (s16)bestIdx;
 }
 
-/** @brief Scale applied to @c g_fieldEntity.unk00A when seeding @c Actor::moveSpeed. */
+/** @brief Scale applied to @c g_fieldContext.unk00A when seeding @c Actor::moveSpeed. */
 #define FIELD_CHANNEL_SCALE 0x4367
 
-/** @brief Sentinel in @c g_fieldEntity.spawnTriIdx / @c position_x meaning "no override". */
+/** @brief Sentinel in @c g_fieldContext.spawnTriIdx / @c position_x meaning "no override". */
 #define SPAWN_UNSET 0x7FFF
 
 /**
  * @brief Place every field entity on the navmesh when a field is entered.
  *
- * For each of the @c D_80085388 entities:
- *  - The player entity (@c D_8005F148, taken from @c g_fieldEntity.entityIndex[0])
- *    is handled specially. When @c g_fieldEntity.spawnTriIdx carries a triangle index
+ * For each of the @c g_fieldActorCount entities:
+ *  - The player entity (@c D_8005F148, taken from @c g_fieldContext.entityIndex[0])
+ *    is handled specially. When @c g_fieldContext.spawnTriIdx carries a triangle index
  *    (i.e. is not @c SPAWN_UNSET) the entity is moved onto that triangle:
  *    with no X override it is dropped at the triangle centroid, otherwise its
  *    existing X/Y are kept and only Z is re-derived from the triangle plane.
@@ -1444,73 +1432,73 @@ void func_8009AEC0(void) {
     s16 i;
 
     D_8005F102 = 0;
-    g_fieldEntity.unk00A = 20;
-    D_8005F148 = g_fieldEntity.entityIndex[0];
+    g_fieldContext.unk00A = 20;
+    D_8005F148 = g_fieldContext.entityIndex[0];
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         if (i == D_8005F148) {
-            if (g_fieldEntity.spawnTriIdx != SPAWN_UNSET) {
-                D_80085224[i].triIdx = g_fieldEntity.spawnTriIdx;
-                if (g_fieldEntity.position_x == SPAWN_UNSET) {
-                    D_80085224[i].posX = ((g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3].sx +
-                                           g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 1].sx +
-                                           g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 2].sx) / 3) << 12;
-                    D_80085224[i].posY = ((g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3].sy +
-                                           g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 1].sy +
-                                           g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 2].sy) / 3) << 12;
-                    D_80085224[i].posZ = ((g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3].sz +
-                                           g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 1].sz +
-                                           g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 2].sz) / 3) << 12;
+            if (g_fieldContext.spawnTriIdx != SPAWN_UNSET) {
+                g_fieldActors[i].triIdx = g_fieldContext.spawnTriIdx;
+                if (g_fieldContext.position_x == SPAWN_UNSET) {
+                    g_fieldActors[i].posX = ((g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3].sx +
+                                           g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 1].sx +
+                                           g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 2].sx) / 3) << 12;
+                    g_fieldActors[i].posY = ((g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3].sy +
+                                           g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 1].sy +
+                                           g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 2].sy) / 3) << 12;
+                    g_fieldActors[i].posZ = ((g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3].sz +
+                                           g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 1].sz +
+                                           g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 2].sz) / 3) << 12;
                 } else {
-                    func_8009DED8(&edge0, &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 1],
-                                  &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3]);
+                    func_8009DED8(&edge0, &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 1],
+                                  &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3]);
                     func_8009DED8(&edge1,
-                                  &g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 2],
-                                  &g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 1]);
-                    pos.x = D_80085224[D_8005F148].posX / 4096;
-                    pos.y = D_80085224[D_8005F148].posY / 4096;
-                    D_80085224[D_8005F148].posZ =
+                                  &g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 2],
+                                  &g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 1]);
+                    pos.x = g_fieldActors[D_8005F148].posX / 4096;
+                    pos.y = g_fieldActors[D_8005F148].posY / 4096;
+                    g_fieldActors[D_8005F148].posZ =
                         func_8009E338(&edge0, &edge1, &pos,
-                                      &g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3]) << 12;
+                                      &g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3]) << 12;
                 }
             } else {
-                D_80085224[i].field_0x208 = 0x10;
-                D_80085224[i].field_0x24F = 0;
-                D_80085224[D_8005F148].field_0x250 = 1;
-                D_80085224[D_8005F148].field_0x251 = 2;
+                g_fieldActors[i].field_0x208 = 0x10;
+                g_fieldActors[i].field_0x24F = 0;
+                g_fieldActors[D_8005F148].field_0x250 = 1;
+                g_fieldActors[D_8005F148].field_0x251 = 2;
                 /* Same scale func_800B6738 applies to D_800704B2 (there as *69020>>9), so
                    the entity starts exactly at the threshold that picks field_0x251. */
-                D_80085224[D_8005F148].moveSpeed = ((u32)(g_fieldEntity.unk00A * 17255)) >> 7;
-                D_80085224[D_8005F148].radius = 0x30;
-                D_80085224[D_8005F148].triIdx = 0;
-                D_80085224[D_8005F148].posX =
-                    ((g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3].sx +
-                      g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 1].sx +
-                      g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 2].sx) / 3) << 12;
-                D_80085224[D_8005F148].posY =
-                    ((g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3].sy +
-                      g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 1].sy +
-                      g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 2].sy) / 3) << 12;
-                D_80085224[D_8005F148].posZ =
-                    ((g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3].sz +
-                      g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 1].sz +
-                      g_fieldWalkmeshVerts[D_80085224[D_8005F148].triIdx * 3 + 2].sz) / 3) << 12;
+                g_fieldActors[D_8005F148].moveSpeed = ((u32)(g_fieldContext.unk00A * 17255)) >> 7;
+                g_fieldActors[D_8005F148].radius = 0x30;
+                g_fieldActors[D_8005F148].triIdx = 0;
+                g_fieldActors[D_8005F148].posX =
+                    ((g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3].sx +
+                      g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 1].sx +
+                      g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 2].sx) / 3) << 12;
+                g_fieldActors[D_8005F148].posY =
+                    ((g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3].sy +
+                      g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 1].sy +
+                      g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 2].sy) / 3) << 12;
+                g_fieldActors[D_8005F148].posZ =
+                    ((g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3].sz +
+                      g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 1].sz +
+                      g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3 + 2].sz) / 3) << 12;
             }
         } else {
-            pos.x = D_80085224[i].posX / 4096;
-            pos.y = D_80085224[i].posY / 4096;
+            pos.x = g_fieldActors[i].posX / 4096;
+            pos.y = g_fieldActors[i].posY / 4096;
             pos.z = 0;
-            func_8009DED8(&edge0, &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 1],
-                          &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3]);
-            func_8009DED8(&edge1, &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 2],
-                          &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3 + 1]);
-            D_80085224[i].posZ = func_8009E338(&edge0, &edge1, &pos,
-                                               &g_fieldWalkmeshVerts[D_80085224[i].triIdx * 3]) << 12;
+            func_8009DED8(&edge0, &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 1],
+                          &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3]);
+            func_8009DED8(&edge1, &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 2],
+                          &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3 + 1]);
+            g_fieldActors[i].posZ = func_8009E338(&edge0, &edge1, &pos,
+                                               &g_fieldWalkmeshVerts[g_fieldActors[i].triIdx * 3]) << 12;
         }
     }
 
-    for (i = 0; i < D_80085388; i++) {
-        D_80085224[i].headingBase = 0;
+    for (i = 0; i < g_fieldActorCount; i++) {
+        g_fieldActors[i].headingBase = 0;
     }
 
     func_8009E660();
@@ -1539,7 +1527,7 @@ void func_8009AEC0(void) {
  * crossing regardless of step size or direction.
  *
  * @param idx   Field-entity index; selects both the render slot
- *              (@ref D_800D9630) and the Actor record (@ref D_80085224).
+ *              (@ref D_800D9630) and the Actor record (@ref g_fieldActors).
  * @param anim  Animation id to play.
  * @param mode  @c 1 to emit footstep sounds while stepping, @c 0 to stay silent.
  * @param delta Signed number of phase steps to advance this frame.
@@ -1561,12 +1549,12 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     oldPhase = D_800D9630[idx]->unk52;
     if (delta != 0) {
         if (delta > 0) {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + D_80085224[idx].field_0x208 * delta;
+            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].field_0x208 * delta;
             if (D_800D9630[idx]->unk52 >= D_800D9630[idx]->unk0C) {
                 D_800D9630[idx]->unk52 = 0;
             }
         } else {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + D_80085224[idx].field_0x208 * delta;
+            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].field_0x208 * delta;
             if (D_800D9630[idx]->unk0C < D_800D9630[idx]->unk52) {
                 D_800D9630[idx]->unk52 = D_800D9630[idx]->unk0C - 1;
             }
@@ -1576,14 +1564,14 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     if (mode == 1) {
         newRel = newPhase - 0x80;
         oldRel = oldPhase - 0x80;
-        half = (D_800D9630[idx]->unk0C - (s16)D_80085224[idx].field_0x208) >> 1;
+        half = (D_800D9630[idx]->unk0C - (s16)g_fieldActors[idx].field_0x208) >> 1;
         newOff = newRel - half;
         oldOff = oldRel - half;
         if ((newRel < 0 & oldRel >= 0) || (oldRel < 0 & newRel >= 0)) {
-            func_800B2864(&D_80085224[idx], 1, 0x7F, 0x80);
+            func_800B2864(&g_fieldActors[idx], 1, 0x7F, 0x80);
         }
         if ((newOff < 0 & oldOff >= 0) || (oldOff < 0 & newOff >= 0)) {
-            func_800B2864(&D_80085224[idx], 0, 0x7F, 0x80);
+            func_800B2864(&g_fieldActors[idx], 0, 0x7F, 0x80);
         }
     }
 }
@@ -1603,14 +1591,14 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
 void func_8009B74C(s16 slotIdx, u16 paramIdx, PathEntry *params, s16 multiplier) {
     u8 entityIdx;
 
-    entityIdx = g_fieldEntity.entityIndex[slotIdx];
+    entityIdx = g_fieldContext.entityIndex[slotIdx];
 
     if (entityIdx == 0xFF) {
         return;
     }
 
-    D_80085224[g_fieldEntity.entityIndex[(s16)slotIdx]].field_0x241 = params[paramIdx].field_0B;
-    D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x24C = 1;
+    g_fieldActors[g_fieldContext.entityIndex[(s16)slotIdx]].facingDirection = params[paramIdx].field_0B;
+    g_fieldActors[g_fieldContext.entityIndex[slotIdx]].field_0x24C = 1;
 
     if (slotIdx == 1) {
         if (D_8005F160 > D_8005F118) {
@@ -1624,28 +1612,28 @@ void func_8009B74C(s16 slotIdx, u16 paramIdx, PathEntry *params, s16 multiplier)
 
     switch (params[paramIdx].field_0A) {
     case 0:
-        entityIdx = g_fieldEntity.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x250, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldContext.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, g_fieldActors[g_fieldContext.entityIndex[slotIdx]].field_0x250, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 1:
-        entityIdx = g_fieldEntity.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x251, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldContext.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, g_fieldActors[g_fieldContext.entityIndex[slotIdx]].field_0x251, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 2:
-        entityIdx = g_fieldEntity.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x24F, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldContext.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, g_fieldActors[g_fieldContext.entityIndex[slotIdx]].field_0x24F, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 3:
-        entityIdx = g_fieldEntity.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x252, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldContext.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, g_fieldActors[g_fieldContext.entityIndex[slotIdx]].field_0x252, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 4:
-        entityIdx = g_fieldEntity.entityIndex[slotIdx];
-        func_8009B4A8(entityIdx, D_80085224[g_fieldEntity.entityIndex[slotIdx]].field_0x253, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldContext.entityIndex[slotIdx];
+        func_8009B4A8(entityIdx, g_fieldActors[g_fieldContext.entityIndex[slotIdx]].field_0x253, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     case 5:
-        entityIdx = g_fieldEntity.entityIndex[slotIdx];
-        func_8009B4A8(g_fieldEntity.entityIndex[slotIdx], D_80085224[entityIdx].field_0x254, 0, (s8)(params[paramIdx].field_09 * multiplier));
+        entityIdx = g_fieldContext.entityIndex[slotIdx];
+        func_8009B4A8(g_fieldContext.entityIndex[slotIdx], g_fieldActors[entityIdx].field_0x254, 0, (s8)(params[paramIdx].field_09 * multiplier));
         break;
     }
 }
@@ -1664,21 +1652,21 @@ void func_8009B74C(s16 slotIdx, u16 paramIdx, PathEntry *params, s16 multiplier)
 void func_8009BB18(void) {
     u16 angle;
 
-    if (g_fieldEntity.entityIndex[2] != 0xFF) {
+    if (g_fieldContext.entityIndex[2] != 0xFF) {
         angle = (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK;
-        D_80085224[g_fieldEntity.entityIndex[2]].posX   = D_80070A60[angle].x << 12;
-        D_80085224[g_fieldEntity.entityIndex[2]].posY   = D_80070A60[angle].y << 12;
-        D_80085224[g_fieldEntity.entityIndex[2]].posZ   = D_80070A60[angle].z << 12;
-        D_80085224[g_fieldEntity.entityIndex[2]].triIdx = D_80070A60[angle].unk6;
-        D_80085224[g_fieldEntity.entityIndex[2]].unk258 = D_80070A60[angle].unk8;
+        g_fieldActors[g_fieldContext.entityIndex[2]].posX   = D_80070A60[angle].x << 12;
+        g_fieldActors[g_fieldContext.entityIndex[2]].posY   = D_80070A60[angle].y << 12;
+        g_fieldActors[g_fieldContext.entityIndex[2]].posZ   = D_80070A60[angle].z << 12;
+        g_fieldActors[g_fieldContext.entityIndex[2]].triIdx = D_80070A60[angle].unk6;
+        g_fieldActors[g_fieldContext.entityIndex[2]].unk258 = D_80070A60[angle].unk8;
     }
-    if (g_fieldEntity.entityIndex[1] != 0xFF) {
+    if (g_fieldContext.entityIndex[1] != 0xFF) {
         angle = (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK;
-        D_80085224[g_fieldEntity.entityIndex[1]].posX   = D_80070760[angle].x << 12;
-        D_80085224[g_fieldEntity.entityIndex[1]].posY   = D_80070760[angle].y << 12;
-        D_80085224[g_fieldEntity.entityIndex[1]].posZ   = D_80070760[angle].z << 12;
-        D_80085224[g_fieldEntity.entityIndex[1]].triIdx = D_80070760[angle].unk6;
-        D_80085224[g_fieldEntity.entityIndex[1]].unk258 = D_80070760[angle].unk8;
+        g_fieldActors[g_fieldContext.entityIndex[1]].posX   = D_80070760[angle].x << 12;
+        g_fieldActors[g_fieldContext.entityIndex[1]].posY   = D_80070760[angle].y << 12;
+        g_fieldActors[g_fieldContext.entityIndex[1]].posZ   = D_80070760[angle].z << 12;
+        g_fieldActors[g_fieldContext.entityIndex[1]].triIdx = D_80070760[angle].unk6;
+        g_fieldActors[g_fieldContext.entityIndex[1]].unk258 = D_80070760[angle].unk8;
     }
 }
 
@@ -1751,10 +1739,10 @@ void func_8009BD50(Actor *actor, s16 mode, s8 b9, u8 b8) {
 /**
  * @brief Per-frame movement and animation tick for every field entity.
  *
- * Runs nine sequential passes over the @c D_80085388 entities of @p ents:
+ * Runs nine sequential passes over the @c g_fieldActorCount entities of @p ents:
  *  1. Re-arm each entity's @c unk258 tick flag.
  *  2. Advance the global heading lerp (@c unk100 -> @c unk102 over @c unk104
- *     frames) into @c g_fieldEntity.unk1A8.
+ *     frames) into @c g_fieldContext.unk1A8.
  *  3. Advance each entity's heading lerp (@c field_0x244: 1 = linear,
  *     2 = sine, 3 = finished).
  *  4. Advance each entity's position-offset lerp (@c unk245, same encoding).
@@ -1768,9 +1756,9 @@ void func_8009BD50(Actor *actor, s16 mode, s8 b9, u8 b8) {
  *  8. @c msgActive 4: hand the entity to @c func_8009FE18.
  *  9. @c msgActive 3: linear path move, player-steerable for the self entity.
  *
- * @param ents  Entity array (@c D_80085224).
+ * @param ents  Entity array (@c g_fieldActors).
  * @param flags Pad state for this frame; same bit layout as
- *              @c SystemState::padHeld (0x1000 = down, 0x2000 = right,
+ *              @c FieldContext::padHeld (0x1000 = down, 0x2000 = right,
  *              0x4000 = up, 0x8000 = left, 0x10 = run). Bit 0x10 is updated
  *              in place from the analog stick's deflection.
  */
@@ -1785,26 +1773,26 @@ void func_8009BEC8(Actor *ents, s32 flags) {
     u8 heading;
     s32 trail;
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         ents[i].unk258 = 1;
     }
 
-    if (g_fieldEntity.unk106 < g_fieldEntity.unk104) {
-        g_fieldEntity.unk106++;
-        g_fieldEntity.unk1A8 = func_800A0E54((s16)g_fieldEntity.unk100, (s16)g_fieldEntity.unk102,
-                                          g_fieldEntity.unk104, g_fieldEntity.unk106);
-        if (g_fieldEntity.unk104 == g_fieldEntity.unk106) {
-            g_fieldEntity.unk100 = g_fieldEntity.unk1A8;
+    if (g_fieldContext.unk106 < g_fieldContext.unk104) {
+        g_fieldContext.unk106++;
+        g_fieldContext.unk1A8 = func_800A0E54((s16)g_fieldContext.unk100, (s16)g_fieldContext.unk102,
+                                          g_fieldContext.unk104, g_fieldContext.unk106);
+        if (g_fieldContext.unk104 == g_fieldContext.unk106) {
+            g_fieldContext.unk100 = g_fieldContext.unk1A8;
         }
     }
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         switch (ents[i].field_0x244) {
         case 0:
         case 3:
             break;
         case 1:
-            ents[i].field_0x241 = func_800A0E54(ents[i].field_0x1DC, ents[i].field_0x1DE, ents[i].field_0x242, ents[i].field_0x243);
+            ents[i].facingDirection = func_800A0E54(ents[i].field_0x1DC, ents[i].field_0x1DE, ents[i].field_0x242, ents[i].field_0x243);
             if (ents[i].field_0x243 == ents[i].field_0x242) {
                 ents[i].field_0x244 = 3;
             } else {
@@ -1812,7 +1800,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             }
             break;
         case 2:
-            ents[i].field_0x241 = func_800A0EB8(ents[i].field_0x1DC, ents[i].field_0x1DE, ents[i].field_0x242, ents[i].field_0x243);
+            ents[i].facingDirection = func_800A0EB8(ents[i].field_0x1DC, ents[i].field_0x1DE, ents[i].field_0x242, ents[i].field_0x243);
             if (ents[i].field_0x243 == ents[i].field_0x242) {
                 ents[i].field_0x244 = 3;
             } else {
@@ -1822,7 +1810,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
         }
     }
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         switch (ents[i].unk245) {
         case 0:
         case 3:
@@ -1837,7 +1825,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                 ents[i].field_0x1F4++;
             }
             if (i == D_8005F148) {
-                func_8009A8E0(D_8008538C);
+                func_8009A8E0(g_fieldLines);
             }
             break;
         case 2:
@@ -1850,20 +1838,20 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                 ents[i].field_0x1F4++;
             }
             if (i == D_8005F148) {
-                func_8009A8E0(D_8008538C);
+                func_8009A8E0(g_fieldLines);
             }
             break;
         }
     }
 
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         if (ents[i].msgActive != 0 || i != D_8005F148) {
             continue;
         }
         step = 0;
-        g_fieldEntity.fieldStepDelta = 0;
-        if (g_fieldEntity.unk015 == 1 || g_fieldEntity.dialogState == 4) {
+        g_fieldContext.fieldStepDelta = 0;
+        if (g_fieldContext.unk015 == 1 || g_fieldContext.dialogState == 4) {
             continue;
         }
         if (GetAnalogStickAxis(0, PAD_AXIS_X, 0) != -1) {
@@ -1901,7 +1889,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].unk23F = 0x40;
                     }
                 }
-                ents[i].unk23F += g_fieldEntity.unk1A8 + ents[i].headingBase;
+                ents[i].unk23F += g_fieldContext.unk1A8 + ents[i].headingBase;
             } else {
                 if (!(flags & FIELD_PAD_WALK)) {
                     if (dist[0] >= 0x79) {
@@ -1910,37 +1898,37 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         flags |= FIELD_PAD_WALK;
                     }
                 }
-                ents[i].unk23F = dir + (g_fieldEntity.unk1A8 + g_curFieldInfo->slotHeadingBias[g_fieldEntity.unk1A6]);
+                ents[i].unk23F = dir + (g_fieldContext.unk1A8 + g_curFieldInfo->slotHeadingBias[g_fieldContext.unk1A6]);
             }
-            if ((flags & FIELD_PAD_WALK) || g_fieldEntity.unk1A4 == 1) {
+            if ((flags & FIELD_PAD_WALK) || g_fieldContext.unk1A4 == 1) {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x4367) >> 7;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x4367) >> 7;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x4367) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x4367) >> 6;
                 }
             } else {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x631F) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x631F) >> 6;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldEntity.unk00A * 0x631F) >> 5;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x631F) >> 5;
                 }
             }
             SCRATCH_STACK_ENTER();
             step = func_8009D598((s16)i);
             SCRATCH_STACK_LEAVE();
             if (step == 1) {
-                if ((flags & FIELD_PAD_WALK) || g_fieldEntity.unk1A4 == step) {
+                if ((flags & FIELD_PAD_WALK) || g_fieldContext.unk1A4 == step) {
                     func_8009B4A8((s16)i, ents[i].field_0x250, 1, 1);
                     trail = D_8005F144;
                     D_80070A60[trail].field_0A = 0;
                     D_80070760[trail].field_0A = 0;
-                    g_fieldEntity.fieldStepDelta = 3;
+                    g_fieldContext.fieldStepDelta = 3;
                 } else {
                     func_8009B4A8((s16)i, ents[i].field_0x251, 1, 1);
                     trail = D_8005F144;
                     D_80070A60[trail].field_0A = step;
                     D_80070760[trail].field_0A = step;
-                    g_fieldEntity.fieldStepDelta = 5;
+                    g_fieldContext.fieldStepDelta = 5;
                 }
                 func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
                 func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
@@ -1950,28 +1938,28 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                 D_80070760[trail].field_0B = heading;
         } else {
             func_8009B4A8((s16)i, ents[i].field_0x24F, 0, 1);
-            if (g_fieldEntity.entityIndex[2] != 0xFF) {
-                func_8009B4A8(g_fieldEntity.entityIndex[2], ents[g_fieldEntity.entityIndex[2]].field_0x24F, 0, 1);
+            if (g_fieldContext.entityIndex[2] != 0xFF) {
+                func_8009B4A8(g_fieldContext.entityIndex[2], ents[g_fieldContext.entityIndex[2]].field_0x24F, 0, 1);
             }
-            if (g_fieldEntity.entityIndex[1] != 0xFF) {
-                func_8009B4A8(g_fieldEntity.entityIndex[1], ents[g_fieldEntity.entityIndex[1]].field_0x24F, 0, 1);
+            if (g_fieldContext.entityIndex[1] != 0xFF) {
+                func_8009B4A8(g_fieldContext.entityIndex[1], ents[g_fieldContext.entityIndex[1]].field_0x24F, 0, 1);
             }
         }
         if (ents[i].field_0x240 == 0) {
-            ents[i].field_0x241 = ents[i].unk23F;
+            ents[i].facingDirection = ents[i].unk23F;
         }
-        if (g_fieldEntity.mode != 1 && g_fieldEntity.mode != 7 && step == 1) {
+        if (g_fieldContext.mode != 1 && g_fieldContext.mode != 7 && step == 1) {
             func_800A5D28();
         }
             func_8009BD50(&ents[i], step, 1, 1);
             func_8009BB18();
         } else {
             func_8009B4A8((s16)i, ents[i].field_0x24F, 0, 1);
-            if (g_fieldEntity.entityIndex[2] != 0xFF) {
-                func_8009B4A8(g_fieldEntity.entityIndex[2], ents[g_fieldEntity.entityIndex[2]].field_0x24F, 0, 1);
+            if (g_fieldContext.entityIndex[2] != 0xFF) {
+                func_8009B4A8(g_fieldContext.entityIndex[2], ents[g_fieldContext.entityIndex[2]].field_0x24F, 0, 1);
             }
-            if (g_fieldEntity.entityIndex[1] != 0xFF) {
-                func_8009B4A8(g_fieldEntity.entityIndex[1], ents[g_fieldEntity.entityIndex[1]].field_0x24F, 0, 1);
+            if (g_fieldContext.entityIndex[1] != 0xFF) {
+                func_8009B4A8(g_fieldContext.entityIndex[1], ents[g_fieldContext.entityIndex[1]].field_0x24F, 0, 1);
             }
             func_8009BD50(&ents[i], step, 1, 1);
             func_8009BB18();
@@ -1979,8 +1967,8 @@ void func_8009BEC8(Actor *ents, s32 flags) {
     }
 
 
-    for (i = 0; i < D_80085388; i++) {
-        if (ents[i].msgActive == 1 && g_fieldEntity.pad001 != 1) {
+    for (i = 0; i < g_fieldActorCount; i++) {
+        if (ents[i].msgActive == 1 && g_fieldContext.pad001 != 1) {
             ents[i].headingBase = 0;
             if (func_8009D274(&ents[i], ents[i].windowId) == 0) {
                 ents[i].msgState = 2;
@@ -1991,16 +1979,16 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                 func_8009D598((s16)i);
                 SCRATCH_STACK_LEAVE();
                 if (ents[i].field_0x240 == 0) {
-                    ents[i].field_0x241 = ents[i].unk23F;
+                    ents[i].facingDirection = ents[i].unk23F;
                 }
             }
             if (i == D_8005F148) {
-                func_8009A8E0(D_8008538C);
+                func_8009A8E0(g_fieldLines);
             }
         }
     }
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         if (ents[i].msgActive != 2) {
             continue;
         }
@@ -2029,20 +2017,20 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             }
         }
         if (i == D_8005F148) {
-            func_8009A8E0(D_8008538C);
+            func_8009A8E0(g_fieldLines);
         }
     }
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         if (ents[i].msgActive == 4) {
             if (i == D_8005F148) {
-                func_8009A8E0(D_8008538C);
+                func_8009A8E0(g_fieldLines);
             }
             func_8009FE18(i, &ents[i], flags);
         }
     }
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         if (ents[i].msgActive != 3) {
             continue;
         }
@@ -2055,15 +2043,15 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             a.vy = (ents[i].msgPosX - ents[i].moveStartY) / 1024;
             a.vz = (ents[i].msgPosY - ents[i].moveStartZ) / 1024;
             dist[0] = SquareRoot0(a.vx * a.vx + a.vy * a.vy + a.vz * a.vz);
-            ents[i].field_0x1D8 = dist[0] / g_fieldEntity.unk1AE;
+            ents[i].field_0x1D8 = dist[0] / g_fieldContext.unk1AE;
             ents[i].field_0x1DA = 0;
             ents[i].msgState = 1;
             if (i == D_8005F148) {
-                func_8009A8E0(D_8008538C);
+                func_8009A8E0(g_fieldLines);
             }
             continue;
         }
-        if (i == D_8005F148 && g_fieldEntity.unk015 == 0) {
+        if (i == D_8005F148 && g_fieldContext.unk015 == 0) {
             if (ents[i].windowId == 0) {
                 if (flags & (FIELD_PAD_YLOW | FIELD_PAD_XHIGH)) {
                     if (ents[i].field_0x1DA == 0) {
@@ -2121,9 +2109,9 @@ void func_8009BEC8(Actor *ents, s32 flags) {
  * @brief Aim the self entity at whichever entity is most directly "in front" of
  *        it, and stamp that target's delayed-SFX trigger 7 with the pad mode.
  *
- * The self entity is @c D_80085224[D_8005F148]; its position is taken in whole
+ * The self entity is @c g_fieldActors[D_8005F148]; its position is taken in whole
  * units (fixed-point @c >>12). A @c mode (0/1/2) is derived from the current and
- * previous pad-held bits in @c g_fieldEntity (@c unk150 / @c unk154, bits @c 0x80
+ * previous pad-held bits in @c g_fieldContext (@c unk150 / @c unk154, bits @c 0x80
  * and @c 0x40). If the field is busy (@c D_800704BD != 0) or @c mode is 0, the
  * scan is skipped entirely.
  *
@@ -2132,7 +2120,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
  * (@c unk218 == -1), share the self's X/Y cell, lie outside a ±0xFF Z band, or
  * fall outside the combined talk/collision radius. For the rest, the score is how
  * far the entity's bearing (via @ref func_8009A0E8) deviates from the self's
- * facing angle (@c field_0x241), folded to 0..0x80. The entity with the smallest
+ * facing angle (@c facingDirection), folded to 0..0x80. The entity with the smallest
  * deviation below the 0x40 threshold wins and has its @c triggerSfx7 set to
  * @c mode; a tie or no winner leaves everything untouched.
  */
@@ -2141,18 +2129,18 @@ void func_8009CEE8(void) {
     s32 entPos[3];
     s16 angleTable[48];
     s32 dist;
-    SystemState *sys;
+    FieldContext *sys;
     s32 i;
     s32 mode;
     s32 diff;
     s16 best;
     s16 bestIdx;
 
-    selfPos[0] = D_80085224[D_8005F148].posX >> 12;
-    selfPos[1] = D_80085224[D_8005F148].posY >> 12;
-    selfPos[2] = D_80085224[D_8005F148].posZ >> 12;
+    selfPos[0] = g_fieldActors[D_8005F148].posX >> 12;
+    selfPos[1] = g_fieldActors[D_8005F148].posY >> 12;
+    selfPos[2] = g_fieldActors[D_8005F148].posZ >> 12;
 
-    sys = &g_fieldEntity;
+    sys = &g_fieldContext;
     mode = 0;
     if (sys->unk150 & 0x80) {
         mode = ((sys->unk154 & 0x80) == 0) << 1;
@@ -2164,30 +2152,30 @@ void func_8009CEE8(void) {
     if (D_800704BD != 0) return;
     if (mode == 0) return;
 
-    for (i = 0; i < D_80085388; i++) {
+    for (i = 0; i < g_fieldActorCount; i++) {
         angleTable[i] = 0x100;
         if (i == D_8005F148) continue;
-        if (D_80085224[i].field_0x24B != 0) continue;
-        if (D_80085224[i].unk218 == -1) continue;
-        entPos[0] = D_80085224[i].posX >> 12;
-        entPos[1] = D_80085224[i].posY >> 12;
-        entPos[2] = D_80085224[i].posZ >> 12;
+        if (g_fieldActors[i].field_0x24B != 0) continue;
+        if (g_fieldActors[i].unk218 == -1) continue;
+        entPos[0] = g_fieldActors[i].posX >> 12;
+        entPos[1] = g_fieldActors[i].posY >> 12;
+        entPos[2] = g_fieldActors[i].posZ >> 12;
         if (selfPos[0] == entPos[0] && selfPos[1] == entPos[1]) continue;
         if ((u32)((selfPos[2] - entPos[2]) + 0xFF) >= 0x1FF) continue;
-        diff = (D_80085224[D_8005F148].field_0x241 - (func_8009A0E8(selfPos, entPos, &dist) & 0xFF)) & 0xFF;
+        diff = (g_fieldActors[D_8005F148].facingDirection - (func_8009A0E8(selfPos, entPos, &dist) & 0xFF)) & 0xFF;
         angleTable[i] = diff;
         if (diff >= 0x81) {
             angleTable[i] = 0x100 - diff;
         }
-        if (dist >= D_80085224[i].talkRadius + D_80085224[D_8005F148].radius) {
+        if (dist >= g_fieldActors[i].talkRadius + g_fieldActors[D_8005F148].radius) {
             angleTable[i] = 0x100;
         }
     }
 
     best = 0x40;
     bestIdx = D_8005F148;
-    for (i = 0; i < D_80085388; i++) {
-        if (D_80085224[i].unk218 == -1) continue;
+    for (i = 0; i < g_fieldActorCount; i++) {
+        if (g_fieldActors[i].unk218 == -1) continue;
         if (angleTable[i] < (s16)best) {
             best = (u16)angleTable[i];
             bestIdx = i;
@@ -2195,7 +2183,7 @@ void func_8009CEE8(void) {
     }
 
     if (bestIdx != D_8005F148 && best != 0x40) {
-        D_80085224[bestIdx].triggerSfx7 = mode;
+        g_fieldActors[bestIdx].triggerSfx7 = mode;
     }
 }
 
@@ -2238,7 +2226,7 @@ s16 func_8009D254(s32 a0) {
  * @c headingBase to give the target heading. The turn rate is
  * @c field_0x262, or 0 when the entity is already inside its radius or
  * @c field_0x1DA has left the +/-0x100 band. With no rate the heading snaps;
- * otherwise the heading restarts from @c field_0x241 and is stepped by at most
+ * otherwise the heading restarts from @c facingDirection and is stepped by at most
  * @c rate along the shorter way around the 256-unit circle (the four cases
  * offset the compared angles by 0x100 to keep the window continuous across
  * the wrap), snapping when the target already lies inside the step window.
@@ -2290,7 +2278,7 @@ s32 func_8009D274(Actor *actor, s16 pad) {
     if (rate == 0) {
         actor->unk23F = delta;
     } else {
-        actor->unk23F = actor->field_0x241;
+        actor->unk23F = actor->facingDirection;
         c = actor->unk23F;
         if (c == (u8)delta) {
             actor->unk23F = delta;
@@ -2414,7 +2402,7 @@ s32 func_8009D500(s32 selfIdx, s32 arg1, FieldStepScratch *ctx, s32 *out) {
  * @ref func_8009AAC8 for the gateways, and @ref func_800A6100 for the field
  * line-trigger table.
  *
- * @param index Entity index into @ref D_80085224.
+ * @param index Entity index into @ref g_fieldActors.
  * @return @c 1 if the entity moved (position written back), @c 0 if it was
  *         blocked or the navmesh walk failed.
  */
@@ -2440,7 +2428,7 @@ s32 func_8009D598(s16 index) {
     s32 vertBase;
 
     vertBase = (s32)g_fieldWalkmeshVerts;
-    tri = D_80085224[index].triIdx;
+    tri = g_fieldActors[index].triIdx;
     a = (SVert *)(tri * 24 + vertBase);
     b = &a[1];
     c = &a[2];
@@ -2504,30 +2492,30 @@ s32 func_8009D598(s16 index) {
             break;
         }
 
-        sc->srcX = func_8009D234(D_80085224[self].unk23F) * stepX / 4096;
-        sc->srcY = -(func_8009D254(D_80085224[self].unk23F) * stepY) / 4096;
-        sc->srcX = sc->srcX * D_80085224[self].moveSpeed / 256;
-        sc->srcY = sc->srcY * D_80085224[self].moveSpeed / 256;
-        sc->srcX = D_80085224[self].posX + sc->srcX;
-        sc->srcY = D_80085224[self].posY + sc->srcY;
-        sc->srcZ = D_80085224[self].posZ;
+        sc->srcX = func_8009D234(g_fieldActors[self].unk23F) * stepX / 4096;
+        sc->srcY = -(func_8009D254(g_fieldActors[self].unk23F) * stepY) / 4096;
+        sc->srcX = sc->srcX * g_fieldActors[self].moveSpeed / 256;
+        sc->srcY = sc->srcY * g_fieldActors[self].moveSpeed / 256;
+        sc->srcX = g_fieldActors[self].posX + sc->srcX;
+        sc->srcY = g_fieldActors[self].posY + sc->srcY;
+        sc->srcZ = g_fieldActors[self].posZ;
 
-        sc->dx = func_8009D234((u8)(D_80085224[self].unk23F + 0x20))
-                 * D_80085224[self].radius;
-        sc->dy = -func_8009D254((u8)(D_80085224[self].unk23F + 0x20))
-                 * D_80085224[self].radius;
+        sc->dx = func_8009D234((u8)(g_fieldActors[self].unk23F + 0x20))
+                 * g_fieldActors[self].radius;
+        sc->dy = -func_8009D254((u8)(g_fieldActors[self].unk23F + 0x20))
+                 * g_fieldActors[self].radius;
         pushLeft = func_8009D500(self, (s32)&tri, sc, &hitLeft);
 
-        tri = D_80085224[self].triIdx;
-        sc->dx = func_8009D234((u8)(D_80085224[self].unk23F - 0x20))
-                 * D_80085224[self].radius;
-        sc->dy = -func_8009D254((u8)(D_80085224[self].unk23F - 0x20))
-                 * D_80085224[self].radius;
+        tri = g_fieldActors[self].triIdx;
+        sc->dx = func_8009D234((u8)(g_fieldActors[self].unk23F - 0x20))
+                 * g_fieldActors[self].radius;
+        sc->dy = -func_8009D254((u8)(g_fieldActors[self].unk23F - 0x20))
+                 * g_fieldActors[self].radius;
         pushRight = func_8009D500(self, (s32)&tri, sc, &hitRight);
 
-        tri = D_80085224[self].triIdx;
-        sc->dx = func_8009D234(D_80085224[self].unk23F) * D_80085224[self].radius;
-        sc->dy = -func_8009D254(D_80085224[self].unk23F) * D_80085224[self].radius;
+        tri = g_fieldActors[self].triIdx;
+        sc->dx = func_8009D234(g_fieldActors[self].unk23F) * g_fieldActors[self].radius;
+        sc->dy = -func_8009D254(g_fieldActors[self].unk23F) * g_fieldActors[self].radius;
         pushFwd = func_8009D500(self, (s32)&tri, sc, &hitFwd);
 
         if (hitFwd == 0 && hitLeft == 0 && hitRight == 0 && pushFwd == 0
@@ -2540,40 +2528,40 @@ s32 func_8009D598(s16 index) {
                 break;
             }
         } else if (hitFwd != 0 && hitLeft == 0 && hitRight == 0) {
-            D_80085224[self].unk23F -= hitFwd;
+            g_fieldActors[self].unk23F -= hitFwd;
         } else if (pushFwd != 0 && pushLeft == 0 && pushRight == 0) {
-            D_80085224[self].unk23F -= pushFwd;
+            g_fieldActors[self].unk23F -= pushFwd;
         }
 
         if (hitLeft != 0) {
             if (hitRight != 0) {
                 break;
             }
-            D_80085224[self].unk23F -= 8;
+            g_fieldActors[self].unk23F -= 8;
         } else if (pushLeft != 0) {
-            D_80085224[self].unk23F -= 8;
+            g_fieldActors[self].unk23F -= 8;
         } else if (hitRight != 0 || pushRight != 0) {
-            D_80085224[self].unk23F += 8;
+            g_fieldActors[self].unk23F += 8;
         }
     }
 
-    blocked = func_8009DF18(&D_80085224[self].triIdx, (Vec3i *)&sc->srcX, &sc->dx,
+    blocked = func_8009DF18(&g_fieldActors[self].triIdx, (Vec3i *)&sc->srcX, &sc->dx,
                             (s32 *)sc);
-    if (self == D_8005F148 && g_fieldEntity.unk015 == 0) {
-        func_8009A4C0(&D_80085224[self], D_8008538C, (VECTOR *)&sc->srcX);
+    if (self == D_8005F148 && g_fieldContext.unk015 == 0) {
+        func_8009A4C0(&g_fieldActors[self], g_fieldLines, (VECTOR *)&sc->srcX);
         D_8005F102 = 0;
-        if (g_fieldEntity.unk1A2 == 0) {
-            func_8009AAC8(&D_80085224[self], g_curFieldInfo->gateways,
+        if (g_fieldContext.unk1A2 == 0) {
+            func_8009AAC8(&g_fieldActors[self], g_curFieldInfo->gateways,
                           (Vec3i *)&sc->srcX);
         }
-        func_800A6100(&D_80085224[self], g_curFieldInfo->triggers, (Vec3i *)&sc->srcX);
+        func_800A6100(&g_fieldActors[self], g_curFieldInfo->triggers, (Vec3i *)&sc->srcX);
     }
 
     if (hitFwd == 0 && hitLeft == 0 && hitRight == 0 && pushFwd == 0
         && pushLeft == 0 && pushRight == 0 && blocked == 0) {
-        D_80085224[self].posX = sc->srcX;
-        D_80085224[self].posY = sc->srcY;
-        D_80085224[self].posZ = sc->srcZ << 12;
+        g_fieldActors[self].posX = sc->srcX;
+        g_fieldActors[self].posY = sc->srcY;
+        g_fieldActors[self].posZ = sc->srcZ << 12;
         return 1;
     }
     return 0;
@@ -2619,7 +2607,7 @@ void func_8009DED8(Vec3i *out, SVert *a, SVert *b) {
  *    (@ref func_8009E338), returning 0 or the last edge classification;
  *  - otherwise, for the first failing edge: moves to that edge's neighbor
  *    triangle (@c *pTriIdx updated) when one exists and its
- *    @c g_fieldEntity.statusBits lock bit is clear, else returns +/-8 by the
+ *    @c g_fieldContext.statusBits lock bit is clear, else returns +/-8 by the
  *    sign of the edge direction dotted with the movement delta @p dxy
  *    (which side of the blocking edge the motion crosses).
  *
@@ -2687,7 +2675,7 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
         }
         if (nc0 < 0) {
             nb = g_fieldWalkmeshAdjacency[*pTriIdx].neighbor[0];
-            if (nb >= 0 && !((g_fieldEntity.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
+            if (nb >= 0 && !((g_fieldContext.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
                 *pTriIdx = g_fieldWalkmeshAdjacency[*pTriIdx].neighbor[0];
                 continue;
             }
@@ -2695,7 +2683,7 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
             break;
         } else if (nc1 < 0) {
             nb = g_fieldWalkmeshAdjacency[*pTriIdx].neighbor[1];
-            if (nb >= 0 && !((g_fieldEntity.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
+            if (nb >= 0 && !((g_fieldContext.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
                 *pTriIdx = g_fieldWalkmeshAdjacency[*pTriIdx].neighbor[1];
                 continue;
             }
@@ -2703,7 +2691,7 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
             break;
         } else if (nc2 < 0) {
             nb = g_fieldWalkmeshAdjacency[*pTriIdx].neighbor[2];
-            if (nb >= 0 && !((g_fieldEntity.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
+            if (nb >= 0 && !((g_fieldContext.statusBits[nb >> 3] >> (nb - ((nb >> 3) << 3))) & 1)) {
                 *pTriIdx = g_fieldWalkmeshAdjacency[*pTriIdx].neighbor[2];
                 continue;
             }
@@ -2760,7 +2748,7 @@ s32 func_8009E338(Vec3i *a0, Vec3i *a1, Vec3i *a2, Vec3s *a3) {
 /**
  * @brief Test if @p selfIdx overlaps with any other active entity at world @p pos.
  *
- * Iterates over the @c D_80085224 entity table, skipping @p selfIdx itself
+ * Iterates over the @c g_fieldActors entity table, skipping @p selfIdx itself
  * and any entity with @c unk218 == -1 (inactive). For each remaining entity,
  * a quick z-axis bounding-band check is applied (|dz| < 0x7E after shifting
  * the entity's @c posZ down by 12 fixed-point bits and subtracting @p pos->z),
@@ -2782,25 +2770,25 @@ s32 func_8009E468(s16 selfIdx, Vec3i *pos) {
     s32 distSq, avgRadius;
     s16 i;
 
-    selfRadius = D_80085224[selfIdx].radius;
-    if (D_80085224[selfIdx].unk218 != -1) {
-        for (i = 0; i < D_80085388; i++) {
+    selfRadius = g_fieldActors[selfIdx].radius;
+    if (g_fieldActors[selfIdx].unk218 != -1) {
+        for (i = 0; i < g_fieldActorCount; i++) {
             if (i == selfIdx) continue;
-            if (D_80085224[i].unk218 == -1) continue;
-            dz = (D_80085224[i].posZ >> 12) - pos->z;
+            if (g_fieldActors[i].unk218 == -1) continue;
+            dz = (g_fieldActors[i].posZ >> 12) - pos->z;
             if ((u32)(dz + 0x7E) >= 0xFE) continue;
-            dx = (D_80085224[i].posX - pos->x) >> 12;
-            dy = (D_80085224[i].posY - pos->y) >> 12;
-            avgRadius = (selfRadius + D_80085224[i].radius) >> 1;
+            dx = (g_fieldActors[i].posX - pos->x) >> 12;
+            dy = (g_fieldActors[i].posY - pos->y) >> 12;
+            avgRadius = (selfRadius + g_fieldActors[i].radius) >> 1;
             distSq = dx * dx + dy * dy;
             avgRadius *= avgRadius;
             if (distSq >= avgRadius) continue;
             if (selfIdx == D_8005F148) {
-                if (D_80085224[i].unk249 == 0) {
-                    D_80085224[i].unk248 = 1;
+                if (g_fieldActors[i].unk249 == 0) {
+                    g_fieldActors[i].unk248 = 1;
                 }
             }
-            if (D_80085224[i].field_0x24C == 0) found = 1;
+            if (g_fieldActors[i].field_0x24C == 0) found = 1;
         }
     }
     return found;
@@ -2844,7 +2832,7 @@ s32 func_8009E604(Actor *a, Actor *b) {
  * Otherwise the trail is synthesised backwards from the player. Slot 0 holds the
  * exact position and slots 63..1 each step one trail spacing further back along
  * the player's facing, the step being @c sin / @c cos (@ref func_8009D234 /
- * @ref func_8009D254) scaled by @c SystemState::unk00A. Each stepped point is
+ * @ref func_8009D254) scaled by @c FieldContext::unk00A. Each stepped point is
  * snapped onto the navmesh by @ref func_8009AC9C and its Z read off that
  * triangle's plane (@ref func_8009DED8 twice, then @ref func_8009E338); if the
  * plane Z lands further than @c 0x136 from the stepped Z the point is off the
@@ -2879,19 +2867,19 @@ void func_8009E660(void) {
 
     if (g_previousGameMode == GAME_MODE_NONE) {
         for (i = 0; i < 64; i++) {
-            D_80070760[i].x = D_80070A60[i].x = D_80085224[D_8005F148].posX / 4096;
-            D_80070760[i].y = D_80070A60[i].y = D_80085224[D_8005F148].posY / 4096;
-            D_80070760[i].z = D_80070A60[i].z = D_80085224[D_8005F148].posZ / 4096;
-            D_80070760[i].unk6 = D_80070A60[i].unk6 = D_80085224[D_8005F148].triIdx;
+            D_80070760[i].x = D_80070A60[i].x = g_fieldActors[D_8005F148].posX / 4096;
+            D_80070760[i].y = D_80070A60[i].y = g_fieldActors[D_8005F148].posY / 4096;
+            D_80070760[i].z = D_80070A60[i].z = g_fieldActors[D_8005F148].posZ / 4096;
+            D_80070760[i].unk6 = D_80070A60[i].unk6 = g_fieldActors[D_8005F148].triIdx;
             D_80070760[i].field_0A = D_80070A60[i].field_0A = 0;
-            D_80070760[i].field_0B = D_80070A60[i].field_0B = D_80085224[D_8005F148].field_0x241;
+            D_80070760[i].field_0B = D_80070A60[i].field_0B = g_fieldActors[D_8005F148].facingDirection;
         }
     } else {
-        x = D_80085224[D_8005F148].posX;
-        y = D_80085224[D_8005F148].posY;
-        z = D_80085224[D_8005F148].posZ;
-        D_80070760[0].x = D_80070A60[0].x = D_80085224[D_8005F148].posX / 4096;
-        D_80070760[0].y = D_80070A60[0].y = D_80085224[D_8005F148].posY / 4096;
+        x = g_fieldActors[D_8005F148].posX;
+        y = g_fieldActors[D_8005F148].posY;
+        z = g_fieldActors[D_8005F148].posZ;
+        D_80070760[0].x = D_80070A60[0].x = g_fieldActors[D_8005F148].posX / 4096;
+        D_80070760[0].y = D_80070A60[0].y = g_fieldActors[D_8005F148].posY / 4096;
 
         for (i = 0; i < 63; i++) {
             pos.x = px = D_80070760[63 - i].x = D_80070A60[63 - i].x = x / 4096;
@@ -2909,21 +2897,21 @@ void func_8009E660(void) {
                 D_80070760[63 - i].z = D_80070A60[63 - i].z = planeZ;
             } else {
                 D_80070760[63 - i].x = D_80070A60[63 - i].x =
-                    D_80085224[D_8005F148].posX / 4096;
+                    g_fieldActors[D_8005F148].posX / 4096;
                 D_80070760[63 - i].y = D_80070A60[63 - i].y =
-                    D_80085224[D_8005F148].posY / 4096;
+                    g_fieldActors[D_8005F148].posY / 4096;
                 D_80070760[63 - i].z = D_80070A60[63 - i].z = z / 4096;
             }
             D_80070760[63 - i].field_0A = D_80070A60[63 - i].field_0A = 0;
             D_80070760[63 - i].field_0B = D_80070A60[63 - i].field_0B =
-                D_80085224[D_8005F148].field_0x241;
+                g_fieldActors[D_8005F148].facingDirection;
             /* FIELD_CHANNEL_SCALE * 4 >> 9 is the same trail spacing func_800B6738
                applies to D_800704B2; written *4 >> 9 because that is the shift pair
                the original emits. */
-            x -= func_8009D234(D_80085224[D_8005F148].field_0x241) *
-                 ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
-            y -= -(func_8009D254(D_80085224[D_8005F148].field_0x241) *
-                   ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
+            x -= func_8009D234(g_fieldActors[D_8005F148].facingDirection) *
+                 ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
+            y -= -(func_8009D254(g_fieldActors[D_8005F148].facingDirection) *
+                   ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
         }
     }
 }
@@ -2975,22 +2963,22 @@ void func_8009ECA4(void) {
     D_8005F160 = 15;
     D_8005F162 = 30;
 
-    lead.vx = D_80085224[g_fieldVars->memberSlot[0]].posX / 4096;
-    trail1.vx = D_80085224[g_fieldVars->memberSlot[1]].posX / 4096;
-    trail2.vx = D_80085224[g_fieldVars->memberSlot[2]].posX / 4096;
-    lead.vy = D_80085224[g_fieldVars->memberSlot[0]].posY / 4096;
-    trail1.vy = D_80085224[g_fieldVars->memberSlot[1]].posY / 4096;
-    trail2.vy = D_80085224[g_fieldVars->memberSlot[2]].posY / 4096;
+    lead.vx = g_fieldActors[g_fieldVars->memberSlot[0]].posX / 4096;
+    trail1.vx = g_fieldActors[g_fieldVars->memberSlot[1]].posX / 4096;
+    trail2.vx = g_fieldActors[g_fieldVars->memberSlot[2]].posX / 4096;
+    lead.vy = g_fieldActors[g_fieldVars->memberSlot[0]].posY / 4096;
+    trail1.vy = g_fieldActors[g_fieldVars->memberSlot[1]].posY / 4096;
+    trail2.vy = g_fieldActors[g_fieldVars->memberSlot[2]].posY / 4096;
 
-    stride = (g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9;
+    stride = (g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9;
     dir1 = func_8009A0E8(&trail1.vx, &lead.vx, &slots1);
     slots1 = (slots1 << 8) / stride;
     dir2 = func_8009A0E8(&trail2.vx, &lead.vx, &slots2);
     slots2 = (slots2 << 8) / stride;
 
-    trail1.vx = trail2.vx = D_80085224[g_fieldVars->memberSlot[0]].posX;
-    trail1.vy = trail2.vy = D_80085224[g_fieldVars->memberSlot[0]].posY;
-    trail1.vz = trail2.vz = D_80085224[g_fieldVars->memberSlot[0]].posZ;
+    trail1.vx = trail2.vx = g_fieldActors[g_fieldVars->memberSlot[0]].posX;
+    trail1.vy = trail2.vy = g_fieldActors[g_fieldVars->memberSlot[0]].posY;
+    trail1.vz = trail2.vz = g_fieldActors[g_fieldVars->memberSlot[0]].posZ;
 
     if (slots1 < 32) {
         for (i = 0; i < slots1; i++) {
@@ -3000,32 +2988,32 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail1.vx / 4096), (s16)(trail1.vy / 4096),
                               (s16)(trail1.vz / 4096), *g_fieldWalkmesh);
             trail1.vx -= func_8009D234((u8)dir1)
-                         * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail1.vy -= -(func_8009D254((u8)dir1)
-                           * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070760[63 - i].z =
-                D_80085224[g_fieldVars->memberSlot[0]].posZ / 4096
-                - (D_80085224[g_fieldVars->memberSlot[0]].posZ
-                   - D_80085224[g_fieldVars->memberSlot[1]].posZ)
+                g_fieldActors[g_fieldVars->memberSlot[0]].posZ / 4096
+                - (g_fieldActors[g_fieldVars->memberSlot[0]].posZ
+                   - g_fieldActors[g_fieldVars->memberSlot[1]].posZ)
                           / 4096 * i / slots1;
             D_80070760[63 - i].field_0A = 0;
             D_80070760[63 - i].field_0B = dir1;
         }
         for (i = slots1; i < 32; i++) {
             D_80070760[63 - i].x =
-                D_80085224[g_fieldVars->memberSlot[1]].posX / 4096;
+                g_fieldActors[g_fieldVars->memberSlot[1]].posX / 4096;
             D_80070760[63 - i].y =
-                D_80085224[g_fieldVars->memberSlot[1]].posY / 4096;
+                g_fieldActors[g_fieldVars->memberSlot[1]].posY / 4096;
             D_80070760[63 - i].unk6 = func_8009AC9C(
-                (s16)(D_80085224[g_fieldVars->memberSlot[1]].posX / 4096),
-                (s16)(D_80085224[g_fieldVars->memberSlot[1]].posY / 4096),
-                (s16)(D_80085224[g_fieldVars->memberSlot[1]].posZ / 4096),
+                (s16)(g_fieldActors[g_fieldVars->memberSlot[1]].posX / 4096),
+                (s16)(g_fieldActors[g_fieldVars->memberSlot[1]].posY / 4096),
+                (s16)(g_fieldActors[g_fieldVars->memberSlot[1]].posZ / 4096),
                 *g_fieldWalkmesh);
             D_80070760[63 - i].z =
-                D_80085224[g_fieldVars->memberSlot[1]].posZ / 4096;
+                g_fieldActors[g_fieldVars->memberSlot[1]].posZ / 4096;
             D_80070760[63 - i].field_0A = 2;
             D_80070760[63 - i].field_0B = dir1;
         }
@@ -3039,32 +3027,32 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail2.vx / 4096), (s16)(trail2.vy / 4096),
                               (s16)(trail2.vz / 4096), *g_fieldWalkmesh);
             trail2.vx -= func_8009D234((u8)dir2)
-                         * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail2.vy -= -(func_8009D254((u8)dir2)
-                           * ((g_fieldEntity.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070A60[63 - i].z =
-                D_80085224[g_fieldVars->memberSlot[0]].posZ / 4096
-                - (D_80085224[g_fieldVars->memberSlot[0]].posZ
-                   - D_80085224[g_fieldVars->memberSlot[2]].posZ)
+                g_fieldActors[g_fieldVars->memberSlot[0]].posZ / 4096
+                - (g_fieldActors[g_fieldVars->memberSlot[0]].posZ
+                   - g_fieldActors[g_fieldVars->memberSlot[2]].posZ)
                           / 4096 * i / slots2;
             D_80070A60[63 - i].field_0A = 0;
             D_80070A60[63 - i].field_0B = dir2;
         }
         for (i = slots2; i < 32; i++) {
             D_80070A60[63 - i].x =
-                D_80085224[g_fieldVars->memberSlot[2]].posX / 4096;
+                g_fieldActors[g_fieldVars->memberSlot[2]].posX / 4096;
             D_80070A60[63 - i].y =
-                D_80085224[g_fieldVars->memberSlot[2]].posY / 4096;
+                g_fieldActors[g_fieldVars->memberSlot[2]].posY / 4096;
             D_80070A60[63 - i].unk6 = func_8009AC9C(
-                (s16)(D_80085224[g_fieldVars->memberSlot[2]].posX / 4096),
-                (s16)(D_80085224[g_fieldVars->memberSlot[2]].posY / 4096),
-                (s16)(D_80085224[g_fieldVars->memberSlot[2]].posZ / 4096),
+                (s16)(g_fieldActors[g_fieldVars->memberSlot[2]].posX / 4096),
+                (s16)(g_fieldActors[g_fieldVars->memberSlot[2]].posY / 4096),
+                (s16)(g_fieldActors[g_fieldVars->memberSlot[2]].posZ / 4096),
                 *g_fieldWalkmesh);
             D_80070A60[63 - i].z =
-                D_80085224[g_fieldVars->memberSlot[2]].posZ / 4096;
+                g_fieldActors[g_fieldVars->memberSlot[2]].posZ / 4096;
             D_80070A60[63 - i].field_0A = 2;
             D_80070A60[63 - i].field_0B = dir2;
         }
@@ -3128,7 +3116,7 @@ s32 func_8009F74C(Actor *a, Actor *b) {
  *   - @c sign  < 0 → @c (idx, b, 1, -1)  (reverse step)
  *
  * After that, calls @c func_8009BD50 (path recorder) on the Actor
- * @c D_80085224[idx] with the requested @c mode and @c sign, then
+ * @c g_fieldActors[idx] with the requested @c mode and @c sign, then
  * @c func_8009BB18 to publish the resulting waypoint.
  */
 void func_8009F7F4(s16 idx, s8 sign, u8 b, s16 mode) {
@@ -3139,33 +3127,33 @@ void func_8009F7F4(s16 idx, s8 sign, u8 b, s16 mode) {
     } else {
         func_8009B4A8(idx, b, 1, -1);
     }
-    func_8009BD50(&D_80085224[idx], mode, sign, 0);
+    func_8009BD50(&g_fieldActors[idx], mode, sign, 0);
     func_8009BB18();
 }
 
 /**
  * @brief Interpolate an Actor's X/Y/Z position via the safe-lerp helper.
  *
- * Looks up @c D_80085224[idx] and runs @c func_800A0E54 three times to
+ * Looks up @c g_fieldActors[idx] and runs @c func_800A0E54 three times to
  * compute @c posX / @c posY / @c posZ from the unk1A8/AC/B0 endpoints
  * and field_0x1C0/C4/C8 targets, using field_0x1D8/DA as the total/step.
  *
- * @note Uses unsubscripted @c D_80085224 to defeat gcc 2.7.2's CSE
+ * @note Uses unsubscripted @c g_fieldActors to defeat gcc 2.7.2's CSE
  *       of the global pointer load (target reloads after each call).
  */
 void func_8009F8D0(s16 idx) {
-    D_80085224[idx].posX = func_800A0E54(D_80085224[idx].unk1A8,
-                                         D_80085224[idx].field_0x1C0,
-                                         (s16)D_80085224[idx].field_0x1D8,
-                                         (s16)D_80085224[idx].field_0x1DA);
-    D_80085224[idx].posY = func_800A0E54(D_80085224[idx].unk1AC,
-                                         D_80085224[idx].field_0x1C4,
-                                         (s16)D_80085224[idx].field_0x1D8,
-                                         (s16)D_80085224[idx].field_0x1DA);
-    D_80085224[idx].posZ = func_800A0E54(D_80085224[idx].unk1B0,
-                                         D_80085224[idx].field_0x1C8,
-                                         (s16)D_80085224[idx].field_0x1D8,
-                                         (s16)D_80085224[idx].field_0x1DA);
+    g_fieldActors[idx].posX = func_800A0E54(g_fieldActors[idx].unk1A8,
+                                         g_fieldActors[idx].field_0x1C0,
+                                         (s16)g_fieldActors[idx].field_0x1D8,
+                                         (s16)g_fieldActors[idx].field_0x1DA);
+    g_fieldActors[idx].posY = func_800A0E54(g_fieldActors[idx].unk1AC,
+                                         g_fieldActors[idx].field_0x1C4,
+                                         (s16)g_fieldActors[idx].field_0x1D8,
+                                         (s16)g_fieldActors[idx].field_0x1DA);
+    g_fieldActors[idx].posZ = func_800A0E54(g_fieldActors[idx].unk1B0,
+                                         g_fieldActors[idx].field_0x1C8,
+                                         (s16)g_fieldActors[idx].field_0x1D8,
+                                         (s16)g_fieldActors[idx].field_0x1DA);
 }
 
 /**
@@ -3203,77 +3191,77 @@ void func_8009F990(s16 idx, s32 flags) {
     u8 b;
 
     if (idx == D_8005F148 && D_800704BD == 0) {
-        if (D_80085224[idx].windowId == 1) {
+        if (g_fieldActors[idx].windowId == 1) {
             if (flags & 0xC000) {
                 p = D_8005F144;
                 D_80070760[p].field_0A = D_80070A60[p].field_0A = 4;
                 p = D_8005F144;
-                D_80070760[p].field_0B = D_80070A60[p].field_0B = D_80085224[idx].field_0x241;
-                func_8009F7F4(idx, -1, D_80085224[idx].field_0x253, 1);
+                D_80070760[p].field_0B = D_80070A60[p].field_0B = g_fieldActors[idx].facingDirection;
+                func_8009F7F4(idx, -1, g_fieldActors[idx].field_0x253, 1);
                 func_8009F8D0(idx);
                 func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
                 func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
-                D_80085224[idx].field_0x1DA--;
-                if (D_80085224[idx].field_0x1DA < 0) {
-                    D_80085224[idx].field_0x1DA = 0;
-                    D_80085224[idx].msgState = 5;
+                g_fieldActors[idx].field_0x1DA--;
+                if (g_fieldActors[idx].field_0x1DA < 0) {
+                    g_fieldActors[idx].field_0x1DA = 0;
+                    g_fieldActors[idx].msgState = 5;
                 }
             } else if (flags & 0x3000) {
                 p = D_8005F144;
                 D_80070760[p].field_0A = D_80070A60[p].field_0A = 4;
                 p = D_8005F144;
-                D_80070760[p].field_0B = D_80070A60[p].field_0B = D_80085224[idx].field_0x241;
-                func_8009F7F4(idx, 1, D_80085224[idx].field_0x253, 1);
+                D_80070760[p].field_0B = D_80070A60[p].field_0B = g_fieldActors[idx].facingDirection;
+                func_8009F7F4(idx, 1, g_fieldActors[idx].field_0x253, 1);
                 func_8009F8D0(idx);
                 func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
                 func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
-                D_80085224[idx].field_0x1DA++;
-                if (D_80085224[idx].field_0x1DA == D_80085224[idx].field_0x1D8) {
-                    D_80085224[idx].field_0x1DA = 0;
-                    D_80085224[idx].msgState = 4;
+                g_fieldActors[idx].field_0x1DA++;
+                if (g_fieldActors[idx].field_0x1DA == g_fieldActors[idx].field_0x1D8) {
+                    g_fieldActors[idx].field_0x1DA = 0;
+                    g_fieldActors[idx].msgState = 4;
                 }
             } else {
-                func_8009F7F4(idx, 0, D_80085224[idx].field_0x253, 0);
+                func_8009F7F4(idx, 0, g_fieldActors[idx].field_0x253, 0);
             }
         } else {
             if (flags & 0x3000) {
                 p = D_8005F144;
                 D_80070760[p].field_0A = D_80070A60[p].field_0A = 4;
                 p = D_8005F144;
-                D_80070760[p].field_0B = D_80070A60[p].field_0B = D_80085224[idx].field_0x241;
-                func_8009F7F4(idx, 1, D_80085224[idx].field_0x253, 1);
+                D_80070760[p].field_0B = D_80070A60[p].field_0B = g_fieldActors[idx].facingDirection;
+                func_8009F7F4(idx, 1, g_fieldActors[idx].field_0x253, 1);
                 func_8009F8D0(idx);
                 func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
                 func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
-                D_80085224[idx].field_0x1DA--;
-                if (D_80085224[idx].field_0x1DA < 0) {
-                    D_80085224[idx].field_0x1DA = 0;
-                    D_80085224[idx].msgState = 5;
+                g_fieldActors[idx].field_0x1DA--;
+                if (g_fieldActors[idx].field_0x1DA < 0) {
+                    g_fieldActors[idx].field_0x1DA = 0;
+                    g_fieldActors[idx].msgState = 5;
                 }
             } else if (flags & 0xC000) {
                 p = D_8005F144;
                 D_80070760[p].field_0A = D_80070A60[p].field_0A = 4;
                 p = D_8005F144;
-                D_80070760[p].field_0B = D_80070A60[p].field_0B = D_80085224[idx].field_0x241;
-                func_8009F7F4(idx, -1, D_80085224[idx].field_0x253, 1);
+                D_80070760[p].field_0B = D_80070A60[p].field_0B = g_fieldActors[idx].facingDirection;
+                func_8009F7F4(idx, -1, g_fieldActors[idx].field_0x253, 1);
                 func_8009F8D0(idx);
                 func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
                 func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
-                D_80085224[idx].field_0x1DA++;
-                if (D_80085224[idx].field_0x1DA == D_80085224[idx].field_0x1D8) {
-                    D_80085224[idx].field_0x1DA = 0;
-                    D_80085224[idx].msgState = 4;
+                g_fieldActors[idx].field_0x1DA++;
+                if (g_fieldActors[idx].field_0x1DA == g_fieldActors[idx].field_0x1D8) {
+                    g_fieldActors[idx].field_0x1DA = 0;
+                    g_fieldActors[idx].msgState = 4;
                 }
             } else {
-                func_8009F7F4(idx, 0, D_80085224[idx].field_0x253, 0);
+                func_8009F7F4(idx, 0, g_fieldActors[idx].field_0x253, 0);
             }
         }
     } else {
-        if (D_80085224[idx].field_0x1DA == D_80085224[idx].field_0x1D8) {
-            D_80085224[idx].msgState = 2;
+        if (g_fieldActors[idx].field_0x1DA == g_fieldActors[idx].field_0x1D8) {
+            g_fieldActors[idx].msgState = 2;
         } else {
-            D_80085224[idx].field_0x1DA++;
-            D_800D9630[idx]->unk52 += D_80085224[idx].field_0x208;
+            g_fieldActors[idx].field_0x1DA++;
+            D_800D9630[idx]->unk52 += g_fieldActors[idx].field_0x208;
             if (D_800D9630[idx]->unk0C - 1 < D_800D9630[idx]->unk52) {
                 D_800D9630[idx]->unk52 = 0;
             }
@@ -3305,7 +3293,7 @@ void func_8009F990(s16 idx, s32 flags) {
  *  - 6: settle in place, narrow the camera limits, and pick a hold time from how
  *       many party followers are present. On expiry go to state 2.
  *
- * @param entIdx Entity index; @c ent is @c D_80085224[entIdx].
+ * @param entIdx Entity index; @c ent is @c g_fieldActors[entIdx].
  * @param actor    The entity to advance.
  * @param flags  Pad state, forwarded to @c func_8009F990 in state 1.
  *
@@ -3347,7 +3335,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
         func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
         func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
         p = D_8005F144;
-        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->field_0x241;
+        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->facingDirection;
         actor->field_0x1DA++;
         if (actor->field_0x1DA < actor->field_0x1D8) {
             break;
@@ -3381,7 +3369,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
         func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
         func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
         p = D_8005F144;
-        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->field_0x241;
+        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->facingDirection;
         actor->field_0x1DA++;
         if (actor->field_0x1DA < actor->field_0x1D8) {
             break;
@@ -3407,7 +3395,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
         func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 1);
         func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 1);
         p = D_8005F144;
-        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->field_0x241;
+        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->facingDirection;
         actor->field_0x1DA++;
         if (actor->field_0x1DA < actor->field_0x1D8) {
             break;
@@ -3422,9 +3410,9 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
         D_80070760[p].field_0A = D_80070A60[p].field_0A = 2;
         func_8009F7F4((s16)idx, -1, actor->field_0x24F, 1);
         if (actor->field_0x1DA == 0) {
-            if (g_fieldEntity.entityIndex[2] != 0xFF) {
+            if (g_fieldContext.entityIndex[2] != 0xFF) {
                 actor->field_0x1D8 = 32;
-            } else if (g_fieldEntity.entityIndex[1] != 0xFF) {
+            } else if (g_fieldContext.entityIndex[1] != 0xFF) {
                 actor->field_0x1D8 = 16;
             } else {
                 actor->field_0x1D8 = 1;
@@ -3433,7 +3421,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
         func_8009B74C(2, (D_8005F144 - D_8005F11A) & FIELD_PATH_RING_MASK, D_80070A60, 2);
         func_8009B74C(1, (D_8005F144 - D_8005F118) & FIELD_PATH_RING_MASK, D_80070760, 2);
         p = D_8005F144;
-        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->field_0x241;
+        D_80070760[p].field_0B = D_80070A60[p].field_0B = actor->facingDirection;
         actor->unk258 = 1;
         actor->field_0x1DA++;
         if (actor->field_0x1DA < actor->field_0x1D8) {

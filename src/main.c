@@ -28,73 +28,70 @@
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 
-/** @brief Turn the GPU's mask-bit setting off with one packet, and wait until the GPU is idle. */
-void flushGpuOt(void) {
+static void DisableStpBit(void);
+static void SaveFieldSnapshot(void);
+static void RestoreFieldSnapshot(void);
+
+static void DisableStpBit(void) {
     DR_STP prim;
     u32 ot[2];
 
     ClearOTag(ot, 2);
-    SetDrawStp(&prim, 0);
+    SetDrawStp(&prim, 0); // semi-transparency bit
     addPrim(ot, &prim);
     DrawOTag(ot);
 
-    while (DrawSync(1) != 0) {}
+    while (DrawSync(1));
 }
 
-/** @brief VSync callback handler, registered via VSyncCallback in InitHardware.
- *
- *  Dispatches per-frame rendering by the current render mode and advances the
- * play time and the countdown, both counted in seconds.
- */
 void VsyncHandler(void) {
     switch (g_renderMode) {
-    case 0:
+    case RENDER_IDLE:
         break;
-    case 1:
+    case RENDER_FADE:
         ProcessFade();
         break;
-    case 2:
+    case RENDER_BATTLE_TRANSITION:
         paceBattleTransition();
         break;
-    case 3:
+    case RENDER_BATTLE:
         func_800D0608();
         break;
-    case 4:
+    case RENDER_BATTLE_RESULTS:
         vsyncGameHandler();
         break;
     }
 
-    if (IsPlayTimePaused() != 0) {
-        D_8005F11E = 1;
+    if (IsPlayTimePaused()) {
+        g_vsyncDone = 1;
         return;
     }
-    if (g_vsyncSkip != 0) {
-        D_8005F11E = 1;
+    if (g_vsyncSkip) {
+        g_vsyncDone = 1;
         return;
     }
 
-    D_8005F154 += 0x88F;
-    if (D_8005F154 >> 17) {
+    // This function is called 59.8 times per second (on NTSC).
+    // Make use of that fact to tick the in-game clock.
+    g_secondTicker += 0x88F;
+    if (g_secondTicker >> 17) {
         g_gameState.mainData.playTimeSeconds++;
-        D_8005F154 &= 0xFFFF;
+        g_secondTicker &= 0xFFFF;
     }
 
-    D_8005F15C += 0x88F;
-    if (D_8005F15C >> 17) {
+    g_countdownTicker += 0x88F;
+    if (g_countdownTicker >> 17) {
         if (g_gameState.mainData.countdownTimer == 0) {
-            D_8005F11E = 1;
+            g_vsyncDone = 1;
             return;
         }
         g_gameState.mainData.countdownTimer--;
-        D_8005F15C &= 0xFFFF;
+        g_countdownTicker &= 0xFFFF;
     }
 
-    D_8005F11E = 1;
+    g_vsyncDone = 1;
 }
 
-/** @brief Initializes the PS1 hardware (memory, callbacks, GPU, GTE, SPU) and
- *         registers the VSync handler. Called once at startup.
- */
 void InitHardware(void) {
     SetMem(2);
     StopCallback();
@@ -109,59 +106,45 @@ void InitHardware(void) {
     InitGeom();
 }
 
-/** @brief Saves the current battle/field camera state to a snapshot buffer.
- *
- *  Records the party's positions, rotations, animation states, and display
- *  parameters so RestoreSnapshot can restore them when returning from battle.
- */
-void func_80011870(void) {
+static void SaveFieldSnapshot(void) {
     s16 i;
 
     if (g_previousGameMode == GAME_MODE_WORLD) {
-        g_gameState.cameraSnapshot.vsyncRate = 2;
+        g_gameState.fieldStateSnapshot.gameMode = GAME_MODE_WORLD;
     } else {
-        g_gameState.cameraSnapshot.vsyncRate = 1;
+        g_gameState.fieldStateSnapshot.gameMode = GAME_MODE_FIELD;
     }
 
-    g_gameState.cameraSnapshot.fieldId = g_curFieldId;
-    g_gameState.cameraSnapshot.field120 = g_fieldEntity.field_0x120;
+    g_gameState.fieldStateSnapshot.fieldId = g_curFieldId;
+    g_gameState.fieldStateSnapshot.previousFieldId = g_fieldContext.previousFieldId;
 
     for (i = 0; i < 3; i++) {
-        g_gameState.cameraSnapshot.positionsX[i] = D_80085224[g_fieldEntity.entityIndex[i]].posX >> 12;
-        g_gameState.cameraSnapshot.positionsY[i] = D_80085224[g_fieldEntity.entityIndex[i]].posY >> 12;
-        g_gameState.cameraSnapshot.triIdxs[i] = D_80085224[g_fieldEntity.entityIndex[i]].triIdx;
-        g_gameState.cameraSnapshot.animStates[i] = D_80085224[g_fieldEntity.entityIndex[i]].field_0x241;
+        g_gameState.fieldStateSnapshot.positionsX[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posX >> 12;
+        g_gameState.fieldStateSnapshot.positionsY[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posY >> 12;
+        g_gameState.fieldStateSnapshot.triIdxs[i] = g_fieldActors[g_fieldContext.entityIndex[i]].triIdx;
+        g_gameState.fieldStateSnapshot.facingDirection[i] = g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
     }
 
-    g_gameState.cameraSnapshot.fade1 = D_8005F151;
-    g_gameState.cameraSnapshot.fade0 = D_8005F150;
+    g_gameState.fieldStateSnapshot.fieldRngIndex = g_fieldRngIndex;
+    g_gameState.fieldStateSnapshot.fieldRngOffset = g_fieldRngOffset;
 }
 
-/** @brief Restores a previously saved camera/field state snapshot.
- *
- *  Inverse of func_80011870: writes the saved party positions, rotations,
- *  animation states, and display parameters back into the live field state.
- */
-void RestoreSnapshot(void) {
-    SystemState *entity;
-
-    g_gameMode = g_gameState.cameraSnapshot.vsyncRate;
+static void RestoreFieldSnapshot(void) {
+    g_gameMode = g_gameState.fieldStateSnapshot.gameMode;
     if (g_gameMode == GAME_MODE_NONE) {
         g_gameMode = GAME_MODE_FIELD;
     }
 
-    g_curFieldId = g_gameState.cameraSnapshot.fieldId;
+    g_curFieldId = g_gameState.fieldStateSnapshot.fieldId;
 
-    entity = &g_fieldEntity;
+    g_fieldContext.previousFieldId = g_gameState.fieldStateSnapshot.previousFieldId;
+    g_fieldContext.position_x = g_gameState.fieldStateSnapshot.positionsX[0];
+    g_fieldContext.position_y = g_gameState.fieldStateSnapshot.positionsY[0];
+    g_fieldContext.spawnTriIdx = g_gameState.fieldStateSnapshot.triIdxs[0];
+    g_fieldContext.facingDirection = g_gameState.fieldStateSnapshot.facingDirection[0];
 
-    entity->field_0x120 = g_gameState.cameraSnapshot.field120;
-    entity->position_x = g_gameState.cameraSnapshot.positionsX[0];
-    entity->position_y = g_gameState.cameraSnapshot.positionsY[0];
-    entity->spawnTriIdx = g_gameState.cameraSnapshot.triIdxs[0];
-    entity->facingDirection = g_gameState.cameraSnapshot.animStates[0];
-
-    D_8005F151 = g_gameState.cameraSnapshot.fade1;
-    D_8005F150 = g_gameState.cameraSnapshot.fade0;
+    g_fieldRngIndex = g_gameState.fieldStateSnapshot.fieldRngIndex;
+    g_fieldRngOffset = g_gameState.fieldStateSnapshot.fieldRngOffset;
 }
 
 void LoadFieldOverlay(void) {
@@ -309,14 +292,14 @@ void ff8main(void) {
         initBattleAssets();
         g_gameMode = GAME_MODE_FIELD;
         g_previousGameMode = GAME_MODE_NONE;
-        g_fieldEntity.unk1A3 = 0;
+        g_fieldContext.unk1A3 = 0;
         D_8005F14A = 0;
         D_8005F100 = 0x49;
-        g_fieldEntity.mode = 0;
-        g_fieldEntity.unk1A2 = 0;
+        g_fieldContext.mode = 0;
+        g_fieldContext.unk1A2 = 0;
         result = func_8003646C(25);
         if (!(result & 2)) {
-            RestoreSnapshot();
+            RestoreFieldSnapshot();
             LoadFieldOverlay();
             SmInitEventAll(0);
         } else {
@@ -367,9 +350,9 @@ void ff8main(void) {
                     }
                     D_8005F14A = 0;
                     if (func_800987D8() == 1) {
-                        g_fieldEntity.counter = 0;
-                        g_fieldEntity.mode = 4;
-                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        g_fieldContext.counter = 0;
+                        g_fieldContext.mode = 4;
+                        g_fieldContext.spawnTriIdx = 0x7FFF;
                         sndStopAll();
                         break;
                     }
@@ -378,11 +361,11 @@ void ff8main(void) {
                     case WORLD_EXIT_TO_FIELD:
                         entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
                         fieldId = entry->fieldId;
-                        g_fieldEntity.position_x = entry->position_x;
-                        g_fieldEntity.position_y = entry->position_y;
-                        g_fieldEntity.spawnTriIdx = entry->spawnTriIdx;
+                        g_fieldContext.position_x = entry->position_x;
+                        g_fieldContext.position_y = entry->position_y;
+                        g_fieldContext.spawnTriIdx = entry->spawnTriIdx;
                         g_curFieldId = fieldId;
-                        g_fieldEntity.facingDirection = entry->facingDirection;
+                        g_fieldContext.facingDirection = entry->facingDirection;
                         g_gameMode = GAME_MODE_FIELD;
                         sndCmd21(-1, 0);
                         break;
@@ -402,7 +385,7 @@ void ff8main(void) {
                 case GAME_MODE_BATTLE:
                 case GAME_MODE_BATTLE_DEBUG_MENU:
                     if (g_previousGameMode == GAME_MODE_FIELD) {
-                        g_battleConfig.battleSceneId = g_fieldEntity.counter;
+                        g_battleConfig.battleSceneId = g_fieldContext.counter;
                         mapAddr = D_8005F13C;
                     } else {
                         g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
@@ -410,13 +393,13 @@ void ff8main(void) {
                     }
                     func_80038030(mapAddr);
                     gameStateLoop();
-                    if (g_renderMode != 4) {
-                        flushGpuOt();
+                    if (g_renderMode != RENDER_BATTLE_RESULTS) {
+                        DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
-                        g_fieldEntity.counter = 0;
-                        g_fieldEntity.mode = 4;
-                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        g_fieldContext.counter = 0;
+                        g_fieldContext.mode = 4;
+                        g_fieldContext.spawnTriIdx = 0x7FFF;
                         break;
                     }
                     if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
@@ -445,7 +428,7 @@ void ff8main(void) {
                     for (i = 0; i < 3; i++) {
                         if (g_battleConfig.unk4[i] != 0xFF) {
                             do {
-                            } while (g_renderMode == 4);
+                            } while (g_renderMode == RENDER_BATTLE_RESULTS);
                             while (DrawSync(1) != 0) {}
                             func_8003646C(g_battleConfig.unk4[i] + 5);
                         }
@@ -453,11 +436,11 @@ void ff8main(void) {
                     break;
                 case GAME_MODE_MENU:
                 case GAME_MODE_SCRIPT_MENU:
-                    while (g_renderMode != 0) {}
+                    while (g_renderMode != RENDER_IDLE) {}
                     SetDispMask(0);
-                    func_80011870();
+                    SaveFieldSnapshot();
                     if (g_previousGameMode == GAME_MODE_FIELD) {
-                        result = func_8003646C(g_fieldEntity.counter, g_fieldEntity.unk1AB);
+                        result = func_8003646C(g_fieldContext.counter, g_fieldContext.unk1AB);
                         if (result & 1) {
                             clearEntityFlags();
                             if (g_gameMode == GAME_MODE_MENU) {
@@ -488,15 +471,15 @@ void ff8main(void) {
                     }
                     func_80038030(mapAddr);
                     gameStateLoop();
-                    if (g_renderMode != 4) {
-                        flushGpuOt();
+                    if (g_renderMode != RENDER_BATTLE_RESULTS) {
+                        DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
                         do {
                         } while (0);
-                        g_fieldEntity.counter = 0;
-                        g_fieldEntity.mode = 4;
-                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        g_fieldContext.counter = 0;
+                        g_fieldContext.mode = 4;
+                        g_fieldContext.spawnTriIdx = 0x7FFF;
                         break;
                     }
                     if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
@@ -525,7 +508,7 @@ void ff8main(void) {
                     for (i = 0; i < 3; i++) {
                         if (g_battleConfig.unk4[i] != 0xFF) {
                             do {
-                            } while (g_renderMode == 4);
+                            } while (g_renderMode == RENDER_BATTLE_RESULTS);
                             while (DrawSync(1) != 0) {}
                             func_8003646C(g_battleConfig.unk4[i] + 5);
                         }
@@ -534,19 +517,19 @@ void ff8main(void) {
                 case GAME_MODE_DISC_CHANGE:
                     LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
                     while (func_800393C8() != 0) {}
-                    func_80098FD4(g_fieldEntity.unk1A0);
-                    mode = g_fieldEntity.unk1A0;
+                    func_80098FD4(g_fieldContext.unk1A0);
+                    mode = g_fieldContext.unk1A0;
                     if (mode == 1) {
                         loadFileTable();
                         LoadWm2FieldTable();
                         g_previousGameMode = GAME_MODE_NONE;
                         g_gameMode = mode;
-                        g_curFieldId = g_fieldEntity.counter;
+                        g_curFieldId = g_fieldContext.counter;
                     }
                     break;
                 }
             } while (0);
-        } while (g_fieldEntity.mode != 4);
+        } while (g_fieldContext.mode != 4);
         sndStopAll();
         SetPlayTimePaused(0);
         WaitForGamePadDetection();

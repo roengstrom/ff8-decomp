@@ -39,7 +39,7 @@ void func_800AF254(void) {
     }
     
     sndCmdF1();
-    g_renderMode = 0;
+    g_renderMode = RENDER_IDLE;
     VSync(2);
     DrawSync(0);
     func_800D0B24();

@@ -168,7 +168,7 @@ s32 opHandler_PUSHOFF(Actor *actor) {
  *        @c e->field_0x255, then disables that entity: clears flag
  *        bit @c 0x4, calls @c func_800B912C with the entity's
  *        animation byte, sets the @c 0x2040 flag pair, and marks the
- *        slot in @c g_fieldEntity.entityIndex as inactive (@c 0xFF).
+ *        slot in @c g_fieldContext.entityIndex as inactive (@c 0xFF).
  *
  * @return 2 (continue processing).
  */
@@ -179,7 +179,7 @@ s32 opHandler_FOLLOWOFF(Actor *actor) {
             actor->context.flags &= ~4;
             func_800B912C(actor, actor->field_0x24F);
             actor->context.flags |= 0x2040;
-            g_fieldEntity.entityIndex[i] = 0xFF;
+            g_fieldContext.entityIndex[i] = 0xFF;
             break;
         }
     }
@@ -189,7 +189,7 @@ s32 opHandler_FOLLOWOFF(Actor *actor) {
 /**
  * @brief op0AC — locate the active-party slot whose @c battleParty
  *        member matches @c e->field_0x255, then snapshot
- *        @c e->field_0x256 into @c g_fieldEntity.entityIndex for that
+ *        @c e->field_0x256 into @c g_fieldContext.entityIndex for that
  *        slot and clear the entity's "needs broadcast" flag (0x40).
  *
  * @return 2 (continue processing).
@@ -199,7 +199,7 @@ s32 opHandler_FOLLOWON(Actor *actor) {
     for (i = 0; i < 3; i++) {
         if (g_gameState.battleParty[i] == actor->field_0x255) {
             actor->context.flags &= ~0x40;
-            g_fieldEntity.entityIndex[i] = actor->field_0x256;
+            g_fieldContext.entityIndex[i] = actor->field_0x256;
             break;
         }
     }
@@ -260,7 +260,7 @@ s32 opHandler_GETINFO(Actor *actor) {
     actor->context.resultSlots[0] = actor->posX / 4096;
     actor->context.resultSlots[1] = actor->posY / 4096;
     actor->context.resultSlots[2] = actor->posZ / 4096;
-    actor->context.resultSlots[4] = actor->field_0x241;
+    actor->context.resultSlots[4] = actor->facingDirection;
     actor->context.resultSlots[5] = actor->triIdx;
     actor->context.resultSlots[6] = actor->moveSpeed;
     return 2;
@@ -288,12 +288,12 @@ s32 opHandler_PGETINFO(ScriptContext *context) {
     context->stackPtr = idx - 1;
     popped = context->stack[(s8)idx];
     entIdx = seed->memberSlot[popped];
-    context->resultSlots[0] = D_80085224[entIdx].posX / 4096;
-    context->resultSlots[1] = D_80085224[entIdx].posY / 4096;
-    context->resultSlots[2] = D_80085224[entIdx].posZ / 4096;
-    context->resultSlots[4] = D_80085224[entIdx].field_0x241;
-    context->resultSlots[5] = D_80085224[entIdx].triIdx;
-    context->resultSlots[6] = D_80085224[entIdx].moveSpeed;
+    context->resultSlots[0] = g_fieldActors[entIdx].posX / 4096;
+    context->resultSlots[1] = g_fieldActors[entIdx].posY / 4096;
+    context->resultSlots[2] = g_fieldActors[entIdx].posZ / 4096;
+    context->resultSlots[4] = g_fieldActors[entIdx].facingDirection;
+    context->resultSlots[5] = g_fieldActors[entIdx].triIdx;
+    context->resultSlots[6] = g_fieldActors[entIdx].moveSpeed;
     return 2;
 }
 
@@ -319,7 +319,7 @@ s32 opHandler_WHOAMI(ScriptContext *context) {
  *     active party.
  *
  * Bit 1 (only meaningful with bit 0 set) chooses between:
- *   - bit 1 set: park @c g_fieldEntity into mode-5 (active-party swap
+ *   - bit 1 set: park @c g_fieldContext into mode-5 (active-party swap
  *     animation) with a @c 0x16-frame counter and @c unk1AB copied
  *     from the bottom 3 bits of @c stateFlags.
  *   - bit 1 clear: defer to @c func_80036D44 with those same 3 bits.
@@ -346,9 +346,9 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
         }
 
         if (popped & 2) {
-            g_fieldEntity.mode = 5;
-            g_fieldEntity.counter = 0x16;
-            g_fieldEntity.unk1AB = g_fieldVars->stateFlags & 7;
+            g_fieldContext.mode = 5;
+            g_fieldContext.counter = 0x16;
+            g_fieldContext.unk1AB = g_fieldVars->stateFlags & 7;
         } else {
             func_80036D44(g_fieldVars->stateFlags & 7);
         }
@@ -371,9 +371,9 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
 /**
  * @brief Pop an entity id, look up the corresponding @c Actor in the
  *        @c D_80085230 table, and copy six locator fields (pos x/y/z,
- *        @c field_0x241, @c triIdx, @c moveSpeed) from that
+ *        @c facingDirection, @c triIdx, @c moveSpeed) from that
  *        entity into the current one. Finally call @c func_8009A8E0
- *        on the global @c D_8008538C anchor to recompute derived
+ *        on the global @c g_fieldLines anchor to recompute derived
  *        coordinates.
  *
  * @return 2 (continue processing).
@@ -388,10 +388,10 @@ s32 opHandler_COPYINFO(Actor *actor) {
     actor->posX = D_80085230[entityId]->posX;
     actor->posY = D_80085230[entityId]->posY;
     actor->posZ = D_80085230[entityId]->posZ;
-    actor->field_0x241 = D_80085230[entityId]->field_0x241;
+    actor->facingDirection = D_80085230[entityId]->facingDirection;
     actor->triIdx = D_80085230[entityId]->triIdx;
     actor->moveSpeed = D_80085230[entityId]->moveSpeed;
-    func_8009A8E0(D_8008538C);
+    func_8009A8E0(g_fieldLines);
     return 2;
 }
 
@@ -400,8 +400,8 @@ s32 opHandler_COPYINFO(Actor *actor) {
  *        through the active-party @c memberSlot[] table — pop a
  *        party-slot id, look up @c g_fieldVars->memberSlot[party] for
  *        the field-entity index, and copy six locator fields
- *        (pos x/y/z, @c field_0x241, @c triIdx, @c moveSpeed)
- *        into the current entity. Calls @c func_8009A8E0(D_8008538C)
+ *        (pos x/y/z, @c facingDirection, @c triIdx, @c moveSpeed)
+ *        into the current entity. Calls @c func_8009A8E0(g_fieldLines)
  *        afterwards to recompute derived state.
  *
  * @return 2 (continue processing).
@@ -416,13 +416,13 @@ s32 opHandler_PCOPYINFO(Actor *actor) {
     actor->context.stackPtr = idx - 1;
     popped = actor->context.stack[(s8)idx];
     entIdx = seed->memberSlot[popped];
-    actor->posX = D_80085224[entIdx].posX;
-    actor->posY = D_80085224[entIdx].posY;
-    actor->posZ = D_80085224[entIdx].posZ;
-    actor->field_0x241 = D_80085224[entIdx].field_0x241;
-    actor->triIdx = D_80085224[entIdx].triIdx;
-    actor->moveSpeed = D_80085224[entIdx].moveSpeed;
-    func_8009A8E0(D_8008538C);
+    actor->posX = g_fieldActors[entIdx].posX;
+    actor->posY = g_fieldActors[entIdx].posY;
+    actor->posZ = g_fieldActors[entIdx].posZ;
+    actor->facingDirection = g_fieldActors[entIdx].facingDirection;
+    actor->triIdx = g_fieldActors[entIdx].triIdx;
+    actor->moveSpeed = g_fieldActors[entIdx].moveSpeed;
+    func_8009A8E0(g_fieldLines);
     return 2;
 }
 
@@ -550,8 +550,8 @@ s32 opHandler_MOVIE(ScriptContext *context) {
 
     g_fieldVars->stateFlags |= FIELD_STATE_FLAG_1000;
     if (func_801E82CC()) {
-        p = D_80085224;
-        for (i = 0; i < D_80085388; i++) {
+        p = g_fieldActors;
+        for (i = 0; i < g_fieldActorCount; i++) {
             sc = (s16)p->moveSpeed;
             mc = (s16)p->msgChannel;
             fc = (s16)p->field_0x208;
@@ -574,7 +574,7 @@ s32 opHandler_MOVIE(ScriptContext *context) {
  * @brief Halve the rate triple (@c moveSpeed / @c msgChannel /
  *        @c field_0x208 ) of every active entity,
  *        clear the @c 0x1000 bit of the state flags, and reset two
- *        re-arm flags ( @c g_fieldEntity.unk1A3 — only if @c unk015 is
+ *        re-arm flags ( @c g_fieldContext.unk1A3 — only if @c unk015 is
  *        clear — and @c D_800DE4FD[0] ). Counterpart of @c
  *        opHandler_MOVIE's doubling step — called as part of the
  *        cinematic / movie postlude to restore the dialog channels
@@ -588,15 +588,15 @@ void func_800B14C8(void) {
     Actor *p;
 
     g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_1000;
-    p = D_80085224;
-    for (i = 0; i < D_80085388; i++) {
+    p = g_fieldActors;
+    for (i = 0; i < g_fieldActorCount; i++) {
         p->moveSpeed = (s16)p->moveSpeed / 2;
         p->msgChannel = (s16)p->msgChannel / 2;
         p->field_0x208 = (s16)p->field_0x208 / 2;
         p++;
     }
-    if (g_fieldEntity.unk015 == 0) {
-        g_fieldEntity.unk1A3 = 0;
+    if (g_fieldContext.unk015 == 0) {
+        g_fieldContext.unk1A3 = 0;
     }
     D_800DE4FD[0] = 0;
 }

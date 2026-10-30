@@ -310,19 +310,19 @@ void func_800BD804(s32 stepDelta) {
  *
  * On entry, mirrors party gil/dreamGil from @c g_gameState to
  * @c g_fieldVars, mirrors the audio-channel marker @c fieldD1 into
- * @c g_fieldEntity.unk1AB, and closes the per-slot dialogs whose ambient
+ * @c g_fieldContext.unk1AB, and closes the per-slot dialogs whose ambient
  * trigger has expired (@c dialogStartMask bit set without
  * @c dialogEntryMask). Then calls @c getPackedField2Bit for the active
- * dispatcher slot and stores the result into @c g_fieldEntity.packedFlagSlot.
+ * dispatcher slot and stores the result into @c g_fieldContext.packedFlagSlot.
  *
  * Runs four script-VM dispatch loops in order:
- *   - @c D_80085224 / @c D_80085388  — full @c Actor pool (stride 0x264);
+ *   - @c g_fieldActors / @c g_fieldActorCount  — full @c Actor pool (stride 0x264);
  *     each tick processes SFX-trigger 6/7 plus up to 16 opcode steps.
- *   - @c D_8008538C / @c D_800852F8 — @c Eline pool (stride 0x1A0);
+ *   - @c g_fieldLines / @c g_fieldLineCount — @c Eline pool (stride 0x1A0);
  *     6 SFX triggers (groups 2..7) gated by @c D_800704BD.
- *   - @c D_80085384 / @c D_80085228 — @c Dline pool (stride 0x18C);
- *     2 SFX triggers (groups 6/7) gated by @c g_fieldEntity.unk015.
- *   - @c D_800852F4 / @c D_80085391 — @c Bganime pool (stride 0x1B4);
+ *   - @c g_fieldDoors / @c g_fieldDoorCount — @c Dline pool (stride 0x18C);
+ *     2 SFX triggers (groups 6/7) gated by @c g_fieldContext.unk015.
+ *   - @c g_fieldBgAnims / @c g_fieldBgAnimCount — @c Bganime pool (stride 0x1B4);
  *     plain script tick, finalized by @c func_800B2BA0.
  *
  * Each inner VM iteration reads an opcode via @c func_80037B7C, dispatches
@@ -334,7 +334,7 @@ void func_800BD804(s32 stepDelta) {
  * @param frame The frame's GPU work buffer, stashed in @c D_800DE8C8[0] for the
  *              rest of the tick. It is @em not a step delta despite the slot's
  *              old name — the step delta @c func_800BD804 consumes comes from
- *              @c g_fieldEntity.fieldStepDelta, read below.
+ *              @c g_fieldContext.fieldStepDelta, read below.
  */
 void func_800BD9C4(FieldFrameBuf *frame) {
     s32 unused[16];
@@ -351,17 +351,17 @@ void func_800BD9C4(FieldFrameBuf *frame) {
     }
     if (D_8008A3D8.flags & 1) return;
 
-    func_800BD804(g_fieldEntity.fieldStepDelta);
+    func_800BD804(g_fieldContext.fieldStepDelta);
     g_fieldVars->gilMirror      = g_gameState.mainData.party.gil;
     g_fieldVars->dreamGilMirror = g_gameState.mainData.party.dreamGil;
-    g_fieldEntity.unk1AB = g_fieldVars->fieldD1;
+    g_fieldContext.unk1AB = g_fieldVars->fieldD1;
 
     {
         s32 i;
         for (i = 0; i < getMaxBattleEntities(); i++) {
             if ((g_fieldVars->dialogEntryMask >> i) & 1) continue;
             if (!((g_fieldVars->dialogStartMask >> i) & 1)) continue;
-            if (g_fieldEntity.ambientFlags & 0xC0) {
+            if (g_fieldContext.ambientFlags & 0xC0) {
                 if (getDialogTypingDone(i)) {
                     if (!((g_fieldVars->dialogActiveMask >> i) & 1)) {
                         closeDialogAnimated(i);
@@ -376,20 +376,20 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 
     {
         u8 packed = (u8)getPackedField2Bit(g_fieldVars->fieldF2);
-        SystemState *sys = &g_fieldEntity;
+        FieldContext *sys = &g_fieldContext;
         sys->packedFlagSlot = packed;
     }
 
     /* Block A: full-Actor pool (stride 0x264). */
     {
-        Actor *e = D_80085224;
+        Actor *e = g_fieldActors;
         D_800DE4FC = 0;
-        if (D_80085388 != 0) {
+        if (g_fieldActorCount != 0) {
             do {
                 s1 = 0x10;
                 func_800B9288(e);
 
-                if (g_fieldEntity.unk015 != 0) {
+                if (g_fieldContext.unk015 != 0) {
                     e->triggerSfx7 = 0;
                     e->unk248 = 0;
                 } else {
@@ -427,15 +427,15 @@ void func_800BD9C4(FieldFrameBuf *frame) {
                 func_800B6854(e);
                 D_800DE4FC++;
                 e++;
-            } while (D_800DE4FC < D_80085388);
+            } while (D_800DE4FC < g_fieldActorCount);
         }
     }
 
     /* Block B: Eline pool (stride 0x1A0). */
     {
-        Eline *eb = D_8008538C;
+        Eline *eb = g_fieldLines;
         D_800DE4FC = 0;
-        if (D_800852F8 != 0) {
+        if (g_fieldLineCount != 0) {
             do {
                 s1 = 0x10;
                 if (eb->activeMarker != 0 && !D_800704BD) {
@@ -488,18 +488,18 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 
                 eb++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_800852F8);
+            } while (D_800DE4FC < g_fieldLineCount);
         }
     }
 
     /* Block C: Dline pool (stride 0x18C). */
     {
-        Dline *ec = D_80085384;
+        Dline *ec = g_fieldDoors;
         D_800DE4FC = 0;
-        if (D_80085228 != 0) {
+        if (g_fieldDoorCount != 0) {
             do {
                 s1 = 0x10;
-                if (ec->activeMarker != 0 && !g_fieldEntity.unk015) {
+                if (ec->activeMarker != 0 && !g_fieldContext.unk015) {
                     if (ec->trigger6 != 0) {
                         func_800AE8B4(ec, 6, (u16)(ec->context.rangeLo + 2));
                         ec->trigger6 = 0;
@@ -530,15 +530,15 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 
                 ec++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_80085228);
+            } while (D_800DE4FC < g_fieldDoorCount);
         }
     }
 
     /* Block D: Bganime pool (stride 0x1B4). */
     {
-        Bganime *ed = D_800852F4;
+        Bganime *ed = g_fieldBgAnims;
         D_800DE4FC = 0;
-        if (D_80085391 != 0) {
+        if (g_fieldBgAnimCount != 0) {
             do {
                 s1 = 0x10;
                 do {
@@ -559,7 +559,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
                 func_800B2BA0(ed);
                 ed++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_80085391);
+            } while (D_800DE4FC < g_fieldBgAnimCount);
         }
     }
 }
@@ -621,11 +621,11 @@ void func_800BE30C(u8 *header) {
  * @brief Entity-array compaction after event-script rebind.
  *
  * Re-binds the event preamble via @c func_800BE30C(header), then sweeps
- * the @c D_80085224 entity pool and keeps only entries whose @c flags
+ * the @c g_fieldActors entity pool and keeps only entries whose @c flags
  * bit @c 0x2 is set. Each kept @c Actor is copied to the next compacted
  * slot at the head of the array, tagged with its new index in
  * @c field_0x256, and registered in @c D_80085230 (NULL for dropped
- * entries). @c D_80085388 is set to the new entry count.
+ * entries). @c g_fieldActorCount is set to the new entry count.
  *
  * @param header Event preamble forwarded to @c func_800BE30C.
  * @return Pointer to the first free @c Actor slot past the compacted set.
@@ -635,10 +635,10 @@ Actor *func_800BE36C(u8 *header) {
     {
         s32 srcIdx = 0;
         s32 dstIdx = 0;
-        Actor *src = D_80085224;
+        Actor *src = g_fieldActors;
         Actor *dst = src;
 
-        if (D_80085388 != 0) {
+        if (g_fieldActorCount != 0) {
             do {
                 D_80085230[srcIdx] = NULL;
                 if (src->context.flags & 2) {
@@ -650,10 +650,10 @@ Actor *func_800BE36C(u8 *header) {
                 }
                 src++;
                 srcIdx++;
-            } while (srcIdx < D_80085388);
+            } while (srcIdx < g_fieldActorCount);
         }
 
-        D_80085388 = (u8)dstIdx;
+        g_fieldActorCount = (u8)dstIdx;
         return dst;
     }
 }
@@ -661,15 +661,15 @@ Actor *func_800BE36C(u8 *header) {
 /**
  * @brief Test if @c val falls within any active entity's @c [rangeLo, rangeHi].
  *
- * Scans all active Actors (@ref D_80085224, count @ref D_80085388);
+ * Scans all active Actors (@ref g_fieldActors, count @ref g_fieldActorCount);
  * returns 1 on the first entity whose @c rangeLo @c <= @c val @c <= @c rangeHi,
  * otherwise 0. Used by script-trigger dispatch to test whether the
  * popped value matches any registered range.
  */
 s32 func_800BE44C(s32 val) {
     s32 i;
-    Actor *e = &D_80085224[0];
-    u8 count = D_80085388;
+    Actor *e = &g_fieldActors[0];
+    u8 count = g_fieldActorCount;
 
     for (i = 0; i < count; i++) {
         if (val >= e->context.rangeLo && val <= e->context.rangeHi) {
@@ -730,7 +730,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object10", func_800BE5E4);
  * same script-VM header at offsets @c 0x000..0x187. Memsets the buffer,
  * then for each entry pulls a packed (upper:9, lower:7) value from
  * @c D_800DE4E0, derives @c rangeLo / @c rangeHi / @c pc, and registers
- * the entity in @c D_80085230 at indices @c [D_80085388, D_80085388+count).
+ * the entity in @c D_80085230 at indices @c [g_fieldActorCount, g_fieldActorCount+count).
  * pc is masked with @c 0x7FFF. Returns the post-init free-slot pointer.
  *
  * @param buf Entity buffer (@ref Eline pool base).
@@ -738,12 +738,12 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object10", func_800BE5E4);
  */
 Eline *func_800BE7F4(Eline *buf) {
     Eline *e = buf;
-    func_800396E0(buf, D_800852F8 * sizeof(Eline));
+    func_800396E0(buf, g_fieldLineCount * sizeof(Eline));
     {
         s32 k = 0;
         u16 new_var;
 
-        if (D_800852F8 == 0) return e;
+        if (g_fieldLineCount == 0) return e;
 
         do {
             u16 packed;
@@ -752,7 +752,7 @@ Eline *func_800BE7F4(Eline *buf) {
             u16 pcVal;
 
             /* Shared entity table: holds Actor and Eline records alike. */
-            D_80085230[D_80085388 + k] = (Actor *)e;
+            D_80085230[g_fieldActorCount + k] = (Actor *)e;
             e->context.flags = 0x20000000;
             e->context.stackPtr = -1;
 
@@ -780,7 +780,7 @@ Eline *func_800BE7F4(Eline *buf) {
 
             e++;
             k++;
-        } while (k < D_800852F8);
+        } while (k < g_fieldLineCount);
 
         return e;
     }
@@ -789,10 +789,10 @@ Eline *func_800BE7F4(Eline *buf) {
 /**
  * @brief Initialize the @c Bganime pool (Block D entities, stride 0x1B4).
  *
- * Memsets the supplied buffer for @c D_80085391 entities, then for each
+ * Memsets the supplied buffer for @c g_fieldBgAnimCount entities, then for each
  * entry pulls a packed (upper:9, lower:7) value from @c D_800DE4E0,
  * derives @c rangeLo / @c rangeHi / @c pc, and registers the entity in
- * @c D_80085230 at indices @c [D_80085388+D_800852F8, ...). pc is masked
+ * @c D_80085230 at indices @c [g_fieldActorCount+g_fieldLineCount, ...). pc is masked
  * with @c 0x7FFF. Returns the post-init free-slot pointer.
  *
  * @param buf Entity buffer (becomes the @c Bganime pool base).
@@ -801,12 +801,12 @@ Eline *func_800BE7F4(Eline *buf) {
 Bganime *func_800BE924(Bganime *buf) {
     Bganime *e = buf;
 
-    func_800396E0(buf, D_80085391 * sizeof(Bganime));
+    func_800396E0(buf, g_fieldBgAnimCount * sizeof(Bganime));
     {
         s32 k = 0;
         u16 groupIdx;
 
-        if (D_80085391 == 0) return e;
+        if (g_fieldBgAnimCount == 0) return e;
 
         do {
             u16 packed;
@@ -814,7 +814,7 @@ Bganime *func_800BE924(Bganime *buf) {
             u16 lower;
             u16 pcVal;
 
-            D_80085230[D_80085388 + D_800852F8 + k] = (Actor *)e;
+            D_80085230[g_fieldActorCount + g_fieldLineCount + k] = (Actor *)e;
             e->context.flags = 0x80001000;
             e->context.stackPtr = -1;
 
@@ -847,7 +847,7 @@ Bganime *func_800BE924(Bganime *buf) {
 
             e++;
             k++;
-        } while (k < D_80085391);
+        } while (k < g_fieldBgAnimCount);
 
         return e;
     }
@@ -856,10 +856,10 @@ Bganime *func_800BE924(Bganime *buf) {
 /**
  * @brief Initialize the @c Dline pool (Block C entities, stride 0x18C).
  *
- * Memsets the supplied buffer for @c D_80085228 entities, then for each
+ * Memsets the supplied buffer for @c g_fieldDoorCount entities, then for each
  * entry pulls a packed (upper:9, lower:7) value from @c D_800DE4E0,
  * derives @c rangeLo / @c rangeHi / @c pc, and registers the entity in
- * @c D_80085230 at indices @c [D_80085388+D_800852F8+D_80085391, ...).
+ * @c D_80085230 at indices @c [g_fieldActorCount+g_fieldLineCount+g_fieldBgAnimCount, ...).
  * pc is masked with @c 0x7FFF; @c activeMarker is set to 1.
  *
  * @param buf Entity buffer (becomes the @c Dline pool base).
@@ -868,12 +868,12 @@ Bganime *func_800BE924(Bganime *buf) {
 Dline *func_800BEA84(Dline *buf) {
     Dline *e = buf;
 
-    func_800396E0(buf, D_80085228 * sizeof(Dline));
+    func_800396E0(buf, g_fieldDoorCount * sizeof(Dline));
     {
         s32 k = 0;
         u16 groupIdx;
 
-        if (D_80085228 == 0) return e;
+        if (g_fieldDoorCount == 0) return e;
 
         do {
             u16 packed;
@@ -881,7 +881,7 @@ Dline *func_800BEA84(Dline *buf) {
             u16 lower;
             u16 pcVal;
 
-            D_80085230[D_80085388 + D_800852F8 + D_80085391 + k] = (Actor *)e;
+            D_80085230[g_fieldActorCount + g_fieldLineCount + g_fieldBgAnimCount + k] = (Actor *)e;
             e->context.flags = 0x40000000;
             e->context.stackPtr = -1;
 
@@ -910,7 +910,7 @@ Dline *func_800BEA84(Dline *buf) {
 
             e++;
             k++;
-        } while (k < D_80085228);
+        } while (k < g_fieldDoorCount);
 
         return e;
     }
@@ -938,11 +938,11 @@ void func_800BEBD0(void) {
     s32 sp10;
     s32 sp14;
 
-    /* Block D: D_800852F4 entities (stride 0x1B4). */
+    /* Block D: g_fieldBgAnims entities (stride 0x1B4). */
     {
-        Bganime *e = D_800852F4;
+        Bganime *e = g_fieldBgAnims;
         D_800DE4FC = 0;
-        if (D_80085391 != 0) {
+        if (g_fieldBgAnimCount != 0) {
             do {
                 while (1) {
                     s32 ret;
@@ -960,15 +960,15 @@ void func_800BEBD0(void) {
                 }
                 e++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_80085391);
+            } while (D_800DE4FC < g_fieldBgAnimCount);
         }
     }
 
-    /* Block C: D_80085384 entities (stride 0x18C). */
+    /* Block C: g_fieldDoors entities (stride 0x18C). */
     {
-        Dline *e = D_80085384;
+        Dline *e = g_fieldDoors;
         D_800DE4FC = 0;
-        if (D_80085228 != 0) {
+        if (g_fieldDoorCount != 0) {
             do {
                 while (1) {
                     s32 ret;
@@ -986,15 +986,15 @@ void func_800BEBD0(void) {
                 }
                 e++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_80085228);
+            } while (D_800DE4FC < g_fieldDoorCount);
         }
     }
 
-    /* Block B: D_8008538C entities (stride 0x1A0). */
+    /* Block B: g_fieldLines entities (stride 0x1A0). */
     {
-        Eline *e = D_8008538C;
+        Eline *e = g_fieldLines;
         D_800DE4FC = 0;
-        if (D_800852F8 != 0) {
+        if (g_fieldLineCount != 0) {
             do {
                 while (1) {
                     s32 ret;
@@ -1012,15 +1012,15 @@ void func_800BEBD0(void) {
                 }
                 e++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_800852F8);
+            } while (D_800DE4FC < g_fieldLineCount);
         }
     }
 
-    /* Block A: D_80085224 entities (full Actor, stride 0x264). */
+    /* Block A: g_fieldActors entities (full Actor, stride 0x264). */
     {
-        Actor *e = D_80085224;
+        Actor *e = g_fieldActors;
         D_800DE4FC = 0;
-        if (D_80085388 != 0) {
+        if (g_fieldActorCount != 0) {
             do {
                 while (1) {
                     s32 ret;
@@ -1038,7 +1038,7 @@ void func_800BEBD0(void) {
                 }
                 e++;
                 D_800DE4FC++;
-            } while (D_800DE4FC < D_80085388);
+            } while (D_800DE4FC < g_fieldActorCount);
         }
     }
 }
@@ -1055,10 +1055,10 @@ void func_800BEBD0(void) {
 void func_800BF080(void) {
     /* Block A */
     {
-        Actor *e = D_80085224;
+        Actor *e = g_fieldActors;
         u16 val;
         s32 k = 0;
-        for (k = 0; k < D_80085388; k++, e++) {
+        for (k = 0; k < g_fieldActorCount; k++, e++) {
             e->context.scriptSlot = 0;
             val = D_800852F0[e->context.rangeLo + 1] + 1;
             e->context.savedPc[0] = val;
@@ -1069,10 +1069,10 @@ void func_800BF080(void) {
 
     /* Block C */
     {
-        Dline *e = D_80085384;
+        Dline *e = g_fieldDoors;
         u16 val;
         s32 k = 0;
-        for (k = 0; k < D_80085228; k++, e++) {
+        for (k = 0; k < g_fieldDoorCount; k++, e++) {
             e->context.scriptSlot = 0;
             val = D_800852F0[e->context.rangeLo + 1] + 1;
             e->context.stackPtr = -1;
@@ -1084,10 +1084,10 @@ void func_800BF080(void) {
 
     /* Block B */
     {
-        Eline *e = D_8008538C;
+        Eline *e = g_fieldLines;
         u16 val;
         s32 k = 0;
-        for (k = 0; k < D_800852F8; k++, e++) {
+        for (k = 0; k < g_fieldLineCount; k++, e++) {
             e->context.scriptSlot = 0;
             val = D_800852F0[e->context.rangeLo + 1] + 1;
             e->context.stackPtr = -1;
@@ -1099,10 +1099,10 @@ void func_800BF080(void) {
 
     /* Block D */
     {
-        Bganime *e = D_800852F4;
+        Bganime *e = g_fieldBgAnims;
         u16 val;
         s32 k = 0;
-        for (k = 0; k < D_80085391; k++, e++) {
+        for (k = 0; k < g_fieldBgAnimCount; k++, e++) {
             e->context.scriptSlot = 0;
             val = D_800852F0[e->context.rangeLo + 1] + 1;
             e->context.stackPtr = -1;
@@ -1127,7 +1127,7 @@ void func_800BF230(Actor *actor) {
 /**
  * @brief Per-entity dispatch refresh for the Actor pool (Block A).
  *
- * For each entity in @c D_80085224, picks the appropriate initial draw
+ * For each entity in @c g_fieldActors, picks the appropriate initial draw
  * path: if @p a0 != 0 AND the entity's @c flags bit @c 0x4 is clear,
  * runs @c func_800BF230 (which copies geometry state into the render
  * slot); otherwise calls @c func_800B912C with the entity's
@@ -1147,9 +1147,9 @@ void func_800BF230(Actor *actor) {
  *           for entities without flags-bit-4 set.
  */
 void func_800BF28C(s32 a0) {
-    Actor *e = D_80085224;
+    Actor *e = g_fieldActors;
     D_800DE4FC = 0;
-    if (D_80085388 != 0) {
+    if (g_fieldActorCount != 0) {
         do {
             s32 flags;
             if (a0 != 0 && !(e->context.flags & 4)) {
@@ -1182,7 +1182,7 @@ void func_800BF28C(s32 a0) {
             }
             D_800DE4FC++;
             e++;
-        } while (D_800DE4FC < D_80085388);
+        } while (D_800DE4FC < g_fieldActorCount);
     }
 }
 
@@ -1195,7 +1195,7 @@ void func_800BF28C(s32 a0) {
  * bit set, then iterates the gauge slots, dispatching to @c showGauge
  * or @c showGaugeFull based on the @c flag field. Finally
  * restores the dialog state from @c g_fieldVars and clears the
- * g_fieldEntity mode-slot[0] to a default state mirroring the active
+ * g_fieldContext mode-slot[0] to a default state mirroring the active
  * entity index.
  *
  * @note @c D_80085398[].flag is treated as @c s16 (signed compare with
@@ -1236,32 +1236,32 @@ void func_800BF4A4(void) {
         }
     }
 
-    if (g_fieldEntity.dialogCount == g_fieldEntity.dialogTimer) {
+    if (g_fieldContext.dialogCount == g_fieldContext.dialogTimer) {
         g_fieldVars->dialogStateMirror = 0;
     }
     if (g_fieldVars->dialogStateMirror == 0) {
-        g_fieldEntity.dialogState = 2;
-        g_fieldEntity.dialogCount = 0x10;
-        g_fieldEntity.dialogTimer = 0xFF;
-        g_fieldEntity.field_0x10E = 0xFF;
-        g_fieldEntity.field_0x110 = 0xFF;
-        g_fieldEntity.field_0x112 = 0xFF;
+        g_fieldContext.dialogState = 2;
+        g_fieldContext.dialogCount = 0x10;
+        g_fieldContext.dialogTimer = 0xFF;
+        g_fieldContext.field_0x10E = 0xFF;
+        g_fieldContext.field_0x110 = 0xFF;
+        g_fieldContext.field_0x112 = 0xFF;
     } else {
-        g_fieldEntity.dialogState = g_fieldVars->dialogStateMirror;
-        g_fieldEntity.dialogCount = g_fieldVars->fieldDC;
-        g_fieldEntity.dialogTimer = g_fieldVars->fieldDA;
-        g_fieldEntity.field_0x10E = g_fieldVars->fieldDE;
-        g_fieldEntity.field_0x110 = g_fieldVars->fieldE0;
-        g_fieldEntity.field_0x112 = g_fieldVars->fieldE2;
-        g_fieldEntity.field_0x114 = g_fieldVars->fieldE4;
-        g_fieldEntity.field_0x116 = g_fieldVars->fieldE6;
-        g_fieldEntity.field_0x118 = g_fieldVars->fieldE8;
-        g_fieldEntity.field_0x11A = g_fieldVars->fieldEA;
-        g_fieldEntity.field_0x11C = g_fieldVars->fieldEC;
-        g_fieldEntity.field_0x11E = g_fieldVars->fieldEE;
+        g_fieldContext.dialogState = g_fieldVars->dialogStateMirror;
+        g_fieldContext.dialogCount = g_fieldVars->fieldDC;
+        g_fieldContext.dialogTimer = g_fieldVars->fieldDA;
+        g_fieldContext.field_0x10E = g_fieldVars->fieldDE;
+        g_fieldContext.field_0x110 = g_fieldVars->fieldE0;
+        g_fieldContext.field_0x112 = g_fieldVars->fieldE2;
+        g_fieldContext.field_0x114 = g_fieldVars->fieldE4;
+        g_fieldContext.field_0x116 = g_fieldVars->fieldE6;
+        g_fieldContext.field_0x118 = g_fieldVars->fieldE8;
+        g_fieldContext.field_0x11A = g_fieldVars->fieldEA;
+        g_fieldContext.field_0x11C = g_fieldVars->fieldEC;
+        g_fieldContext.field_0x11E = g_fieldVars->fieldEE;
     }
 
-    g_fieldEntity.slots[0].mode = 0;
-    g_fieldEntity.slots[0].submode = 0;
-    g_fieldEntity.slots[0].param = g_fieldEntity.entityIndex[0];
+    g_fieldContext.slots[0].mode = 0;
+    g_fieldContext.slots[0].submode = 0;
+    g_fieldContext.slots[0].param = g_fieldContext.entityIndex[0];
 }
