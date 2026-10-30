@@ -64,7 +64,6 @@ extern u8             D_8006A468[];
 extern u8             D_8005F188[];
 extern u8             D_80070468[];
 
-void flushGpuOt(void);
 void VsyncHandler(void);
 void InitHardware(void);
 void func_80011870(void);

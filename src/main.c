@@ -28,8 +28,9 @@
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 
-/** @brief Turn the GPU's mask-bit setting off with one packet, and wait until the GPU is idle. */
-void flushGpuOt(void) {
+static void DisableStpBit(void);
+
+static void DisableStpBit(void) {
     DR_STP prim;
     u32 ot[2];
 
@@ -38,7 +39,7 @@ void flushGpuOt(void) {
     addPrim(ot, &prim);
     DrawOTag(ot);
 
-    while (DrawSync(1) != 0) {}
+    while (DrawSync(1));
 }
 
 /** @brief VSync callback handler, registered via VSyncCallback in InitHardware.
@@ -411,7 +412,7 @@ void ff8main(void) {
                     func_80038030(mapAddr);
                     gameStateLoop();
                     if (g_renderMode != 4) {
-                        flushGpuOt();
+                        DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
                         g_fieldEntity.counter = 0;
@@ -489,7 +490,7 @@ void ff8main(void) {
                     func_80038030(mapAddr);
                     gameStateLoop();
                     if (g_renderMode != 4) {
-                        flushGpuOt();
+                        DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
                         do {
