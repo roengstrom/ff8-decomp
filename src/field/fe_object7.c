@@ -61,8 +61,8 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
                 resetSeedRankNotification();
             }
 
-            g_fieldEntity.mode = 8;
-            g_fieldEntity.counter = 0;
+            g_fieldContext.mode = 8;
+            g_fieldContext.counter = 0;
 
             while (sndGetStatus() == 2) {
                 func_800393C8();
@@ -490,7 +490,7 @@ s32 opHandler_UNKNOWN10(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLEON(ScriptContext *context) {
-    g_fieldEntity.slotActive[POP(context) & 0xF] = 1;
+    g_fieldContext.slotActive[POP(context) & 0xF] = 1;
     return 2;
 }
 
@@ -501,7 +501,7 @@ s32 opHandler_PARTICLEON(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLEOFF(ScriptContext *context) {
-    g_fieldEntity.slotActive[POP(context) & 0xF] = 0;
+    g_fieldContext.slotActive[POP(context) & 0xF] = 0;
     return 2;
 }
 
@@ -512,7 +512,7 @@ s32 opHandler_PARTICLEOFF(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLESET(Actor *actor) {
-    g_fieldEntity.slotActive[POP(&actor->context) & 0xF] = actor->field_0x256 | 0x80;
+    g_fieldContext.slotActive[POP(&actor->context) & 0xF] = actor->field_0x256 | 0x80;
     return 2;
 }
 
@@ -586,11 +586,11 @@ s32 opHandler_BATTLEMODE(ScriptContext *context) {
  * @return 3 (special return — triggers mode transition).
  */
 s32 opHandler_BATTLE(ScriptContext *context) {
-    if (g_fieldEntity.mode == 0) {
-        g_fieldEntity.mode = 3;
+    if (g_fieldContext.mode == 0) {
+        g_fieldContext.mode = 3;
     }
     g_battleConfig.unk2 = POP(context);
-    g_fieldEntity.counter = POP(context);
+    g_fieldContext.counter = POP(context);
     return 3;
 }
 
@@ -644,7 +644,7 @@ s32 opHandler_BATTLECUT(ScriptContext *context) {
  * @return 1 (yield).
  */
 s32 opHandler_GAMEOVER(ScriptContext *context) {
-    g_fieldEntity.mode = 4;
+    g_fieldContext.mode = 4;
     return 1;
 }
 
@@ -1713,7 +1713,7 @@ s32 opHandler_PJUMPA(Actor *actor) {
 
 /**
  * @brief Pop a word from the bytecode stack and store its low byte to
- *        @c g_fieldEntity.unk1AE.
+ *        @c g_fieldContext.unk1AE.
  *
  * The @c volatile cast on the load is required to prevent gcc 2.7.2
  * from narrowing the @c lw to @c lbu — the target reads a full s32
@@ -1723,7 +1723,7 @@ s32 opHandler_PJUMPA(Actor *actor) {
  * @return 2 (advance PC).
  */
 s32 opHandler_COUNTERCLOCKWISETURN2(ScriptContext *context) {
-    g_fieldEntity.unk1AE = *(volatile s32 *)&POP(context);
+    g_fieldContext.unk1AE = *(volatile s32 *)&POP(context);
     return 2;
 }
 
@@ -2106,7 +2106,7 @@ s32 opHandler_INITTRACE(ScriptContext *context) {
 }
 
 /**
- * @brief Wait until @c g_fieldEntity.unk106 catches up with @c unk104.
+ * @brief Wait until @c g_fieldContext.unk106 catches up with @c unk104.
  *
  * Read by scripts to wait for the animation tick set by
  * @c opHandler_AXIS (POP → @c unk104, @c unk106 = 0) — some other
@@ -2116,16 +2116,16 @@ s32 opHandler_INITTRACE(ScriptContext *context) {
  * @return 2 (advance) when @c unk104 == @c unk106, 1 (yield) otherwise.
  */
 s32 opHandler_AXISSYNC(ScriptContext *context) {
-    if (g_fieldEntity.unk106 == g_fieldEntity.unk104) {
+    if (g_fieldContext.unk106 == g_fieldContext.unk104) {
         return 2;
     }
     return 1;
 }
 
 /**
- * @brief Pop two halfwords into g_fieldEntity.unk102/unk104; clear unk106.
+ * @brief Pop two halfwords into g_fieldContext.unk102/unk104; clear unk106.
  *
- * Writes the popped values into the SystemState block: first POP →
+ * Writes the popped values into the FieldContext block: first POP →
  * @c unk104, second POP → @c unk102. Also zeros @c unk106. Leaf
  * function.
  *
@@ -2133,9 +2133,9 @@ s32 opHandler_AXISSYNC(ScriptContext *context) {
  * @return 2 (advance PC).
  */
 s32 opHandler_AXIS(ScriptContext *context) {
-    g_fieldEntity.unk104 = POP(context);
-    g_fieldEntity.unk102 = POP(context);
-    g_fieldEntity.unk106 = 0;
+    g_fieldContext.unk104 = POP(context);
+    g_fieldContext.unk102 = POP(context);
+    g_fieldContext.unk106 = 0;
     return 2;
 }
 

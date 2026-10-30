@@ -251,7 +251,7 @@ void func_80038030(s32 arg0) {
  *
  * Part 1: For each of the 3 active party slots, search the battle field
  * entity table for one whose @c partyId matches and record its index in
- * both g_fieldEntity.entityIndex and g_fieldVars->memberSlot. Defaults to
+ * both g_fieldContext.entityIndex and g_fieldVars->memberSlot. Defaults to
  * 0xFF when no entity matches.
  *
  * Part 2: When the bench-list flag (stateFlags & FIELD_STATE_PARTY_OVERRIDE) is set, build the
@@ -264,14 +264,14 @@ void func_800381BC(void) {
     Actor *ent;
 
     for (i = 0; i < 3; i++) {
-        g_fieldEntity.entityIndex[i] = 0xFF;
+        g_fieldContext.entityIndex[i] = 0xFF;
         g_fieldVars->memberSlot[i] = 0xFF;
 
         ent = D_80085224;
         for (j = 0; j < D_80085388; j++) {
             if (g_gameState.battleParty[i] == ent->field_0x255) {
                 g_fieldVars->memberSlot[i] = j;
-                g_fieldEntity.entityIndex[i] = j;
+                g_fieldContext.entityIndex[i] = j;
                 break;
             }
             ent++;

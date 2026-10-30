@@ -114,13 +114,13 @@ void func_80011870(void) {
     }
 
     g_gameState.returnState.fieldId = g_curFieldId;
-    g_gameState.returnState.previousFieldId = g_fieldEntity.previousFieldId;
+    g_gameState.returnState.previousFieldId = g_fieldContext.previousFieldId;
 
     for (i = 0; i < 3; i++) {
-        g_gameState.returnState.positionsX[i] = D_80085224[g_fieldEntity.entityIndex[i]].posX >> 12;
-        g_gameState.returnState.positionsY[i] = D_80085224[g_fieldEntity.entityIndex[i]].posY >> 12;
-        g_gameState.returnState.triIdxs[i] = D_80085224[g_fieldEntity.entityIndex[i]].triIdx;
-        g_gameState.returnState.facingDirection[i] = D_80085224[g_fieldEntity.entityIndex[i]].facingDirection;
+        g_gameState.returnState.positionsX[i] = D_80085224[g_fieldContext.entityIndex[i]].posX >> 12;
+        g_gameState.returnState.positionsY[i] = D_80085224[g_fieldContext.entityIndex[i]].posY >> 12;
+        g_gameState.returnState.triIdxs[i] = D_80085224[g_fieldContext.entityIndex[i]].triIdx;
+        g_gameState.returnState.facingDirection[i] = D_80085224[g_fieldContext.entityIndex[i]].facingDirection;
     }
 
     g_gameState.returnState.fade1 = D_8005F151;
@@ -128,7 +128,7 @@ void func_80011870(void) {
 }
 
 void RestoreSnapshot(void) {
-    SystemState *entity;
+    FieldContext *entity;
 
     g_gameMode = g_gameState.returnState.gameMode;
     if (g_gameMode == GAME_MODE_NONE) {
@@ -137,7 +137,7 @@ void RestoreSnapshot(void) {
 
     g_curFieldId = g_gameState.returnState.fieldId;
 
-    entity = &g_fieldEntity;
+    entity = &g_fieldContext;
 
     entity->previousFieldId = g_gameState.returnState.previousFieldId;
     entity->position_x = g_gameState.returnState.positionsX[0];
@@ -294,11 +294,11 @@ void ff8main(void) {
         initBattleAssets();
         g_gameMode = GAME_MODE_FIELD;
         g_previousGameMode = GAME_MODE_NONE;
-        g_fieldEntity.unk1A3 = 0;
+        g_fieldContext.unk1A3 = 0;
         D_8005F14A = 0;
         D_8005F100 = 0x49;
-        g_fieldEntity.mode = 0;
-        g_fieldEntity.unk1A2 = 0;
+        g_fieldContext.mode = 0;
+        g_fieldContext.unk1A2 = 0;
         result = func_8003646C(25);
         if (!(result & 2)) {
             RestoreSnapshot();
@@ -352,9 +352,9 @@ void ff8main(void) {
                     }
                     D_8005F14A = 0;
                     if (func_800987D8() == 1) {
-                        g_fieldEntity.counter = 0;
-                        g_fieldEntity.mode = 4;
-                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        g_fieldContext.counter = 0;
+                        g_fieldContext.mode = 4;
+                        g_fieldContext.spawnTriIdx = 0x7FFF;
                         sndStopAll();
                         break;
                     }
@@ -363,11 +363,11 @@ void ff8main(void) {
                     case WORLD_EXIT_TO_FIELD:
                         entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
                         fieldId = entry->fieldId;
-                        g_fieldEntity.position_x = entry->position_x;
-                        g_fieldEntity.position_y = entry->position_y;
-                        g_fieldEntity.spawnTriIdx = entry->spawnTriIdx;
+                        g_fieldContext.position_x = entry->position_x;
+                        g_fieldContext.position_y = entry->position_y;
+                        g_fieldContext.spawnTriIdx = entry->spawnTriIdx;
                         g_curFieldId = fieldId;
-                        g_fieldEntity.facingDirection = entry->facingDirection;
+                        g_fieldContext.facingDirection = entry->facingDirection;
                         g_gameMode = GAME_MODE_FIELD;
                         sndCmd21(-1, 0);
                         break;
@@ -387,7 +387,7 @@ void ff8main(void) {
                 case GAME_MODE_BATTLE:
                 case GAME_MODE_BATTLE_DEBUG_MENU:
                     if (g_previousGameMode == GAME_MODE_FIELD) {
-                        g_battleConfig.battleSceneId = g_fieldEntity.counter;
+                        g_battleConfig.battleSceneId = g_fieldContext.counter;
                         mapAddr = D_8005F13C;
                     } else {
                         g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
@@ -399,9 +399,9 @@ void ff8main(void) {
                         DisableStpBit();
                     }
                     if (g_battleConfig.result == 5) {
-                        g_fieldEntity.counter = 0;
-                        g_fieldEntity.mode = 4;
-                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        g_fieldContext.counter = 0;
+                        g_fieldContext.mode = 4;
+                        g_fieldContext.spawnTriIdx = 0x7FFF;
                         break;
                     }
                     if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
@@ -442,7 +442,7 @@ void ff8main(void) {
                     SetDispMask(0);
                     func_80011870();
                     if (g_previousGameMode == GAME_MODE_FIELD) {
-                        result = func_8003646C(g_fieldEntity.counter, g_fieldEntity.unk1AB);
+                        result = func_8003646C(g_fieldContext.counter, g_fieldContext.unk1AB);
                         if (result & 1) {
                             clearEntityFlags();
                             if (g_gameMode == GAME_MODE_MENU) {
@@ -479,9 +479,9 @@ void ff8main(void) {
                     if (g_battleConfig.result == 5) {
                         do {
                         } while (0);
-                        g_fieldEntity.counter = 0;
-                        g_fieldEntity.mode = 4;
-                        g_fieldEntity.spawnTriIdx = 0x7FFF;
+                        g_fieldContext.counter = 0;
+                        g_fieldContext.mode = 4;
+                        g_fieldContext.spawnTriIdx = 0x7FFF;
                         break;
                     }
                     if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
@@ -519,19 +519,19 @@ void ff8main(void) {
                 case GAME_MODE_DISC_CHANGE:
                     LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
                     while (func_800393C8() != 0) {}
-                    func_80098FD4(g_fieldEntity.unk1A0);
-                    mode = g_fieldEntity.unk1A0;
+                    func_80098FD4(g_fieldContext.unk1A0);
+                    mode = g_fieldContext.unk1A0;
                     if (mode == 1) {
                         loadFileTable();
                         LoadWm2FieldTable();
                         g_previousGameMode = GAME_MODE_NONE;
                         g_gameMode = mode;
-                        g_curFieldId = g_fieldEntity.counter;
+                        g_curFieldId = g_fieldContext.counter;
                     }
                     break;
                 }
             } while (0);
-        } while (g_fieldEntity.mode != 4);
+        } while (g_fieldContext.mode != 4);
         sndStopAll();
         SetPlayTimePaused(0);
         WaitForGamePadDetection();

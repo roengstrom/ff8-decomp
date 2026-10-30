@@ -310,10 +310,10 @@ void func_800BD804(s32 stepDelta) {
  *
  * On entry, mirrors party gil/dreamGil from @c g_gameState to
  * @c g_fieldVars, mirrors the audio-channel marker @c fieldD1 into
- * @c g_fieldEntity.unk1AB, and closes the per-slot dialogs whose ambient
+ * @c g_fieldContext.unk1AB, and closes the per-slot dialogs whose ambient
  * trigger has expired (@c dialogStartMask bit set without
  * @c dialogEntryMask). Then calls @c getPackedField2Bit for the active
- * dispatcher slot and stores the result into @c g_fieldEntity.packedFlagSlot.
+ * dispatcher slot and stores the result into @c g_fieldContext.packedFlagSlot.
  *
  * Runs four script-VM dispatch loops in order:
  *   - @c D_80085224 / @c D_80085388  — full @c Actor pool (stride 0x264);
@@ -321,7 +321,7 @@ void func_800BD804(s32 stepDelta) {
  *   - @c D_8008538C / @c D_800852F8 — @c Eline pool (stride 0x1A0);
  *     6 SFX triggers (groups 2..7) gated by @c D_800704BD.
  *   - @c D_80085384 / @c D_80085228 — @c Dline pool (stride 0x18C);
- *     2 SFX triggers (groups 6/7) gated by @c g_fieldEntity.unk015.
+ *     2 SFX triggers (groups 6/7) gated by @c g_fieldContext.unk015.
  *   - @c D_800852F4 / @c D_80085391 — @c Bganime pool (stride 0x1B4);
  *     plain script tick, finalized by @c func_800B2BA0.
  *
@@ -334,7 +334,7 @@ void func_800BD804(s32 stepDelta) {
  * @param frame The frame's GPU work buffer, stashed in @c D_800DE8C8[0] for the
  *              rest of the tick. It is @em not a step delta despite the slot's
  *              old name — the step delta @c func_800BD804 consumes comes from
- *              @c g_fieldEntity.fieldStepDelta, read below.
+ *              @c g_fieldContext.fieldStepDelta, read below.
  */
 void func_800BD9C4(FieldFrameBuf *frame) {
     s32 unused[16];
@@ -351,17 +351,17 @@ void func_800BD9C4(FieldFrameBuf *frame) {
     }
     if (D_8008A3D8.flags & 1) return;
 
-    func_800BD804(g_fieldEntity.fieldStepDelta);
+    func_800BD804(g_fieldContext.fieldStepDelta);
     g_fieldVars->gilMirror      = g_gameState.mainData.party.gil;
     g_fieldVars->dreamGilMirror = g_gameState.mainData.party.dreamGil;
-    g_fieldEntity.unk1AB = g_fieldVars->fieldD1;
+    g_fieldContext.unk1AB = g_fieldVars->fieldD1;
 
     {
         s32 i;
         for (i = 0; i < getMaxBattleEntities(); i++) {
             if ((g_fieldVars->dialogEntryMask >> i) & 1) continue;
             if (!((g_fieldVars->dialogStartMask >> i) & 1)) continue;
-            if (g_fieldEntity.ambientFlags & 0xC0) {
+            if (g_fieldContext.ambientFlags & 0xC0) {
                 if (getDialogTypingDone(i)) {
                     if (!((g_fieldVars->dialogActiveMask >> i) & 1)) {
                         closeDialogAnimated(i);
@@ -376,7 +376,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 
     {
         u8 packed = (u8)getPackedField2Bit(g_fieldVars->fieldF2);
-        SystemState *sys = &g_fieldEntity;
+        FieldContext *sys = &g_fieldContext;
         sys->packedFlagSlot = packed;
     }
 
@@ -389,7 +389,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
                 s1 = 0x10;
                 func_800B9288(e);
 
-                if (g_fieldEntity.unk015 != 0) {
+                if (g_fieldContext.unk015 != 0) {
                     e->triggerSfx7 = 0;
                     e->unk248 = 0;
                 } else {
@@ -499,7 +499,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
         if (D_80085228 != 0) {
             do {
                 s1 = 0x10;
-                if (ec->activeMarker != 0 && !g_fieldEntity.unk015) {
+                if (ec->activeMarker != 0 && !g_fieldContext.unk015) {
                     if (ec->trigger6 != 0) {
                         func_800AE8B4(ec, 6, (u16)(ec->context.rangeLo + 2));
                         ec->trigger6 = 0;
@@ -1195,7 +1195,7 @@ void func_800BF28C(s32 a0) {
  * bit set, then iterates the gauge slots, dispatching to @c showGauge
  * or @c showGaugeFull based on the @c flag field. Finally
  * restores the dialog state from @c g_fieldVars and clears the
- * g_fieldEntity mode-slot[0] to a default state mirroring the active
+ * g_fieldContext mode-slot[0] to a default state mirroring the active
  * entity index.
  *
  * @note @c D_80085398[].flag is treated as @c s16 (signed compare with
@@ -1236,32 +1236,32 @@ void func_800BF4A4(void) {
         }
     }
 
-    if (g_fieldEntity.dialogCount == g_fieldEntity.dialogTimer) {
+    if (g_fieldContext.dialogCount == g_fieldContext.dialogTimer) {
         g_fieldVars->dialogStateMirror = 0;
     }
     if (g_fieldVars->dialogStateMirror == 0) {
-        g_fieldEntity.dialogState = 2;
-        g_fieldEntity.dialogCount = 0x10;
-        g_fieldEntity.dialogTimer = 0xFF;
-        g_fieldEntity.field_0x10E = 0xFF;
-        g_fieldEntity.field_0x110 = 0xFF;
-        g_fieldEntity.field_0x112 = 0xFF;
+        g_fieldContext.dialogState = 2;
+        g_fieldContext.dialogCount = 0x10;
+        g_fieldContext.dialogTimer = 0xFF;
+        g_fieldContext.field_0x10E = 0xFF;
+        g_fieldContext.field_0x110 = 0xFF;
+        g_fieldContext.field_0x112 = 0xFF;
     } else {
-        g_fieldEntity.dialogState = g_fieldVars->dialogStateMirror;
-        g_fieldEntity.dialogCount = g_fieldVars->fieldDC;
-        g_fieldEntity.dialogTimer = g_fieldVars->fieldDA;
-        g_fieldEntity.field_0x10E = g_fieldVars->fieldDE;
-        g_fieldEntity.field_0x110 = g_fieldVars->fieldE0;
-        g_fieldEntity.field_0x112 = g_fieldVars->fieldE2;
-        g_fieldEntity.field_0x114 = g_fieldVars->fieldE4;
-        g_fieldEntity.field_0x116 = g_fieldVars->fieldE6;
-        g_fieldEntity.field_0x118 = g_fieldVars->fieldE8;
-        g_fieldEntity.field_0x11A = g_fieldVars->fieldEA;
-        g_fieldEntity.field_0x11C = g_fieldVars->fieldEC;
-        g_fieldEntity.field_0x11E = g_fieldVars->fieldEE;
+        g_fieldContext.dialogState = g_fieldVars->dialogStateMirror;
+        g_fieldContext.dialogCount = g_fieldVars->fieldDC;
+        g_fieldContext.dialogTimer = g_fieldVars->fieldDA;
+        g_fieldContext.field_0x10E = g_fieldVars->fieldDE;
+        g_fieldContext.field_0x110 = g_fieldVars->fieldE0;
+        g_fieldContext.field_0x112 = g_fieldVars->fieldE2;
+        g_fieldContext.field_0x114 = g_fieldVars->fieldE4;
+        g_fieldContext.field_0x116 = g_fieldVars->fieldE6;
+        g_fieldContext.field_0x118 = g_fieldVars->fieldE8;
+        g_fieldContext.field_0x11A = g_fieldVars->fieldEA;
+        g_fieldContext.field_0x11C = g_fieldVars->fieldEC;
+        g_fieldContext.field_0x11E = g_fieldVars->fieldEE;
     }
 
-    g_fieldEntity.slots[0].mode = 0;
-    g_fieldEntity.slots[0].submode = 0;
-    g_fieldEntity.slots[0].param = g_fieldEntity.entityIndex[0];
+    g_fieldContext.slots[0].mode = 0;
+    g_fieldContext.slots[0].submode = 0;
+    g_fieldContext.slots[0].param = g_fieldContext.entityIndex[0];
 }

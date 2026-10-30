@@ -861,28 +861,28 @@ s32 opHandler_SET3(Actor *actor, s32 a1) {
 }
 
 /**
- * @brief Set bit @p bit in @c g_fieldEntity.statusBits (512-bit packed array).
+ * @brief Set bit @p bit in @c g_fieldContext.statusBits (512-bit packed array).
  *
  * @p bit indexes a single bit; bits are packed 8-per-byte. Used as a
  * script-VM "set status bit" opcode.
  *
- * @note The @c SystemState* alias keeps gcc from folding the @c statusBits
- *       field offset into the @c g_fieldEntity symbol — the asm uses
+ * @note The @c FieldContext* alias keeps gcc from folding the @c statusBits
+ *       field offset into the @c g_fieldContext symbol — the asm uses
  *       @c lbu 0x1b8(a1) with the offset as an immediate.
  */
 s32 opHandler_IDLOCK(ScriptContext *context, s32 bit) {
-    SystemState *p = &g_fieldEntity;
+    FieldContext *p = &g_fieldContext;
     s32 byteIdx = bit / 8;
     p->statusBits[byteIdx] |= (u8)(1 << (bit - byteIdx * 8));
     return 2;
 }
 
 /**
- * @brief Clear bit @p bit in @c g_fieldEntity.statusBits. Counterpart to
+ * @brief Clear bit @p bit in @c g_fieldContext.statusBits. Counterpart to
  *        @c opHandler_IDLOCK.
  */
 s32 opHandler_IDUNLOCK(ScriptContext *context, s32 bit) {
-    SystemState *p = &g_fieldEntity;
+    FieldContext *p = &g_fieldContext;
     s32 byteIdx = bit / 8;
     p->statusBits[byteIdx] &= ~(1 << (bit - byteIdx * 8));
     return 2;
@@ -1204,7 +1204,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
  * active party members. For each member whose @c memberSlot is set and
  * whose field-entity is NOT locked (flags bit 0x40 clear), records the
  * member slot into the per-slot entity-index table (@c entityIndex[0]
- * via @c g_fieldEntity, then @c D_800704BB / @c D_800704BC) and sets
+ * via @c g_fieldContext, then @c D_800704BB / @c D_800704BC) and sets
  * entity flags bit 0x4. Returns 2.
  */
 s32 opHandler_UCON(void) {
@@ -1217,11 +1217,11 @@ s32 opHandler_UCON(void) {
     }
 
     D_80085390 = 0;
-    g_fieldEntity.unk015 = 0;
+    g_fieldContext.unk015 = 0;
 
     if (g_fieldVars->memberSlot[0] != 0xFF
         && !(D_80085224[g_fieldVars->memberSlot[0]].context.flags & 0x40)) {
-        g_fieldEntity.entityIndex[0] = g_fieldVars->memberSlot[0];
+        g_fieldContext.entityIndex[0] = g_fieldVars->memberSlot[0];
         D_80085224[g_fieldVars->memberSlot[0]].context.flags |= 4;
     }
 
@@ -1243,7 +1243,7 @@ s32 opHandler_UCON(void) {
 /**
  * @brief "Re-arm active party" — counterpart to @c opHandler_UCON.
  *
- * Always sets @c g_fieldEntity.unk1A3 = 1. If the trigger @c D_80085390 is
+ * Always sets @c g_fieldContext.unk1A3 = 1. If the trigger @c D_80085390 is
  * already set, returns early. Otherwise sets @c D_80085390 / @c unk015
  * and walks the 3 party slots:
  *
@@ -1257,12 +1257,12 @@ s32 opHandler_UCON(void) {
  * entity flags to bits 0x0000F800 → 0x00002000, and clears bit 0x4.
  */
 s32 opHandler_UCOFF(void) {
-    g_fieldEntity.unk1A3 = 1;
+    g_fieldContext.unk1A3 = 1;
     if (D_80085390 != 0) {
         return 2;
     }
     D_80085390 = 1;
-    g_fieldEntity.unk015 = 1;
+    g_fieldContext.unk015 = 1;
 
     if (g_fieldVars->memberSlot[0] != 0xFF) {
         func_800AA46C(g_fieldVars->memberSlot[0], 0xD,
@@ -1278,7 +1278,7 @@ s32 opHandler_UCOFF(void) {
         D_80085224[g_fieldVars->memberSlot[0]].context.flags &= ~4;
     }
 
-    if (g_fieldEntity.entityIndex[1] != 0xFF) {
+    if (g_fieldContext.entityIndex[1] != 0xFF) {
         func_800AA46C(g_fieldVars->memberSlot[1], 0xD,
                       D_80085224[g_fieldVars->memberSlot[1]].field_0x24F, 0);
         D_80085224[g_fieldVars->memberSlot[1]].field_0x24E =
@@ -1289,11 +1289,11 @@ s32 opHandler_UCOFF(void) {
             D_800D9630[g_fieldVars->memberSlot[1]]->unk0C;
         D_80085224[g_fieldVars->memberSlot[1]].context.flags &= 0xFFFF07FF;
         D_80085224[g_fieldVars->memberSlot[1]].context.flags |= 0x2000;
-        g_fieldEntity.entityIndex[1] = 0xFF;
+        g_fieldContext.entityIndex[1] = 0xFF;
         D_80085224[g_fieldVars->memberSlot[1]].context.flags &= ~4;
     }
 
-    if (g_fieldEntity.entityIndex[2] != 0xFF) {
+    if (g_fieldContext.entityIndex[2] != 0xFF) {
         func_800AA46C(g_fieldVars->memberSlot[2], 0xD,
                       D_80085224[g_fieldVars->memberSlot[2]].field_0x24F, 0);
         D_80085224[g_fieldVars->memberSlot[2]].field_0x24E =
@@ -1304,7 +1304,7 @@ s32 opHandler_UCOFF(void) {
             D_800D9630[g_fieldVars->memberSlot[2]]->unk0C;
         D_80085224[g_fieldVars->memberSlot[2]].context.flags &= 0xFFFF07FF;
         D_80085224[g_fieldVars->memberSlot[2]].context.flags |= 0x2000;
-        g_fieldEntity.entityIndex[2] = 0xFF;
+        g_fieldContext.entityIndex[2] = 0xFF;
         D_80085224[g_fieldVars->memberSlot[2]].context.flags &= ~4;
     }
 

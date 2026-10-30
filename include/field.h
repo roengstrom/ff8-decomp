@@ -33,8 +33,8 @@
 
 
 /**
- * @brief One slot of the @c SystemState mode-slot table at
- *        @c g_fieldEntity.slots, stride 28 bytes.
+ * @brief One slot of the @c FieldContext mode-slot table at
+ *        @c g_fieldContext.slots, stride 28 bytes.
  *
  * Each slot encodes a mode-dispatched operation: @c mode selects which
  * code path runs in the field engine's per-frame poller, @c param
@@ -80,7 +80,7 @@ typedef struct {
     /* 0x0C */ s16 angle;      /**< Current tick (0..total). */
 } Oscillator;  /* 0x0E = 14 bytes */
 
-/* Analog-stick direction bits carried by @c SystemState::padHeld and by the
+/* Analog-stick direction bits carried by @c FieldContext::padHeld and by the
  * derived pad word @c func_8009BEC8 receives. One bit per direction -- combine
  * them at the use site instead of defining multi-bit masks. */
 #define FIELD_PAD_WALK  0x0010 /**< Selects the slow speed and step tables. Set from the
@@ -92,7 +92,6 @@ typedef struct {
 #define FIELD_PAD_YHIGH 0x4000 /**< Stick/d-pad Y-high. */
 #define FIELD_PAD_XLOW  0x8000 /**< Stick/d-pad X-low. */
 
-/** @brief System state block (@c g_fieldEntity). */
 typedef struct {
     /* 0x000 */ u8 mode;            /**< Top-level engine mode; @c 4 means exit. */
     /* 0x001 */ u8 pad001;
@@ -187,9 +186,9 @@ typedef struct {
     /* 0x1B2 */ u8 pad1B2[0x02];
     /* 0x1B4 */ s32 field1B4;       /**< Initialised to @c 0xFFFFFF by @c func_800BFBBC on full reset. */
     /* 0x1B8 */ u8 statusBits[0x40]; /**< Packed bit-array (512 bits); set by @c opHandler_IDLOCK, cleared by @c opHandler_IDUNLOCK, zeroed during init. */
-} SystemState;
+} FieldContext;
 
-extern SystemState g_fieldEntity;
+extern FieldContext g_fieldContext;
 
 /**
  * @brief Field-engine variable block (248 bytes) — held at @c g_gameState+0xD60
@@ -269,7 +268,7 @@ typedef struct {
     /* 0xD5 */ u8 nextSoundBank;        /**< Sound bank ID staged by MUSICCHANGE; copied into @c audioChannel0State on swap. */
     /* 0xD6 */ volatile u8 soundLoadComplete;    /**< Set to 1 after sound bank loading finishes. */
     /* 0xD7 */ u8 padD7;
-    /* 0xD8 */ s16 dialogStateMirror;   /**< Mirror of @c g_fieldEntity.dialogState (kept in sync by fe_object9). */
+    /* 0xD8 */ s16 dialogStateMirror;   /**< Mirror of @c g_fieldContext.dialogState (kept in sync by fe_object9). */
     /* 0xDA */ u16 fieldDA;
     /* 0xDC */ u16 fieldDC;
     /* 0xDE */ u16 fieldDE;
@@ -395,7 +394,7 @@ typedef struct {
     /* 0x1F8 */ u16 talkRadius;     /**< Set by @c opHandler_TALKRADIUS; read alongside @c radius by @c func_8009F74C 's asymmetric overlap test. */
     /* 0x1FA */ u16 triIdx;         /**< Navmesh triangle the entity stands on; indexes @c g_fieldWalkmeshVerts.
                                          Set from a path-table entry's @c unk6 by @c func_8009BB18 and
-                                         from @c g_fieldEntity.spawnTriIdx on field entry by @c func_8009AEC0. */
+                                         from @c g_fieldContext.spawnTriIdx on field entry by @c func_8009AEC0. */
     /* 0x1FC */ u16 field_0x1FC;
     /* 0x1FE */ s16 moveSpeed;      /**< Per-tick movement speed, 8.8 fixed point (@c 256 @c = 1.0):
                                          @c func_8009D598 scales the sin/cos step vector by it before
@@ -638,7 +637,7 @@ typedef struct {
     /* 0x196 */ u8  trigger4;       /**< In-range latch: @c func_8009A4C0 sets it while the query point projects inside @c actor->radius, clears it when out; cleared with @c unk19D by @c func_8009A8E0. */
     /* 0x197 */ u8  trigger5;       /**< Edge-straddle: @c func_8009A4C0 sets it when self and the query point fall on opposite sides of the segment edge (2D cross-product signs differ). */
     /* 0x198 */ u8  trigger6;       /**< Facing hit: @c func_8009A4C0 sets it when self coincides with the projected point or lies within a +/-64 facing window. */
-    /* 0x199 */ u8  trigger7;       /**< Set to 1/2 by @c func_8009A4C0 / @c func_8009A7E8 from the current pad-hold mode (@c g_fieldEntity unk150/unk154 bits 0x40/0x80) when the active-marker test + diff window pass. */
+    /* 0x199 */ u8  trigger7;       /**< Set to 1/2 by @c func_8009A4C0 / @c func_8009A7E8 from the current pad-hold mode (@c g_fieldContext unk150/unk154 bits 0x40/0x80) when the active-marker test + diff window pass. */
     /* 0x19A */ u8  trigger2;       /**< Entered: @c func_8009A4C0 sets it on the frame the record first comes into range. */
     /* 0x19B */ u8  trigger3;       /**< Exited: @c func_8009A4C0 sets it on the frame the record leaves range. */
     /* 0x19C */ u8  unk19C;         /**< Facing angle to the projected point, written by @c func_8009A4C0 (@ref func_8009A0E8); compared (with diff bias) against @c actor->unk23F by @c func_8009A4C0 / @c func_8009A7E8. */
@@ -852,7 +851,7 @@ typedef struct {
 extern FieldAnimSlot D_80085398[];
 
 
-/** @brief The field's message table; the same word as @c SystemState::fieldMessages. */
+/** @brief The field's message table; the same word as @c FieldContext::fieldMessages. */
 extern OffsetTable *g_curFieldMessages;
 
 /** @brief Spatial-entity dispatch context word (passed to @c func_800A8DAC). */
@@ -959,7 +958,7 @@ extern u32 D_80082C14;
 /** @brief Reset to 20 on field entry by @c func_8009AEC0 and scaled by
  *         134.8046875 (@c *69020>>9) in @c func_800B6738 to form the threshold
  *         the entity's @c moveSpeed is compared against — the same scale
- *         @c func_8009AEC0 applies to @c SystemState::unk00A when seeding it.
+ *         @c func_8009AEC0 applies to @c FieldContext::unk00A when seeding it.
  *  @note Both quantities are unnamed; the pair only ever holds 20. */
 extern s16 D_800704B2;
 
@@ -1026,7 +1025,7 @@ extern u8 D_800704CA;
 /** @brief Field-side rotation/orientation halfword consumed by camera opcodes. */
 extern u16 D_800704AA;
 
-/** @brief Dialog dispatch mode shared with @ref g_fieldEntity.dialogState. */
+/** @brief Dialog dispatch mode shared with @ref g_fieldContext.dialogState. */
 extern u8 D_800DE8D2;
 
 /* ======================================================================== */

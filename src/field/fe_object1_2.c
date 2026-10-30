@@ -18,7 +18,7 @@ static void func_800A3534(FieldParticles *particles);
 /**
  * @brief Arm every camera slot whose move has not started yet.
  *
- * Scans the eight @c g_fieldEntity.slots for ones still in @c submode @c 0 and
+ * Scans the eight @c g_fieldContext.slots for ones still in @c submode @c 0 and
  * gets them ready for @c func_800A1318 to tick: the step counter @c unk06 is
  * zeroed and the current position @c q1 / @c q2 is snapshotted into
  * @c savedQ1 / @c savedQ2, which is the "from" end of the interpolation.
@@ -32,22 +32,22 @@ static void func_800A3534(FieldParticles *particles);
 void func_800A10F4(void) {
     s16 i;
     for (i = 0; i < 8; i++) {
-        if (g_fieldEntity.slots[i].submode == 0) {
-            g_fieldEntity.slots[i].unk06 = 0;
-            g_fieldEntity.slots[i].savedQ1 = g_fieldEntity.slots[i].q1;
-            g_fieldEntity.slots[i].savedQ2 = g_fieldEntity.slots[i].q2;
-            switch (g_fieldEntity.slots[i].mode) {
+        if (g_fieldContext.slots[i].submode == 0) {
+            g_fieldContext.slots[i].unk06 = 0;
+            g_fieldContext.slots[i].savedQ1 = g_fieldContext.slots[i].q1;
+            g_fieldContext.slots[i].savedQ2 = g_fieldContext.slots[i].q2;
+            switch (g_fieldContext.slots[i].mode) {
                 case 0:
                 case 1:
                 case 2:
                 case 4:
                 case 5:
-                    g_fieldEntity.slots[i].submode = 1;
+                    g_fieldContext.slots[i].submode = 1;
                     break;
                 case 3:
-                    g_fieldEntity.slots[i].submode = 2;
-                    g_fieldEntity.slots[i].q1 = g_fieldEntity.slots[i].p1;
-                    g_fieldEntity.slots[i].q2 = g_fieldEntity.slots[i].p2;
+                    g_fieldContext.slots[i].submode = 2;
+                    g_fieldContext.slots[i].q1 = g_fieldContext.slots[i].p1;
+                    g_fieldContext.slots[i].q2 = g_fieldContext.slots[i].p2;
                     break;
             }
         }
@@ -59,7 +59,7 @@ void func_800A10F4(void) {
  *        project it through @c func_800A0F34, then call @c func_800A0FB8
  *        with a flag selected by the active-slot index.
  *
- * Reads @c g_fieldEntity.slots[unk1A6].param to pick an @ref Actor entity,
+ * Reads @c g_fieldContext.slots[unk1A6].param to pick an @ref Actor entity,
  * fills @c svec.{vx,vy,vz} from its @c posX/posY/posZ shifted right by
  * @c 12, biasing @c vz by @c g_curFieldInfo->baseZ. The projection result is
  * latched to @c D_800C71FC. The trailing @c func_800A0FB8 clamp call gets
@@ -68,17 +68,17 @@ void func_800A10F4(void) {
  * @param out     Screen-space position, written by @c func_800A0F34 and then
  *                clamped in place by @c func_800A0FB8.
  * @param slotIdx Caller's slot index. Unused — the entity is picked from
- *                @c g_fieldEntity.unk1A6 instead — but @c func_800A1318 passes it.
+ *                @c g_fieldContext.unk1A6 instead — but @c func_800A1318 passes it.
  */
 void func_800A11E0(Vec2s *out, s16 slotIdx) {
     SVECTOR svec;
 
-    svec.vx = D_80085224[g_fieldEntity.slots[g_fieldEntity.unk1A6].param].posX >> 12;
-    svec.vy = D_80085224[g_fieldEntity.slots[g_fieldEntity.unk1A6].param].posY >> 12;
-    svec.vz = (D_80085224[g_fieldEntity.slots[g_fieldEntity.unk1A6].param].posZ >> 12) +
+    svec.vx = D_80085224[g_fieldContext.slots[g_fieldContext.unk1A6].param].posX >> 12;
+    svec.vy = D_80085224[g_fieldContext.slots[g_fieldContext.unk1A6].param].posY >> 12;
+    svec.vz = (D_80085224[g_fieldContext.slots[g_fieldContext.unk1A6].param].posZ >> 12) +
               g_curFieldInfo->baseZ;
     D_800C71FC = func_800A0F34(&svec, (s32 *)out);
-    if (g_fieldEntity.unk1A6 == 0) {
+    if (g_fieldContext.unk1A6 == 0) {
         func_800A0FB8(out, 0, 0);
     } else {
         func_800A0FB8(out, 1, 0);
@@ -88,13 +88,13 @@ void func_800A11E0(Vec2s *out, s16 slotIdx) {
 /**
  * @brief Advance every camera slot that has a move in progress.
  *
- * Walks the eight @c g_fieldEntity.slots and ticks each one whose @c submode is
+ * Walks the eight @c g_fieldContext.slots and ticks each one whose @c submode is
  * @c 1 (move running). @c mode picks how the slot's camera position
  * @c q1 / @c q2 — the scroll origin @c func_800A15C0 later turns into the
  * frame's draw offset — is driven towards its target:
  *
  *  - @c 0: hard-lock to the party entity's projected screen position, but only
- *    for the active slot (@c g_fieldEntity.unk1A6); every other slot is zeroed.
+ *    for the active slot (@c g_fieldContext.unk1A6); every other slot is zeroed.
  *  - @c 1 / @c 2: ease towards that live projected position, linearly
  *    (@c func_800A0E54) or sine-eased (@c func_800A0EB8).
  *  - @c 3: nothing.
@@ -110,66 +110,66 @@ void func_800A1318(void) {
     s16 i;
 
     for (i = 0; i < 8; i++) {
-        if (g_fieldEntity.slots[i].submode != 1) {
+        if (g_fieldContext.slots[i].submode != 1) {
             continue;
         }
-        switch (g_fieldEntity.slots[i].mode) {
+        switch (g_fieldContext.slots[i].mode) {
         case 0:
             func_800A11E0(&pos, i);
-            if (i == g_fieldEntity.unk1A6) {
-                g_fieldEntity.slots[i].q1 = pos.x;
-                g_fieldEntity.slots[i].q2 = pos.y;
+            if (i == g_fieldContext.unk1A6) {
+                g_fieldContext.slots[i].q1 = pos.x;
+                g_fieldContext.slots[i].q2 = pos.y;
             } else {
-                g_fieldEntity.slots[i].q1 = 0;
-                g_fieldEntity.slots[i].q2 = 0;
+                g_fieldContext.slots[i].q1 = 0;
+                g_fieldContext.slots[i].q2 = 0;
             }
             break;
         case 1:
             func_800A11E0(&pos, i);
-            g_fieldEntity.slots[i].q1 = func_800A0E54(g_fieldEntity.slots[i].savedQ1, pos.x,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            g_fieldEntity.slots[i].q2 = func_800A0E54(g_fieldEntity.slots[i].savedQ2, pos.y,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            if (g_fieldEntity.slots[i].timer == g_fieldEntity.slots[i].unk06) {
-                g_fieldEntity.slots[i].submode = 2;
+            g_fieldContext.slots[i].q1 = func_800A0E54(g_fieldContext.slots[i].savedQ1, pos.x,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            g_fieldContext.slots[i].q2 = func_800A0E54(g_fieldContext.slots[i].savedQ2, pos.y,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            if (g_fieldContext.slots[i].timer == g_fieldContext.slots[i].unk06) {
+                g_fieldContext.slots[i].submode = 2;
             } else {
-                g_fieldEntity.slots[i].unk06++;
+                g_fieldContext.slots[i].unk06++;
             }
             break;
         case 2:
             func_800A11E0(&pos, i);
-            g_fieldEntity.slots[i].q1 = func_800A0EB8(g_fieldEntity.slots[i].savedQ1, pos.x,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            g_fieldEntity.slots[i].q2 = func_800A0EB8(g_fieldEntity.slots[i].savedQ2, pos.y,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            if (g_fieldEntity.slots[i].timer == g_fieldEntity.slots[i].unk06) {
-                g_fieldEntity.slots[i].submode = 2;
+            g_fieldContext.slots[i].q1 = func_800A0EB8(g_fieldContext.slots[i].savedQ1, pos.x,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            g_fieldContext.slots[i].q2 = func_800A0EB8(g_fieldContext.slots[i].savedQ2, pos.y,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            if (g_fieldContext.slots[i].timer == g_fieldContext.slots[i].unk06) {
+                g_fieldContext.slots[i].submode = 2;
             } else {
-                g_fieldEntity.slots[i].unk06++;
+                g_fieldContext.slots[i].unk06++;
             }
             break;
         case 3:
             break;
         case 4:
-            g_fieldEntity.slots[i].q1 = func_800A0E54(g_fieldEntity.slots[i].savedQ1, g_fieldEntity.slots[i].p1,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            g_fieldEntity.slots[i].q2 = func_800A0E54(g_fieldEntity.slots[i].savedQ2, g_fieldEntity.slots[i].p2,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            if (g_fieldEntity.slots[i].timer == g_fieldEntity.slots[i].unk06) {
-                g_fieldEntity.slots[i].submode = 2;
+            g_fieldContext.slots[i].q1 = func_800A0E54(g_fieldContext.slots[i].savedQ1, g_fieldContext.slots[i].p1,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            g_fieldContext.slots[i].q2 = func_800A0E54(g_fieldContext.slots[i].savedQ2, g_fieldContext.slots[i].p2,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            if (g_fieldContext.slots[i].timer == g_fieldContext.slots[i].unk06) {
+                g_fieldContext.slots[i].submode = 2;
             } else {
-                g_fieldEntity.slots[i].unk06++;
+                g_fieldContext.slots[i].unk06++;
             }
             break;
         case 5:
-            g_fieldEntity.slots[i].q1 = func_800A0EB8(g_fieldEntity.slots[i].savedQ1, g_fieldEntity.slots[i].p1,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            g_fieldEntity.slots[i].q2 = func_800A0EB8(g_fieldEntity.slots[i].savedQ2, g_fieldEntity.slots[i].p2,
-                                                   g_fieldEntity.slots[i].timer, g_fieldEntity.slots[i].unk06);
-            if (g_fieldEntity.slots[i].timer == g_fieldEntity.slots[i].unk06) {
-                g_fieldEntity.slots[i].submode = 2;
+            g_fieldContext.slots[i].q1 = func_800A0EB8(g_fieldContext.slots[i].savedQ1, g_fieldContext.slots[i].p1,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            g_fieldContext.slots[i].q2 = func_800A0EB8(g_fieldContext.slots[i].savedQ2, g_fieldContext.slots[i].p2,
+                                                   g_fieldContext.slots[i].timer, g_fieldContext.slots[i].unk06);
+            if (g_fieldContext.slots[i].timer == g_fieldContext.slots[i].unk06) {
+                g_fieldContext.slots[i].submode = 2;
             } else {
-                g_fieldEntity.slots[i].unk06++;
+                g_fieldContext.slots[i].unk06++;
             }
             break;
         }
@@ -201,11 +201,11 @@ void func_800A15C0(FieldFrameBuf *buf, DRAWENV *env, s16 slotIdx) {
     SetGeomOffset(0, 0);
     if (func_800BE274() == 0) {
         if (buf == D_800C7218) {
-            env[0].ofs[0] = (D_800C7210 - g_fieldEntity.slots[slotIdx].q1) + g_fieldEntity.oscillators[0].output + g_curFieldView->viewOfsX;
-            env[0].ofs[1] = (D_800C7214 - g_fieldEntity.slots[slotIdx].q2) + g_fieldEntity.oscillators[1].output + g_curFieldView->viewOfsY;
+            env[0].ofs[0] = (D_800C7210 - g_fieldContext.slots[slotIdx].q1) + g_fieldContext.oscillators[0].output + g_curFieldView->viewOfsX;
+            env[0].ofs[1] = (D_800C7214 - g_fieldContext.slots[slotIdx].q2) + g_fieldContext.oscillators[1].output + g_curFieldView->viewOfsY;
         } else {
-            env[1].ofs[0] = (D_800C7210 - g_fieldEntity.slots[slotIdx].q1) + g_fieldEntity.oscillators[0].output + g_curFieldView->viewOfsX + 0x200;
-            env[1].ofs[1] = (D_800C7214 - g_fieldEntity.slots[slotIdx].q2) + g_fieldEntity.oscillators[1].output + g_curFieldView->viewOfsY;
+            env[1].ofs[0] = (D_800C7210 - g_fieldContext.slots[slotIdx].q1) + g_fieldContext.oscillators[0].output + g_curFieldView->viewOfsX + 0x200;
+            env[1].ofs[1] = (D_800C7214 - g_fieldContext.slots[slotIdx].q2) + g_fieldContext.oscillators[1].output + g_curFieldView->viewOfsY;
         }
     } else {
         if (buf == D_800C7218) {
@@ -891,12 +891,12 @@ void func_800A2EE0(FieldParticles *particles) {
 }
 
 /**
- * @brief Clear all 16 @c SystemState::slotActive entries.
+ * @brief Clear all 16 @c FieldContext::slotActive entries.
  *
  * @param particles Unused.
  * @param sys       System state.
  */
-void func_800A2F28(FieldParticles *particles, SystemState *sys) {
+void func_800A2F28(FieldParticles *particles, FieldContext *sys) {
     s32 i;
     for (i = 0; i < 16; i++) {
         sys->slotActive[i] = 0;
@@ -1146,7 +1146,7 @@ static void func_800A3534(FieldParticles *particles) {
  *     (`rate` itself if rate < 8, else 1).
  *   - Increment the tick counter.
  *   - Dispatch to func_800A303C with one of three position sources, chosen
- *     by `g_fieldEntity.slotActive[slot]`:
+ *     by `g_fieldContext.slotActive[slot]`:
  *       - kind == 1: select by actor->mode, pass the actor itself
  *         (mode 1), or fill `pos` via func_800A3488 (mode 2) or
  *         func_800A327C (mode 3).
@@ -1154,7 +1154,7 @@ static void func_800A3534(FieldParticles *particles) {
  *         posX/Y/Z by 4096, pass as `pos`.
  *
  * @param actor Field entity (with rows[4]/timers[4]/animOffset/mode).
- * @param slot  Index into g_fieldEntity.slotActive (0..15).
+ * @param slot  Index into g_fieldContext.slotActive (0..15).
  * @param a2    Second arg passed through to func_800A303C.
  */
 void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
@@ -1181,7 +1181,7 @@ void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
         }
         actor->timers[i] = (u16)actor->timers[i] + 1;
 
-        if (g_fieldEntity.slotActive[slot] == 1) {
+        if (g_fieldContext.slotActive[slot] == 1) {
             switch (actor->mode) {
             case 1:
                 func_800A303C(actor->rows[i].id, a2, (SVECTOR *)actor, ratio);
@@ -1196,9 +1196,9 @@ void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
                 break;
             }
         } else {
-            pos.vx = D_80085224[g_fieldEntity.slotActive[slot] & 0x7F].posX / 4096;
-            pos.vy = D_80085224[g_fieldEntity.slotActive[slot] & 0x7F].posY / 4096;
-            pos.vz = D_80085224[g_fieldEntity.slotActive[slot] & 0x7F].posZ / 4096;
+            pos.vx = D_80085224[g_fieldContext.slotActive[slot] & 0x7F].posX / 4096;
+            pos.vy = D_80085224[g_fieldContext.slotActive[slot] & 0x7F].posY / 4096;
+            pos.vz = D_80085224[g_fieldContext.slotActive[slot] & 0x7F].posZ / 4096;
             func_800A303C(actor->rows[i].id, a2, &pos, ratio);
         }
     }
@@ -1208,7 +1208,7 @@ void func_800A355C(ActorAnim *actor, s32 slot, s32 a2) {
  * @brief Per-frame animation tick for all 16 slots of the field's particle system.
  *
  * Walks the 16 @ref FieldSubsceneSlot entries of @p buf (stride @c 0xFE). For
- * each slot marked active in @c g_fieldEntity.slotActive[i]:
+ * each slot marked active in @c g_fieldContext.slotActive[i]:
  *  - if the per-frame counter @c h1 has reached @c table[h2], reset @c h1,
  *    advance the table cursor @c h2, and if the next table entry is @c 0 wrap
  *    @c h2 and @c h0 back to 0;
@@ -1228,7 +1228,7 @@ void func_800A37A8(MATRIX *m, FieldFrameBuf *frame, FieldParticles *buf) {
     SVECTOR pos;
 
     for (i = 0; i < 16; i++) {
-        if (g_fieldEntity.slotActive[i] != 0) {
+        if (g_fieldContext.slotActive[i] != 0) {
             if (buf->slots[i].h1 >= buf->slots[i].table[buf->slots[i].h2]) {
                 buf->slots[i].h1 = 0;
                 buf->slots[i].h2++;
@@ -1422,7 +1422,7 @@ void func_800A39D8(MoveAccum *acc, MoveRecord *rec, FieldParticles *buf, u32 *ot
  * Runs the per-tick work of @c func_800A37A8 and @c func_800A38B4 in a loop
  * until every subscene slot has played out: the tick count is the largest
  * @c frameCount across the 16 slots, and a slot is dropped (its
- * @c g_fieldEntity.slotActive entry cleared) once the tick passes its own count.
+ * @c g_fieldContext.slotActive entry cleared) once the tick passes its own count.
  *
  * Each tick advances two things. Every still-active slot steps its animation
  * table, resetting the cursor to the start when the table byte runs out —
@@ -1444,7 +1444,7 @@ void func_800A3FE0(FieldParticles *buf) {
     s32 maxFrames;
 
     for (i = 0; i < 16; i++) {
-        saved[i] = g_fieldEntity.slotActive[i];
+        saved[i] = g_fieldContext.slotActive[i];
     }
 
     maxFrames = 0;
@@ -1457,9 +1457,9 @@ void func_800A3FE0(FieldParticles *buf) {
     for (i = 0; i < maxFrames; i++) {
         for (j = 0; j < 16; j++) {
             if (buf->slots[j].frameCount < i) {
-                g_fieldEntity.slotActive[j] = 0;
+                g_fieldContext.slotActive[j] = 0;
             }
-            if (g_fieldEntity.slotActive[j] != 0) {
+            if (g_fieldContext.slotActive[j] != 0) {
                 if (buf->slots[j].h1 >= buf->slots[j].table[buf->slots[j].h2]) {
                     buf->slots[j].h1 = 0;
                     buf->slots[j].h2++;
@@ -1493,7 +1493,7 @@ void func_800A3FE0(FieldParticles *buf) {
     }
 
     for (i = 0; i < 16; i++) {
-        g_fieldEntity.slotActive[i] = saved[i];
+        g_fieldContext.slotActive[i] = saved[i];
     }
 }
 
@@ -2003,7 +2003,7 @@ void func_800A5224(MATRIX *m, u32 *ot, FieldRibbonPrims *prims,
 void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
     ClearOTagR(&g_orderingTablePtrs[(s16)g_bufferIndex], 1);
     {
-        volatile SystemState *sys = &g_fieldEntity;
+        volatile FieldContext *sys = &g_fieldContext;
         s32 idx = (s16)g_bufferIndex * 2;
         g_clearTiles[idx].r0 = (s16)sys->dialogTimer * r / 256;
         g_clearTiles[(s16)g_bufferIndex * 2].g0 = (s16)sys->dialogTimer * g / 256;
@@ -2058,7 +2058,7 @@ void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
  * driven from the dialog state machine each frame.
  */
 void func_800A5698(void) {
-    SystemState *sys = &g_fieldEntity;
+    FieldContext *sys = &g_fieldContext;
     sys->dialogTimer -= sys->dialogCount;
     sys->unk1A1 = 0;
     if ((s16)*(volatile u16 *)&sys->dialogTimer > 0) {
@@ -2082,7 +2082,7 @@ void func_800A5698(void) {
  * of letting gcc reuse the post-increment value still in a register.
  */
 void func_800A5700(void) {
-    SystemState *sys = &g_fieldEntity;
+    FieldContext *sys = &g_fieldContext;
     sys->dialogTimer += sys->dialogCount;
     sys->unk1A1 = 0;
     if ((s16)*(volatile u16 *)&sys->dialogTimer >= 256) {
@@ -2123,7 +2123,7 @@ s16 func_800A5748(s16 start, s16 end, s16 progress, s16 total) {
  * @param a0 Opaque pointer forwarded as @c func_800A553C's first arg.
  */
 void func_800A5788(FieldFrameBuf *buf) {
-    SystemState *sys = &g_fieldEntity;
+    FieldContext *sys = &g_fieldContext;
 
     sys->unk1A1 = 0;
     sys->dialogTimer++;
@@ -2149,7 +2149,7 @@ void func_800A5788(FieldFrameBuf *buf) {
 /**
  * @brief Render one frame of the dialog/fade overlay for the current dialog state.
  *
- * Dispatches on @c g_fieldEntity.dialogState into @p buf 's ordering table:
+ * Dispatches on @c g_fieldContext.dialogState into @p buf 's ordering table:
  *
  *  - @c 0: idle — clear the fade colour accumulators and the re-arm guard.
  *  - @c 1: nothing (the state is owned by someone else this frame).
@@ -2165,39 +2165,39 @@ void func_800A5788(FieldFrameBuf *buf) {
  * @param buf The frame's GPU work area; its ordering table receives the prims.
  */
 void func_800A5898(FieldFrameBuf *buf) {
-    SystemState *sys = &g_fieldEntity;
+    FieldContext *sys = &g_fieldContext;
 
     switch (sys->dialogState) {
     case 0:
-        g_fieldEntity.unk1A1 = 0;
-        g_fieldEntity.field_0x114 = 0;
-        g_fieldEntity.field_0x116 = 0;
-        g_fieldEntity.field_0x118 = 0;
+        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.field_0x114 = 0;
+        g_fieldContext.field_0x116 = 0;
+        g_fieldContext.field_0x118 = 0;
         break;
     case 1:
         break;
     case 2:
         SetupDrawMode(2);
         func_800A5698();
-        func_800A5360(buf->ot, g_fieldEntity.field_0x10E, g_fieldEntity.field_0x110, g_fieldEntity.field_0x112);
+        func_800A5360(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 3:
         SetupDrawMode(2);
         func_800A5700();
-        func_800A5360(buf->ot, g_fieldEntity.field_0x10E, g_fieldEntity.field_0x110, g_fieldEntity.field_0x112);
+        func_800A5360(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 4:
         D_80070649 = 1;
         break;
     case 7:
-        g_fieldEntity.unk1A1 = 0;
+        g_fieldContext.unk1A1 = 0;
         SetupDrawMode(1);
-        func_800A553C(buf->ot, g_fieldEntity.field_0x10E, g_fieldEntity.field_0x110, g_fieldEntity.field_0x112);
+        func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 8:
-        g_fieldEntity.unk1A1 = 0;
+        g_fieldContext.unk1A1 = 0;
         SetupDrawMode(2);
-        func_800A553C(buf->ot, g_fieldEntity.field_0x10E, g_fieldEntity.field_0x110, g_fieldEntity.field_0x112);
+        func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 5:
         SetupDrawMode(1);
@@ -2293,7 +2293,7 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
         }
     }
 
-    if (func_800BE264() != 0 || g_fieldEntity.mode == 3) {
+    if (func_800BE264() != 0 || g_fieldContext.mode == 3) {
         func_800A59D0();
         return;
     }
@@ -2376,7 +2376,7 @@ s32 func_800A5CF8(void) {
  *
  * @note The three dialog-state reads go through a volatile cast, the
  *       original re-reads the halfword for each compare.
- * @note The first formation store writes @c g_fieldEntity.counter through the
+ * @note The first formation store writes @c g_fieldContext.counter through the
  *       struct; the others use the alias symbol @c D_800704AA (same word,
  *       0x800704AA), both spellings exist in the original.
  * @note Each formation id is read twice from the same slot: through the
@@ -2391,10 +2391,10 @@ void func_800A5D28(void) {
     s32 r;
     FieldFormations *fm;
 
-    if (g_fieldEntity.mode == 1) {
+    if (g_fieldContext.mode == 1) {
         return;
     }
-    if (g_fieldEntity.mode == 7) {
+    if (g_fieldContext.mode == 7) {
         return;
     }
     r = func_800BE274();
@@ -2404,13 +2404,13 @@ void func_800A5D28(void) {
     if (g_fieldVars->fieldCF != 0) {
         return;
     }
-    if (g_fieldEntity.dialogState == 4) {
+    if (g_fieldContext.dialogState == 4) {
         return;
     }
-    if (g_fieldEntity.dialogState == 3) {
+    if (g_fieldContext.dialogState == 3) {
         return;
     }
-    if (g_fieldEntity.dialogState == 2) {
+    if (g_fieldContext.dialogState == 2) {
         return;
     }
     if (g_fadeMode == 1) {
@@ -2431,13 +2431,13 @@ void func_800A5D28(void) {
     D_8005F164 &= 0xFF;
     D_8005F0FE += (s16)(u16)D_80085224[D_8005F148].moveSpeed / 1348;
     if ((u8)func_800A5C9C() < D_8005F0FE) {
-        g_fieldEntity.mode = 3;
+        g_fieldContext.mode = 3;
         D_8005F0FE = 0;
         D_8005F130 = 1;
         r = func_800A5CF8();
         fm = *g_fieldFormations;
         if ((u8)r < 0x80 && D_8005F120 != (s16)fm->formation[0]) {
-            g_fieldEntity.counter = fm->formation[0];
+            g_fieldContext.counter = fm->formation[0];
         } else if ((u8)r < 0xC0 && D_8005F120 != (s16)fm->formation[1]) {
             D_800704AA = fm->formation[1];
         } else if ((u8)r < 0xF0 && D_8005F120 != (s16)fm->formation[2]) {

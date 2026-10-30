@@ -30,13 +30,13 @@
  *     on whether @c audioChannel0State is armed. Always writes
  *     @c g_battleConfig.unk2 and pulses @ref sndCmd45.
  *   - @c mode @c == @c 1 — full slot reset: zero the 16-byte
- *     @c g_fieldEntity.unkActive180 region, walk the @ref D_80085224
+ *     @c g_fieldContext.unkActive180 region, walk the @ref D_80085224
  *     Actor pool and clear the cleanup-trigger bytes / @c flags @c & @c ~8
  *     on each entity flagged @c unk218 @c == @c -1, then fall into
  *     the mode-3 slot-clear block.
  *   - @c mode @c == @c 2 — just @ref func_800BF4A4 (Actor pool reset).
  *   - @c mode @c == @c 3 — slot table reset: @ref func_800BF28C plus
- *     reinit of each @c g_fieldEntity.slots[i] (mode/param/submode/p3-p6).
+ *     reinit of each @c g_fieldContext.slots[i] (mode/param/submode/p3-p6).
  *
  * After the dispatch all paths run a common tail:
  *   - @ref FIELD_STATE_COUNTDOWN → show the countdown timer again.
@@ -66,7 +66,7 @@ void func_800BF718(s32 mode) {
     switch (mode) {
     case 1:
         for (i = 0; i < 16; i++) {
-            g_fieldEntity.unkActive180[i] = 0;
+            g_fieldContext.unkActive180[i] = 0;
         }
         e = D_80085224;
         D_800DE4FC = 0;
@@ -86,14 +86,14 @@ void func_800BF718(s32 mode) {
     case 3:
         func_800BF28C(0);
         for (i = 0; i < 8; i++) {
-            entIdx = g_fieldEntity.entityIndex[0];
-            g_fieldEntity.slots[i].mode = 0;
-            g_fieldEntity.slots[i].submode = 0;
-            g_fieldEntity.slots[i].p5 = 0x100;
-            g_fieldEntity.slots[i].p6 = 0x100;
-            g_fieldEntity.slots[i].p3 = 0;
-            g_fieldEntity.slots[i].p4 = 0;
-            g_fieldEntity.slots[i].param = entIdx;
+            entIdx = g_fieldContext.entityIndex[0];
+            g_fieldContext.slots[i].mode = 0;
+            g_fieldContext.slots[i].submode = 0;
+            g_fieldContext.slots[i].p5 = 0x100;
+            g_fieldContext.slots[i].p6 = 0x100;
+            g_fieldContext.slots[i].p3 = 0;
+            g_fieldContext.slots[i].p4 = 0;
+            g_fieldContext.slots[i].param = entIdx;
         }
         break;
     case 0:
@@ -227,7 +227,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     seed->charKos[6] = g_gameState.chars[6].kos;
     seed->charKos[7] = g_gameState.chars[7].kos;
 
-    seed->field54 = g_fieldEntity.previousFieldId;
+    seed->field54 = g_fieldContext.previousFieldId;
     seed->field56 = D_80082C8D;
     D_800DE8C8[1] = 2;
     ((u8 *)D_800DE8C8)[0xB] = 0;
@@ -239,11 +239,11 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
 
     if (mode == 1 || mode == 3) {
         D_80085390 = 0;
-        g_fieldEntity.field1B4 = 0xFFFFFF;
-        g_fieldEntity.unk1A6 = 0;
-        g_fieldEntity.oscillators[0].mode = 0;
-        g_fieldEntity.oscillators[1].mode = 0;
-        g_fieldEntity.unk1A3 = 0;
+        g_fieldContext.field1B4 = 0xFFFFFF;
+        g_fieldContext.unk1A6 = 0;
+        g_fieldContext.oscillators[0].mode = 0;
+        g_fieldContext.oscillators[1].mode = 0;
+        g_fieldContext.unk1A3 = 0;
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_400;
         g_fieldVars->fieldCF = 0;
         g_fieldVars->fieldD1 &= 0xFC;
@@ -273,10 +273,10 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         for (i = 0x400; i < 0x500; i++) {
             gs_bytes[i + GAMESTATE_MISC3_OFFSET] = 0;
         }
-        g_fieldEntity.dialogState = 4;
-        g_fieldEntity.entityIndex[0] = 0xFF;
-        g_fieldEntity.entityIndex[1] = 0xFF;
-        g_fieldEntity.entityIndex[2] = 0xFF;
+        g_fieldContext.dialogState = 4;
+        g_fieldContext.entityIndex[0] = 0xFF;
+        g_fieldContext.entityIndex[1] = 0xFF;
+        g_fieldContext.entityIndex[2] = 0xFF;
         g_fieldVars->memberSlot[0] = 0xFF;
         g_fieldVars->memberSlot[1] = 0xFF;
         g_fieldVars->memberSlot[2] = 0xFF;
@@ -287,14 +287,14 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         for (i = 0; i < 3; i++) {
             for (e = D_80085224, D_800DE4FC = 0; D_800DE4FC < D_80085388; D_800DE4FC++, e++) {
                 if (g_gameState.battleParty[i] == e->field_0x255) {
-                    e->posX = g_fieldEntity.position_x << 12;
-                    e->posY = g_fieldEntity.position_y << 12;
-                    e->facingDirection = g_fieldEntity.facingDirection;
-                    rot = g_fieldEntity.spawnTriIdx;
+                    e->posX = g_fieldContext.position_x << 12;
+                    e->posY = g_fieldContext.position_y << 12;
+                    e->facingDirection = g_fieldContext.facingDirection;
+                    rot = g_fieldContext.spawnTriIdx;
                     e->context.flags |= 4;
                     e->triIdx = rot;
                     g_fieldVars->memberSlot[i] = e->field_0x256;
-                    g_fieldEntity.entityIndex[i] = e->field_0x256;
+                    g_fieldContext.entityIndex[i] = e->field_0x256;
                     break;
                 }
             }

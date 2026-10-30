@@ -22,7 +22,7 @@ extern void func_800A17A4(u8 *a0);
 extern void func_800A1C64(void);
 extern void func_800A1CC0(void);
 extern void func_800A2EE0(FieldParticles *particles);
-extern void func_800A2F28(FieldParticles *particles, SystemState *sys);
+extern void func_800A2F28(FieldParticles *particles, FieldContext *sys);
 extern void func_800A303C(s16 emIdx, ParticleSystem *sys, s16 *pos, s16 count);
 extern void func_800A355C(ActorAnim *actor, s32 slot, s32 a2);
 extern void func_800A44D8(void);
