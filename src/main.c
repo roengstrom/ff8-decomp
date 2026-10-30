@@ -66,11 +66,11 @@ void VsyncHandler(void) {
     }
 
     if (IsPlayTimePaused() != 0) {
-        D_8005F11E = 1;
+        g_vsyncDone = 1;
         return;
     }
     if (g_vsyncSkip != 0) {
-        D_8005F11E = 1;
+        g_vsyncDone = 1;
         return;
     }
 
@@ -83,14 +83,14 @@ void VsyncHandler(void) {
     D_8005F15C += 0x88F;
     if (D_8005F15C >> 17) {
         if (g_gameState.mainData.countdownTimer == 0) {
-            D_8005F11E = 1;
+            g_vsyncDone = 1;
             return;
         }
         g_gameState.mainData.countdownTimer--;
         D_8005F15C &= 0xFFFF;
     }
 
-    D_8005F11E = 1;
+    g_vsyncDone = 1;
 }
 
 /** @brief Initializes the PS1 hardware (memory, callbacks, GPU, GTE, SPU) and

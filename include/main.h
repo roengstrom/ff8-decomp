@@ -39,7 +39,7 @@ extern s32            D_8005F138;       /**< Active display-environment window (
 extern u8             g_vsyncSkip;
 extern volatile s32   D_8005F154; /**< VSync frame-counter timing accumulator (+0x88F/VSync). */
 extern volatile s32   D_8005F15C; /**< VSync countdown-timer timing accumulator (+0x88F/VSync). */
-extern u16            D_8005F11E; /**< VSync-done / status flag. */
+extern u16 g_vsyncDone;
 
 /* CD file-table descriptors + scratch buffers loaded/managed by main.c. */
 extern CdFileDesc     g_fileTableDesc[];

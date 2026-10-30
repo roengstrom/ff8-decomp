@@ -355,7 +355,7 @@ void func_8009895C(void) {
             copyFramebuffer();
             g_fadeMode = 1;
             g_fadeCounter = 0;
-            D_8005F11E = 0;
+            g_vsyncDone = 0;
             g_renderMode = RENDER_FADE;
         }
 
@@ -465,7 +465,7 @@ void func_8009895C(void) {
             copyFramebuffer();
             g_fadeMode = 9;
             g_fadeCounter = 0;
-            D_8005F11E = 0;
+            g_vsyncDone = 0;
             g_renderMode = RENDER_FADE;
             D_8005F14A = 0;
             break;
