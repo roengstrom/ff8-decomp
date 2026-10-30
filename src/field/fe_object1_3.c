@@ -7,6 +7,9 @@
 #include "psxsdk/libetc.h"
 #include "field/fe_object1.h"
 #include "field/fe_object10.h"
+#include "field/fe_object1_3.h"
+
+static s32 func_800A5FA4(FieldLineTrigger *seg, s32 sel);
 
 /**
  * @brief Fire or re-arm one field line trigger, once per edge.
@@ -28,7 +31,7 @@
  *            (clears @c trigger7). Any other value is a no-op.
  * @return @c 1 when the latch flipped, @c 0 otherwise.
  */
-s32 func_800A5FA4(FieldLineTrigger *seg, s32 sel) {
+static s32 func_800A5FA4(FieldLineTrigger *seg, s32 sel) {
     u8 *latch = D_80070628;
     s32 result = 0;
 

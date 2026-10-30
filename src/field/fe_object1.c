@@ -8,6 +8,7 @@
 #include "psxsdk/libetc.h"
 #include "field/fe_object1.h"
 #include "field/fe_object1_2.h"
+#include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
 #include "field/fe_object10.h"
 #include "input/gamepad.h"

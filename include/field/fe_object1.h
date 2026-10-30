@@ -325,10 +325,6 @@ extern TILE g_clearTiles[];              /**< Per-buffer screen-clear TILEs. */
 /** @brief Raised by @c func_800A5898 when the dialog state reaches @c 4. */
 extern u8 D_80070649;
 
-extern s32  func_800A5FA4(FieldLineTrigger *seg, s32 sel);
-extern void func_800A6100(Actor *actor, FieldLineTrigger *segs, Vec3i *pt);
-extern void func_800A62EC(FieldLineTrigger *segs);
-
 /**
  * @brief Element of a @ref FieldObject part's sub-range (8-byte stride).
  * @note Purpose uncertain — @c func_800A8058 clears @c field06 for every
