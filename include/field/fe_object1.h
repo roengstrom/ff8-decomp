@@ -395,8 +395,6 @@ extern u8 D_800C32A0[];
 extern u8 D_800C3320[];
 extern u8 D_800C3520[];
 extern u8 D_800C6D90;            /**< PRNG counter advanced 13/step by func_800A2EA4 */
-extern u8 D_8005F150;            /**< Outer PRNG counter, D_800C3520 lookup offset, advanced 13/step per 256 calls of func_800A5C9C */
-extern u8 D_8005F151;            /**< Inner PRNG counter, D_800C3520 lookup index, advanced 1/call by func_800A5C9C */
 
 extern void func_8004D684(void *p);
 
