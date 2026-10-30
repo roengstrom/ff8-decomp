@@ -4,6 +4,7 @@
 #include "psxsdk/libgpu.h"
 #include "battle.h"
 #include "input/gamepad.h"
+#include "menumain2.h"
 #include "ui/seed_rank.h"
 #include "cd.h"
 #include "gamestate.h"
@@ -44,7 +45,6 @@ extern u32 D_80053D08[][2];
 extern RECT D_80053CF0;
 extern RECT D_80053CF8;
 extern RECT D_80053D00;
-extern DISPENV D_80085150;
 extern s32 D_8005F138;
 extern void func_80035E8C(void);
 
@@ -378,7 +378,6 @@ void loadDefaultOverlay(void) {
 }
 
 
-extern void func_801F04E8(s32 a0, s32 a1, s32 a2, s32 a3);
 
 /**
  * @brief Run a battle/menu transition: snapshot state, swap overlays, restore.

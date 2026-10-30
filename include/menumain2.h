@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "psxsdk/libgpu.h"
 
+void func_801F04E8(s32, u32, s32, s32);
 u8 *func_801F08D4(s32, s32, s32, s32);
 void func_801F0954(s32, s32, s32, s32);
 void func_801F0A34(s32, s32, s32, s32);

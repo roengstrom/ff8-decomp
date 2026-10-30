@@ -4,6 +4,8 @@
 #include "common.h"
 #include "world/we_object0.h"
 
+extern DISPENV D_80085150;
+
 /**
  * @brief Overlay command queue entry (D_80085168, 8-slot ring buffer).
  *

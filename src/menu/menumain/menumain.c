@@ -77,28 +77,24 @@ static inline void *DrawIconFromTable(void *ot, TSPRT *head, IconTable *table, s
 /**
  * @brief Build a draw-area primitive from a caller rectangle and link it.
  *
- * Copies the (possibly unaligned) RECT at @p src, offsets its origin by the
+ * Copies the RECT at @p src, offsets its origin by the
  * active draw environment's clip origin, clamps width/height to at least 2,
  * packs the @c SetDrawArea GP0 command into @p prim, links it via
  * @c addPrimFast, and returns the next packet slot.
  *
- * @note @p src is a byte pointer and the copy is a builtin memcpy — the
- *       original's lwl/lwr pairs come from the unaligned 8-byte expansion.
- *       The clip additions go through u16 views of the s16 fields.
- *
  * @param ot   Ordering-table slot to link the primitive into.
  * @param prim Storage for the @c DR_AREA primitive.
- * @param src  Source RECT (unaligned byte pointer).
+ * @param src  Source RECT.
  * @return Cursor for the next primitive (@c prim + 1).
  */
-DR_AREA *func_801EF800(P_TAG *ot, DR_AREA *prim, u8 *src) {
+DR_AREA *func_801EF800(P_TAG *ot, DR_AREA *prim, RECT *src) {
     RECT r;
     DRAWENV *env;
 
-    memcpy(&r, src, sizeof(RECT));
+    r = *src;
     env = g_activeDrawEnv;
-    *(u16 *)&r.x += *(u16 *)&env->clip.x;
-    *(u16 *)&r.y += *(u16 *)&env->clip.y;
+    r.x += env->clip.x;
+    r.y += env->clip.y;
     if (r.w < 2) {
         r.w = 2;
     }
@@ -315,12 +311,12 @@ void *func_801EFBB4(void *ot, void *_prim, MenuRowCallback _drawRowCallback) {
  * 0x1000 (4096 = 1.0 fixed point) and multiplying by 9/10 per step toward
  * index 0, then clears the halfword just before the table.
  *
- * @note Purpose uncertain — the 0x1000 top value and *0.9 steps suggest a
- *       volume or fade lookup table.
+ * @note Used by menu animations to provide an ease-in effect, starting
+ * slowly and accelerating toward the end.
  */
 void func_801EFF64(void) {
     u16 *p = D_801FA3C8;
-    s32 val = 0x1000;
+    s32 val = 4096;
     s32 i;
 
     p += 64;
@@ -387,65 +383,84 @@ s32 func_801F0028(void) {
 /* ======================================================================== */
 
 /**
- * @brief Open/advance the current menu panel window.
+ * @brief Switch to the next menu render buffer and initializes its OT.
  *
- * If the active window pointer (D_801FA3C0) equals D_801FA280 base,
- * advances it by 0xA0 bytes. Sets up the draw-list entry at
- * offset 0x74 and links the panel into the global list (g_activeDrawEnv).
+ * Alternates between the two menu render buffers, clears the selected buffer's
+ * ordering table, updates its ordering table pointer, and sets its draw
+ * environment as the active global draw environment.
  */
-void func_801F0038(void)
-{
-    s32 val = D_801FA3C0;
-    s32 base = D_801FA280;
-    s32 new_var;
-    s32 temp;
-    if (val == base) {
-        base = (s32)D_801FA280 + 0xA0;
+void func_801F0038(void) {
+    MenuRenderBuffer *current = D_801FA3C0;
+    MenuRenderBuffer *next = &D_801FA280[0];
+    if (current == next) {
+        next = &D_801FA280[1];
     }
-    D_801FA3C0 = base;
-    ClearOTag(base + 0x74, 9);
-    new_var = D_801FA3C0;
-    temp = *((s32 *) (new_var + 0x98));
-    *((s32 *) (new_var + 0x70)) = new_var + 0x74;
-    g_activeDrawEnv = (DRAWENV *)(new_var + 0x14);
-    *((s32 *) (new_var + 0x9C)) = temp;
+    D_801FA3C0 = next;
+    ClearOTag(&D_801FA3C0->otArray[0], 9);
+    D_801FA3C0->ot = &D_801FA3C0->otArray[0];
+    g_activeDrawEnv = &D_801FA3C0->drawEnv;
+    D_801FA3C0->unk9C = D_801FA3C0->unk98;
 }
 
 /**
- * @brief Initialize display system and link the active panel.
+ * @brief Activate the current menu render buffer.
  *
- * Resets the display pipeline, sets D_801FA3C0 as both
- * the active window (D_8005F138) and draw-list head (g_activeDrawEnv),
- * then initializes rendering from the panel's draw-list at offset 0x70.
+ * Waits for drawing and vertical synchronization to complete, applies the
+ * buffer's display and drawing environments, updates the global active
+ * display and draw environment pointers, and submits its ordering table
+ * for rendering.
  */
-void func_801F00A0(void)
-{
-    s32 val;
-    s32 arg;
+void func_801F00A0(void) {
     DrawSync(0);
     VSync(0);
-    PutDispEnv(D_801FA3C0);
-    PutDrawEnv(D_801FA3C0 + 0x14);
-    val = D_801FA3C0;
-    D_8005F138 = val;
-    arg = *(s32 *)(val + 0x70);
-    g_activeDrawEnv = (DRAWENV *)(val + 0x14);
-    DrawOTag(arg);
+    PutDispEnv(&D_801FA3C0->dispEnv);
+    PutDrawEnv(&D_801FA3C0->drawEnv);
+    D_8005F138 = &D_801FA3C0->dispEnv;
+    g_activeDrawEnv = &D_801FA3C0->drawEnv;
+    DrawOTag(D_801FA3C0->ot);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain", func_801F010C);
+/**
+ * @brief Initializes the display and draw environments for double buffering.
+ *
+ * Configures two frame buffers using VRAM regions at horizontal offsets
+ * 0 and 512, respectively. Sets the display height to 216 pixels and
+ * adjusts the vertical display position based on the screen width and
+ * video mode (NTSC/PAL).
+ *
+ * @param width Display width in pixels.
+ */
+void func_801F010C(s32 width) {
+    s32 i;
+    s32 yOffset;
+    SetDefDispEnv(&D_801FA280[0].dispEnv, 0, 0, width, 216);
+    SetDefDispEnv(&D_801FA280[1].dispEnv, 512, 0, width, 216);
+    SetDefDrawEnv(&D_801FA280[0].drawEnv, 512, 0, width, 216);
+    SetDefDrawEnv(&D_801FA280[1].drawEnv, 0, 0, width, 216);
+    yOffset = 12;
+    if (width == 384) {
+        yOffset = 8;
+    }
+    for (i = 0; i < 2; i++) {
+        D_801FA280[i].drawEnv.isbg = 1;
+        D_801FA280[i].dispEnv.screen.h = 216;
+        D_801FA280[i].dispEnv.screen.y += yOffset;
+        if (GetVideoMode() == MODE_PAL) {
+            D_801FA280[i].dispEnv.screen.y += 24;
+        }
+    }
+}
 
 /**
- * @brief Initialize main menu panel system.
+ * @brief Initializes the main menu display environment.
  *
- * Sets display width to 0x180, assigns VRAM buffer pointers at
- * offsets 0x98 and 0x138 in D_801FA280, then resets state.
+ * Initializes the display and draw environments, assigns VRAM buffer
+ * addresses to each menu render buffer in D_801FA280, and resets the
+ * vibration intensity.
  */
 void func_801F0224(void) {
-    s32 base;
-    func_801F010C(0x180);
-    base = (s32)D_801FA280;
-    *(s32 *)(base + 0x98) = (s32)0x801B2000;
-    *(s32 *)(base + 0x138) = (s32)0x801B8800;
+    func_801F010C(384);
+    D_801FA280[0].unk98 = 0x801B2000;
+    D_801FA280[1].unk98 = 0x801B8800;
     SetVibrationIntensity(0, 0, 0);
 }

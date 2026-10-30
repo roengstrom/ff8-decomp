@@ -12,6 +12,7 @@
 #include "menumain2.h"
 #include "menumain3.h"
 #include "numstr.h"
+#include "overlay.h"
 #include "party_stats.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
@@ -33,9 +34,9 @@
 typedef struct {
     s16 x;      /**< 0x0: screen X (stored pre-offset by -26). */
     s16 y;      /**< 0x2: screen Y (stored pre-offset by +3). */
-    u8  code;   /**< 0x4: character/glyph code. */
+    s8  code;   /**< 0x4: character/glyph code. */
     u8  pad05;
-    s16 color;  /**< 0x6: color/font parameter. */
+    u16 color;  /**< 0x6: color/font parameter. */
 } TextQueueEntry; /* 0x8 bytes */
 
 /**
@@ -98,6 +99,7 @@ extern u8 D_800562A4;
 extern u8 D_801F7DF4;
 extern u8 D_801F7E00;
 extern u8 D_801F7E0C;
+extern RECT D_801F7E64;
 extern u8 D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
 extern u8 D_801F7F78[];
@@ -136,8 +138,9 @@ extern u16 D_801FACE4;
 extern s32 D_801FACE8;
 extern u16 g_menumain_partyMemberMask;
 
+static void func_801F0274(s32, u32, s32, s32);
 static DR_AREA *func_801F03E8(P_TAG *, DR_AREA *);
-static s32 func_801F0AC8(s32, s32);
+static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
 static s32 func_801F16AC(s32, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -161,11 +164,104 @@ static s32 func_801F6358(s32, s32, s32, s32, s32);
 static s32 func_801F6B54(s32, s32, s32, s32, s32);
 static s32 func_801F738C(s32);
 
+#define gte_ldfcdir_uniform( x ) __asm__ volatile (       \
+    "ctc2   %0, $21;"                                     \
+    "ctc2   %0, $22;"                                     \
+    "ctc2   %0, $23"                                      \
+    :                                                     \
+    : "r"( x ) )
+
 /* ======================================================================== */
 /* VRAM/Display Setup                                                       */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0274);
+/** @brief Menu initialization routine. */
+void func_801F0274(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
+    func_801F0C5C(0, NULL);
+    arg0 &= 0xFFFF;
+    func_801F0000(0);
+    D_801FA27C = arg0;
+    switch (arg0) {
+    case 1:
+        setModeBit(0);
+        func_801F0C5C(10, NULL);
+        break;
+    case 22:
+        setModeBit(0);
+        setModeBit(1);
+        func_801F001C(arg1);
+        SetModeBit0();
+        func_801F0C5C(13, NULL);
+        break;
+    case 23:
+        func_801EFFE4(arg1);
+        func_801F0C5C(11, NULL);
+        break;
+    case 24:
+        func_801F1DB0(0);
+        func_801F0C5C(6, NULL);
+        break;
+    case 25:
+        func_801F0C5C(16, NULL);
+        break;
+    case 26:
+        func_801F0C5C(20, NULL);
+        break;
+    case 27:
+        func_801F0000(19);
+        func_801F0C5C(15, NULL);
+        break;
+    case 29: {
+        u32 val = 8;
+        if (arg1 < 9) {
+            val = arg1;
+        }
+        func_801F0000(val);
+        func_801F0C5C(30, NULL);
+        break;
+    }
+    case 28:
+        func_801F0000(20);
+        func_801F0C5C(15, NULL);
+        break;
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+    case 20:
+        func_801F0000(arg0 - 2);
+        func_801F0C5C(15, NULL);
+        break;
+    case 4:
+        func_801F0000(2);
+        func_801F0C5C(15, NULL);
+        break;
+    case 2:
+        func_801F0000(0);
+        func_801F0C5C(15, NULL);
+        break;
+    case 3:
+        func_801F0000(1);
+        func_801F0C5C(15, NULL);
+        break;
+    case 0:
+    default:
+        func_801EFFC8(arg1);
+        func_801F0C5C(1, NULL);
+        break;
+    }
+}
 
 /**
  * @brief Build a draw-area primitive for the active draw environment and link it.
@@ -220,7 +316,68 @@ void func_801F0464(s32 a0) {
 /* Text/String Lookup & Rendering                                           */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F04E8);
+/** @brief Menu initialization routine. */
+void func_801F04E8(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
+    s32 i;
+    u8 *tempGp;
+    u8 *savedGp;
+    func_801F22A8();
+    GP_SAVE_SCRATCH(tempGp);
+    savedGp = tempGp;
+    gte_ldfcdir_uniform(0);
+    DrawSync(0);
+    VSync(0);
+    SetDispMask(0);
+    func_801F6888();
+    func_801F72C4();
+    if (g_gameState.mainData.party.gil > 99999999) {
+        g_gameState.mainData.party.gil = 99999999;
+    }
+    if (g_gameState.mainData.party.dreamGil > 99999999) {
+        g_gameState.mainData.party.dreamGil = 99999999;
+    }
+    func_801EFF64();
+    func_801F1D84();
+    WaitForGamePadDetection();
+    func_801F0464(216);
+    func_801F1924();
+    func_801F0274(arg0, arg1, arg2, arg3);
+    DrawSync(0);
+    func_801F0224();
+    swapDisplayList();
+    for (i = 0; i < 2; i++) {
+        func_801F0038();
+        D_801FA3C0->unk9C = func_801F175C(&D_801FA3C0->ot[0], D_801FA3C0->unk9C);
+        renderBattleDisplayList(&D_801FA3C0->ot[6]);
+        func_801F00A0();
+    } 
+    DrawSync(0);
+    VSync(0);
+    SetDispMask(1);
+    while (getRenderFlag() == 0) {
+        func_801F0038();
+        func_801F1584();
+        renderAndUpdateDisplay(1);
+        renderBattleDisplayList(&D_801FA3C0->ot[6]);
+        D_801FA3C0->unk9C = func_801F175C(&D_801FA3C0->ot[1], D_801FA3C0->unk9C);
+        pollCdReadStatus();
+        func_801F00A0();
+    }
+    DrawSync(0);
+    if (D_801FA3C0->dispEnv.disp.x != 0) {
+        MoveImage(&D_801F7E64, 0, 0);
+    }
+    D_80085150 = D_801FA280[0].dispEnv;
+    D_8005F138 = &D_80085150;
+    DrawSync(0);
+    VSync(0);
+    PutDispEnv(D_8005F138);
+    func_801F0038();
+    VSync(0);
+    func_801F0464(224);
+    WaitForGamePadDetection();
+    GP_RESTORE_RET(savedGp, tempGp);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F07D8);
 
@@ -351,7 +508,26 @@ void func_801F0A78(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
 /* Menu Navigation Stack                                                    */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0AC8);
+/** @brief Draws a cursor in main menu. */
+void *func_801F0AC8(void *ot, void *prim) {
+    TextQueueEntry *entry;
+    s32 i;
+    entry = D_801FAA20;
+    ot += 12;
+    for (i = 0; i < D_801FAA1E; i++, entry++) {
+        s32 tmp;
+        s32 color;
+        tmp = entry->color;
+        tmp /= 32;
+        color = 0x64000000 | (tmp << 16) | (tmp << 8) | tmp;
+        if (entry->code >= 0) {
+            s32 offset = (entry->code >> 2) << 2;
+            prim = drawIcon(ot + offset, prim, ICON_CHOICE_CURSOR, entry->x, entry->y, color);
+        }
+    }
+    D_801FAA1E = 0;
+    return prim;
+}
 
 /**
  * @brief Pop top entry from menu navigation stack.
@@ -538,8 +714,8 @@ static s32 func_801F16AC(s32 ctx, s32 dl) {
  * @note Calls through an unspecified-args cast with no arguments — the
  *       original passes whatever $a0/$a1 hold (the callee's ctx/dl inputs
  *       are dead this frame); an ANSI call would emit argument setup. */
-void func_801F175C(void) {
-    ((s32 (*)())func_801F16AC)();
+s32 *func_801F175C(s32 *a0, s32 a1) {
+    return func_801F16AC(a0, a1);
 }
 
 /** @brief Clear 22 panel callback entries starting at a0[8]. */
