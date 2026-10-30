@@ -316,7 +316,7 @@ void *func_801EFBB4(void *ot, void *_prim, MenuRowCallback _drawRowCallback) {
  */
 void func_801EFF64(void) {
     u16 *p = D_801FA3C8;
-    s32 val = 4096;
+    s32 val = ONE;
     s32 i;
 
     p += 64;
