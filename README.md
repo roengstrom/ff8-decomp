@@ -170,12 +170,12 @@ Below are some basic steps to get started and building the project.
 
 The following distributions have been tested:
 
-|    Distro    | Can build? |
-|:------------:|:----------:|
+|    Distro    | Can build? | Reason
+|:------------:|:----------:|:-------
 | Debian 12    |     ✅     |
-| Ubuntu-22.04 |     ✅     |
+| Ubuntu-22.04 |     ❌     | Cmake version >=3.25 is required; Ubuntu-22.04 max supported version is 3.22.1.
 | Ubuntu-24.04 |     ✅     |
-| Ubuntu-26.04 |     ❌     |
+| Ubuntu-26.04 |     ❌     | GNU Binutils version <= 2.42 is required; Ubuntu-26.04 min supported version is 2.45.
 
 1. **Prerequisites**. This "guide" is for devs using debian/ubuntu on Windows using **WSL 2**
    ```bash
