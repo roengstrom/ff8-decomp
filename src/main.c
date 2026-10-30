@@ -69,7 +69,7 @@ void VsyncHandler(void) {
         return;
     }
 
-    // This function is called 59.8 times per second on NTSC.
+    // This function is called 59.8 times per second (on NTSC).
     // Make use of that fact to tick the in-game clock.
     g_secondTicker += 0x88F;
     if (g_secondTicker >> 17) {

@@ -415,8 +415,6 @@ extern FieldVars *g_fieldVars;
  * down to 0x0C00. */
 extern u16 g_textSpeeds[];
 
-/* Render dispatch mode + fade bytes (main-binary state shared across units). */
-/** @brief VSync rendering dispatch mode. */
 typedef enum {
     RENDER_IDLE = 0,
     RENDER_FADE = 1,
@@ -425,7 +423,7 @@ typedef enum {
     RENDER_BATTLE_RESULTS = 4
 } RenderMode;
 
-extern volatile s16 g_renderMode; /**< Also the scene-transition handshake the field, world and battle engines spin on, each with its own value. */
+extern volatile s16 g_renderMode;
 extern u8 D_8005F150;
 extern u8 D_8005F151;
 
