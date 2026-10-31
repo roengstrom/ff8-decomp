@@ -195,6 +195,28 @@ The build runs without `-Wall`, so calling a function with no prototype in scope
 warning at all. The compiler then assumes it returns `int`, which can change the generated
 code. Make sure every function you call has its prototype in scope through its owner's header.
 
+## Primitives and ordering tables
+
+Type ordering tables and primitives the way the Psy-Q SDK does (`include/psxsdk/libgpu.h` and
+the SDK's library reference), never as integers:
+
+- An ordering table is an array of `u32`, the SDK's `u_long ot[N]`. A pointer to the table or to
+  one of its entries is `u32 *`, like `ClearOTag` and `DrawOTag` take, also in a function that
+  only passes the entry on.
+- Use `void *` only for a value that really can point at different things: the packet buffer
+  cursor that drawing functions take and return (`head`), which points at wherever the next
+  primitive goes, or a target that can be an entry or another primitive, like `AddPrim`'s.
+- Code that fills in one primitive uses that primitive's SDK type (`SPRT *`, `POLY_FT4 *`,
+  `DR_MODE *`, ...) and returns `p + 1` to step past it, instead of adding a byte count.
+- Use `u8 *` only in code that really counts bytes, such as the packet buffer's allocator and
+  its limits.
+- `P_TAG` is the layout of a primitive's tag word, which the SDK's macros (`setlen`, `setaddr`,
+  `addPrim`, ...) cast to internally. Don't use `P_TAG *` as the type of a table or a cursor.
+
+Existing code mixes `void *ot`, `u32 *ot`, `P_TAG *ot` and integer cursors. Use these types in
+new and changed code. Retype an existing signature only when asked, because the change spreads
+through every caller.
+
 ## Comments
 
 Never add documentation (Doxygen blocks, function or file docs, docs files) unless the person
