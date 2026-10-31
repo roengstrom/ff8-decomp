@@ -38,7 +38,7 @@ void initTripleTriad(void) {
     g_tripleTriadState = TT_STATE_INIT;
 
     for (i = 0; i < 110; i++) {
-        g_tripleTriadCardCounts[i] = func_80023B14(i);
+        g_tripleTriadCardCounts[i] = GetCardCount(i);
     }
 }
 

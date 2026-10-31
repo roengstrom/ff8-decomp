@@ -6,6 +6,7 @@
 #include "character.h"
 #include "menuext.h"
 #include "gamestate.h"
+#include "item.h"
 #include "psxsdk/libgte.h"
 
 extern u8 D_801E8C10[];
@@ -225,7 +226,7 @@ skip:
 /**
  * @brief Build a filtered list of valid extension entries.
  *
- * Iterates through entries 0 to 0x6D, calling func_80023B14 for each.
+ * Iterates through entries 0 to 0x6D, calling GetCardCount for each.
  * If the result is positive, stores the 1-based entry index and the
  * result value as consecutive bytes into D_801E8C20. Returns the count
  * of valid entries found.
@@ -238,7 +239,7 @@ s32 func_801E5FE8(void) {
     s32 i = count;
 
     do {
-        s32 result = func_80023B14(i);
+        s32 result = GetCardCount(i);
         if (result > 0) {
             *ptr = i + 1;
             ptr++;
@@ -274,10 +275,10 @@ void func_801E6060(u8 *a0) {
 }
 
 /**
- * @brief Wrapper that calls func_80023B14.
+ * @brief Wrapper that calls GetCardCount.
  */
-void func_801E60C4(void) {
-    func_80023B14();
+void func_801E60C4(s32 card) {
+    GetCardCount(card);
 }
 
 /** @brief Call addItemToInventory then func_800370AC with same argument. */

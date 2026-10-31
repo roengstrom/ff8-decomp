@@ -2,6 +2,7 @@
 #include "283B0.h"
 #include "field.h"
 #include "gamestate.h"
+#include "item.h"
 #include "battle.h"
 #include "sound.h"
 #include "psxsdk/libgte.h"
@@ -1943,12 +1944,12 @@ s32 opHandler_SETCARD(ScriptContext *context) {
 }
 
 /**
- * Pops a parameter, calls func_80023B14, stores result in resultSlots[0].
+ * Pops a parameter, calls GetCardCount, stores result in resultSlots[0].
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
  */
 s32 opHandler_HOWMANYCARD(ScriptContext *context) {
-    context->resultSlots[0] = func_80023B14(POP(context));
+    context->resultSlots[0] = GetCardCount(POP(context));
     return 2;
 }

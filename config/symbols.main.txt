@@ -328,6 +328,7 @@ modifyItemQuantity = 0x8002390C; // type:func
 markItemPresent = 0x800239A8; // type:func
 decrementItem = 0x80023A34; // type:func
 isItemPresent = 0x80023A88; // type:func
+GetCardCount = 0x80023B14; // type:func
 sumItemQuantities = 0x80023BB4; // type:func
 getKeyItemValue = 0x80023C08; // type:func
 startBattleTransition = 0x80023D60; // type:func
