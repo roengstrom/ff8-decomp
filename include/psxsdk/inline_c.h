@@ -238,8 +238,8 @@
     :                                                    \
     : "r"( r0 ) )
 
-/* Load short vector — fills IR1/IR2/IR3 from the three s16 components of
- * the SVECTOR @p r0 (mtc2 to GTE data regs $9/$10/$11). */
+/* Load the three s16 components of the SVECTOR @p r0 into IR1/IR2/IR3
+ * (mtc2 to GTE data regs $9/$10/$11). */
 #define gte_ldsv( r0 ) __asm__ volatile (                \
     "lhu    $12, 0( %0 );"                               \
     "lhu    $13, 2( %0 );"                               \
@@ -251,10 +251,10 @@
     : "r"( r0 )                                          \
     : "$12", "$13", "$14" )
 
-/* SQR — square IR1/IR2/IR3 into MAC1/MAC2/MAC3 (and back to IR via the
- * limiter). @p sf is the shift fraction (0 = full precision, 1 = >>12).
- * Encoding: COP2 funct 0x28 with sf at bit 19. Two nops cover the GTE
- * data-reg load stall before SQR can read the IR registers. */
+/* SQR at full precision (sf 0): square IR1/IR2/IR3 into MAC1/MAC2/MAC3,
+ * and back to IR via the limiter. The instruction is COP2 function 0x28 with
+ * sf in bit 19. Two nops cover the GTE data-reg load stall before SQR can read the IR
+ * registers. */
 #define gte_sqr0() __asm__ volatile ( \
     "nop;" \
     "nop;" \
@@ -268,7 +268,7 @@
     :                                                    \
     : "r"( x ), "r"( y ), "r"( z ) )
 
-/* Load the first OP (outer/cross product) operand — the three words of the
+/* Load the first OP (outer/cross product) operand. The three words of the
  * VECTOR @p r0 go into the rotation-matrix diagonal R11/R22/R33, which OP
  * reads as its D1/D2/D3 vector. */
 #define gte_ldopv1( r0 ) __asm__ volatile (              \
@@ -282,7 +282,7 @@
     : "r"( r0 )                                          \
     : "$12", "$13", "$14" )
 
-/* Load the second OP operand — the three words of the VECTOR @p r0 go
+/* Load the second OP operand. The three words of the VECTOR @p r0 go
  * straight into IR1/IR2/IR3. */
 #define gte_ldopv2( r0 ) __asm__ volatile (              \
     "lwc2   $11, 8( %0 );"                               \
@@ -320,9 +320,8 @@
     : "r"( r0 )                                          \
     : "$12", "$13", "$14" )
 
-/* Load IR0, the interpolation fraction used by INTPL / DPCS. */
-/* Load column vector — fills IR1/IR2/IR3 from one column of the 3x3 matrix
- * @p r0 (row stride 6). PSY-Q INLINE_C.H gte_ldclmv. */
+/* Load one column of the 3x3 matrix @p r0 (row stride 6) into
+ * IR1/IR2/IR3. PSY-Q INLINE_C.H gte_ldclmv. */
 #define gte_ldclmv( r0 ) __asm__ volatile (              \
     "lhu    $12, 0( %0 );"                               \
     "lhu    $13, 6( %0 );"                               \
@@ -334,8 +333,8 @@
     : "r"( r0 )                                          \
     : "$12", "$13", "$14" )
 
-/* Store column vector — writes IR1/IR2/IR3 back to one column of the 3x3
- * matrix @p r0 (row stride 6). PSY-Q INLINE_C.H gte_stclmv. */
+/* Store IR1/IR2/IR3 back to one column of the 3x3 matrix @p r0 (row
+ * stride 6). PSY-Q INLINE_C.H gte_stclmv. */
 #define gte_stclmv( r0 ) __asm__ volatile (              \
     "mfc2   $12, $9;"                                    \
     "mfc2   $13, $10;"                                   \
@@ -399,6 +398,7 @@
     : "r"( r0 )                                          \
     : "$12", "memory" )
 
+// Load IR0, the interpolation fraction used by INTPL and DPCS.
 #define gte_lddp( r0 ) __asm__ volatile (                \
     "mtc2   %0, $8"                                      \
     :                                                    \
@@ -486,7 +486,6 @@
     : "r"( r0 )                                          \
     : "memory" )
 
-/* Store OTZ (depth) from $7. */
 /* Store OTZ: SZ2 (GTE $19) scaled down by 4, the usual ordering-table index. */
 #define gte_stszotz( r0 ) __asm__ volatile (             \
     "mfc2   $12, $19;"                                   \
@@ -503,6 +502,7 @@
     : "r"( r0 )                                          \
     : "memory" )
 
+// Store OTZ, the depth in GTE register $7.
 #define gte_stotz( r0 ) __asm__ volatile (               \
     "swc2   $7, 0( %0 )"                                 \
     :                                                    \
@@ -545,17 +545,17 @@
     ".word  0x4B68002E"                                  \
     : : )
 
-/* OP (sf = 0) — cross product of the vector loaded by @ref gte_ldopv1 with
- * the one loaded by @ref gte_ldopv2, full precision (no >>12), leaving the
- * result in MAC1..MAC3 for @ref gte_stlvnl. */
 /* Outer product with sf=1. PSY-Q INLINE_C.H spells this ".word 0x0000123f";
- * in this tree's encoding that is gte_op0's word with the sf bit (19) set. */
+ * in the GAS encoding that is gte_op0's word with the sf bit (19) set. */
 #define gte_op12() __asm__ volatile (                    \
     "nop;"                                               \
     "nop;"                                               \
     ".word  0x4B78000C"                                  \
     : : )
 
+/* OP with sf 0: the cross product of the vector loaded by @ref gte_ldopv1
+ * with the one loaded by @ref gte_ldopv2, at full precision (no >>12), left
+ * in MAC1..MAC3 for @ref gte_stlvnl. */
 #define gte_op0() __asm__ volatile (                     \
     "nop;"                                               \
     "nop;"                                               \
