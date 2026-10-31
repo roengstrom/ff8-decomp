@@ -44,7 +44,6 @@ void waitForCorrectDisc(void);
 void func_80098FD4(s32 mode);
 
 /* --- External helpers called by the intro overlay ------------------------ */
-extern s32  func_800393C8(void);
 extern s32  getDiscId(void);
 
 #endif /* INTRO_H */

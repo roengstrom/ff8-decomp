@@ -1139,10 +1139,10 @@ s32 func_8009CA34(s32 *src, ImageDesc *desc) {
 
 /**
  * @brief Walk a NULL-terminated @ref CdLoadEntry list, issuing a @c LoadDataFromDisc
- *        for each entry and spinning on @c func_800393C8 between entries.
+ *        for each entry and spinning on @c UpdateCdRead between entries.
  *
  * For each non-terminator entry, kicks off @c LoadDataFromDisc(lba, size, dest, NULL)
- * then busy-waits in a poll loop on @c func_800393C8 until it returns 0
+ * then busy-waits in a poll loop on @c UpdateCdRead until it returns 0
  * (read complete). While polling, optionally calls @p spin_cb each iteration
  * after a @c VSync(0) prep step — used by callers to keep the frame
  * advancing / GPU buffer flushing during the wait.
@@ -1165,7 +1165,7 @@ void func_8009CAE0(CdLoadEntry *entries, void (*spin_cb)(void)) {
     e = entries;
 top:
     LoadDataFromDisc(e->lba, e->size, e->dest, 0);
-    while (func_800393C8() != 0) {
+    while (UpdateCdRead() != CD_READ_IDLE) {
         if (spin_cb != 0) {
             VSync(0);
             spin_cb();
@@ -1188,7 +1188,7 @@ top:
  * @c ID_LIST_MAX, stopping at the @c ID_LIST_END terminator). For each id it
  * reads one @c CD_SECTOR_SIZE sector at @c section->baseLba @c + @c id into a
  * destination buffer — @p dest0 for the first id, @p dest1 for the rest — and
- * spins on @c func_800393C8 until that read finishes.
+ * spins on @c UpdateCdRead until that read finishes.
  *
  * @param desc    Object descriptor; the id bytes begin at offset @c ID_OFFSET.
  * @param section Provides the base sector the ids are added to.
@@ -1206,7 +1206,7 @@ void func_8009CB70(u8 *desc, CdSection *section, u8 *dest0, u8 *dest1) {
         return;
     }
     /* hold the terminator in a local so it stays in a saved register across
-       the LoadDataFromDisc / func_800393C8 calls rather than being reloaded each pass */
+       the LoadDataFromDisc / UpdateCdRead calls rather than being reloaded each pass */
     term = ID_LIST_END;
     p = desc;
     end = p + ID_LIST_MAX;
@@ -1219,7 +1219,7 @@ loop:
     }
     id = p[ID_OFFSET];
     LoadDataFromDisc(section->baseLba + id, CD_SECTOR_SIZE, (p == first) ? dest0 : dest1, NULL);
-    while (func_800393C8()) {
+    while (UpdateCdRead() != CD_READ_IDLE) {
         ;
     }
     p++;

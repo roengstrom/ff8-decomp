@@ -90,9 +90,9 @@ void func_80035D30(s32 cmd, s32 overlay_id, s32 lba_offset, s32 load_addr) {
     }
 }
 
-/** @brief Wrapper that polls CD-ROM read completion via func_800393C8. */
+/** @brief Wrapper that polls CD-ROM read completion via UpdateCdRead. */
 s32 pollCdReadStatus(void) {
-    return func_800393C8();
+    return UpdateCdRead();
 }
 
 

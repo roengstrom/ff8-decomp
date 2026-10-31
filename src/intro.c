@@ -3,6 +3,7 @@
 #include "battle.h"
 #include "gamestate.h"
 #include "intro.h"
+#include "cd.h"
 #include "cdrom.h"
 #include "snd_init.h"
 #include "input/gamepad.h"
@@ -152,7 +153,7 @@ void loadIntroSlide(s32 stage) {
     /* Each table entry is 2 u32s (sector, size); index by stage * 2. */
     cdReadAsyncSync(g_introAssetTable[stage * 2],
                     g_introAssetTable[stage * 2 + 1],
-                    (s32)g_introStagedFrame, 0);
+                    g_introStagedFrame, NULL);
 }
 
 /**
@@ -249,7 +250,7 @@ void func_80098440(s32 brightness, s32 mode, RECT *rect) {
 void loadWrongDiscWarning(void) {
     cdReadAsyncSync(g_introAssetTable[INTRO_ASSET_WRONG_DISC * 2],
                     g_introAssetTable[INTRO_ASSET_WRONG_DISC * 2 + 1],
-                    (s32)0x8017D000, 0);
+                    g_wrongDiscFrame, NULL);
 }
 
 /**
@@ -347,7 +348,7 @@ void func_8009869C(void) {
  * loading a save from a different disc than the one inserted. Loops:
  *  - Loads the prompt graphic for the *currently inserted* disc minus one
  *    (entry @c expectedDiscId-1 in @c g_introAssetTable) plus its music track.
- *  - Waits for @c func_800393C8 to drain, then runs a fade-out / wait-
+ *  - Waits for @c UpdateCdRead to drain, then runs a fade-out / wait-
  *    for-tray-open / fade-in / fade-out cycle controlled by
  *    @c CdControlB(0x1, NULL, status) (CD command 0x1 = CdlNop, whose
  *    status byte's @c 0x10 bit indicates the shell is open).
@@ -371,7 +372,7 @@ void waitForCorrectDisc(void) {
     rect.w = 580;
     rect.h = 406;
 
-    while (func_800393C8() != 0) {}
+    while (UpdateCdRead() != CD_READ_IDLE);
 
     while (1) {
         s32 brightness;
@@ -501,7 +502,7 @@ void playBootIntro(void) {
         func_80037FB0(0, 0x4F, 0x80110000);
         if (g_fieldVars->soundLoadComplete == 0) {
             do {
-                func_800393C8();
+                UpdateCdRead();
             } while (g_fieldVars->soundLoadComplete == 0);
         }
 

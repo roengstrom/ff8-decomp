@@ -130,9 +130,9 @@ s32 *func_800983F0(void) {
         LoadCompressedDataFromDisc(D_800C0900[D_800C2568[g_curFieldId] * 6],
                       D_800C0900[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF,
                       NULL);
-        while (func_800393C8() != 0) {}
+        while (UpdateCdRead() != CD_READ_IDLE);
     } else {
-        while (func_800393C8() != 0) {}
+        while (UpdateCdRead() != CD_READ_IDLE);
         func_80038490(D_8005F104, FIELD_BUNDLE_BUF);
     }
 
@@ -145,7 +145,7 @@ s32 *func_800983F0(void) {
     D_8005F142 = 0;
     LoadCompressedDataFromDisc(D_800C0908[D_800C2568[g_curFieldId] * 6],
                   D_800C0908[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF, NULL);
-    while (func_800393C8() != 0) {}
+    while (UpdateCdRead() != CD_READ_IDLE);
 
     g_curFieldInfo = *g_fieldInfo;
     g_curFieldSfx = *g_fieldSfxTable;
@@ -863,7 +863,7 @@ void func_80099348(void) {
             g_fieldContext.unk1B1 = 2;
             func_800A1C64();
         }
-        func_800393C8();
+        UpdateCdRead();
         func_800BE2DC();
         if (g_fieldContext.unk1A1 == 0) {
             DrawOTag(&D_800C71E0->ot[0xFFF]);

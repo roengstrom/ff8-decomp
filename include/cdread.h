@@ -4,7 +4,7 @@
 #include "common.h"
 
 // CD read/seek state-machine handlers (cdread.c), invoked directly and through
-// the D_800562D8 dispatch table before their definitions appear.
+// the g_cdReadStateHandlers dispatch table before their definitions appear.
 
 void cdPollReadState(void);
 void cdReadSectors(void);

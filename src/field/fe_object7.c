@@ -65,7 +65,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
             g_fieldContext.counter = 0;
 
             while (sndGetStatus() == 2) {
-                func_800393C8();
+                UpdateCdRead();
             }
 
             for (i = 0; i < 2; i++) {
@@ -82,7 +82,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
             func_80037FB0(0, 0x46, D_8005F13C);
 
             while (g_fieldVars->soundLoadComplete == 0) {
-                func_800393C8();
+                UpdateCdRead();
             }
 
             g_battleConfig.unk9 = g_fieldVars->soundBankSelector;

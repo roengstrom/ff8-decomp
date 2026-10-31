@@ -2270,7 +2270,7 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
     u16 id;
 
     if (D_8005F14A == 1) {
-        if (func_800393C8() == 0) {
+        if (UpdateCdRead() == CD_READ_IDLE) {
             D_8005F14A = 2;
         }
     }
@@ -2298,7 +2298,7 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
         func_800A59D0();
         return;
     }
-    if (func_800393C8() != 0 && D_8005F14A == 0) {
+    if (UpdateCdRead() != CD_READ_IDLE && D_8005F14A == 0) {
         return;
     }
     if ((u32)D_8005F104 <= 0x8019FFFF) {
