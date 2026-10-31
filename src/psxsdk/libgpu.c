@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libgpu.h"
 
 extern u8 D_8005E9EE;
 extern s32 *D_8005EAF4;
@@ -37,7 +38,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgpu", SetGraphQueue);
  *
  * @return The current debug level (0 = no debug output).
  */
-u8 GetGraphDebug(void) {
+s32 GetGraphDebug(void) {
     return D_8005E9EE;
 }
 

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libpress.h"
 
 extern s32 *D_8005DB10;
 
@@ -23,7 +24,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", LIBPRESS_OBJ_1C0);
  * the internal LIBPRESS_OBJ_440 routine. Transfers decoded image data from
  * the MDEC hardware to main memory via DMA channel 1.
  */
-void DecDCTout(void) { LIBPRESS_OBJ_440(); }
+void DecDCTout(u32 *buf, s32 size) { LIBPRESS_OBJ_440(buf, size); }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", DecDCTinSync);
 
@@ -42,7 +43,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", LIBPRESS_OBJ_268);
  *
  * @param a0 Pointer to the callback function, or 0 to disable.
  */
-void DecDCTinCallback(a0) s32 a0; { DMACallback(0, a0); }
+s32 DecDCTinCallback(void (*func)()) { return DMACallback(0, func); }
 
 /**
  * @brief Registers a callback for MDEC output DMA transfer completion.
@@ -53,7 +54,7 @@ void DecDCTinCallback(a0) s32 a0; { DMACallback(0, a0); }
  *
  * @param a0 Pointer to the callback function, or 0 to disable.
  */
-void DecDCToutCallback(a0) s32 a0; { DMACallback(1, a0); }
+s32 DecDCToutCallback(void (*func)()) { return DMACallback(1, func); }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libpress", LIBPRESS_OBJ_2C0);
 

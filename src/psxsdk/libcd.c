@@ -205,7 +205,7 @@ void CdDataCallback(a0) s32 a0; { DMACallback(3, a0); }
  * Blocks until the current CD-ROM DMA data transfer finishes by calling
  * the low-level CD_datasync routine.
  */
-void CdDataSync(void) { CD_datasync(); }
+s32 CdDataSync(s32 mode) { return CD_datasync(mode); }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", CdIntToPos);
 

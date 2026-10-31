@@ -1,4 +1,5 @@
 #include "common.h"
+#include "psxsdk/libetc.h"
 
 extern u16 *D_8005D554;
 extern s32 D_8005D56C[];
@@ -14,13 +15,13 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc", VSYNC_OBJ_178);
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libetc", VSYNC_OBJ_200);
 
 typedef struct {
-    void (*f0)();
-    void (*f1)();
-    void (*f2)();
-    void (*f3)();
-    void (*f4)();
-    void (*f5)();
-    void (*f6)();
+    s32 (*f0)();
+    s32 (*f1)();
+    s32 (*f2)();
+    s32 (*f3)();
+    s32 (*f4)();
+    s32 (*f5)();
+    s32 (*f6)();
 } CallbackTable;
 extern CallbackTable *D_8005D54C;
 
@@ -31,7 +32,7 @@ extern CallbackTable *D_8005D54C;
  * all user-installed callbacks (VSync, DMA, interrupt, etc.) and restore
  * default behavior. Typically called during system initialization.
  */
-void ResetCallback() { D_8005D54C->f3(); }
+s32 ResetCallback(void) { return D_8005D54C->f3(); }
 
 /**
  * @brief Registers or invokes the hardware interrupt callback handler.
@@ -59,7 +60,7 @@ void DMACallback() { D_8005D54C->f1(); }
  *
  * @param a0 Pointer to the callback function, or 0 to unregister.
  */
-void VSyncCallback(a0) s32 a0; { D_8005D54C->f5(4, a0); }
+s32 VSyncCallback(void (*f)(void)) { return D_8005D54C->f5(4, f); }
 
 /**
  * @brief Registers multiple VSync callback functions.
@@ -76,7 +77,7 @@ void VSyncCallbacks() { D_8005D54C->f5(); }
  * suspend all callback processing. Callbacks can be restarted with
  * RestartCallback().
  */
-void StopCallback() { D_8005D54C->f4(); }
+s32 StopCallback(void) { return D_8005D54C->f4(); }
 
 /**
  * @brief Restarts system callbacks after they have been stopped.
@@ -84,7 +85,7 @@ void StopCallback() { D_8005D54C->f4(); }
  * Calls the internal callback table's restart handler (index 6) to resume
  * callback processing that was previously suspended by StopCallback().
  */
-void RestartCallback() { D_8005D54C->f6(); }
+s32 RestartCallback(void) { return D_8005D54C->f6(); }
 
 extern u16 D_8005C4C6;
 /**
@@ -95,7 +96,7 @@ extern u16 D_8005C4C6;
  *
  * @return Non-zero if callbacks are active, 0 if stopped.
  */
-u16 CheckCallback() { return D_8005C4C6; }
+s32 CheckCallback(void) { return D_8005C4C6; }
 
 /**
  * @brief Returns the current interrupt mask register value.
