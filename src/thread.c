@@ -42,10 +42,10 @@ void closeThreadSafe(s32 a0) {
  * @param handle Thread handle (low 24 bits index the TCB table).
  */
 void func_80026F4C(s32 handle) {
-    ToT *tot = KERNEL_TOT;
-    TCB *tcbTable = (TCB *)tot[2].head;
-    TCBH *tcbh = (TCBH *)tot[1].head;
-    TCB *tcb = &tcbTable[handle & 0xFFFFFF];
+    struct ToT *tot = KERNEL_TOT;
+    struct TCB *tcbTable = (struct TCB *)tot[2].head;
+    struct TCBH *tcbh = (struct TCBH *)tot[1].head;
+    struct TCB *tcb = &tcbTable[handle & 0xFFFFFF];
     if (tcb->status == TcbStACTIVE) {
         tcbh->entry = tcb;
     }

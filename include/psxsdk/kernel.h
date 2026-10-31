@@ -2,17 +2,30 @@
 #define KERNEL_H
 
 #include "common.h"
+#include "psxsdk/r3000.h"
+#include "psxsdk/asm.h"
 
-/* --- PS1 kernel structures (PsyQ KERNEL.H, simplified) --- */
+struct ToT {
+    u32 *head;
+    s32 size;
+};
 
-typedef struct ToT  { unsigned long *head; long size; } ToT;
-typedef struct TCBH { struct TCB *entry;   long flag; } TCBH;
-typedef struct TCB  { s32 status; u8 pad04[0xBC]; } TCB;
+struct TCBH {
+    struct TCB *entry;
+    s32 flag;
+};
+
+struct TCB {
+    s32 status;
+    s32 mode;
+    u32 reg[NREGS];
+    s32 system[6];
+};
 
 #define TcbStACTIVE 0x4000
 
 #define DescRC 0xf2000000
 #define RCntCNT2 (DescRC | 0x02)
-#define KERNEL_TOT  ((ToT *)0x100)
+#define KERNEL_TOT ((struct ToT *)0x100)
 
 #endif /* KERNEL_H */
