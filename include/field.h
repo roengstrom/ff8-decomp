@@ -761,12 +761,24 @@ typedef struct {
     /* 0x0FE */ u8 padFE[0x166];    /**< Rest of the 612-byte slot mirrors @c Actor. */
 } ActorAnim; /* 0x264 = 612 bytes — second view of the same slot as @ref Actor. */
 
+typedef struct {
+    /** 0x00 */ u32 tag;
+    /** 0x04 */ u8 r0, g0, b0, code;
+    /** 0x08 */ s16 x0, y0;
+    /** 0x0C */ u8 r1, g1, b1, p1;
+    /** 0x10 */ s16 x1, y1;
+    /** 0x14 */ u8 r2, g2, b2, p2;
+    /** 0x18 */ s16 x2, y2;
+    /** 0x1C */ u8 r3, g3, b3, p3;
+    /** 0x20 */ s16 x3, y3;
+} func_800A4C14_line;
+
 /**
- * @brief Per-slot ribbon prim buffer: the five @c LINE_G4 strips that make up
+ * @brief Per-slot ribbon prim buffer: the five four-point line strips that make up
  *        one shimmer object's four-segment trail.
  */
 typedef struct {
-    /* 0x00 */ LINE_G4 lines[5];
+    /* 0x00 */ func_800A4C14_line lines[5];
 } FieldRibbonPrims;  /* 0xB4 = 180 bytes */
 
 /** @brief Per-slot tpage commands, one for each of the four ribbon segments. */

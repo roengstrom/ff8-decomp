@@ -1811,7 +1811,7 @@ void func_800A4934(ObjSlot *slot, DrawPoint *dp) {
  * call, producing a zigzag @c va[i], @c vb[i], @c va[i-1], @c vb[i-1], ... that
  * reads as a ribbon when stroked.
  *
- * Those twelve points are stroked as five overlapping four-point @c LINE_G4
+ * Those twelve points are stroked as five overlapping four-point line
  * strips, each sharing its first two points with the previous one. Points a
  * call does not write are copied over from the neighbouring strip, so only the
  * projections cost GTE time.
@@ -1826,7 +1826,7 @@ void func_800A4934(ObjSlot *slot, DrawPoint *dp) {
  *
  * @param slot  Shimmer object slot holding the two corner ring buffers.
  * @param ot    Ordering table to link the strips into.
- * @param line0 The slot's five @c LINE_G4 strips.
+ * @param line0 The slot's five line strips.
  * @param tp    The slot's four tpage commands, one per block.
  *
  * @note @c line3 and @c line4 are linked as @c &line2[1] / @c &line3[1] rather
@@ -1839,11 +1839,11 @@ void func_800A4934(ObjSlot *slot, DrawPoint *dp) {
  *       @c line0 the first callee-saved register. A second assignment restores
  *       the true count; the pair folds away before the prologue is emitted.
  */
-void func_800A4C14(ObjSlot *slot, u32 *ot, LINE_G4 *line0, DR_TPAGE *tp) {
-    LINE_G4 *line1;
-    LINE_G4 *line2;
-    LINE_G4 *line3;
-    LINE_G4 *line4;
+void func_800A4C14(ObjSlot *slot, u32 *ot, func_800A4C14_line *line0, DR_TPAGE *tp) {
+    func_800A4C14_line *line1;
+    func_800A4C14_line *line2;
+    func_800A4C14_line *line3;
+    func_800A4C14_line *line4;
     s32 pal;
     s32 otz;
     s32 i;
