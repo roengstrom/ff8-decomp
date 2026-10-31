@@ -64,6 +64,6 @@ extern void func_8009C5FC(s32 *data);
 extern void func_800BEC60(u8 *flags);
 
 extern void func_800BF20C(CmdDesc *p, s32 kind, s32 arg);
-extern void func_800BF2E8(GlyphHeader *p, s32 *ot, WorldPrimBank *pools);
+extern void func_800BF2E8(GlyphHeader *p, u32 *ot, WorldPrimBank *pools);
 
 #endif /* WORLD_WE_OBJECT10_H */

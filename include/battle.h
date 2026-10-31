@@ -634,7 +634,7 @@ typedef struct {
 typedef struct {
     /* 0x0000 */ DRAWENV drawEnv;       /**< Draw-env template, copied to the active env. */
     /* 0x005C */ DISPENV disp;          /**< Display-env template; copied to D_80082C18 in setupWorldRender. */
-    /* 0x0070 */ s32 primList[0x1000];   /**< Ordering table; see the depth aliases below. */
+    /* 0x0070 */ u32 primList[0x1000];   /**< Ordering table; see the depth aliases below. */
 } BattleSceneCtx;                       /* 0x4070 */
 
 /* Named aliases for the two specifically-purposed primList slots. */

@@ -346,7 +346,7 @@ void func_800A01DC(s32 skipPresent) {
             D_800D244C = (D_800D244C == &D_800CA040) ? (&D_800CA040) + 1 : &D_800CA040;
         }
     }
-    ClearOTagR((u32 *)D_800D244C->primList, 0x1000);
+    ClearOTagR(D_800D244C->primList, 0x1000);
 }
 
 /**
@@ -1259,7 +1259,7 @@ void initWorldDoubleBuffer(void) {
     SetDefDispEnv(&(&D_800CA040)[0].disp, 0, 0, D_800C97EA, D_800C97E8);
 
     for (i = 0; i < 2; i++) {
-        ClearOTagR((u32 *)(&D_800CA040)[i].primList, 0x1000);
+        ClearOTagR((&D_800CA040)[i].primList, 0x1000);
         (&D_800CA040)[i].disp.screen.y = 8;
         (&D_800CA040)[i].disp.screen.h = 224;
         (&D_800CA040)[i].drawEnv.dtd = 1;

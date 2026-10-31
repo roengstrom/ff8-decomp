@@ -1943,7 +1943,7 @@ s32 getDisplayListOtBase(void) {
  * @param colorTag Pointer to the color primitive's P_TAG word.
  * @return Scratchpad buffer pointer.
  */
-s32 renderBattleDisplayList(s32 *colorTag) {
+s32 renderBattleDisplayList(u32 *colorTag) {
     DisplayListBuf *buf;
     u32 *ot;
     u8 *head;
