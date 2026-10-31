@@ -439,6 +439,7 @@ typedef struct {
 /* --- GPU function declarations --- */
 
 s32 ResetGraph(s32 mode);
+s32 GetGraphDebug(void);
 s32 SetGraphDebug(s32 level);
 s32 DrawSync(s32 mode);
 void SetDispMask(s32 mask);

@@ -34,6 +34,7 @@ CdlLOC *CdIntToPos(s32 i, CdlLOC *p);
 CdlCB CdSyncCallback(CdlCB func);
 CdlCB CdReadyCallback(CdlCB func);
 s32 CdSync(s32 mode, u8 *result);
+s32 CdDataSync(s32 mode);
 s32 CdStatus(void);
 s32 CdMode(void);
 CdlLOC *CdLastPos(void);
