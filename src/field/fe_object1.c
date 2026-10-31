@@ -6,6 +6,7 @@
 #include "psxsdk/libgte.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
+#include "psxsdk/inline_c.h"
 #include "field/fe_object1.h"
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
@@ -2589,7 +2590,7 @@ void func_8009DED8(Vec3i *out, SVert *a, SVert *b) {
  * reloads of the query point and mesh pointer. @c nclip has no GAS mnemonic,
  * hence the @c .word encoding (cop2 0x1400006).
  */
-#define gte_nclip(out, sxy0, sxy1, sxy2) \
+#define func_8009DF18_nclip(out, sxy0, sxy1, sxy2) \
     __asm__ volatile("mtc2 %0, $12\nmtc2 %2, $14\nmtc2 %1, $13\nnop\nnop\n.word 0x4B400006\n" \
         : : "r"(sxy0), "r"(sxy1), "r"(sxy2) : "memory"); \
     __asm__ volatile("swc2 $24, 0(%0)\n" : : "r"(&(out)))
@@ -2665,11 +2666,11 @@ s32 func_8009DF18(u16 *pTriIdx, Vec3i *out, s32 *dxy, s32 *aux) {
         func_8009DED8(&e1, &g_fieldWalkmeshVerts[*pTriIdx * 3 + 2], &g_fieldWalkmeshVerts[*pTriIdx * 3 + 1]);
         func_8009DED8(&e2, &g_fieldWalkmeshVerts[*pTriIdx * 3], &g_fieldWalkmeshVerts[*pTriIdx * 3 + 2]);
         idx3 = *pTriIdx * 3;
-        gte_nclip(nc0, *(u32 *)&posV, *(u32 *)&g_fieldWalkmeshVerts[idx3 + 1], *(u32 *)&g_fieldWalkmeshVerts[idx3]);
+        func_8009DF18_nclip(nc0, *(u32 *)&posV, *(u32 *)&g_fieldWalkmeshVerts[idx3 + 1], *(u32 *)&g_fieldWalkmeshVerts[idx3]);
         idx3 = *pTriIdx * 3;
-        gte_nclip(nc1, *(u32 *)&posV, *(u32 *)&g_fieldWalkmeshVerts[idx3 + 2], *(u32 *)&g_fieldWalkmeshVerts[idx3 + 1]);
+        func_8009DF18_nclip(nc1, *(u32 *)&posV, *(u32 *)&g_fieldWalkmeshVerts[idx3 + 2], *(u32 *)&g_fieldWalkmeshVerts[idx3 + 1]);
         idx3 = *pTriIdx * 3;
-        gte_nclip(nc2, *(u32 *)&posV, *(u32 *)&g_fieldWalkmeshVerts[idx3], *(u32 *)&g_fieldWalkmeshVerts[idx3 + 2]);
+        func_8009DF18_nclip(nc2, *(u32 *)&posV, *(u32 *)&g_fieldWalkmeshVerts[idx3], *(u32 *)&g_fieldWalkmeshVerts[idx3 + 2]);
         if (nc0 >= 0 && nc1 >= 0 && nc2 >= 0) {
             break;
         }

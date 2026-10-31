@@ -6,6 +6,7 @@
 #include "psxsdk/libgte.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
+#include "psxsdk/inline_c.h"
 #include "field/fe_object1.h"
 #include "field/fe_object1_2.h"
 #include "field/fe_object1b.h"

@@ -5,6 +5,7 @@
 #include "psxsdk/libc.h"
 #include "psxsdk/libapi.h"
 #include "psxsdk/r3000.h"
+#include "psxsdk/inline_c.h"
 #include "gamestate.h"
 #include "main.h"
 #include "thread.h"
