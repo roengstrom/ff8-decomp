@@ -161,10 +161,10 @@ static void func_801A990C(EffectMesh *mesh, u32 *ot, s32 otShift,
                 s->delta.vz = s->delta.vz * s->radiusZ / ONE;
                 gte_lddp(s->keepWeight);
                 gte_ldsv(&s->original);
-                gte_gpf1();
+                gte_gpf12();
                 gte_lddp(s->warpWeight);
                 gte_ldsv(&s->delta);
-                gte_gpl1();
+                gte_gpl12();
                 gte_stsv(&s->delta);
                 gte_ldv0(&s->delta);
                 gte_mvmva(1, 2, 0, 3, 0);

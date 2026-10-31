@@ -36,17 +36,6 @@
 
 /* Load the far colour (RFC, GFC, BFC) from three 8-bit components, scaled into
  * the GTE's 1/16 units. gte_ldfc takes a VECTOR already in those units. */
-#define gte_ldfcb(r0, r1, r2) __asm__ volatile (          \
-    "sll    $12, %0, 4;"                                 \
-    "sll    $13, %1, 4;"                                 \
-    "sll    $14, %2, 4;"                                 \
-    "ctc2   $12, $21;"                                   \
-    "ctc2   $13, $22;"                                   \
-    "ctc2   $14, $23"                                    \
-    :                                                    \
-    : "r"(r0), "r"(r1), "r"(r2)                          \
-    : "$12", "$13", "$14")
-
 /* NCLIP -- outer product of the three screen points, sign gives the winding. */
 #define gte_nclip() __asm__ volatile (                   \
     "nop;"                                               \
@@ -122,14 +111,14 @@
 
 /* GPF -- IR1..IR3 = IR0 * IR1..IR3, shifted 12. Two nops cover the stall
  * between the mtc2 that loads IR and the op that reads it. */
-#define gte_gpf1() __asm__ volatile (                    \
+#define gte_gpf12() __asm__ volatile (                    \
     "nop;"                                               \
     "nop;"                                               \
     ".word  0x4B98003D"                                  \
     : : )
 
 /* GPL -- IR1..IR3 += IR0 * IR1..IR3, shifted 12. */
-#define gte_gpl1() __asm__ volatile (                    \
+#define gte_gpl12() __asm__ volatile (                    \
     "nop;"                                               \
     "nop;"                                               \
     ".word  0x4BA8003E"                                  \

@@ -36,60 +36,54 @@ typedef struct {
 /* --- Primitive field-setting macros (PsyQ SDK) --- */
 
 /* Set RGB color components on a primitive (one set per vertex). */
-#define setRGB0(p, _r0, _g0, _b0) \
-    ((p)->r0 = (_r0), (p)->g0 = (_g0), (p)->b0 = (_b0))
-#define setRGB1(p, _r1, _g1, _b1) \
-    ((p)->r1 = (_r1), (p)->g1 = (_g1), (p)->b1 = (_b1))
-#define setRGB2(p, _r2, _g2, _b2) \
-    ((p)->r2 = (_r2), (p)->g2 = (_g2), (p)->b2 = (_b2))
-#define setRGB3(p, _r3, _g3, _b3) \
-    ((p)->r3 = (_r3), (p)->g3 = (_g3), (p)->b3 = (_b3))
+#define setRGB0(p, _r0, _g0, _b0) (p)->r0 = _r0, (p)->g0 = _g0, (p)->b0 = _b0
+#define setRGB1(p, _r1, _g1, _b1) (p)->r1 = _r1, (p)->g1 = _g1, (p)->b1 = _b1
+#define setRGB2(p, _r2, _g2, _b2) (p)->r2 = _r2, (p)->g2 = _g2, (p)->b2 = _b2
+#define setRGB3(p, _r3, _g3, _b3) (p)->r3 = _r3, (p)->g3 = _g3, (p)->b3 = _b3
 
 /* Set screen position vertices (1 / 2 / 3 / 4 corners). */
-#define setXY0(p, _x0, _y0) \
-    ((p)->x0 = (_x0), (p)->y0 = (_y0))
+#define setXY0(p, _x0, _y0) (p)->x0 = (_x0), (p)->y0 = (_y0)
 #define setXY2(p, _x0, _y0, _x1, _y1) \
-    ((p)->x0 = (_x0), (p)->y0 = (_y0), \
-     (p)->x1 = (_x1), (p)->y1 = (_y1))
+    (p)->x0 = (_x0), (p)->y0 = (_y0), \
+    (p)->x1 = (_x1), (p)->y1 = (_y1)
 #define setXY3(p, _x0, _y0, _x1, _y1, _x2, _y2) \
-    ((p)->x0 = (_x0), (p)->y0 = (_y0), \
-     (p)->x1 = (_x1), (p)->y1 = (_y1), \
-     (p)->x2 = (_x2), (p)->y2 = (_y2))
+    (p)->x0 = (_x0), (p)->y0 = (_y0), \
+    (p)->x1 = (_x1), (p)->y1 = (_y1), \
+    (p)->x2 = (_x2), (p)->y2 = (_y2)
 #define setXY4(p, _x0, _y0, _x1, _y1, _x2, _y2, _x3, _y3) \
-    ((p)->x0 = (_x0), (p)->y0 = (_y0), \
-     (p)->x1 = (_x1), (p)->y1 = (_y1), \
-     (p)->x2 = (_x2), (p)->y2 = (_y2), \
-     (p)->x3 = (_x3), (p)->y3 = (_y3))
+    (p)->x0 = (_x0), (p)->y0 = (_y0), \
+    (p)->x1 = (_x1), (p)->y1 = (_y1), \
+    (p)->x2 = (_x2), (p)->y2 = (_y2), \
+    (p)->x3 = (_x3), (p)->y3 = (_y3)
 
 /* Set the four corners of a rectangle from origin (x,y) and size (w,h). */
 #define setXYWH(p, _x0, _y0, _w, _h) \
-    ((p)->x0 = (_x0),       (p)->y0 = (_y0),       \
-     (p)->x1 = (_x0) + (_w), (p)->y1 = (_y0),      \
-     (p)->x2 = (_x0),       (p)->y2 = (_y0) + (_h), \
-     (p)->x3 = (_x0) + (_w), (p)->y3 = (_y0) + (_h))
+    (p)->x0 = (_x0), (p)->y0 = (_y0), \
+    (p)->x1 = (_x0)+(_w), (p)->y1 = (_y0), \
+    (p)->x2 = (_x0), (p)->y2 = (_y0)+(_h), \
+    (p)->x3 = (_x0)+(_w), (p)->y3 = (_y0)+(_h)
 
 /* Set primitive width/height. */
-#define setWH(p, _w, _h)   ((p)->w = (_w), (p)->h = (_h))
+#define setWH(p, _w, _h) (p)->w = _w, (p)->h = _h
 
 /* Set texture UV vertices (1 / 3 / 4 corners). */
-#define setUV0(p, _u0, _v0) \
-    ((p)->u0 = (_u0), (p)->v0 = (_v0))
+#define setUV0(p, _u0, _v0) (p)->u0 = (_u0), (p)->v0 = (_v0)
 #define setUV3(p, _u0, _v0, _u1, _v1, _u2, _v2) \
-    ((p)->u0 = (_u0), (p)->v0 = (_v0), \
-     (p)->u1 = (_u1), (p)->v1 = (_v1), \
-     (p)->u2 = (_u2), (p)->v2 = (_v2))
+    (p)->u0 = (_u0), (p)->v0 = (_v0), \
+    (p)->u1 = (_u1), (p)->v1 = (_v1), \
+    (p)->u2 = (_u2), (p)->v2 = (_v2)
 #define setUV4(p, _u0, _v0, _u1, _v1, _u2, _v2, _u3, _v3) \
-    ((p)->u0 = (_u0), (p)->v0 = (_v0), \
-     (p)->u1 = (_u1), (p)->v1 = (_v1), \
-     (p)->u2 = (_u2), (p)->v2 = (_v2), \
-     (p)->u3 = (_u3), (p)->v3 = (_v3))
+    (p)->u0 = (_u0), (p)->v0 = (_v0), \
+    (p)->u1 = (_u1), (p)->v1 = (_v1), \
+    (p)->u2 = (_u2), (p)->v2 = (_v2), \
+    (p)->u3 = (_u3), (p)->v3 = (_v3)
 
 /* Set the four UV corners of a textured rectangle. */
 #define setUVWH(p, _u0, _v0, _w, _h) \
-    ((p)->u0 = (_u0),       (p)->v0 = (_v0),       \
-     (p)->u1 = (_u0) + (_w), (p)->v1 = (_v0),      \
-     (p)->u2 = (_u0),       (p)->v2 = (_v0) + (_h), \
-     (p)->u3 = (_u0) + (_w), (p)->v3 = (_v0) + (_h))
+    (p)->u0 = (_u0), (p)->v0 = (_v0), \
+    (p)->u1 = (_u0)+(_w), (p)->v1 = (_v0), \
+    (p)->u2 = (_u0), (p)->v2 = (_v0)+(_h), \
+    (p)->u3 = (_u0)+(_w), (p)->v3 = (_v0)+(_h)
 
 /* Initialise a textured 3-vertex polygon (len=7 words, code=0x24). */
 #define setPolyFT3(p)    setlen(p, 7),  setcode(p, 0x24)
@@ -151,10 +145,8 @@ typedef struct {
     ((u32 *)(p))[1] = _get_mode(dfe, dtd, tpage)
 
 /* Store a tpage / clut into a primitive's tpage / clut field. */
-#define setTPage(p, tp, abr, x, y) \
-    ((p)->tpage = getTPage((tp), (abr), (x), (y)))
-#define setClut(p, x, y) \
-    ((p)->clut = getClut((x), (y)))
+#define setTPage(p, tp, abr, x, y) ((p)->tpage = getTPage(tp,abr,x,y))
+#define setClut(p, x, y) ((p)->clut = getClut(x,y))
 
 /**
  * @brief Rectangle (position + size), used by GPU primitives.
@@ -164,8 +156,7 @@ typedef struct {
 } RECT;
 
 /** @brief Populate a RECT with position (x,y) and size (w,h). */
-#define setRECT(r, _x, _y, _w, _h) \
-    ((r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h))
+#define setRECT(r, _x, _y, _w, _h) (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
 
 /**
  * @brief GPU TILE primitive (flat-shaded rectangle).

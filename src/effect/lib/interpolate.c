@@ -36,10 +36,10 @@ void effectInterpolateFrames(EffectVertexAnim *anim, s32 frameA, s32 frameB,
     while (--n != -1) {
         gte_lddp(s);
         gte_ldsv(a);
-        gte_gpf1();
+        gte_gpf12();
         gte_lddp(t);
         gte_ldsv(b);
-        gte_gpl1();
+        gte_gpl12();
         gte_stsv(out);
         out++;
         a++;

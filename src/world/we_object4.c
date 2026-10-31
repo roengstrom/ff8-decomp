@@ -1442,7 +1442,7 @@ void func_800A8C1C(void) {
             near.vy = (zone->y - camY) >> ZONE_DIST_SHIFT;
             near.vz = 0;
             gte_ldsv(np);
-            gte_SQR(0);
+            gte_sqr0();
             gte_stlvnl(wp);
             dist = SquareRoot0(work.vx + work.vy + work.vz);
             radius = zone->radius >> ZONE_DIST_SHIFT;
@@ -2055,7 +2055,7 @@ static void func_800AA210(WorldTessVert *verts, s32 isQuad) {
             dist.vy = (u16)D_800D880C - verts[i].sy;
             dist.vz = 0;
             gte_ldsv(&dist);
-            gte_SQR(0);
+            gte_sqr0();
             gte_stsv(&dist);
             ((u8 *)part)[i] =
                 ~(SquareRoot0(dist.vx + dist.vy + dist.vz) << 2);
@@ -2192,7 +2192,7 @@ static void func_800AA210(WorldTessVert *verts, s32 isQuad) {
         ((SVECTOR *)part)->vy = (u16)D_800D880C - verts[i].sy;
         ((SVECTOR *)part)->vz = 0;
         gte_ldsv((SVECTOR *)part);
-        gte_SQR(0);
+        gte_sqr0();
         gte_stsv((SVECTOR *)part);
         ((u8 *)&part[1])[i] = ~(SquareRoot0(((SVECTOR *)part)->vx
                                             + ((SVECTOR *)part)->vy

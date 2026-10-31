@@ -705,7 +705,7 @@ void func_800AC778(VECTOR *posA, VECTOR *posB, s16 angleArg,
     delta.vz = (s16)posB->vz - (s16)posA->vz;
 
     gte_ldsv(&delta);
-    gte_SQR(0);
+    gte_sqr0();
     gte_stlvnl(&sq);
 
     distFull = SquareRoot0(sq.vx + sq.vy + sq.vz);

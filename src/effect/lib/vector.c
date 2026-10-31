@@ -206,11 +206,11 @@ void effectBlendPointSets(EffectParticle *particle, EffectPoseStep *step) {
         for (; i < n; i++) {
             gte_lddp(weight[0]);
             gte_ldsv(pa);
-            gte_gpf1();
+            gte_gpf12();
             pa++;
             gte_lddp(weight[1]);
             gte_ldsv(pb);
-            gte_gpl1();
+            gte_gpl12();
             pb++;
             gte_stsv(out);
             out++;

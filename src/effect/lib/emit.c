@@ -1210,7 +1210,7 @@ EffectTri *effectEmitStream(EffectPrimBuild *prim, u32 *ot, s32 otShift, EffectT
     if (!(prim->flags & EFFECT_EMIT_KEEP_DEPTH)) {
         prim->unk018 = 0;
     }
-    gte_ldfcb(prim->color.r, prim->color.g, prim->color.b);
+    gte_SetFarColor(prim->color.r, prim->color.g, prim->color.b);
     if (*prim->cursor != 0) {
         head = effectEmitTris(prim, ot, otShift, head);
     } else {

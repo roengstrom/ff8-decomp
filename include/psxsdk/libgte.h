@@ -196,12 +196,11 @@ s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */
  * limiter). @p sf is the shift fraction (0 = full precision, 1 = >>12).
  * Encoding: COP2 funct 0x28 with sf at bit 19. Two nops cover the GTE
  * data-reg load stall before SQR can read the IR registers. */
-#define gte_SQR( sf ) __asm__ volatile (                 \
-    "nop;"                                               \
-    "nop;"                                               \
-    ".word  %0"                                          \
-    :                                                    \
-    : "g"( 0x4AA00428 | ((sf) << 19) ) )
+#define gte_sqr0() __asm__ volatile ( \
+    "nop;" \
+    "nop;" \
+    ".word 0x4AA00428" \
+    : : )
 
 #define gte_ldtr( x, y, z ) __asm__ volatile (           \
     "ctc2   %0, $5;"                                     \
