@@ -41,6 +41,10 @@ includes (battle or effect headers) needs `make verify EFFECTS=all`.
 - `src/psxsdk/`: the Psy-Q SDK. We don't decompile it; its functions stay `INCLUDE_ASM`.
   Its prototypes live in `include/psxsdk/`, which should be faithful to the original Psy-Q SDK.
   (See https://github.com/sozud/psy-q-decomp for reference)
+  FF8 links libraries from between Psy-Q 4.0 and 4.6, so check a declaration against both (4.0
+  is in https://github.com/sozud/psy-q). Where they differ, follow 4.6. The GTE macros emit the
+  real instruction words where the SDK has placeholder words for its DMPSX tool to rewrite,
+  because we don't run DMPSX.
 - Generated, never edit or commit: `asm/`, `build/`, `expected/`, `objdiff.json`, and the
   asset files `make build-assets` writes. Assets come from the user's own disc.
 - `permuter/`: scratch space that `permute.sh` creates, one directory per function. Edit
