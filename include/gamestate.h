@@ -250,9 +250,6 @@ typedef struct {
     /* 0x7C */ s32 rngState;           /**< PRNG state (LCG: seed * 69069 + 1). */
 } TripleTriadData; /* 0x80 = 128 bytes */
 
-#define CARD_OBTAINED 0x80 // TripleTriadData.cards: the player has had the card at least once
-#define CARD_LOCATION_SQUALL 0xF0 // TripleTriadData.cardLocations: the card is in Squall's deck
-
 /** @brief Returns a pointer to the Triple Triad save-data block (win/loss tallies, etc.). */
 extern TripleTriadData *getTripleTriadData(void);
 

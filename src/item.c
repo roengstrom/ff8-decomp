@@ -3,6 +3,8 @@
 #include "battle.h"
 #include "gamestate.h"
 
+#define CARD_FLAG_80 0x80
+
 extern u16 D_8005EC3E[];
 
 /**
@@ -66,7 +68,7 @@ s32 modifyItemQuantity(s32 a0, s32 a1) {
 s32 markItemPresent(s32 a0) {
     TripleTriadData *base = getTripleTriadData();
     if (a0 < 0x4D) {
-        base->cards[a0] |= CARD_OBTAINED;
+        base->cards[a0] |= CARD_FLAG_80;
     } else {
         s32 idx = a0 - 0x4D;
         s32 byte_idx = idx / 8;
@@ -114,7 +116,7 @@ s32 isItemPresent(s32 a0) {
     TripleTriadData *base = getTripleTriadData();
     s32 byte_idx;
     if (a0 < 0x4D) {
-        if (base->cards[a0] & 0x80) {
+        if (base->cards[a0] & CARD_FLAG_80) {
             return 1;
         }
     } else {
@@ -143,7 +145,7 @@ s32 GetCardCount(s32 card) {
     s32 byte_idx;
 
     if (card < 0x4D) {
-        if (base->cards[card] & CARD_OBTAINED) {
+        if (base->cards[card] & CARD_FLAG_80) {
             return base->cards[card] & 0x7F;
         }
         return -1;
@@ -151,7 +153,7 @@ s32 GetCardCount(s32 card) {
     idx = card - 0x4D;
     byte_idx = idx / 8;
     if ((base->rareCards[byte_idx] >> (idx % 8)) & 1) {
-        return base->cardLocations[card - 0x4D] == CARD_LOCATION_SQUALL;
+        return base->cardLocations[card - 0x4D] == 0xF0;
     }
     return -1;
 }
@@ -227,7 +229,7 @@ s32 func_80023C48(void) {
     }
 
     for (i = 0; i < 0x4D; i++) {
-        if (!(base->cards[i] & 0x80)) {
+        if (!(base->cards[i] & CARD_FLAG_80)) {
             return 0;
         }
     }
