@@ -436,18 +436,26 @@ typedef struct {
     u8 u0, v0; u16 clut;
 } SPRT_8;
 
+typedef struct {
+    u32 mode; // pixel mode
+    RECT *crect; // CLUT rectangle in the frame buffer
+    u32 *caddr; // CLUT address in main memory
+    RECT *prect; // texture image rectangle in the frame buffer
+    u32 *paddr; // texture image address in main memory
+} TIM_IMAGE;
+
 /* --- GPU function declarations --- */
 
 s32 ResetGraph(s32 mode);
-void SetGraphDebug(s32 level);
+s32 SetGraphDebug(s32 level);
 s32 DrawSync(s32 mode);
 void SetDispMask(s32 mask);
-void ClearOTag(u32 *ot, s32 n);
-void ClearOTagR(u32 *ot, s32 n);
+u32 *ClearOTag(u32 *ot, s32 n);
+u32 *ClearOTagR(u32 *ot, s32 n);
 void DrawOTag(u32 *p);
 void DrawPrim(void *p);
-void LoadImage(RECT *rect, u32 *data);
-void StoreImage(RECT *rect, u32 *data);
+s32 LoadImage(RECT *rect, u32 *data);
+s32 StoreImage(RECT *rect, u32 *data);
 /* Pack a VRAM-to-VRAM move of @p rect to (@p x, @p y) into the primitive @p p. */
 void SetDrawMove(DR_MOVE *p, RECT *rect, s32 x, s32 y);
 /* Pack an upload of @p rect's pixels into the primitive @p p. */
@@ -462,12 +470,12 @@ s32 ClearImage(RECT *rect, u8 r, u8 g, u8 b);
 /* Pack a mask-bit setting into the primitive @p p: with @p pbw set, drawn pixels get their mask bit set. */
 void SetDrawStp(DR_STP *p, s32 pbw);
 void AddPrim(void *ot, void *p);
-void AddPrims(s32 *ot, void *p0, void *p1);
+void AddPrims(void *ot, void *p0, void *p1);
 void SetDrawArea(DR_AREA *p, RECT *rect);
 void SetDrawOffset(DR_OFFSET *p, u16 *ofs);
 s32 MoveImage(RECT *rect, s32 x, s32 y);
 s32 OpenTIM(u32 *addr);
-void *ReadTIM(void *timimg);
+TIM_IMAGE *ReadTIM(TIM_IMAGE *timimg);
 /* Stop the GPU's list DMA: returns the next packet's address, 0 if nothing is being
  * drawn, or -1 if the transfer in progress is not a list. */
 u32 *BreakDraw(void);
@@ -478,9 +486,9 @@ s32 IsIdleGPU(s32 max_count);
 s32 GetODE(void);
 void SetSemiTrans(void *p, s32 abe);
 void SetShadeTex(void *p, s32 tge);
-void SetDrawMode(void *p, s32 dfe, s32 dtd, s32 tpage, RECT *tw);
-void SetDrawTPage(void *p, s32 dfe, s32 dtd, u16 tpage);
-void SetTile(void *p);
+void SetDrawMode(DR_MODE *p, s32 dfe, s32 dtd, s32 tpage, RECT *tw);
+void SetDrawTPage(DR_TPAGE *p, s32 dfe, s32 dtd, s32 tpage);
+void SetTile(TILE *p);
 void SetSprt(SPRT *p);
 u16 GetClut(s32 x, s32 y);
 u16 GetTPage(s32 tp, s32 abr, s32 x, s32 y);

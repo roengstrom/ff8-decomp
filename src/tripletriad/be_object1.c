@@ -522,7 +522,7 @@ void drawTextChar(u8 ch) {
     s32 adjusted;
     s32 row;
 
-    prim = (SPRT *)g_textFbPtr;
+    prim = g_textFbPtr;
 
     if (ch == '\n') {
         g_textCursorX = g_textLineX;
@@ -572,7 +572,7 @@ void drawTextChar(u8 ch) {
 
     AddPrim(g_textOtPtr, prim);
 
-    g_textFbPtr = (u8 *)(prim + 1);
+    g_textFbPtr = prim + 1;
     g_textCursorX += 6;
 }
 
@@ -809,7 +809,7 @@ void drawTextf(s32 fmt, ...) {
  * buffer. Independent of the main @ref flipBuffers double buffer.
  */
 void flipTextBuffer(void) {
-    u8 *fb = g_textFbPtr;
+    DR_TPAGE *fb = g_textFbPtr;
 
     SetDrawTPage(fb, 0, 1, 3);
     AddPrim(g_textOtPtr, fb);

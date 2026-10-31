@@ -10,6 +10,11 @@
 #include "tripletriad/be_object3.h"
 #include "tripletriad/be_object4.h"
 
+typedef struct {
+    /** 0x00 */ TILE tile;
+    /** 0x10 */ DR_TPAGE tpage;
+} updateScreenFade_prim;
+
 /** @brief Allocate a tripletriad object from the @c g_taskList pool with the
  *         given per-frame callback; returns the new object (0 if pool is full). */
 s32 spawnTaskNode(ObjNodeFn a0) {
@@ -1153,24 +1158,24 @@ u8 *initTripleTriadScripts(void) {
  * @return 0 while in progress, 2 when complete.
  */
 s32 updateScreenFade(FadeObject *obj) {
-    TILE *prim;
+    updateScreenFade_prim *prim;
     s32 progress;
     s32 frame;
 
     prim = g_primCursor;
-    prim->tag = 0x5000000;
-    prim->w = 0x180;
-    prim->y0 = 0;
-    prim->x0 = 0;
-    prim->h = 0xE0;
+    prim->tile.tag = 0x5000000;
+    prim->tile.w = 0x180;
+    prim->tile.y0 = 0;
+    prim->tile.x0 = 0;
+    prim->tile.h = 0xE0;
     progress = (obj->frame << 12) / obj->duration;
     SetFarColor(obj->endColor[0], obj->endColor[1], obj->endColor[2]);
-    DpqColor((CVECTOR *)obj->startColor, progress, (CVECTOR *)&prim->r0);
-    prim->code = 0x62;
-    AddPrim(g_otBase + 2, prim);
-    SetDrawTPage((u8 *)prim + sizeof(TILE), 1, 1, 0x40);
-    AddPrim(g_otBase + 2, (u8 *)prim + sizeof(TILE));
-    g_primCursor = (u8 *)prim + 0x18;
+    DpqColor((CVECTOR *)obj->startColor, progress, (CVECTOR *)&prim->tile.r0);
+    prim->tile.code = 0x62;
+    AddPrim(g_otBase + 2, &prim->tile);
+    SetDrawTPage(&prim->tpage, 1, 1, 0x40);
+    AddPrim(g_otBase + 2, &prim->tpage);
+    g_primCursor = prim + 1;
     frame = (u16)obj->frame;
     obj->frame = frame + 1;
     if ((s16)frame >= obj->duration) {

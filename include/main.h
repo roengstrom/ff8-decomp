@@ -52,7 +52,12 @@ extern CdFileDesc     D_80097808[];
 extern u8             D_80067468[];
 extern u8             D_8006A468[];
 extern u8             D_8005F188[];
-extern u8             D_80070468[];
+typedef struct {
+    /** 0x00 */ DR_MODE mode;
+    /** 0x0C */ u8 unk0C[0x14];
+} SetupDrawMode_slot;
+
+extern SetupDrawMode_slot D_80070468[];
 
 void VsyncHandler(void);
 void InitHardware(void);

@@ -155,7 +155,7 @@ extern u32           g_orderingTables[2][TT_OT_LEN];  /**< Per-buffer ordering t
 extern u8            g_primPools[2][0x10000];  /* primitive pool, 64KB per buffer */
 extern u32           g_textOTs[2][2];
 extern u8            g_textFrameBufs[2][0x8000];
-extern u8           *g_textFbPtr;
+extern void *g_textFbPtr;
 extern u32          *g_textOtPtr;
 extern u8           *g_tripleTriadActiveList;
 extern u8            g_hexDigits[];

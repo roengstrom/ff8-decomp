@@ -34,8 +34,8 @@ extern void func_8009AF64(void *cmd, ...);
 extern s16 D_800D3C70;
 extern u8 D_8009801C[];
 extern u8 D_80098020[];
-extern u8 D_8009B5B4[];
-extern u8 D_800A37D4[];
+extern u32 D_8009B5B4[];
+extern u32 D_800A37D4[];
 extern u8 D_800ABA0C;
 extern u8 D_800D3C30[];
 extern u8 D_800D3C35;
@@ -368,13 +368,13 @@ void func_8009A664(void) {
  *
  * @param a0 Render object pointer.
  */
-void func_8009A66C(u8 *a0) {
-    s32 buf[6];
+void func_8009A66C(u32 *a0) {
+    TIM_IMAGE tim;
     OpenTIM(a0);
-    ReadTIM(&buf);
-    LoadImage(buf[3], buf[4]);
-    if (((u32)buf[0] >> 3) & 1) {
-        LoadImage(buf[1], buf[2]);
+    ReadTIM(&tim);
+    LoadImage(tim.prect, tim.paddr);
+    if ((tim.mode >> 3) & 1) {
+        LoadImage(tim.crect, tim.caddr);
     }
 }
 

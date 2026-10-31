@@ -545,8 +545,8 @@ void SetupDrawMode(s32 a0) {
     u16 tpage;
 
     tpage = GetTPage(0, a0, 0, 0);
-    SetDrawMode(D_80070468, 0, 0, tpage, 0);
-    SetDrawMode(D_80070468 + 0x20, 0, 0, tpage, 0);
+    SetDrawMode(&D_80070468[0].mode, 0, 0, tpage, NULL);
+    SetDrawMode(&D_80070468[1].mode, 0, 0, tpage, NULL);
 }
 
 /** @brief Initializes the two full-screen black TILE primitives used to clear
