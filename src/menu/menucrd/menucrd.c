@@ -42,7 +42,7 @@ void func_801E5ABC(CardMenuState *state);
 s32 func_801E5F7C(s32, s32, s32, s32, s32);
 s32 func_801E67E4(s32, s32, s32, s32, s32);
 s32 func_801E69AC(CardMenuState *state, s32 a1, s32 a2);
-static void *DrawCardBacksideSprite(s32, void *, void *, s32, s32);
+static void *DrawCardBacksideSprite(CardMenuState *, void *, void *, s32, s32);
 
 /** @brief Look up string @p a0 in menu text category 0xD. */
 u8 *func_801E5800(s32 a0) {
@@ -236,7 +236,7 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E60E8);
  * @param y Screen y of the card back.
  * @return Next free position in the packet buffer, after the packet written.
  */
-static void *DrawCardBacksideSprite(s32 unused, void *ot, void *head, s32 x, s32 y) {
+static void *DrawCardBacksideSprite(CardMenuState *unused, void *ot, void *head, s32 x, s32 y) {
     return DrawSpriteFromTable(ot, head, &g_currentPageCardTable, CARD_BACKSIDE_INDEX, x, y, g_menuTint[MENU_TINT_NORMAL]);
 }
 
