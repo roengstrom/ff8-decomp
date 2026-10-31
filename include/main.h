@@ -41,7 +41,6 @@ extern volatile s32 g_countdownTicker;
 extern u16 g_vsyncDone;
 
 /* CD file-table descriptors + scratch buffers loaded/managed by main.c. */
-extern CdFileDesc     g_fileTableDesc[];
 extern CdFileDesc     D_80097400[];
 extern CdFileDesc     D_80097410[];
 extern CdFileDesc     D_800974D0[];

@@ -23,14 +23,22 @@
 #include "main.h"
 #include "btl_transition.h"
 #include "wm2field.h"
+#include "memlayout.h"
 
 /** @brief Global field ids of the maps a new game and a game over go to. */
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 
+// The place in the disc image where the table of contents file resides.
+// These were likely calculated during the mastering process of the disc.
+#define IMG_TOC_SECTOR 826
+#define IMG_TOC_SIZE 1064
+
 static void DisableStpBit(void);
 static void SaveFieldSnapshot(void);
 static void RestoreFieldSnapshot(void);
+
+static CdFileDesc g_fileTableDesc[] = { { IMG_TOC_SECTOR, IMG_TOC_SIZE } };
 
 static void DisableStpBit(void) {
     DR_STP prim;
@@ -149,23 +157,23 @@ static void RestoreFieldSnapshot(void) {
 
 void LoadFieldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
-        LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, 0x80098000, NULL);
-        while (func_800393C8() != 0) {}
+        LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, OVERLAY_ADDR, NULL);
+        while (func_800393C8());
     }
     func_8001F5C8();
 }
 
 void LoadWorldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
-        LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, 0x80098000, NULL);
-        while (func_800393C8() != 0) {}
+        LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, OVERLAY_ADDR, NULL);
+        while (func_800393C8());
     }
     func_8001F5C8();
 }
 
 void LoadWm2FieldTable(void) {
     LoadDataFromDisc(D_80097410[1].sector, D_80097410[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
-    while (func_800393C8() != 0) {}
+    while (func_800393C8());
 }
 
 /** @brief Initializes the sound engine and loads its audio assets (sound bank
@@ -180,34 +188,34 @@ void initSoundEngine(void) {
 
     sndLoadBank(D_80067468);
 
-    LoadDataFromDisc(D_800974D8[1].sector, D_800974D8[1].size, 0x801B0000, NULL);
+    LoadDataFromDisc(D_800974D8[1].sector, D_800974D8[1].size, SCRATCH_ADDR, NULL);
     while (func_800393C8() != 0)
         ;
 
-    sndUploadSamples(0x801B0000, 1);
+    sndUploadSamples(SCRATCH_ADDR, 1);
 
-    LoadDataFromDisc(D_800974D8[2].sector, D_800974D8[2].size, 0x801B0000, NULL);
+    LoadDataFromDisc(D_800974D8[2].sector, D_800974D8[2].size, SCRATCH_ADDR, NULL);
     while (func_800393C8() != 0)
         ;
 
-    sndUploadSamples(0x801B0000, 1);
+    sndUploadSamples(SCRATCH_ADDR, 1);
 }
 
 /** @brief Loads an overlay from CD into the overlay region; which overlay is
  *         loaded depends on the file table set up by loadFileTable.
  */
 void loadCdOverlay(void) {
-    LoadDataFromDisc(D_80097400[0].sector, D_80097400[0].size, 0x80098000, NULL);
+    LoadDataFromDisc(D_80097400[0].sector, D_80097400[0].size, OVERLAY_ADDR, NULL);
     while (func_800393C8() != 0)
         ;
 }
 
 /** @brief Loads texture data from CD and uploads it to VRAM. */
 void loadAndUploadTextures(void) {
-    LoadDataFromDisc(D_80097808[0].sector, D_80097808[0].size, 0x801B0000, NULL);
+    LoadDataFromDisc(D_80097808[0].sector, D_80097808[0].size, SCRATCH_ADDR, NULL);
     while (func_800393C8() != 0)
         ;
-    func_8002C3AC(0x801B0000, 0);
+    func_8002C3AC(SCRATCH_ADDR, 0);
     while (DrawSync(1) != 0)
         ;
 }
@@ -227,11 +235,11 @@ void initBattleAssets(void) {
     initBattleAnimSystem((s32)D_8006A468, 0x6000);
     loadAndUploadTextures();
 
-    LoadDataFromDisc(D_80097808[1].sector, D_80097808[1].size, 0x801B0000, NULL);
+    LoadDataFromDisc(D_80097808[1].sector, D_80097808[1].size, SCRATCH_ADDR, NULL);
     while (func_800393C8() != 0)
         ;
 
-    loadBattleTimImage(0x801B0000);
+    loadBattleTimImage(SCRATCH_ADDR);
 
     LoadDataFromDisc(D_80097808[3].sector, D_80097808[3].size, 0x80090000, NULL);
     while (func_800393C8() != 0)
@@ -250,7 +258,7 @@ void initBattleAssets(void) {
  *         other CD load, since every other load descriptor lives in this table.
  */
 void loadFileTable(void) {
-    LoadDataFromDisc(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, 0x80097400, NULL);
+    LoadDataFromDisc(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, IMG_TOC_ADDR, NULL);
     while (func_800393C8() != 0)
         ;
 }
@@ -285,7 +293,7 @@ void ff8main(void) {
     initFieldModule();
     LoadWm2FieldTable();
     while (1) {
-        LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
+        LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, OVERLAY_ADDR, NULL);
         while (func_800393C8() != 0) {}
 
         func_80098FD4(0);
@@ -312,7 +320,7 @@ void ff8main(void) {
             SmInitEventAll(1);
         }
         if (g_fieldVars->expectedDiscId != getDiscId()) {
-            LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
+            LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, OVERLAY_ADDR, NULL);
             while (func_800393C8() != 0) {}
 
             func_80098FD4(1);
@@ -344,7 +352,7 @@ void ff8main(void) {
                     }
                     if (((g_previousGameMode == GAME_MODE_FIELD) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
                         while (func_800393C8() != 0) {}
-                        func_80038490(D_8005F104, 0x80098000);
+                        func_80038490(D_8005F104, OVERLAY_ADDR);
                     } else {
                         LoadWorldOverlay();
                     }
@@ -515,7 +523,7 @@ void ff8main(void) {
                     }
                     break;
                 case GAME_MODE_DISC_CHANGE:
-                    LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, 0x80098000, NULL);
+                    LoadCompressedDataFromDisc(D_80097400[1].sector, D_80097400[1].size, OVERLAY_ADDR, NULL);
                     while (func_800393C8() != 0) {}
                     func_80098FD4(g_fieldContext.unk1A0);
                     mode = g_fieldContext.unk1A0;

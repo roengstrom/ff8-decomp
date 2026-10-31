@@ -138,6 +138,3 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_800514D4);
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", func_80051514);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", index);
-
-/** @brief Bootstrap CD file-table descriptor read by main.c (data, not code). */
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libsnd", g_fileTableDesc);
