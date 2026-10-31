@@ -289,7 +289,7 @@ static s32 DrawCardInfoPanel(CardMenuState *state, s32 ot, s32 head, s32 x, s32 
         if (value != 0) {
             for (i = 0; i < 8; i++) {
                 if ((value >> i) & 1) {
-                    head = func_801F0FEC(ot, head, posX, posY, (u8 *)func_801F6AFC(i + 0x15), color);
+                    head = func_801F0FEC(ot, head, posX, posY, func_801F6AFC(i + 0x15), color);
                     posX += 0x10;
                 }
             }

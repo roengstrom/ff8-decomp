@@ -743,9 +743,9 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
         color++; color--;
     }
 
-    tmp = func_801F6AFC(SYMBOL_PERCENT);
+    text = func_801F6AFC(SYMBOL_PERCENT);
     y2 = arg4 + 23;
-    arg2 = func_8002C56C(arg1, arg2, x, y2, tmp, color);
+    arg2 = func_8002C56C(arg1, arg2, x, y2, text, color);
 
     text = getWeaponName(oldWeaponId);
     x = arg3 + 12;
@@ -790,8 +790,8 @@ static s32 func_801E90F8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
         tmp = func_801F7BE4(newWeaponHitRate);
         arg2 = drawNumberMenuTint(arg1, arg2, (y << 0x10) | (x & 0xFFFF), tmp, color);
 
-        tmp = func_801F6AFC(SYMBOL_PERCENT);
-        arg2 = func_8002C56C(arg1, arg2, x, y2, tmp, color);
+        text = func_801F6AFC(SYMBOL_PERCENT);
+        arg2 = func_8002C56C(arg1, arg2, x, y2, text, color);
         
         x = arg3 + 195;
         y = y2;

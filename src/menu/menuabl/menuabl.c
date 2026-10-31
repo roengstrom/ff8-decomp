@@ -236,7 +236,7 @@ restart:
                     }
                     if (trackType == 0x80) {
                         if (func_801E2934() == 0) {
-                            ptr = (u8 *)func_801F6AFC(0x36);
+                            ptr = func_801F6AFC(0x36);
                             func_801F23D0(0, 0x68, ptr);
                             setDialogMessage(0, ptr);
                             *statePtr = 0x10;

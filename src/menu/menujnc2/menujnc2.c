@@ -3155,7 +3155,7 @@ s32 renderStatTableA(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
     s32 baseFlags, currentFlags;
     u32 baseVal, currentVal;
     s32 indicator, color;
-    s32 fmtResult;
+    u8 *fmtResult;
     s32 bit;
     s32 tmp;
     u8 fmtParam;
@@ -3253,7 +3253,7 @@ s32 renderStatTableA(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
 s32 renderStatTableB(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
     StatTableEntry *entry;
     MenuDisplayConfig *cfg;
-    s32 fmtResult;
+    u8 *fmtResult;
     s32 i;
     s32 cy2;
     s32 x, y;
@@ -3342,7 +3342,7 @@ s32 renderStatTableB(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
 s32 renderStatTableC(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junction, s32 magicId) {
     StatTableEntry *entry;
     MenuDisplayConfig *cfg;
-    s32 fmtResult;
+    u8 *fmtResult;
     s32 i;
     s32 cy2;
     s32 x, y;
@@ -3446,7 +3446,7 @@ s32 renderStatTableC(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
 s32 renderStatTableD(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
     StatTableEntry *entry;
     MenuDisplayConfig *cfg;
-    s32 fmtResult;
+    u8 *fmtResult;
     s32 tmp2;          /* second offset temp; declared here for register allocation */
     s32 i;
     s32 cy2;
@@ -4099,7 +4099,7 @@ s32 renderJunctionSlotDetail(s32 renderCtx, s32 cursorY, s32 x, s32 y, s32 wideM
             xPos = x + 0x98;
         }
         yPos = y + 2;
-        name = (u8 *)func_801F6AFC(0x14);
+        name = func_801F6AFC(0x14);
         cursorY = func_8002C56C(renderCtx, cursorY, xPos, yPos, name, available);
     }
     return cursorY;
