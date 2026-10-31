@@ -2,6 +2,7 @@
 #include "battle.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libc.h"
+#include "psxsdk/inline_c.h"
 #include "world.h"
 #include "world/we_object1.h"
 #include "world/we_object3.h"

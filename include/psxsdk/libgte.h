@@ -261,19 +261,6 @@ s32 ratan2(s32 y, s32 x);   /**< Angle of (x, y); 0x1000 = full circle. */
     : "r"( r0 )                                          \
     : "$12", "$13", "$14" )
 
-/* Same, but from three 8-bit colour components, each scaled to the GTE's
- * 4.12 fixed point. */
-#define gte_SetFarColor( r0, r1, r2 ) __asm__ volatile ( \
-    "sll    $12, %0, 4;"                                 \
-    "sll    $13, %1, 4;"                                 \
-    "sll    $14, %2, 4;"                                 \
-    "ctc2   $12, $21;"                                   \
-    "ctc2   $13, $22;"                                   \
-    "ctc2   $14, $23"                                    \
-    :                                                    \
-    : "r"( r0 ), "r"( r1 ), "r"( r2 )                    \
-    : "$12", "$13", "$14" )
-
 /* Load IR0, the interpolation fraction used by INTPL / DPCS. */
 /* Load column vector — fills IR1/IR2/IR3 from one column of the 3x3 matrix
  * @p r0 (row stride 6). PSY-Q INLINE_C.H gte_ldclmv. */
