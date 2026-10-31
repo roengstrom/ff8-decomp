@@ -1,10 +1,13 @@
 #include "common.h"
 #include "gamestate.h"
+#include "item.h"
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
 #include "menucrd.h"
 #include "overlay.h"
+#include "psxsdk/libgte.h"
+#include "ui/icon.h"
 #include "ui/sprite.h"
 #include "ui/text.h"
 
@@ -21,8 +24,7 @@ typedef struct {
     /* 0x2A */ u8 pad2A[2];
     /* 0x2C */ u8 unk2C;
     /* 0x2D */ u8 pad2D;
-    /* 0x2E */ u8 card;             /**< Card under the cursor. */
-    /* 0x2F */ u8 pad2F;
+    /* 0x2E */ s16 card;            /**< Card under the cursor. */
     /* 0x30 */ s16 intensity;       /**< Menu color intensity. */
     /* 0x32 */ u16 groupCounts[4];  /**< Card copies owned per level group: 1-5, 6-7, 8-9, 10. */
     /* 0x3A */ u16 totalCount;      /**< Card copies owned in all. */
@@ -32,6 +34,7 @@ typedef struct {
 
 #define CARD_BACKSIDE_INDEX 11
 
+extern DVECTOR g_cardRankOffsets[];
 extern s16 D_801E7D64;
 extern s16 D_801E7D66;
 extern SpriteTable g_currentPageCardTable;
@@ -41,9 +44,12 @@ extern s16 getGameStateS16(void);
 void func_801E582C(CardMenuState *state);
 void func_801E5ABC(CardMenuState *state);
 s32 func_801E5F7C(s32, s32, s32, s32, s32);
+s32 DrawCardPicture(CardMenuState *state, s32 ot, s32 head, s32 x, s32 y);
 s32 func_801E67E4(s32, s32, s32, s32, s32);
 s32 func_801E69AC(CardMenuState *state, s32 a1, s32 a2);
-static void *DrawCardBacksideSprite(s32, void *, void *, s32, s32);
+s32 GetCardAttribute(s32 card, s32 field);
+static void *DrawCardBacksideSprite(CardMenuState *, void *, void *, s32, s32);
+static s32 DrawCardInfoPanel(CardMenuState *, s32, s32, s32, s32);
 
 /** @brief Look up string @p a0 in menu text category 0xD. */
 u8 *func_801E5800(s32 a0) {
@@ -102,10 +108,10 @@ void func_801E58B4(s32 a0, s32 a1) {
  * (level 10).
  *
  * @param a0 Card ID.
- * @return The text, or NULL when func_80023B14 returns a negative value for the card.
+ * @return The text, or NULL when GetCardCount returns a negative value for the card.
  */
 u8 *func_801E591C(s32 a0) {
-    if (func_80023B14(a0) < 0) {
+    if (GetCardCount(a0) < 0) {
         return NULL;
     }
     if (a0 < 0x37) {
@@ -123,7 +129,7 @@ u8 *func_801E591C(s32 a0) {
 /**
  * @brief Count the card copies owned, per level group and in all.
  *
- * Adds up func_80023B14 over cards 0-54 (levels 1-5), 55-76 (levels 6-7),
+ * Adds up GetCardCount over cards 0-54 (levels 1-5), 55-76 (levels 6-7),
  * 77-98 (levels 8-9) and 99-109 (level 10), skipping cards it reports
  * as zero or negative.
  *
@@ -142,7 +148,7 @@ void func_801E5980(CardMenuState *state) {
     state->totalCount = 0;
 
     do {
-        count = func_80023B14(cardIdx);
+        count = GetCardCount(cardIdx);
         if (count > 0) {
             sum += count;
             state->groupCounts[0] += count;
@@ -153,7 +159,7 @@ void func_801E5980(CardMenuState *state) {
 
     i = 0;
     do {
-        count = func_80023B14(cardIdx);
+        count = GetCardCount(cardIdx);
         if (count > 0) {
             sum += count;
             state->groupCounts[1] += count;
@@ -164,7 +170,7 @@ void func_801E5980(CardMenuState *state) {
 
     i = 0;
     do {
-        count = func_80023B14(cardIdx);
+        count = GetCardCount(cardIdx);
         if (count > 0) {
             sum += count;
             state->groupCounts[2] += count;
@@ -175,7 +181,7 @@ void func_801E5980(CardMenuState *state) {
 
     i = 0;
     do {
-        count = func_80023B14(cardIdx);
+        count = GetCardCount(cardIdx);
         if (count > 0) {
             sum += count;
             state->groupCounts[3] += count;
@@ -237,7 +243,7 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E60E8);
  * @param y Screen y of the card back.
  * @return Next free position in the packet buffer, after the packet written.
  */
-static void *DrawCardBacksideSprite(s32 unused, void *ot, void *head, s32 x, s32 y) {
+static void *DrawCardBacksideSprite(CardMenuState *unused, void *ot, void *head, s32 x, s32 y) {
     return DrawSpriteFromTable(ot, head, &g_currentPageCardTable, CARD_BACKSIDE_INDEX, x, y, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -257,11 +263,64 @@ static void *DrawCardBacksideSprite(s32 unused, void *ot, void *head, s32 x, s32
  * @param stackArg Color/attribute
  * @return Result from DrawSpriteFromTable
  */
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6270);
+INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", DrawCardPicture);
 
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E634C);
 
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E645C);
+static s32 DrawCardInfoPanel(CardMenuState *state, s32 ot, s32 head, s32 x, s32 y) {
+    s32 value;
+    s32 i;
+    s32 posX;
+    s32 posY;
+    s32 icon;
+    s32 color = 7;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+
+    if (GetCardCount(state->card) >= 0) {
+        posX = x + 0x57;
+        posY = y + 6;
+        head = DrawCardPicture(state, ot, head, posX, posY);
+        posX = x + 8;
+        posY = y + 0x2C;
+        head = func_801F0FEC(ot, head, posX, posY, func_801E5800(1), color);
+        value = GetCardAttribute(state->card, 6);
+        posX = x + 0x11;
+        posY = y + 0x3A;
+        if (value != 0) {
+            for (i = 0; i < 8; i++) {
+                if ((value >> i) & 1) {
+                    head = func_801F0FEC(ot, head, posX, posY, func_801F6AFC(i + 0x15), color);
+                    posX += 0x10;
+                }
+            }
+        } else {
+            head = func_801F0FEC(ot, head, posX, posY, func_801E5800(0xD), color);
+        }
+        for (i = 0; i < 4; i++) {
+            value = GetCardAttribute(state->card, i + 2);
+            if (value < 10) {
+                icon = ICON_BOLD_DIGIT_0 + value;
+            } else {
+                icon = ICON_BOLD_A;
+            }
+            posX = x + g_cardRankOffsets[i].vx;
+            posY = y + g_cardRankOffsets[i].vy;
+            head = (s32)drawIcon((void *)ot, (void *)head, icon, posX, posY, g_menuTint[MENU_TINT_NORMAL]);
+        }
+    } else {
+        posX = x + 0x57;
+        posY = y + 6;
+        head = (s32)DrawCardBacksideSprite(state, (void *)ot, (void *)head, posX, posY);
+    }
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->w = 0xA1;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->h = 0x4C;
+    head = (s32)DrawMenuWindow((void *)ot, (void *)head, 0x1000, g_menuTint[MENU_TINT_NORMAL]);
+    return head;
+}
 
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E66AC);
 
@@ -315,7 +374,7 @@ s32 func_801E69AC(CardMenuState *state, s32 a1, s32 a2) {
     func_801F1AFC();
     setMenuBrightness(state->intensity);
     v1 = 0x1E;
-    result = func_801E645C(state, a1, a2, 0xC0, v1);
+    result = DrawCardInfoPanel(state, a1, a2, 0xC0, v1);
     v1 = 0x6A;
     result = func_801E66AC(state, a1, result, 0xC0, v1);
     v1 = 0xC0;
@@ -354,7 +413,7 @@ void func_801E6AA8(void) {
 /**
  * @brief Look up card data by index and field selector.
  *
- * Uses a0 to index into D_801E6D20 (8-byte stride) and a1 to select
+ * Uses a0 to index into g_cardStats (8-byte stride) and a1 to select
  * which field to return:
  *   1: Page number (a0 / 11 + 1)
  *   2-6: Byte fields 0-4 from the table entry
@@ -364,4 +423,4 @@ void func_801E6AA8(void) {
  * @param a1 Field selector (1-7)
  * @return Requested field value, or 0 if a1 is out of range
  */
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6B40);
+INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", GetCardAttribute);

@@ -119,8 +119,7 @@ void func_801E58B8(void) {
 
     v0 = func_801F7A54();
     if (v0 == 0x1F) {
-        v0 = func_801F6AFC(0x39);
-        copyString((s32)&D_801E7ADC, v0);
+        copyString((s32)&D_801E7ADC, func_801F6AFC(0x39));
         return;
     }
     v0 = func_801F7A54();

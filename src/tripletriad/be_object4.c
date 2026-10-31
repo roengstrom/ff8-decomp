@@ -785,7 +785,7 @@ void func_800A2D34(void)
 /**
  * @brief Rebuild the cursor grid's valid-cell list and clamp the cursor into range.
  *
- * Scans candidate indices 0..0x6D, and for each one accepted by @c func_80023B14
+ * Scans candidate indices 0..0x6D, and for each one accepted by @c GetCardCount
  * (returns > 0) appends the index to @c D_801D4A88, recording the running total in
  * @c D_801D4AF6. The grid is laid out in rows of 11 cells; if the current cursor
  * position now sits past the last populated row, it is clamped back onto the last
@@ -802,7 +802,7 @@ void func_800A2E44(void)
 
     count = 0;
     for (i = 0; i < 0x6E; i++) {
-        if (func_80023B14(i) > 0) {
+        if (GetCardCount(i) > 0) {
             *dst = i;
             dst++;
             count++;
@@ -1573,7 +1573,7 @@ void *func_800A4098(void *a0, void *a1, s32 a2, s32 a3, s32 stack0) {
  * Maps the (@p row, @p col) position to a linear grid index (@c row*11+col) and
  * bails — returning @p pkt unchanged — if it is past the populated cell count
  * (@c D_801D4AF6). Otherwise it looks up the cell's card index in
- * @c D_801D4A88, picks a highlight color (7 if the card passes @c func_80023B14,
+ * @c D_801D4A88, picks a highlight color (7 if the card passes @c GetCardCount,
  * else 1), and emits three primitives at a position derived from the cursor
  * view rect: a glyph (@c drawIcon), the card image (@c func_800A3D2C), and
  * a frame (@c func_800A4098). The packet cursor is threaded through and returned.
@@ -1601,7 +1601,7 @@ void *func_800A40F0(void *otBase, void *pkt, s32 row, s32 col, s32 xOffset)
 
     cell = D_801D4A88[cell];
     color = 1;
-    valid = func_80023B14(cell);
+    valid = GetCardCount(cell);
     if (valid > 0) {
         color = 7;
     }

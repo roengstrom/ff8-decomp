@@ -2134,7 +2134,7 @@ u8 *func_801F6AD0(s32 a0) {
 }
 
 /** @brief Look up character description string. */
-s32 func_801F6AFC(s32 a0) {
+u8 *func_801F6AFC(s32 a0) {
     return func_801F08D4(0, 0, a0, 0);
 }
 

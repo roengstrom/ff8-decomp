@@ -3,6 +3,8 @@
 #include "battle.h"
 #include "gamestate.h"
 
+#define CARD_FLAG_80 0x80
+
 extern u16 D_8005EC3E[];
 
 /**
@@ -55,24 +57,24 @@ s32 modifyItemQuantity(s32 a0, s32 a1) {
 
 
 /**
- * @brief Mark an inventory item as present and set its flag byte to 0xF0.
+ * @brief Give a Triple Triad card to the player.
  *
- * For item slots < 0x4D: sets the high bit (0x80) of the card byte.
- * For key item slots >= 0x4D: sets the corresponding bit in the
- * rareCards bitfield. Then calls modifyItemQuantity(a0, 0xF0).
+ * Marks the card as obtained, then adds one copy of a monster card or moves
+ * a rare card to Squall.
  *
- * @param a0 Inventory slot index.
+ * @param a0 Card ID.
+ * @return 0, or -1 when a monster card already has 100 copies.
  */
-void markItemPresent(s32 a0) {
+s32 markItemPresent(s32 a0) {
     TripleTriadData *base = getTripleTriadData();
     if (a0 < 0x4D) {
-        base->cards[a0] |= 0x80;
+        base->cards[a0] |= CARD_FLAG_80;
     } else {
         s32 idx = a0 - 0x4D;
         s32 byte_idx = idx / 8;
         base->rareCards[byte_idx] |= 1 << (idx % 8);
     }
-    modifyItemQuantity(a0, 0xF0);
+    return modifyItemQuantity(a0, 0xF0);
 }
 
 
@@ -114,7 +116,7 @@ s32 isItemPresent(s32 a0) {
     TripleTriadData *base = getTripleTriadData();
     s32 byte_idx;
     if (a0 < 0x4D) {
-        if (base->cards[a0] & 0x80) {
+        if (base->cards[a0] & CARD_FLAG_80) {
             return 1;
         }
     } else {
@@ -129,50 +131,47 @@ s32 isItemPresent(s32 a0) {
 
 
 /**
- * @brief Get the quantity of an item, or check if a key item is present.
+ * @brief Get how many copies of a Triple Triad card the player has.
  *
- * For consumable items (index < 0x4D): returns the quantity (lower 7 bits)
- * if the item is marked present (high bit set), or -1 if not present.
- * For key items (index >= 0x4D): checks the key item bitfield. If the
- * bit is set, returns whether the item byte equals 0xF0 (1 or 0).
- * Returns -1 if the key item bit is not set.
+ * For a monster card (below 77) this is the count in the player's collection.
+ * For a rare card it is 1 when Squall has it and 0 when someone else does.
  *
- * @param a0 Item slot index.
- * @return Item quantity, 0/1 for key items, or -1 if not present.
+ * @param card Card ID.
+ * @return The count, or -1 if the player has never had the card.
  */
-s32 func_80023B14(s32 a0) {
+s32 GetCardCount(s32 card) {
     TripleTriadData *base = getTripleTriadData();
     s32 idx;
     s32 byte_idx;
 
-    if (a0 < 0x4D) {
-        if (base->cards[a0] & 0x80) {
-            return base->cards[a0] & 0x7F;
+    if (card < 0x4D) {
+        if (base->cards[card] & CARD_FLAG_80) {
+            return base->cards[card] & 0x7F;
         }
         return -1;
     }
-    idx = a0 - 0x4D;
+    idx = card - 0x4D;
     byte_idx = idx / 8;
     if ((base->rareCards[byte_idx] >> (idx % 8)) & 1) {
-        return base->cardLocations[a0 - 0x4D] == 0xF0;
+        return base->cardLocations[card - 0x4D] == 0xF0;
     }
     return -1;
 }
 
 
 /**
- * @brief Sum all positive results from func_80023B14 for indices 0..109.
+ * @brief Sum all positive results from GetCardCount for indices 0..109.
  *
- * Iterates over indices 0 through 0x6D, calling func_80023B14 for each.
+ * Iterates over indices 0 through 0x6D, calling GetCardCount for each.
  * Accumulates the return value only when positive (> 0).
  *
- * @return Sum of all positive func_80023B14 results.
+ * @return Sum of all positive GetCardCount results.
  */
 s32 sumItemQuantities(void) {
     s32 sum = 0;
     s32 i = sum;
     for (; i < 0x6E; i++) {
-        s32 result = func_80023B14(i);
+        s32 result = GetCardCount(i);
         if (result > 0) {
             sum += result;
         }
@@ -230,7 +229,7 @@ s32 func_80023C48(void) {
     }
 
     for (i = 0; i < 0x4D; i++) {
-        if (!(base->cards[i] & 0x80)) {
+        if (!(base->cards[i] & CARD_FLAG_80)) {
             return 0;
         }
     }

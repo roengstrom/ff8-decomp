@@ -515,7 +515,7 @@ s32 hasPendingScriptAction(void) {
 /**
  * @brief Build a card-list display string for 11 consecutive card entries.
  *
- * For each index @p base + 0..10 whose owned count (@c func_80023B14) is
+ * For each index @p base + 0..10 whose owned count (@c GetCardCount) is
  * non-negative, appends the card's name (@c func_80023A54), the icon byte
  * 0xF4, the count rendered as decimal digit glyphs (+0x53, 1-3 digits), and
  * the icon byte 0xF5; every entry is terminated by a @c 2 separator. The final
@@ -531,7 +531,7 @@ void buildCardListString(u8 *out, s32 base) {
     u8 c;
 
     for (i = 0; i < 11; i++) {
-        count = func_80023B14(base + i);
+        count = GetCardCount(base + i);
         if (count >= 0) {
             name = func_80023A54(base + i);
             c = *name;
@@ -606,7 +606,7 @@ s32 runHandBuildSequencer(ScriptCtx *node) {
                         node->subState = 0;
                         break;
                     }
-                    if (func_80023B14(card) <= 0) {
+                    if (GetCardCount(card) <= 0) {
                         node->state = HAND_BUILD_PICK;
                         node->subState = 0;
                         break;
@@ -768,7 +768,7 @@ void dealRarityHand(s32 player, s32 arg1) {
  * @brief Build a random 5-card hand for the given player by drawing owned cards.
  *
  * Repeatedly draws a random card id in 0..109 (@c func_80023D04 % 110); whenever
- * the player owns at least one of that card (@c func_80023B14 > 0) it places the id
+ * the player owns at least one of that card (@c GetCardCount > 0) it places the id
  * in the player's hand row @c D_801A2C48[hand] and adjusts its owned quantity via
  * @c modifyItemQuantity. Continues until 5 cards have been placed.
  *
@@ -786,7 +786,7 @@ void buildRandomOwnedHand(s32 hand, s32 arg1) {
     row = b + hand * 5;
 loop:
     card = func_80023D04() % 110;
-    if (func_80023B14(card) > 0) {
+    if (GetCardCount(card) > 0) {
         row[i] = card;
         i++;
         modifyItemQuantity(card, arg1);
@@ -1014,7 +1014,7 @@ s32 runTriadSetupSequence(ScriptCtx *ctx) {
  * - phase < 300: simple static node (scale = 0x18)
  * - else:        squashed angle via @c rsin + phase mirror
  *
- * On any failure (slot out of range or @c func_80023B14 returns negative),
+ * On any failure (slot out of range or @c GetCardCount returns negative),
  * sets @c g_lastActiveSlot = @c -1 and returns 0.
  *
  * @return Always 0.
@@ -1024,7 +1024,7 @@ s32 updateCardDisplaySpawn(void) {
     s32 cur;
 
     if ((u32)g_cardDisplaySlot < 0x6E) {
-        if (func_80023B14(g_cardDisplaySlot) >= 0) {
+        if (GetCardCount(g_cardDisplaySlot) >= 0) {
             node = (DispNode *)scratchAlloc(0x28);
             if (g_lastActiveSlot != g_cardDisplaySlot) {
                 g_fadePhaseMirror = 0;
