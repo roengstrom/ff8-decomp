@@ -18,7 +18,7 @@ extern SpuTransferCallbackProc SpuSetTransferCallback(SpuTransferCallbackProc fu
 extern s32 SpuSetIRQ(s32 on_off);
 extern u32 SpuSetIRQAddr(u32 addr);
 extern SpuIRQCallbackProc SpuSetIRQCallback(SpuIRQCallbackProc func);
-extern s32 SpuInitMalloc(s32 num, u8 *top);
+extern s32 SpuInitMalloc(s32 num, char *top);
 extern s32 SpuSetNoiseClock(s32 n_clock);
 extern void SpuGetVoiceEnvelope(s32 vNum, s16 *envx);
 extern s32 SpuSetReverbModeType(s32 mode);

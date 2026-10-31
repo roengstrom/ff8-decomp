@@ -27,7 +27,7 @@ typedef void (*CdlCB)(s32 intr, u8 *result);
 s32 CdControl(u8 com, u8 *param, u8 *result);
 s32 CdControlB(u8 com, u8 *param, u8 *result);
 s32 CdControlF(u8 com, u8 *param);
-void CdMix(CdlATV *vol);
+s32 CdMix(CdlATV *vol);
 s32 CdGetSector(void *madr, s32 size);
 s32 CdPosToInt(CdlLOC *p);
 CdlLOC *CdIntToPos(s32 i, CdlLOC *p);
@@ -36,7 +36,7 @@ CdlCB CdReadyCallback(CdlCB func);
 s32 CdSync(s32 mode, u8 *result);
 s32 CdStatus(void);
 s32 CdMode(void);
-u8 *CdLastPos(void);
+CdlLOC *CdLastPos(void);
 void CdFlush(void);
 
 #endif /* LIBCD_H */

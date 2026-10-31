@@ -1,7 +1,8 @@
 #include "common.h"
+#include "psxsdk/libcd.h"
 
 extern u8 D_8005D674;
-extern u8 D_8005D680;
+extern CdlLOC D_8005D680;
 extern u8 D_8005D684;
 extern u8 D_8005D685;
 
@@ -39,7 +40,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", EVENT_OBJ_D4);
  *
  * @return The CD-ROM status byte.
  */
-u8 CdStatus(void) {
+s32 CdStatus(void) {
     return D_8005D674;
 }
 
@@ -52,7 +53,7 @@ u8 CdStatus(void) {
  *
  * @return The CD-ROM mode byte.
  */
-u8 CdMode(void) {
+s32 CdMode(void) {
     return D_8005D684;
 }
 
@@ -64,7 +65,7 @@ u8 CdMode(void) {
  *
  * @return The last CD-ROM command code.
  */
-u8 CdLastCom(void) {
+s32 CdLastCom(void) {
     return D_8005D685;
 }
 
@@ -76,7 +77,7 @@ u8 CdLastCom(void) {
  *
  * @return Pointer to the internal CdlLOC position structure.
  */
-u8 *CdLastPos(void) {
+CdlLOC *CdLastPos(void) {
     return &D_8005D680;
 }
 
@@ -122,7 +123,7 @@ void SYS_OBJ_13C(void) {
  * Blocks until the current CD-ROM command finishes execution by calling
  * the low-level CD_sync routine. Used for synchronous CD command flow.
  */
-void CdSync(void) { CD_sync(); }
+s32 CdSync(s32 mode, u8 *result) { return CD_sync(mode, result); }
 
 /**
  * @brief Waits for the CD-ROM data transfer to become ready.
@@ -130,7 +131,7 @@ void CdSync(void) { CD_sync(); }
  * Blocks until the CD-ROM data buffer is ready for reading by calling
  * the low-level CD_ready routine.
  */
-void CdReady(void) { CD_ready(); }
+s32 CdReady(s32 mode, u8 *result) { return CD_ready(mode, result); }
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", CdSyncCallback);
 
@@ -155,8 +156,8 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libcd", SYS_OBJ_538);
  *           R-to-R, R-to-L mixing).
  * @return Always returns 1 (success).
  */
-s32 CdMix(s32 *a0) {
-    CD_vol(a0);
+s32 CdMix(CdlATV *vol) {
+    CD_vol(vol);
     return 1;
 }
 

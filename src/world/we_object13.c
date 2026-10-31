@@ -124,7 +124,7 @@ s32 func_800C42D8(s32 doSeek) {
         }
     }
 
-    D_800E3E70.expectedSeq = CdPosToInt((CdlLOC *)CdLastPos());
+    D_800E3E70.expectedSeq = CdPosToInt(CdLastPos());
     CdReadyCallback((CdlCB)func_800C4130);
     CdControlF(6, NULL);
     D_800E3E70.remaining = D_800E3E70.blocksPerBuf - D_800E3E70.blockIdx;

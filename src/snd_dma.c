@@ -6,7 +6,7 @@
 #include "snd_init.h"
 #include "snd_param.h"
 
-extern u8 D_80074E88[];
+extern char D_80074E88[];
 
 void func_800146F0(u32 *src, s32 *dst, s32 base, s32 count) {
     // Counting count down to zero is needed for the match.

@@ -10,9 +10,9 @@ s32 EnableEvent(s32 event);
 s32 CloseEvent(s32 event);
 s32 DisableEvent(s32 event);
 s32 GetRCnt(u32 spec);
-void SystemError(u8 type, s32 errorCode);
+void SystemError(char type, s32 errorCode);
 
-extern void SetMem(u8 a);
+extern void SetMem(s32 a);
 
 /** @brief Turn interrupts off (BIOS call). */
 s32 EnterCriticalSection(void);
