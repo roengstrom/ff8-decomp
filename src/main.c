@@ -24,6 +24,7 @@
 #include "btl_transition.h"
 #include "wm2field.h"
 #include "memlayout.h"
+#include "imgtoc.h"
 
 /** @brief Global field ids of the maps a new game and a game over go to. */
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
@@ -157,7 +158,7 @@ static void RestoreFieldSnapshot(void) {
 
 void LoadFieldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
-        LoadCompressedDataFromDisc(D_80097410[0].sector, D_80097410[0].size, OVERLAY_ADDR, NULL);
+        LoadCompressedDataFromDisc(g_fieldFileDescs[0].sector, g_fieldFileDescs[0].size, OVERLAY_ADDR, NULL);
         while (func_800393C8());
     }
     func_8001F5C8();
@@ -165,14 +166,14 @@ void LoadFieldOverlay(void) {
 
 void LoadWorldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
-        LoadCompressedDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, OVERLAY_ADDR, NULL);
+        LoadCompressedDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, OVERLAY_ADDR, NULL);
         while (func_800393C8());
     }
     func_8001F5C8();
 }
 
 void LoadWm2FieldTable(void) {
-    LoadDataFromDisc(D_80097410[1].sector, D_80097410[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
+    LoadDataFromDisc(g_fieldFileDescs[1].sector, g_fieldFileDescs[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
     while (func_800393C8());
 }
 

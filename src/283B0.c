@@ -5,6 +5,7 @@
 #include "game.h"
 #include "main.h"
 #include "sound.h"
+#include "imgtoc.h"
 
 extern s32 D_80085220;
 extern u8 D_8005644B[];

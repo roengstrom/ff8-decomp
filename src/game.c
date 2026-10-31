@@ -12,15 +12,13 @@
 #include "memlayout.h"
 #include "cd.h"
 #include "cdrom.h"
+#include "imgtoc.h"
 
 #define OVERLAY_PTR ((void *)OVERLAY_ADDR)
 
 u8 *resolveKernelPtr(u16 a0, s32 a1);
 
 extern volatile s16 g_renderMode;
-extern s32 D_800974C0[2];
-extern s32 D_800974C8[2];
-extern s32 D_800974B8[2];
 extern u8 D_800762C8[];
 extern u8 D_80052898[];
 extern u16 g_bossBattleScenes[]; /**< Battle scene IDs of the boss battles, ended by 0xFFFF. */
@@ -653,7 +651,7 @@ top:
     goto default_case;
 
 case4:
-    cdReadSync(D_800974C0[0], D_800974C0[1], OVERLAY_PTR, NULL);
+    cdReadSync(D_800974C0[0].sector, D_800974C0[0].size, OVERLAY_PTR, NULL);
     func_8001F5C8();
     func_80098238();
     goto top;
@@ -663,14 +661,14 @@ case3:
     setCountdownVisible(0);
     startBattleTransition(isBossBattle());
     memzero16(OVERLAY_PTR, 0xA400);
-    cdReadSync(D_800974C8[0], D_800974C8[1], OVERLAY_PTR, NULL);
+    cdReadSync(D_800974C8[0].sector, D_800974C8[0].size, OVERLAY_PTR, NULL);
     func_8001F5C8();
     func_80099D30();
     goto top;
 
 case8:
     g_renderMode = RENDER_IDLE;
-    cdReadAsyncSync(D_800974B8[0], D_800974B8[1], OVERLAY_PTR, NULL);
+    cdReadAsyncSync(D_800974B8[0].sector, D_800974B8[0].size, OVERLAY_PTR, NULL);
     func_8001F5C8();
     tripleTriadMainLoop();
     goto top;

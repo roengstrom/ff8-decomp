@@ -1549,4 +1549,6 @@ g_fieldLines = 0x8008538C;
 g_fieldBgAnimCount = 0x80085391;
 g_biosPadEnableFn = 0x8008CB68; // type:u32 BIOS pad-enable entry set by _patch_pad, EnablePAD jumps through it
 g_biosPadDisableFn = 0x8008CB6C; // type:u32 BIOS pad-disable entry set by _patch_pad, DisablePAD jumps through it
+g_fieldFileDescs = 0x80097410;
+g_worldFileDescs = 0x800974D0;
 g_kernelFileDesc = 0x80097800; // master file table entry 128, kernel.bin
