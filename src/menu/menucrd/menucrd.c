@@ -21,8 +21,7 @@ typedef struct {
     /* 0x2A */ u8 pad2A[2];
     /* 0x2C */ u8 unk2C;
     /* 0x2D */ u8 pad2D;
-    /* 0x2E */ u8 card;             /**< Card under the cursor. */
-    /* 0x2F */ u8 pad2F;
+    /* 0x2E */ s16 card;            /**< Card under the cursor. */
     /* 0x30 */ s16 intensity;       /**< Menu color intensity. */
     /* 0x32 */ u16 groupCounts[4];  /**< Card copies owned per level group: 1-5, 6-7, 8-9, 10. */
     /* 0x3A */ u16 totalCount;      /**< Card copies owned in all. */
