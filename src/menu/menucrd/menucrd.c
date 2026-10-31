@@ -1,10 +1,13 @@
 #include "common.h"
 #include "gamestate.h"
+#include "item.h"
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
 #include "menucrd.h"
 #include "overlay.h"
+#include "psxsdk/libgte.h"
+#include "ui/icon.h"
 #include "ui/sprite.h"
 #include "ui/text.h"
 
@@ -31,6 +34,7 @@ typedef struct {
 
 #define CARD_BACKSIDE_INDEX 11
 
+extern DVECTOR D_801E6CF8[];
 extern s16 D_801E7D64;
 extern s16 D_801E7D66;
 extern SpriteTable g_currentPageCardTable;
@@ -40,9 +44,12 @@ extern s16 getGameStateS16(void);
 void func_801E582C(CardMenuState *state);
 void func_801E5ABC(CardMenuState *state);
 s32 func_801E5F7C(s32, s32, s32, s32, s32);
+s32 func_801E6270(CardMenuState *state, s32 ot, s32 head, s32 x, s32 y);
 s32 func_801E67E4(s32, s32, s32, s32, s32);
 s32 func_801E69AC(CardMenuState *state, s32 a1, s32 a2);
+s32 func_801E6B40(s32 card, s32 field);
 static void *DrawCardBacksideSprite(CardMenuState *, void *, void *, s32, s32);
+static s32 func_801E645C(CardMenuState *, s32, s32, s32, s32);
 
 /** @brief Look up string @p a0 in menu text category 0xD. */
 u8 *func_801E5800(s32 a0) {
@@ -260,7 +267,60 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E6270);
 
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E634C);
 
-INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E645C);
+static s32 func_801E645C(CardMenuState *state, s32 ot, s32 head, s32 x, s32 y) {
+    s32 value;
+    s32 i;
+    s32 posX;
+    s32 posY;
+    s32 icon;
+    s32 color = 7;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+
+    if (func_80023B14(state->card) >= 0) {
+        posX = x + 0x57;
+        posY = y + 6;
+        head = func_801E6270(state, ot, head, posX, posY);
+        posX = x + 8;
+        posY = y + 0x2C;
+        head = func_801F0FEC(ot, head, posX, posY, func_801E5800(1), color);
+        value = func_801E6B40(state->card, 6);
+        posX = x + 0x11;
+        posY = y + 0x3A;
+        if (value != 0) {
+            for (i = 0; i < 8; i++) {
+                if ((value >> i) & 1) {
+                    head = func_801F0FEC(ot, head, posX, posY, (u8 *)func_801F6AFC(i + 0x15), color);
+                    posX += 0x10;
+                }
+            }
+        } else {
+            head = func_801F0FEC(ot, head, posX, posY, func_801E5800(0xD), color);
+        }
+        for (i = 0; i < 4; i++) {
+            value = func_801E6B40(state->card, i + 2);
+            if (value < 10) {
+                icon = ICON_BOLD_DIGIT_0 + value;
+            } else {
+                icon = ICON_BOLD_A;
+            }
+            posX = x + D_801E6CF8[i].vx;
+            posY = y + D_801E6CF8[i].vy;
+            head = (s32)drawIcon((void *)ot, (void *)head, icon, posX, posY, g_menuTint[MENU_TINT_NORMAL]);
+        }
+    } else {
+        posX = x + 0x57;
+        posY = y + 6;
+        head = (s32)DrawCardBacksideSprite(state, (void *)ot, (void *)head, posX, posY);
+    }
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->w = 0xA1;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->h = 0x4C;
+    head = (s32)DrawMenuWindow((void *)ot, (void *)head, 0x1000, g_menuTint[MENU_TINT_NORMAL]);
+    return head;
+}
 
 INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E66AC);
 
