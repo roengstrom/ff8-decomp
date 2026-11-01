@@ -47,6 +47,11 @@
 static void DisableStpBit(void);
 static void SaveFieldSnapshot(void);
 static void RestoreFieldSnapshot(void);
+static inline void LoadIntroOverlay(void);
+static inline void ReturnToTitle(void);
+static inline void GoToGameOverField(void);
+static inline void ReloadDiscTables(void);
+static inline void RunBattle(s32 mapAddr);
 
 static CdFileDesc g_fileTableDesc[] = { { IMG_TOC_SECTOR, IMG_TOC_SIZE } };
 
@@ -254,6 +259,12 @@ void InitSystemData(void) {
     SetNameDictionary(NAME_DICTIONARY_ADDR);
 }
 
+static inline void LoadIntroOverlay(void) {
+    // intro.ovl
+    LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
+    while (UpdateCdRead() != CD_READ_IDLE);
+}
+
 /** @brief Loads the master file descriptor table from CD. Must run before any
  *         other CD load, since every other load descriptor lives in this table.
  */
@@ -263,22 +274,71 @@ void LoadDiscTableOfContents(void) {
     while (UpdateCdRead() != CD_READ_IDLE);
 }
 
-/* ff8main's post-battle handling reads several g_fieldVars fields (continue /
- * game-over flags and the expected disc id) to choose the next transition. */
+static inline void ReturnToTitle(void) {
+    g_fieldContext.counter = 0;
+    g_fieldContext.mode = 4;
+    g_fieldContext.spawnTriIdx = 0x7FFF;
+}
 
-/** @brief Game main function and primary state-machine loop.
- *
- *  Runs one-time hardware, CD, and asset initialization, then loops the field
- *  and battle state machine until the game exits, reinitializing on exit.
- */
-/* gcc 2.7.2 injects a __main() C-runtime-init call into any function literally
- * named `main`, which the shipped executable does not have. Writing it as
- * ff8main and aliasing the symbol to `main` emits the correct `main` symbol
- * without that call. */
+static inline void GoToGameOverField(void) {
+    g_curFieldId = FIELD_ID_GOVER;
+    g_previousGameMode = GAME_MODE_NONE;
+    g_gameMode = GAME_MODE_FIELD;
+}
+
+static inline void ReloadDiscTables(void) {
+    LoadDiscTableOfContents();
+    LoadWm2FieldTable();
+}
+
+static inline void RunBattle(s32 mapAddr) {
+    s16 i;
+
+    func_80038030(mapAddr);
+    gameStateLoop();
+    if (g_renderMode != RENDER_BATTLE_RESULTS) {
+        DisableStpBit();
+    }
+    if (g_battleConfig.result == 5) {
+        // matching hack
+        do {
+        } while (0);
+        ReturnToTitle();
+        return;
+    }
+    if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
+        GoToGameOverField();
+        return;
+    }
+    if (g_battleConfig.result == 3) {
+        if (g_fieldVars->fieldB6 & 0x100) {
+            g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
+        } else {
+            GoToGameOverField();
+            return;
+        }
+    }
+    if (g_previousGameMode == GAME_MODE_FIELD) {
+        g_previousGameMode = GAME_MODE_BATTLE;
+        g_gameMode = GAME_MODE_FIELD;
+    } else {
+        g_previousGameMode = GAME_MODE_BATTLE;
+        g_gameMode = GAME_MODE_WORLD;
+    }
+    for (i = 0; i < 3; i++) {
+        if (g_battleConfig.unk4[i] != 0xFF) {
+            // matching hack
+            do {
+            } while (g_renderMode == RENDER_BATTLE_RESULTS);
+            while (DrawSync(1));
+            func_8003646C(g_battleConfig.unk4[i] + 5);
+        }
+    }
+}
+
 void ff8main(void) __asm__("main");
 void ff8main(void) {
     WorldToFieldEntrance *entry;
-    s16 i;
     s16 mode;
     s16 fieldId;
     s32 result;
@@ -293,9 +353,7 @@ void ff8main(void) {
     InitGamePadsAndMemoryCards();
     LoadWm2FieldTable();
     while (1) {
-        // intro.ovl
-        LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
-        while (UpdateCdRead() != CD_READ_IDLE);
+        LoadIntroOverlay();
 
         func_80098FD4(0);
         InitSystemData();
@@ -321,15 +379,13 @@ void ff8main(void) {
             SmInitEventAll(1);
         }
         if (g_fieldVars->expectedDiscId != getDiscId()) {
-            // intro.ovl
-            LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
-            while (UpdateCdRead() != CD_READ_IDLE);
+            LoadIntroOverlay();
 
             func_80098FD4(1);
-            LoadDiscTableOfContents();
-            LoadWm2FieldTable();
+            ReloadDiscTables();
         }
         do {
+            // matching hack
             do {
                 switch (g_gameMode) {
                 case GAME_MODE_FIELD:
@@ -360,9 +416,7 @@ void ff8main(void) {
                     }
                     D_8005F14A = 0;
                     if (func_800987D8() == 1) {
-                        g_fieldContext.counter = 0;
-                        g_fieldContext.mode = 4;
-                        g_fieldContext.spawnTriIdx = 0x7FFF;
+                        ReturnToTitle();
                         sndStopAll();
                         break;
                     }
@@ -401,48 +455,7 @@ void ff8main(void) {
                         g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
                         mapAddr = 0x801D0000;
                     }
-                    func_80038030(mapAddr);
-                    gameStateLoop();
-                    if (g_renderMode != RENDER_BATTLE_RESULTS) {
-                        DisableStpBit();
-                    }
-                    if (g_battleConfig.result == 5) {
-                        g_fieldContext.counter = 0;
-                        g_fieldContext.mode = 4;
-                        g_fieldContext.spawnTriIdx = 0x7FFF;
-                        break;
-                    }
-                    if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
-                        g_curFieldId = FIELD_ID_GOVER;
-                        g_previousGameMode = GAME_MODE_NONE;
-                        g_gameMode = GAME_MODE_FIELD;
-                        break;
-                    }
-                    if (g_battleConfig.result == 3) {
-                        if (g_fieldVars->fieldB6 & 0x100) {
-                            g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
-                        } else {
-                            g_curFieldId = FIELD_ID_GOVER;
-                            g_previousGameMode = GAME_MODE_NONE;
-                            g_gameMode = GAME_MODE_FIELD;
-                            break;
-                        }
-                    }
-                    if (g_previousGameMode == GAME_MODE_FIELD) {
-                        g_previousGameMode = GAME_MODE_BATTLE;
-                        g_gameMode = GAME_MODE_FIELD;
-                    } else {
-                        g_previousGameMode = GAME_MODE_BATTLE;
-                        g_gameMode = GAME_MODE_WORLD;
-                    }
-                    for (i = 0; i < 3; i++) {
-                        if (g_battleConfig.unk4[i] != 0xFF) {
-                            do {
-                            } while (g_renderMode == RENDER_BATTLE_RESULTS);
-                            while (DrawSync(1) != 0) {}
-                            func_8003646C(g_battleConfig.unk4[i] + 5);
-                        }
-                    }
+                    RunBattle(mapAddr);
                     break;
                 case GAME_MODE_MENU:
                 case GAME_MODE_SCRIPT_MENU:
@@ -476,63 +489,18 @@ void ff8main(void) {
                     if (g_gameMode == GAME_MODE_FIELD) {
                         mapAddr = D_8005F13C;
                     } else {
+                        // matching hack
                         result = 0x801D0000;
                         mapAddr = result;
                     }
-                    func_80038030(mapAddr);
-                    gameStateLoop();
-                    if (g_renderMode != RENDER_BATTLE_RESULTS) {
-                        DisableStpBit();
-                    }
-                    if (g_battleConfig.result == 5) {
-                        do {
-                        } while (0);
-                        g_fieldContext.counter = 0;
-                        g_fieldContext.mode = 4;
-                        g_fieldContext.spawnTriIdx = 0x7FFF;
-                        break;
-                    }
-                    if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
-                        g_curFieldId = FIELD_ID_GOVER;
-                        g_previousGameMode = GAME_MODE_NONE;
-                        g_gameMode = GAME_MODE_FIELD;
-                        break;
-                    }
-                    if (g_battleConfig.result == 3) {
-                        if (g_fieldVars->fieldB6 & 0x100) {
-                            g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
-                        } else {
-                            g_curFieldId = FIELD_ID_GOVER;
-                            g_previousGameMode = GAME_MODE_NONE;
-                            g_gameMode = GAME_MODE_FIELD;
-                            break;
-                        }
-                    }
-                    if (g_previousGameMode == GAME_MODE_FIELD) {
-                        g_previousGameMode = GAME_MODE_BATTLE;
-                        g_gameMode = GAME_MODE_FIELD;
-                    } else {
-                        g_previousGameMode = GAME_MODE_BATTLE;
-                        g_gameMode = GAME_MODE_WORLD;
-                    }
-                    for (i = 0; i < 3; i++) {
-                        if (g_battleConfig.unk4[i] != 0xFF) {
-                            do {
-                            } while (g_renderMode == RENDER_BATTLE_RESULTS);
-                            while (DrawSync(1) != 0) {}
-                            func_8003646C(g_battleConfig.unk4[i] + 5);
-                        }
-                    }
+                    RunBattle(mapAddr);
                     break;
                 case GAME_MODE_DISC_CHANGE:
-                    // intro.ovl
-                    LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
-                    while (UpdateCdRead() != CD_READ_IDLE);
+                    LoadIntroOverlay();
                     func_80098FD4(g_fieldContext.unk1A0);
                     mode = g_fieldContext.unk1A0;
                     if (mode == 1) {
-                        LoadDiscTableOfContents();
-                        LoadWm2FieldTable();
+                        ReloadDiscTables();
                         g_previousGameMode = GAME_MODE_NONE;
                         g_gameMode = mode;
                         g_curFieldId = g_fieldContext.counter;
