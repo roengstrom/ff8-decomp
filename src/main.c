@@ -276,7 +276,7 @@ void LoadDiscTableOfContents(void) {
 
 static inline void ReturnToTitle(void) {
     g_fieldContext.counter = 0;
-    g_fieldContext.mode = 4;
+    g_fieldContext.mode = FIELD_MODE_TITLE;
     g_fieldContext.spawnTriIdx = 0x7FFF;
 }
 
@@ -359,10 +359,10 @@ void ff8main(void) {
         InitSystemData();
         g_gameMode = GAME_MODE_FIELD;
         g_previousGameMode = GAME_MODE_NONE;
-        g_fieldContext.unk1A3 = 0;
-        D_8005F14A = 0;
-        D_8005F100 = 0x49;
-        g_fieldContext.mode = 0;
+        g_fieldContext.userControlOff = 0;
+        g_prefetchState = PREFETCH_NONE;
+        g_prefetchedDestId = 73; // the debug "menu"
+        g_fieldContext.mode = FIELD_MODE_NONE;
         g_fieldContext.unk1A2 = 0;
         result = func_8003646C(25);
         if (!(result & 2)) {
@@ -408,13 +408,13 @@ void ff8main(void) {
                         D_80082C8C.mode = 6;
                         break;
                     }
-                    if (((g_previousGameMode == GAME_MODE_FIELD) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
+                    if (((g_previousGameMode == GAME_MODE_FIELD) && (g_prefetchState != PREFETCH_NONE)) && (g_prefetchedDestId < 0x4A)) {
                         while (UpdateCdRead() != CD_READ_IDLE);
-                        func_80038490(D_8005F104, OVERLAY_PTR);
+                        func_80038490(g_prefetchBuffer, OVERLAY_PTR);
                     } else {
                         LoadWorldOverlay();
                     }
-                    D_8005F14A = 0;
+                    g_prefetchState = PREFETCH_NONE;
                     if (func_800987D8() == 1) {
                         ReturnToTitle();
                         sndStopAll();
@@ -508,7 +508,7 @@ void ff8main(void) {
                     break;
                 }
             } while (0);
-        } while (g_fieldContext.mode != 4);
+        } while (g_fieldContext.mode != FIELD_MODE_TITLE);
         sndStopAll();
         SetPlayTimePaused(0);
         WaitForGamePadDetection();

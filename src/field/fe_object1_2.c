@@ -2212,18 +2212,18 @@ void func_800A5898(FieldFrameBuf *buf) {
 }
 
 /**
- * If D_8005F14A equals 1, calls resetCdDrive. Then clears D_8005F100 and D_8005F14A.
+ * If g_prefetchState equals PREFETCH_LOADING, calls resetCdDrive. Then clears g_prefetchedDestId and g_prefetchState.
  *
  * @note K&R declarator: the body ignores its argument and callers vary between
  *       passing none (@c func_800A5A20, fe_object5) and one.
  */
 void func_800A59D0() {
 
-    if (D_8005F14A == 1) {
+    if (g_prefetchState == PREFETCH_LOADING) {
         resetCdDrive();
     }
-    D_8005F100 = 0;
-    D_8005F14A = 0;
+    g_prefetchedDestId = 0;
+    g_prefetchState = PREFETCH_NONE;
 }
 
 /**
@@ -2248,12 +2248,12 @@ void func_800A5A14(s16 a0) {
  *
  * The streaming half then runs unless the movie subsystem is busy or the engine
  * is in mode 3 (both abort through @c func_800A59D0), and unless a load is
- * already pending. The destination pointer @c D_8005F104 is floored to
+ * already pending. The destination pointer @c g_prefetchBuffer is floored to
  * @c 0x801A0000, and when the nearest field differs from the one already loaded
- * (@c D_8005F100) and its data still fits below @c 0x801FE000, the previous load
+ * (@c g_prefetchedDestId) and its data still fits below @c 0x801FE000, the previous load
  * is cancelled and a new @c LoadDataFromDisc is issued: field ids from @c 0x49 up are
  * looked up through @c D_800C2568 into the streaming table, lower ids use the
- * fixed descriptor @c g_worldFileDescs. @c D_8005F14A is left at 1 to mark the read
+ * fixed descriptor @c g_worldFileDescs. @c g_prefetchState is left at @c PREFETCH_LOADING to mark the read
  * in flight.
  *
  * @param actor    Player entity, read for its 20.12 world position.
@@ -2269,9 +2269,9 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
     s32 idx;
     u16 id;
 
-    if (D_8005F14A == 1) {
+    if (g_prefetchState == PREFETCH_LOADING) {
         if (UpdateCdRead() == CD_READ_IDLE) {
-            D_8005F14A = 2;
+            g_prefetchState = PREFETCH_READY;
         }
     }
     best = 0x7FFFFFFF;
@@ -2294,30 +2294,32 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
         }
     }
 
-    if (func_800BE264() != 0 || g_fieldContext.mode == 3) {
+    if (func_800BE264() != 0 || g_fieldContext.mode == FIELD_MODE_BATTLE) {
         func_800A59D0();
         return;
     }
-    if (UpdateCdRead() != CD_READ_IDLE && D_8005F14A == 0) {
+    if (UpdateCdRead() != CD_READ_IDLE && g_prefetchState == PREFETCH_NONE) {
         return;
     }
-    if ((u32)D_8005F104 <= 0x8019FFFF) {
-        D_8005F104 = 0x801A0000;
+    if ((u32)g_prefetchBuffer <= 0x8019FFFF) {
+        g_prefetchBuffer = 0x801A0000;
     }
-    if (D_8005F100 == D_8005F142) {
+    if (g_prefetchedDestId == D_8005F142) {
         return;
     }
-    if (D_800C0904[D_800C2568[D_8005F142] * FIELD_STREAM_STRIDE] < 0x801FE000 - D_8005F104) {
+    // Bug: world map ids (below 72) have no D_800C2568 entry, so this checks
+    // an unrelated word instead of world.ovl's size and most world exits are never prefetched.
+    if (D_800C0904[D_800C2568[D_8005F142] * FIELD_STREAM_STRIDE] < 0x801FE000 - g_prefetchBuffer) {
         func_800A59D0();
-        D_8005F100 = D_8005F142;
+        g_prefetchedDestId = D_8005F142;
         if (D_8005F142 >= 0x49) {
             idx = D_800C2568[D_8005F142];
             LoadDataFromDisc(D_800C0904[idx * FIELD_STREAM_STRIDE - 1],
-                   D_800C0904[idx * FIELD_STREAM_STRIDE], (u8 *)D_8005F104, NULL);
+                   D_800C0904[idx * FIELD_STREAM_STRIDE], (u8 *)g_prefetchBuffer, NULL);
         } else {
-            LoadDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, (u8 *)D_8005F104, NULL);
+            LoadDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, (u8 *)g_prefetchBuffer, NULL);
         }
-        D_8005F14A = 1;
+        g_prefetchState = PREFETCH_LOADING;
     }
 }
 
@@ -2392,10 +2394,10 @@ void func_800A5D28(void) {
     s32 r;
     FieldFormations *fm;
 
-    if (g_fieldContext.mode == 1) {
+    if (g_fieldContext.mode == FIELD_MODE_FIELD) {
         return;
     }
-    if (g_fieldContext.mode == 7) {
+    if (g_fieldContext.mode == FIELD_MODE_WORLD) {
         return;
     }
     r = func_800BE274();
@@ -2432,7 +2434,7 @@ void func_800A5D28(void) {
     D_8005F164 &= 0xFF;
     D_8005F0FE += (s16)(u16)g_fieldActors[D_8005F148].moveSpeed / 1348;
     if ((u8)func_800A5C9C() < D_8005F0FE) {
-        g_fieldContext.mode = 3;
+        g_fieldContext.mode = FIELD_MODE_BATTLE;
         D_8005F0FE = 0;
         D_8005F130 = 1;
         r = func_800A5CF8();

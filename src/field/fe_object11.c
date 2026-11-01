@@ -243,7 +243,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldContext.unk1A6 = 0;
         g_fieldContext.oscillators[0].mode = 0;
         g_fieldContext.oscillators[1].mode = 0;
-        g_fieldContext.unk1A3 = 0;
+        g_fieldContext.userControlOff = 0;
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_400;
         g_fieldVars->fieldCF = 0;
         g_fieldVars->fieldD1 &= 0xFC;

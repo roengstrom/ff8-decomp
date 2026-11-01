@@ -346,7 +346,7 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
         }
 
         if (popped & 2) {
-            g_fieldContext.mode = 5;
+            g_fieldContext.mode = FIELD_MODE_MENU;
             g_fieldContext.counter = 0x16;
             g_fieldContext.unk1AB = g_fieldVars->stateFlags & 7;
         } else {
@@ -574,7 +574,7 @@ s32 opHandler_MOVIE(ScriptContext *context) {
  * @brief Halve the rate triple (@c moveSpeed / @c msgChannel /
  *        @c field_0x208 ) of every active entity,
  *        clear the @c 0x1000 bit of the state flags, and reset two
- *        re-arm flags ( @c g_fieldContext.unk1A3 — only if @c unk015 is
+ *        re-arm flags ( @c g_fieldContext.userControlOff — only if @c unk015 is
  *        clear — and @c D_800DE4FD[0] ). Counterpart of @c
  *        opHandler_MOVIE's doubling step — called as part of the
  *        cinematic / movie postlude to restore the dialog channels
@@ -596,7 +596,7 @@ void func_800B14C8(void) {
         p++;
     }
     if (g_fieldContext.unk015 == 0) {
-        g_fieldContext.unk1A3 = 0;
+        g_fieldContext.userControlOff = 0;
     }
     D_800DE4FD[0] = 0;
 }

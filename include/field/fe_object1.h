@@ -453,8 +453,6 @@ typedef struct {
 } ObjSlot;  /* 0x88 = 136 bytes */
 extern ObjSlot D_800C6DA0[];
 extern s16 D_8005F122;
-extern s16 D_8005F14A;
-extern s16 D_8005F100;
 extern s16 D_8005F142;
 extern s16 D_800C2568[];         /**< Field id -> streaming-table entry index. */
 extern u32 D_800C0904[];         /**< Streaming table: 24-byte (6-word) entries; this symbol

@@ -1346,7 +1346,7 @@ s32 opHandler_WORLDMAPJUMP(ScriptContext *context) {
         if (g_fieldContext.unk1A2 != 0) {
             context->stackPtr -= 3;
         } else {
-            g_fieldContext.mode = 7;
+            g_fieldContext.mode = FIELD_MODE_WORLD;
             g_fieldContext.facingDirection = POP(context);
             g_fieldContext.spawnTriIdx = POP(context);
             g_fieldContext.counter = POP(context);
@@ -1426,7 +1426,7 @@ s32 func_800B45CC(Actor *actor) {
  */
 s32 opHandler_MAPJUMP(ScriptContext *context, s32 a1) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        g_fieldContext.mode = 1;
+        g_fieldContext.mode = FIELD_MODE_FIELD;
         g_fieldContext.spawnTriIdx = a1;
         g_fieldContext.facingDirection = POP(context);
         g_fieldContext.position_y = POP(context);
@@ -1446,7 +1446,7 @@ s32 opHandler_MAPJUMP(ScriptContext *context, s32 a1) {
  */
 s32 opHandler_MAPJUMP3(ScriptContext *context, s32 a1) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        g_fieldContext.mode = 1;
+        g_fieldContext.mode = FIELD_MODE_FIELD;
         g_fieldContext.spawnTriIdx = a1;
         g_fieldContext.facingDirection = POP(context);
         g_fieldContext.unk008 = POP(context);
@@ -1467,7 +1467,7 @@ s32 opHandler_MAPJUMP3(ScriptContext *context, s32 a1) {
  */
 s32 opHandler_DISCJUMP(ScriptContext *context, s32 a1) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        g_fieldContext.mode = 6;
+        g_fieldContext.mode = FIELD_MODE_DISC_CHANGE;
         g_fieldContext.unk1A0 = 1;
         g_fieldContext.spawnTriIdx = a1;
         g_fieldContext.facingDirection = POP(context);
@@ -1488,7 +1488,7 @@ s32 opHandler_DISCJUMP(ScriptContext *context, s32 a1) {
  */
 s32 opHandler_MAPJUMPO(ScriptContext *context) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        g_fieldContext.mode = 1;
+        g_fieldContext.mode = FIELD_MODE_FIELD;
         g_fieldContext.facingDirection = 0;
         g_fieldContext.spawnTriIdx = POP(context);
         g_fieldContext.position_x = 0x7FFF;
@@ -1566,7 +1566,7 @@ s32 opHandler_MENUENABLE(ScriptContext *context) {
 
 /** @brief Set g_fieldContext command to 5, clear halfword, copy entity byte 0xD1. Returns 3. */
 s32 opHandler_MENUNORMAL(void) {
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0;
     g_fieldContext.unk1AB = g_fieldVars->fieldD1;
     return 3;
@@ -1580,7 +1580,7 @@ s32 opHandler_MENUNORMAL(void) {
  * @return 3.
  */
 s32 opHandler_MENUPHS(ScriptContext *context) {
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 1;
     g_fieldContext.unk1AB = 2;
     return 3;
@@ -1593,7 +1593,7 @@ s32 opHandler_MENUPHS(ScriptContext *context) {
  * @return 3 (yield to dispatcher with state change).
  */
 s32 opHandler_MENUSHOP(ScriptContext *context) {
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x17;
     g_fieldContext.unk1AB = POP_BYTE(context);
     return 3;
@@ -1613,7 +1613,7 @@ s32 opHandler_MENUSHOP(ScriptContext *context) {
  */
 s32 opHandler_MENUNAME(ScriptContext *context) {
     s32 val;
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.unk1AB = 1;
     val = POP(context);
     switch (val) {
@@ -1650,7 +1650,7 @@ s32 opHandler_MENUNAME(ScriptContext *context) {
  * @return 3.
  */
 s32 opHandler_MENUTUTO(ScriptContext *context) {
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x1A;
     g_fieldContext.unk1AB = 1;
     return 3;
@@ -1663,7 +1663,7 @@ s32 opHandler_MENUTUTO(ScriptContext *context) {
  * @return 3 (yield to dispatcher with state change).
  */
 s32 func_800B4D34(Actor *actor) {
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x1D;
     g_fieldContext.unk1AB = POP_BYTE(&actor->context);
     return 3;
@@ -1737,7 +1737,7 @@ s32 opHandler_GETHP(ScriptContext *context) {
  * @return 3.
  */
 s32 opHandler_MENUSAVE(ScriptContext *context) {
-    g_fieldContext.mode = 5;
+    g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x18;
     g_fieldContext.unk1AB = 1;
     return 3;

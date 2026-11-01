@@ -92,8 +92,19 @@ typedef struct {
 #define FIELD_PAD_YHIGH 0x4000 /**< Stick/d-pad Y-high. */
 #define FIELD_PAD_XLOW  0x8000 /**< Stick/d-pad X-low. */
 
+typedef enum {
+    FIELD_MODE_NONE = 0,
+    FIELD_MODE_FIELD = 1,
+    FIELD_MODE_BATTLE = 3,
+    FIELD_MODE_TITLE = 4,
+    FIELD_MODE_MENU = 5,
+    FIELD_MODE_DISC_CHANGE = 6,
+    FIELD_MODE_WORLD = 7,
+    FIELD_MODE_CARD_GAME = 8
+} FieldMode;
+
 typedef struct {
-    /* 0x000 */ u8 mode;            /**< Top-level engine mode; @c 4 means exit. */
+    /* 0x000 */ u8 mode; // a FieldMode
     /* 0x001 */ u8 pad001;
     /* 0x002 */ s16 counter;        /**< Mode countdown, popped by the map-jump opcodes. */
 
@@ -163,7 +174,7 @@ typedef struct {
     /* 0x1A0 */ u8 unk1A0;          /**< Mode-6 active marker, set with mode = 6 by fe_object6 opcode. */
     /* 0x1A1 */ u8 unk1A1;          /**< Cleared unconditionally by @c func_800A5700 each dialog tick. */
     /* 0x1A2 */ u8 unk1A2;          /**< Mode-7 reentry guard byte. */
-    /* 0x1A3 */ u8 unk1A3;          /**< Set to 1 by @c opHandler_UCOFF on every call (re-arm guard). */
+    /* 0x1A3 */ u8 userControlOff;
     /* 0x1A4 */ u8 unk1A4;
     /* 0x1A5 */ u8 unk1A5;          /**< Non-zero suppresses the load-mode-1 framebuffer copy. */
     /* 0x1A6 */ u8 unk1A6;          /**< Cleared by @c func_800BFBBC on full reset. */
@@ -917,20 +928,20 @@ extern s32 D_8005F13C;
  *         on full field reset by @c func_800BF718. */
 extern volatile s16 g_previousGameMode;
 
-/** @brief Secondary field-load flag consumed by the @c ff8main state machine
- *         (non-zero enables the incremental @c func_80038490 reload path). */
-extern s16 D_8005F14A;
+typedef enum {
+    PREFETCH_NONE = 0,
+    PREFETCH_LOADING = 1,
+    PREFETCH_READY = 2
+} PrefetchState;
 
-/** @brief Field-load music/threshold halfword (initialised to 0x49; the reload
- *         path is taken only while @c D_8005F100 < 0x4A). */
-extern s16 D_8005F100;
+extern s16 g_prefetchState; // a PrefetchState
+extern s16 g_prefetchedDestId;
 
 /** @brief Cleared by @c func_8009AEC0 when the entities are placed on the
  *         navmesh; no other decompiled code reads or writes it yet. */
 extern u8 D_8005F102;
 
-/** @brief Field-load CD descriptor index passed to @c func_80038490. */
-extern s32 D_8005F104;
+extern s32 g_prefetchBuffer;
 
 /** @brief Misc field byte; copied into @c FieldVars.field56 on full reset. */
 extern u8  D_80082C8D;
