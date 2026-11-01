@@ -173,7 +173,7 @@ typedef struct {
     /* 0x190 */ u8 slotActive[16];
     /* 0x1A0 */ u8 unk1A0;          /**< Mode-6 active marker, set with mode = 6 by fe_object6 opcode. */
     /* 0x1A1 */ u8 unk1A1;          /**< Cleared unconditionally by @c func_800A5700 each dialog tick. */
-    /* 0x1A2 */ u8 unk1A2;          /**< Mode-7 reentry guard byte. */
+    /* 0x1A2 */ u8 mapJumpOff;
     /* 0x1A3 */ u8 userControlOff;
     /* 0x1A4 */ u8 unk1A4;
     /* 0x1A5 */ u8 unk1A5;          /**< Non-zero suppresses the load-mode-1 framebuffer copy. */
@@ -1012,9 +1012,6 @@ extern u32 *D_800DE4E8;      /**< Pointer to second sub-table (header base + off
 /** @brief The field's SFX table, latched from @c g_fieldSfxTable on load. */
 extern OffsetTable *g_curFieldSfx;
 
-/** @brief Misc field-side scratch bytes used by fe_object6. */
-extern u8 D_8007064A;
-extern u8 D_8007064B;
 extern u8 D_8007064D;
 extern u8 D_8007064E;
 extern u8 D_8007064F[];

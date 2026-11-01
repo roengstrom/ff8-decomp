@@ -504,7 +504,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
     }
 
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        D_8007064B = 1;
+        g_fieldContext.userControlOff = 1;
         func_800A59D0();
         LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
         D_800DE4FD[0] = 1;

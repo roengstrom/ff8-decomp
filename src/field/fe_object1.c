@@ -314,7 +314,7 @@ void func_8009895C(void) {
             g_fieldContext.unk1A6 = 0;
             g_fieldContext.unk1A9 = 0;
             g_fieldContext.unk1A7 = 1;
-            g_fieldContext.unk1A2 = 0;
+            g_fieldContext.mapJumpOff = 0;
             g_fieldContext.unk1AA = 0;
             g_fieldContext.unk015 = 0;
             g_fieldContext.fieldStepDelta = 0;
@@ -2551,7 +2551,7 @@ s32 func_8009D598(s16 index) {
     if (self == D_8005F148 && g_fieldContext.unk015 == 0) {
         func_8009A4C0(&g_fieldActors[self], g_fieldLines, (VECTOR *)&sc->srcX);
         D_8005F102 = 0;
-        if (g_fieldContext.unk1A2 == 0) {
+        if (g_fieldContext.mapJumpOff == 0) {
             func_8009AAC8(&g_fieldActors[self], g_curFieldInfo->gateways,
                           (Vec3i *)&sc->srcX);
         }

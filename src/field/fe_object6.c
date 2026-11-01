@@ -1332,10 +1332,10 @@ s32 opHandler_SHADETIMER(ScriptContext *context) {
 
 /**
  * If this entity is the active script and the mode-7 reentry guard
- * (@c g_fieldContext.unk1A2) is clear, pop three halfwords into the
+ * (@c g_fieldContext.mapJumpOff) is clear, pop three halfwords into the
  * mode-7 parameter slots @c unk00E / @c unk00C / @c counter, switch
  * @c mode to 7, and call @c func_800B4F40 to launch the operation.
- * If @c unk1A2 is set (operation already in progress), rewind the
+ * If @c mapJumpOff is set (operation already in progress), rewind the
  * stack pointer by 3 instead so the script re-runs the opcode.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1343,7 +1343,7 @@ s32 opHandler_SHADETIMER(ScriptContext *context) {
  */
 s32 opHandler_WORLDMAPJUMP(ScriptContext *context) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        if (g_fieldContext.unk1A2 != 0) {
+        if (g_fieldContext.mapJumpOff != 0) {
             context->stackPtr -= 3;
         } else {
             g_fieldContext.mode = FIELD_MODE_WORLD;
@@ -1498,25 +1498,13 @@ s32 opHandler_MAPJUMPO(ScriptContext *context) {
     return 1;
 }
 
-/**
- * Clears the global byte D_8007064A, returns 2.
- *
- * @param actor Pointer to the Actor event-script context (unused).
- * @return 2 (continue processing).
- */
 s32 opHandler_MAPJUMPON(ScriptContext *context) {
-    D_8007064A = 0;
+    g_fieldContext.mapJumpOff = 0;
     return 2;
 }
 
-/**
- * Sets the global byte D_8007064A to 1, returns 2.
- *
- * @param actor Pointer to the Actor event-script context (unused).
- * @return 2 (continue processing).
- */
 s32 opHandler_MAPJUMPOFF(ScriptContext *context) {
-    D_8007064A = 1;
+    g_fieldContext.mapJumpOff = 1;
     return 2;
 }
 
@@ -1542,25 +1530,13 @@ s32 opHandler_MAPFADEON(ScriptContext *context) {
     return 2;
 }
 
-/**
- * Sets the global byte D_8007064B to 1, returns 2.
- *
- * @param actor Pointer to the Actor event-script context (unused).
- * @return 2 (continue processing).
- */
 s32 opHandler_MENUDISABLE(ScriptContext *context) {
-    D_8007064B = 1;
+    g_fieldContext.userControlOff = 1;
     return 2;
 }
 
-/**
- * Clears the global byte D_8007064B, returns 2.
- *
- * @param actor Pointer to the Actor event-script context (unused).
- * @return 2 (continue processing).
- */
 s32 opHandler_MENUENABLE(ScriptContext *context) {
-    D_8007064B = 0;
+    g_fieldContext.userControlOff = 0;
     return 2;
 }
 

@@ -363,7 +363,7 @@ void ff8main(void) {
         g_prefetchState = PREFETCH_NONE;
         g_prefetchedDestId = 73; // the debug "menu"
         g_fieldContext.mode = FIELD_MODE_NONE;
-        g_fieldContext.unk1A2 = 0;
+        g_fieldContext.mapJumpOff = 0;
         result = func_8003646C(25);
         if (!(result & 2)) {
             RestoreFieldSnapshot();
