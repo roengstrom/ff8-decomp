@@ -8,16 +8,16 @@
 // img_toc.bin is loaded into. Not sure how the original code would've handled this.
 // Possibly through some generated linker script after mastering?
 
-extern CdFileDesc D_80097400[];
+extern CdFileDesc g_bootFileDescs[];
 extern CdFileDesc g_fieldFileDescs[];
 extern u32 D_80097420[];
 extern CdFileDesc D_800974B8[];
 extern CdFileDesc D_800974C0[];
 extern CdFileDesc D_800974C8[];
 extern CdFileDesc g_worldFileDescs[];
-extern CdFileDesc D_800974D8[];
+extern CdFileDesc g_soundFileDescs[];
 extern u32 D_800974F0[];
 extern CdFileDesc g_kernelFileDesc;
-extern CdFileDesc D_80097808[];
+extern CdFileDesc g_systemFileDescs[];
 
 #endif /* IMGTOC_H */

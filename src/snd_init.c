@@ -759,9 +759,9 @@ void sndCmdF1(void) {
  * transfer is finished.
  *
  * @param srcAddr Source address of sample data in main RAM.
- * @param mode Transfer mode or bank index.
+ * @param mode Non-zero waits for the SPU transfer to finish.
  */
-s32 sndUploadSamples(s32 srcAddr, s32 mode) {
+s32 sndUploadSamples(SndBankDesc *srcAddr, s32 mode) {
     s32 result;
     do {
         result = sndUploadSample(srcAddr, mode);
