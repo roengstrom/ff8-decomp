@@ -144,7 +144,7 @@ u8 *toggleSoundBank(void) {
  * D_80085220 using func_80039728 and plays it via sndProcessAudio.
  * Reads sound data a second time, selects a bank table (D_8005F388
  * or D_80063388) based on g_fieldVars field 0xC9, and calls
- * func_80039678. Sets the completion flag at g_fieldVars + 0xD6.
+ * FastMemCpy. Sets the completion flag at g_fieldVars + 0xD6.
  */
 static void loadSoundBankA(void) {
     s32 size;
@@ -161,7 +161,7 @@ static void loadSoundBankA(void) {
     } else {
         table = D_80063388;
     }
-    func_80039678((s32)table, result, size);
+    FastMemCpy(table, (u8 *)result, size);
     g_fieldVars->soundLoadComplete = 1;
 }
 
@@ -188,7 +188,7 @@ static void loadSoundBankB(void) {
     } else {
         table = D_80063388;
     }
-    func_80039678((s32)table, result, size);
+    FastMemCpy(table, (u8 *)result, size);
     g_fieldVars->soundLoadComplete = 1;
 }
 

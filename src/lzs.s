@@ -188,11 +188,11 @@ func_80039520:
 .end func_80039520
 .size func_80039520, . - func_80039520
 
-/* void func_80039678(u8 *dest, u8 *src, u32 size); */
-.globl func_80039678
-.type func_80039678, @function
-.ent func_80039678
-func_80039678:
+/* void FastMemCpy(u8 *dest, u8 *src, u32 size); */
+.globl FastMemCpy
+.type FastMemCpy, @function
+.ent FastMemCpy
+FastMemCpy:
     sltiu   $v0, $a2, 0x10
     bnez    $v0, .Lcopy_bytes
     nop
@@ -223,8 +223,8 @@ func_80039678:
 .Lcopy_done:
     jr      $ra
     nop
-.end func_80039678
-.size func_80039678, . - func_80039678
+.end FastMemCpy
+.size FastMemCpy, . - FastMemCpy
 
 /* void func_800396E0(void *dst, s32 size); */
 .globl func_800396E0

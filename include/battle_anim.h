@@ -12,11 +12,11 @@
 
 /** @brief Display list double-buffer entry (stride 0x58 = 88 bytes). */
 typedef struct {
-    u32 pktAlloc;
-    u32 pktLimit;
+    u8 *pktAlloc;
+    u8 *pktLimit;
     u32 ot[OT_SIZE];
     u32 pad50;
-    u32 pktBase;
+    u8 *pktBase;
 } DisplayListBuf;
 
 /* Gauge lives here rather than in ui/gauge.h: fe_object9.c includes this header, and its

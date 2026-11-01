@@ -23,6 +23,9 @@ extern LzssState D_80039418;
 
 // Public prototypes
 
+/** @brief memcpy-style copy: copies @p size bytes from @p src to @p dest. */
+void FastMemCpy(u8 *dest, u8 *src, u32 size);
+
 /** @brief memset-style clear: zeroes @p size bytes at @p dst. */
 void func_800396E0(void *dst, s32 size);
 

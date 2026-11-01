@@ -1,5 +1,6 @@
 #include "common.h"
 #include "field/fe_object2.h"
+#include "lzs.h"
 
 typedef struct {
     /* 0x00 */ s32 tag;
@@ -10,7 +11,6 @@ typedef struct {
 
 extern u8 *D_800D6198[3];
 extern SoundBufDesc D_800D61A8[3];
-extern void func_80039678(u8 *dest, u8 *src, u32 size);
 
 /**
  * Pack three source buffers from their original addresses into a
@@ -33,7 +33,7 @@ u8 *func_800ACB10(void) {
             d->tag = -1;
         } else {
             if (d->tag != -1) {
-                func_80039678(base, d->src, d->size);
+                FastMemCpy(base, d->src, d->size);
             }
             D_800D6198[i] = base;
             base += d->size;

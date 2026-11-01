@@ -7,6 +7,7 @@
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
 #include "field/fe_object1.h"
+#include "lzs.h"
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
@@ -152,7 +153,7 @@ s32 *func_800983F0(void) {
     stageBase = FIELD_SCRIPT_STAGE;
     g_fieldContext.fieldMessages = *g_fieldMessages;
     size = *g_fieldDataEnd - *g_fieldScript;
-    func_80039678(FIELD_SCRIPT_STAGE, (s32)*g_fieldScript, size);
+    FastMemCpy((u8 *)FIELD_SCRIPT_STAGE, *g_fieldScript, size);
     D_8005F13C = stageBase + size;
 
     ptr = *g_fieldParticles;

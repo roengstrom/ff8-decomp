@@ -86,7 +86,7 @@ void func_80099B48(Entity *entity, s32 *script) {
  * @c sndCmdC1(0,0x1E,0x7F)) only when the scatter key @c D_800D2442 already matches
  * @c g_fieldVars->audioChannel0State AND the scene is not mode 2. Otherwise it parses
  * the sequence for @c (s8)D_800D2442 via @c getScrollState (which fills bank selector,
- * a "ready" flag, and three handles), wires it up with @c func_80039678, records the
+ * a "ready" flag, and three handles), wires it up with @c FastMemCpy, records the
  * bank selector, and then either — for an active mode-2 scene — drains the audio
  * engine and pushes the new sequence (@c sndProcessAudio + @c func_8009CDC4), or stops
  * the old one and caches its handles in @c D_800C4FC0 / @c D_800C4FBC. The new channel
@@ -114,7 +114,7 @@ void func_80099C84(void) {
     if (key != g_fieldVars->audioChannel0State || mode2) {
         result = getScrollState((s8)key, &b18, &w1C, &w20, &w24, &w28);
         if (result != 0) {
-            func_80039678(w24, result, w28);
+            FastMemCpy((u8 *)w24, (u8 *)result, w28);
             g_fieldVars->soundBankSelector = b18;
             if (mode2 && w1C != 0) {
                 while (sndGetEngineState() > 0) {}

@@ -7,6 +7,8 @@
 /* Battle display-list render helpers (btl_anim.c). */
 
 /* Public prototypes */
+extern void initBattleDisplay(void);
+extern void InitUserInterface(u8 *vramBase, s32 vramSize);
 extern void renderAndUpdateDisplay(s32 frameCount); /**< Advance and render the battle display list. */
 extern s32  renderBattleDisplayList(s32 *colorTag); /**< Walk the ordering table and emit its primitives. */
 extern u8  *emitDrawEnvPackets(P_TAG *ot, u8 *pkt); /**< Emit SetDrawArea/SetDrawOffset packets, link into OT. */

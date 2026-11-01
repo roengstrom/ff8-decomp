@@ -14,7 +14,10 @@
 #include "game.h"
 #include "cdrom.h"
 #include "snd_init.h"
+#include "field_init.h"
 #include "ui/font.h"
+#include "ui/window.h"
+#include "lzs.h"
 #include "psxsdk/libapi.h"
 #include "psxsdk/libspu.h"
 #include "psxsdk/crt0.h"
@@ -36,6 +39,7 @@
 #define IMG_TOC_SECTOR 826
 #define IMG_TOC_SIZE 1064
 
+#define NAME_DICTIONARY_PTR ((void *)NAME_DICTIONARY_ADDR)
 #define IMG_TOC_PTR ((void *)IMG_TOC_ADDR)
 #define OVERLAY_PTR ((void *)OVERLAY_ADDR)
 #define SCRATCH_PTR ((void *)SCRATCH_ADDR)
@@ -163,6 +167,7 @@ static void RestoreFieldSnapshot(void) {
 
 void LoadFieldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
+        // field.ovl
         LoadCompressedDataFromDisc(g_fieldFileDescs[0].sector, g_fieldFileDescs[0].size, OVERLAY_PTR, NULL);
         while (UpdateCdRead() != CD_READ_IDLE);
     }
@@ -171,6 +176,7 @@ void LoadFieldOverlay(void) {
 
 void LoadWorldOverlay(void) {
     if (g_previousGameMode != GAME_MODE_MENU && g_previousGameMode != GAME_MODE_SCRIPT_MENU) {
+        // world.ovl
         LoadCompressedDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, OVERLAY_PTR, NULL);
         while (UpdateCdRead() != CD_READ_IDLE);
     }
@@ -178,6 +184,7 @@ void LoadWorldOverlay(void) {
 }
 
 void LoadWm2FieldTable(void) {
+    // wm2field.tbl
     LoadDataFromDisc(g_fieldFileDescs[1].sector, g_fieldFileDescs[1].size, WORLD_TO_FIELD_ENTRANCES, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 }
@@ -185,16 +192,19 @@ void LoadWm2FieldTable(void) {
 void InitSoundEngine(void) {
     sndInit();
 
+    // sfx_000.akao
     LoadDataFromDisc(g_soundFileDescs[0].sector, g_soundFileDescs[0].size, g_soundEffectData, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 
     sndLoadBank(g_soundEffectData);
 
+    // sfx_001.akao
     LoadDataFromDisc(g_soundFileDescs[1].sector, g_soundFileDescs[1].size, SCRATCH_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 
     sndUploadSamples(SCRATCH_PTR, 1);
 
+    // sfx_002.akao
     LoadDataFromDisc(g_soundFileDescs[2].sector, g_soundFileDescs[2].size, SCRATCH_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 
@@ -202,52 +212,53 @@ void InitSoundEngine(void) {
 }
 
 void LoadBootOverlay(void) {
+    // field_init.ovl
     LoadDataFromDisc(g_bootFileDescs[0].sector, g_bootFileDescs[0].size, OVERLAY_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 }
 
 void LoadSystemFont(void) {
+    // sysfnt.tdw
     LoadDataFromDisc(g_systemFileDescs[0].sector, g_systemFileDescs[0].size, SCRATCH_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
     func_8002C3AC(SCRATCH_PTR, 0);
     while (DrawSync(1));
 }
 
-/** @brief Loads the field/battle overlay and runs its initialization. */
-void initFieldModule(void) {
+void InitGamePadsAndMemoryCards(void) {
     LoadBootOverlay();
     func_80098390();
     initBattleDisplay();
 }
 
-/** @brief Extended battle/visual initialization: loads the overlay, animation
- *         buffers, textures, and battle model/lookup data from CD.
- */
-void initBattleAssets(void) {
+void InitSystemData(void) {
     LoadBootOverlay();
-    initBattleAnimSystem((s32)D_8006A468, 0x6000);
+    InitUserInterface(g_packetBuffer, sizeof(g_packetBuffer));
     LoadSystemFont();
 
+    // icon.tim
     LoadDataFromDisc(g_systemFileDescs[1].sector, g_systemFileDescs[1].size, SCRATCH_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 
     loadBattleTimImage(SCRATCH_ADDR);
 
-    LoadDataFromDisc(g_systemFileDescs[3].sector, g_systemFileDescs[3].size, 0x80090000, NULL);
+    // sfx_003.akao - chocobo world song played in the save menu
+    LoadDataFromDisc(g_systemFileDescs[3].sector, g_systemFileDescs[3].size, NAME_DICTIONARY_PTR, NULL);
+    while (UpdateCdRead() != CD_READ_IDLE);
+    FastMemCpy(g_chocoboWorldMusic, NAME_DICTIONARY_PTR, sizeof(g_chocoboWorldMusic));
+
+    // namedic.bin
+    LoadDataFromDisc(g_systemFileDescs[2].sector, g_systemFileDescs[2].size, NAME_DICTIONARY_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 
-    func_80039678((s32)D_8005F188, 0x80090000, 0x200);
-
-    LoadDataFromDisc(g_systemFileDescs[2].sector, g_systemFileDescs[2].size, 0x80090000, NULL);
-    while (UpdateCdRead() != CD_READ_IDLE);
-
-    setBattleEntityBase(0x80090000);
+    SetNameDictionary(NAME_DICTIONARY_ADDR);
 }
 
 /** @brief Loads the master file descriptor table from CD. Must run before any
  *         other CD load, since every other load descriptor lives in this table.
  */
-void loadFileTable(void) {
+void LoadDiscTableOfContents(void) {
+    // img_toc.bin
     LoadDataFromDisc(g_fileTableDesc[0].sector, g_fileTableDesc[0].size, IMG_TOC_PTR, NULL);
     while (UpdateCdRead() != CD_READ_IDLE);
 }
@@ -275,18 +286,19 @@ void ff8main(void) {
     preInitStub();
     InitHardware();
     initCdSubsystem(1);
-    loadFileTable();
+    LoadDiscTableOfContents();
     InitSoundEngine();
     LoadBootOverlay();
     func_80098000();
-    initFieldModule();
+    InitGamePadsAndMemoryCards();
     LoadWm2FieldTable();
     while (1) {
+        // intro.ovl
         LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
         while (UpdateCdRead() != CD_READ_IDLE);
 
         func_80098FD4(0);
-        initBattleAssets();
+        InitSystemData();
         g_gameMode = GAME_MODE_FIELD;
         g_previousGameMode = GAME_MODE_NONE;
         g_fieldContext.unk1A3 = 0;
@@ -309,11 +321,12 @@ void ff8main(void) {
             SmInitEventAll(1);
         }
         if (g_fieldVars->expectedDiscId != getDiscId()) {
+            // intro.ovl
             LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
             while (UpdateCdRead() != CD_READ_IDLE);
 
             func_80098FD4(1);
-            loadFileTable();
+            LoadDiscTableOfContents();
             LoadWm2FieldTable();
         }
         do {
@@ -512,12 +525,13 @@ void ff8main(void) {
                     }
                     break;
                 case GAME_MODE_DISC_CHANGE:
+                    // intro.ovl
                     LoadCompressedDataFromDisc(g_bootFileDescs[1].sector, g_bootFileDescs[1].size, OVERLAY_PTR, NULL);
                     while (UpdateCdRead() != CD_READ_IDLE);
                     func_80098FD4(g_fieldContext.unk1A0);
                     mode = g_fieldContext.unk1A0;
                     if (mode == 1) {
-                        loadFileTable();
+                        LoadDiscTableOfContents();
                         LoadWm2FieldTable();
                         g_previousGameMode = GAME_MODE_NONE;
                         g_gameMode = mode;

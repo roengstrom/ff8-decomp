@@ -45,10 +45,10 @@ extern u8 *func_8002BF24(u32 *ot, u8 *head);
 extern void dispatchBattleEntity(s32 idx, u32 input, u32 repeat);
 extern s32 allocBattleEntitySlot(void);
 extern void initAllBattleEntities(void);
-extern void setBattleEntityBase(s32 val);
+extern void SetNameDictionary(s32 val);
 extern s32 getMaxBattleEntities(void);
 
-/** @brief The string table func_8002F610 looks strings up in, stored by setBattleEntityBase. */
-extern s32 D_800834CC;
+/** @brief The string table func_8002F610 looks strings up in, stored by SetNameDictionary. */
+extern s32 g_nameDictionary;
 
 #endif

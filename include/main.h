@@ -41,8 +41,10 @@ extern volatile s32 g_countdownTicker;
 extern u16 g_vsyncDone;
 
 extern u8 g_soundEffectData[];
-extern u8             D_8006A468[];
-extern u8             D_8005F188[];
+#define PACKET_BUFFER_SIZE 0x6000
+extern u8 g_packetBuffer[PACKET_BUFFER_SIZE];
+#define CHOCOBO_WORLD_MUSIC_SIZE 0x200
+extern u8 g_chocoboWorldMusic[CHOCOBO_WORLD_MUSIC_SIZE];
 extern u8             D_80070468[];
 
 void VsyncHandler(void);
@@ -53,9 +55,9 @@ void LoadWm2FieldTable(void);
 void InitSoundEngine(void);
 void LoadBootOverlay(void);
 void LoadSystemFont(void);
-void initFieldModule(void);
-void initBattleAssets(void);
-void loadFileTable(void);
+void InitGamePadsAndMemoryCards(void);
+void InitSystemData(void);
+void LoadDiscTableOfContents(void);
 void SetupDrawMode(s32 mode);
 void BuildPrimList(s32 brightness);
 void ProcessFade(void);
