@@ -10,6 +10,7 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object1b.h"
 #include "field/fe_object10.h"
+#include "imgtoc.h"
 
 static void func_800A2F48(FieldParticles *particles);
 static void func_800A2F70(POLY_FT4 *prim);
@@ -2252,7 +2253,7 @@ void func_800A5A14(s16 a0) {
  * (@c D_8005F100) and its data still fits below @c 0x801FE000, the previous load
  * is cancelled and a new @c LoadDataFromDisc is issued: field ids from @c 0x49 up are
  * looked up through @c D_800C2568 into the streaming table, lower ids use the
- * fixed descriptor @c D_800974D0. @c D_8005F14A is left at 1 to mark the read
+ * fixed descriptor @c g_worldFileDescs. @c D_8005F14A is left at 1 to mark the read
  * in flight.
  *
  * @param actor    Player entity, read for its 20.12 world position.
@@ -2314,7 +2315,7 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
             LoadDataFromDisc(D_800C0904[idx * FIELD_STREAM_STRIDE - 1],
                    D_800C0904[idx * FIELD_STREAM_STRIDE], (u8 *)D_8005F104, NULL);
         } else {
-            LoadDataFromDisc(D_800974D0[0].sector, D_800974D0[0].size, (u8 *)D_8005F104, NULL);
+            LoadDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, (u8 *)D_8005F104, NULL);
         }
         D_8005F14A = 1;
     }

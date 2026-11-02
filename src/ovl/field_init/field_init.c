@@ -7,6 +7,7 @@
 #include "field_init_font.h"
 #include "input/gamepad.h"
 #include "psxsdk/libapi.h"
+#include "imgtoc.h"
 
 /** @brief Kernel event control block entity (stride 0xC0). */
 typedef struct {

@@ -2,6 +2,7 @@
 #define WM2FIELD_H
 
 #include "common.h"
+#include "memlayout.h"
 
 // An entrance from the world map into a field: which field, and where the party appears there.
 typedef struct {
@@ -17,6 +18,6 @@ typedef struct {
 extern WorldToFieldEntrance g_worldToFieldEntrances[72];
 
 // The 72 entrances of data/eng/wm2field.tbl.
-#define WORLD_TO_FIELD_ENTRANCES ((WorldToFieldEntrance *)0x80097940)
+#define WORLD_TO_FIELD_ENTRANCES ((WorldToFieldEntrance *)WM2FIELD_ADDR)
 
 #endif /* WM2FIELD_H */

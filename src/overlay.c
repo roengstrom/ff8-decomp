@@ -11,6 +11,7 @@
 #include "overlay.h"
 #include "render.h"
 #include "psxsdk/libapi.h"
+#include "imgtoc.h"
 
 
 /** @brief Empty stub (no-op). */
@@ -40,7 +41,6 @@ extern s32 D_80085140;
 extern s32 D_80085144;
 extern OvlCmdEntry g_ovlCmdQueue[];
 extern u32 load_table[];
-extern u32 D_80097420[];
 extern u32 D_80053D08[][2];
 extern RECT D_80053CF0;
 extern RECT D_80053CF8;
