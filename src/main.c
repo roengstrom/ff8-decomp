@@ -10,7 +10,7 @@
 #include "battle.h"
 #include "input/gamepad.h"
 #include "btl_anim.h"
-//#include "overlay.h" omitted because the original called func_8003646C without its prototype.
+// #include "overlay.h" omitted because the original called func_8003646C without its prototype.
 #include "world/we_object0.h"
 #include "game.h"
 #include "cdrom.h"
@@ -54,7 +54,7 @@ static inline void GoToGameOverField(void);
 static inline void ReloadDiscTables(void);
 static inline void RunBattle(u8 *musicBuffer);
 
-static CdFileDesc g_fileTableDesc[] = { { IMG_TOC_SECTOR, IMG_TOC_SIZE } };
+static CdFileDesc g_fileTableDesc[] = {{IMG_TOC_SECTOR, IMG_TOC_SIZE}};
 
 static void DisableStpBit(void) {
     DR_STP prim;
@@ -146,7 +146,8 @@ static void SaveFieldSnapshot(void) {
         g_gameState.fieldStateSnapshot.positionsX[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posX >> 12;
         g_gameState.fieldStateSnapshot.positionsY[i] = g_fieldActors[g_fieldContext.entityIndex[i]].posY >> 12;
         g_gameState.fieldStateSnapshot.triIdxs[i] = g_fieldActors[g_fieldContext.entityIndex[i]].triIdx;
-        g_gameState.fieldStateSnapshot.facingDirection[i] = g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
+        g_gameState.fieldStateSnapshot.facingDirection[i] =
+            g_fieldActors[g_fieldContext.entityIndex[i]].facingDirection;
     }
 
     g_gameState.fieldStateSnapshot.fieldRngIndex = g_fieldRngIndex;
@@ -366,13 +367,13 @@ void ff8main(void) {
         g_fieldContext.mapJumpOff = 0;
         result = func_8003646C(25); // Run main menu?
 
-	if (!(result & 2)) {
-	    // Load game
+        if (!(result & 2)) {
+            // Load game
             RestoreFieldSnapshot();
             LoadFieldOverlay();
             SmInitEventAll(0);
         } else {
-	    // New game
+            // New game
             g_curFieldId = FIELD_ID_START0;
             g_gameState.battleParty[0] = 0;
             g_gameState.battleParty[1] = 0xFF;
@@ -382,7 +383,7 @@ void ff8main(void) {
             SmInitEventAll(1);
         }
 
-	// Check that the game has correct disc before proceeding to loaded or new game
+        // Check that the game has correct disc before proceeding to loaded or new game
         if (g_fieldVars->expectedDiscId != getDiscId()) {
             LoadIntroOverlay();
             IntroMain(INTRO_SCREEN_INSERT_DISC);
@@ -413,8 +414,10 @@ void ff8main(void) {
                         D_80082C8C.mode = 6;
                         break;
                     }
-		    // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise load it from disc.
-                    if (((g_previousGameMode == GAME_MODE_FIELD) && (g_prefetchState != PREFETCH_NONE)) && (g_prefetchedDestId < 0x4A)) {
+                    // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise
+                    // load it from disc.
+                    if (((g_previousGameMode == GAME_MODE_FIELD) && (g_prefetchState != PREFETCH_NONE)) &&
+                        (g_prefetchedDestId < 0x4A)) {
                         while (UpdateCdRead() != CD_READ_IDLE);
                         DecompressLzs(g_prefetchBuffer, OVERLAY_PTR);
                     } else {
@@ -458,7 +461,8 @@ void ff8main(void) {
                         g_battleConfig.battleSceneId = g_fieldContext.counter;
                         musicBuffer = D_8005F13C;
                     } else {
-                        g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
+                        g_battleConfig.battleSceneId =
+                            D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
                         musicBuffer = (u8 *)MUSIC_BUFFER_ADDR;
                     }
                     RunBattle(musicBuffer);
