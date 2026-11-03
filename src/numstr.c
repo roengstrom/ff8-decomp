@@ -331,7 +331,7 @@ static u8 *nextMessagePage(u8 *str) {
 /**
  * @brief Look up a string by index from the global string table and copy it.
  *
- * Reads the string table pointer from D_800834CC. If null or index out of
+ * Reads the string table pointer from g_nameDictionary. If null or index out of
  * range, returns dst unchanged. Otherwise copies the indexed string to dst
  * via copyString and returns dst + length.
  *
@@ -340,7 +340,7 @@ static u8 *nextMessagePage(u8 *str) {
  * @return Pointer past the end of the copied string, or dst if not found.
  */
 u8 *func_8002F610(s32 index, u8 *dst) {
-    u16 *table = (u16 *)D_800834CC;
+    u16 *table = (u16 *)g_nameDictionary;
     u8 *src;
     if (table == 0) {
         return dst;

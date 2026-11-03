@@ -101,7 +101,7 @@ extern void sndSetMasterVolume(s32 volume);
 extern void sndSeqSetTempo(s32 tempo);
 
 /** @brief Upload a staged sample bank to the SPU; returns -1 while busy. */
-extern s32 sndUploadSamples(s32 srcAddr, s32 mode);
+extern s32 sndUploadSamples(SndBankDesc *srcAddr, s32 mode);
 
 /** @brief Query the sound engine's current busy state (0 = idle). */
 extern s32 sndGetEngineState(void);

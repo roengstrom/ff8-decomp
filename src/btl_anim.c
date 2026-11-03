@@ -5,6 +5,7 @@
 #include "psxsdk/libc.h"
 #include "battle.h"
 #include "btl_anim.h"
+#include "field_init.h"
 #include "btl_anim_packet.h"
 #include "ui/icon.h"
 #include "ui/countdown.h"
@@ -25,6 +26,7 @@ void shutdownCardSubsystem(void);
 void initBattleSubsystems(void);
 s32 GetPressedButtons(s32, s32);
 s32 GetAutoRepeatedButtons(s32, s32);
+static u8 *getDisplayListPacketPtr(void);
 
 extern CardDataBlock g_cardData;
 extern s8 g_cardFlag; /**< D_80082FD4: Memory card operation status flag. */
@@ -35,12 +37,6 @@ extern u8 g_cardFileActive;
 extern DRAWENV *g_activeDrawEnv;
 extern u8 g_paletteIndices[];
 
-/**
- * @brief Initialize GPU display and clear engine state fields.
- *
- * Calls GsInitGraph, GsDefDispBuff, and InitGamePadSystem, then
- * resets display state fields.
- */
 void initBattleDisplay(void) {
     func_800982D8();
     func_800980D0();
@@ -1888,7 +1884,7 @@ void renderDisplay(s32 frameCount) {
  * @return The pktAlloc field of the active display list buffer.
  */
 s32 getDisplayListHead(void) {
-    return g_engine.active->pktAlloc;
+    return (s32)g_engine.active->pktAlloc;
 }
 
 
@@ -1896,7 +1892,7 @@ s32 getDisplayListHead(void) {
  * @brief Read the base packet pointer from the active display list buffer.
  * @return The pktBase field of the active display list buffer.
  */
-s32 getDisplayListPacketPtr(void) {
+static u8 *getDisplayListPacketPtr(void) {
     return g_engine.active->pktBase;
 }
 
@@ -1916,8 +1912,8 @@ void storeGpuPacket(u32 pkt) {
     u32 limit;
 
     buf = g_engine.active;
-    buf->pktAlloc = pkt;
-    limit = g_engine.active->pktLimit;
+    buf->pktAlloc = (u8 *)pkt;
+    limit = (u32)g_engine.active->pktLimit;
 
     if (limit < pkt) {
         if (pkt <= 0x801AFFFFU) {
@@ -2045,11 +2041,11 @@ void buildAnimEasingCurves(void)
  * @param vramBase Display buffer base address in VRAM.
  * @param vramSize Display buffer total size (halved internally for double buffering).
  */
-void initBattleAnimSystem(s32 vramBase, s32 vramSize)
+void InitUserInterface(u8 *vramBase, s32 vramSize)
 {
     s32 i;
     s32 half = vramSize / 2;
-    s32 vramEnd = vramBase + half;
+    u8 *vramEnd = vramBase + half;
 
     g_engine.bufs[0].pktBase = vramBase;
     g_engine.bufs[1].pktBase = vramEnd;
