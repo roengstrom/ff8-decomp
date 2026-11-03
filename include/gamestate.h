@@ -288,6 +288,11 @@ typedef struct {
     /* 0x30 */ u8 pad30[16];          /**< Unknown. */
 } ChocoboWorldData; /* 0x40 = 64 bytes */
 
+#define CHOCOBO_FLAG_ENABLED 0x1
+#define CHOCOBO_FLAG_IN_WORLD 0x2
+#define CHOCOBO_FLAG_MINIMOG_FOUND 0x4
+#define CHOCOBO_FLAG_DEMON_KING_DEFEATED 0x8
+
 /* ======================================================================== */
 /* Full Game State Layout                                                   */
 /* ======================================================================== */

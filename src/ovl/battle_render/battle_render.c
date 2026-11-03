@@ -1,24 +1,56 @@
 #include "common.h"
+#include "psxsdk/libc.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
 #include "gamestate.h"
+#include "kernel.h"
 #include "battle_render.h"
 
-/** @brief Battle render command block (linked-list node, 0x10 bytes). */
-typedef struct CmdBlk_ {
-    struct CmdBlk_ *next;   /**< 0x00: next command in queue. */
-    u16 unk04;              /**< 0x04: command param (often x coordinate). */
-    u16 cmdId;              /**< 0x06: command ID/opcode. */
-    u16 unk08;              /**< 0x08: flags or count. */
-    u16 unk0A;              /**< 0x0A: padding/unused. */
-    void *dataPtr;          /**< 0x0C: command-specific data pointer. */
+// A debug text request: x and y count 8-pixel character cells.
+typedef struct {
+    /** 0x00 */ u32 *ot;
+    /** 0x04 */ s16 x;
+    /** 0x06 */ s16 y;
+    /** 0x08 */ s16 color; // CLUT row above 0xE0
+    /** 0x0A */ u16 pad0A;
+    /** 0x0C */ u8 *format;
 } CmdBlk;
 
-/** @brief Battle render context (D_800D3C58 target), command queue at 0x4070. */
 typedef struct {
-    u8 padHeader[0x4070];
-    CmdBlk cmdQueueHead;
+    /** 0x00000 */ u8 unk0[0x406C];
+    /** 0x0406C */ u32 ot[3];
+    /** 0x04078 */ DR_MODE drawModes[0x400];
+    /** 0x07078 */ SPRT_8 sprt8[0x400];
+    /** 0x0B078 */ SPRT_16 sprt16[0x200];
+    /** 0x0D078 */ SPRT sprt[0x200];
+    /** 0x0F878 */ POLY_G4 polyG4[0x200];
 } BattleRenderCtx;
+
+typedef struct {
+    /** 0x00 */ u32 *ot;
+    /** 0x04 */ s16 x;
+    /** 0x06 */ s16 y;
+    /** 0x08 */ u8 u;
+    /** 0x09 */ u8 pad09;
+    /** 0x0A */ u8 v;
+    /** 0x0B */ u8 pad0B;
+    /** 0x0C */ s16 color;
+} func_8009AE1C_arg0;
+
+typedef struct {
+    /** 0x00 */ u32 *ot;
+    /** 0x04 */ s16 x;
+    /** 0x06 */ s16 y;
+    /** 0x08 */ u8 u;
+    /** 0x09 */ u8 pad09;
+    /** 0x0A */ u8 v;
+    /** 0x0B */ u8 pad0B;
+    /** 0x0C */ s16 w;
+    /** 0x0E */ s16 h;
+    /** 0x10 */ u16 clut;
+    /** 0x12 */ u16 pad12;
+    /** 0x14 */ s32 tpage;
+} func_8009A8B4_arg0;
 
 extern BattleRenderCtx *D_800D3C58;
 extern s32 D_8009B54C[];
@@ -30,7 +62,8 @@ extern u8 D_80098018[];
 extern s32 D_800ABA08;
 extern void RecordGamePadInput(s32 a0);
 extern s32 GetPressedButtons(s32 idx, s32 offset);
-extern void func_8009AF64(void *cmd, ...);
+// No prototype: the original called it with fewer arguments than it takes.
+void func_8009AF64();
 extern s16 D_800D3C70;
 extern u8 D_8009801C[];
 extern u8 D_80098020[];
@@ -54,6 +87,13 @@ extern u8 D_800D3C46;
 extern u8 D_800D3C47;
 extern u8 D_800D3C48;
 extern u8 D_800D3C49;
+extern u8 D_800ABA10[][10];
+extern s32 D_800ABB34;
+extern s32 D_800D3C68;
+extern s32 D_800D3C54;
+
+static void func_800988EC(s32 idx, u8 *src);
+static void func_8009AE1C(func_8009AE1C_arg0 *arg);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
 
@@ -63,31 +103,31 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
  * Stages three CmdBlk entries through the scratchpad and dispatches each
  * via func_8009AF64. The commands draw the build date string ("Jul  4
  * 1999"), the build time ("21:03:43"), and a formatted version field
- * (" %x" with D_800ABA08) into the battle render queue at
- * D_800D3C58->cmdQueueHead.
+ * (" %x" with D_800ABA08) into the render context's second ordering
+ * table.
  */
 void func_80098688(void) {
     CmdBlk *cmd = (CmdBlk *)getScratchAddr(0);
 
-    cmd->unk04 = 0x1A;
-    cmd->cmdId = 0x16;
-    cmd->unk08 = 1;
-    cmd->next = &D_800D3C58->cmdQueueHead;
-    cmd->dataPtr = &D_80098000;
+    cmd->x = 0x1A;
+    cmd->y = 0x16;
+    cmd->color = 1;
+    cmd->ot = &D_800D3C58->ot[1];
+    cmd->format = D_80098000;
     func_8009AF64(cmd);
 
-    cmd->unk04 = 0x1D;
-    cmd->cmdId = 0x17;
-    cmd->unk08 = 1;
-    cmd->next = &D_800D3C58->cmdQueueHead;
-    cmd->dataPtr = &D_8009800C;
+    cmd->x = 0x1D;
+    cmd->y = 0x17;
+    cmd->color = 1;
+    cmd->ot = &D_800D3C58->ot[1];
+    cmd->format = D_8009800C;
     func_8009AF64(cmd);
 
-    cmd->unk04 = 0x1A;
-    cmd->cmdId = 0x1A;
-    cmd->next = &D_800D3C58->cmdQueueHead;
-    cmd->unk08 = 1;
-    cmd->dataPtr = &D_80098018;
+    cmd->x = 0x1A;
+    cmd->y = 0x1A;
+    cmd->ot = &D_800D3C58->ot[1];
+    cmd->color = 1;
+    cmd->format = D_80098018;
     func_8009AF64(cmd, D_800ABA08);
 }
 
@@ -177,7 +217,11 @@ s32 func_80098798(s32 a0) {
  * @param idx Entry index in the name table (stride 10).
  * @param src Pointer to the source string.
  */
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_800988EC);
+static void func_800988EC(s32 idx, u8 *src) {
+    u8 *dst = D_800ABA10[idx];
+
+    while ((*dst++ = *src++) != 0);
+}
 
 /**
  * @brief Set a name table entry from one of two default strings.
@@ -330,16 +374,87 @@ void func_80098C84(void) {
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098C9C);
 
-/**
- * @brief Initialize battle entity rendering tables.
- *
- * Sets GPU attribute flags on 8 entity slots, configures entity
- * visibility flags at offsets 0x61/0xA5/0xE9, and fills the
- * animation tile table at offset 0xB44 with incrementing indices.
- */
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A368);
+void func_8009A368(void) {
+    s32 id;
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A40C);
+    for (i = 0; i < CHARACTER_COUNT; i++) {
+        g_gameState.chars[i].exists |= CHAR_FLAG_PRESENT | CHAR_FLAG_UNK08;
+    }
+    g_gameState.mainData.party.partyMembers[0] = CHAR_SQUALL;
+    g_gameState.mainData.party.partyMembers[1] = CHAR_ZELL;
+    g_gameState.mainData.party.partyMembers[2] = CHAR_IRVINE;
+    g_gameState.mainData.party.partyMembers[3] = PARTY_SLOT_EMPTY;
+    g_gameState.gfs[0].exists |= GF_EXISTS;
+    g_gameState.gfs[1].exists |= GF_EXISTS;
+    g_gameState.gfs[2].exists |= GF_EXISTS;
+    id = 1;
+    for (i = 0; i < ITEM_SLOT_COUNT; i++) {
+        g_gameState.mainData.itemSlots[i].id = id++;
+        g_gameState.mainData.itemSlots[i].count = 10;
+    }
+}
+
+void func_8009A40C(void) {
+    ChocoboWorldData *chocobo = &g_gameState.chocobo;
+    s32 id;
+    s32 i;
+    s32 j;
+
+    for (i = 0; i < CHARACTER_COUNT; i++) {
+        g_gameState.chars[i].exists |= CHAR_FLAG_PRESENT | CHAR_FLAG_UNK08;
+    }
+    g_gameState.chars[CHAR_SQUALL].weaponId = WEAPON_LION_HEART;
+    g_gameState.chars[CHAR_ZELL].weaponId = WEAPON_EHRGEIZ;
+    g_gameState.chars[CHAR_IRVINE].weaponId = WEAPON_EXETER;
+    g_gameState.chars[CHAR_QUISTIS].weaponId = WEAPON_SAVE_THE_QUEEN;
+    g_gameState.chars[CHAR_RINOA].weaponId = WEAPON_SHOOTING_STAR;
+    g_gameState.chars[CHAR_SELPHIE].weaponId = WEAPON_STRANGE_VISION;
+    for (i = 0; i < GF_COUNT; i++) {
+        g_gameState.gfs[i].exists |= GF_EXISTS;
+    }
+    for (i = 0; i < GF_COUNT; i++) {
+        g_gameState.gfs[i].completeAbilities[0] = -2;
+        g_gameState.gfs[i].completeAbilities[1] = -1;
+        g_gameState.gfs[i].completeAbilities[2] = -1;
+        g_gameState.gfs[i].completeAbilities[3] = 0x3FFFFFF;
+    }
+    g_gameState.mainData.party.partyMembers[0] = CHAR_ZELL;
+    g_gameState.mainData.party.partyMembers[1] = CHAR_SQUALL;
+    g_gameState.mainData.party.partyMembers[2] = CHAR_SELPHIE;
+    g_gameState.mainData.party.partyMembers[3] = PARTY_SLOT_EMPTY;
+    g_gameState.mainData.limitBreaks.quistisLimits = 0xFFFF;
+    chocobo->level = 10;
+    chocobo->bokoAttack = 3;
+    chocobo->flags |= CHOCOBO_FLAG_ENABLED | CHOCOBO_FLAG_MINIMOG_FOUND | CHOCOBO_FLAG_DEMON_KING_DEFEATED;
+    chocobo->flags &= ~CHOCOBO_FLAG_IN_WORLD;
+    for (j = 0; j < CHARACTER_COUNT; j += 2) {
+        id = 1;
+        for (i = 0; i < 30; i++) {
+            g_gameState.chars[j].magic[i].magicId = id++;
+            g_gameState.chars[j].magic[i].quantity = 50;
+        }
+        id = 31;
+        for (i = 0; i < 20; i++) {
+            g_gameState.chars[j + 1].magic[i].magicId = id++;
+            g_gameState.chars[j + 1].magic[i].quantity = 50;
+        }
+    }
+    g_gameState.chars[CHAR_SQUALL].commands[0] = 20;
+    g_gameState.chars[CHAR_SQUALL].commands[1] = 22;
+    g_gameState.chars[CHAR_SQUALL].commands[2] = 23;
+    g_gameState.chars[CHAR_ZELL].commands[0] = 20;
+    g_gameState.chars[CHAR_ZELL].commands[1] = 22;
+    g_gameState.chars[CHAR_ZELL].commands[2] = 23;
+    g_gameState.chars[CHAR_RINOA].commands[0] = 20;
+    g_gameState.chars[CHAR_RINOA].commands[1] = 21;
+    g_gameState.chars[CHAR_RINOA].commands[2] = 23;
+    id = 1;
+    for (i = 0; i < ITEM_SLOT_COUNT; i++) {
+        g_gameState.mainData.itemSlots[i].id = id++;
+        g_gameState.mainData.itemSlots[i].count = 10;
+    }
+}
 
 /** @brief Call func_8003646C with display mode 0x16 and layer 7. */
 void func_8009A60C(void) {
@@ -353,7 +468,18 @@ void func_8009A60C(void) {
  *
  * @return Byte sum of the buffer.
  */
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A630);
+s32 func_8009A630(void) {
+    s32 sum;
+    u8 *p;
+    u32 i;
+
+    sum = 0;
+    p = (u8 *)&g_kernel;
+    for (i = 0; i < 0x9E08; i++) {
+        sum += *p++;
+    }
+    return sum;
+}
 
 void func_8009A664(void) {
 }
@@ -392,22 +518,105 @@ void func_8009A6CC(void) {
  *
  * @param a0 Render object pointer.
  */
-void func_8009A6FC(s32 a0) {
-    SetSemiTrans(a0, 0);
-    SetShadeTex(a0, 1);
+void func_8009A6FC(void *prim) {
+    SetSemiTrans(prim, 0);
+    SetShadeTex(prim, 1);
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A734);
+void func_8009A734(BattleRenderCtx *ctx) {
+    SPRT_16 *sprt16;
+    SPRT_8 *sprt8;
+    SPRT *sprt;
+    POLY_G4 *poly;
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A8B4);
+    sprt16 = ctx->sprt16;
+    for (i = 0; i < 0x200; i++, sprt16++) {
+        setSprt16(sprt16);
+        func_8009A6FC(sprt16);
+        setRGB0(sprt16, 0x80, 0x80, 0x80);
+    }
+    sprt8 = ctx->sprt8;
+    for (i = 0; i < 0x400; i++, sprt8++) {
+        setSprt8(sprt8);
+        func_8009A6FC(sprt8);
+        setRGB0(sprt8, 0x80, 0x80, 0x80);
+    }
+    sprt = ctx->sprt;
+    for (i = 0; i < 0x200; i++, sprt++) {
+        setSprt(sprt);
+        func_8009A6FC(sprt);
+        setRGB0(sprt, 0x80, 0x80, 0x80);
+    }
+    poly = ctx->polyG4;
+    for (i = 0; i < 0x200; i++, poly++) {
+        setPolyG4(poly);
+        func_8009A6FC(poly);
+        setRGB0(poly, 0x80, 0x80, 0x80);
+    }
+}
+
+void func_8009A8B4(func_8009A8B4_arg0 *arg) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    SPRT *sprt = &ctx->sprt[D_800D3C54++];
+
+    SetDrawMode(mode, 0, 0, arg->tpage, NULL);
+    sprt->clut = arg->clut;
+    sprt->u0 = arg->u;
+    sprt->v0 = arg->v;
+    sprt->w = arg->w;
+    sprt->h = arg->h;
+    sprt->x0 = arg->x;
+    sprt->y0 = arg->y;
+    addPrim(arg->ot, sprt);
+    addPrim(arg->ot, mode);
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AA18);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AC18);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AE1C);
+static void func_8009AE1C(func_8009AE1C_arg0 *arg) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    SPRT_8 *sprt = &ctx->sprt8[D_800D3C68++];
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AF64);
+    SetDrawMode(mode, 0, 0, getTPage(0, 0, 768, 256), NULL);
+    sprt->clut = GetClut(16, arg->color + 0xE0);
+    sprt->u0 = arg->u;
+    sprt->v0 = arg->v;
+    sprt->x0 = arg->x;
+    sprt->y0 = arg->y;
+    addPrim(arg->ot, sprt);
+    addPrim(arg->ot, mode);
+}
+
+void func_8009AF64(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    SPRT_8 *sprt = &ctx->sprt8[D_800D3C68];
+    u8 *text = (u8 *)getScratchAddr(0x40);
+    s32 col;
+    u32 c;
+
+    SetDrawMode(mode, 0, 0, getTPage(0, 0, 768, 256), NULL);
+    sprintf((char *)text, cmd->format, arg1, arg2, arg3);
+    for (col = 0; text[col] != '\0'; col++) {
+        c = text[col];
+        if (c != ' ') {
+            sprt->x0 = (cmd->x + col) * 8;
+            sprt->y0 = cmd->y * 8;
+            sprt->u0 = (c & 0xF) * 8;
+            sprt->v0 = (c >> 4) * 8;
+            sprt->clut = GetClut(16, cmd->color + 0xE0);
+            addPrim(cmd->ot, sprt);
+            D_800D3C68++;
+            sprt++;
+        }
+    }
+    addPrim(cmd->ot, mode);
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009B170);
 
