@@ -103,6 +103,9 @@ typedef enum {
     FIELD_MODE_CARD_GAME = 8
 } FieldMode;
 
+// Value of FieldContext's spawnTriIdx, position_x or position_y meaning "no override".
+#define SPAWN_UNSET 0x7FFF
+
 typedef struct {
     /* 0x000 */ u8 mode; // a FieldMode
     /* 0x001 */ u8 pad001;

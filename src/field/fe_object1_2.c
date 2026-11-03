@@ -2012,7 +2012,7 @@ void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
  * @brief Reset the current frame's ordering table and link the double-buffer's
  *        clear-tile primitives, tinted (@p r, @p g, @p b), into @p ot.
  *
- * A generalized sibling of @c BuildPrimList: it clears the active buffer's
+ * A generalized sibling of @c PrepareFadePass: it clears the active buffer's
  * ordering table via @c ClearOTagR, writes the fill color into that buffer's
  * clear @ref TILE, then prepends both the tile and its @ref DR_MODE primitive
  * to the caller-supplied ordering table @p ot. @c g_bufferIndex is @c volatile, so each subscript re-reads it.
@@ -2151,8 +2151,8 @@ void func_800A5788(FieldFrameBuf *buf) {
  *  - @c 5 / @c 6: interpolate the fade colour for this tick (@c func_800A5788).
  *  - @c 7 / @c 8: draw the flat fade tint with @c func_800A553C.
  *
- * The @c SetupDrawMode argument that precedes each draw selects the blend mode,
- * @c 1 or @c 2 depending on the state.
+ * The @c SetFadeBlendMode argument that precedes each draw selects the blend mode,
+ * @c BLEND_ADD or @c BLEND_SUBTRACT depending on the state.
  *
  * @param buf The frame's GPU work area; its ordering table receives the prims.
  */
@@ -2169,12 +2169,12 @@ void func_800A5898(FieldFrameBuf *buf) {
     case 1:
         break;
     case 2:
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A5698();
         func_800A5360(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 3:
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A5700();
         func_800A5360(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
@@ -2183,20 +2183,20 @@ void func_800A5898(FieldFrameBuf *buf) {
         break;
     case 7:
         g_fieldContext.unk1A1 = 0;
-        SetupDrawMode(1);
+        SetFadeBlendMode(BLEND_ADD);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 8:
         g_fieldContext.unk1A1 = 0;
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 5:
-        SetupDrawMode(1);
+        SetFadeBlendMode(BLEND_ADD);
         func_800A5788(buf);
         break;
     case 6:
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A5788(buf);
         break;
     }

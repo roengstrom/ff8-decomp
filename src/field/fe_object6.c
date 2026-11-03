@@ -1492,8 +1492,8 @@ s32 opHandler_MAPJUMPO(ScriptContext *context) {
         g_fieldContext.mode = FIELD_MODE_FIELD;
         g_fieldContext.facingDirection = 0;
         g_fieldContext.spawnTriIdx = POP(context);
-        g_fieldContext.position_x = 0x7FFF;
-        g_fieldContext.position_y = 0x7FFF;
+        g_fieldContext.position_x = SPAWN_UNSET;
+        g_fieldContext.position_y = SPAWN_UNSET;
         g_fieldContext.counter = POP(context);
     }
     return 1;

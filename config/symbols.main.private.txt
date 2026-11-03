@@ -4,6 +4,7 @@
 // main's C; g_meshRenderCtx is main's own scratch buffer, inside menumain's
 // image, used while no menu is loaded.
 tripleTriadMainLoop = 0x80098304;
+BootMain = 0x80098000; // type:func
 WorldMain = 0x800987D8; // type:func
 FieldMain = 0x8009895C; // type:func
 IntroMain = 0x80098FD4; // type:func

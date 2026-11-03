@@ -41,7 +41,7 @@ static inline EventState *getEventState(void) {
 /* --- Functions --- */
 
 /** @brief Field initialization entry: call setup then init step. */
-void func_80098000(void) {
+void BootMain(void) {
     FlushInstructionCache();
     func_800980B0();
 }

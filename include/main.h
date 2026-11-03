@@ -13,9 +13,9 @@
 void InitClearTiles(void);
 
 /** @brief Copies the framebuffer from the current display buffer to the other. */
-void copyFramebuffer(void);
+void CopyFrameBuffer(void);
 
-void SetupDrawMode(s32 mode);
+void SetFadeBlendMode(BlendMode blendMode);
 
 /* =============================================================== *
  *  Private — types, globals and helpers internal to main.c.       *

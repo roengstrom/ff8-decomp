@@ -246,7 +246,7 @@ void func_80098934(void) {
  * function dispatches on @c g_previousGameMode (the field load mode, 0=fresh,
  * 1=normal, 2=new-area, 3=movie, 6=transition, 0xA=skip-transition) and on
  * @c g_fieldContext.mode (the engine-level state byte that picks one of several
- * exit paths at the end of each iteration: 4=quit, 5/6=copyFramebuffer +
+ * exit paths at the end of each iteration: 4=quit, 5/6=CopyFrameBuffer +
  * flag-reset, 7=sndCmd21 + snapshot, 1=loop back, 3/8/etc.=plain exit).
  *
  * Major phases each pass:
@@ -341,7 +341,7 @@ void FieldMain(void) {
             if (g_previousGameMode == GAME_MODE_WORLD) {
                 g_bufferIndex = 1;
             }
-            copyFramebuffer();
+            CopyFrameBuffer();
             g_fadeMode = 1;
             g_fadeCounter = 0;
             g_vsyncDone = 0;
@@ -451,7 +451,7 @@ void FieldMain(void) {
             break;
         }
         if (state == FIELD_MODE_MENU || state == FIELD_MODE_DISC_CHANGE) {
-            copyFramebuffer();
+            CopyFrameBuffer();
             g_fadeMode = 9;
             g_fadeCounter = 0;
             g_vsyncDone = 0;
@@ -657,7 +657,7 @@ void func_80099348(void) {
             && (g_fieldContext.padHeldPrev & 0x90F) == 0x90F) {
             g_fieldContext.counter = 0;
             g_fieldContext.mode = FIELD_MODE_TITLE;
-            g_fieldContext.spawnTriIdx = 0x7FFF;
+            g_fieldContext.spawnTriIdx = SPAWN_UNSET;
             sndStopAll();
             func_800A59D0();
             VSync(0);
@@ -819,7 +819,7 @@ void func_80099348(void) {
             && (g_fieldVars->fieldB6 & 0x100) == 0) {
             g_fieldContext.counter = 0x4B;
             g_fieldContext.mode = FIELD_MODE_FIELD;
-            g_fieldContext.spawnTriIdx = 0x7FFF;
+            g_fieldContext.spawnTriIdx = SPAWN_UNSET;
             func_800A59D0();
         }
         if (g_fieldContext.mode == FIELD_MODE_FIELD || g_fieldContext.mode == FIELD_MODE_WORLD) {
@@ -1391,9 +1391,6 @@ s16 func_8009AC9C(s16 px, s16 py, s16 pz, TriangleList *list) {
 
 /** @brief Scale applied to @c g_fieldContext.unk00A when seeding @c Actor::moveSpeed. */
 #define FIELD_CHANNEL_SCALE 0x4367
-
-/** @brief Sentinel in @c g_fieldContext.spawnTriIdx / @c position_x meaning "no override". */
-#define SPAWN_UNSET 0x7FFF
 
 /**
  * @brief Place every field entity on the navmesh when a field is entered.

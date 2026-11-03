@@ -1,3 +1,4 @@
+BootMain = 0x80098000; // type:func
 loadKernel = 0x80098028; // type:func
 func_800980B0 = 0x800980B0; // type:func
 func_800980D0 = 0x800980D0; // type:func

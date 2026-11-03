@@ -66,7 +66,7 @@ static void LoadSystemFont(void);
 static void InitGamePadsAndMemoryCards(void);
 static void InitSystemData(void);
 static void LoadDiscTableOfContents(void);
-static void BuildPrimList(s32 brightness);
+static void PrepareFadePass(s32 brightness);
 static void ProcessFade(void);
 
 static CdFileDesc g_fileTableDesc[] = {{IMG_TOC_SECTOR, IMG_TOC_SIZE}};
@@ -294,7 +294,7 @@ static void LoadDiscTableOfContents(void) {
 static inline void ReturnToTitle(void) {
     g_fieldContext.counter = 0;
     g_fieldContext.mode = FIELD_MODE_TITLE;
-    g_fieldContext.spawnTriIdx = 0x7FFF;
+    g_fieldContext.spawnTriIdx = SPAWN_UNSET;
 }
 
 static inline void GoToGameOverField(void) {
@@ -365,7 +365,7 @@ void ff8main(void) {
     LoadDiscTableOfContents();
     InitSoundEngine();
     LoadBootOverlay();
-    func_80098000();
+    BootMain();
     InitGamePadsAndMemoryCards();
     LoadWm2FieldTable();
     while (1) {
@@ -431,7 +431,7 @@ void ff8main(void) {
                     // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise
                     // load it from disc.
                     if (((g_previousGameMode == GAME_MODE_FIELD) && (g_prefetchState != PREFETCH_NONE)) &&
-                        (g_prefetchedDestId < 0x4A)) {
+                        (g_prefetchedDestId < 74)) {
                         while (UpdateCdRead() != CD_READ_IDLE);
                         DecompressLzs(g_prefetchBuffer, OVERLAY_PTR);
                     } else {
@@ -542,21 +542,14 @@ void ff8main(void) {
     }
 }
 
-/** @brief Sets the GPU draw mode (texture page) for both display buffers.
- *
- *  @param a0 Texture-page semi-transparency mode.
- */
-void SetupDrawMode(s32 a0) {
+void SetFadeBlendMode(BlendMode blendMode) {
     u16 tpage;
 
-    tpage = GetTPage(0, a0, 0, 0);
+    tpage = GetTPage(0, blendMode, 0, 0);
     SetDrawMode(&g_clearTiles[0].mode, 0, 0, tpage, 0);
     SetDrawMode(&g_clearTiles[1].mode, 0, 0, tpage, 0);
 }
 
-/** @brief Initializes the two full-screen black TILE primitives used to clear
- *         the screen each frame (one per double-buffered slot).
- */
 void InitClearTiles(void) {
     s32 i;
 
@@ -570,32 +563,19 @@ void InitClearTiles(void) {
     }
 }
 
-/** @brief Copies the current display buffer to the other so both framebuffers
- *         hold the same content.
- */
-void copyFramebuffer(void) {
+void CopyFrameBuffer(void) {
     MoveImage(&g_dispEnvs[g_bufferIndex].disp, g_dispEnvs[(g_bufferIndex + 1) & 1].disp.x,
               g_dispEnvs[(g_bufferIndex + 1) & 1].disp.y);
     while (DrawSync(1));
 }
 
-/** @brief Builds the per-frame GPU primitive list (clear tile + draw mode) for
- *         the current buffer.
- *
- *  @param brightness Fill brightness (uniform RGB); 16 (dark grey) during fades.
- */
-static void BuildPrimList(s32 brightness) {
+static void PrepareFadePass(s32 brightness) {
     ClearOTag(&g_orderingTablePtrs[g_bufferIndex], 1);
     setRGB0(&g_clearTiles[g_bufferIndex].tile, brightness, brightness, brightness);
     addPrim(&g_orderingTablePtrs[g_bufferIndex], &g_clearTiles[g_bufferIndex].tile);
     addPrim(&g_orderingTablePtrs[g_bufferIndex], &g_clearTiles[g_bufferIndex].mode);
 }
 
-/** @brief Per-frame render: swaps the double buffer, advances the active fade
- *         effect, and submits the frame's primitive list.
- *
- *  Signals completion to the main loop when the fade finishes.
- */
 static void ProcessFade(void) {
     if (g_fadeMode == FADE_NONE) {
         return;
@@ -606,7 +586,7 @@ static void ProcessFade(void) {
 
     if (g_fadeMode == FADE_IN) {
         g_fadeCounter++;
-        if (g_fadeCounter == 0x80) {
+        if (g_fadeCounter == 128) {
             g_renderMode = RENDER_IDLE;
             g_fadeMode = FADE_NONE;
         }
@@ -615,14 +595,14 @@ static void ProcessFade(void) {
         }
     } else {
         g_fadeCounter++;
-        if (g_fadeCounter == 0x22) {
+        if (g_fadeCounter == 34) {
             g_renderMode = RENDER_IDLE;
             g_fadeMode = FADE_NONE;
         }
     }
 
-    SetupDrawMode(2);
-    BuildPrimList(16);
+    SetFadeBlendMode(BLEND_SUBTRACT);
+    PrepareFadePass(16);
     PutDispEnv(&g_dispEnvs[g_bufferIndex]);
     PutDrawEnv(&g_drawEnvs[g_bufferIndex]);
     DrawOTag(&g_orderingTablePtrs[g_bufferIndex]);

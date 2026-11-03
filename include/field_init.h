@@ -4,7 +4,7 @@
 #include "common.h"
 
 
-extern void func_80098000(void);
+extern void BootMain(void);
 extern void func_800980D0(void);
 extern void func_800982B8(void);
 extern void func_800982D8(void);
