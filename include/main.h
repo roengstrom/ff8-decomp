@@ -40,8 +40,6 @@ extern ClearTile g_clearTiles[2];
 extern volatile s16 g_bufferIndex; // volatile for codegen match (prevents CSE)
 extern volatile u8    g_fadeMode;    /* volatile for codegen match (forces reload each access) */
 extern u32            g_orderingTablePtrs[];
-extern DRAWENV       *g_activeDrawEnv;  /**< Draw env of the buffer currently being built. */
-extern s32            D_8005F138;       /**< Active display-environment window (holds a @c DISPENV*). */
 
 extern u8 g_vsyncSkip;
 extern volatile s32 g_secondTicker;

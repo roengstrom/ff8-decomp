@@ -312,7 +312,7 @@ static inline void RunBattle(u8 *musicBuffer) {
     s16 i;
 
     func_80038030(musicBuffer);
-    gameStateLoop();
+    RunBattleModes();
     if (g_renderMode != RENDER_BATTLE_RESULTS) {
         DisableStpBit();
     }
@@ -467,7 +467,7 @@ void ff8main(void) {
                     }
                     break;
                 case GAME_MODE_CARD:
-                    gameStateLoop();
+                    RunBattleModes();
                     g_previousGameMode = GAME_MODE_BATTLE;
                     g_gameMode = GAME_MODE_FIELD;
                     break;

@@ -19,6 +19,7 @@
 #include "input/gamepad.h"
 #include "psxsdk/libapi.h"
 #include "psxsdk/r3000.h"
+#include "gamestate.h"
 
 
 void callCdTick(void);
@@ -34,7 +35,6 @@ extern u8 g_cardFilename[];  /* encoded save filename (max 8 chars + null) */
 extern s16 g_cardFileSlot;   /* save slot index */
 extern u8 g_cardFileType;    /* card/save type */
 extern u8 g_cardFileActive;
-extern DRAWENV *g_activeDrawEnv;
 extern u8 g_paletteIndices[];
 
 void initBattleDisplay(void) {

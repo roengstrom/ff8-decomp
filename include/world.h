@@ -236,7 +236,6 @@ typedef struct {
  * Consolidated here so each symbol has a single canonical declaration.
  * (Cross-overlay main-binary symbols g_gameState.fieldVars and g_fieldVars are owned
  * by field.h / gamestate.h respectively and are not redeclared here.) */
-extern s32            D_8005F138;        /**< Active display-env window (holds a DISPENV*). */
 extern s32            D_800C4D20;
 extern s32            D_800C4D30;        /**< World-map zoom/scale constant (set by setupWorldMapView).
                                                Stored as a word, but @ref func_800A8270 uses only its low

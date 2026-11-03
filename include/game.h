@@ -7,7 +7,7 @@
 void vsyncGameHandler(void);
 
 /** @brief Main game state-machine loop, driven by g_gameMode. */
-void gameStateLoop(void);
+void RunBattleModes(void);
 
 s32 isBossBattle(void);
 void addCharMaxHp(s32 partyIdx, s32 amount);

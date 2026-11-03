@@ -743,7 +743,7 @@ typedef struct {
 
 extern s16             D_8005F11C;
 extern u8              D_8005F170;   /**< Cleared once at boot by loadKernel and set only by
-                                            battle_render's entry, which only gameStateLoop state 4
+                                            battle_render's entry, which only RunBattleModes state 4
                                             reaches; gates the magic menu's refill-all shortcut. */
 extern BattleCharState g_battleChars;  // 0x80078720
 extern BattleConfig    g_battleConfig; // 0x80082C08

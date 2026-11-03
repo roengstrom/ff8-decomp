@@ -357,6 +357,7 @@ extern s32                  g_tripleTriadRules;                /**< Active rule 
 /** @brief Per-frame node callback; a return value with bit 1 set unlinks the node.
  *  Concrete callbacks take their own node-struct pointer type, so call sites cast
  *  to this canonical type when storing them. */
+struct ObjListNode;
 typedef s32 (*ObjNodeFn)(struct ObjListNode *node);
 
 /** @brief Generic pool-backed list-node header (0xC bytes). Type-specific nodes

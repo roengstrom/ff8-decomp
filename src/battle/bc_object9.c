@@ -11,6 +11,7 @@
 #include "battle/bc_object13.h"
 #include "battle/bc_object14.h"
 #include "battle/bc_object15.h"
+#include "sound.h"
 
 extern u8 D_800EE490[];
 
@@ -1268,8 +1269,6 @@ extern s32 D_800EEECC;
 extern u8 D_800EE45C[];
 extern u8 D_800EEDD8[];
 extern u8 D_800EEDE8[];
-extern u8 D_8005F388;
-extern u8 D_80063388;
 extern u8 D_800EF020;
 extern u8* D_800EEED0;
 extern u8 D_800EEED4;
@@ -1550,11 +1549,11 @@ INCLUDE_ASM("asm/ovl/battle/nonmatchings/bc_object9", func_800B3330);
 void func_800B3470(void) {
     D_800EEEC4 = 0;
     if (g_battleConfig.unk9 == 0) {
-        D_800EEED0 = &D_8005F388;
+        D_800EEED0 = D_8005F388;
     } 
     
     else {
-        D_800EEED0 = &D_80063388;
+        D_800EEED0 = D_80063388;
     }
     
     D_800EEED4 = 0;
