@@ -437,7 +437,7 @@ typedef enum {
 extern volatile s16 g_gameMode;
 extern DISPENV      g_dispEnvs[2];
 extern DRAWENV      g_drawEnvs[2];
-extern s8           g_fadeCounter; /* signed: counts toward 0 */
+extern u8 g_fadeCounter;
 
 /** @brief Bit @c 0x10 mirrors into @c FieldVars.field58 on full field reset. */
 extern u8  D_80078DF8;

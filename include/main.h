@@ -15,6 +15,8 @@ void InitClearTiles(void);
 /** @brief Copies the framebuffer from the current display buffer to the other. */
 void copyFramebuffer(void);
 
+void SetupDrawMode(s32 mode);
+
 /* =============================================================== *
  *  Private — types, globals and helpers internal to main.c.       *
  * =============================================================== */
@@ -51,20 +53,5 @@ extern u8 g_soundEffectData[];
 extern u8 g_packetBuffer[PACKET_BUFFER_SIZE];
 #define CHOCOBO_WORLD_MUSIC_SIZE 0x200
 extern u8 g_chocoboWorldMusic[CHOCOBO_WORLD_MUSIC_SIZE];
-
-void VsyncHandler(void);
-void InitHardware(void);
-void LoadFieldOverlay(void);
-void LoadWorldOverlay(void);
-void LoadWm2FieldTable(void);
-void InitSoundEngine(void);
-void LoadBootOverlay(void);
-void LoadSystemFont(void);
-void InitGamePadsAndMemoryCards(void);
-void InitSystemData(void);
-void LoadDiscTableOfContents(void);
-void SetupDrawMode(s32 mode);
-void BuildPrimList(s32 brightness);
-void ProcessFade(void);
 
 #endif /* MAIN_H */

@@ -13,6 +13,7 @@
 #include "cd.h"
 #include "cdrom.h"
 #include "imgtoc.h"
+#include "cpu.h"
 
 #define OVERLAY_PTR ((void *)OVERLAY_ADDR)
 
@@ -23,15 +24,8 @@ extern u8 D_800762C8[];
 extern u8 D_80052898[];
 extern u16 g_bossBattleScenes[]; /**< Battle scene IDs of the boss battles, ended by 0xFFFF. */
 
-void func_8001F5C8(void);
 void func_80099D30(void);
 void tripleTriadMainLoop(void);
-
-/**
- * @brief Empty stub at the start of game.c (no-op return).
- */
-void func_800205C8(void) {
-}
 
 /**
  * @brief Game code VSync handler. Clears render mode if isResultsThreadDone signals completion.
@@ -652,7 +646,7 @@ top:
 
 case4:
     cdReadSync(D_800974C0[0].sector, D_800974C0[0].size, OVERLAY_PTR, NULL);
-    func_8001F5C8();
+    FlushInstructionCache();
     func_80098238();
     goto top;
 
@@ -662,21 +656,21 @@ case3:
     startBattleTransition(isBossBattle());
     memzero16(OVERLAY_PTR, 0xA400);
     cdReadSync(D_800974C8[0].sector, D_800974C8[0].size, OVERLAY_PTR, NULL);
-    func_8001F5C8();
+    FlushInstructionCache();
     func_80099D30();
     goto top;
 
 case8:
     g_renderMode = RENDER_IDLE;
     cdReadAsyncSync(D_800974B8[0].sector, D_800974B8[0].size, OVERLAY_PTR, NULL);
-    func_8001F5C8();
+    FlushInstructionCache();
     tripleTriadMainLoop();
     goto top;
 
 case5:
     startBattleResults();
     g_renderMode = mode;
-    func_8001F5C8();
+    FlushInstructionCache();
     g_gameMode = GAME_MODE_EXIT;
     goto top;
 

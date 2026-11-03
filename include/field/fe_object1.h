@@ -319,7 +319,6 @@ extern u8 D_800C3720[];
 extern u8 D_800C3726[];
 /** @brief @c D_800C3720 + 9 — the fourth and fifth strips' RGB triples. */
 extern u8 D_800C3729[];
-extern u32 g_orderingTablePtrs[];        /**< Per-buffer ordering-table heads. */
 
 /** @brief Raised by @c func_800A5898 when the dialog state reaches @c 4. */
 extern u8 D_80070649;
