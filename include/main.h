@@ -26,10 +26,16 @@ typedef enum {
     FADE_OUT  = 2
 } FadeMode;
 
+typedef struct {
+    /** 0x00 */ DR_MODE mode;
+    /** 0x0C */ TILE tile;
+    /** 0x1C */ u32 unk1C;
+} ClearTile;
+
 /* Display / render state owned by main.c. */
 extern s16 g_curFieldId; /**< Global id of the current field map. */
-extern TILE           g_clearTiles[];
-extern volatile u16   g_bufferIndex; /* volatile for codegen match (forces sign extension, prevents CSE) */
+extern ClearTile g_clearTiles[2];
+extern volatile s16 g_bufferIndex; // volatile for codegen match (prevents CSE)
 extern volatile u8    g_fadeMode;    /* volatile for codegen match (forces reload each access) */
 extern u32            g_orderingTablePtrs[];
 extern DRAWENV       *g_activeDrawEnv;  /**< Draw env of the buffer currently being built. */
@@ -45,7 +51,6 @@ extern u8 g_soundEffectData[];
 extern u8 g_packetBuffer[PACKET_BUFFER_SIZE];
 #define CHOCOBO_WORLD_MUSIC_SIZE 0x200
 extern u8 g_chocoboWorldMusic[CHOCOBO_WORLD_MUSIC_SIZE];
-extern u8             D_80070468[];
 
 void VsyncHandler(void);
 void InitHardware(void);

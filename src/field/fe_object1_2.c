@@ -1985,8 +1985,8 @@ void func_800A5224(MATRIX *m, u32 *ot, FieldRibbonPrims *prims,
  * buffer's ordering table via @c ClearOTagR, then writes each fill-color
  * component scaled by the current dialog fade level
  * (@c dialogTimer, 0..256) into that buffer's clear @ref TILE, and finally
- * prepends both the tile and its preceding @ref DR_MODE primitive (12 bytes
- * before the tile) to the caller-supplied ordering table @p ot.
+ * prepends both the tile and its @ref DR_MODE primitive to the caller-supplied
+ * ordering table @p ot.
  *
  * @param ot Ordering-table slot to link the two clear primitives into.
  * @param r  Fill red  , scaled to @c r*dialogTimer/256, low byte to TILE @c r0.
@@ -1996,22 +1996,16 @@ void func_800A5224(MATRIX *m, u32 *ot, FieldRibbonPrims *prims,
  * @note @c g_bufferIndex is @c volatile, so every subscript re-reads it; the
  *       @c dialogTimer read is likewise forced through a @c volatile pointer to
  *       reload each component (its fade value can change between frames).
- *       The first store caches the tile index in @c idx so gcc emits the index
- *       before the shared @c g_clearTiles base, matching the original schedule
- *       in the multiply's delay window; @c g0 / @c b0 recompute it inline (each
- *       is its own @c volatile @c g_bufferIndex read).
  */
 void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
-    ClearOTagR(&g_orderingTablePtrs[(s16)g_bufferIndex], 1);
+    ClearOTagR(&g_orderingTablePtrs[g_bufferIndex], 1);
     {
         volatile FieldContext *sys = &g_fieldContext;
-        s32 idx = (s16)g_bufferIndex * 2;
-        g_clearTiles[idx].r0 = (s16)sys->dialogTimer * r / 256;
-        g_clearTiles[(s16)g_bufferIndex * 2].g0 = (s16)sys->dialogTimer * g / 256;
-        g_clearTiles[(s16)g_bufferIndex * 2].b0 = (s16)sys->dialogTimer * b / 256;
+        setRGB0(&g_clearTiles[g_bufferIndex].tile, (s16)sys->dialogTimer * r / 256, (s16)sys->dialogTimer * g / 256,
+                (s16)sys->dialogTimer * b / 256);
     }
-    addPrim(ot, &g_clearTiles[(s16)g_bufferIndex * 2]);
-    addPrim(ot, (DR_MODE *)&g_clearTiles[(s16)g_bufferIndex * 2] - 1);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].tile);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].mode);
 }
 
 /**
@@ -2020,9 +2014,8 @@ void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
  *
  * A generalized sibling of @c BuildPrimList: it clears the active buffer's
  * ordering table via @c ClearOTagR, writes the fill color into that buffer's
- * clear @ref TILE, then prepends both the tile and its preceding @ref DR_MODE
- * primitive (12 bytes before the tile) to the caller-supplied ordering table
- * @p ot. @c g_bufferIndex is @c volatile, so each subscript re-reads it.
+ * clear @ref TILE, then prepends both the tile and its @ref DR_MODE primitive
+ * to the caller-supplied ordering table @p ot. @c g_bufferIndex is @c volatile, so each subscript re-reads it.
  *
  * @param ot Ordering-table slot to link the two clear primitives into.
  * @param r  Fill red  , low byte stored to TILE @c r0.
@@ -2034,12 +2027,10 @@ void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
  *       TILE color component.
  */
 void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
-    ClearOTagR(&g_orderingTablePtrs[(s16)g_bufferIndex], 1);
-    g_clearTiles[(s16)g_bufferIndex * 2].r0 = r;
-    g_clearTiles[(s16)g_bufferIndex * 2].g0 = g;
-    g_clearTiles[(s16)g_bufferIndex * 2].b0 = b;
-    addPrim(ot, &g_clearTiles[(s16)g_bufferIndex * 2]);
-    addPrim(ot, (DR_MODE *)&g_clearTiles[(s16)g_bufferIndex * 2] - 1);
+    ClearOTagR(&g_orderingTablePtrs[g_bufferIndex], 1);
+    setRGB0(&g_clearTiles[g_bufferIndex].tile, r, g, b);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].tile);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].mode);
 }
 
 /**

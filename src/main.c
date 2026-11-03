@@ -534,49 +534,33 @@ void SetupDrawMode(s32 a0) {
     u16 tpage;
 
     tpage = GetTPage(0, a0, 0, 0);
-    SetDrawMode(D_80070468, 0, 0, tpage, 0);
-    SetDrawMode(D_80070468 + 0x20, 0, 0, tpage, 0);
+    SetDrawMode(&g_clearTiles[0].mode, 0, 0, tpage, 0);
+    SetDrawMode(&g_clearTiles[1].mode, 0, 0, tpage, 0);
 }
 
 /** @brief Initializes the two full-screen black TILE primitives used to clear
  *         the screen each frame (one per double-buffered slot).
  */
 void InitClearTiles(void) {
-    s32 i = 0;
-    TILE *tile = &g_clearTiles[0];
-top:
-    SetTile(tile);
-    SetSemiTrans(tile, 1);
-    SetShadeTex(tile, 1);
-    tile->w = 320;
-    tile->r0 = 0;
-    tile->g0 = 0;
-    tile->b0 = 0;
-    tile->h = 224;
-    tile->x0 = 0;
-    tile->y0 = 0;
-    tile += 2;
-    if (++i < 2) {
-        goto top;
+    s32 i;
+
+    for (i = 0; i < 2; i++) {
+        SetTile(&g_clearTiles[i].tile);
+        SetSemiTrans(&g_clearTiles[i].tile, 1);
+        SetShadeTex(&g_clearTiles[i].tile, 1);
+        setRGB0(&g_clearTiles[i].tile, 0, 0, 0);
+        setWH(&g_clearTiles[i].tile, 320, 224);
+        setXY0(&g_clearTiles[i].tile, 0, 0);
     }
 }
 
 /** @brief Copies the current display buffer to the other so both framebuffers
  *         hold the same content.
- *
- *  @note The raw pointer arithmetic is required for codegen matching.
  */
 void copyFramebuffer(void) {
-    s32 base;
-    s32 ofs1;
-
-    ofs1 = (s16)g_bufferIndex * 20;
-    base = g_dispEnvs;
-
-    MoveImage((void *)(ofs1 + base), *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base),
-              *(s16 *)(((s16)g_bufferIndex + 1 & 1) * 20 + base + 2));
-
-    while (DrawSync(1) != 0) {}
+    MoveImage(&g_dispEnvs[g_bufferIndex].disp, g_dispEnvs[(g_bufferIndex + 1) & 1].disp.x,
+              g_dispEnvs[(g_bufferIndex + 1) & 1].disp.y);
+    while (DrawSync(1));
 }
 
 /** @brief Builds the per-frame GPU primitive list (clear tile + draw mode) for
@@ -585,12 +569,10 @@ void copyFramebuffer(void) {
  *  @param brightness Fill brightness (uniform RGB); 16 (dark grey) during fades.
  */
 void BuildPrimList(s32 brightness) {
-    ClearOTag(&g_orderingTablePtrs[(s16)g_bufferIndex], 1);
-    g_clearTiles[(s16)g_bufferIndex * 2].r0 = brightness;
-    g_clearTiles[(s16)g_bufferIndex * 2].g0 = brightness;
-    g_clearTiles[(s16)g_bufferIndex * 2].b0 = brightness;
-    addPrim(&g_orderingTablePtrs[(s16)g_bufferIndex], &g_clearTiles[(s16)g_bufferIndex * 2]);
-    addPrim(&g_orderingTablePtrs[(s16)g_bufferIndex], (DR_MODE *)&g_clearTiles[(s16)g_bufferIndex * 2] - 1);
+    ClearOTag(&g_orderingTablePtrs[g_bufferIndex], 1);
+    setRGB0(&g_clearTiles[g_bufferIndex].tile, brightness, brightness, brightness);
+    addPrim(&g_orderingTablePtrs[g_bufferIndex], &g_clearTiles[g_bufferIndex].tile);
+    addPrim(&g_orderingTablePtrs[g_bufferIndex], &g_clearTiles[g_bufferIndex].mode);
 }
 
 /** @brief Per-frame render: swaps the double buffer, advances the active fade
@@ -627,7 +609,7 @@ void ProcessFade(void) {
 
     SetupDrawMode(2);
     BuildPrimList(16);
-    PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
-    PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
-    DrawOTag(&g_orderingTablePtrs[(s16)g_bufferIndex]);
+    PutDispEnv(&g_dispEnvs[g_bufferIndex]);
+    PutDrawEnv(&g_drawEnvs[g_bufferIndex]);
+    DrawOTag(&g_orderingTablePtrs[g_bufferIndex]);
 }

@@ -434,8 +434,8 @@ void FieldMain(void) {
 
         g_dispEnvs[0].isrgb24 = 0;
         g_dispEnvs[1].isrgb24 = 0;
-        PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
-        PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
+        PutDispEnv(&g_dispEnvs[g_bufferIndex]);
+        PutDrawEnv(&g_drawEnvs[g_bufferIndex]);
 
         state = g_fieldContext.mode;
         g_previousGameMode = GAME_MODE_FIELD;
@@ -640,10 +640,10 @@ void func_80099348(void) {
         func_80099180();
         g_bufferIndex++;
         g_bufferIndex &= 1;
-        D_800C71E0 = &D_800C7218[(s16)g_bufferIndex];
+        D_800C71E0 = &D_800C7218[g_bufferIndex];
         D_8005F110 = D_8005F138;
-        g_activeDrawEnv = &g_drawEnvs[(s16)g_bufferIndex];
-        D_8005F138 = (s32)&g_dispEnvs[(s16)g_bufferIndex];
+        g_activeDrawEnv = &g_drawEnvs[g_bufferIndex];
+        D_8005F138 = (s32)&g_dispEnvs[g_bufferIndex];
         ClearOTagR(D_800C71E0->ot, 0x1000);
 
         SCRATCH_STACK_ENTER();
@@ -724,7 +724,7 @@ void func_80099348(void) {
             func_800A15C0(D_800C71E0, g_drawEnvs, 0);
         }
 
-        if (g_dispEnvs[((s16)g_bufferIndex + 1) & 1].isrgb24 == 0
+        if (g_dispEnvs[(g_bufferIndex + 1) & 1].isrgb24 == 0
             && g_fieldContext.unk1AD == 0) {
             SCRATCH_STACK_ENTER();
             func_800A1CFC(g_fieldActors, D_800C71E0);
@@ -736,17 +736,17 @@ void func_80099348(void) {
         }
 
         if (func_800BE274() == 0) {
-            func_800A06F0(0, D_800C71E0, D_800C6D98[(s16)g_bufferIndex],
+            func_800A06F0(0, D_800C71E0, D_800C6D98[g_bufferIndex],
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
                    && g_fieldContext.unk1A7 == 0) {
-            func_800A2AF8(D_800C71E0, D_800D5EC8[(s16)g_bufferIndex],
-                          D_800D5EB8[(s16)g_bufferIndex], g_curFieldView);
+            func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
+                          D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
 
         if (func_800BE274() == 0 && g_curFieldParticles != 0) {
             func_800A37A8(&g_curFieldView->m, D_800C71E0, g_curFieldParticles);
-            if ((s16)g_bufferIndex == 0) {
+            if (g_bufferIndex == 0) {
                 g_curFieldParticles->primCursor = g_curFieldParticles->primArena[0];
             } else {
                 g_curFieldParticles->primCursor = g_curFieldParticles->primArena[1];
@@ -769,17 +769,17 @@ void func_80099348(void) {
             }
         }
 
-        if ((s16)g_bufferIndex == 0) {
-            g_drawEnvs[(s16)g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left;
+        if (g_bufferIndex == 0) {
+            g_drawEnvs[g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left;
         } else {
-            g_drawEnvs[(s16)g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left + 512;
+            g_drawEnvs[g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left + 512;
         }
-        g_drawEnvs[(s16)g_bufferIndex].clip.y = g_curFieldInfo->screenRanges[0].top;
-        g_drawEnvs[(s16)g_bufferIndex].clip.w =
+        g_drawEnvs[g_bufferIndex].clip.y = g_curFieldInfo->screenRanges[0].top;
+        g_drawEnvs[g_bufferIndex].clip.w =
             g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left;
-        g_drawEnvs[(s16)g_bufferIndex].clip.h =
+        g_drawEnvs[g_bufferIndex].clip.h =
             g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
-        SetDrawEnv(&D_800C71E0->drawEnvPrim, &g_drawEnvs[(s16)g_bufferIndex]);
+        SetDrawEnv(&D_800C71E0->drawEnvPrim, &g_drawEnvs[g_bufferIndex]);
 
         addPrim(&D_800C71E0->ot[0xFFF], &D_800C71E0->drawEnvPrim);
         addPrim(&D_800C71E0->ot[1], &D_800C71E0->unk4F00);
@@ -848,7 +848,7 @@ void func_80099348(void) {
         } else {
             frames--;
         }
-        PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
+        PutDispEnv(&g_dispEnvs[g_bufferIndex]);
 
         if ((g_fieldContext.padHeld & PADstart) && !(g_fieldContext.padHeldPrev & PADstart)
             && func_800BE274() == 0 && g_fieldContext.dialogState != 4
@@ -858,7 +858,7 @@ void func_80099348(void) {
         }
 
         if (g_fieldContext.unk1AA == 1) {
-            ClearImage(&g_drawEnvs[(s16)g_bufferIndex].clip, 0, 0, 0);
+            ClearImage(&g_drawEnvs[g_bufferIndex].clip, 0, 0, 0);
         }
         if (g_fieldContext.unk1B1 == 1) {
             g_fieldContext.unk1B1 = 2;
