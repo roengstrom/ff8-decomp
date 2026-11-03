@@ -35,6 +35,8 @@
 /** @brief Global field ids of the maps a new game and a game over go to. */
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
+#define FADE_STEP 16
+#define MENU_ALLOW_SAVE 1
 
 // The place in the disc image where the table of contents file resides.
 // These were likely calculated during the mastering process of the disc.
@@ -66,7 +68,7 @@ static void LoadSystemFont(void);
 static void InitGamePadsAndMemoryCards(void);
 static void InitSystemData(void);
 static void LoadDiscTableOfContents(void);
-static void PrepareFadePass(s32 brightness);
+static void PrepareFadePass(s32 step);
 static void ProcessFade(void);
 
 static CdFileDesc g_fileTableDesc[] = {{IMG_TOC_SECTOR, IMG_TOC_SIZE}};
@@ -316,19 +318,19 @@ static inline void RunBattle(u8 *musicBuffer) {
     if (g_renderMode != RENDER_BATTLE_RESULTS) {
         DisableStpBit();
     }
-    if (g_battleConfig.result == BATTLE_RESULT_UNK5) {
+    if (g_battleConfig.result == BATTLE_RESULT_SOFT_RESET) {
         // matching hack
         do {
         } while (0);
         ReturnToTitle();
         return;
     }
-    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->fieldB6 & 0x200))) {
+    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->fieldB6 & NO_GAMEOVER_ON_LOSS))) {
         GoToGameOverField();
         return;
     }
-    if (g_battleConfig.result == BATTLE_RESULT_UNK3) {
-        if (g_fieldVars->fieldB6 & 0x100) {
+    if (g_battleConfig.result == BATTLE_RESULT_TIME_UP) {
+        if (g_fieldVars->fieldB6 & NO_GAMEOVER_ON_TIME_UP) {
             g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
         } else {
             GoToGameOverField();
@@ -425,7 +427,7 @@ void ff8main(void) {
                         D_80082C8C.mode = WORLD_ENTER_FROM_MENU;
                         break;
                     case GAME_MODE_NONE:
-                        D_80082C8C.mode = 6;
+                        D_80082C8C.mode = WORLD_ENTER_FROM_LOAD;
                         break;
                     }
                     // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise
@@ -502,7 +504,7 @@ void ff8main(void) {
                         }
                         g_gameMode = GAME_MODE_FIELD;
                     } else {
-                        result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | 1);
+                        result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | MENU_ALLOW_SAVE);
                         g_previousGameMode = GAME_MODE_MENU;
                         g_gameMode = GAME_MODE_WORLD;
                     }
@@ -569,9 +571,9 @@ void CopyFrameBuffer(void) {
     while (DrawSync(1));
 }
 
-static void PrepareFadePass(s32 brightness) {
+static void PrepareFadePass(s32 step) {
     ClearOTag(&g_orderingTablePtrs[g_bufferIndex], 1);
-    setRGB0(&g_clearTiles[g_bufferIndex].tile, brightness, brightness, brightness);
+    setRGB0(&g_clearTiles[g_bufferIndex].tile, step, step, step);
     addPrim(&g_orderingTablePtrs[g_bufferIndex], &g_clearTiles[g_bufferIndex].tile);
     addPrim(&g_orderingTablePtrs[g_bufferIndex], &g_clearTiles[g_bufferIndex].mode);
 }
@@ -602,7 +604,7 @@ static void ProcessFade(void) {
     }
 
     SetFadeBlendMode(BLEND_SUBTRACT);
-    PrepareFadePass(16);
+    PrepareFadePass(FADE_STEP);
     PutDispEnv(&g_dispEnvs[g_bufferIndex]);
     PutDrawEnv(&g_drawEnvs[g_bufferIndex]);
     DrawOTag(&g_orderingTablePtrs[g_bufferIndex]);

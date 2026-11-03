@@ -12,14 +12,16 @@ typedef enum {
     BATTLE_RESULT_UNDETERMINED = 0,
     BATTLE_RESULT_GAMEOVER = 1,
     BATTLE_RESULT_ESCAPED = 2,
-    BATTLE_RESULT_UNK3 = 3,
+    BATTLE_RESULT_TIME_UP = 3,
     BATTLE_RESULT_WIN = 4,
-    BATTLE_RESULT_UNK5 = 5
+    BATTLE_RESULT_SOFT_RESET = 5
 } BattleResult;
 
 /** @brief BattleConfig.unk2 flag: a countdown is running. The menu clock shows it
  * instead of the play time, and a battle ends when it reaches 0. */
 #define BATTLE_FLAG_COUNTDOWN 0x04
+#define NO_GAMEOVER_ON_TIME_UP 0x100
+#define NO_GAMEOVER_ON_LOSS 0x200
 
 #define GET_OFFSET(type, ptr, var) ((type*)(var + (intrptr_t)ptr))
 

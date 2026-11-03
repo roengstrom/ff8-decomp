@@ -28,12 +28,12 @@ void func_800AF254(void) {
             break;
             
         case BATTLE_RESULT_GAMEOVER:
-        case BATTLE_RESULT_UNK3:
+        case BATTLE_RESULT_TIME_UP:
             g_gameState.mainData.fieldCE0++;
             g_gameMode = GAME_MODE_EXIT;
             break;
             
-        case BATTLE_RESULT_UNK5:
+        case BATTLE_RESULT_SOFT_RESET:
             g_gameMode = GAME_MODE_EXIT;
             break;
     }

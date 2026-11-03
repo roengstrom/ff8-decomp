@@ -12,7 +12,8 @@ typedef enum {
     WORLD_ENTER_FROM_BATTLE = 2,
     WORLD_EXIT_TO_BATTLE = 3,
     WORLD_ENTER_FROM_MENU = 4,
-    WORLD_EXIT_TO_MENU = 5
+    WORLD_EXIT_TO_MENU = 5,
+    WORLD_ENTER_FROM_LOAD = 6
 } WorldTransition;
 
 typedef struct {
