@@ -165,6 +165,14 @@ typedef struct {
     u16 w, h;
 } ModeSprt;
 
+// GPU semi-transparency modes, the abr argument of GetTPage.
+typedef enum {
+    BLEND_AVERAGE = 0, // 0.5 x screen + 0.5 x drawn
+    BLEND_ADD = 1, // screen + drawn
+    BLEND_SUBTRACT = 2, // screen - drawn
+    BLEND_ADD_QUARTER = 3 // screen + 0.25 x drawn
+} BlendMode;
+
 /* Mark an uninitialised variable as deliberately carrying whatever garbage
  * its register holds. The empty volatile asm is a definition the optimiser
  * can neither delete nor propagate, and it emits no instructions — so the

@@ -171,7 +171,6 @@ extern s32  GetPressedButtons(s32 slot, s32 sub);     /**< Per-gamepad held butt
 /* File-scope data: a few globals owned elsewhere (battle config / menu palette) plus
    be_object4-private board / SFX / input state — the D_801D4xxx / D_801C2Exx / D_80182Exx
    symbols are not referenced by any other translation unit. */
-extern s16 D_8005F11C;
 extern u8  D_801A1B88[];       /**< Start of the Triple Triad sound region uploaded to a bank. */
 extern s16 D_801D49E2;
 extern s16 D_801D49F8[];

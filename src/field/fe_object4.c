@@ -1199,7 +1199,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
 /**
  * @brief Broadcast "trigger active party" event.
  *
- * If @c D_800DE4FD is clear, also clears @c D_8007064B. Then if the
+ * If @c D_800DE4FD is clear, also clears @c g_fieldContext.userControlOff. Then if the
  * trigger flag @c D_80085390 is non-zero, clears it and walks the 3
  * active party members. For each member whose @c memberSlot is set and
  * whose field-entity is NOT locked (flags bit 0x40 clear), records the
@@ -1209,7 +1209,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
  */
 s32 opHandler_UCON(void) {
     if (D_800DE4FD[0] == 0) {
-        D_8007064B = 0;
+        g_fieldContext.userControlOff = 0;
     }
 
     if (D_80085390 == 0) {
@@ -1243,7 +1243,7 @@ s32 opHandler_UCON(void) {
 /**
  * @brief "Re-arm active party" — counterpart to @c opHandler_UCON.
  *
- * Always sets @c g_fieldContext.unk1A3 = 1. If the trigger @c D_80085390 is
+ * Always sets @c g_fieldContext.userControlOff = 1. If the trigger @c D_80085390 is
  * already set, returns early. Otherwise sets @c D_80085390 / @c unk015
  * and walks the 3 party slots:
  *
@@ -1257,7 +1257,7 @@ s32 opHandler_UCON(void) {
  * entity flags to bits 0x0000F800 → 0x00002000, and clears bit 0x4.
  */
 s32 opHandler_UCOFF(void) {
-    g_fieldContext.unk1A3 = 1;
+    g_fieldContext.userControlOff = 1;
     if (D_80085390 != 0) {
         return 2;
     }

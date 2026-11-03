@@ -12,7 +12,7 @@ extern s32 D_800D2264;              /**< Counter increment per update (read by w
 
 extern void func_800A7B38(void);    /**< Step the texture-strip animations and upload changed frames. */
 
-/* Entry points called from the world entry loop func_800987D8 (we_object0). */
+/* Entry points called from the world entry loop WorldMain (we_object0). */
 extern void func_800A64DC(void);                 /**< Build the two worldmap strip sub-OTs. */
 extern void func_800A6A74(BattleSceneCtx *ctx);  /**< Splice two of @p ctx's bone prims into the strip sub-OTs. */
 extern void func_800A6BE0(void);                 /**< Prime every worldmap strip pool from VRAM. */
@@ -38,7 +38,7 @@ extern volatile CameraRef D_800C9870;
 /**
  * Spawn a kind-0xE particle in the D_800D9CB0 pool at @p pos (rotation
  * zeroed, life/limit RNG-jittered). Its only caller is the ambient spawner
- * func_800B99A4, which the world entry loop (func_800987D8) calls.
+ * func_800B99A4, which the world entry loop (WorldMain) calls.
  */
 extern void func_800AB2D4(VECTOR *pos);
 

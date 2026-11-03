@@ -1228,8 +1228,8 @@ void initAllBattleEntities(void) {
  * @brief Store a base address for battle entity data.
  * @param val Value to store (typically a memory address).
  */
-void setBattleEntityBase(s32 val) {
-    D_800834CC = val;
+void SetNameDictionary(s32 val) {
+    g_nameDictionary = val;
 }
 
 

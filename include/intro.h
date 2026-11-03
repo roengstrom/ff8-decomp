@@ -37,14 +37,18 @@ void loadIntroSlide(s32 stage);
 void func_80098378(s32 mode, s32 x, s32 y, s32 width, s32 height);
 void func_80098440(s32 brightness, s32 mode, RECT *rect);
 void loadWrongDiscWarning(void);
+typedef enum {
+    INTRO_SCREEN_BOOT = 0,
+    INTRO_SCREEN_INSERT_DISC = 1
+} IntroScreen;
+
 void func_800985EC(void);
 void func_8009869C(void);
 void playBootIntro(void);
 void waitForCorrectDisc(void);
-void func_80098FD4(s32 mode);
+void IntroMain(s32 mode);
 
 /* --- External helpers called by the intro overlay ------------------------ */
-extern s32  func_800393C8(void);
 extern s32  getDiscId(void);
 
 #endif /* INTRO_H */

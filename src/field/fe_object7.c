@@ -61,11 +61,11 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
                 resetSeedRankNotification();
             }
 
-            g_fieldContext.mode = 8;
+            g_fieldContext.mode = FIELD_MODE_CARD_GAME;
             g_fieldContext.counter = 0;
 
             while (sndGetStatus() == 2) {
-                func_800393C8();
+                UpdateCdRead();
             }
 
             for (i = 0; i < 2; i++) {
@@ -82,7 +82,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
             func_80037FB0(0, 0x46, D_8005F13C);
 
             while (g_fieldVars->soundLoadComplete == 0) {
-                func_800393C8();
+                UpdateCdRead();
             }
 
             g_battleConfig.unk9 = g_fieldVars->soundBankSelector;
@@ -586,8 +586,8 @@ s32 opHandler_BATTLEMODE(ScriptContext *context) {
  * @return 3 (special return — triggers mode transition).
  */
 s32 opHandler_BATTLE(ScriptContext *context) {
-    if (g_fieldContext.mode == 0) {
-        g_fieldContext.mode = 3;
+    if (g_fieldContext.mode == FIELD_MODE_NONE) {
+        g_fieldContext.mode = FIELD_MODE_BATTLE;
     }
     g_battleConfig.unk2 = POP(context);
     g_fieldContext.counter = POP(context);
@@ -644,7 +644,7 @@ s32 opHandler_BATTLECUT(ScriptContext *context) {
  * @return 1 (yield).
  */
 s32 opHandler_GAMEOVER(ScriptContext *context) {
-    g_fieldContext.mode = 4;
+    g_fieldContext.mode = FIELD_MODE_TITLE;
     return 1;
 }
 

@@ -39,6 +39,8 @@ extern TripleTriadStateFn g_tripleTriadStateHandlers[];  /**< Triple Triad top-l
 
 /* Public prototypes */
 
+extern s32 tripleTriadMainLoop(void);
+
 /* Pool-backed object list (nodes carved from a fixed pool; see ObjList). */
 extern void  initObjList(ObjList *list, u8 *pool, s32 stride, s32 count);
 extern void *allocObjNode(ObjList *list, ObjNodeFn callback);

@@ -3,12 +3,15 @@
 #include "battle.h"
 #include "gamestate.h"
 #include "intro.h"
+#include "cd.h"
 #include "cdrom.h"
 #include "snd_init.h"
 #include "input/gamepad.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libcd.h"
+
+#define INTRO_MUSIC_BUFFER_ADDR 0x80110000
 
 /* s32 view of gamepad.c's u16 GetPressedButtons; see gamepad.h. */
 extern s32 GetPressedButtons(s32 slot, s32 sub);
@@ -152,7 +155,7 @@ void loadIntroSlide(s32 stage) {
     /* Each table entry is 2 u32s (sector, size); index by stage * 2. */
     cdReadAsyncSync(g_introAssetTable[stage * 2],
                     g_introAssetTable[stage * 2 + 1],
-                    (s32)g_introStagedFrame, 0);
+                    g_introStagedFrame, NULL);
 }
 
 /**
@@ -249,7 +252,7 @@ void func_80098440(s32 brightness, s32 mode, RECT *rect) {
 void loadWrongDiscWarning(void) {
     cdReadAsyncSync(g_introAssetTable[INTRO_ASSET_WRONG_DISC * 2],
                     g_introAssetTable[INTRO_ASSET_WRONG_DISC * 2 + 1],
-                    (s32)0x8017D000, 0);
+                    g_wrongDiscFrame, NULL);
 }
 
 /**
@@ -343,11 +346,11 @@ void func_8009869C(void) {
 /**
  * @brief Disc-swap intro screen: wait for the right disc to be inserted.
  *
- * Played when @c func_80098FD4 is invoked with mode 1 — typically when
+ * Played when @c IntroMain is invoked with @c INTRO_SCREEN_INSERT_DISC — typically when
  * loading a save from a different disc than the one inserted. Loops:
  *  - Loads the prompt graphic for the *currently inserted* disc minus one
  *    (entry @c expectedDiscId-1 in @c g_introAssetTable) plus its music track.
- *  - Waits for @c func_800393C8 to drain, then runs a fade-out / wait-
+ *  - Waits for @c UpdateCdRead to drain, then runs a fade-out / wait-
  *    for-tray-open / fade-in / fade-out cycle controlled by
  *    @c CdControlB(0x1, NULL, status) (CD command 0x1 = CdlNop, whose
  *    status byte's @c 0x10 bit indicates the shell is open).
@@ -371,7 +374,7 @@ void waitForCorrectDisc(void) {
     rect.w = 580;
     rect.h = 406;
 
-    while (func_800393C8() != 0) {}
+    while (UpdateCdRead() != CD_READ_IDLE);
 
     while (1) {
         s32 brightness;
@@ -498,10 +501,10 @@ void playBootIntro(void) {
             if (g_introCtrl0Edge & 0xF0) goto exit;
         }
 
-        func_80037FB0(0, 0x4F, 0x80110000);
+        func_80037FB0(0, 0x4F, (u8 *)INTRO_MUSIC_BUFFER_ADDR);
         if (g_fieldVars->soundLoadComplete == 0) {
             do {
-                func_800393C8();
+                UpdateCdRead();
             } while (g_fieldVars->soundLoadComplete == 0);
         }
 
@@ -617,10 +620,10 @@ exit:
  * Configures display buffers, selects a display mode (0 or 1), runs
  * the corresponding intro sequence, then resets the display back.
  *
- * @param mode 0 for the standard intro sequence (playBootIntro),
- *             1 for the alternate intro sequence (waitForCorrectDisc).
+ * @param mode @c INTRO_SCREEN_BOOT for the standard intro sequence (playBootIntro),
+ *             @c INTRO_SCREEN_INSERT_DISC for the alternate intro sequence (waitForCorrectDisc).
  */
-void func_80098FD4(s32 mode) {
+void IntroMain(s32 mode) {
     RECT rect;
 
     ResetGraph(1);
@@ -634,11 +637,11 @@ void func_80098FD4(s32 mode) {
     VSync(0);
 
     switch (mode) {
-    case 0:
+    case INTRO_SCREEN_BOOT:
         g_introRenderMode = 0;
         playBootIntro();
         break;
-    case 1:
+    case INTRO_SCREEN_INSERT_DISC:
         g_introRenderMode = mode;
         waitForCorrectDisc();
         break;

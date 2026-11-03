@@ -7,6 +7,7 @@
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libetc.h"
 #include "field/fe_object1.h"
+#include "lzs.h"
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
@@ -88,9 +89,9 @@ void func_80098314(void) {
 /**
  * @brief Load/refresh the active field map's asset bundle from CD.
  *
- * Either issues a fresh CD read (when @c D_8005F14A is 0 or the current field
- * @c g_curFieldId differs from the cached @c D_8005F100) or restores from the
- * cached pointer @c D_8005F104. Then loads the field data archive, latches
+ * Either issues a fresh CD read (when @c g_prefetchState is @c PREFETCH_NONE or the current field
+ * @c g_curFieldId differs from the cached @c g_prefetchedDestId) or restores from the
+ * cached pointer @c g_prefetchBuffer. Then loads the field data archive, latches
  * its members into globals (@c g_curFieldInfo, @c g_curFieldSfx, @c g_fieldContext),
  * copies the script member to the @c FIELD_SCRIPT_STAGE staging region, and
  * dispatches the field-VM pool setup via @c func_800BFBBC and friends.
@@ -119,21 +120,21 @@ void func_80098314(void) {
  *       its own typed locals, loses the same split.
  */
 s32 *func_800983F0(void) {
-    s32 stageBase;
+    u8 *stageBase;
     FieldParticles *ptr;
     u8 *buf;
     u32 tag;
     s32 size;
     u8 *heapEnd;
 
-    if (D_8005F14A == 0 || g_curFieldId != D_8005F100) {
+    if (g_prefetchState == PREFETCH_NONE || g_curFieldId != g_prefetchedDestId) {
         LoadCompressedDataFromDisc(D_800C0900[D_800C2568[g_curFieldId] * 6],
                       D_800C0900[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF,
                       NULL);
-        while (func_800393C8() != 0) {}
+        while (UpdateCdRead() != CD_READ_IDLE);
     } else {
-        while (func_800393C8() != 0) {}
-        func_80038490(D_8005F104, FIELD_BUNDLE_BUF);
+        while (UpdateCdRead() != CD_READ_IDLE);
+        DecompressLzs(g_prefetchBuffer, FIELD_BUNDLE_BUF);
     }
 
     func_800A0D6C((u8 *)FIELD_BUNDLE_STRIPS);
@@ -141,18 +142,18 @@ s32 *func_800983F0(void) {
 
     func_800A2D2C(*(s16 **)FIELD_BUNDLE_TIM, *(s32 *)FIELD_BUNDLE_SLOT);
 
-    D_8005F100 = 0;
+    g_prefetchedDestId = 0;
     D_8005F142 = 0;
     LoadCompressedDataFromDisc(D_800C0908[D_800C2568[g_curFieldId] * 6],
                   D_800C0908[D_800C2568[g_curFieldId] * 6 + 1], (u8 *)FIELD_BUNDLE_BUF, NULL);
-    while (func_800393C8() != 0) {}
+    while (UpdateCdRead() != CD_READ_IDLE);
 
     g_curFieldInfo = *g_fieldInfo;
     g_curFieldSfx = *g_fieldSfxTable;
-    stageBase = FIELD_SCRIPT_STAGE;
+    stageBase = (u8 *)FIELD_SCRIPT_STAGE;
     g_fieldContext.fieldMessages = *g_fieldMessages;
     size = *g_fieldDataEnd - *g_fieldScript;
-    func_80039678(FIELD_SCRIPT_STAGE, (s32)*g_fieldScript, size);
+    FastMemCpy((u8 *)FIELD_SCRIPT_STAGE, *g_fieldScript, size);
     D_8005F13C = stageBase + size;
 
     ptr = *g_fieldParticles;
@@ -245,7 +246,7 @@ void func_80098934(void) {
  * function dispatches on @c g_previousGameMode (the field load mode, 0=fresh,
  * 1=normal, 2=new-area, 3=movie, 6=transition, 0xA=skip-transition) and on
  * @c g_fieldContext.mode (the engine-level state byte that picks one of several
- * exit paths at the end of each iteration: 4=quit, 5/6=copyFramebuffer +
+ * exit paths at the end of each iteration: 4=quit, 5/6=CopyFrameBuffer +
  * flag-reset, 7=sndCmd21 + snapshot, 1=loop back, 3/8/etc.=plain exit).
  *
  * Major phases each pass:
@@ -291,7 +292,7 @@ void func_80098934(void) {
  *          into @c xori + @c sltu, unavoidable in every if/else, ternary,
  *          set-override and switch spelling tried.
  */
-void func_8009895C(void) {
+void FieldMain(void) {
     u8 *p;
     FieldInfo *q;
     u8 state;
@@ -313,7 +314,7 @@ void func_8009895C(void) {
             g_fieldContext.unk1A6 = 0;
             g_fieldContext.unk1A9 = 0;
             g_fieldContext.unk1A7 = 1;
-            g_fieldContext.unk1A2 = 0;
+            g_fieldContext.mapJumpOff = 0;
             g_fieldContext.unk1AA = 0;
             g_fieldContext.unk015 = 0;
             g_fieldContext.fieldStepDelta = 0;
@@ -340,7 +341,7 @@ void func_8009895C(void) {
             if (g_previousGameMode == GAME_MODE_WORLD) {
                 g_bufferIndex = 1;
             }
-            copyFramebuffer();
+            CopyFrameBuffer();
             g_fadeMode = 1;
             g_fadeCounter = 0;
             g_vsyncDone = 0;
@@ -361,8 +362,8 @@ void func_8009895C(void) {
             g_fieldScript = &FIELD_DATA->script;
             g_fieldDataEnd = &FIELD_DATA->end;
             p = func_800983F0();
-            D_8005F104 = (s32)p;
-            D_8005F13C = (s32)p;
+            g_prefetchBuffer = p;
+            D_8005F13C = p;
         }
 
         func_800A1BB8();
@@ -376,7 +377,7 @@ void func_8009895C(void) {
             || g_previousGameMode == GAME_MODE_BATTLE
             || g_previousGameMode == GAME_MODE_MENU
             || g_previousGameMode == GAME_MODE_SCRIPT_MENU) {
-            g_fieldContext.mode = 0;
+            g_fieldContext.mode = FIELD_MODE_NONE;
         }
 
         if (g_curFieldParticles != 0) {
@@ -399,7 +400,7 @@ void func_8009895C(void) {
         func_800A2128(&D_800CD1B0[0x6A0]);
 
         DrawSyncCallback(D_800982F0);
-        D_8005F14A = 0;
+        g_prefetchState = PREFETCH_NONE;
         D_800C7210 = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2) + g_curFieldInfo->screenRanges[0].left;
         D_800C7214 = ((g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top) / 2) + g_curFieldInfo->screenRanges[0].top;
         /* The adjacency records follow the triangles. The count is read as a
@@ -433,33 +434,33 @@ void func_8009895C(void) {
 
         g_dispEnvs[0].isrgb24 = 0;
         g_dispEnvs[1].isrgb24 = 0;
-        PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
-        PutDrawEnv(&g_drawEnvs[(s16)g_bufferIndex]);
+        PutDispEnv(&g_dispEnvs[g_bufferIndex]);
+        PutDrawEnv(&g_drawEnvs[g_bufferIndex]);
 
         state = g_fieldContext.mode;
         g_previousGameMode = GAME_MODE_FIELD;
 
-        if (state == 4) {
+        if (state == FIELD_MODE_TITLE) {
             VSync(0);
             SetDispMask(0);
-            D_8005F14A = 0;
+            g_prefetchState = PREFETCH_NONE;
             break;
         }
-        if (state == 3 || state == 8) {
-            D_8005F14A = 0;
+        if (state == FIELD_MODE_BATTLE || state == FIELD_MODE_CARD_GAME) {
+            g_prefetchState = PREFETCH_NONE;
             break;
         }
-        if (state == 5 || state == 6) {
-            copyFramebuffer();
+        if (state == FIELD_MODE_MENU || state == FIELD_MODE_DISC_CHANGE) {
+            CopyFrameBuffer();
             g_fadeMode = 9;
             g_fadeCounter = 0;
             g_vsyncDone = 0;
             g_renderMode = RENDER_FADE;
-            D_8005F14A = 0;
+            g_prefetchState = PREFETCH_NONE;
             break;
         }
-        if (state == 7) {
-            g_fieldContext.mode = 0;
+        if (state == FIELD_MODE_WORLD) {
+            g_fieldContext.mode = FIELD_MODE_NONE;
             g_gameMode = GAME_MODE_WORLD;
             g_fieldContext.previousFieldId = g_curFieldId;
             D_80082C8C.param.entrance.entranceIndex = g_fieldContext.counter;
@@ -468,8 +469,8 @@ void func_8009895C(void) {
             sndCmd21(-1, 0);
             break;
         }
-        if (state == 1) {
-            g_fieldContext.mode = 0;
+        if (state == FIELD_MODE_FIELD) {
+            g_fieldContext.mode = FIELD_MODE_NONE;
             g_fieldContext.previousFieldId = g_curFieldId;
             g_curFieldId = g_fieldContext.counter;
             sndCmd21(-2, g_fieldContext.field1B4);
@@ -480,7 +481,7 @@ void func_8009895C(void) {
             } else {
                 func_800ACB10();
             }
-            D_8005F14A = 0;
+            g_prefetchState = PREFETCH_NONE;
             stopVibration(-1);
             WaitForGamePadDetection();
         }
@@ -639,10 +640,10 @@ void func_80099348(void) {
         func_80099180();
         g_bufferIndex++;
         g_bufferIndex &= 1;
-        D_800C71E0 = &D_800C7218[(s16)g_bufferIndex];
+        D_800C71E0 = &D_800C7218[g_bufferIndex];
         D_8005F110 = D_8005F138;
-        g_activeDrawEnv = &g_drawEnvs[(s16)g_bufferIndex];
-        D_8005F138 = (s32)&g_dispEnvs[(s16)g_bufferIndex];
+        g_activeDrawEnv = &g_drawEnvs[g_bufferIndex];
+        D_8005F138 = (s32)&g_dispEnvs[g_bufferIndex];
         ClearOTagR(D_800C71E0->ot, 0x1000);
 
         SCRATCH_STACK_ENTER();
@@ -655,8 +656,8 @@ void func_80099348(void) {
         if ((g_fieldContext.padHeld & 0x90F) == 0x90F
             && (g_fieldContext.padHeldPrev & 0x90F) == 0x90F) {
             g_fieldContext.counter = 0;
-            g_fieldContext.mode = 4;
-            g_fieldContext.spawnTriIdx = 0x7FFF;
+            g_fieldContext.mode = FIELD_MODE_TITLE;
+            g_fieldContext.spawnTriIdx = SPAWN_UNSET;
             sndStopAll();
             func_800A59D0();
             VSync(0);
@@ -671,9 +672,9 @@ void func_80099348(void) {
             && g_fieldContext.dialogState != 1
             && g_fieldContext.dialogState != 3
             && g_fieldContext.dialogState != 2
-            && g_fieldContext.unk1A3 == 0 && g_fieldContext.mode == 0) {
+            && g_fieldContext.userControlOff == 0 && g_fieldContext.mode == FIELD_MODE_NONE) {
             func_8009912C();
-            g_fieldContext.mode = 5;
+            g_fieldContext.mode = FIELD_MODE_MENU;
             g_fieldContext.counter = 0;
             g_gameMode = GAME_MODE_MENU;
             g_fieldContext.position_x = g_fieldActors[D_8005F148].posX / 4096;
@@ -684,7 +685,7 @@ void func_80099348(void) {
             break;
         }
 
-        if (g_fieldContext.mode == 5) {
+        if (g_fieldContext.mode == FIELD_MODE_MENU) {
             func_8009912C();
             g_gameMode = GAME_MODE_SCRIPT_MENU;
             func_800A59D0();
@@ -723,7 +724,7 @@ void func_80099348(void) {
             func_800A15C0(D_800C71E0, g_drawEnvs, 0);
         }
 
-        if (g_dispEnvs[((s16)g_bufferIndex + 1) & 1].isrgb24 == 0
+        if (g_dispEnvs[(g_bufferIndex + 1) & 1].isrgb24 == 0
             && g_fieldContext.unk1AD == 0) {
             SCRATCH_STACK_ENTER();
             func_800A1CFC(g_fieldActors, D_800C71E0);
@@ -735,17 +736,17 @@ void func_80099348(void) {
         }
 
         if (func_800BE274() == 0) {
-            func_800A06F0(0, D_800C71E0, D_800C6D98[(s16)g_bufferIndex],
+            func_800A06F0(0, D_800C71E0, D_800C6D98[g_bufferIndex],
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
                    && g_fieldContext.unk1A7 == 0) {
-            func_800A2AF8(D_800C71E0, D_800D5EC8[(s16)g_bufferIndex],
-                          D_800D5EB8[(s16)g_bufferIndex], g_curFieldView);
+            func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
+                          D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
 
         if (func_800BE274() == 0 && g_curFieldParticles != 0) {
             func_800A37A8(&g_curFieldView->m, D_800C71E0, g_curFieldParticles);
-            if ((s16)g_bufferIndex == 0) {
+            if (g_bufferIndex == 0) {
                 g_curFieldParticles->primCursor = g_curFieldParticles->primArena[0];
             } else {
                 g_curFieldParticles->primCursor = g_curFieldParticles->primArena[1];
@@ -768,17 +769,17 @@ void func_80099348(void) {
             }
         }
 
-        if ((s16)g_bufferIndex == 0) {
-            g_drawEnvs[(s16)g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left;
+        if (g_bufferIndex == 0) {
+            g_drawEnvs[g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left;
         } else {
-            g_drawEnvs[(s16)g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left + 512;
+            g_drawEnvs[g_bufferIndex].clip.x = g_curFieldInfo->screenRanges[0].left + 512;
         }
-        g_drawEnvs[(s16)g_bufferIndex].clip.y = g_curFieldInfo->screenRanges[0].top;
-        g_drawEnvs[(s16)g_bufferIndex].clip.w =
+        g_drawEnvs[g_bufferIndex].clip.y = g_curFieldInfo->screenRanges[0].top;
+        g_drawEnvs[g_bufferIndex].clip.w =
             g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left;
-        g_drawEnvs[(s16)g_bufferIndex].clip.h =
+        g_drawEnvs[g_bufferIndex].clip.h =
             g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
-        SetDrawEnv(&D_800C71E0->drawEnvPrim, &g_drawEnvs[(s16)g_bufferIndex]);
+        SetDrawEnv(&D_800C71E0->drawEnvPrim, &g_drawEnvs[g_bufferIndex]);
 
         addPrim(&D_800C71E0->ot[0xFFF], &D_800C71E0->drawEnvPrim);
         addPrim(&D_800C71E0->ot[1], &D_800C71E0->unk4F00);
@@ -790,22 +791,22 @@ void func_80099348(void) {
         }
         renderBattleDisplayList((s32 *)D_800C71E0->ot);
 
-        if (g_fieldContext.mode == 6) {
+        if (g_fieldContext.mode == FIELD_MODE_DISC_CHANGE) {
             g_gameMode = GAME_MODE_DISC_CHANGE;
             func_800A59D0();
             break;
         }
-        if (g_fieldContext.mode == 4) {
+        if (g_fieldContext.mode == FIELD_MODE_TITLE) {
             func_800A59D0();
             break;
         }
-        if (g_fieldContext.mode == 3 || g_fieldContext.mode == 8) {
+        if (g_fieldContext.mode == FIELD_MODE_BATTLE || g_fieldContext.mode == FIELD_MODE_CARD_GAME) {
             g_fieldContext.position_x = g_fieldActors[D_8005F148].posX / 4096;
             g_fieldContext.position_y = g_fieldActors[D_8005F148].posY / 4096;
             g_fieldContext.spawnTriIdx = g_fieldActors[D_8005F148].triIdx;
             func_8009912C();
             mode = g_fieldContext.mode;
-            if (mode == 3) {
+            if (mode == FIELD_MODE_BATTLE) {
                 g_gameMode = mode;
             } else {
                 g_gameMode = GAME_MODE_CARD;
@@ -817,11 +818,11 @@ void func_80099348(void) {
         if ((g_fieldVars->stateFlags & FIELD_STATE_COUNTDOWN) && g_gameState.mainData.countdownTimer == 0
             && (g_fieldVars->fieldB6 & 0x100) == 0) {
             g_fieldContext.counter = 0x4B;
-            g_fieldContext.mode = 1;
-            g_fieldContext.spawnTriIdx = 0x7FFF;
+            g_fieldContext.mode = FIELD_MODE_FIELD;
+            g_fieldContext.spawnTriIdx = SPAWN_UNSET;
             func_800A59D0();
         }
-        if (g_fieldContext.mode == 1 || g_fieldContext.mode == 7) {
+        if (g_fieldContext.mode == FIELD_MODE_FIELD || g_fieldContext.mode == FIELD_MODE_WORLD) {
             func_8009912C();
             while (DrawSync(1) != 0) {
             }
@@ -847,23 +848,23 @@ void func_80099348(void) {
         } else {
             frames--;
         }
-        PutDispEnv(&g_dispEnvs[(s16)g_bufferIndex]);
+        PutDispEnv(&g_dispEnvs[g_bufferIndex]);
 
         if ((g_fieldContext.padHeld & PADstart) && !(g_fieldContext.padHeldPrev & PADstart)
             && func_800BE274() == 0 && g_fieldContext.dialogState != 4
             && g_fieldContext.dialogState != 3
-            && g_fieldContext.dialogState != 2 && g_fieldContext.unk1A3 == 0) {
+            && g_fieldContext.dialogState != 2 && g_fieldContext.userControlOff == 0) {
             func_800AD7AC(0);
         }
 
         if (g_fieldContext.unk1AA == 1) {
-            ClearImage(&g_drawEnvs[(s16)g_bufferIndex].clip, 0, 0, 0);
+            ClearImage(&g_drawEnvs[g_bufferIndex].clip, 0, 0, 0);
         }
         if (g_fieldContext.unk1B1 == 1) {
             g_fieldContext.unk1B1 = 2;
             func_800A1C64();
         }
-        func_800393C8();
+        UpdateCdRead();
         func_800BE2DC();
         if (g_fieldContext.unk1A1 == 0) {
             DrawOTag(&D_800C71E0->ot[0xFFF]);
@@ -1232,9 +1233,9 @@ void func_8009A920(Actor *actor, Eline *entities) {
  */
 void func_8009AA64(FieldGateway *e) {
     if (e->fieldId < 72) {
-        g_fieldContext.mode = 7;
+        g_fieldContext.mode = FIELD_MODE_WORLD;
     } else {
-        g_fieldContext.mode = 1;
+        g_fieldContext.mode = FIELD_MODE_FIELD;
     }
     g_fieldContext.counter = e->fieldId;
     g_fieldContext.position_x = e->position_x;
@@ -1390,9 +1391,6 @@ s16 func_8009AC9C(s16 px, s16 py, s16 pz, TriangleList *list) {
 
 /** @brief Scale applied to @c g_fieldContext.unk00A when seeding @c Actor::moveSpeed. */
 #define FIELD_CHANNEL_SCALE 0x4367
-
-/** @brief Sentinel in @c g_fieldContext.spawnTriIdx / @c position_x meaning "no override". */
-#define SPAWN_UNSET 0x7FFF
 
 /**
  * @brief Place every field entity on the navmesh when a field is entered.
@@ -1948,7 +1946,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
         if (ents[i].field_0x240 == 0) {
             ents[i].facingDirection = ents[i].unk23F;
         }
-        if (g_fieldContext.mode != 1 && g_fieldContext.mode != 7 && step == 1) {
+        if (g_fieldContext.mode != FIELD_MODE_FIELD && g_fieldContext.mode != FIELD_MODE_WORLD && step == 1) {
             func_800A5D28();
         }
             func_8009BD50(&ents[i], step, 1, 1);
@@ -2550,7 +2548,7 @@ s32 func_8009D598(s16 index) {
     if (self == D_8005F148 && g_fieldContext.unk015 == 0) {
         func_8009A4C0(&g_fieldActors[self], g_fieldLines, (VECTOR *)&sc->srcX);
         D_8005F102 = 0;
-        if (g_fieldContext.unk1A2 == 0) {
+        if (g_fieldContext.mapJumpOff == 0) {
             func_8009AAC8(&g_fieldActors[self], g_curFieldInfo->gateways,
                           (Vec3i *)&sc->srcX);
         }

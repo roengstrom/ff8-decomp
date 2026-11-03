@@ -80,7 +80,7 @@ void func_80099D30(void) {
                     func_800A63DC();
                 }
                 
-                if ((D_800ED148.unk12EB != 0) && (D_800ED148.unk12FD == 0) && (D_800ED148.header.unk0 == 0) && (g_battleConfig.result == 0)) {
+                if ((D_800ED148.unk12EB != 0) && (D_800ED148.unk12FD == 0) && (D_800ED148.header.unk0 == 0) && (g_battleConfig.result == BATTLE_RESULT_UNDETERMINED)) {
                     func_800B0C08();
                     func_800B2038();
                 }
@@ -545,7 +545,7 @@ void func_8009A990(s32 arg0) {
 void func_8009AA2C(void) {
     s32 i;
 
-    if ((g_battleConfig.result == 0) && ((D_800ED148.unk12F9 == 1) || ((func_800AE730() != 255) && (func_800AE788() != 255)))) {
+    if ((g_battleConfig.result == BATTLE_RESULT_UNDETERMINED) && ((D_800ED148.unk12F9 == 1) || ((func_800AE730() != 255) && (func_800AE788() != 255)))) {
         for (i = 0; i < D_800ED148.unk12F8; i++) {
             func_8009A990(i);
         }
@@ -1245,23 +1245,23 @@ void func_8009B654(void) {
 }
 
 /**
- * @brief Yield execution (wrapper for func_800393C8).
+ * @brief Yield execution (wrapper for UpdateCdRead).
  *
  * Calls the system yield/wait function to give up the current
  * execution timeslice.
  */
 void func_8009B690(void) {
-    func_800393C8();
+    UpdateCdRead();
 }
 
 /**
- * @brief Yield execution (identical wrapper for func_800393C8).
+ * @brief Yield execution (identical wrapper for UpdateCdRead).
  *
  * Second yield wrapper, functionally identical to func_8009B690.
  * Both exist as separate symbols for different call contexts.
  */
 void func_8009B6B0(void) {
-    func_800393C8();
+    UpdateCdRead();
 }
 
 /**

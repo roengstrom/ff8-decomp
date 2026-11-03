@@ -4,6 +4,7 @@
 #include "battle/bc_object11.h"
 #include "battle/bc_object12.h"
 #include "battle/bc_object9.h"
+#include "cpu.h"
 
 
 extern u8 D_800F16A4[];
@@ -251,7 +252,7 @@ void func_800BD594(void) {
  * @brief Initialize entity sound and finalize setup.
  *
  * Calls func_800B3534 with a1, func_800C5304 with a0+0x2FE and a1,
- * then func_8001F5C8.
+ * then FlushInstructionCache.
  *
  * @param a0 Entity base pointer.
  * @param a1 Sound/mode parameter.
@@ -259,7 +260,7 @@ void func_800BD594(void) {
 void func_800BD5B0(s32 a0, s32 a1) {
     func_800B3534(a1);
     func_800C5304(a0 + 0x2FE, a1);
-    func_8001F5C8();
+    FlushInstructionCache();
 }
 
 /**

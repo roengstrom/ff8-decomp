@@ -8,6 +8,7 @@
 #include "input/gamepad.h"
 #include "psxsdk/libapi.h"
 #include "imgtoc.h"
+#include "cpu.h"
 
 /** @brief Kernel event control block entity (stride 0xC0). */
 typedef struct {
@@ -40,8 +41,8 @@ static inline EventState *getEventState(void) {
 /* --- Functions --- */
 
 /** @brief Field initialization entry: call setup then init step. */
-void func_80098000(void) {
-    func_8001F5C8();
+void BootMain(void) {
+    FlushInstructionCache();
     func_800980B0();
 }
 

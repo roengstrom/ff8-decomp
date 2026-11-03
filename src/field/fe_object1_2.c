@@ -1985,8 +1985,8 @@ void func_800A5224(MATRIX *m, u32 *ot, FieldRibbonPrims *prims,
  * buffer's ordering table via @c ClearOTagR, then writes each fill-color
  * component scaled by the current dialog fade level
  * (@c dialogTimer, 0..256) into that buffer's clear @ref TILE, and finally
- * prepends both the tile and its preceding @ref DR_MODE primitive (12 bytes
- * before the tile) to the caller-supplied ordering table @p ot.
+ * prepends both the tile and its @ref DR_MODE primitive to the caller-supplied
+ * ordering table @p ot.
  *
  * @param ot Ordering-table slot to link the two clear primitives into.
  * @param r  Fill red  , scaled to @c r*dialogTimer/256, low byte to TILE @c r0.
@@ -1996,33 +1996,26 @@ void func_800A5224(MATRIX *m, u32 *ot, FieldRibbonPrims *prims,
  * @note @c g_bufferIndex is @c volatile, so every subscript re-reads it; the
  *       @c dialogTimer read is likewise forced through a @c volatile pointer to
  *       reload each component (its fade value can change between frames).
- *       The first store caches the tile index in @c idx so gcc emits the index
- *       before the shared @c g_clearTiles base, matching the original schedule
- *       in the multiply's delay window; @c g0 / @c b0 recompute it inline (each
- *       is its own @c volatile @c g_bufferIndex read).
  */
 void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
-    ClearOTagR(&g_orderingTablePtrs[(s16)g_bufferIndex], 1);
+    ClearOTagR(&g_orderingTablePtrs[g_bufferIndex], 1);
     {
         volatile FieldContext *sys = &g_fieldContext;
-        s32 idx = (s16)g_bufferIndex * 2;
-        g_clearTiles[idx].r0 = (s16)sys->dialogTimer * r / 256;
-        g_clearTiles[(s16)g_bufferIndex * 2].g0 = (s16)sys->dialogTimer * g / 256;
-        g_clearTiles[(s16)g_bufferIndex * 2].b0 = (s16)sys->dialogTimer * b / 256;
+        setRGB0(&g_clearTiles[g_bufferIndex].tile, (s16)sys->dialogTimer * r / 256, (s16)sys->dialogTimer * g / 256,
+                (s16)sys->dialogTimer * b / 256);
     }
-    addPrim(ot, &g_clearTiles[(s16)g_bufferIndex * 2]);
-    addPrim(ot, (DR_MODE *)&g_clearTiles[(s16)g_bufferIndex * 2] - 1);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].tile);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].mode);
 }
 
 /**
  * @brief Reset the current frame's ordering table and link the double-buffer's
  *        clear-tile primitives, tinted (@p r, @p g, @p b), into @p ot.
  *
- * A generalized sibling of @c BuildPrimList: it clears the active buffer's
+ * A generalized sibling of @c PrepareFadePass: it clears the active buffer's
  * ordering table via @c ClearOTagR, writes the fill color into that buffer's
- * clear @ref TILE, then prepends both the tile and its preceding @ref DR_MODE
- * primitive (12 bytes before the tile) to the caller-supplied ordering table
- * @p ot. @c g_bufferIndex is @c volatile, so each subscript re-reads it.
+ * clear @ref TILE, then prepends both the tile and its @ref DR_MODE primitive
+ * to the caller-supplied ordering table @p ot. @c g_bufferIndex is @c volatile, so each subscript re-reads it.
  *
  * @param ot Ordering-table slot to link the two clear primitives into.
  * @param r  Fill red  , low byte stored to TILE @c r0.
@@ -2034,12 +2027,10 @@ void func_800A5360(u32 *ot, s16 r, s16 g, s16 b) {
  *       TILE color component.
  */
 void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
-    ClearOTagR(&g_orderingTablePtrs[(s16)g_bufferIndex], 1);
-    g_clearTiles[(s16)g_bufferIndex * 2].r0 = r;
-    g_clearTiles[(s16)g_bufferIndex * 2].g0 = g;
-    g_clearTiles[(s16)g_bufferIndex * 2].b0 = b;
-    addPrim(ot, &g_clearTiles[(s16)g_bufferIndex * 2]);
-    addPrim(ot, (DR_MODE *)&g_clearTiles[(s16)g_bufferIndex * 2] - 1);
+    ClearOTagR(&g_orderingTablePtrs[g_bufferIndex], 1);
+    setRGB0(&g_clearTiles[g_bufferIndex].tile, r, g, b);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].tile);
+    addPrim(ot, &g_clearTiles[g_bufferIndex].mode);
 }
 
 /**
@@ -2160,8 +2151,8 @@ void func_800A5788(FieldFrameBuf *buf) {
  *  - @c 5 / @c 6: interpolate the fade colour for this tick (@c func_800A5788).
  *  - @c 7 / @c 8: draw the flat fade tint with @c func_800A553C.
  *
- * The @c SetupDrawMode argument that precedes each draw selects the blend mode,
- * @c 1 or @c 2 depending on the state.
+ * The @c SetFadeBlendMode argument that precedes each draw selects the blend mode,
+ * @c BLEND_ADD or @c BLEND_SUBTRACT depending on the state.
  *
  * @param buf The frame's GPU work area; its ordering table receives the prims.
  */
@@ -2178,12 +2169,12 @@ void func_800A5898(FieldFrameBuf *buf) {
     case 1:
         break;
     case 2:
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A5698();
         func_800A5360(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 3:
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A5700();
         func_800A5360(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
@@ -2192,38 +2183,38 @@ void func_800A5898(FieldFrameBuf *buf) {
         break;
     case 7:
         g_fieldContext.unk1A1 = 0;
-        SetupDrawMode(1);
+        SetFadeBlendMode(BLEND_ADD);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 8:
         g_fieldContext.unk1A1 = 0;
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 5:
-        SetupDrawMode(1);
+        SetFadeBlendMode(BLEND_ADD);
         func_800A5788(buf);
         break;
     case 6:
-        SetupDrawMode(2);
+        SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A5788(buf);
         break;
     }
 }
 
 /**
- * If D_8005F14A equals 1, calls resetCdDrive. Then clears D_8005F100 and D_8005F14A.
+ * If g_prefetchState equals PREFETCH_LOADING, calls resetCdDrive. Then clears g_prefetchedDestId and g_prefetchState.
  *
  * @note K&R declarator: the body ignores its argument and callers vary between
  *       passing none (@c func_800A5A20, fe_object5) and one.
  */
 void func_800A59D0() {
 
-    if (D_8005F14A == 1) {
+    if (g_prefetchState == PREFETCH_LOADING) {
         resetCdDrive();
     }
-    D_8005F100 = 0;
-    D_8005F14A = 0;
+    g_prefetchedDestId = 0;
+    g_prefetchState = PREFETCH_NONE;
 }
 
 /**
@@ -2248,12 +2239,12 @@ void func_800A5A14(s16 a0) {
  *
  * The streaming half then runs unless the movie subsystem is busy or the engine
  * is in mode 3 (both abort through @c func_800A59D0), and unless a load is
- * already pending. The destination pointer @c D_8005F104 is floored to
+ * already pending. The destination pointer @c g_prefetchBuffer is floored to
  * @c 0x801A0000, and when the nearest field differs from the one already loaded
- * (@c D_8005F100) and its data still fits below @c 0x801FE000, the previous load
+ * (@c g_prefetchedDestId) and its data still fits below @c 0x801FE000, the previous load
  * is cancelled and a new @c LoadDataFromDisc is issued: field ids from @c 0x49 up are
  * looked up through @c D_800C2568 into the streaming table, lower ids use the
- * fixed descriptor @c g_worldFileDescs. @c D_8005F14A is left at 1 to mark the read
+ * fixed descriptor @c g_worldFileDescs. @c g_prefetchState is left at @c PREFETCH_LOADING to mark the read
  * in flight.
  *
  * @param actor    Player entity, read for its 20.12 world position.
@@ -2269,9 +2260,9 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
     s32 idx;
     u16 id;
 
-    if (D_8005F14A == 1) {
-        if (func_800393C8() == 0) {
-            D_8005F14A = 2;
+    if (g_prefetchState == PREFETCH_LOADING) {
+        if (UpdateCdRead() == CD_READ_IDLE) {
+            g_prefetchState = PREFETCH_READY;
         }
     }
     best = 0x7FFFFFFF;
@@ -2294,30 +2285,32 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
         }
     }
 
-    if (func_800BE264() != 0 || g_fieldContext.mode == 3) {
+    if (func_800BE264() != 0 || g_fieldContext.mode == FIELD_MODE_BATTLE) {
         func_800A59D0();
         return;
     }
-    if (func_800393C8() != 0 && D_8005F14A == 0) {
+    if (UpdateCdRead() != CD_READ_IDLE && g_prefetchState == PREFETCH_NONE) {
         return;
     }
-    if ((u32)D_8005F104 <= 0x8019FFFF) {
-        D_8005F104 = 0x801A0000;
+    if (g_prefetchBuffer <= (u8 *)0x8019FFFF) {
+        g_prefetchBuffer = (u8 *)0x801A0000;
     }
-    if (D_8005F100 == D_8005F142) {
+    if (g_prefetchedDestId == D_8005F142) {
         return;
     }
-    if (D_800C0904[D_800C2568[D_8005F142] * FIELD_STREAM_STRIDE] < 0x801FE000 - D_8005F104) {
+    // Bug: world map ids (below 72) have no D_800C2568 entry, so this checks
+    // an unrelated word instead of world.ovl's size and most world exits are never prefetched.
+    if (D_800C0904[D_800C2568[D_8005F142] * FIELD_STREAM_STRIDE] < (u8 *)0x801FE000 - g_prefetchBuffer) {
         func_800A59D0();
-        D_8005F100 = D_8005F142;
+        g_prefetchedDestId = D_8005F142;
         if (D_8005F142 >= 0x49) {
             idx = D_800C2568[D_8005F142];
             LoadDataFromDisc(D_800C0904[idx * FIELD_STREAM_STRIDE - 1],
-                   D_800C0904[idx * FIELD_STREAM_STRIDE], (u8 *)D_8005F104, NULL);
+                   D_800C0904[idx * FIELD_STREAM_STRIDE], g_prefetchBuffer, NULL);
         } else {
-            LoadDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, (u8 *)D_8005F104, NULL);
+            LoadDataFromDisc(g_worldFileDescs[0].sector, g_worldFileDescs[0].size, g_prefetchBuffer, NULL);
         }
-        D_8005F14A = 1;
+        g_prefetchState = PREFETCH_LOADING;
     }
 }
 
@@ -2392,10 +2385,10 @@ void func_800A5D28(void) {
     s32 r;
     FieldFormations *fm;
 
-    if (g_fieldContext.mode == 1) {
+    if (g_fieldContext.mode == FIELD_MODE_FIELD) {
         return;
     }
-    if (g_fieldContext.mode == 7) {
+    if (g_fieldContext.mode == FIELD_MODE_WORLD) {
         return;
     }
     r = func_800BE274();
@@ -2432,7 +2425,7 @@ void func_800A5D28(void) {
     D_8005F164 &= 0xFF;
     D_8005F0FE += (s16)(u16)g_fieldActors[D_8005F148].moveSpeed / 1348;
     if ((u8)func_800A5C9C() < D_8005F0FE) {
-        g_fieldContext.mode = 3;
+        g_fieldContext.mode = FIELD_MODE_BATTLE;
         D_8005F0FE = 0;
         D_8005F130 = 1;
         r = func_800A5CF8();

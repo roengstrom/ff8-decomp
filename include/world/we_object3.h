@@ -147,7 +147,7 @@ typedef struct {
 } Ft4Pool;               /* 0x0C */
 
 /** The three pools of one bank, one per primitive kind. Both banks are laid out
-    at start-up by @c func_800A246C, and the world entry loop (@c func_800987D8
+    at start-up by @c func_800A246C, and the world entry loop (@c WorldMain
     in we_object0) re-points @c D_800C9720 at one of them every frame: bank 1
     while the active scene context is the no-battle sentinel @c D_800CA040,
     bank 0 otherwise. The glyph renderers then draw out of whichever it picked.
@@ -166,7 +166,7 @@ extern WorldPrimBank    D_800C9E88[2]; /**< The two banks. @c func_800A246C lays
                                             through @c D_800C9720. */
 extern WorldPrimBank   *D_800C9720;   /**< The bank the glyph renderers allocate
                                            from this frame. The world entry loop
-                                           (@c func_800987D8) re-points it every
+                                           (@c WorldMain) re-points it every
                                            frame; we_object6 and we_object7
                                            read it. */
 

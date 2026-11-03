@@ -45,7 +45,6 @@ extern u32 D_80053D08[][2];
 extern RECT D_80053CF0;
 extern RECT D_80053CF8;
 extern RECT D_80053D00;
-extern s32 D_8005F138;
 extern void func_80035E8C(void);
 
 void func_80035D30(s32 cmd, s32 overlay_id, s32 lba_offset, s32 load_addr) {
@@ -90,9 +89,9 @@ void func_80035D30(s32 cmd, s32 overlay_id, s32 lba_offset, s32 load_addr) {
     }
 }
 
-/** @brief Wrapper that polls CD-ROM read completion via func_800393C8. */
+/** @brief Wrapper that polls CD-ROM read completion via UpdateCdRead. */
 s32 pollCdReadStatus(void) {
-    return func_800393C8();
+    return UpdateCdRead();
 }
 
 

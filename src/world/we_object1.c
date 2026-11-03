@@ -86,7 +86,7 @@ void func_80099B48(Entity *entity, s32 *script) {
  * @c sndCmdC1(0,0x1E,0x7F)) only when the scatter key @c D_800D2442 already matches
  * @c g_fieldVars->audioChannel0State AND the scene is not mode 2. Otherwise it parses
  * the sequence for @c (s8)D_800D2442 via @c getScrollState (which fills bank selector,
- * a "ready" flag, and three handles), wires it up with @c func_80039678, records the
+ * a "ready" flag, and three handles), wires it up with @c FastMemCpy, records the
  * bank selector, and then either — for an active mode-2 scene — drains the audio
  * engine and pushes the new sequence (@c sndProcessAudio + @c func_8009CDC4), or stops
  * the old one and caches its handles in @c D_800C4FC0 / @c D_800C4FBC. The new channel
@@ -114,7 +114,7 @@ void func_80099C84(void) {
     if (key != g_fieldVars->audioChannel0State || mode2) {
         result = getScrollState((s8)key, &b18, &w1C, &w20, &w24, &w28);
         if (result != 0) {
-            func_80039678(w24, result, w28);
+            FastMemCpy((u8 *)w24, (u8 *)result, w28);
             g_fieldVars->soundBankSelector = b18;
             if (mode2 && w1C != 0) {
                 while (sndGetEngineState() > 0) {}
@@ -1139,10 +1139,10 @@ s32 func_8009CA34(s32 *src, ImageDesc *desc) {
 
 /**
  * @brief Walk a NULL-terminated @ref CdLoadEntry list, issuing a @c LoadDataFromDisc
- *        for each entry and spinning on @c func_800393C8 between entries.
+ *        for each entry and spinning on @c UpdateCdRead between entries.
  *
  * For each non-terminator entry, kicks off @c LoadDataFromDisc(lba, size, dest, NULL)
- * then busy-waits in a poll loop on @c func_800393C8 until it returns 0
+ * then busy-waits in a poll loop on @c UpdateCdRead until it returns 0
  * (read complete). While polling, optionally calls @p spin_cb each iteration
  * after a @c VSync(0) prep step — used by callers to keep the frame
  * advancing / GPU buffer flushing during the wait.
@@ -1165,7 +1165,7 @@ void func_8009CAE0(CdLoadEntry *entries, void (*spin_cb)(void)) {
     e = entries;
 top:
     LoadDataFromDisc(e->lba, e->size, e->dest, 0);
-    while (func_800393C8() != 0) {
+    while (UpdateCdRead() != CD_READ_IDLE) {
         if (spin_cb != 0) {
             VSync(0);
             spin_cb();
@@ -1188,7 +1188,7 @@ top:
  * @c ID_LIST_MAX, stopping at the @c ID_LIST_END terminator). For each id it
  * reads one @c CD_SECTOR_SIZE sector at @c section->baseLba @c + @c id into a
  * destination buffer — @p dest0 for the first id, @p dest1 for the rest — and
- * spins on @c func_800393C8 until that read finishes.
+ * spins on @c UpdateCdRead until that read finishes.
  *
  * @param desc    Object descriptor; the id bytes begin at offset @c ID_OFFSET.
  * @param section Provides the base sector the ids are added to.
@@ -1206,7 +1206,7 @@ void func_8009CB70(u8 *desc, CdSection *section, u8 *dest0, u8 *dest1) {
         return;
     }
     /* hold the terminator in a local so it stays in a saved register across
-       the LoadDataFromDisc / func_800393C8 calls rather than being reloaded each pass */
+       the LoadDataFromDisc / UpdateCdRead calls rather than being reloaded each pass */
     term = ID_LIST_END;
     p = desc;
     end = p + ID_LIST_MAX;
@@ -1219,7 +1219,7 @@ loop:
     }
     id = p[ID_OFFSET];
     LoadDataFromDisc(section->baseLba + id, CD_SECTOR_SIZE, (p == first) ? dest0 : dest1, NULL);
-    while (func_800393C8()) {
+    while (UpdateCdRead() != CD_READ_IDLE) {
         ;
     }
     p++;

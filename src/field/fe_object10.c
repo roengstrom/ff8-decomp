@@ -306,7 +306,7 @@ void func_800BD804(s32 stepDelta) {
  * Stores @p stepDelta into the field status block and toggles its busy
  * byte. If the pad-init bit (@c D_800DE4FD[0] & 2) is armed, captures the
  * @c func_801E8B58 status into @c g_fieldVars->padInitStatus. Bails out
- * if a CD read is in flight (@c D_8008A3D8.flags bit 0).
+ * if a CD read is in flight (@c g_cdReadState.flags bit 0).
  *
  * On entry, mirrors party gil/dreamGil from @c g_gameState to
  * @c g_fieldVars, mirrors the audio-channel marker @c fieldD1 into
@@ -349,7 +349,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
     if (D_800DE4FD[0] & 2) {
         g_fieldVars->padInitStatus = func_801E8B58();
     }
-    if (D_8008A3D8.flags & 1) return;
+    if (g_cdReadState.flags & 1) return;
 
     func_800BD804(g_fieldContext.fieldStepDelta);
     g_fieldVars->gilMirror      = g_gameState.mainData.party.gil;
@@ -920,7 +920,7 @@ Dline *func_800BEA84(Dline *buf) {
  * @brief Pre-tick script-VM pump for all 4 entity pools.
  *
  * Iterates pools in order D, C, B, A (large stride first). For each
- * entity, runs the script VM: calls @c func_800393C8 (yield-poll),
+ * entity, runs the script VM: calls @c UpdateCdRead (yield-poll),
  * fetches the next opcode via @c func_80037B7C, dispatches
  * @c g_fieldOpcodeTable[opcode + @ref FIELD_OPCODE_BASE] with the arg from
  * @c func_80037B7C, and processes the return bits exactly like
@@ -946,7 +946,7 @@ void func_800BEBD0(void) {
             do {
                 while (1) {
                     s32 ret;
-                    func_800393C8();
+                    UpdateCdRead();
                     func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
@@ -972,7 +972,7 @@ void func_800BEBD0(void) {
             do {
                 while (1) {
                     s32 ret;
-                    func_800393C8();
+                    UpdateCdRead();
                     func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
@@ -998,7 +998,7 @@ void func_800BEBD0(void) {
             do {
                 while (1) {
                     s32 ret;
-                    func_800393C8();
+                    UpdateCdRead();
                     func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);
@@ -1024,7 +1024,7 @@ void func_800BEBD0(void) {
             do {
                 while (1) {
                     s32 ret;
-                    func_800393C8();
+                    UpdateCdRead();
                     func_80037B7C(&D_80085380[e->context.pc], &sp10, &sp14);
                     if (sp10 == 6 && sp14 < 9) break;
                     ret = g_fieldOpcodeTable[sp10 + FIELD_OPCODE_BASE](e, sp14);

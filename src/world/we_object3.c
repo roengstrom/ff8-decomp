@@ -1636,7 +1636,7 @@ static s32 func_800A2920(GlyphHeader *glyph, WorldSprite *st, s16 key, CmdDesc *
  * pass runs.
  *
  * @note Reached through @c func_8009C294 and the asm @c func_800B4AA0, both
- * called from the world entry loop @c func_800987D8 (we_object0) — the old
+ * called from the world entry loop @c WorldMain (we_object0) — the old
  * "unreferenced island" reading predated that function's split.
  *
  * @param code    Command/dispatch code being placed (same domain as

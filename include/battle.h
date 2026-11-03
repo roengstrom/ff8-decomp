@@ -8,14 +8,20 @@
 #include "battle_anim.h"
 
 /** @brief Battle result values (BattleConfig.result). */
-#define BATTLE_RESULT_UNDETERMINED  0
-#define BATTLE_RESULT_GAMEOVER      1
-#define BATTLE_RESULT_ESCAPED       2
-#define BATTLE_RESULT_WIN           4
+typedef enum {
+    BATTLE_RESULT_UNDETERMINED = 0,
+    BATTLE_RESULT_GAMEOVER = 1,
+    BATTLE_RESULT_ESCAPED = 2,
+    BATTLE_RESULT_TIME_UP = 3,
+    BATTLE_RESULT_WIN = 4,
+    BATTLE_RESULT_SOFT_RESET = 5
+} BattleResult;
 
 /** @brief BattleConfig.unk2 flag: a countdown is running. The menu clock shows it
  * instead of the play time, and a battle ends when it reaches 0. */
 #define BATTLE_FLAG_COUNTDOWN 0x04
+#define NO_GAMEOVER_ON_TIME_UP 0x100
+#define NO_GAMEOVER_ON_LOSS 0x200
 
 #define GET_OFFSET(type, ptr, var) ((type*)(var + (intrptr_t)ptr))
 
@@ -24,7 +30,7 @@ typedef struct {
     u16 battleSceneId;
     u16 unk2;            // Flags?, when first bit is set, escape it not possible
     u8  unk4[3];         // Post battle command queue?
-    u8  result;          /**< Battle result (BATTLE_RESULT_*). */
+    u8 result; // a BattleResult
     u8 sealedAbilities; // see @c SealedAbilityFlag
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
 } BattleConfig;
@@ -739,7 +745,7 @@ typedef struct {
 
 extern s16             D_8005F11C;
 extern u8              D_8005F170;   /**< Cleared once at boot by loadKernel and set only by
-                                            battle_render's entry, which only gameStateLoop state 4
+                                            battle_render's entry, which only RunBattleModes state 4
                                             reaches; gates the magic menu's refill-all shortcut. */
 extern BattleCharState g_battleChars;  // 0x80078720
 extern BattleConfig    g_battleConfig; // 0x80082C08

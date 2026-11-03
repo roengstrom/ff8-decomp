@@ -11,6 +11,7 @@
 #include "ui/icon.h"
 #include "ui/sprite.h"
 #include "ui/window.h"
+#include "gamestate.h"
 
 #define setRGBCWord(p, c) (*(u32 *)&(p)->r0 = (c)) // NOTE: duplicated from sprite.c
 #define setUVClutWord(p, uv) (*(u32 *)&(p)->u0 = (uv))

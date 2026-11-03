@@ -18,5 +18,5 @@ func_800985EC = 0x800985EC; // type:func
 func_8009869C = 0x8009869C; // type:func
 waitForCorrectDisc = 0x8009879C; // type:func
 playBootIntro = 0x80098974; // type:func
-func_80098FD4 = 0x80098FD4; // type:func
+IntroMain = 0x80098FD4; // type:func
 g_introVSyncBase = 0x800992B0; // size:0x4

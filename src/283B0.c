@@ -7,7 +7,7 @@
 #include "sound.h"
 #include "imgtoc.h"
 
-extern s32 D_80085220;
+extern u8 *D_80085220;
 extern u8 D_8005644B[];
 extern s32 D_800562D4;
 
@@ -144,7 +144,7 @@ u8 *toggleSoundBank(void) {
  * D_80085220 using func_80039728 and plays it via sndProcessAudio.
  * Reads sound data a second time, selects a bank table (D_8005F388
  * or D_80063388) based on g_fieldVars field 0xC9, and calls
- * func_80039678. Sets the completion flag at g_fieldVars + 0xD6.
+ * FastMemCpy. Sets the completion flag at g_fieldVars + 0xD6.
  */
 static void loadSoundBankA(void) {
     s32 size;
@@ -161,7 +161,7 @@ static void loadSoundBankA(void) {
     } else {
         table = D_80063388;
     }
-    func_80039678((s32)table, result, size);
+    FastMemCpy(table, (u8 *)result, size);
     g_fieldVars->soundLoadComplete = 1;
 }
 
@@ -188,28 +188,28 @@ static void loadSoundBankB(void) {
     } else {
         table = D_80063388;
     }
-    func_80039678((s32)table, result, size);
+    FastMemCpy(table, (u8 *)result, size);
     g_fieldVars->soundLoadComplete = 1;
 }
 
 
-void func_80037FB0(s32 variant, s32 bank, s32 buf) {
-    D_80085220 = buf;
+void func_80037FB0(s32 variant, s32 bank, u8 *musicBuffer) {
+    D_80085220 = musicBuffer;
     g_fieldVars->soundLoadComplete = 0;
     if (variant == 0) {
-        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankA);
+        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], musicBuffer, loadSoundBankA);
     } else {
-        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankB);
+        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], musicBuffer, loadSoundBankB);
     }
 }
 
 
-void func_80038030(s32 arg0) {
+void func_80038030(u8 *musicBuffer) {
     FieldVars *ptr = &g_gameState.fieldVars;
 
     if (!(g_battleConfig.unk2 & 0x10)) {
         while (sndGetStatus() == 2) {
-            func_800393C8();
+            UpdateCdRead();
         }
 
         if (ptr->soundHandle0 == -1) {
@@ -217,12 +217,12 @@ void func_80038030(s32 arg0) {
         }
 
         sndCmd40();
-        D_80085220 = arg0;
-        func_80037FB0(0, ptr->battleMusicId, arg0);
+        D_80085220 = musicBuffer;
+        func_80037FB0(0, ptr->battleMusicId, musicBuffer);
 
         if (ptr->soundLoadComplete == 0) {
             do {
-                func_800393C8();
+                UpdateCdRead();
             } while (ptr->soundLoadComplete == 0);
         }
 

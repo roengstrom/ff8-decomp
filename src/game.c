@@ -13,25 +13,18 @@
 #include "cd.h"
 #include "cdrom.h"
 #include "imgtoc.h"
+#include "cpu.h"
+#include "battle/bc_object1.h"
+#include "tripletriad/be_object1.h"
 
 #define OVERLAY_PTR ((void *)OVERLAY_ADDR)
 
 u8 *resolveKernelPtr(u16 a0, s32 a1);
 
-extern volatile s16 g_renderMode;
 extern u8 D_800762C8[];
 extern u8 D_80052898[];
 extern u16 g_bossBattleScenes[]; /**< Battle scene IDs of the boss battles, ended by 0xFFFF. */
 
-void func_8001F5C8(void);
-void func_80099D30(void);
-void tripleTriadMainLoop(void);
-
-/**
- * @brief Empty stub at the start of game.c (no-op return).
- */
-void func_800205C8(void) {
-}
 
 /**
  * @brief Game code VSync handler. Clears render mode if isResultsThreadDone signals completion.
@@ -630,58 +623,40 @@ s32 isBossBattle(void) {
 }
 
 
-/**
- * @brief Main state machine loop driven by g_gameMode.
- * Runs a battle (3), the battle debug menu (4), the battle results screen (5) or Triple Triad (8).
- * Any other value leaves the loop, which sets g_gameMode to 4 and returns.
- */
-void gameStateLoop(void) {
-    s32 mode = 4;
-    s16 state;
-
-top:
-    state = g_gameMode;
-    if (state == mode) goto case4;
-    if (state < 5) {
-        if (state == GAME_MODE_BATTLE) goto case3;
-        goto default_case;
+void RunBattleModes(void) {
+    while (1) {
+        switch (g_gameMode) {
+        case GAME_MODE_BATTLE_DEBUG_MENU:
+            cdReadSync(D_800974C0[0].sector, D_800974C0[0].size, OVERLAY_PTR, NULL);
+            FlushInstructionCache();
+            func_80098238();
+            break;
+        case GAME_MODE_BATTLE:
+            setHudBrightness(0);
+            setCountdownVisible(0);
+            startBattleTransition(isBossBattle());
+            memzero16(OVERLAY_PTR, 0xA400);
+            cdReadSync(D_800974C8[0].sector, D_800974C8[0].size, OVERLAY_PTR, NULL);
+            FlushInstructionCache();
+            func_80099D30();
+            break;
+        case GAME_MODE_CARD:
+            g_renderMode = RENDER_IDLE;
+            cdReadAsyncSync(D_800974B8[0].sector, D_800974B8[0].size, OVERLAY_PTR, NULL);
+            FlushInstructionCache();
+            tripleTriadMainLoop();
+            break;
+        case GAME_MODE_BATTLE_RESULTS:
+            startBattleResults();
+            g_renderMode = RENDER_BATTLE_RESULTS;
+            FlushInstructionCache();
+            g_gameMode = GAME_MODE_EXIT;
+            break;
+        default:
+            g_gameMode = GAME_MODE_BATTLE_DEBUG_MENU;
+            return;
+        }
     }
-    if (state == GAME_MODE_BATTLE_RESULTS) goto case5;
-    if (state == GAME_MODE_CARD) goto case8;
-    goto default_case;
-
-case4:
-    cdReadSync(D_800974C0[0].sector, D_800974C0[0].size, OVERLAY_PTR, NULL);
-    func_8001F5C8();
-    func_80098238();
-    goto top;
-
-case3:
-    setHudBrightness(0);
-    setCountdownVisible(0);
-    startBattleTransition(isBossBattle());
-    memzero16(OVERLAY_PTR, 0xA400);
-    cdReadSync(D_800974C8[0].sector, D_800974C8[0].size, OVERLAY_PTR, NULL);
-    func_8001F5C8();
-    func_80099D30();
-    goto top;
-
-case8:
-    g_renderMode = RENDER_IDLE;
-    cdReadAsyncSync(D_800974B8[0].sector, D_800974B8[0].size, OVERLAY_PTR, NULL);
-    func_8001F5C8();
-    tripleTriadMainLoop();
-    goto top;
-
-case5:
-    startBattleResults();
-    g_renderMode = mode;
-    func_8001F5C8();
-    g_gameMode = GAME_MODE_EXIT;
-    goto top;
-
-default_case:
-    g_gameMode = mode;
 }
 
 
