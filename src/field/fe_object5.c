@@ -346,7 +346,7 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
         }
 
         if (popped & 2) {
-            g_fieldContext.mode = 5;
+            g_fieldContext.mode = FIELD_MODE_MENU;
             g_fieldContext.counter = 0x16;
             g_fieldContext.unk1AB = g_fieldVars->stateFlags & 7;
         } else {
@@ -504,7 +504,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
     }
 
     if ((context->activeMask >> context->scriptSlot) & 1) {
-        D_8007064B = 1;
+        g_fieldContext.userControlOff = 1;
         func_800A59D0();
         LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
         D_800DE4FD[0] = 1;
@@ -574,7 +574,7 @@ s32 opHandler_MOVIE(ScriptContext *context) {
  * @brief Halve the rate triple (@c moveSpeed / @c msgChannel /
  *        @c field_0x208 ) of every active entity,
  *        clear the @c 0x1000 bit of the state flags, and reset two
- *        re-arm flags ( @c g_fieldContext.unk1A3 — only if @c unk015 is
+ *        re-arm flags ( @c g_fieldContext.userControlOff — only if @c unk015 is
  *        clear — and @c D_800DE4FD[0] ). Counterpart of @c
  *        opHandler_MOVIE's doubling step — called as part of the
  *        cinematic / movie postlude to restore the dialog channels
@@ -596,7 +596,7 @@ void func_800B14C8(void) {
         p++;
     }
     if (g_fieldContext.unk015 == 0) {
-        g_fieldContext.unk1A3 = 0;
+        g_fieldContext.userControlOff = 0;
     }
     D_800DE4FD[0] = 0;
 }
@@ -1157,7 +1157,7 @@ void func_800B21E0(void) {
     func_800A59D0();
     LoadDataFromDisc(D_800C2E1C[entryIdx * 2],
            D_800C2E1C[entryIdx * 2 + 1],
-           (u8 *)D_8005F13C,
+           D_8005F13C,
            func_800B2188);
 }
 

@@ -10,7 +10,8 @@
 #include "battle.h"
 #include "input/gamepad.h"
 #include "btl_anim.h"
-#include "overlay.h"
+//#include "overlay.h" omitted because the original called func_8003646C without its prototype.
+#include "world/we_object0.h"
 #include "game.h"
 #include "cdrom.h"
 #include "snd_init.h"
@@ -51,7 +52,7 @@ static inline void LoadIntroOverlay(void);
 static inline void ReturnToTitle(void);
 static inline void GoToGameOverField(void);
 static inline void ReloadDiscTables(void);
-static inline void RunBattle(s32 mapAddr);
+static inline void RunBattle(u8 *musicBuffer);
 
 static CdFileDesc g_fileTableDesc[] = { { IMG_TOC_SECTOR, IMG_TOC_SIZE } };
 
@@ -276,7 +277,7 @@ void LoadDiscTableOfContents(void) {
 
 static inline void ReturnToTitle(void) {
     g_fieldContext.counter = 0;
-    g_fieldContext.mode = 4;
+    g_fieldContext.mode = FIELD_MODE_TITLE;
     g_fieldContext.spawnTriIdx = 0x7FFF;
 }
 
@@ -291,26 +292,26 @@ static inline void ReloadDiscTables(void) {
     LoadWm2FieldTable();
 }
 
-static inline void RunBattle(s32 mapAddr) {
+static inline void RunBattle(u8 *musicBuffer) {
     s16 i;
 
-    func_80038030(mapAddr);
+    func_80038030(musicBuffer);
     gameStateLoop();
     if (g_renderMode != RENDER_BATTLE_RESULTS) {
         DisableStpBit();
     }
-    if (g_battleConfig.result == 5) {
+    if (g_battleConfig.result == BATTLE_RESULT_UNK5) {
         // matching hack
         do {
         } while (0);
         ReturnToTitle();
         return;
     }
-    if ((g_battleConfig.result == 1) && (!(g_fieldVars->fieldB6 & 0x200))) {
+    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->fieldB6 & 0x200))) {
         GoToGameOverField();
         return;
     }
-    if (g_battleConfig.result == 3) {
+    if (g_battleConfig.result == BATTLE_RESULT_UNK3) {
         if (g_fieldVars->fieldB6 & 0x100) {
             g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
         } else {
@@ -342,7 +343,7 @@ void ff8main(void) {
     s16 mode;
     s16 fieldId;
     s32 result;
-    s32 mapAddr;
+    u8 *musicBuffer;
     preInitStub();
     InitHardware();
     initCdSubsystem(1);
@@ -354,22 +355,24 @@ void ff8main(void) {
     LoadWm2FieldTable();
     while (1) {
         LoadIntroOverlay();
-
-        func_80098FD4(0);
+        IntroMain(INTRO_SCREEN_BOOT);
         InitSystemData();
         g_gameMode = GAME_MODE_FIELD;
         g_previousGameMode = GAME_MODE_NONE;
-        g_fieldContext.unk1A3 = 0;
-        D_8005F14A = 0;
-        D_8005F100 = 0x49;
-        g_fieldContext.mode = 0;
-        g_fieldContext.unk1A2 = 0;
-        result = func_8003646C(25);
-        if (!(result & 2)) {
+        g_fieldContext.userControlOff = 0;
+        g_prefetchState = PREFETCH_NONE;
+        g_prefetchedDestId = 73; // the debug "menu"
+        g_fieldContext.mode = FIELD_MODE_NONE;
+        g_fieldContext.mapJumpOff = 0;
+        result = func_8003646C(25); // Run main menu?
+
+	if (!(result & 2)) {
+	    // Load game
             RestoreFieldSnapshot();
             LoadFieldOverlay();
             SmInitEventAll(0);
         } else {
+	    // New game
             g_curFieldId = FIELD_ID_START0;
             g_gameState.battleParty[0] = 0;
             g_gameState.battleParty[1] = 0xFF;
@@ -378,19 +381,21 @@ void ff8main(void) {
             LoadFieldOverlay();
             SmInitEventAll(1);
         }
+
+	// Check that the game has correct disc before proceeding to loaded or new game
         if (g_fieldVars->expectedDiscId != getDiscId()) {
             LoadIntroOverlay();
-
-            func_80098FD4(1);
+            IntroMain(INTRO_SCREEN_INSERT_DISC);
             ReloadDiscTables();
         }
+
         do {
             // matching hack
             do {
                 switch (g_gameMode) {
                 case GAME_MODE_FIELD:
                     LoadFieldOverlay();
-                    func_8009895C();
+                    FieldMain();
                     break;
                 case GAME_MODE_WORLD:
                     switch (g_previousGameMode) {
@@ -408,14 +413,15 @@ void ff8main(void) {
                         D_80082C8C.mode = 6;
                         break;
                     }
-                    if (((g_previousGameMode == GAME_MODE_FIELD) && (D_8005F14A != 0)) && (D_8005F100 < 0x4A)) {
+		    // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise load it from disc.
+                    if (((g_previousGameMode == GAME_MODE_FIELD) && (g_prefetchState != PREFETCH_NONE)) && (g_prefetchedDestId < 0x4A)) {
                         while (UpdateCdRead() != CD_READ_IDLE);
-                        func_80038490(D_8005F104, OVERLAY_PTR);
+                        DecompressLzs(g_prefetchBuffer, OVERLAY_PTR);
                     } else {
                         LoadWorldOverlay();
                     }
-                    D_8005F14A = 0;
-                    if (func_800987D8() == 1) {
+                    g_prefetchState = PREFETCH_NONE;
+                    if (WorldMain() == 1) {
                         ReturnToTitle();
                         sndStopAll();
                         break;
@@ -450,12 +456,12 @@ void ff8main(void) {
                 case GAME_MODE_BATTLE_DEBUG_MENU:
                     if (g_previousGameMode == GAME_MODE_FIELD) {
                         g_battleConfig.battleSceneId = g_fieldContext.counter;
-                        mapAddr = D_8005F13C;
+                        musicBuffer = D_8005F13C;
                     } else {
                         g_battleConfig.battleSceneId = D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
-                        mapAddr = 0x801D0000;
+                        musicBuffer = (u8 *)MUSIC_BUFFER_ADDR;
                     }
-                    RunBattle(mapAddr);
+                    RunBattle(musicBuffer);
                     break;
                 case GAME_MODE_MENU:
                 case GAME_MODE_SCRIPT_MENU:
@@ -487,17 +493,17 @@ void ff8main(void) {
                     g_gameMode = GAME_MODE_BATTLE;
                     g_battleConfig.battleSceneId = (u16)(result >> 16);
                     if (g_gameMode == GAME_MODE_FIELD) {
-                        mapAddr = D_8005F13C;
+                        musicBuffer = D_8005F13C;
                     } else {
                         // matching hack
-                        result = 0x801D0000;
-                        mapAddr = result;
+                        result = MUSIC_BUFFER_ADDR;
+                        musicBuffer = (u8 *)result;
                     }
-                    RunBattle(mapAddr);
+                    RunBattle(musicBuffer);
                     break;
                 case GAME_MODE_DISC_CHANGE:
                     LoadIntroOverlay();
-                    func_80098FD4(g_fieldContext.unk1A0);
+                    IntroMain(g_fieldContext.unk1A0);
                     mode = g_fieldContext.unk1A0;
                     if (mode == 1) {
                         ReloadDiscTables();
@@ -508,7 +514,7 @@ void ff8main(void) {
                     break;
                 }
             } while (0);
-        } while (g_fieldContext.mode != 4);
+        } while (g_fieldContext.mode != FIELD_MODE_TITLE);
         sndStopAll();
         SetPlayTimePaused(0);
         WaitForGamePadDetection();

@@ -10,12 +10,12 @@ void func_800AF254(void) {
     func_800AF740();
     
     switch (g_battleConfig.result) {
-        case 2:
+        case BATTLE_RESULT_ESCAPED:
             g_gameState.mainData.fieldCE2++;
             g_gameMode = GAME_MODE_BATTLE_RESULTS;
             break;
             
-        case 4:
+        case BATTLE_RESULT_WIN:
             g_gameState.mainData.fieldCDC++;
             if (D_800ED148.unkCDD & 0x10) {
                 g_gameMode = GAME_MODE_EXIT;
@@ -27,13 +27,13 @@ void func_800AF254(void) {
             
             break;
             
-        case 1:
-        case 3:
+        case BATTLE_RESULT_GAMEOVER:
+        case BATTLE_RESULT_UNK3:
             g_gameState.mainData.fieldCE0++;
             g_gameMode = GAME_MODE_EXIT;
             break;
             
-        case 5:
+        case BATTLE_RESULT_UNK5:
             g_gameMode = GAME_MODE_EXIT;
             break;
     }

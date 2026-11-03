@@ -257,7 +257,7 @@ extern s32 D_800D880C;  /**< Mesh centre screen y (corner + @c MESH_CENTRE_BIAS)
  * The second band repeats the whole thing one VRAM row lower, into the second
  * pool.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0).
+ * @note Called from the world entry loop @c WorldMain (we_object0).
  */
 void func_800A64DC(void) {
     RECT src;
@@ -421,7 +421,7 @@ static void func_800A688C(u16 *src, RECT *area, u16 *dst, s32 count) {
  *
  * @param ctx Scene context whose @c primList holds the bone prims.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0).
+ * @note Called from the world entry loop @c WorldMain (we_object0).
  */
 void func_800A6A74(BattleSceneCtx *ctx) {
     s32 cond;
@@ -465,7 +465,7 @@ static const VramXY D_80098120[STRIP_LOAD_COUNT] = {
  * Finally every @c DR_LOAD in the @c D_800D42D0 pool is pointed at its 1x1
  * source pixel, so drawing one uploads a single texel.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0). It
+ * @note Called from the world entry loop @c WorldMain (we_object0). It
  *       is the filler for the pools that @ref func_800A7590 links and
  *       @ref func_800A64DC chains.
  */
@@ -646,7 +646,7 @@ void func_800A735C(BattleSceneCtx *a0) {
  * @param ctx Scene to link into; the @c D_800CA040 sentinel selects bank 0 and
  *            any live scene selects bank 1.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0).
+ * @note Called from the world entry loop @c WorldMain (we_object0).
  *       The pools it links are filled by func_800A6BE0.
  */
 void func_800A7590(BattleSceneCtx *ctx) {
@@ -773,7 +773,7 @@ void func_800A7B38(void) {
  * @param block Animation block (offset table at its start), or a table
  *              whose first entry is 0 to just disable all slots.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0).
+ * @note Called from the world entry loop @c WorldMain (we_object0).
  */
 void func_800A7CD0(s32 *block) {
     WorldTexAnim *anim;
@@ -1041,7 +1041,7 @@ void func_800A8270(SVECTOR *out) {
  * b0..b2 are the width bytes of @c D_800DB0D0. Always finishes with
  * @c func_800A8A28 at the raw coordinate.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0);
+ * @note Called from the world entry loop @c WorldMain (we_object0);
  *       the three drawers below it — the map panel, the star field and the
  *       backdrop gradient — run only through it.
  *
@@ -1395,7 +1395,7 @@ static void func_800A8A28(s16 y) {
  * @note The @c goto is load-bearing: it is how the matched build skips the
  *       default-install block. Rewriting it as a "matched" flag costs three
  *       instructions and no longer matches.
- * @note Called from the world entry loop @c func_800987D8 (we_object0),
+ * @note Called from the world entry loop @c WorldMain (we_object0),
  *       gated by the @c D_800C4D24 early-out.
  */
 void func_800A8C1C(void) {
@@ -1572,7 +1572,7 @@ void func_800A9254(void) {
  * The GTE rotation matrix and translation vector are saved on entry and put
  * back on exit, so callers see the transform they set up.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0),
+ * @note Called from the world entry loop @c WorldMain (we_object0),
  *       alongside the rest of the particle/backdrop layer
  *       (@ref func_800A7590 and the pool filler func_800A6BE0).
  */
@@ -1907,7 +1907,7 @@ void func_800A9ED4(void) {
  * assembled vertices go to @ref func_800AA210 — a quad for the first
  * @c MESH_QUAD_COUNT rows, a triangle for the rest.
  *
- * @note Called from the world entry loop @c func_800987D8 (we_object0);
+ * @note Called from the world entry loop @c WorldMain (we_object0);
  *       @ref func_800AA210 below is reached only through this.
  *
  * @param pos World position the mesh is centred on.
@@ -2434,7 +2434,7 @@ static void func_800AB06C(void) {
  *
  * @note The only caller is func_800B99A4 (we_object8, an ambient spawner
  *       that picks a random world cell and checks its terrain glyph), which
- *       the world entry loop @c func_800987D8 calls.
+ *       the world entry loop @c WorldMain calls.
  *
  * @note Three spellings below are load-bearing for the byte-exact match
  *       (gcc 2.8.0 register allocation), not behavior:

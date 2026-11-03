@@ -54,7 +54,7 @@ typedef struct {
  *       carries (the @c SETLINE opcode), which it resembles only in layout.
  *       The @ref FieldInfo is a field data member: its base comes from
  *       @c g_fieldInfo (set up with the other @c 0x800E1000 field data
- *       handles by @c func_8009895C, then latched into @c g_curFieldInfo by
+ *       handles by @c FieldMain, then latched into @c g_curFieldInfo by
  *       @c func_800983F0). No game code stores into this region, so the 12
  *       trigger lines are field-file data loaded with the field;
  *       @c func_800A6100 / @c func_800A62EC only read them against entity

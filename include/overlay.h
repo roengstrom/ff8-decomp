@@ -2,7 +2,6 @@
 #define OVERLAY_H
 
 #include "common.h"
-#include "world/we_object0.h"
 
 extern DISPENV D_80085150;
 
@@ -50,14 +49,6 @@ extern void loadOverlayWithTimCallback(s32 a0, s32 a1);
 /** @brief Reset card-slot dispatch state for the Triple-Triad mini-game. */
 extern void resetCardSlots(s32 mode);
 
-extern s32 func_8003646C(); /* K&R: called with 1 or 2 args */
-
-/* --- Loaded-overlay entry points -----------------------------------------
- * These live inside the swapped overlay at 0x80098xxx (each overlay provides
- * its own implementation at the shared entry address); main invokes them
- * after loading an overlay. */
-
-/** @brief Run the loaded overlay's entry point (init / execute). */
-extern void func_80098000(void);
+extern s32 func_8003646C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif /* OVERLAY_H */

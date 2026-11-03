@@ -1013,13 +1013,13 @@ void func_800AEACC(s32 arg0) {
 }
 
 void func_800AEB50(void) {
-    if ((g_battleConfig.result != 0) || (func_800AE7D0() != 0) || (D_800ED148.unk12E8 != 1) || (func_800AE8A0() == 0)) {
+    if ((g_battleConfig.result != BATTLE_RESULT_UNDETERMINED) || (func_800AE7D0() != 0) || (D_800ED148.unk12E8 != 1) || (func_800AE8A0() == 0)) {
         return;
     }
     
     func_800AEACC(1);
     func_8009B134(116, 128, 0);
-    g_battleConfig.result = 2;
+    g_battleConfig.result = BATTLE_RESULT_ESCAPED;
     func_800AFD0C();
     D_800ED148.unk1301 = 2;
     func_8009AF14(&func_8009AD7C);
@@ -1035,9 +1035,9 @@ void func_800AEB50(void) {
  * D_800EE449, and registers func_8009AD7C as callback.
  */
 void func_800AEC04(void) {
-    if ((g_battleConfig.result == 0) && (g_battleConfig.unk2 & BATTLE_FLAG_COUNTDOWN) && (g_gameState.mainData.countdownTimer == 0) && (g_battleConfig.battleSceneId != 317)) {
+    if ((g_battleConfig.result == BATTLE_RESULT_UNDETERMINED) && (g_battleConfig.unk2 & BATTLE_FLAG_COUNTDOWN) && (g_gameState.mainData.countdownTimer == 0) && (g_battleConfig.battleSceneId != 317)) {
         func_800AEACC(-1);
-        g_battleConfig.result = 3;
+        g_battleConfig.result = BATTLE_RESULT_UNK3;
         D_800ED148.unk1301 = 3;
         func_8009AF14(&func_8009AD7C);
     }
@@ -1050,7 +1050,7 @@ void func_800AEC04(void) {
  * func_8009AF14 with func_8009AD7C as the callback.
  */
 void func_800AEC98(void) {
-    g_battleConfig.result = 1;
+    g_battleConfig.result = BATTLE_RESULT_GAMEOVER;
     D_800ED148.unk1301 = 3;
     func_8009AF14(&func_8009AD7C);
 }
@@ -1063,7 +1063,7 @@ void func_800AEC98(void) {
  * calls func_800AEACC(-1) and func_800AEC98.
  */
 void func_800AECD4(void) {
-    if ((g_battleConfig.result == 0) && (D_800ED148.unk12F9 != 1) && (D_800ED148.unk132D != 0)) {
+    if ((g_battleConfig.result == BATTLE_RESULT_UNDETERMINED) && (D_800ED148.unk12F9 != 1) && (D_800ED148.unk132D != 0)) {
         func_800AEACC(-1);
         func_800AEC98();
     }
@@ -1078,7 +1078,7 @@ void func_800AECD4(void) {
  * calls func_800AEACC(0) and func_800AEC98.
  */
 void func_800AED30(void) {
-    if (g_battleConfig.result != 0) {
+    if (g_battleConfig.result != BATTLE_RESULT_UNDETERMINED) {
         return;
     }
 
@@ -1099,12 +1099,12 @@ void func_800AED30(void) {
 }
 
 void func_800AED9C(void) {
-    if ((g_battleConfig.result != 0) || (D_800ED148.unk12F9 == 1) || (func_800AE788() != 255)) {
+    if ((g_battleConfig.result != BATTLE_RESULT_UNDETERMINED) || (D_800ED148.unk12F9 == 1) || (func_800AE788() != 255)) {
         return;       
     }
     
     func_800AEACC(-1);
-    g_battleConfig.result = 4;
+    g_battleConfig.result = BATTLE_RESULT_WIN;
     func_800AFD0C();
     
     if (!(g_battleConfig.unk2 & 2)) {
@@ -1136,7 +1136,7 @@ void func_800AED9C(void) {
  */
 void func_800AEE64(void) {
     SetDispMask(0);
-    g_battleConfig.result = 5;
+    g_battleConfig.result = BATTLE_RESULT_UNK5;
     D_800ED148.header.timer = 0;
     sndStopAll();
     resetCdDrive();

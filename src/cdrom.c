@@ -17,7 +17,7 @@ typedef struct {
  * struct base and inserts an extra instruction. */
 #define LZSS_OUTPUT_SIZE (*(s32 *)&D_80039418.outputSize)
 
-void func_80038490(u8 *src, u8 *dst)
+void DecompressLzs(u8 *src, u8 *dst)
 {
   LzssData *data;
   u8 *src_ptr;

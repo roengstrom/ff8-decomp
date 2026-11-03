@@ -87,7 +87,7 @@ extern FieldView *g_curFieldView;
 extern SVert *g_fieldWalkmeshVerts;
 /** @brief Overlay header bytes at the field overlay's load address; 8 are copied to the stack on entry. */
 extern u8 D_80098000[];
-/** @brief The field overlay's own DrawSync callback, installed by @c func_8009895C. */
+/** @brief The field overlay's own DrawSync callback, installed by @c FieldMain. */
 extern u8 D_800982F0[];
 /** @brief Per-frame prim arena the field renderers build into. */
 extern u8 D_800CD1B0[];
@@ -239,7 +239,7 @@ extern void func_80098314(void);
 /** @brief Load/refresh the active field map's asset bundle from CD. */
 extern s32 *func_800983F0(void);
 /** @brief Field engine main loop: loads a field, runs it, and dispatches on the exit state. */
-extern void func_8009895C(void);
+extern void FieldMain(void);
 extern void func_80099180(void);
 extern void func_80099348(void);
 extern s32  func_8009A0E8(s32 *p0, s32 *p1, s32 *outDist);
@@ -453,8 +453,6 @@ typedef struct {
 } ObjSlot;  /* 0x88 = 136 bytes */
 extern ObjSlot D_800C6DA0[];
 extern s16 D_8005F122;
-extern s16 D_8005F14A;
-extern s16 D_8005F100;
 extern s16 D_8005F142;
 extern s16 D_800C2568[];         /**< Field id -> streaming-table entry index. */
 extern u32 D_800C0904[];         /**< Streaming table: 24-byte (6-word) entries; this symbol

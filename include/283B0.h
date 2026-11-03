@@ -14,8 +14,8 @@ extern void func_80037D40(void);
 /** @brief Toggle the current sound-bank-selector flag and return a pointer to the new bank table. */
 extern u8 *toggleSoundBank(void);
 
-extern void func_80037FB0(s32 variant, s32 bank, s32 buf);
-extern void func_80038030(s32 mapAddr);
+extern void func_80037FB0(s32 variant, s32 bank, u8 *musicBuffer);
+extern void func_80038030(u8 *musicBuffer);
 extern void clearEntityFlags(void);
 
 /** @brief Read the 2-bit packed flag at the given key (256-entry table). */

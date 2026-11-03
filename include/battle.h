@@ -8,10 +8,14 @@
 #include "battle_anim.h"
 
 /** @brief Battle result values (BattleConfig.result). */
-#define BATTLE_RESULT_UNDETERMINED  0
-#define BATTLE_RESULT_GAMEOVER      1
-#define BATTLE_RESULT_ESCAPED       2
-#define BATTLE_RESULT_WIN           4
+typedef enum {
+    BATTLE_RESULT_UNDETERMINED = 0,
+    BATTLE_RESULT_GAMEOVER = 1,
+    BATTLE_RESULT_ESCAPED = 2,
+    BATTLE_RESULT_UNK3 = 3,
+    BATTLE_RESULT_WIN = 4,
+    BATTLE_RESULT_UNK5 = 5
+} BattleResult;
 
 /** @brief BattleConfig.unk2 flag: a countdown is running. The menu clock shows it
  * instead of the play time, and a battle ends when it reaches 0. */
@@ -24,7 +28,7 @@ typedef struct {
     u16 battleSceneId;
     u16 unk2;            // Flags?, when first bit is set, escape it not possible
     u8  unk4[3];         // Post battle command queue?
-    u8  result;          /**< Battle result (BATTLE_RESULT_*). */
+    u8 result; // a BattleResult
     u8 sealedAbilities; // see @c SealedAbilityFlag
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
 } BattleConfig;

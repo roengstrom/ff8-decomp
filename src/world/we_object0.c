@@ -108,7 +108,7 @@ extern u8      D_800D23DC;   /**< Same byte as @c D_800D23D8[4]. */
 extern SVECTOR D_800D2450;
 extern s32    *D_800D245C;
 
-s32 func_800987D8(void)
+s32 WorldMain(void)
 {
     s32 trigger;
     s8 code;

@@ -7,7 +7,7 @@
 #include "sound.h"
 #include "imgtoc.h"
 
-extern s32 D_80085220;
+extern u8 *D_80085220;
 extern u8 D_8005644B[];
 extern s32 D_800562D4;
 
@@ -193,18 +193,18 @@ static void loadSoundBankB(void) {
 }
 
 
-void func_80037FB0(s32 variant, s32 bank, s32 buf) {
-    D_80085220 = buf;
+void func_80037FB0(s32 variant, s32 bank, u8 *musicBuffer) {
+    D_80085220 = musicBuffer;
     g_fieldVars->soundLoadComplete = 0;
     if (variant == 0) {
-        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankA);
+        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], musicBuffer, loadSoundBankA);
     } else {
-        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], (u8 *)buf, loadSoundBankB);
+        LoadDataFromDisc(D_800974F0[bank * 2], D_800974F0[bank * 2 + 1], musicBuffer, loadSoundBankB);
     }
 }
 
 
-void func_80038030(s32 arg0) {
+void func_80038030(u8 *musicBuffer) {
     FieldVars *ptr = &g_gameState.fieldVars;
 
     if (!(g_battleConfig.unk2 & 0x10)) {
@@ -217,8 +217,8 @@ void func_80038030(s32 arg0) {
         }
 
         sndCmd40();
-        D_80085220 = arg0;
-        func_80037FB0(0, ptr->battleMusicId, arg0);
+        D_80085220 = musicBuffer;
+        func_80037FB0(0, ptr->battleMusicId, musicBuffer);
 
         if (ptr->soundLoadComplete == 0) {
             do {
