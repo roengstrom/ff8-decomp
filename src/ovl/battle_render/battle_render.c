@@ -17,8 +17,11 @@ typedef struct {
 } CmdBlk;
 
 typedef struct {
-    /** 0x00000 */ u8 unk0[0x406C];
-    /** 0x0406C */ u32 ot[3];
+    /** 0x00000 */ DRAWENV unk0;
+    /** 0x0005C */ DISPENV unk5C;
+    /** 0x00070 */ u32 unk70[0x1000];
+    /** 0x04070 */ u32 unk4070;
+    /** 0x04074 */ u32 unk4074;
     /** 0x04078 */ DR_MODE drawModes[0x400];
     /** 0x07078 */ SPRT_8 sprt8[0x400];
     /** 0x0B078 */ SPRT_16 sprt16[0x200];
@@ -51,6 +54,10 @@ typedef struct {
     /** 0x12 */ u16 pad12;
     /** 0x14 */ s32 tpage;
 } func_8009A8B4_arg0;
+
+typedef struct {
+    /** 0x00 */ char text[0x100];
+} func_8009B170_scratch;
 
 extern BattleRenderCtx *D_800D3C58;
 extern s32 D_8009B54C[];
@@ -91,9 +98,14 @@ extern u8 D_800ABA10[][10];
 extern s32 D_800ABB34;
 extern s32 D_800D3C68;
 extern s32 D_800D3C54;
+extern s32 D_800D3C6C;
+extern u8 D_8009B534[];
 
 static void func_800988EC(s32 idx, u8 *src);
+static void func_8009AA18(func_8009A8B4_arg0 *arg);
+static void func_8009AC18(func_8009A8B4_arg0 *arg);
 static void func_8009AE1C(func_8009AE1C_arg0 *arg);
+static void func_8009B170(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
 
@@ -112,20 +124,20 @@ void func_80098688(void) {
     cmd->x = 0x1A;
     cmd->y = 0x16;
     cmd->color = 1;
-    cmd->ot = &D_800D3C58->ot[1];
+    cmd->ot = &D_800D3C58->unk4070;
     cmd->format = D_80098000;
     func_8009AF64(cmd);
 
     cmd->x = 0x1D;
     cmd->y = 0x17;
     cmd->color = 1;
-    cmd->ot = &D_800D3C58->ot[1];
+    cmd->ot = &D_800D3C58->unk4070;
     cmd->format = D_8009800C;
     func_8009AF64(cmd);
 
     cmd->x = 0x1A;
     cmd->y = 0x1A;
-    cmd->ot = &D_800D3C58->ot[1];
+    cmd->ot = &D_800D3C58->unk4070;
     cmd->color = 1;
     cmd->format = D_80098018;
     func_8009AF64(cmd, D_800ABA08);
@@ -573,9 +585,57 @@ void func_8009A8B4(func_8009A8B4_arg0 *arg) {
     addPrim(arg->ot, mode);
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AA18);
+static void func_8009AA18(func_8009A8B4_arg0 *arg) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    DR_MODE *restore = &ctx->drawModes[D_800ABB34++];
+    SPRT *sprt = &ctx->sprt[D_800D3C54++];
+    RECT window;
+    RECT full;
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009AC18);
+    window.x = window.y = 0;
+    window.w = window.h = 255;
+    full.x = full.y = 0;
+    full.w = full.h = 255;
+    SetDrawMode(mode, 0, 0, arg->tpage, &window);
+    SetDrawMode(restore, 0, 0, arg->tpage, &full);
+    sprt->clut = arg->clut;
+    sprt->u0 = arg->u;
+    sprt->v0 = arg->v;
+    sprt->w = arg->w;
+    sprt->h = arg->h;
+    sprt->x0 = arg->x;
+    sprt->y0 = arg->y;
+    addPrim(arg->ot, restore);
+    addPrim(arg->ot, sprt);
+    addPrim(arg->ot, mode);
+}
+
+static void func_8009AC18(func_8009A8B4_arg0 *arg) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    DR_MODE *restore = &ctx->drawModes[D_800ABB34++];
+    SPRT *sprt = &ctx->sprt[D_800D3C54++];
+    RECT window;
+    RECT full;
+
+    window.x = window.y = 0;
+    window.w = window.h = 32;
+    full.x = full.y = 0;
+    full.w = full.h = 255;
+    SetDrawMode(mode, 0, 0, arg->tpage, &window);
+    SetDrawMode(restore, 0, 0, arg->tpage, &full);
+    sprt->clut = arg->clut;
+    sprt->u0 = arg->u;
+    sprt->v0 = arg->v;
+    sprt->w = arg->w;
+    sprt->h = arg->h;
+    sprt->x0 = arg->x;
+    sprt->y0 = arg->y;
+    addPrim(arg->ot, restore);
+    addPrim(arg->ot, sprt);
+    addPrim(arg->ot, mode);
+}
 
 static void func_8009AE1C(func_8009AE1C_arg0 *arg) {
     BattleRenderCtx *ctx = D_800D3C58;
@@ -618,6 +678,30 @@ void func_8009AF64(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3) {
     addPrim(cmd->ot, mode);
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009B170);
+static void func_8009B170(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    SPRT_16 *sprt = &ctx->sprt16[D_800D3C6C];
+    s32 col = 0;
+    s32 px;
+    u8 c;
+
+    SetDrawMode(mode, 0, 0, getTPage(0, 0, 832, 256), NULL);
+    sprintf(((func_8009B170_scratch *)getScratchAddr(0x40))->text, cmd->format, arg1, arg2, arg3);
+    px = 0;
+    while ((c = ((func_8009B170_scratch *)getScratchAddr(0x40))->text[col]) != '\0') {
+        if (c != ' ') {
+            sprt->clut = GetClut(0, cmd->color + 0xE0);
+            setXY0(sprt, cmd->x * 8 + px, cmd->y * 8);
+            setUV0(sprt, (c % 16) * 16, c / 16 * 16);
+            addPrim(cmd->ot, sprt);
+            D_800D3C6C++;
+            sprt++;
+        }
+        col++;
+        px += D_8009B534[c];
+    }
+    addPrim(cmd->ot, mode);
+}
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009B394);
