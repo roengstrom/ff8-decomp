@@ -209,7 +209,7 @@ void func_80038030(s32 arg0) {
 
     if (!(g_battleConfig.unk2 & 0x10)) {
         while (sndGetStatus() == 2) {
-            func_800393C8();
+            UpdateCdRead();
         }
 
         if (ptr->soundHandle0 == -1) {
@@ -222,7 +222,7 @@ void func_80038030(s32 arg0) {
 
         if (ptr->soundLoadComplete == 0) {
             do {
-                func_800393C8();
+                UpdateCdRead();
             } while (ptr->soundLoadComplete == 0);
         }
 

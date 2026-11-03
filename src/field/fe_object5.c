@@ -483,7 +483,7 @@ s32 opHandler_ACTORMODE(Actor *actor) {
  *        movie subsystem (@c func_800A59D0, then @c LoadCompressedDataFromDisc with
  *        @c D_800C2D14[0..1] as the LBA/size pair) and marks
  *        @c D_800DE4FD as in-flight. Subsequent invocations poll
- *        @c func_800393C8 — they return @c 1 to keep the script
+ *        @c UpdateCdRead — they return @c 1 to keep the script
  *        blocked until the read completes, then commit the movie
  *        entry @c (movieIndex + 1) via @c func_801E8104 and pop both
  *        stack slots before returning @c 2.
@@ -510,7 +510,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
         D_800DE4FD[0] = 1;
     }
 
-    if (func_800393C8() != 0) {
+    if (UpdateCdRead() != CD_READ_IDLE) {
         return 1;
     }
 
@@ -633,7 +633,7 @@ s32 opHandler_MOVIESYNC(ScriptContext *context) {
  * subsystem via @c func_800A59D0 + @c LoadCompressedDataFromDisc with
  * @c D_800C2D14[0..1] as the LBA/size pair and marks
  * @c D_800DE4FD as in-flight. Subsequent invocations poll
- * @c func_800393C8 — returning @c 1 to keep the script blocked
+ * @c UpdateCdRead — returning @c 1 to keep the script blocked
  * until the read completes, then committing the indexed bank entry
  * via @c func_801E8104 (priority @c 0x10, mode @c 2 for SPU vs
  * mode @c 1 for the movie variant in @c MOVIEREADY) before popping
@@ -649,7 +649,7 @@ s32 opHandler_SPUREADY(ScriptContext *context) {
         LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
         D_800DE4FD[0] = 1;
     }
-    if (func_800393C8() != 0) {
+    if (UpdateCdRead() != CD_READ_IDLE) {
         return 1;
     }
     D_800DE4FD[0] |= 0x2;
@@ -736,11 +736,11 @@ s32 opHandler_STOPVIBRATE(ScriptContext *context) {
 }
 
 /**
- * @brief Wait-on-CD-read opcode body — block until @c func_800393C8
+ * @brief Wait-on-CD-read opcode body — block until @c UpdateCdRead
  *        (a CD poll) returns @c 0, then advance.
  */
 s32 opHandler_LOADSYNC(ScriptContext *context) {
-    if (func_800393C8() == 0) {
+    if (UpdateCdRead() == CD_READ_IDLE) {
         return 2;
     }
     return 1;

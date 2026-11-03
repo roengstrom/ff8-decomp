@@ -103,7 +103,7 @@ void func_800BF718(s32 mode) {
             func_800B21E0();
             if (fs[0xD] == 0) {
                 do {
-                    func_800393C8();
+                    UpdateCdRead();
                 } while (fs[0xD] == 0);
             }
         }
@@ -124,7 +124,7 @@ void func_800BF718(s32 mode) {
             } else {
                 func_80037FB0(0, ch0, D_8005F13C);
                 while (g_fieldVars->soundLoadComplete == 0) {
-                    func_800393C8();
+                    UpdateCdRead();
                 }
                 v = (s32)toggleSoundBank();
                 g_fieldVars->soundHandle0 = sndCmd1A(v, 0x3C, g_fieldVars->musicVolume);

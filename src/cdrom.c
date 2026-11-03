@@ -136,7 +136,7 @@ void setAudioVolume(s32 a0) {
 /**
  * @brief Initialize the CD-ROM subsystem.
  *
- * Clears CD state variables (D_8008A3D8, D_8008A3C8.state). If a0 is nonzero,
+ * Clears CD state variables (g_cdReadState, D_8008A3C8.state). If a0 is nonzero,
  * spins until CdInit succeeds, disables CD debug output, sends a
  * CdControlB command (0xE = SetMode, double-speed 0x80), waits 3 vsyncs,
  * then reads the disc ID via detectDiscNumber and stores it.
@@ -148,8 +148,8 @@ void initCdSubsystem(s32 a0) {
     s32 result;
     u8 buf;
 
-    D_8008A3D8.flags = 0;
-    D_8008A3D8.status = 0;
+    g_cdReadState.flags = 0;
+    g_cdReadState.status = CD_READ_IDLE;
     D_8008A3C8.state = 0;
 
     if (a0 != 0) {
@@ -165,17 +165,17 @@ void initCdSubsystem(s32 a0) {
 }
 
 
-/** @brief Clears bit 1 in global D_8008A3D8. */
+/** @brief Clears bit 1 in global g_cdReadState. */
 void clearCdBusyFlag(void) {
 
-    D_8008A3D8.flags &= 0xFD;
+    g_cdReadState.flags &= 0xFD;
 }
 
 
-/** @brief Sets bit 1 in global D_8008A3D8. */
+/** @brief Sets bit 1 in global g_cdReadState. */
 void setCdBusyFlag(void) {
 
-    D_8008A3D8.flags |= 0x02;
+    g_cdReadState.flags |= 0x02;
 }
 
 
@@ -189,8 +189,7 @@ void flushCdAndWait(void) {
     clearCdBusyFlag();
     CdFlush();
     resetCdDrive();
-    do {
-    } while (func_800393C8() != 0);
+    while (UpdateCdRead() != CD_READ_IDLE);
 }
 
 
@@ -209,13 +208,13 @@ void flushCdAndWait(void) {
  * @param callback Completion callback (stored at callback/0x20, may be NULL).
  */
 void func_80038760(s32 mode, s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
-    while (func_800393C8()) {}
+    while (UpdateCdRead() != CD_READ_IDLE);
 
-    CdIntToPos(lba, &D_8008A3D8.params);
-    D_8008A3D8.sectorCount = (size + 0x7FF) >> 11;
-    D_8008A3D8.readBuffer = dest;
-    D_8008A3D8.callback = callback;
-    D_8008A3D8.status = mode;
+    CdIntToPos(lba, &g_cdReadState.params);
+    g_cdReadState.sectorCount = (size + 0x7FF) >> 11;
+    g_cdReadState.readBuffer = dest;
+    g_cdReadState.callback = callback;
+    g_cdReadState.status = mode;
     D_8008A3C8.timeout = 0;
 }
 
@@ -231,7 +230,7 @@ void func_80038760(s32 mode, s32 lba, u32 size, u8 *dest, void (*callback)(void)
  * @return Always 0.
  */
 s32 func_800387F8(s32 lba, void (*callback)(void)) {
-    func_80038760(2, lba, 0, 0, callback);
+    func_80038760(CD_READ_UNK_2, lba, 0, 0, callback);
     return 0;
 }
 
@@ -249,7 +248,7 @@ s32 func_800387F8(s32 lba, void (*callback)(void)) {
  * @return Always 0.
  */
 s32 LoadDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void)) {
-    func_80038760(3, lba, size, dest, callback);
+    func_80038760(CD_READ_UNK_3, lba, size, dest, callback);
     return 0;
 }
 
@@ -269,7 +268,7 @@ s32 LoadDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void)) {
  * @param callback Completion callback (may be NULL).
  */
 s32 LoadCompressedDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(void)) {
-    func_80038760(7, lba, size, dest, callback);
+    func_80038760(CD_READ_UNK_7, lba, size, dest, callback);
     D_8008A3B8 = lba;
     return func_80039444(D_800853B8, dest);
 }
@@ -279,7 +278,7 @@ s32 LoadCompressedDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(v
  * @brief Perform a synchronous CD-ROM read with retry.
  *
  * Calls func_800387F8(a0, a1) in a busy-wait loop until it returns 0,
- * then waits for func_800393C8 to complete.
+ * then waits for UpdateCdRead to complete.
  *
  * @param lba      Linear block address.
  * @param callback Completion callback (may be NULL).
@@ -288,8 +287,7 @@ s32 LoadCompressedDataFromDisc(s32 lba, u32 size, void *dest, void (*callback)(v
 s32 cdReadRetry(s32 lba, void (*callback)(void)) {
     do {
     } while (func_800387F8(lba, callback) != 0);
-    do {
-    } while (func_800393C8() != 0);
+    while (UpdateCdRead() != CD_READ_IDLE);
     return 0;
 }
 
@@ -297,7 +295,7 @@ s32 cdReadRetry(s32 lba, void (*callback)(void)) {
 /**
  * @brief Perform a synchronous (blocking) CD-ROM read.
  *
- * Initiates a CD read via LoadDataFromDisc, then busy-waits on func_800393C8
+ * Initiates a CD read via LoadDataFromDisc, then busy-waits on UpdateCdRead
  * until the read is complete.
  *
  * @param a0 First CD read parameter.
@@ -309,8 +307,7 @@ s32 cdReadRetry(s32 lba, void (*callback)(void)) {
 s32 cdReadSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
     do {
     } while (LoadDataFromDisc(lba, size, dest, callback) != 0);
-    do {
-    } while (func_800393C8() != 0);
+    while (UpdateCdRead() != CD_READ_IDLE);
     return 0;
 }
 
@@ -319,14 +316,13 @@ s32 cdReadSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
  * @brief Perform a synchronous async-initiated CD-ROM read.
  *
  * Calls LoadCompressedDataFromDisc to start an async read, saves its return value,
- * then busy-waits on func_800393C8 until the read completes.
+ * then busy-waits on UpdateCdRead until the read completes.
  *
  * @return The value returned by LoadCompressedDataFromDisc (async read handle/status).
  */
-s32 cdReadAsyncSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
+s32 cdReadAsyncSync(s32 lba, u32 size, void *dest, void (*callback)(void)) {
     s32 saved = LoadCompressedDataFromDisc(lba, size, dest, callback);
-    do {
-    } while (func_800393C8() != 0);
+    while (UpdateCdRead() != CD_READ_IDLE);
     return saved;
 }
 
@@ -339,14 +335,14 @@ s32 cdReadAsyncSync(s32 lba, u32 size, u8 *dest, void (*callback)(void)) {
  * 0xC (reset), then calls cdBreakRead to finalize.
  */
 void resetCdDrive(void) {
-    u8 state = D_8008A3D8.status;
+    u8 state = g_cdReadState.status;
 
-    if (state == 0xB || state == 0) return;
+    if (state == CD_READ_UNK_11 || state == CD_READ_IDLE) return;
 
-    D_8008A3D8.readBuffer = 0;
-    D_8008A3D8.sectorCount = 0;
-    D_8008A3D8.callback = 0;
-    D_8008A3D8.status = 0xC;
+    g_cdReadState.readBuffer = 0;
+    g_cdReadState.sectorCount = 0;
+    g_cdReadState.callback = 0;
+    g_cdReadState.status = CD_READ_UNK_12;
     cdBreakRead();
 }
 
@@ -371,7 +367,7 @@ void resetCdDriveMode(void) {
  *
  * Polls the CD drive and writes a status code to the global @c D_8008A3C8.state,
  * which it also returns:
- *   - 0: valid FF8 data disc; disc number recorded in @c D_8008A3D8.discNum.
+ *   - 0: valid FF8 data disc; disc number recorded in @c g_cdReadState.discNum.
  *   - 1: error / unrecognized disc.
  *   - 2: drive still spinning up (busy) — caller should retry.
  *   - 3: drive shell (lid) is open.
@@ -464,13 +460,13 @@ s32 func_80038A60(void) {
     mode = 0x80;
     CdControlB(0xE, &mode, result);
     VSync(3);
-    D_8008A3D8.status = 0;
+    g_cdReadState.status = CD_READ_IDLE;
     discNum = detectDiscNumber();
     if (discNum == -1) {
         D_8008A3C8.state = 6;
         return 6;
     }
-    D_8008A3D8.discNum = discNum;
+    g_cdReadState.discNum = discNum;
     D_8008A3C8.state = 0;
     return 0;
 }
