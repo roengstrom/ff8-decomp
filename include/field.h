@@ -246,7 +246,7 @@ typedef struct {
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
     /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
     /* 0x54 */ u16 field54;
-    /* 0x56 */ u8 field56;              /**< Copy of @c g_worldTransfer.cmd, set by @c func_800BFBBC. */
+    /* 0x56 */ u8 field56;              /**< Copy of @c g_worldTransfer.vehicle. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
     /* 0x59 */ u8 pad59[0x0F];

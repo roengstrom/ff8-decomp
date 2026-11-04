@@ -229,7 +229,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     seed->charKos[7] = g_gameState.chars[7].kos;
 
     seed->field54 = g_fieldContext.previousFieldId;
-    seed->field56 = g_worldTransfer.cmd;
+    seed->field56 = g_worldTransfer.vehicle;
     D_800DE8C8[1] = 2;
     ((u8 *)D_800DE8C8)[0xB] = 0;
     resetAllDialogs();

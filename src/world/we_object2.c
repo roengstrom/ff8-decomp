@@ -152,7 +152,7 @@ s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
 /**
  * @brief Look up per-command screen-scroll bounds for the current scene cmd.
  *
- * For a recognised @p cmd / scene-command (@c g_worldTransfer.cmd) pair, fills the
+ * For a recognised @p cmd / scene-command (@c g_worldTransfer.vehicle) pair, fills the
  * requested out-params with a (base, limit, span) triple and a mode flag,
  * returning 1; otherwise leaves them untouched and returns 0. Two cases:
  *  - "set A" (cmd @c 0x29 on most maps, or @c 0x59 / @c 0x51 on the common map
@@ -168,11 +168,11 @@ s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
  * @return @c 1 if @p cmd was recognised, else @c 0.
  */
 s32 lookupScrollBounds(s8 cmd, s32 *outBase, s32 *outLimit, s32 *outSpan, s32 *outFlag) {
-    s32 map = g_worldTransfer.cmd;
+    s32 vehicle = g_worldTransfer.vehicle;
     s32 ret = 0;
 
-    if ((cmd == 0x29 && map != 0x31 && map != 0x32) ||
-        (((u32)map < 0xA || map == 0x80 || map == 0x30) && (cmd == 0x59 || cmd == 0x51))) {
+    if ((cmd == 0x29 && vehicle != VEHICLE_CHOCOBO && vehicle != VEHICLE_RAGNAROK) ||
+        (((u32)vehicle < 0xA || vehicle == 0x80 || vehicle == VEHICLE_BALAMB_GARDEN) && (cmd == 0x59 || cmd == 0x51))) {
         if (outBase)  *outBase  = D_800C9E68;
         if (outLimit) *outLimit = D_800C97EC;
         if (outSpan)  *outSpan  = D_800C97EC - D_800C9E68;
@@ -312,7 +312,7 @@ u8 collectActiveKeyEntries(s16 *out) {
 void func_8009D3F4(void) {
     func_8009D630();
     g_worldTransfer.mode = WORLD_EXIT_TO_MENU;
-    g_worldTransfer.cmd = D_800C4D38;
+    g_worldTransfer.vehicle = D_800C4D38;
     g_worldTransfer.param.entrance.entranceIndex = -1;
     g_worldTransfer.param.entrance.facingDirection = -1;
     func_800B3FD4(D_800D226C, 5);
@@ -341,7 +341,7 @@ void func_8009D44C(s32 marker) {
     g_worldTransfer.mode = WORLD_EXIT_TO_BATTLE;
     g_worldTransfer.param.battle.sceneLow = marker;
     g_worldTransfer.param.battle.sceneHigh = (u32)marker >> 8;
-    g_worldTransfer.cmd = D_800C4D38;
+    g_worldTransfer.vehicle = D_800C4D38;
     func_800B3FD4(D_800D226C, 3);
     g_battleConfig.unk2 = 0;
     for (i = 0; i < 13; i++) {

@@ -143,7 +143,7 @@ s32 WorldMain(void)
     D_800C97E8 = WORLD_SCREEN_H;
     D_800D226C = (Slot*)&g_gameState.pad1260;
     if (g_worldTransfer.mode != WORLD_ENTER_FROM_FIELD) {
-        g_worldTransfer.cmd = D_800D226C->scene.cmd;
+        g_worldTransfer.vehicle = D_800D226C->scene.vehicle;
     } else {
         D_800D226C->scene = g_worldTransfer;
     }
@@ -196,7 +196,7 @@ s32 WorldMain(void)
             sndProcessAudio(D_800C4FC0, 1);
             func_8009CDFC(D_800C4FBC, 0x7F);
         } else {
-            D_800C4D88 = pickAudioTransition(g_worldTransfer.cmd, D_800D23D8[0x6A]);
+            D_800C4D88 = pickAudioTransition(g_worldTransfer.vehicle, D_800D23D8[0x6A]);
         }
 
         func_800A40C0();
@@ -287,7 +287,7 @@ s32 WorldMain(void)
                 g_worldTransfer.mode = WORLD_EXIT_TO_FIELD;
                 g_worldTransfer.param.entrance.entranceIndex = code;
                 g_worldTransfer.param.entrance.facingDirection = -1;
-                g_worldTransfer.cmd = D_800C4D38;
+                g_worldTransfer.vehicle = D_800C4D38;
                 func_800B3FD4(D_800D226C, 1);
                 D_800C987C = 0;
                 D_800C4D08 = D_800D23DC;

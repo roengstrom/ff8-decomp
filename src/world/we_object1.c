@@ -93,7 +93,7 @@ void func_80099B48(Entity *entity, s32 *script) {
  * state is latched via @c func_8009D7D8.
  *
  * Afterwards it always drains the sound engine, uploads the sample bank selected by the
- * scene command @c g_worldTransfer.cmd (@c D_800C9EE0 for @c 0x40..0x42, else @c D_800C9EDC),
+ * vehicle @c g_worldTransfer.vehicle (@c D_800C9EE0 for @c 0x40..0x42, else @c D_800C9EDC),
  * rebinds @c D_800C4FD8 sequence slots 4-9/12 to self-relative pointers in the bank
  * header @c D_800C97A8, and clears every slot's runtime state (@c field12).
  */
@@ -106,7 +106,7 @@ void func_80099C84(void) {
     s32 i;
     s32 *bank;
     s32 *offs;
-    u8 cmd;
+    u8 vehicle;
 
     D_800C4FBC = 0;
     D_800C4FC0 = 0;
@@ -136,8 +136,8 @@ void func_80099C84(void) {
         sndCmdC1(0, 0x1E, 0x7F);
     }
     while (sndGetEngineState() > 0) {}
-    cmd = g_worldTransfer.cmd;
-    if (cmd >= 0x40 && cmd < 0x43) {
+    vehicle = g_worldTransfer.vehicle;
+    if (vehicle >= 0x40 && vehicle < 0x43) {
         while (sndUploadSamples(D_800C9EE0, 1) != 0) {}
     } else {
         while (sndUploadSamples(D_800C9EDC, 1) != 0) {}
@@ -764,7 +764,7 @@ void func_8009C294(s32 cmd) {
     g_worldTransfer.mode = WORLD_EXIT_TO_FIELD;
     g_worldTransfer.param.entrance.entranceIndex = cmd;
     g_worldTransfer.param.entrance.facingDirection = -1;
-    g_worldTransfer.cmd = D_800C4D38;
+    g_worldTransfer.vehicle = D_800C4D38;
     func_800B3FD4(D_800D226C, 1);
     D_800D226C->bytes[1] = 0;
     for (i = 0; i < 13; i++) {

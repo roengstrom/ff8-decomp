@@ -465,7 +465,7 @@ void FieldMain(void) {
             g_gameMode = GAME_MODE_WORLD;
             g_fieldContext.previousFieldId = g_curFieldId;
             g_worldTransfer.param.entrance.entranceIndex = g_fieldContext.counter;
-            g_worldTransfer.cmd = g_fieldContext.spawnTriIdx;
+            g_worldTransfer.vehicle = g_fieldContext.spawnTriIdx;
             g_worldTransfer.param.entrance.facingDirection = g_fieldContext.facingDirection;
             sndCmd21(-1, 0);
             break;
