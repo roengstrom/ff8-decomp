@@ -6,6 +6,7 @@
 #include "item.h"
 #include "battle.h"
 #include "sound.h"
+#include "intro.h"
 #include "psxsdk/libgte.h"
 #include "field/field_data.h"
 #include "field/fe_object6.h"
@@ -1288,7 +1289,7 @@ s32 opHandler_GETTIMER(ScriptContext *context) {
 /**
  * Show the countdown timer: pop its y and then its x into
  * @c g_fieldVars->countdownY / @c countdownX, set @ref FIELD_STATE_COUNTDOWN
- * and bit 0x4 of @c fieldB6 and @c g_battleConfig.unk2 (so battles show it
+ * and @ref BATTLE_FLAG_COUNTDOWN in @c battleFlags and @c g_battleConfig.unk2 (so battles show it
  * too), then call @c setCountdownPosition and @c setCountdownVisible(1).
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1298,8 +1299,8 @@ s32 opHandler_DISPTIMER(ScriptContext *context) {
     g_fieldVars->countdownY = POP_BYTE(context);
     g_fieldVars->countdownX = POP_BYTE(context);
     g_fieldVars->stateFlags |= FIELD_STATE_COUNTDOWN;
-    g_fieldVars->fieldB6 |= 0x4;
-    g_battleConfig.unk2 |= 0x4;
+    g_fieldVars->battleFlags |= BATTLE_FLAG_COUNTDOWN;
+    g_battleConfig.unk2 |= BATTLE_FLAG_COUNTDOWN;
     setCountdownPosition(g_fieldVars->countdownX, g_fieldVars->countdownY);
     setCountdownVisible(1);
     return 2;
@@ -1307,7 +1308,7 @@ s32 opHandler_DISPTIMER(ScriptContext *context) {
 
 /**
  * Hide the countdown timer: clear @ref FIELD_STATE_COUNTDOWN, the
- * @c fieldB6 bit 0x4 and the @c g_battleConfig.unk2 bit 0x4, then call
+ * @c battleFlags and @c g_battleConfig.unk2 bit @ref BATTLE_FLAG_COUNTDOWN, then call
  * @c setCountdownVisible(0). Inverse of @c opHandler_DISPTIMER.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1315,8 +1316,8 @@ s32 opHandler_DISPTIMER(ScriptContext *context) {
  */
 s32 opHandler_KILLTIMER(ScriptContext *context) {
     g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
-    g_fieldVars->fieldB6 &= ~0x4;
-    g_battleConfig.unk2 &= ~0x4;
+    g_fieldVars->battleFlags &= ~BATTLE_FLAG_COUNTDOWN;
+    g_battleConfig.unk2 &= ~BATTLE_FLAG_COUNTDOWN;
     setCountdownVisible(0);
     return 2;
 }
@@ -1470,7 +1471,7 @@ s32 opHandler_MAPJUMP3(ScriptContext *context, s32 a1) {
 s32 opHandler_DISCJUMP(ScriptContext *context, s32 a1) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
         g_fieldContext.mode = FIELD_MODE_DISC_CHANGE;
-        g_fieldContext.unk1A0 = 1;
+        g_fieldContext.introScreenType = INTRO_SCREEN_INSERT_DISC;
         g_fieldContext.spawnTriIdx = a1;
         g_fieldContext.facingDirection = POP(context);
         g_fieldContext.unk008 = POP(context);

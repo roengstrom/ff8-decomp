@@ -131,7 +131,7 @@ s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
     limit = 0;
     set = 0;
 
-    if (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE) {
+    if (g_worldTransfer.mode == WORLD_ENTER_FROM_BATTLE) {
         bankSel = g_battleConfig.unk9;
     } else {
         bankSel = (g_fieldVars->soundBankSelector == 0);
@@ -152,7 +152,7 @@ s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
 /**
  * @brief Look up per-command screen-scroll bounds for the current scene cmd.
  *
- * For a recognised @p cmd / scene-command (@c D_80082C8C.cmd) pair, fills the
+ * For a recognised @p cmd / scene-command (@c g_worldTransfer.cmd) pair, fills the
  * requested out-params with a (base, limit, span) triple and a mode flag,
  * returning 1; otherwise leaves them untouched and returns 0. Two cases:
  *  - "set A" (cmd @c 0x29 on most maps, or @c 0x59 / @c 0x51 on the common map
@@ -168,7 +168,7 @@ s32 getScrollState(s8 cmd, s32 *outBankSel, s32 *outReady, s32 *outLimit,
  * @return @c 1 if @p cmd was recognised, else @c 0.
  */
 s32 lookupScrollBounds(s8 cmd, s32 *outBase, s32 *outLimit, s32 *outSpan, s32 *outFlag) {
-    s32 map = D_80082C8C.cmd;
+    s32 map = g_worldTransfer.cmd;
     s32 ret = 0;
 
     if ((cmd == 0x29 && map != 0x31 && map != 0x32) ||
@@ -305,16 +305,16 @@ u8 collectActiveKeyEntries(s16 *out) {
  *
  * Chains:
  *  1. @c func_8009D630() to tear down prior state.
- *  2. Resets @c D_80082C8C — mode 5, current dispatch code, markers -1.
+ *  2. Resets @c g_worldTransfer — mode 5, current dispatch code, markers -1.
  *  3. Calls @c func_800B3FD4 with the scene-data pointer @c D_800D226C
  *     and sub-mode 5.
  */
 void func_8009D3F4(void) {
     func_8009D630();
-    D_80082C8C.mode = WORLD_EXIT_TO_MENU;
-    D_80082C8C.cmd = D_800C4D38;
-    D_80082C8C.param.entrance.entranceIndex = -1;
-    D_80082C8C.param.entrance.facingDirection = -1;
+    g_worldTransfer.mode = WORLD_EXIT_TO_MENU;
+    g_worldTransfer.cmd = D_800C4D38;
+    g_worldTransfer.param.entrance.entranceIndex = -1;
+    g_worldTransfer.param.entrance.facingDirection = -1;
     func_800B3FD4(D_800D226C, 5);
 }
 
@@ -325,7 +325,7 @@ void func_8009D3F4(void) {
  *
  * Steps:
  *  1. Snapshot @p marker into @c D_800C8CEA, tear down prior scene
- *     state via @c func_8009D630, and reset @c D_80082C8C to mode 3
+ *     state via @c func_8009D630, and reset @c g_worldTransfer to mode 3
  *     with the marker's two bytes in @c unk02 / @c unk03 and the
  *     current dispatch code (@c D_800C4D38) in @c cmd.
  *  2. @c func_800B3FD4(D_800D226C, 3) re-enters the scene driver.
@@ -338,10 +338,10 @@ void func_8009D44C(s32 marker) {
     s32 i;
     D_800C8CEA = marker;
     func_8009D630();
-    D_80082C8C.mode = WORLD_EXIT_TO_BATTLE;
-    D_80082C8C.param.battle.sceneLow = marker;
-    D_80082C8C.param.battle.sceneHigh = (u32)marker >> 8;
-    D_80082C8C.cmd = D_800C4D38;
+    g_worldTransfer.mode = WORLD_EXIT_TO_BATTLE;
+    g_worldTransfer.param.battle.sceneLow = marker;
+    g_worldTransfer.param.battle.sceneHigh = (u32)marker >> 8;
+    g_worldTransfer.cmd = D_800C4D38;
     func_800B3FD4(D_800D226C, 3);
     g_battleConfig.unk2 = 0;
     for (i = 0; i < 13; i++) {

@@ -31,7 +31,7 @@ typedef struct {
     } param;
 } SceneState;
 
-extern SceneState D_80082C8C;
+extern SceneState g_worldTransfer;
 
 /* ======================================================================== */
 /* GF Save Data                                                             */

@@ -174,7 +174,7 @@ typedef struct {
     /* 0x16C */ u8 pad16C[0x14];
     /* 0x180 */ u8 unkActive180[16]; /**< 16-byte active-marker region, cleared on @c func_800BF718 mode 1 init. */
     /* 0x190 */ u8 slotActive[16];
-    /* 0x1A0 */ u8 unk1A0;          /**< Mode-6 active marker, set with mode = 6 by fe_object6 opcode. */
+    /* 0x1A0 */ u8 introScreenType;
     /* 0x1A1 */ u8 unk1A1;          /**< Cleared unconditionally by @c func_800A5700 each dialog tick. */
     /* 0x1A2 */ u8 mapJumpOff;
     /* 0x1A3 */ u8 userControlOff;
@@ -246,7 +246,7 @@ typedef struct {
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
     /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
     /* 0x54 */ u16 field54;
-    /* 0x56 */ u8 field56;              /**< Copy of @c D_80082C8D byte, set by @c func_800BFBBC. */
+    /* 0x56 */ u8 field56;              /**< Copy of @c g_worldTransfer.cmd, set by @c func_800BFBBC. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
     /* 0x59 */ u8 pad59[0x0F];
@@ -257,7 +257,7 @@ typedef struct {
                                              8-bit key). Named after the field-init debug trace, which
                                              prints its address as @c "address(DrawPointFlag)". */
     /* 0xB4 */ u16 packedFlagsStepAcc;  /**< Step accumulator: fires packed-flags processing at @c 0x2800. */
-    /* 0xB6 */ u16 fieldB6;             /**< Used by fe_object7 dispatch (purpose TBD). */
+    /* 0xB6 */ u16 battleFlags;
     /* 0xB8 */ s16 levelUpDisplayTimer; /**< Frames remaining for the SeeD-rank-up notification (set to 150). */
     /* 0xBA */ u16 prevSeedExp;         /**< Snapshot of @c seedExp from the previous tick (for rank-change detection). */
     /* 0xBC */ u8 partyOrderA[3];       /**< Bench list (members not in active party). */
@@ -922,7 +922,7 @@ extern u8 D_8007064C;
 /** @brief Resident table of text strings read by the field-VM string opcodes. */
 extern OffsetTable D_8005630C;
 
-extern u8 *D_8005F13C;
+extern u8 *g_fieldSoundBuffer;
 
 /** @brief Field/battle load sub-state halfword driving the @c ff8main state
  *         machine (values 0/1/2/3/6/0xA). Read as a signed halfword there
@@ -945,8 +945,6 @@ extern u8 D_8005F102;
 
 extern u8 *g_prefetchBuffer;
 
-/** @brief Misc field byte; copied into @c FieldVars.field56 on full reset. */
-extern u8  D_80082C8D;
 
 /** @brief Bitfield words tested by fe_object4 opcode handlers. */
 extern s32 D_800705E8;

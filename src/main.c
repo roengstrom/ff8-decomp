@@ -346,12 +346,12 @@ static inline void RunBattle(u8 *musicBuffer) {
         ReturnToTitle();
         return;
     }
-    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->fieldB6 & NO_GAMEOVER_ON_LOSS))) {
+    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->battleFlags & NO_GAMEOVER_ON_LOSS))) {
         GoToGameOverField();
         return;
     }
     if (g_battleConfig.result == BATTLE_RESULT_TIME_UP) {
-        if (g_fieldVars->fieldB6 & NO_GAMEOVER_ON_TIME_UP) {
+        if (g_fieldVars->battleFlags & NO_GAMEOVER_ON_TIME_UP) {
             g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
         } else {
             GoToGameOverField();
@@ -439,16 +439,16 @@ void ff8main(void) {
                     switch (g_previousGameMode) {
                     case GAME_MODE_FIELD:
                         func_800B4F40();
-                        D_80082C8C.mode = WORLD_ENTER_FROM_FIELD;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_FIELD;
                         break;
                     case GAME_MODE_BATTLE:
-                        D_80082C8C.mode = WORLD_ENTER_FROM_BATTLE;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_BATTLE;
                         break;
                     case GAME_MODE_MENU:
-                        D_80082C8C.mode = WORLD_ENTER_FROM_MENU;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_MENU;
                         break;
                     case GAME_MODE_NONE:
-                        D_80082C8C.mode = WORLD_ENTER_FROM_LOAD;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_LOAD;
                         break;
                     }
                     // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise
@@ -469,9 +469,9 @@ void ff8main(void) {
                         break;
                     }
                     g_previousGameMode = GAME_MODE_WORLD;
-                    switch (D_80082C8C.mode) {
+                    switch (g_worldTransfer.mode) {
                     case WORLD_EXIT_TO_FIELD:
-                        entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
+                        entry = &WORLD_TO_FIELD_ENTRANCES[g_worldTransfer.param.entrance.entranceIndex];
                         fieldId = entry->fieldId;
                         g_fieldContext.position_x = entry->position_x;
                         g_fieldContext.position_y = entry->position_y;
@@ -498,10 +498,10 @@ void ff8main(void) {
                 case GAME_MODE_BATTLE_DEBUG_MENU:
                     if (g_previousGameMode == GAME_MODE_FIELD) {
                         g_battleConfig.battleSceneId = g_fieldContext.counter;
-                        musicBuffer = D_8005F13C;
+                        musicBuffer = g_fieldSoundBuffer;
                     } else {
                         g_battleConfig.battleSceneId =
-                            D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
+                            g_worldTransfer.param.battle.sceneLow | (g_worldTransfer.param.battle.sceneHigh << 8);
                         musicBuffer = (u8 *)MUSIC_BUFFER_ADDR;
                     }
                     RunBattle(musicBuffer);
@@ -539,7 +539,7 @@ void ff8main(void) {
                     // So shift it to get the real id.
                     g_battleConfig.battleSceneId = result >> BATTLE_SCENE_ID_SHIFT;
                     if (g_gameMode == GAME_MODE_FIELD) {
-                        musicBuffer = D_8005F13C;
+                        musicBuffer = g_fieldSoundBuffer;
                     } else {
                         // matching hack
                         result = MUSIC_BUFFER_ADDR;
@@ -549,8 +549,8 @@ void ff8main(void) {
                     break;
                 case GAME_MODE_DISC_CHANGE:
                     LoadIntroOverlay();
-                    IntroMain(g_fieldContext.unk1A0);
-                    mode = g_fieldContext.unk1A0;
+                    IntroMain(g_fieldContext.introScreenType);
+                    mode = g_fieldContext.introScreenType;
                     if (mode == 1) {
                         ReloadDiscTables();
                         g_previousGameMode = GAME_MODE_NONE;

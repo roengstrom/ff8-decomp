@@ -131,7 +131,7 @@ s32 WorldMain(void)
     stall = 0;
     result = 0;
 
-    if (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE) {
+    if (g_worldTransfer.mode == WORLD_ENTER_FROM_BATTLE) {
         func_8009A7C0();
         func_8009CAE0(D_800C4F2C, NULL);
         while (g_renderMode == RENDER_BATTLE_RESULTS) {
@@ -142,10 +142,10 @@ s32 WorldMain(void)
     D_800C97EA = WORLD_SCREEN_W;
     D_800C97E8 = WORLD_SCREEN_H;
     D_800D226C = (Slot*)&g_gameState.pad1260;
-    if (D_80082C8C.mode != WORLD_ENTER_FROM_FIELD) {
-        D_80082C8C.cmd = D_800D226C->scene.cmd;
+    if (g_worldTransfer.mode != WORLD_ENTER_FROM_FIELD) {
+        g_worldTransfer.cmd = D_800D226C->scene.cmd;
     } else {
-        D_800D226C->scene = D_80082C8C;
+        D_800D226C->scene = g_worldTransfer;
     }
     D_800D2238 = 0;
     D_800C971C = 0;
@@ -158,19 +158,19 @@ s32 WorldMain(void)
     initWorldDoubleBuffer();
     func_8009D0F0();
 
-    if (D_80082C8C.mode != WORLD_ENTER_FROM_MENU) {
+    if (g_worldTransfer.mode != WORLD_ENTER_FROM_MENU) {
         func_8009A638();
         func_800B7178();
         func_800AD688();
         func_800BC44C();
-        if (D_80082C8C.mode != WORLD_ENTER_FROM_BATTLE) {
+        if (g_worldTransfer.mode != WORLD_ENTER_FROM_BATTLE) {
             func_8009A7C0();
             func_8009CAE0(D_800C4F2C, func_800A5D10);
         }
         func_8009A954();
-        func_800AD698(&D_80082C8C, D_800D23D8);
+        func_800AD698(&g_worldTransfer, D_800D23D8);
         func_80099C84();
-        func_800B7240(D_80082C8C.param.entrance.entranceIndex);
+        func_800B7240(g_worldTransfer.param.entrance.entranceIndex);
         func_800AEEB0(D_800D23D8, D_800D2290, D_800D2130, D_800C9FF0);
         func_800A581C();
         loadImageScript(D_800C9FEC);
@@ -196,7 +196,7 @@ s32 WorldMain(void)
             sndProcessAudio(D_800C4FC0, 1);
             func_8009CDFC(D_800C4FBC, 0x7F);
         } else {
-            D_800C4D88 = pickAudioTransition(D_80082C8C.cmd, D_800D23D8[0x6A]);
+            D_800C4D88 = pickAudioTransition(g_worldTransfer.cmd, D_800D23D8[0x6A]);
         }
 
         func_800A40C0();
@@ -205,7 +205,7 @@ s32 WorldMain(void)
         func_800ABC98();
         func_800A9ED4();
         func_800A9254();
-        func_800B164C(&D_80082C8C, D_800D226C, D_800D23D8, &D_800C9868);
+        func_800B164C(&g_worldTransfer, D_800D226C, D_800D23D8, &D_800C9868);
         setupWorldMapView(&D_800C9868, D_800C9770, &D_800D2390, &D_800C9828);
         D_800C9858 = D_800C9868;
         D_800C97F8[0] = D_800C9770[0];
@@ -250,7 +250,7 @@ s32 WorldMain(void)
         g_activeDrawEnv = &D_800D244C->drawEnv;
 
         if (firstPass) {
-            D_800C4FC4 = (D_80082C8C.mode == WORLD_ENTER_FROM_MENU) ? WORLD_SETTLE_FRAMES_WARM
+            D_800C4FC4 = (g_worldTransfer.mode == WORLD_ENTER_FROM_MENU) ? WORLD_SETTLE_FRAMES_WARM
                                                 : WORLD_SETTLE_FRAMES;
         }
         if (D_800C4FC4 != 0) {
@@ -284,10 +284,10 @@ s32 WorldMain(void)
                 code = func_800BEB84(1);
             }
             if (code >= 0) {
-                D_80082C8C.mode = WORLD_EXIT_TO_FIELD;
-                D_80082C8C.param.entrance.entranceIndex = code;
-                D_80082C8C.param.entrance.facingDirection = -1;
-                D_80082C8C.cmd = D_800C4D38;
+                g_worldTransfer.mode = WORLD_EXIT_TO_FIELD;
+                g_worldTransfer.param.entrance.entranceIndex = code;
+                g_worldTransfer.param.entrance.facingDirection = -1;
+                g_worldTransfer.cmd = D_800C4D38;
                 func_800B3FD4(D_800D226C, 1);
                 D_800C987C = 0;
                 D_800C4D08 = D_800D23DC;

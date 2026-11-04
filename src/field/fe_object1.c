@@ -2,6 +2,7 @@
 #include "cdrom.h"
 #include "field.h"
 #include "gamestate.h"
+#include "battle.h"
 #include "main.h"
 #include "psxsdk/libgte.h"
 #include "psxsdk/libgpu.h"
@@ -154,7 +155,7 @@ s32 *func_800983F0(void) {
     g_fieldContext.fieldMessages = *g_fieldMessages;
     size = *g_fieldDataEnd - *g_fieldScript;
     FastMemCpy((u8 *)FIELD_SCRIPT_STAGE, *g_fieldScript, size);
-    D_8005F13C = stageBase + size;
+    g_fieldSoundBuffer = stageBase + size;
 
     ptr = *g_fieldParticles;
     buf = (u8 *)ptr;
@@ -363,7 +364,7 @@ void FieldMain(void) {
             g_fieldDataEnd = &FIELD_DATA->end;
             p = func_800983F0();
             g_prefetchBuffer = p;
-            D_8005F13C = p;
+            g_fieldSoundBuffer = p;
         }
 
         func_800A1BB8();
@@ -463,9 +464,9 @@ void FieldMain(void) {
             g_fieldContext.mode = FIELD_MODE_NONE;
             g_gameMode = GAME_MODE_WORLD;
             g_fieldContext.previousFieldId = g_curFieldId;
-            D_80082C8C.param.entrance.entranceIndex = g_fieldContext.counter;
-            D_80082C8C.cmd = g_fieldContext.spawnTriIdx;
-            D_80082C8C.param.entrance.facingDirection = g_fieldContext.facingDirection;
+            g_worldTransfer.param.entrance.entranceIndex = g_fieldContext.counter;
+            g_worldTransfer.cmd = g_fieldContext.spawnTriIdx;
+            g_worldTransfer.param.entrance.facingDirection = g_fieldContext.facingDirection;
             sndCmd21(-1, 0);
             break;
         }
@@ -816,7 +817,7 @@ void func_80099348(void) {
         }
 
         if ((g_fieldVars->stateFlags & FIELD_STATE_COUNTDOWN) && g_gameState.mainData.countdownTimer == 0
-            && (g_fieldVars->fieldB6 & 0x100) == 0) {
+            && (g_fieldVars->battleFlags & NO_GAMEOVER_ON_TIME_UP) == 0) {
             g_fieldContext.counter = 0x4B;
             g_fieldContext.mode = FIELD_MODE_FIELD;
             g_fieldContext.spawnTriIdx = SPAWN_UNSET;

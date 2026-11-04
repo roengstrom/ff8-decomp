@@ -31,10 +31,10 @@
  *  - Always: clears the dialog masks and the first two anim-shadow slots,
  *    disables reverb, resets the sound-bank selector, and marks all
  *    three audio channel states and both sound handles inactive (-1).
- *  - Mirrors @c fieldB6 into @c g_battleConfig.unk2; when
+ *  - Mirrors @c battleFlags into @c g_battleConfig.unk2; when
  *    @ref FIELD_STATE_PARTY_OVERRIDE is set, also mirrors @c fieldF3 into @c g_battleConfig.sealedAbilities
  *    and @c GameConfig.sealedAbilities and replays @c opHandler_SETPARTY2.
- *  - Publishes @c field56 to @c D_80082C8D, pushes the expected disc to
+ *  - Publishes @c field56 to @c g_worldTransfer.cmd, pushes the expected disc to
  *    the CD layer (@c setDiscNumber, @c g_gameState.unk048 = disc - 1), derives
  *    the salary-enabled flag from @ref FIELD_STATE_TRANSITION, and installs the
  *    @c stopAllSounds VSync callback and @c func_80037D40 draw callback.
@@ -96,7 +96,7 @@ void SmInitEventAll(s32 fullReset)
     fv->soundHandle0 = m;
     fv->soundHandle1 = m;
 
-    g_battleConfig.unk2 = g_fieldVars->fieldB6;
+    g_battleConfig.unk2 = g_fieldVars->battleFlags;
     if (g_fieldVars->stateFlags & FIELD_STATE_PARTY_OVERRIDE) {
         g_battleConfig.sealedAbilities = g_fieldVars->fieldF3;
         g_gameState.config.sealedAbilities = g_fieldVars->fieldF3;
@@ -106,7 +106,7 @@ void SmInitEventAll(s32 fullReset)
         g_gameState.config.sealedAbilities = 0;
     }
 
-    D_80082C8D = g_fieldVars->field56;
+    g_worldTransfer.cmd = g_fieldVars->field56;
     setDiscNumber(g_fieldVars->expectedDiscId);
     vfv = g_fieldVars; /* volatile view: forces the tail's reloads of disc/stateFlags */
     disc = vfv->expectedDiscId;
