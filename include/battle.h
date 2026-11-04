@@ -31,6 +31,8 @@ typedef struct {
     u8 result; // a BattleResult
     u8 sealedAbilities; // see @c SealedAbilityFlag
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
+    u8 padA[2];
+    u32 unkC;
 } BattleConfig;
 
 /** @brief Clipped rectangle result: the clipped rect + saved pre-clip position. */

@@ -2,9 +2,18 @@
 #include "psxsdk/libc.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 #include "gamestate.h"
 #include "kernel.h"
+#include "battle.h"
+#include "ui/countdown.h"
+#include "cdrom.h"
+#include "imgtoc.h"
+#include "snd_init.h"
+#include "sound.h"
 #include "battle_render.h"
+
+#define OT_LENGTH 0x1000
 
 // A debug text request: x and y count 8-pixel character cells.
 typedef struct {
@@ -19,7 +28,7 @@ typedef struct {
 typedef struct {
     /** 0x00000 */ DRAWENV unk0;
     /** 0x0005C */ DISPENV unk5C;
-    /** 0x00070 */ u32 unk70[0x1000];
+    /** 0x00070 */ u32 unk70[OT_LENGTH];
     /** 0x04070 */ u32 unk4070;
     /** 0x04074 */ u32 unk4074;
     /** 0x04078 */ DR_MODE drawModes[0x400];
@@ -44,10 +53,8 @@ typedef struct {
     /** 0x00 */ u32 *ot;
     /** 0x04 */ s16 x;
     /** 0x06 */ s16 y;
-    /** 0x08 */ u8 u;
-    /** 0x09 */ u8 pad09;
-    /** 0x0A */ u8 v;
-    /** 0x0B */ u8 pad0B;
+    /** 0x08 */ s16 u;
+    /** 0x0A */ s16 v;
     /** 0x0C */ s16 w;
     /** 0x0E */ s16 h;
     /** 0x10 */ u16 clut;
@@ -60,6 +67,8 @@ typedef struct {
 } func_8009B170_scratch;
 
 extern BattleRenderCtx *D_800D3C58;
+extern BattleRenderCtx D_800ABB38[2];
+extern s32 D_800D3C50;
 extern s32 D_8009B54C[];
 extern s32 D_800AB9F8[];
 extern s32 D_800ABA00[];
@@ -67,10 +76,9 @@ extern u8 D_80098000[];
 extern u8 D_8009800C[];
 extern u8 D_80098018[];
 extern s32 D_800ABA08;
-extern void RecordGamePadInput(s32 a0);
 extern s32 GetPressedButtons(s32 idx, s32 offset);
 // No prototype: the original called it with fewer arguments than it takes.
-void func_8009AF64();
+static void func_8009AF64();
 extern s16 D_800D3C70;
 extern u8 D_8009801C[];
 extern u8 D_80098020[];
@@ -98,16 +106,136 @@ extern u8 D_800ABA10[][10];
 extern s32 D_800ABB34;
 extern s32 D_800D3C68;
 extern s32 D_800D3C54;
+extern s32 D_800D3C60;
 extern s32 D_800D3C6C;
 extern u8 D_8009B534[];
+extern s32 D_800D3C74;
+extern s32 D_800D3C64;
+extern s32 D_800D3C28;
+extern u8 D_800D3C5C;
 
+static void func_80098688(void);
+static void func_80098768(DRAWENV *env);
+static void func_80098780(void);
+static void func_80098788(void);
+static void func_80098790(void);
+static s32 func_80098798(s32 a0);
+static void func_80098920(s32 idx, s32 flag);
+static void func_80098958(void);
+static void func_80098C68(void);
+static void func_80098C84(void);
+static s32 func_80098C9C(void);
+static void func_8009A60C(void);
+static s32 func_8009A630(void);
+static void func_8009A664(void);
+static void func_8009A66C(u8 *a0);
+static void func_8009A6CC(void);
+static void func_8009A6FC(void *prim);
+static void func_8009A734(BattleRenderCtx *ctx);
 static void func_800988EC(s32 idx, u8 *src);
+static void func_8009A368(void);
+static void func_8009A40C(void);
+static void func_8009A8B4(func_8009A8B4_arg0 *arg);
 static void func_8009AA18(func_8009A8B4_arg0 *arg);
 static void func_8009AC18(func_8009A8B4_arg0 *arg);
 static void func_8009AE1C(func_8009AE1C_arg0 *arg);
 static void func_8009B170(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3);
+static void func_8009B394(u32 *ot, s32 x, s32 y, s32 w, s32 h, u8 *colors);
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
+void func_80098238(void) {
+    s32 result;
+    s32 menuResult;
+    s32 i;
+    RECT rect;
+
+    while (g_renderMode != 0);
+    D_800D3C5C = 0;
+restart:
+    result = 0;
+    D_8005F170 = 1;
+    D_800D3C74 = 0;
+    g_battleConfig.unk9 = 0;
+    g_battleConfig.unk2 = 0;
+    g_battleConfig.unkC = 1234;
+    func_80098C84();
+    D_800D3C70 = 2;
+    InitGeom();
+    SetGraphDebug(0);
+    SetGeomOffset(160, 112);
+    SetGeomScreen(512);
+    SetDefDrawEnv(&D_800ABB38[0].unk0, 0, 0, 320, 224);
+    SetDefDrawEnv(&D_800ABB38[1].unk0, 320, 0, 320, 224);
+    SetDefDispEnv(&D_800ABB38[0].unk5C, 320, 0, 320, 224);
+    SetDefDispEnv(&D_800ABB38[1].unk5C, 0, 0, 320, 224);
+    D_800ABB38[0].unk5C.screen.y = D_800ABB38[1].unk5C.screen.y = 8;
+    D_800ABB38[0].unk5C.screen.h = D_800ABB38[1].unk5C.screen.h = 224;
+    func_80098768(&D_800ABB38[0].unk0);
+    func_80098768(&D_800ABB38[1].unk0);
+    setRECT(&rect, 0, 0, 640, 224);
+    ClearImage(&rect, 0, 0, 0);
+    func_8009A734(&D_800ABB38[0]);
+    func_8009A734(&D_800ABB38[1]);
+    func_8009A6CC();
+    D_800ABA08 = func_8009A630();
+    for (i = 0; i < 3; i++) {
+        if (g_battleConfig.unk4[i] != 0xFF) {
+            func_8003646C(g_battleConfig.unk4[i] + 5);
+        }
+    }
+    for (i = 0; i < 3; i++) {
+        g_battleConfig.unk4[i] = 0xFF;
+    }
+    DrawSync(0);
+    VSync(0);
+    SetDispMask(1);
+    while (result == 0) {
+        D_800D3C60 = D_800D3C6C = D_800D3C68 = D_800D3C54 = D_800ABB34 = 0;
+        D_800D3C58 = (D_800D3C58 == &D_800ABB38[0]) ? &D_800ABB38[1] : &D_800ABB38[0];
+        ClearOTagR(D_800D3C58->unk70, OT_LENGTH);
+        ClearOTagR(&D_800D3C58->unk4070, 1);
+        ClearOTagR(&D_800D3C58->unk4074, 1);
+        D_800D3C64 = 0;
+        D_800D3C28 = 0;
+        result = func_80098C9C();
+        if (D_800D3C64 != 0) {
+            menuResult = func_8003646C(0, 0xFFFF);
+            D_800D3C64 = 0;
+            if (menuResult & 4) {
+                g_battleConfig.battleSceneId = menuResult >> 16;
+                D_800D3C5C = 1;
+            }
+            goto restart;
+        }
+        if (D_800D3C28 != 0) {
+            func_8009A60C();
+            result = 0;
+            D_800D3C28 = 0;
+            goto restart;
+        }
+        func_80098688();
+        DrawSync(0);
+        D_800D3C50 = VSync(0);
+        PutDispEnv(&D_800D3C58->unk5C);
+        PutDrawEnv(&D_800D3C58->unk0);
+        g_activeDrawEnv = &D_800D3C58->unk0;
+        D_8005F138 = (s32)&D_800D3C58->unk5C;
+        DrawOTag(&D_800D3C58->unk4074);
+        DrawOTag(&D_800D3C58->unk70[OT_LENGTH - 1]);
+        DrawOTag(&D_800D3C58->unk4070);
+    }
+    i = g_battleConfig.battleSceneId & 3;
+    cdReadSync(D_800974F0[i * 4], D_800974F0[i * 4 + 1], (u8 *)0x801A0000, NULL);
+    sndCmd11(0);
+    sndProcessAudio(0x801A0000, 1);
+    cdReadSync(D_800974F0[i * 4 + 2], D_800974F0[i * 4 + 3], D_8005F388, NULL);
+    D_8005F11C = sndCmd10((s32)D_8005F388);
+    sndCmdC0(D_8005F11C, 0x7F);
+    if (result == -1) {
+        g_gameMode = GAME_MODE_BATTLE;
+    } else {
+        g_gameMode = GAME_MODE_CARD;
+    }
+}
 
 /**
  * @brief Emit three debug-string render commands for the build banner.
@@ -118,7 +246,7 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098238);
  * (" %x" with D_800ABA08) into the render context's second ordering
  * table.
  */
-void func_80098688(void) {
+static void func_80098688(void) {
     CmdBlk *cmd = (CmdBlk *)getScratchAddr(0);
 
     cmd->x = 0x1A;
@@ -146,24 +274,20 @@ void func_80098688(void) {
 /**
  * @brief Initialize render state flags.
  *
- * Sets flag at offset 0x18 to 1 and clears flags at 0x19-0x1B.
- *
- * @param a0 Pointer to render state structure.
+ * @param env Draw environment.
  */
-void func_80098768(u8 *a0) {
-    a0[0x18] = 1;
-    a0[0x19] = 0;
-    a0[0x1A] = 0;
-    a0[0x1B] = 0;
+static void func_80098768(DRAWENV *env) {
+    env->isbg = 1;
+    setRGB0(env, 0, 0, 0);
 }
 
-void func_80098780(void) {
+static void func_80098780(void) {
 }
 
-void func_80098788(void) {
+static void func_80098788(void) {
 }
 
-void func_80098790(void) {
+static void func_80098790(void) {
 }
 
 /**
@@ -179,13 +303,13 @@ void func_80098790(void) {
  * @param a0 Animation slot index (0 or 1).
  * @return Last-committed previous-state value (caller may ignore).
  */
-s32 func_80098798(s32 a0) {
+static s32 func_80098798(s32 a0) {
     s32 prevArr[2];
     s32 currArr[2];
     s32 prevVal;
     s32 v;
 
-    RecordGamePadInput(a0);
+    RecordGamePadInput();
     v = GetPressedButtons(a0, 0);
     currArr[a0] = v;
     prevVal = D_8009B54C[a0];
@@ -244,7 +368,7 @@ static void func_800988EC(s32 idx, u8 *src) {
  * @param idx Entry index in the name table.
  * @param flag Selects which default string to use.
  */
-void func_80098920(s32 idx, s32 flag) {
+static void func_80098920(s32 idx, s32 flag) {
     if (flag == 0) {
         func_800988EC(idx, D_8009801C);
     } else {
@@ -260,22 +384,22 @@ void func_80098920(s32 idx, s32 flag) {
  * through 0x1D name table slots calling func_80098920 with values
  * from D_800D3C30.
  */
-void func_80098958(void) {
+static void func_80098958(void) {
     s32 i;
 
-    if (g_gameState.mainData.partyLockFlag & 0x10) {
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_FLAG_10) {
         D_800D3C35 = 1;
     } else {
         D_800D3C35 = 0;
     }
 
-    if (g_gameState.mainData.partyLockFlag & 0x2) {
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_FLAG_02) {
         D_800D3C36 = 1;
     } else {
         D_800D3C36 = 0;
     }
 
-    if (g_gameState.mainData.partyLockFlag & 0x20) {
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_FLAG_20) {
         D_800D3C38 = 1;
     } else {
         D_800D3C38 = 0;
@@ -323,37 +447,37 @@ void func_80098958(void) {
         D_800D3C3F = 0;
     }
 
-    if (g_gameState.mainData.limitBreaks.angeloCompleted & 0x2) {
+    if (g_gameState.mainData.limitBreaks.angeloCompleted & ANGELO_COMPLETED_FLAG_02) {
         D_800D3C44 = 1;
     } else {
         D_800D3C44 = 0;
     }
 
-    if (g_gameState.mainData.limitBreaks.angeloCompleted & 0x4) {
+    if (g_gameState.mainData.limitBreaks.angeloCompleted & ANGELO_COMPLETED_FLAG_04) {
         D_800D3C45 = 1;
     } else {
         D_800D3C45 = 0;
     }
 
-    if (g_gameState.mainData.limitBreaks.angeloCompleted & 0x8) {
+    if (g_gameState.mainData.limitBreaks.angeloCompleted & ANGELO_COMPLETED_FLAG_08) {
         D_800D3C46 = 1;
     } else {
         D_800D3C46 = 0;
     }
 
-    if (g_gameState.mainData.limitBreaks.angeloCompleted & 0x20) {
+    if (g_gameState.mainData.limitBreaks.angeloCompleted & ANGELO_COMPLETED_FLAG_20) {
         D_800D3C47 = 1;
     } else {
         D_800D3C47 = 0;
     }
 
-    if (g_gameState.mainData.limitBreaks.angeloCompleted & 0x40) {
+    if (g_gameState.mainData.limitBreaks.angeloCompleted & ANGELO_COMPLETED_FLAG_40) {
         D_800D3C48 = 1;
     } else {
         D_800D3C48 = 0;
     }
 
-    if (g_gameState.mainData.limitBreaks.angeloCompleted & 0x80) {
+    if (g_gameState.mainData.limitBreaks.angeloCompleted & ANGELO_COMPLETED_FLAG_80) {
         D_800D3C49 = 1;
     } else {
         D_800D3C49 = 0;
@@ -369,7 +493,7 @@ void func_80098958(void) {
  *
  * Sets D_800ABA0C to 1 and D_800D3C70 to -0x18.
  */
-void func_80098C68(void) {
+static void func_80098C68(void) {
     D_800ABA0C = 1;
     D_800D3C70 = -0x18;
 }
@@ -379,14 +503,407 @@ void func_80098C68(void) {
  *
  * Clears D_800ABA0C and sets D_800D3C70 to 2.
  */
-void func_80098C84(void) {
+static void func_80098C84(void) {
     D_800ABA0C = 0;
     D_800D3C70 = 2;
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_80098C9C);
+#define DEBUG_TEXT(p, px, py, col, fmt) \
+    (p)->ot = &D_800D3C58->unk4070, (p)->x = (px), (p)->y = (py), (p)->color = (col), (p)->format = (fmt)
 
-void func_8009A368(void) {
+static s32 func_80098C9C(void) {
+    ChocoboWorldData *chocobo = &g_gameState.chocobo;
+    CmdBlk *cmd;
+    func_8009A8B4_arg0 *cursor;
+    s16 colors[29];
+    s32 pressed;
+    s32 result;
+    s32 i;
+
+    result = 0;
+    pressed = func_80098798(0);
+    pressed |= func_80098798(1);
+    func_80098958();
+    if (pressed & PADR2) {
+        CmdBlk *ok;
+
+        func_8009A368();
+        ok = (CmdBlk *)getScratchAddr(0);
+        DEBUG_TEXT(ok, 32, 13, 2, "OK");
+        func_8009AF64(ok);
+    }
+    if (pressed & PADR1) {
+        CmdBlk *ok;
+
+        func_80098780();
+        ok = (CmdBlk *)getScratchAddr(0);
+        DEBUG_TEXT(ok, 32, 15, 2, "OK");
+        func_8009AF64(ok);
+    }
+    if (pressed & PADi) {
+        D_800D3C28 = 1;
+    }
+    if (pressed & PADL2) {
+        CmdBlk *ok;
+
+        func_8009A40C();
+        ok = (CmdBlk *)getScratchAddr(0);
+        DEBUG_TEXT(ok, 32, 19, 2, "OK");
+        func_8009AF64(ok);
+    }
+    if (pressed & PADL1) {
+        CmdBlk *ok;
+
+        func_80098788();
+        ok = (CmdBlk *)getScratchAddr(0);
+        DEBUG_TEXT(ok, 32, 21, 2, "OK");
+        func_8009AF64(ok);
+    }
+    if (D_800D3C5C != 0) {
+        D_800D3C5C = 0;
+        result = -1;
+    }
+    if (pressed & PADstart) {
+        result = -1;
+    }
+    if (pressed & PADselect) {
+        result = -2;
+    }
+    if (pressed & PADLup) {
+        D_800D3C74--;
+    }
+    if (pressed & PADLdown) {
+        D_800D3C74++;
+    }
+    if (pressed & PADLright) {
+        switch (D_800D3C74) {
+        case 0:
+            g_battleConfig.battleSceneId++;
+            break;
+        case 1:
+            g_gameState.mainData.countdownTimer += 4;
+            break;
+        case 17:
+            chocobo->level++;
+            break;
+        case 18:
+            chocobo->bokoAttack++;
+            break;
+        default:
+            D_800D3C30[D_800D3C74]++;
+            break;
+        }
+    }
+    if (pressed & PADLleft) {
+        switch (D_800D3C74) {
+        case 0:
+            g_battleConfig.battleSceneId--;
+            break;
+        case 1:
+            g_gameState.mainData.countdownTimer -= 4;
+            break;
+        case 17:
+            chocobo->level--;
+            break;
+        case 18:
+            chocobo->bokoAttack--;
+            break;
+        default:
+            D_800D3C30[D_800D3C74]++;
+            break;
+        }
+    }
+    if (pressed & PADRup) {
+        D_800D3C64 = 1;
+    }
+    for (i = 0; i < 29; i++) {
+        colors[i] = 1;
+    }
+    g_battleConfig.battleSceneId &= 0x3FF;
+    if (chocobo->level == 0xFF) {
+        chocobo->level = 100;
+    }
+    if (chocobo->level > 100) {
+        chocobo->level = 1;
+    }
+    chocobo->bokoAttack &= 3;
+    if (D_800D3C74 == 26) {
+        func_80098C68();
+    }
+    if (D_800D3C74 == 25) {
+        func_80098C84();
+    }
+    if (D_800D3C74 < 0) {
+        D_800D3C74 = 0;
+    }
+    if (D_800D3C74 >= 28) {
+        D_800D3C74 = 28;
+    }
+    D_800D3C30[D_800D3C74] &= 1;
+    colors[D_800D3C74] = 4;
+    func_80098920(D_800D3C74, D_800D3C30[D_800D3C74]);
+    if (D_800D3C30[D_800D3C74] != 0) {
+        switch (D_800D3C74) {
+        case 2:
+        case 3:
+        case 4:
+            break;
+        case 5:
+            g_gameState.mainData.partyLockFlag |= PARTY_LOCK_FLAG_10;
+            break;
+        case 6:
+            g_gameState.mainData.partyLockFlag |= PARTY_LOCK_FLAG_02;
+            break;
+        case 8:
+            g_gameState.mainData.partyLockFlag |= PARTY_LOCK_FLAG_20;
+            break;
+        case 9:
+            g_gameState.config.sealedAbilities |= SEALED_ITEM;
+            break;
+        case 10:
+            g_gameState.config.sealedAbilities |= SEALED_MAGIC;
+            break;
+        case 11:
+            g_gameState.config.sealedAbilities |= SEALED_GF;
+            break;
+        case 12:
+            g_gameState.config.sealedAbilities |= SEALED_DRAW;
+            break;
+        case 13:
+            g_gameState.config.sealedAbilities |= SEALED_COMMAND_ABILITIES;
+            break;
+        case 14:
+            g_gameState.config.sealedAbilities |= SEALED_LIMIT_BREAK;
+            break;
+        case 15:
+            g_gameState.config.sealedAbilities |= SEALED_RESURRECTION;
+            break;
+        case 20:
+            g_gameState.mainData.limitBreaks.angeloCompleted |= ANGELO_COMPLETED_FLAG_02;
+            break;
+        case 21:
+            g_gameState.mainData.limitBreaks.angeloCompleted |= ANGELO_COMPLETED_FLAG_04;
+            break;
+        case 22:
+            g_gameState.mainData.limitBreaks.angeloCompleted |= ANGELO_COMPLETED_FLAG_08;
+            break;
+        case 23:
+            g_gameState.mainData.limitBreaks.angeloCompleted |= ANGELO_COMPLETED_FLAG_20;
+            break;
+        case 24:
+            g_gameState.mainData.limitBreaks.angeloCompleted |= ANGELO_COMPLETED_FLAG_40;
+            break;
+        case 25:
+            g_gameState.mainData.limitBreaks.angeloCompleted |= ANGELO_COMPLETED_FLAG_80;
+            break;
+        }
+    } else {
+        switch (D_800D3C74) {
+        case 2:
+        case 3:
+        case 4:
+            break;
+        case 5:
+            g_gameState.mainData.partyLockFlag &= ~PARTY_LOCK_FLAG_10;
+            break;
+        case 6:
+            g_gameState.mainData.partyLockFlag &= ~PARTY_LOCK_FLAG_02;
+            break;
+        case 8:
+            g_gameState.mainData.partyLockFlag &= ~PARTY_LOCK_FLAG_20;
+            break;
+        case 9:
+            g_gameState.config.sealedAbilities &= ~SEALED_ITEM;
+            break;
+        case 10:
+            g_gameState.config.sealedAbilities &= ~SEALED_MAGIC;
+            break;
+        case 11:
+            g_gameState.config.sealedAbilities &= ~SEALED_GF;
+            break;
+        case 12:
+            g_gameState.config.sealedAbilities &= ~SEALED_DRAW;
+            break;
+        case 13:
+            g_gameState.config.sealedAbilities &= ~SEALED_COMMAND_ABILITIES;
+            break;
+        case 14:
+            g_gameState.config.sealedAbilities &= ~SEALED_LIMIT_BREAK;
+            break;
+        case 15:
+            g_gameState.config.sealedAbilities &= ~SEALED_RESURRECTION;
+            break;
+        case 20:
+            g_gameState.mainData.limitBreaks.angeloCompleted &= ~ANGELO_COMPLETED_FLAG_02;
+            break;
+        case 21:
+            g_gameState.mainData.limitBreaks.angeloCompleted &= ~ANGELO_COMPLETED_FLAG_04;
+            break;
+        case 22:
+            g_gameState.mainData.limitBreaks.angeloCompleted &= ~ANGELO_COMPLETED_FLAG_08;
+            break;
+        case 23:
+            g_gameState.mainData.limitBreaks.angeloCompleted &= ~ANGELO_COMPLETED_FLAG_20;
+            break;
+        case 24:
+            g_gameState.mainData.limitBreaks.angeloCompleted &= ~ANGELO_COMPLETED_FLAG_40;
+            break;
+        case 25:
+            g_gameState.mainData.limitBreaks.angeloCompleted &= ~ANGELO_COMPLETED_FLAG_80;
+            break;
+        }
+    }
+    cmd = (CmdBlk *)getScratchAddr(0);
+    DEBUG_TEXT(cmd, 29, 12, 1, "R2 INIT");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 29, 14, 1, "R1 PC SAVE");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 29, 16, 1, "L3 PAST");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 29, 18, 1, "L2 DEBUG");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 29, 20, 1, "L1 PC LOAD");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 3, D_800D3C70, colors[0], "SCENE ");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70, 1, "%3d");
+    func_8009AF64(cmd, g_battleConfig.battleSceneId);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 1, colors[1], "TIME ");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 1, 1, "%3d");
+    func_8009AF64(cmd, g_gameState.mainData.countdownTimer);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 2, colors[2], "RATE100");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 2, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[2]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 3, colors[3], "AP*10");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 3, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[3]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 4, colors[4], "EXP*10");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 4, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[4]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 5, colors[5], "DOGOUT");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 5, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[5]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 6, colors[6], "ODIN");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 6, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[6]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 7, colors[7], "FORMATION");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 7, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[7]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 8, colors[8], "WITCH");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 8, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[8]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 9, colors[9], "X_ITEM");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 9, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[9]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 10, colors[10], "X_MAGIC");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 10, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[10]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 11, colors[11], "X_GF");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 11, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[11]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 12, colors[12], "X_DRAW");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 12, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[12]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 13, colors[13], "X_COMMAND");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 13, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[13]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 14, colors[14], "X_PINCH");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 14, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[14]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 15, colors[15], "X_RESURRECT");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 15, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[15]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 16, colors[16], "CHOCOBO");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 16, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[16]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 17, colors[17], "CHOCOBO LEVEL");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 17, 1, "%3d");
+    func_8009AF64(cmd, chocobo->level);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 18, colors[18], "CHOCOBO WAZA");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 18, 1, "%3d");
+    func_8009AF64(cmd, chocobo->bokoAttack);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 19, colors[19], "MOGURI");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 19, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[19]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 20, colors[20], "RANNYU1");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 20, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[20]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 21, colors[21], "RANNYU2");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 21, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[21]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 22, colors[22], "RANNYU3");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 22, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[22]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 23, colors[23], "PET5");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 23, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[23]);
+    if (D_800ABA0C == 0) {
+        DEBUG_TEXT(cmd, 3, D_800D3C70 + 24, colors[24], "PET6");
+        func_8009AF64(cmd);
+        DEBUG_TEXT(cmd, 17, D_800D3C70 + 24, 1, "%s");
+        func_8009AF64(cmd, D_800ABA10[24]);
+        DEBUG_TEXT(cmd, 3, D_800D3C70 + 25, colors[25], "PET7");
+        func_8009AF64(cmd);
+        DEBUG_TEXT(cmd, 17, D_800D3C70 + 25, 1, "%s");
+        func_8009AF64(cmd, D_800ABA10[25]);
+    }
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 26, colors[26], "PINCH");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 26, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[26]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 27, colors[27], "GILGAMESH");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 27, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[27]);
+    DEBUG_TEXT(cmd, 3, D_800D3C70 + 28, colors[28], "SQUALL FB");
+    func_8009AF64(cmd);
+    DEBUG_TEXT(cmd, 17, D_800D3C70 + 28, 1, "%s");
+    func_8009AF64(cmd, D_800ABA10[28]);
+    if (g_gameState.mainData.countdownTimer != 0) {
+        setCountdownPosition(32, 32);
+        g_battleConfig.unk2 |= BATTLE_FLAG_COUNTDOWN;
+    } else {
+        g_battleConfig.unk2 &= ~BATTLE_FLAG_COUNTDOWN;
+    }
+    cursor = (func_8009A8B4_arg0 *)getScratchAddr(0);
+    cursor->x = 0;
+    cursor->u = 16;
+    cursor->v = 0;
+    cursor->w = 24;
+    cursor->h = 16;
+    g_battleConfig.sealedAbilities = g_gameState.config.sealedAbilities;
+    cursor->ot = &D_800D3C58->unk4070;
+    cursor->y = (D_800D3C70 + D_800D3C74) * 8;
+    cursor->clut = GetClut(16, 0xE8);
+    cursor->tpage = GetTPage(0, 0, 768, 256);
+    func_8009A8B4(cursor);
+    return result;
+}
+
+static void func_8009A368(void) {
     s32 id;
     s32 i;
 
@@ -407,7 +924,7 @@ void func_8009A368(void) {
     }
 }
 
-void func_8009A40C(void) {
+static void func_8009A40C(void) {
     ChocoboWorldData *chocobo = &g_gameState.chocobo;
     s32 id;
     s32 i;
@@ -469,7 +986,7 @@ void func_8009A40C(void) {
 }
 
 /** @brief Call func_8003646C with display mode 0x16 and layer 7. */
-void func_8009A60C(void) {
+static void func_8009A60C(void) {
     func_8003646C(0x16, 7);
 }
 
@@ -480,7 +997,7 @@ void func_8009A60C(void) {
  *
  * @return Byte sum of the buffer.
  */
-s32 func_8009A630(void) {
+static s32 func_8009A630(void) {
     s32 sum;
     u8 *p;
     u32 i;
@@ -493,7 +1010,7 @@ s32 func_8009A630(void) {
     return sum;
 }
 
-void func_8009A664(void) {
+static void func_8009A664(void) {
 }
 
 /**
@@ -506,7 +1023,7 @@ void func_8009A664(void) {
  *
  * @param a0 Render object pointer.
  */
-void func_8009A66C(u8 *a0) {
+static void func_8009A66C(u8 *a0) {
     s32 buf[6];
     OpenTIM(a0);
     ReadTIM(&buf);
@@ -517,7 +1034,7 @@ void func_8009A66C(u8 *a0) {
 }
 
 /** @brief Call func_8009A66C with D_800A37D4 then D_8009B5B4. */
-void func_8009A6CC(void) {
+static void func_8009A6CC(void) {
     func_8009A66C(D_800A37D4);
     func_8009A66C(D_8009B5B4);
 }
@@ -530,12 +1047,12 @@ void func_8009A6CC(void) {
  *
  * @param a0 Render object pointer.
  */
-void func_8009A6FC(void *prim) {
+static void func_8009A6FC(void *prim) {
     SetSemiTrans(prim, 0);
     SetShadeTex(prim, 1);
 }
 
-void func_8009A734(BattleRenderCtx *ctx) {
+static void func_8009A734(BattleRenderCtx *ctx) {
     SPRT_16 *sprt16;
     SPRT_8 *sprt8;
     SPRT *sprt;
@@ -568,7 +1085,7 @@ void func_8009A734(BattleRenderCtx *ctx) {
     }
 }
 
-void func_8009A8B4(func_8009A8B4_arg0 *arg) {
+static void func_8009A8B4(func_8009A8B4_arg0 *arg) {
     BattleRenderCtx *ctx = D_800D3C58;
     DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
     SPRT *sprt = &ctx->sprt[D_800D3C54++];
@@ -652,7 +1169,7 @@ static void func_8009AE1C(func_8009AE1C_arg0 *arg) {
     addPrim(arg->ot, mode);
 }
 
-void func_8009AF64(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3) {
+static void func_8009AF64(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3) {
     BattleRenderCtx *ctx = D_800D3C58;
     DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
     SPRT_8 *sprt = &ctx->sprt8[D_800D3C68];
@@ -704,4 +1221,24 @@ static void func_8009B170(CmdBlk *cmd, s32 arg1, s32 arg2, s32 arg3) {
     addPrim(cmd->ot, mode);
 }
 
-INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009B394);
+static void func_8009B394(u32 *ot, s32 x, s32 y, s32 w, s32 h, u8 *colors) {
+    BattleRenderCtx *ctx = D_800D3C58;
+    DR_MODE *mode = &ctx->drawModes[D_800ABB34++];
+    POLY_G4 *poly = &ctx->polyG4[D_800D3C60++];
+
+    SetDrawMode(mode, 1, 0, getTPage(0, BLEND_ADD, 0, 0), NULL);
+    SetSemiTrans(poly, 1);
+    poly->r0 = poly->g0 = poly->b0 = poly->r1 = poly->g1 = poly->b1 = *colors++;
+    poly->r2 = poly->g2 = poly->b2 = poly->r3 = poly->g3 = poly->b3 = *colors;
+    poly->x0 = x;
+    poly->y0 = y;
+    poly->x1 = x + w;
+    poly->y1 = y;
+    y += h;
+    poly->x2 = x;
+    poly->y2 = y;
+    poly->x3 = x + w;
+    poly->y3 = y;
+    addPrim(ot, poly);
+    addPrim(ot, mode);
+}

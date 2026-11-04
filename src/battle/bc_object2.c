@@ -948,7 +948,7 @@ s32 func_8009D7D8(s32 arg0, s32 arg1, s32 arg2, u32 arg3) {
             break;
 
         case 17:
-            var_s0 = (D_80082C14 / 1000) * arg2;
+            var_s0 = (g_battleConfig.unkC / 1000) * arg2;
             break;
 
         default: 

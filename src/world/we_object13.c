@@ -398,7 +398,7 @@ void func_800C4A74(void) {
  *        the field engine.
  *
  * Drives every per-step accumulator on the field state for the world map:
- *   - @c stepCounter (mirrored to @c D_80082C14).
+ *   - @c stepCounter (mirrored to @c g_battleConfig.unkC).
  *   - @c packedFlagsStepAcc — fires @c func_800C4A74 every @c 0x2800 steps.
  *   - @c hpRegenStepAcc — fires GF and party HP regen every @c 8 steps.
  *   - @c seedExpStepAcc — fires the SeeD level-up tick every @c 0x6000 steps,
@@ -419,7 +419,7 @@ void func_800C4AE4(s32 stepDelta) {
     g_fieldVars->hpRegenStepAcc += stepDelta;
     g_fieldVars->packedFlagsStepAcc += stepDelta;
     g_fieldVars->angeloLearnStepAcc += stepDelta;
-    D_80082C14 = g_fieldVars->stepCounter;
+    g_battleConfig.unkC = g_fieldVars->stepCounter;
     if (g_fieldVars->packedFlagsStepAcc >= 10240u) {
         g_fieldVars->packedFlagsStepAcc = 0;
         func_800C4A74();

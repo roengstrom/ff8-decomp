@@ -401,6 +401,13 @@ typedef struct {
 #define PARTY_LOCK_FLAG_10 0x10  /**< Purpose unknown; set and cleared by the field engine. */
 #define PARTY_LOCK_FLAG_20 0x20  /**< Purpose unknown; set and cleared by the field engine. */
 
+#define ANGELO_COMPLETED_FLAG_02 0x02
+#define ANGELO_COMPLETED_FLAG_04 0x04
+#define ANGELO_COMPLETED_FLAG_08 0x08
+#define ANGELO_COMPLETED_FLAG_20 0x20
+#define ANGELO_COMPLETED_FLAG_40 0x40
+#define ANGELO_COMPLETED_FLAG_80 0x80
+
 /** @brief Main game state (BSS at 0x80077378). */
 extern GameState g_gameState;
 
