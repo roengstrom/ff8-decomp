@@ -1,4 +1,5 @@
 #include "common.h"
+#include "memlayout.h"
 #include "field.h"
 #include "gamestate.h"
 #include "battle.h"
@@ -2240,7 +2241,7 @@ void func_800A5A14(s16 a0) {
  * The streaming half then runs unless the movie subsystem is busy or the engine
  * is in mode 3 (both abort through @c func_800A59D0), and unless a load is
  * already pending. The destination pointer @c g_prefetchBuffer is floored to
- * @c 0x801A0000, and when the nearest field differs from the one already loaded
+ * @c LOAD_BUFFER_ADDR, and when the nearest field differs from the one already loaded
  * (@c g_prefetchedDestId) and its data still fits below @c 0x801FE000, the previous load
  * is cancelled and a new @c LoadDataFromDisc is issued: field ids from @c 0x49 up are
  * looked up through @c D_800C2568 into the streaming table, lower ids use the
@@ -2292,8 +2293,8 @@ void func_800A5A20(Actor *actor, FieldGateway *gateways) {
     if (UpdateCdRead() != CD_READ_IDLE && g_prefetchState == PREFETCH_NONE) {
         return;
     }
-    if (g_prefetchBuffer <= (u8 *)0x8019FFFF) {
-        g_prefetchBuffer = (u8 *)0x801A0000;
+    if (g_prefetchBuffer < (u8 *)LOAD_BUFFER_ADDR) {
+        g_prefetchBuffer = (u8 *)LOAD_BUFFER_ADDR;
     }
     if (g_prefetchedDestId == D_8005F142) {
         return;

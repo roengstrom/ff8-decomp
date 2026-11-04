@@ -9,6 +9,7 @@
 #include "ui/countdown.h"
 #include "cdrom.h"
 #include "imgtoc.h"
+#include "memlayout.h"
 #include "snd_init.h"
 #include "sound.h"
 #include "battle_render.h"
@@ -224,9 +225,9 @@ restart:
         DrawOTag(&D_800D3C58->unk4070);
     }
     i = g_battleConfig.battleSceneId & 3;
-    cdReadSync(D_800974F0[i * 4], D_800974F0[i * 4 + 1], (u8 *)0x801A0000, NULL);
+    cdReadSync(D_800974F0[i * 4], D_800974F0[i * 4 + 1], (u8 *)LOAD_BUFFER_ADDR, NULL);
     sndCmd11(0);
-    sndProcessAudio(0x801A0000, 1);
+    sndProcessAudio(LOAD_BUFFER_ADDR, 1);
     cdReadSync(D_800974F0[i * 4 + 2], D_800974F0[i * 4 + 3], D_8005F388, NULL);
     D_8005F11C = sndCmd10((s32)D_8005F388);
     sndCmdC0(D_8005F11C, 0x7F);
