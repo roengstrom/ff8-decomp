@@ -11,7 +11,6 @@
 #include "battle.h"
 #include "input/gamepad.h"
 #include "btl_anim.h"
-// #include "overlay.h" omitted because the original called RunMenu without its prototype.
 #include "world/we_object0.h"
 #include "game.h"
 #include "cdrom.h"
@@ -32,6 +31,25 @@
 #include "memlayout.h"
 #include "imgtoc.h"
 #include "cpu.h"
+
+#ifdef ADD_OMITTED_INCLUDES
+#include "overlay.h"
+#endif
+
+typedef enum {
+    FADE_NONE = 0,
+    FADE_IN = 1,
+    FADE_OUT = 2
+} FadeMode;
+
+#define PACKET_BUFFER_SIZE 0x6000
+#define CHOCOBO_WORLD_MUSIC_SIZE 0x200
+
+extern u8 g_vsyncSkip;
+extern volatile s32 g_countdownTicker;
+extern u8 g_soundEffectData[];
+extern u8 g_packetBuffer[PACKET_BUFFER_SIZE];
+extern u8 g_chocoboWorldMusic[CHOCOBO_WORLD_MUSIC_SIZE];
 
 /** @brief Global field ids of the maps a new game and a game over go to. */
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */

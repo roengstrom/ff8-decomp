@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.h"
+#include "cd.h"
 #include "battle.h"
 #include "gf.h"
 #include "gamestate.h"
