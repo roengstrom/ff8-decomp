@@ -37,6 +37,9 @@
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 #define FADE_STEP 16
 #define MENU_ALLOW_SAVE 1
+#define CLOCK_TICKS_PER_VSYNC 2191
+#define CLOCK_ONE_SECOND_BIT 17
+#define CLOCK_REMAINDER_MASK 0xFFFF
 
 // The place in the disc image where the table of contents file resides.
 // These were likely calculated during the mastering process of the disc.
@@ -114,20 +117,20 @@ static void VsyncHandler(void) {
 
     // This function is called 59.8 times per second (on NTSC).
     // Make use of that fact to tick the in-game clock.
-    g_secondTicker += 0x88F;
-    if (g_secondTicker >> 17) {
+    g_secondTicker += CLOCK_TICKS_PER_VSYNC;
+    if (g_secondTicker >> CLOCK_ONE_SECOND_BIT) {
         g_gameState.mainData.playTimeSeconds++;
-        g_secondTicker &= 0xFFFF;
+        g_secondTicker &= CLOCK_REMAINDER_MASK;
     }
 
-    g_countdownTicker += 0x88F;
-    if (g_countdownTicker >> 17) {
+    g_countdownTicker += CLOCK_TICKS_PER_VSYNC;
+    if (g_countdownTicker >> CLOCK_ONE_SECOND_BIT) {
         if (g_gameState.mainData.countdownTimer == 0) {
             g_vsyncDone = 1;
             return;
         }
         g_gameState.mainData.countdownTimer--;
-        g_countdownTicker &= 0xFFFF;
+        g_countdownTicker &= CLOCK_REMAINDER_MASK;
     }
 
     g_vsyncDone = 1;
