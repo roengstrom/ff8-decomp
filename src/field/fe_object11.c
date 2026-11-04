@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "283B0.h"
 #include "field.h"
 #include "gamestate.h"
@@ -246,7 +247,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldContext.userControlOff = 0;
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_400;
         g_fieldVars->fieldCF = 0;
-        g_fieldVars->fieldD1 &= 0xFC;
+        g_fieldVars->menuPermissions &= ~(MENU_ALLOW_SAVE | MENU_ALLOW_PARTY_SWITCH);
         g_fieldVars->dialogStartMask = 0;
         g_fieldVars->dialogEntryMask = 0;
         g_fieldVars->dialogActiveMask = 0;

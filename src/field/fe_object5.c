@@ -320,7 +320,7 @@ s32 opHandler_WHOAMI(ScriptContext *context) {
  *
  * Bit 1 (only meaningful with bit 0 set) chooses between:
  *   - bit 1 set: park @c g_fieldContext into mode-5 (active-party swap
- *     animation) with a @c 0x16-frame counter and @c unk1AB copied
+ *     animation) with a @c 0x16-frame counter and @c menuArg copied
  *     from the bottom 3 bits of @c stateFlags.
  *   - bit 1 clear: defer to @c func_80036D44 with those same 3 bits.
  *
@@ -348,7 +348,7 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
         if (popped & 2) {
             g_fieldContext.mode = FIELD_MODE_MENU;
             g_fieldContext.counter = 0x16;
-            g_fieldContext.unk1AB = g_fieldVars->stateFlags & 7;
+            g_fieldContext.menuArg = g_fieldVars->stateFlags & 7;
         } else {
             func_80036D44(g_fieldVars->stateFlags & 7);
         }

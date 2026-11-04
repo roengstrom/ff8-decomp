@@ -720,6 +720,7 @@ loadOverlayWithTimCallback = 0x800361F8; // type:func
 isOverlayQueueEmpty = 0x80036234; // type:func
 saveAndClearFramebuffer = 0x80036254; // type:func
 loadDefaultOverlay = 0x80036444; // type:func
+RunMenu = 0x8003646C; // type:func
 resetCardSlots = 0x80036690; // type:func
 initAbilitySlots = 0x800366E8;
 getAbilityCategory = 0x80036978; // type:func

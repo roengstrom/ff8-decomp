@@ -185,7 +185,7 @@ typedef struct {
     /* 0x1A8 */ u8 unk1A8;
     /* 0x1A9 */ u8 unk1A9;
     /* 0x1AA */ u8 unk1AA;
-    /* 0x1AB */ u8 unk1AB;          /**< Sub-mode byte; written together with @c mode by fe_object6 opcodes. */
+    /* 0x1AB */ u8 menuArg;
     /* 0x1AC */ u8 unk1AC;          /**< Passed as the mode argument to @c renderAndUpdateDisplay
                                          and @c VSync on the branch @c func_800BE274 gates.
                                          @note Nothing in the decompiled tree writes it yet, so the
@@ -275,7 +275,7 @@ typedef struct {
     /* 0xCE */ u8 countdownY; /**< Countdown timer y, popped by DISPTIMER. */
     /* 0xCF */ u8 fieldCF;              /**< Blocks random encounters while set (func_800A5D28 guard); also read by fe_object7 dispatch. */
     /* 0xD0 */ u8 padD0;
-    /* 0xD1 */ u8 fieldD1;              /**< Bit 0 toggled by fe_object6 helper. */
+    /* 0xD1 */ u8 menuPermissions;      /**< @c MENU_ALLOW_* flags for the main menu. */
     /* 0xD2 */ u8 dialogActiveMask;        /**< Per-slot dialog active bitmask (set when shown, cleared when done). */
     /* 0xD3 */ u8 dialogStartMask;         /**< Per-slot dialog start bitmask (set when shown). */
     /* 0xD4 */ u8 dialogEntryMask;         /**< Per-slot dialog entry-table bitmask (set when the slot is registered in @c D_80085300). */

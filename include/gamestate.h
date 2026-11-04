@@ -82,7 +82,8 @@ enum GfId {
     GF_BAHAMUT    = 12,
     GF_CACTUAR    = 13,
     GF_TONBERRY   = 14,
-    GF_EDEN       = 15
+    GF_EDEN       = 15,
+    GF_NONE = 0xFF
 };
 
 /** @brief Get 24-bit forgotten abilities bitfield from GfSaveData. */

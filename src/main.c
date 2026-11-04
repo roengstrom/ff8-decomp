@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "283B0.h"
 #include "cd.h"
 #include "intro.h"
@@ -10,7 +11,7 @@
 #include "battle.h"
 #include "input/gamepad.h"
 #include "btl_anim.h"
-// #include "overlay.h" omitted because the original called func_8003646C without its prototype.
+// #include "overlay.h" omitted because the original called RunMenu without its prototype.
 #include "world/we_object0.h"
 #include "game.h"
 #include "cdrom.h"
@@ -36,7 +37,6 @@
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 #define FADE_STEP 16
-#define MENU_ALLOW_SAVE 1
 #define CLOCK_TICKS_PER_VSYNC 2191
 #define CLOCK_ONE_SECOND_BIT 17
 #define CLOCK_REMAINDER_MASK 0xFFFF
@@ -348,11 +348,11 @@ static inline void RunBattle(u8 *musicBuffer) {
         g_gameMode = GAME_MODE_WORLD;
     }
     for (i = 0; i < 3; i++) {
-        if (g_battleConfig.unk4[i] != 0xFF) {
+        if (g_battleConfig.obtainedGf[i] != GF_NONE) {
             do {
             } while (g_renderMode == RENDER_BATTLE_RESULTS);
             while (DrawSync(1));
-            func_8003646C(g_battleConfig.unk4[i] + 5);
+            RunMenu(g_battleConfig.obtainedGf[i] + MENU_NAME_GF);
         }
     }
 }
@@ -384,9 +384,9 @@ void ff8main(void) {
         g_prefetchedDestId = 73; // the debug "menu"
         g_fieldContext.mode = FIELD_MODE_NONE;
         g_fieldContext.mapJumpOff = 0;
-        result = func_8003646C(25); // Run main menu?
+        result = RunMenu(MENU_TITLE);
 
-        if (!(result & 2)) {
+        if (!(result & MENU_RESULT_NEW_GAME)) {
             // Load game
             RestoreFieldSnapshot();
             LoadFieldOverlay();
@@ -494,8 +494,8 @@ void ff8main(void) {
                     SetDispMask(0);
                     SaveFieldSnapshot();
                     if (g_previousGameMode == GAME_MODE_FIELD) {
-                        result = func_8003646C(g_fieldContext.counter, g_fieldContext.unk1AB);
-                        if (result & 1) {
+                        result = RunMenu(g_fieldContext.counter, g_fieldContext.menuArg);
+                        if (result & MENU_RESULT_PARTY_CHANGED) {
                             clearEntityFlags();
                             if (g_gameMode == GAME_MODE_MENU) {
                                 g_previousGameMode = GAME_MODE_SCRIPT_MENU;
@@ -507,16 +507,19 @@ void ff8main(void) {
                         }
                         g_gameMode = GAME_MODE_FIELD;
                     } else {
-                        result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | MENU_ALLOW_SAVE);
+                        result = RunMenu(MENU_FROM_WORLD_MAP | MENU_MAIN, g_fieldVars->menuPermissions | MENU_ALLOW_SAVE);
                         g_previousGameMode = GAME_MODE_MENU;
                         g_gameMode = GAME_MODE_WORLD;
                     }
-                    if (!(result & 4)) {
+                    if (!(result & MENU_RESULT_START_BATTLE)) {
                         break;
                     }
                     g_previousGameMode = g_gameMode;
                     g_gameMode = GAME_MODE_BATTLE;
-                    g_battleConfig.battleSceneId = result >> 16;
+
+                    // When menu triggers a battle, RunMenu returns the battle scene id in the upper 16 bits of the result.
+                    // So shift it to get the real id.
+                    g_battleConfig.battleSceneId = result >> BATTLE_SCENE_ID_SHIFT;
                     if (g_gameMode == GAME_MODE_FIELD) {
                         musicBuffer = D_8005F13C;
                     } else {

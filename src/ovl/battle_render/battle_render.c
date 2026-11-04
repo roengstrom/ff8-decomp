@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
 #include "gamestate.h"
@@ -341,9 +342,8 @@ INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A368);
 
 INCLUDE_ASM("asm/ovl/battle_render/nonmatchings/battle_render", func_8009A40C);
 
-/** @brief Call func_8003646C with display mode 0x16 and layer 7. */
 void func_8009A60C(void) {
-    func_8003646C(0x16, 7);
+    RunMenu(MENU_PARTY_JUNCTION, 7);
 }
 
 /**

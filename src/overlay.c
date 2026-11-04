@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "memcard.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
@@ -303,10 +304,10 @@ s32 isOverlayQueueEmpty(void) {
  * @brief Save VRAM framebuffer contents, clear, and optionally relocate a region.
  *
  * Stores the current framebuffer (D_80053CF0 rect) to 0x801BF000 in main RAM,
- * clears the framebuffer area, and if a0 < 0, moves a 128x224 VRAM region
+ * clears the framebuffer area, and with @c MENU_FROM_WORLD_MAP set in a0, moves a 128x224 VRAM region
  * from x=0x300 to x=0x180 (swaps display/draw pages).
  *
- * @param a0 If negative, performs the VRAM region move.
+ * @param a0 The menu id; @c MENU_FROM_WORLD_MAP performs the VRAM region move.
  */
 void saveAndClearFramebuffer(s32 a0) {
     DrawSync(0);
@@ -317,7 +318,7 @@ void saveAndClearFramebuffer(s32 a0) {
     ClearImage(&D_80053CF0, 0, 0, 0);
     DrawSync(0);
     VSync(0);
-    if (a0 < 0) {
+    if (a0 & MENU_FROM_WORLD_MAP) {
         s16 rect[4];
         rect[0] = 0x300;
         rect[1] = 0;
@@ -333,11 +334,11 @@ void saveAndClearFramebuffer(s32 a0) {
 /**
  * @brief Clear the display, reload the image at 0x801BF000 and, if requested, reset the display environment.
  *
- * A negative @p a0 also copies the 128x224 block at x 384 to x 768. When
+ * With @c MENU_FROM_WORLD_MAP set in @p a0 it also copies the 128x224 block at x 384 to x 768. When
  * D_8008520C is set, D_80085150 becomes a 320x224 display environment, moved
  * down 24 lines in PAL, and D_8005F138 points at it.
  *
- * @param a0 Negative to copy the block.
+ * @param a0 The menu id; @c MENU_FROM_WORLD_MAP copies the block.
  */
 void func_8003631C(s32 a0) {
     RECT rect;
@@ -350,7 +351,7 @@ void func_8003631C(s32 a0) {
     DrawSync(0);
     VSync(0);
 
-    if (a0 < 0) {
+    if (a0 & MENU_FROM_WORLD_MAP) {
         rect.x = 0x180;
         rect.y = 0;
         rect.w = 0x80;
@@ -403,7 +404,7 @@ void loadDefaultOverlay(void) {
  * @param arg3 Passthrough argument 3 to @c func_801F04E8.
  * @return The contents of @c D_8008513C at function exit (render-flag bitmask).
  */
-s32 func_8003646C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
+s32 RunMenu(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     u16 saved250;
     u8 saved252;
     u8 savedCountdownVisible;
@@ -452,7 +453,7 @@ s32 func_8003646C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     loadOverlayWithTimCallback(9, 0x801CD000);
     loadOverlayWithTimCallback(0xA, 0x801D5000);
     RequestActuatorSetup(0);
-    func_801F04E8(arg0 & 0x7FFFFFFF, arg1, arg2, arg3);
+    func_801F04E8(arg0 & ~MENU_FROM_WORLD_MAP, arg1, arg2, arg3);
 
     while (pollCdReadStatus() != 0) {
     }
