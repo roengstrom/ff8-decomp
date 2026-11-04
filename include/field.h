@@ -275,7 +275,7 @@ typedef struct {
     /* 0xCE */ u8 countdownY; /**< Countdown timer y, popped by DISPTIMER. */
     /* 0xCF */ u8 fieldCF;              /**< Blocks random encounters while set (func_800A5D28 guard); also read by fe_object7 dispatch. */
     /* 0xD0 */ u8 padD0;
-    /* 0xD1 */ u8 menuPermissions;      /**< @c MENU_ALLOW_* flags for the main menu. */
+    /* 0xD1 */ u8 menuArgs;      /**< @c MENU_ALLOW_* flags for the main menu. */
     /* 0xD2 */ u8 dialogActiveMask;        /**< Per-slot dialog active bitmask (set when shown, cleared when done). */
     /* 0xD3 */ u8 dialogStartMask;         /**< Per-slot dialog start bitmask (set when shown). */
     /* 0xD4 */ u8 dialogEntryMask;         /**< Per-slot dialog entry-table bitmask (set when the slot is registered in @c D_80085300). */

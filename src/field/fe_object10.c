@@ -309,7 +309,7 @@ void func_800BD804(s32 stepDelta) {
  * if a CD read is in flight (@c g_cdReadState.flags bit 0).
  *
  * On entry, mirrors party gil/dreamGil from @c g_gameState to
- * @c g_fieldVars, copies @c menuPermissions into
+ * @c g_fieldVars, copies @c menuArgs into
  * @c g_fieldContext.menuArg, and closes the per-slot dialogs whose ambient
  * trigger has expired (@c dialogStartMask bit set without
  * @c dialogEntryMask). Then calls @c getPackedField2Bit for the active
@@ -354,7 +354,7 @@ void func_800BD9C4(FieldFrameBuf *frame) {
     func_800BD804(g_fieldContext.fieldStepDelta);
     g_fieldVars->gilMirror      = g_gameState.mainData.party.gil;
     g_fieldVars->dreamGilMirror = g_gameState.mainData.party.dreamGil;
-    g_fieldContext.menuArg = g_fieldVars->menuPermissions;
+    g_fieldContext.menuArg = g_fieldVars->menuArgs;
 
     {
         s32 i;

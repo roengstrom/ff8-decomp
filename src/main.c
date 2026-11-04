@@ -525,7 +525,7 @@ void ff8main(void) {
                         }
                         g_gameMode = GAME_MODE_FIELD;
                     } else {
-                        result = RunMenu(MENU_FROM_WORLD_MAP | MENU_MAIN, g_fieldVars->menuPermissions | MENU_ALLOW_SAVE);
+                        result = RunMenu(MENU_FROM_WORLD_MAP | MENU_MAIN, g_fieldVars->menuArgs | MENU_ALLOW_SAVE);
                         g_previousGameMode = GAME_MODE_MENU;
                         g_gameMode = GAME_MODE_WORLD;
                     }

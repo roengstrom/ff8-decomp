@@ -1543,11 +1543,11 @@ s32 opHandler_MENUENABLE(ScriptContext *context) {
     return 2;
 }
 
-/** @brief Open the main menu with the current @c menuPermissions. Returns 3. */
+/** @brief Open the main menu with the current @c menuArgs. Returns 3. */
 s32 opHandler_MENUNORMAL(void) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0;
-    g_fieldContext.menuArg = g_fieldVars->menuPermissions;
+    g_fieldContext.menuArg = g_fieldVars->menuArgs;
     return 3;
 }
 
@@ -1724,35 +1724,35 @@ s32 opHandler_MENUSAVE(ScriptContext *context) {
 
 /**
  * Pops a parameter from the stack. If nonzero, sets @c MENU_ALLOW_SAVE in
- * @c menuPermissions. Otherwise clears it. Returns 2.
+ * @c menuArgs. Otherwise clears it. Returns 2.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
  */
 s32 opHandler_SAVEENABLE(ScriptContext *context) {
     if (POP(context) != 0) {
-        g_fieldVars->menuPermissions |= MENU_ALLOW_SAVE;
+        g_fieldVars->menuArgs |= MENU_ALLOW_SAVE;
     } else {
-        g_fieldVars->menuPermissions &= ~MENU_ALLOW_SAVE;
+        g_fieldVars->menuArgs &= ~MENU_ALLOW_SAVE;
     }
     return 2;
 }
 
 /**
- * Updates @c MENU_ALLOW_PARTY_SWITCH in @c menuPermissions from
+ * Updates @c MENU_ALLOW_PARTY_SWITCH in @c menuArgs from
  * @ref FIELD_STATE_FLAG_200: cleared when the flag is set, set otherwise.
  */
 void func_800B4F40(void) {
     if (g_fieldVars->stateFlags & FIELD_STATE_FLAG_200) {
-        g_fieldVars->menuPermissions &= ~MENU_ALLOW_PARTY_SWITCH;
+        g_fieldVars->menuArgs &= ~MENU_ALLOW_PARTY_SWITCH;
     } else {
-        g_fieldVars->menuPermissions |= MENU_ALLOW_PARTY_SWITCH;
+        g_fieldVars->menuArgs |= MENU_ALLOW_PARTY_SWITCH;
     }
 }
 
 /**
  * Pop a flag value. Nonzero clears @ref FIELD_STATE_FLAG_200; zero
- * sets bit @c 0x200 and additionally clears @c MENU_ALLOW_PARTY_SWITCH in @c menuPermissions.
+ * sets bit @c 0x200 and additionally clears @c MENU_ALLOW_PARTY_SWITCH in @c menuArgs.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
@@ -1762,15 +1762,15 @@ s32 opHandler_PHSPOWER(ScriptContext *context) {
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_200;
     } else {
         g_fieldVars->stateFlags |= FIELD_STATE_FLAG_200;
-        g_fieldVars->menuPermissions &= ~MENU_ALLOW_PARTY_SWITCH;
+        g_fieldVars->menuArgs &= ~MENU_ALLOW_PARTY_SWITCH;
     }
     return 2;
 }
 
 /**
  * Pop a flag value. If @ref FIELD_STATE_FLAG_200 is clear, set or
- * clear @c MENU_ALLOW_PARTY_SWITCH in @c menuPermissions based on the popped value. If
- * @c 0x200 is set, leave @c menuPermissions alone.
+ * clear @c MENU_ALLOW_PARTY_SWITCH in @c menuArgs based on the popped value. If
+ * @c 0x200 is set, leave @c menuArgs alone.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
@@ -1779,9 +1779,9 @@ s32 opHandler_PHSENABLE(ScriptContext *context) {
     s32 val = POP(context);
     if (!(g_fieldVars->stateFlags & FIELD_STATE_FLAG_200)) {
         if (val != 0) {
-            g_fieldVars->menuPermissions |= MENU_ALLOW_PARTY_SWITCH;
+            g_fieldVars->menuArgs |= MENU_ALLOW_PARTY_SWITCH;
         } else {
-            g_fieldVars->menuPermissions &= ~MENU_ALLOW_PARTY_SWITCH;
+            g_fieldVars->menuArgs &= ~MENU_ALLOW_PARTY_SWITCH;
         }
     }
     return 2;
