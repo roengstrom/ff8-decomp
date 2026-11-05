@@ -29,7 +29,7 @@ typedef enum {
 typedef struct {
     u16 battleSceneId;
     u16 unk2;            // Flags?, when first bit is set, escape it not possible
-    u8  unk4[3];         // Post battle command queue?
+    u8  obtainedGf[3];   // GFs drawn in this battle, to be named after it; GF_NONE for none
     u8 result; // a BattleResult
     u8 sealedAbilities; // see @c SealedAbilityFlag
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */

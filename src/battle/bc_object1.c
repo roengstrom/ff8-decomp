@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.h"
+#include "cd.h"
 #include "battle.h"
 #include "gf.h"
 #include "gamestate.h"
@@ -139,7 +140,7 @@ void func_80099FE8(void) {
     D_800ED148.unk1319 = 255;
 
     for (i = 0; i < 3; i++) {
-        g_battleConfig.unk4[i] = 255;
+        g_battleConfig.obtainedGf[i] = GF_NONE;
     }
 
     func_8009B198(VSync(-1));

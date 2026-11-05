@@ -29,7 +29,7 @@ typedef struct {
  */
 extern volatile s32 D_8008514C;
 
-/** @brief Argument passed to the post-transition overlay entry (set by func_8003646C). */
+/** @brief Argument passed to the post-transition overlay entry (set by RunMenu). */
 extern s32 D_80085210;
 /** @brief Currently-loaded overlay dependency ID. */
 extern u8  D_8008520A;
@@ -49,6 +49,6 @@ extern void loadOverlayWithTimCallback(s32 a0, s32 a1);
 /** @brief Reset card-slot dispatch state for the Triple-Triad mini-game. */
 extern void resetCardSlots(s32 mode);
 
-extern s32 func_8003646C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern s32 RunMenu(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif /* OVERLAY_H */

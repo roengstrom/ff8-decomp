@@ -20,6 +20,49 @@
  * ignored; the draw callback gets (task, ot, packet cursor) and returns the new
  * cursor.
  */
+typedef enum {
+    MENU_MAIN = 0,
+    MENU_PARTY_EXCHANGE = 1,
+    MENU_NAME_SQUALL = 2,
+    MENU_NAME_RINOA = 3,
+    MENU_NAME_ANGELO = 4,
+    MENU_NAME_GF = 5,
+    MENU_NAME_QUEZACOTL = MENU_NAME_GF,
+    MENU_NAME_SHIVA = 6,
+    MENU_NAME_IFRIT = 7,
+    MENU_NAME_SIREN = 8,
+    MENU_NAME_BROTHERS = 9,
+    MENU_NAME_DIABLOS = 10,
+    MENU_NAME_CARBUNCLE = 11,
+    MENU_NAME_LEVIATHAN = 12,
+    MENU_NAME_PANDEMONA = 13,
+    MENU_NAME_CERBERUS = 14,
+    MENU_NAME_ALEXANDER = 15,
+    MENU_NAME_DOOMTRAIN = 16,
+    MENU_NAME_BAHAMUT = 17,
+    MENU_NAME_CACTUAR = 18,
+    MENU_NAME_TONBERRY = 19,
+    MENU_NAME_EDEN = 20,
+    MENU_PARTY_JUNCTION = 22,
+    MENU_PET_SHOP = 23,
+    MENU_SAVE = 24,
+    MENU_TITLE = 25,
+    MENU_TUTORIAL = 26,
+    MENU_NAME_BOKO = 27,
+    MENU_NAME_GRIEVER = 28,
+    MENU_JUNCTION_TUTORIAL = 29
+} MenuId;
+
+#define MENU_FROM_WORLD_MAP 0x80000000
+
+#define MENU_ALLOW_SAVE 0x01
+#define MENU_ALLOW_PARTY_SWITCH 0x02
+
+#define MENU_RESULT_PARTY_CHANGED 0x01
+#define MENU_RESULT_NEW_GAME 0x02
+#define MENU_RESULT_START_BATTLE 0x04
+#define BATTLE_SCENE_ID_SHIFT 16
+
 typedef void (*MenuTickCallback)();
 typedef s32 (*MenuDrawCallback)();
 

@@ -93,7 +93,7 @@ void func_80099B48(Entity *entity, s32 *script) {
  * state is latched via @c func_8009D7D8.
  *
  * Afterwards it always drains the sound engine, uploads the sample bank selected by the
- * scene command @c D_80082C8D (@c D_800C9EE0 for @c 0x40..0x42, else @c D_800C9EDC),
+ * vehicle @c g_worldTransfer.vehicle (@c D_800C9EE0 for @c 0x40..0x42, else @c D_800C9EDC),
  * rebinds @c D_800C4FD8 sequence slots 4-9/12 to self-relative pointers in the bank
  * header @c D_800C97A8, and clears every slot's runtime state (@c field12).
  */
@@ -106,10 +106,11 @@ void func_80099C84(void) {
     s32 i;
     s32 *bank;
     s32 *offs;
+    u8 vehicle;
 
     D_800C4FBC = 0;
     D_800C4FC0 = 0;
-    mode2 = (D_80082C8C.mode == WORLD_ENTER_FROM_BATTLE);
+    mode2 = (g_worldTransfer.mode == WORLD_ENTER_FROM_BATTLE);
     key = D_800D2442;
     if (key != g_fieldVars->audioChannel0State || mode2) {
         result = getScrollState((s8)key, &b18, &w1C, &w20, &w24, &w28);
@@ -135,7 +136,8 @@ void func_80099C84(void) {
         sndCmdC1(0, 0x1E, 0x7F);
     }
     while (sndGetEngineState() > 0) {}
-    if ((u32)(D_80082C8D - 0x40) < 3) {
+    vehicle = g_worldTransfer.vehicle;
+    if (vehicle >= 0x40 && vehicle < 0x43) {
         while (sndUploadSamples(D_800C9EE0, 1) != 0) {}
     } else {
         while (sndUploadSamples(D_800C9EDC, 1) != 0) {}
@@ -338,7 +340,7 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object1", func_8009A954);
  * loads its image (@c MoveImage) after a @c VSync prep. It then copies the
  * sentinel's DRAWENV and DISPENV templates into the active @c D_80082C30 / @c D_80082C18 and
  * publishes them via @c g_activeDrawEnv / @c D_8005F138. Finally, when the scene mode
- * @c D_80082C8C is 5, it re-initialises both screen buffers (16 passes of
+ * @c g_worldTransfer is 5, it re-initialises both screen buffers (16 passes of
  * @c func_800A5D10 bracketed by @c func_800A5FD4) and flushes via @c SetDispMask.
  */
 void func_8009AD3C(void) {
@@ -360,7 +362,7 @@ void func_8009AD3C(void) {
     D_80082C18 = ((CtxDispView *)&D_800CA040)->disp;
     g_activeDrawEnv = &D_80082C30;
     D_8005F138 = (s32)&D_80082C18;
-    if (D_80082C8C.mode == WORLD_EXIT_TO_MENU) {
+    if (g_worldTransfer.mode == WORLD_EXIT_TO_MENU) {
         func_800A5F78(0);
         func_800A5FD4(0);
         for (i = 0; i < 0x10; i++) {
@@ -733,7 +735,7 @@ void func_8009C1A4(void) {
  * (cleared when both pass, set otherwise). Then @c func_8009D630 tears down prior
  * state; if a command descriptor @c D_800C4D64 is active, its flag bit is mirrored
  * into @c D_800D226C->unk6C (bit @c 0x100). Finally it stamps the scene state
- * @c D_80082C8C (mode 1, dispatch code, markers), calls @c func_800B3FD4, clears
+ * @c g_worldTransfer (mode 1, dispatch code, markers), calls @c func_800B3FD4, clears
  * the slot's action byte, closes every @c D_800C526C slot's dialog at once, pushes 2 display frames,
  * and submits the scene color tag.
  *
@@ -759,10 +761,10 @@ void func_8009C294(s32 cmd) {
     if (D_800C4D64 != 0) {
         D_800D226C->unk6C = (D_800D226C->unk6C & ~0x100) | ((D_800C4D64->flag << 5) & 0x100);
     }
-    D_80082C8C.mode = WORLD_EXIT_TO_FIELD;
-    D_80082C8C.param.entrance.entranceIndex = cmd;
-    D_80082C8C.param.entrance.facingDirection = -1;
-    D_80082C8C.cmd = D_800C4D38;
+    g_worldTransfer.mode = WORLD_EXIT_TO_FIELD;
+    g_worldTransfer.param.entrance.entranceIndex = cmd;
+    g_worldTransfer.param.entrance.facingDirection = -1;
+    g_worldTransfer.vehicle = D_800C4D38;
     func_800B3FD4(D_800D226C, 1);
     D_800D226C->bytes[1] = 0;
     for (i = 0; i < 13; i++) {

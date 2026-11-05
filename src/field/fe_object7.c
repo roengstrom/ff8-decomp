@@ -79,7 +79,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
             }
 
             sndCmd40();
-            func_80037FB0(0, 0x46, D_8005F13C);
+            func_80037FB0(0, 0x46, g_fieldSoundBuffer);
 
             while (g_fieldVars->soundLoadComplete == 0) {
                 UpdateCdRead();
@@ -574,7 +574,7 @@ s32 opHandler_SETPLACE(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_BATTLEMODE(ScriptContext *context) {
-    g_battleConfig.unk2 = g_fieldVars->fieldB6 = POP(context);
+    g_battleConfig.unk2 = g_fieldVars->battleFlags = POP(context);
     do {} while (0);
     return 2;
 }

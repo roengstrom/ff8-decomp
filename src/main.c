@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "283B0.h"
 #include "cd.h"
 #include "intro.h"
@@ -10,7 +11,6 @@
 #include "battle.h"
 #include "input/gamepad.h"
 #include "btl_anim.h"
-// #include "overlay.h" omitted because the original called func_8003646C without its prototype.
 #include "world/we_object0.h"
 #include "game.h"
 #include "cdrom.h"
@@ -32,11 +32,32 @@
 #include "imgtoc.h"
 #include "cpu.h"
 
+#ifdef ADD_OMITTED_INCLUDES
+#include "overlay.h"
+#endif
+
+typedef enum {
+    FADE_NONE = 0,
+    FADE_IN = 1,
+    FADE_OUT = 2
+} FadeMode;
+
+#define PACKET_BUFFER_SIZE 0x6000
+#define CHOCOBO_WORLD_MUSIC_SIZE 0x200
+
+extern u8 g_vsyncSkip;
+extern volatile s32 g_countdownTicker;
+extern u8 g_soundEffectData[];
+extern u8 g_packetBuffer[PACKET_BUFFER_SIZE];
+extern u8 g_chocoboWorldMusic[CHOCOBO_WORLD_MUSIC_SIZE];
+
 /** @brief Global field ids of the maps a new game and a game over go to. */
 #define FIELD_ID_START0 74 /**< start0, the first map of a new game. */
 #define FIELD_ID_GOVER 75 /**< gover, the game-over map. */
 #define FADE_STEP 16
-#define MENU_ALLOW_SAVE 1
+#define CLOCK_TICKS_PER_VSYNC 2191
+#define CLOCK_ONE_SECOND_BIT 17
+#define CLOCK_REMAINDER_MASK 0xFFFF
 
 // The place in the disc image where the table of contents file resides.
 // These were likely calculated during the mastering process of the disc.
@@ -114,20 +135,20 @@ static void VsyncHandler(void) {
 
     // This function is called 59.8 times per second (on NTSC).
     // Make use of that fact to tick the in-game clock.
-    g_secondTicker += 0x88F;
-    if (g_secondTicker >> 17) {
+    g_secondTicker += CLOCK_TICKS_PER_VSYNC;
+    if (g_secondTicker >> CLOCK_ONE_SECOND_BIT) {
         g_gameState.mainData.playTimeSeconds++;
-        g_secondTicker &= 0xFFFF;
+        g_secondTicker &= CLOCK_REMAINDER_MASK;
     }
 
-    g_countdownTicker += 0x88F;
-    if (g_countdownTicker >> 17) {
+    g_countdownTicker += CLOCK_TICKS_PER_VSYNC;
+    if (g_countdownTicker >> CLOCK_ONE_SECOND_BIT) {
         if (g_gameState.mainData.countdownTimer == 0) {
             g_vsyncDone = 1;
             return;
         }
         g_gameState.mainData.countdownTimer--;
-        g_countdownTicker &= 0xFFFF;
+        g_countdownTicker &= CLOCK_REMAINDER_MASK;
     }
 
     g_vsyncDone = 1;
@@ -325,12 +346,12 @@ static inline void RunBattle(u8 *musicBuffer) {
         ReturnToTitle();
         return;
     }
-    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->fieldB6 & NO_GAMEOVER_ON_LOSS))) {
+    if ((g_battleConfig.result == BATTLE_RESULT_GAMEOVER) && (!(g_fieldVars->battleFlags & NO_GAMEOVER_ON_LOSS))) {
         GoToGameOverField();
         return;
     }
     if (g_battleConfig.result == BATTLE_RESULT_TIME_UP) {
-        if (g_fieldVars->fieldB6 & NO_GAMEOVER_ON_TIME_UP) {
+        if (g_fieldVars->battleFlags & NO_GAMEOVER_ON_TIME_UP) {
             g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
         } else {
             GoToGameOverField();
@@ -345,11 +366,11 @@ static inline void RunBattle(u8 *musicBuffer) {
         g_gameMode = GAME_MODE_WORLD;
     }
     for (i = 0; i < 3; i++) {
-        if (g_battleConfig.unk4[i] != 0xFF) {
+        if (g_battleConfig.obtainedGf[i] != GF_NONE) {
             do {
             } while (g_renderMode == RENDER_BATTLE_RESULTS);
             while (DrawSync(1));
-            func_8003646C(g_battleConfig.unk4[i] + 5);
+            RunMenu(g_battleConfig.obtainedGf[i] + MENU_NAME_GF);
         }
     }
 }
@@ -381,9 +402,9 @@ void ff8main(void) {
         g_prefetchedDestId = 73; // the debug "menu"
         g_fieldContext.mode = FIELD_MODE_NONE;
         g_fieldContext.mapJumpOff = 0;
-        result = func_8003646C(25); // Run main menu?
+        result = RunMenu(MENU_TITLE);
 
-        if (!(result & 2)) {
+        if (!(result & MENU_RESULT_NEW_GAME)) {
             // Load game
             RestoreFieldSnapshot();
             LoadFieldOverlay();
@@ -418,16 +439,16 @@ void ff8main(void) {
                     switch (g_previousGameMode) {
                     case GAME_MODE_FIELD:
                         func_800B4F40();
-                        D_80082C8C.mode = WORLD_ENTER_FROM_FIELD;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_FIELD;
                         break;
                     case GAME_MODE_BATTLE:
-                        D_80082C8C.mode = WORLD_ENTER_FROM_BATTLE;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_BATTLE;
                         break;
                     case GAME_MODE_MENU:
-                        D_80082C8C.mode = WORLD_ENTER_FROM_MENU;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_MENU;
                         break;
                     case GAME_MODE_NONE:
-                        D_80082C8C.mode = WORLD_ENTER_FROM_LOAD;
+                        g_worldTransfer.mode = WORLD_ENTER_FROM_LOAD;
                         break;
                     }
                     // Check if the world overlay has been prefetched into memory and unpack it in that case, otherwise
@@ -448,9 +469,9 @@ void ff8main(void) {
                         break;
                     }
                     g_previousGameMode = GAME_MODE_WORLD;
-                    switch (D_80082C8C.mode) {
+                    switch (g_worldTransfer.mode) {
                     case WORLD_EXIT_TO_FIELD:
-                        entry = &WORLD_TO_FIELD_ENTRANCES[D_80082C8C.param.entrance.entranceIndex];
+                        entry = &WORLD_TO_FIELD_ENTRANCES[g_worldTransfer.param.entrance.entranceIndex];
                         fieldId = entry->fieldId;
                         g_fieldContext.position_x = entry->position_x;
                         g_fieldContext.position_y = entry->position_y;
@@ -477,10 +498,10 @@ void ff8main(void) {
                 case GAME_MODE_BATTLE_DEBUG_MENU:
                     if (g_previousGameMode == GAME_MODE_FIELD) {
                         g_battleConfig.battleSceneId = g_fieldContext.counter;
-                        musicBuffer = D_8005F13C;
+                        musicBuffer = g_fieldSoundBuffer;
                     } else {
                         g_battleConfig.battleSceneId =
-                            D_80082C8C.param.battle.sceneLow | (D_80082C8C.param.battle.sceneHigh << 8);
+                            g_worldTransfer.param.battle.sceneLow | (g_worldTransfer.param.battle.sceneHigh << 8);
                         musicBuffer = (u8 *)MUSIC_BUFFER_ADDR;
                     }
                     RunBattle(musicBuffer);
@@ -491,8 +512,8 @@ void ff8main(void) {
                     SetDispMask(0);
                     SaveFieldSnapshot();
                     if (g_previousGameMode == GAME_MODE_FIELD) {
-                        result = func_8003646C(g_fieldContext.counter, g_fieldContext.unk1AB);
-                        if (result & 1) {
+                        result = RunMenu(g_fieldContext.counter, g_fieldContext.menuArg);
+                        if (result & MENU_RESULT_PARTY_CHANGED) {
                             clearEntityFlags();
                             if (g_gameMode == GAME_MODE_MENU) {
                                 g_previousGameMode = GAME_MODE_SCRIPT_MENU;
@@ -504,18 +525,21 @@ void ff8main(void) {
                         }
                         g_gameMode = GAME_MODE_FIELD;
                     } else {
-                        result = func_8003646C(0x80000000, g_fieldVars->fieldD1 | MENU_ALLOW_SAVE);
+                        result = RunMenu(MENU_FROM_WORLD_MAP | MENU_MAIN, g_fieldVars->menuArgs | MENU_ALLOW_SAVE);
                         g_previousGameMode = GAME_MODE_MENU;
                         g_gameMode = GAME_MODE_WORLD;
                     }
-                    if (!(result & 4)) {
+                    if (!(result & MENU_RESULT_START_BATTLE)) {
                         break;
                     }
                     g_previousGameMode = g_gameMode;
                     g_gameMode = GAME_MODE_BATTLE;
-                    g_battleConfig.battleSceneId = result >> 16;
+
+                    // When menu triggers a battle, RunMenu returns the battle scene id in the upper 16 bits of the result.
+                    // So shift it to get the real id.
+                    g_battleConfig.battleSceneId = result >> BATTLE_SCENE_ID_SHIFT;
                     if (g_gameMode == GAME_MODE_FIELD) {
-                        musicBuffer = D_8005F13C;
+                        musicBuffer = g_fieldSoundBuffer;
                     } else {
                         // matching hack
                         result = MUSIC_BUFFER_ADDR;
@@ -525,8 +549,8 @@ void ff8main(void) {
                     break;
                 case GAME_MODE_DISC_CHANGE:
                     LoadIntroOverlay();
-                    IntroMain(g_fieldContext.unk1A0);
-                    mode = g_fieldContext.unk1A0;
+                    IntroMain(g_fieldContext.introScreenType);
+                    mode = g_fieldContext.introScreenType;
                     if (mode == 1) {
                         ReloadDiscTables();
                         g_previousGameMode = GAME_MODE_NONE;

@@ -1,10 +1,12 @@
 #include "common.h"
+#include "menu.h"
 #include "283B0.h"
 #include "field.h"
 #include "gamestate.h"
 #include "item.h"
 #include "battle.h"
 #include "sound.h"
+#include "intro.h"
 #include "psxsdk/libgte.h"
 #include "field/field_data.h"
 #include "field/fe_object6.h"
@@ -1287,7 +1289,7 @@ s32 opHandler_GETTIMER(ScriptContext *context) {
 /**
  * Show the countdown timer: pop its y and then its x into
  * @c g_fieldVars->countdownY / @c countdownX, set @ref FIELD_STATE_COUNTDOWN
- * and bit 0x4 of @c fieldB6 and @c g_battleConfig.unk2 (so battles show it
+ * and @ref BATTLE_FLAG_COUNTDOWN in @c battleFlags and @c g_battleConfig.unk2 (so battles show it
  * too), then call @c setCountdownPosition and @c setCountdownVisible(1).
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1297,8 +1299,8 @@ s32 opHandler_DISPTIMER(ScriptContext *context) {
     g_fieldVars->countdownY = POP_BYTE(context);
     g_fieldVars->countdownX = POP_BYTE(context);
     g_fieldVars->stateFlags |= FIELD_STATE_COUNTDOWN;
-    g_fieldVars->fieldB6 |= 0x4;
-    g_battleConfig.unk2 |= 0x4;
+    g_fieldVars->battleFlags |= BATTLE_FLAG_COUNTDOWN;
+    g_battleConfig.unk2 |= BATTLE_FLAG_COUNTDOWN;
     setCountdownPosition(g_fieldVars->countdownX, g_fieldVars->countdownY);
     setCountdownVisible(1);
     return 2;
@@ -1306,7 +1308,7 @@ s32 opHandler_DISPTIMER(ScriptContext *context) {
 
 /**
  * Hide the countdown timer: clear @ref FIELD_STATE_COUNTDOWN, the
- * @c fieldB6 bit 0x4 and the @c g_battleConfig.unk2 bit 0x4, then call
+ * @c battleFlags and @c g_battleConfig.unk2 bit @ref BATTLE_FLAG_COUNTDOWN, then call
  * @c setCountdownVisible(0). Inverse of @c opHandler_DISPTIMER.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1314,8 +1316,8 @@ s32 opHandler_DISPTIMER(ScriptContext *context) {
  */
 s32 opHandler_KILLTIMER(ScriptContext *context) {
     g_fieldVars->stateFlags &= ~FIELD_STATE_COUNTDOWN;
-    g_fieldVars->fieldB6 &= ~0x4;
-    g_battleConfig.unk2 &= ~0x4;
+    g_fieldVars->battleFlags &= ~BATTLE_FLAG_COUNTDOWN;
+    g_battleConfig.unk2 &= ~BATTLE_FLAG_COUNTDOWN;
     setCountdownVisible(0);
     return 2;
 }
@@ -1469,7 +1471,7 @@ s32 opHandler_MAPJUMP3(ScriptContext *context, s32 a1) {
 s32 opHandler_DISCJUMP(ScriptContext *context, s32 a1) {
     if ((context->activeMask >> context->scriptSlot) & 1) {
         g_fieldContext.mode = FIELD_MODE_DISC_CHANGE;
-        g_fieldContext.unk1A0 = 1;
+        g_fieldContext.introScreenType = INTRO_SCREEN_INSERT_DISC;
         g_fieldContext.spawnTriIdx = a1;
         g_fieldContext.facingDirection = POP(context);
         g_fieldContext.unk008 = POP(context);
@@ -1541,11 +1543,11 @@ s32 opHandler_MENUENABLE(ScriptContext *context) {
     return 2;
 }
 
-/** @brief Set g_fieldContext command to 5, clear halfword, copy entity byte 0xD1. Returns 3. */
+/** @brief Open the main menu with the current @c menuArgs. Returns 3. */
 s32 opHandler_MENUNORMAL(void) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0;
-    g_fieldContext.unk1AB = g_fieldVars->fieldD1;
+    g_fieldContext.menuArg = g_fieldVars->menuArgs;
     return 3;
 }
 
@@ -1559,12 +1561,12 @@ s32 opHandler_MENUNORMAL(void) {
 s32 opHandler_MENUPHS(ScriptContext *context) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 1;
-    g_fieldContext.unk1AB = 2;
+    g_fieldContext.menuArg = MENU_ALLOW_PARTY_SWITCH;
     return 3;
 }
 
 /**
- * Mode-5 init: set mode = 5, counter = 0x17, pop a byte into @c unk1AB.
+ * Mode-5 init: set mode = 5, counter = 0x17, pop a byte into @c menuArg.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 3 (yield to dispatcher with state change).
@@ -1572,7 +1574,7 @@ s32 opHandler_MENUPHS(ScriptContext *context) {
 s32 opHandler_MENUSHOP(ScriptContext *context) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x17;
-    g_fieldContext.unk1AB = POP_BYTE(context);
+    g_fieldContext.menuArg = POP_BYTE(context);
     return 3;
 }
 
@@ -1591,7 +1593,7 @@ s32 opHandler_MENUSHOP(ScriptContext *context) {
 s32 opHandler_MENUNAME(ScriptContext *context) {
     s32 val;
     g_fieldContext.mode = FIELD_MODE_MENU;
-    g_fieldContext.unk1AB = 1;
+    g_fieldContext.menuArg = 1;
     val = POP(context);
     switch (val) {
     case 0:  D_800704AA = 2;  break;
@@ -1629,7 +1631,7 @@ s32 opHandler_MENUNAME(ScriptContext *context) {
 s32 opHandler_MENUTUTO(ScriptContext *context) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x1A;
-    g_fieldContext.unk1AB = 1;
+    g_fieldContext.menuArg = 1;
     return 3;
 }
 
@@ -1642,7 +1644,7 @@ s32 opHandler_MENUTUTO(ScriptContext *context) {
 s32 func_800B4D34(Actor *actor) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x1D;
-    g_fieldContext.unk1AB = POP_BYTE(&actor->context);
+    g_fieldContext.menuArg = POP_BYTE(&actor->context);
     return 3;
 }
 
@@ -1716,44 +1718,41 @@ s32 opHandler_GETHP(ScriptContext *context) {
 s32 opHandler_MENUSAVE(ScriptContext *context) {
     g_fieldContext.mode = FIELD_MODE_MENU;
     g_fieldContext.counter = 0x18;
-    g_fieldContext.unk1AB = 1;
+    g_fieldContext.menuArg = 1;
     return 3;
 }
 
 /**
- * Pops a parameter from the stack. If nonzero, sets bit 0x01 in
- * g_fieldVars+0xD1. Otherwise clears it. Returns 2.
+ * Pops a parameter from the stack. If nonzero, sets @c MENU_ALLOW_SAVE in
+ * @c menuArgs. Otherwise clears it. Returns 2.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
  */
 s32 opHandler_SAVEENABLE(ScriptContext *context) {
     if (POP(context) != 0) {
-        g_fieldVars->fieldD1 |= 0x01;
+        g_fieldVars->menuArgs |= MENU_ALLOW_SAVE;
     } else {
-        g_fieldVars->fieldD1 &= ~0x01;
+        g_fieldVars->menuArgs &= ~MENU_ALLOW_SAVE;
     }
     return 2;
 }
 
 /**
- * Updates bit 2 of the entity byte at offset 0xD1 based on flag 0x200
- * in the flags word at offset 0x68.
- *
- * If bit 0x200 is set in the flags, clears bit 2 of the byte at 0xD1.
- * Otherwise, sets bit 2.
+ * Updates @c MENU_ALLOW_PARTY_SWITCH in @c menuArgs from
+ * @ref FIELD_STATE_FLAG_200: cleared when the flag is set, set otherwise.
  */
 void func_800B4F40(void) {
     if (g_fieldVars->stateFlags & FIELD_STATE_FLAG_200) {
-        g_fieldVars->fieldD1 &= 0xFD;
+        g_fieldVars->menuArgs &= ~MENU_ALLOW_PARTY_SWITCH;
     } else {
-        g_fieldVars->fieldD1 |= 0x2;
+        g_fieldVars->menuArgs |= MENU_ALLOW_PARTY_SWITCH;
     }
 }
 
 /**
  * Pop a flag value. Nonzero clears @ref FIELD_STATE_FLAG_200; zero
- * sets bit @c 0x200 and additionally clears bit @c 0x02 of @c fieldD1.
+ * sets bit @c 0x200 and additionally clears @c MENU_ALLOW_PARTY_SWITCH in @c menuArgs.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
@@ -1763,15 +1762,15 @@ s32 opHandler_PHSPOWER(ScriptContext *context) {
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_200;
     } else {
         g_fieldVars->stateFlags |= FIELD_STATE_FLAG_200;
-        g_fieldVars->fieldD1 &= ~0x02;
+        g_fieldVars->menuArgs &= ~MENU_ALLOW_PARTY_SWITCH;
     }
     return 2;
 }
 
 /**
  * Pop a flag value. If @ref FIELD_STATE_FLAG_200 is clear, set or
- * clear bit @c 0x02 in @c fieldD1 based on the popped value. If
- * @c 0x200 is set, leave @c fieldD1 alone.
+ * clear @c MENU_ALLOW_PARTY_SWITCH in @c menuArgs based on the popped value. If
+ * @c 0x200 is set, leave @c menuArgs alone.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
@@ -1780,9 +1779,9 @@ s32 opHandler_PHSENABLE(ScriptContext *context) {
     s32 val = POP(context);
     if (!(g_fieldVars->stateFlags & FIELD_STATE_FLAG_200)) {
         if (val != 0) {
-            g_fieldVars->fieldD1 |= 0x02;
+            g_fieldVars->menuArgs |= MENU_ALLOW_PARTY_SWITCH;
         } else {
-            g_fieldVars->fieldD1 &= ~0x02;
+            g_fieldVars->menuArgs &= ~MENU_ALLOW_PARTY_SWITCH;
         }
     }
     return 2;

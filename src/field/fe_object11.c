@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "283B0.h"
 #include "field.h"
 #include "gamestate.h"
@@ -122,7 +123,7 @@ void func_800BF718(s32 mode) {
             if (ch0 == -1) {
                 sndCmdC1(D_8005F11C, 0x3C, 0);
             } else {
-                func_80037FB0(0, ch0, D_8005F13C);
+                func_80037FB0(0, ch0, g_fieldSoundBuffer);
                 while (g_fieldVars->soundLoadComplete == 0) {
                     UpdateCdRead();
                 }
@@ -130,7 +131,7 @@ void func_800BF718(s32 mode) {
                 g_fieldVars->soundHandle0 = sndCmd1A(v, 0x3C, g_fieldVars->musicVolume);
             }
         }
-        g_battleConfig.unk2 = g_fieldVars->fieldB6;
+        g_battleConfig.unk2 = g_fieldVars->battleFlags;
         sndCmd45();
         break;
     case 2:
@@ -228,7 +229,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     seed->charKos[7] = g_gameState.chars[7].kos;
 
     seed->field54 = g_fieldContext.previousFieldId;
-    seed->field56 = D_80082C8D;
+    seed->field56 = g_worldTransfer.vehicle;
     D_800DE8C8[1] = 2;
     ((u8 *)D_800DE8C8)[0xB] = 0;
     resetAllDialogs();
@@ -246,7 +247,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldContext.userControlOff = 0;
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_400;
         g_fieldVars->fieldCF = 0;
-        g_fieldVars->fieldD1 &= 0xFC;
+        g_fieldVars->menuArgs &= ~(MENU_ALLOW_SAVE | MENU_ALLOW_PARTY_SWITCH);
         g_fieldVars->dialogStartMask = 0;
         g_fieldVars->dialogEntryMask = 0;
         g_fieldVars->dialogActiveMask = 0;
@@ -263,7 +264,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldBgAnimCount = D_800DE8D8;
         D_800852F0 = D_800DE4E4;
         D_80085380 = D_800DE4E8;
-        g_battleConfig.unk2 = g_fieldVars->fieldB6;
+        g_battleConfig.unk2 = g_fieldVars->battleFlags;
         g_fieldDoors = (Dline *)func_800BE7F4((Eline *)eline);
         g_fieldBgAnims = (Bganime *)func_800BEA84(g_fieldDoors);
         g_fieldActors = (Actor *)func_800BE924(g_fieldBgAnims);

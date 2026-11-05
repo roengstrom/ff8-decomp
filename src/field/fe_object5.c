@@ -320,7 +320,7 @@ s32 opHandler_WHOAMI(ScriptContext *context) {
  *
  * Bit 1 (only meaningful with bit 0 set) chooses between:
  *   - bit 1 set: park @c g_fieldContext into mode-5 (active-party swap
- *     animation) with a @c 0x16-frame counter and @c unk1AB copied
+ *     animation) with a @c 0x16-frame counter and @c menuArg copied
  *     from the bottom 3 bits of @c stateFlags.
  *   - bit 1 clear: defer to @c func_80036D44 with those same 3 bits.
  *
@@ -348,7 +348,7 @@ s32 opHandler_JUNCTION(ScriptContext *context) {
         if (popped & 2) {
             g_fieldContext.mode = FIELD_MODE_MENU;
             g_fieldContext.counter = 0x16;
-            g_fieldContext.unk1AB = g_fieldVars->stateFlags & 7;
+            g_fieldContext.menuArg = g_fieldVars->stateFlags & 7;
         } else {
             func_80036D44(g_fieldVars->stateFlags & 7);
         }
@@ -519,7 +519,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
     D_800DE4EC = func_801E8104(D_800C2D14[entryIdx * 2],
                                D_800C2D14[entryIdx * 2 + 1],
                                1,
-                               D_8005F13C);
+                               g_fieldSoundBuffer);
     g_fieldVars->padInitStatus = 0;
     context->stackPtr -= 2;
     return 2;
@@ -657,7 +657,7 @@ s32 opHandler_SPUREADY(ScriptContext *context) {
     func_801E8104(D_800C2E14[entryIdx * 4],
                   D_800C2E14[entryIdx * 4 + 1],
                   2,
-                  D_8005F13C);
+                  g_fieldSoundBuffer);
     func_801E870C();
     context->stackPtr -= 1;
     return 2;
@@ -795,7 +795,7 @@ s32 opHandler_SETBATTLEMUSIC(ScriptContext *context) {
  *            (@c soundHandle1 != -1),
  *          - otherwise toggles @ref FIELD_STATE_FLAG_400 based on
  *            @c fieldCF, marks @c fieldCF = 1, calls @c func_800A59D0,
- *            and kicks off @c func_80037FB0(0, nextSoundBank, D_8005F13C)
+ *            and kicks off @c func_80037FB0(0, nextSoundBank, g_fieldSoundBuffer)
  *            to start the actual CD read; sets @c D_800DE8D0 = 1.
  *
  *        Subsequent invocations (and the no-op fall-through path)
@@ -824,7 +824,7 @@ s32 opHandler_MUSICLOAD(ScriptContext *context) {
         }
         g_fieldVars->fieldCF = 1;
         func_800A59D0();
-        func_80037FB0(0, (s8)g_fieldVars->nextSoundBank, D_8005F13C);
+        func_80037FB0(0, (s8)g_fieldVars->nextSoundBank, g_fieldSoundBuffer);
         D_800DE8D0 = 1;
     }
     if (g_fieldVars->soundLoadComplete != 0) {
@@ -1128,7 +1128,7 @@ s32 opHandler_MUSICVOLSYNC(ScriptContext *context) {
 
 /**
  * @brief Wait for the SPU to finish its current command, then keep
- *        retrying @c sndUploadSamples(D_8005F13C, 1) until it returns
+ *        retrying @c sndUploadSamples(g_fieldSoundBuffer, 1) until it returns
  *        a non-error value, then mark @c D_800DE8D5 as ready.
  *
  * Helper for the music-load family — synchronously stages the next
@@ -1137,7 +1137,7 @@ s32 opHandler_MUSICVOLSYNC(ScriptContext *context) {
 void func_800B2188(void) {
     while (sndGetEngineState() != 0) {
     }
-    while (sndUploadSamples(D_8005F13C, 1) == -1) {
+    while (sndUploadSamples(g_fieldSoundBuffer, 1) == -1) {
     }
     D_800DE8D5 = 1;
 }
@@ -1146,7 +1146,7 @@ void func_800B2188(void) {
  * @brief Helper for @c EFFECTLOAD (op0BD, @c opHandler_EFFECTLOAD) — looks up
  *        the SFX entry indexed by @c g_fieldVars->audioChannel2State
  *        in the @c D_800C2E1C @c {LBA, size} table and issues a
- *        @c LoadDataFromDisc targeting the @c D_8005F13C SPU staging buffer,
+ *        @c LoadDataFromDisc targeting the @c g_fieldSoundBuffer SPU staging buffer,
  *        with @c func_800B2188 as the load-complete callback. Also
  *        clears the @c D_800DE8D5 ready-flag so the caller's poll
  *        loop waits for the callback to flip it back on.
@@ -1157,7 +1157,7 @@ void func_800B21E0(void) {
     func_800A59D0();
     LoadDataFromDisc(D_800C2E1C[entryIdx * 2],
            D_800C2E1C[entryIdx * 2 + 1],
-           D_8005F13C,
+           g_fieldSoundBuffer,
            func_800B2188);
 }
 

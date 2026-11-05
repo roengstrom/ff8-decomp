@@ -949,7 +949,7 @@ s32 func_800A30F8(s32 arg0, u8 arg1, u16 arg2, u8 arg3, u8 arg4, u16 arg5, u8 ar
                     sp2A = arg2 - 64;
                     if (!(g_gameState.gfs[sp2A].exists & 1)) {
                         setGfExists(sp2A);
-                        g_battleConfig.unk4[D_800ED148.unk1317++] = sp2A;
+                        g_battleConfig.obtainedGf[D_800ED148.unk1317++] = sp2A;
                         D_800ED148.unk1318 = 1;
                         sp2E = 15;
                         arg6 = D_800E3CC6;
