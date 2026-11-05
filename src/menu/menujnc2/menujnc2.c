@@ -3,6 +3,7 @@
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
 #include "menumain3.h"
 #include "gamestate.h"
 #include "battle.h"
