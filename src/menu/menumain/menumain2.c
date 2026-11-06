@@ -62,8 +62,15 @@ typedef struct MenuTask {
     u8 pad46[0x32];
 } MenuTask; /* 0x78 bytes */
 
+typedef void (*UNK_FUNC)(s32);
+
+typedef struct {
+    s32 unk0;
+    UNK_FUNC unk4;
+} ST_D_801F7E6C; /* 8 bytes */
+
 extern RECT D_801F7E64;
-extern u8 D_801F7E6C[];
+extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
 extern u8 D_801F7F78[];
 extern u8 D_801F7FB0[];        /**< String table base (two-level offset table). */
@@ -510,15 +517,51 @@ s32 func_801F0BB0(void) {
  * differs from what is currently playing, loads and plays it.
  */
 void func_801F0BF8(s32 a0) {
-    u8 *entry = D_801F7E6C + a0 * 8;
-    s32 val = *(s32 *)(entry + 4);
+    ST_D_801F7E6C *entry = &D_801F7E6C[a0];
+    s32 val = entry->unk4;
     if (val == 0xFF) return;
     if (val <= 0) return;
     if (getOverlayLoadStatus() == val) return;
     loadOverlay(val, 0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0C5C);
+void func_801F0C5C(s32 arg0, void *arg1) {
+    ST_D_801F7E6C *ptr = &D_801F7E6C[arg0];
+    s32 unkn4 = ptr->unk4;
+    UNK_FUNC unkn0 = ptr->unk0;
+    if (unkn4 == 0xFF) {
+        if (unkn0 != NULL) {
+            unkn0(arg1);
+        }
+        return;
+    }
+    D_801FAA11++;
+    D_801FAA18[D_801FAA11] = arg0;
+    if (unkn0 == NULL) {
+        D_801FAA11--;
+        return;
+    }
+    if (unkn4 > 0) {
+        s32 loadStatus = getOverlayLoadStatus();
+        if (loadStatus == unkn4) {
+            unkn0(arg1);
+            return;
+        }
+        if (loadStatus == -2) {
+            while (pollCdReadStatus());
+            if (getOverlayLoadStatus() == unkn4) {
+                unkn0(arg1);
+                return;
+            }
+            loadOverlay(ptr->unk4, unkn0, arg1);
+        } else {
+            loadOverlay(unkn4, unkn0, arg1);
+        }
+        return;
+    }
+    while (pollCdReadStatus());
+    unkn0(arg1);
+}
 
 /** @brief Peek at top of menu navigation stack without popping. */
 s32 func_801F0D84(void) {
