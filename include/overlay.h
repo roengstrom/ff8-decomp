@@ -40,10 +40,12 @@ extern u8  D_8008520C;
 
 /* --- overlay.c routines --- */
 
+extern s32 getOverlayLoadStatus(void);
 extern void resetOverlayQueue(void);
 extern void loadDefaultOverlay(void);
 extern s32  pollCdReadStatus(void);
 extern void saveAndClearFramebuffer(s32 a0);
+extern void loadOverlay(s32 overlay_id, s32 a1, s32 a2);
 extern void loadOverlayWithTimCallback(s32 a0, s32 a1);
 
 /** @brief Reset card-slot dispatch state for the Triple-Triad mini-game. */
