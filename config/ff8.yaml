@@ -347,8 +347,10 @@ binaries:
     subsegments:
     - [0x0, c, menumain]
     - [0xA74, c, menumain2]
+    - [0x2C58, c, menumain2b]
     - [0x7F6C, c, menumain3]
     - [0x84E4, .rodata, menumain2]
+    - [0x8598, .rodata, menumain2b]
     - [0x85F4, rodata]
     - [0x8618, .rodata, menumain3]
     - [0x8664, rodata]
