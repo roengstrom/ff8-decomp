@@ -90,6 +90,7 @@ extern u8 D_801FAB88[];
 extern u16 g_menumain_partyMemberMask;
 
 static void func_801F0274(s32, u32, s32, s32);
+static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut);
 static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
 static s32 func_801F16AC(s32, s32);
@@ -313,7 +314,28 @@ void func_801F04E8(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
     GP_RESTORE_RET(savedGp, tempGp);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F07D8);
+static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut) {
+    s32 x;
+    s32 y;
+
+    // Dead code added to match with the original game binary.
+    while (0);
+
+    y = packedCoords >> 16;
+    x = packedCoords << 16;
+    x >>= 16;
+
+    while (1) {
+        s32 iconId = *iconIds++;
+        if (iconId == 0) {
+            break;
+        }
+        if (iconId != 7) {
+            prim = drawIconClut(ot, prim, iconId, x, y, color, clut);
+        }
+        x += 8;
+    }   
+}
 
 /** @brief Render text string with default style (last param = 0). */
 void func_801F0884(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
