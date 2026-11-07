@@ -596,7 +596,7 @@ void func_80099180(void) {
  * Clears both draw environments (unless @c FieldContext::unk1A5 suppressed it),
  * then loops. Each iteration flips @ref g_bufferIndex, points @ref D_800C71E0
  * at that buffer's GPU work area, snapshots the previous display environment
- * into @ref D_8005F110, clears the ordering table and runs the field VM tick
+ * into @ref g_prevDispEnv, clears the ordering table and runs the field VM tick
  * (@c func_800BD9C4) on the scratchpad stack.
  *
  * It then checks the two ways the player can leave, the soft-reset pad combo
@@ -618,7 +618,7 @@ void func_80099180(void) {
  *       branch delay slots.
  * @note The four loop-head assignments are ordered buffer / previous-dispenv /
  *       draw-env / dispenv. That order matters: it keeps the lifetime of
- *       @c D_8005F138 's @c %hi short enough that gcc does not hoist it out of
+ *       @c g_activeDispEnv 's @c %hi short enough that gcc does not hoist it out of
  *       the loop, which would exhaust the loop-invariant budget before
  *       @c g_curFieldView (see the memory note on @c threshold @c -= @c 3).
  */
@@ -642,9 +642,9 @@ void func_80099348(void) {
         g_bufferIndex++;
         g_bufferIndex &= 1;
         D_800C71E0 = &D_800C7218[g_bufferIndex];
-        D_8005F110 = D_8005F138;
+        g_prevDispEnv = g_activeDispEnv;
         g_activeDrawEnv = &g_drawEnvs[g_bufferIndex];
-        D_8005F138 = (s32)&g_dispEnvs[g_bufferIndex];
+        g_activeDispEnv = &g_dispEnvs[g_bufferIndex];
         ClearOTagR(D_800C71E0->ot, 0x1000);
 
         SCRATCH_STACK_ENTER();
