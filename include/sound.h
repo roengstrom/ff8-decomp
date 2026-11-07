@@ -391,7 +391,7 @@ typedef struct {
     /* 0x14 */ u32 unk14;
     /* 0x18 */ s32 unk18;
     /* 0x1C */ s32 unk1C;
-    /* 0x20 */ s32 unk20;
+    /* 0x20 */ u32 unk20;
     /* 0x24 */ s32 tickCounter;    /**< Tick counter (incremented each frame). */
     /* 0x28 */ s32 tickCount;      /**< Running tick accumulator. */
     /* 0x2C */ s32 unk2C;          /**< Engine state set by sndStreamInitEngine. */
@@ -432,8 +432,8 @@ extern u8 D_8005F388[];
 /** @brief Sound-bank B: the staging table @c toggleSoundBank returns when the selector reads as non-zero. */
 extern u8 D_80063388[];
 
-/** @brief Threshold tested by @c SPUSYNC — top-of-stack values below this
- *         indicate a known SPU sample slot and can be popped immediately. */
+/** @brief The stream's frame number: the frame whose sound the sound engine loaded
+ *         last. The same address as @c g_sndStream.unk20. */
 extern u32 D_800772B8;
 
 
