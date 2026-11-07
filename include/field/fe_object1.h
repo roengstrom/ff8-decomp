@@ -98,8 +98,7 @@ extern s32 D_800C7214;
 /** @brief Camera/view block used instead of the field's own while @c func_800BE274 reports
  *         the overlay subsystem active; assigned to @c g_curFieldView . */
 extern FieldView *g_movieView;
-/** @brief Previous frame's display environment, snapshotted from @c D_8005F138 each frame. */
-extern s32 D_8005F110;
+extern DISPENV *g_prevDispEnv;
 
 /** @brief The frame buffer currently being built; one of the two in @ref D_800C7218 . */
 extern FieldFrameBuf *D_800C71E0;

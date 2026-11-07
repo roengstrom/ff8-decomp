@@ -304,7 +304,7 @@ void FieldMain(void) {
     InitClearTiles();
 
     g_fieldContext.dialogState = 0;
-    g_fieldContext.unk1A1 = 0;
+    g_fieldContext.skipFieldDraw = 0;
 
     while (1) {
         if (g_previousGameMode != GAME_MODE_MENU) {
@@ -314,7 +314,7 @@ void FieldMain(void) {
         if (g_previousGameMode == GAME_MODE_NONE || g_previousGameMode == GAME_MODE_FIELD || g_previousGameMode == GAME_MODE_WORLD) {
             g_fieldContext.unk1A6 = 0;
             g_fieldContext.unk1A9 = 0;
-            g_fieldContext.unk1A7 = 1;
+            g_fieldContext.movieMaskOff = 1;
             g_fieldContext.mapJumpOff = 0;
             g_fieldContext.unk1AA = 0;
             g_fieldContext.unk015 = 0;
@@ -596,7 +596,7 @@ void func_80099180(void) {
  * Clears both draw environments (unless @c FieldContext::unk1A5 suppressed it),
  * then loops. Each iteration flips @ref g_bufferIndex, points @ref D_800C71E0
  * at that buffer's GPU work area, snapshots the previous display environment
- * into @ref D_8005F110, clears the ordering table and runs the field VM tick
+ * into @ref g_prevDispEnv, clears the ordering table and runs the field VM tick
  * (@c func_800BD9C4) on the scratchpad stack.
  *
  * It then checks the two ways the player can leave, the soft-reset pad combo
@@ -618,7 +618,7 @@ void func_80099180(void) {
  *       branch delay slots.
  * @note The four loop-head assignments are ordered buffer / previous-dispenv /
  *       draw-env / dispenv. That order matters: it keeps the lifetime of
- *       @c D_8005F138 's @c %hi short enough that gcc does not hoist it out of
+ *       @c g_activeDispEnv 's @c %hi short enough that gcc does not hoist it out of
  *       the loop, which would exhaust the loop-invariant budget before
  *       @c g_curFieldView (see the memory note on @c threshold @c -= @c 3).
  */
@@ -642,9 +642,9 @@ void func_80099348(void) {
         g_bufferIndex++;
         g_bufferIndex &= 1;
         D_800C71E0 = &D_800C7218[g_bufferIndex];
-        D_8005F110 = D_8005F138;
+        g_prevDispEnv = g_activeDispEnv;
         g_activeDrawEnv = &g_drawEnvs[g_bufferIndex];
-        D_8005F138 = (s32)&g_dispEnvs[g_bufferIndex];
+        g_activeDispEnv = &g_dispEnvs[g_bufferIndex];
         ClearOTagR(D_800C71E0->ot, 0x1000);
 
         SCRATCH_STACK_ENTER();
@@ -726,7 +726,7 @@ void func_80099348(void) {
         }
 
         if (g_dispEnvs[(g_bufferIndex + 1) & 1].isrgb24 == 0
-            && g_fieldContext.unk1AD == 0) {
+            && g_fieldContext.hideActors == 0) {
             SCRATCH_STACK_ENTER();
             func_800A1CFC(g_fieldActors, D_800C71E0);
             SCRATCH_STACK_LEAVE();
@@ -740,7 +740,7 @@ void func_80099348(void) {
             func_800A06F0(0, D_800C71E0, D_800C6D98[g_bufferIndex],
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
-                   && g_fieldContext.unk1A7 == 0) {
+                   && g_fieldContext.movieMaskOff == 0) {
             func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
                           D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
@@ -786,7 +786,7 @@ void func_80099348(void) {
         addPrim(&D_800C71E0->ot[1], &D_800C71E0->unk4F00);
 
         if (func_800BE274()) {
-            renderAndUpdateDisplay(g_fieldContext.unk1AC);
+            renderAndUpdateDisplay(g_fieldContext.movieFrameVBlanks);
         } else {
             renderAndUpdateDisplay(2);
         }
@@ -833,14 +833,14 @@ void func_80099348(void) {
         func_800A5A20(&g_fieldActors[D_8005F148], g_curFieldInfo->gateways);
         func_800A5898(D_800C71E0);
         /* Called for its side effect only, func_800BE274 dispatches into the
-           overlay when D_800DE4FD bit 1 is set; the original discards the result. */
+           overlay when g_fieldMovieFlags has FIELD_MOVIE_OPEN set; the original discards the result. */
         func_800BE274();
         encodeCardFilename(0, 0x18, 0xBE);
         D_800D5EA0 = VSync(1);
         while (DrawSync(1) != 0) {
         }
         if (func_800BE274()) {
-            VSync(g_fieldContext.unk1AC);
+            VSync(g_fieldContext.movieFrameVBlanks);
         } else {
             VSync(2);
         }
@@ -867,7 +867,7 @@ void func_80099348(void) {
         }
         UpdateCdRead();
         func_800BE2DC();
-        if (g_fieldContext.unk1A1 == 0) {
+        if (g_fieldContext.skipFieldDraw == 0) {
             DrawOTag(&D_800C71E0->ot[0xFFF]);
         }
     }
@@ -1461,7 +1461,7 @@ void func_8009AEC0(void) {
                                       &g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3]) << 12;
                 }
             } else {
-                g_fieldActors[i].field_0x208 = 0x10;
+                g_fieldActors[i].animationSpeed = 0x10;
                 g_fieldActors[i].field_0x24F = 0;
                 g_fieldActors[D_8005F148].field_0x250 = 1;
                 g_fieldActors[D_8005F148].field_0x251 = 2;
@@ -1512,7 +1512,7 @@ void func_8009AEC0(void) {
  * requested animation differs from the one already playing.
  *
  * @p delta then advances the slot's phase counter @c unk52 by
- * @c delta @c * the entity's per-frame phase step (@ref Actor::field_0x208),
+ * @c delta @c * the entity's per-frame phase step (@ref Actor::animationSpeed),
  * wrapping against the cycle length @c unk0C: forward motion past the end
  * restarts at zero, reverse motion below zero jumps to the last phase. A
  * @p delta of zero leaves the phase alone (the entity is standing still).
@@ -1548,12 +1548,12 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     oldPhase = D_800D9630[idx]->unk52;
     if (delta != 0) {
         if (delta > 0) {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].field_0x208 * delta;
+            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].animationSpeed * delta;
             if (D_800D9630[idx]->unk52 >= D_800D9630[idx]->unk0C) {
                 D_800D9630[idx]->unk52 = 0;
             }
         } else {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].field_0x208 * delta;
+            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].animationSpeed * delta;
             if (D_800D9630[idx]->unk0C < D_800D9630[idx]->unk52) {
                 D_800D9630[idx]->unk52 = D_800D9630[idx]->unk0C - 1;
             }
@@ -1563,7 +1563,7 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     if (mode == 1) {
         newRel = newPhase - 0x80;
         oldRel = oldPhase - 0x80;
-        half = (D_800D9630[idx]->unk0C - (s16)g_fieldActors[idx].field_0x208) >> 1;
+        half = (D_800D9630[idx]->unk0C - (s16)g_fieldActors[idx].animationSpeed) >> 1;
         newOff = newRel - half;
         oldOff = oldRel - half;
         if ((newRel < 0 & oldRel >= 0) || (oldRel < 0 & newRel >= 0)) {
@@ -2093,7 +2093,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             ents[i].triIdx = ents[i].field_0x1FC;
         } else {
             ents[i].field_0x1DA++;
-            D_800D9630[i]->unk52 += ents[i].field_0x208;
+            D_800D9630[i]->unk52 += ents[i].animationSpeed;
             if (D_800D9630[i]->unk0C - 1 < D_800D9630[i]->unk52) {
                 D_800D9630[i]->unk52 = 0;
             }
@@ -3176,7 +3176,7 @@ void func_8009F8D0(s16 idx) {
  *
  * The passive path just ages @c field_0x1DA toward @c field_0x1D8 (reporting
  * state 2 once there) while advancing the entity's render-slot motion counter
- * @c unk52 by @c field_0x208, wrapping it at @c unk0C.
+ * @c unk52 by @c animationSpeed, wrapping it at @c unk0C.
  *
  * @param idx   Entity index.
  * @param flags Input bits; @c 0x3000 and @c 0xC000 select the two directions.
@@ -3260,7 +3260,7 @@ void func_8009F990(s16 idx, s32 flags) {
             g_fieldActors[idx].msgState = 2;
         } else {
             g_fieldActors[idx].field_0x1DA++;
-            D_800D9630[idx]->unk52 += g_fieldActors[idx].field_0x208;
+            D_800D9630[idx]->unk52 += g_fieldActors[idx].animationSpeed;
             if (D_800D9630[idx]->unk0C - 1 < D_800D9630[idx]->unk52) {
                 D_800D9630[idx]->unk52 = 0;
             }

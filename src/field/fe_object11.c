@@ -234,7 +234,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     ((u8 *)D_800DE8C8)[0xB] = 0;
     resetAllDialogs();
     setHudBrightness(0x1000);
-    D_800DE4FD[0] = 0;
+    g_fieldMovieFlags = 0;
     D_800DE7B0.count = 0;
     func_800BE30C(entity);
 

@@ -195,7 +195,7 @@ s32 lookupScrollBounds(s8 cmd, s32 *outBase, s32 *outLimit, s32 *outSpan, s32 *o
  *
  * Steps:
  *  1. @c VSync(0) — wait for vblank.
- *  2. If @c (DISPENV*)D_8005F138->disp.x is non-zero, @c MoveImage
+ *  2. If @c (DISPENV*)g_activeDispEnv->disp.x is non-zero, @c MoveImage
  *     scrolls the live display rect back to @c (0,0) and a @c DrawSync
  *     stalls until the move completes.
  *  3. @c func_800A5F78(0) / @c func_800A5FD4(0) push the screen-0
@@ -215,7 +215,7 @@ void func_8009D0F0(void) {
     DISPENV *env;
 
     VSync(0);
-    env = (DISPENV *)D_8005F138;
+    env = g_activeDispEnv;
     if (env->disp.x != 0) {
         MoveImage(&env->disp, 0, 0);
         DrawSync(0);
@@ -359,7 +359,7 @@ void func_8009D44C(s32 marker) {
  *
  * After the per-frame display reset (@c func_8009D630 / @c DrawSync /
  * @c ResetGraph) and enabling reverb, it copies the scene's disp-env
- * template into @c D_80082C18 and publishes its address via @c D_8005F138 —
+ * template into @c D_80082C18 and publishes its address via @c g_activeDispEnv —
  * taking the sentinel's secondary disp (@c CtxDispView at @c +0x40CC) when the
  * active context @c D_800D244C is the no-battle sentinel @c D_800CA040, else
  * the context's own @c disp at @c +0x5C. Finally it installs the world render
@@ -372,10 +372,10 @@ void setupWorldRender(void) {
     sndEnableReverb(0);
     if (D_800D244C == &D_800CA040) {
         D_80082C18 = ((CtxDispView *)&D_800CA040)->disp;
-        D_8005F138 = (s32)&D_80082C18;
+        g_activeDispEnv = &D_80082C18;
     } else {
         D_80082C18 = D_800CA040.disp;
-        D_8005F138 = (s32)&D_80082C18;
+        g_activeDispEnv = &D_80082C18;
     }
     func_800C3DB0(func_800A47A4);
     sndDisableReverb(0);

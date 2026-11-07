@@ -127,7 +127,7 @@ binaries:
   sha1: ff84df55a00419a4a7a2b87ddeaf7cda5213b949
   options:
     target_path: original/bin/field/field.ovl
-    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt]
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt, config/symbols.field.private.txt]
     elf_path: build/field/field.elf
     asm_path: asm/field
     build_path: build/field
@@ -720,7 +720,7 @@ binaries:
   sha1: 80ad32679374e6fd7d7360fd50ff8aba066bf0c7
   options:
     target_path: original/bin/movie/movie.ovl
-    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt]
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt, config/symbols.movie.txt]
   segments:
   - name: movie
     type: code
