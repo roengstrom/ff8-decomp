@@ -368,10 +368,10 @@ void func_801F04E8(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
         MoveImage(&D_801F7E64, 0, 0);
     }
     D_80085150 = D_801FA280[0].dispEnv;
-    D_8005F138 = &D_80085150;
+    g_activeDispEnv = &D_80085150;
     DrawSync(0);
     VSync(0);
-    PutDispEnv(D_8005F138);
+    PutDispEnv(g_activeDispEnv);
     func_801F0038();
     VSync(0);
     func_801F0464(224);
