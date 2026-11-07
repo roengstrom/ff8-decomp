@@ -1,0 +1,11 @@
+// Read by the field's config only. These are movie.ovl entry points the field calls;
+// movie.ovl names them in symbols.movie.txt.
+MovieInit = 0x801E8000; // type:func
+MovieOpen = 0x801E8104; // type:func
+MovieIsBuffered = 0x801E82CC; // type:func
+MoviePlay = 0x801E870C; // type:func
+MovieStop = 0x801E8804; // type:func
+MovieUpdate = 0x801E888C; // type:func
+MovieGetFrame = 0x801E8B58; // type:func
+MovieIsPlaying = 0x801E8B84; // type:func
+MovieIsAudioStreaming = 0x801E8B98; // type:func

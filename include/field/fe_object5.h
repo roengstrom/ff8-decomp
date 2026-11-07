@@ -29,7 +29,7 @@ extern s32  opHandler_PCOPYINFO(Actor *actor);
 extern s32  opHandler_ACTORMODE(Actor *actor);                /* op12D ACTORMODE */
 extern s32  opHandler_MOVIEREADY(ScriptContext *context);                /* op0A3 MOVIEREADY */
 extern s32  opHandler_MOVIE(ScriptContext *context);                /* op04F MOVIE */
-extern void func_800B14C8(void);                    /* MOVIE postlude halve */
+extern void ExitMovieMode(void);
 extern s32  opHandler_MOVIESYNC(ScriptContext *context);                  /* op050 MOVIESYNC */
 extern s32  opHandler_SPUREADY(ScriptContext *context);                /* op056 SPUREADY */
 extern s32  opHandler_SPUSYNC(ScriptContext *context);            /* 0x800B16B0 op164 */
