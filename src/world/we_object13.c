@@ -249,7 +249,7 @@ void func_800C4644(void) {
  * adjusts @c seedExp by @c (totalKills - prevKillSum) - 10 (clamped to
  * @c [100, 3100]), then pays salary into @c gil from the per-rank
  * salary table at @c g_seedSalaryTable[level] (capped at 99,999,999
- * gil). When neither @ref FIELD_STATE_FIELD_READY nor @ref FIELD_STATE_FLAG_1000 is
+ * gil). When neither @ref FIELD_STATE_FIELD_READY nor @ref FIELD_STATE_MOVIE_PLAYING is
  * set, fires the level-up notification (@c showSeedRankNotification + 3 rank-up
  * SFX). Stores @c totalKills as the new @c prevKillSum.
  */
@@ -281,7 +281,7 @@ void func_800C4688(void) {
         g_gameState.mainData.party.gil = 0x5F5E0FF;
 
     if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
-        if (!(g_fieldVars->stateFlags & FIELD_STATE_FLAG_1000)) {
+        if (!(g_fieldVars->stateFlags & FIELD_STATE_MOVIE_PLAYING)) {
             s32 oldLevel = (s16)g_fieldVars->prevSeedExp / 100;
             s32 newLevel = (s16)g_fieldVars->seedExp / 100;
 

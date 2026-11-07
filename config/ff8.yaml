@@ -127,7 +127,7 @@ binaries:
   sha1: ff84df55a00419a4a7a2b87ddeaf7cda5213b949
   options:
     target_path: original/bin/field/field.ovl
-    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt]
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt, config/symbols.field.private.txt]
     elf_path: build/field/field.elf
     asm_path: asm/field
     build_path: build/field
