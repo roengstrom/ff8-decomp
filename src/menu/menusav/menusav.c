@@ -164,7 +164,7 @@ typedef struct {
     /** 0x4C */ u32 saveSequence;
     /** 0x50 */ u8 pad50[2];
     /** 0x52 */ u8 unk52[4];
-} func_801E3098_slot;
+} SaveBlockHeader;
 
 typedef struct {
     /** 0x000 */ u16 unk0;
@@ -1002,7 +1002,7 @@ dispatch:
             closeFileDescriptorWrapper(ctx->fileHandle);
             if (D_801EC2A0[ctx->scanBlock] == BLOCK_CHOCOBO_WORLD && ctx->unk59 != 0) {
                 ctx->unk59 = 0;
-                if (compareBytes(((func_801E3098_slot *)func_801E2800(ctx->scanBlock))->unk52, D_801EB9E4, 4) == 0) {
+                if (compareBytes(((SaveBlockHeader *)func_801E2800(ctx->scanBlock))->unk52, D_801EB9E4, 4) == 0) {
                     for (slotIndex = 0; slotIndex < 15; slotIndex++) {
                         if (D_801EC2A0[slotIndex] == BLOCK_CHOCOBO_WORLD) {
                             D_801EC2A0[slotIndex] = BLOCK_CHOCOBO_WORLD_FAILED;
@@ -1010,7 +1010,7 @@ dispatch:
                     }
                 }
             } else {
-                func_801E3098_slot *header = (func_801E3098_slot *)func_801E2800(ctx->scanBlock);
+                SaveBlockHeader *header = (SaveBlockHeader *)func_801E2800(ctx->scanBlock);
 
                 if (highestSaveSequence < header->saveSequence) {
                     highestSaveSequence = header->saveSequence;
