@@ -13,6 +13,7 @@
 #include "menumain3.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/kernel.h"
+#include "memcard.h"
 
 extern u8 D_801EC294;
 extern u8 D_801EC301;
@@ -211,10 +212,6 @@ void markCardBusy(s32);
 s32 createCardFile(s32, char *, s32);
 s32 writeCardSector(s32, char *, s32, s32, s32);
 void btlMemcpyForward(s32, void *, s32);
-// Returns s32 here, not u16 as in memcard.h: the first checksum compare reads the raw return register.
-s32 func_800377B4(s32, s32);
-// Takes the card number as an integer here, where memcard.h declares a pointer.
-s32 func_800379AC(s32);
 static void func_801EAE74(void);
 static void func_801EAE4C(void);
 void func_801F1D34(s32);
@@ -1627,7 +1624,7 @@ dispatch:
         break;
     case SAVE_MENU_LOAD_VERIFY:
         save = (SaveData *)0x801D1000;
-        checksum = func_800377B4(0x1350, 0x801D1050);
+        checksum = func_800377B4(0x1350, (u8 *)0x801D1050);
         // The first compare uses the raw return value, the second the narrowed one.
         if (checksum == save->checksum && (u16)checksum == save->checksumCopy) {
             sum0 = save->playTimeSeconds;
