@@ -339,7 +339,7 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object1", func_8009A954);
  * not the @c D_800CA040 sentinel, else at @c +0x40CC — and, if its width field is non-zero,
  * loads its image (@c MoveImage) after a @c VSync prep. It then copies the
  * sentinel's DRAWENV and DISPENV templates into the active @c D_80082C30 / @c D_80082C18 and
- * publishes them via @c g_activeDrawEnv / @c D_8005F138. Finally, when the scene mode
+ * publishes them via @c g_activeDrawEnv / @c g_activeDispEnv. Finally, when the scene mode
  * @c g_worldTransfer is 5, it re-initialises both screen buffers (16 passes of
  * @c func_800A5D10 bracketed by @c func_800A5FD4) and flushes via @c SetDispMask.
  */
@@ -361,7 +361,7 @@ void func_8009AD3C(void) {
     D_80082C30 = D_800CA040.drawEnv;
     D_80082C18 = ((CtxDispView *)&D_800CA040)->disp;
     g_activeDrawEnv = &D_80082C30;
-    D_8005F138 = (s32)&D_80082C18;
+    g_activeDispEnv = &D_80082C18;
     if (g_worldTransfer.mode == WORLD_EXIT_TO_MENU) {
         func_800A5F78(0);
         func_800A5FD4(0);
