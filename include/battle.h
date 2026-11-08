@@ -733,15 +733,6 @@ typedef struct {
     /* 0x20 */ u8  pad20[0x38];      /**< Working pointer + remaining unmapped fields. */
 } BattleEffectPrim; /* 0x58 */
 
-typedef struct {
-    u16 unk0;
-    u16 unk2;
-    s32 unk4;
-    u16* unk8;
-    s16 unkC;
-    s16 unkE;
-} func_800B2A38_Struct;
-
 /* ---------------------------------------------------------------- *
  *  Battle data symbols (battle overlay region).
  * ---------------------------------------------------------------- */
