@@ -843,7 +843,7 @@ typedef struct {
     u8 unk3;
     u8 pad4[0x2C - 4];
     u16 unk2C;
-} effectStruct;
+} EffectStruct;
 
 /**
  * @brief One battle entity slot; @ref D_800EF2D0 holds seven of them.
@@ -879,7 +879,7 @@ typedef struct BattleEffectSlot {
     /* 0x64 */ struct EffectMesh *mesh;
     /* 0x68 */ u8 pad068[0x6C - 0x68];
     /* 0x6C */ u8 unk06C[0x74 - 0x6C];
-    /* 0x74 */ effectStruct *unk074;         /**< The battle entity behind the slot;
+    /* 0x74 */ EffectStruct* unk074;         /**< The battle entity behind the slot;
                                         its @c 0x2C halfword carries the flags. */
     /* 0x78 */ struct EffectAttachment *unk078;
     /* 0x7C */ u32 unk07C;         /**< Bit @c n set: mesh part @c n is drawn. */
