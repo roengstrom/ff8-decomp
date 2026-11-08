@@ -789,19 +789,19 @@ void func_800B6854(Actor *actor) {
 }
 
 /**
- * @brief Table index 0x04F handler — set message channel.
+ * @brief op03D MSPEED: set the actor's walking speed.
  *
- * Pops a channel value from the bytecode stack and stores it to both
- * moveSpeed and msgChannel fields of the actor.
+ * Pops a speed from the bytecode stack and stores it in both
+ * moveSpeed and baseMoveSpeed.
  *
  * @param actor Pointer to the actor (script context).
  * @return 2 (continue processing).
  */
 s32 opHandler_MSPEED(Actor *actor) {
-    u16 channel = POP(&actor->context);
+    u16 speed = POP(&actor->context);
 
-    actor->moveSpeed = channel;
-    actor->msgChannel = channel;
+    actor->moveSpeed = speed;
+    actor->baseMoveSpeed = speed;
     return 2;
 }
 
@@ -829,7 +829,7 @@ s32 opHandler_MOVE(Actor *actor) {
     u16 saved;
 
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
-        saved = actor->msgChannel;
+        saved = actor->baseMoveSpeed;
         actor->msgActive = 1;
         actor->msgState = 0;
 
@@ -867,7 +867,7 @@ s32 opHandler_MOVEA(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         func_800B6738(actor);
     }
 
@@ -900,7 +900,7 @@ s32 opHandler_PMOVEA(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         func_800B6738(actor);
     }
 
@@ -932,7 +932,7 @@ s32 opHandler_CMOVE(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->msgPosY = POP(&actor->context) << 12;
         actor->msgPosX = POP(&actor->context) << 12;
         actor->msgTextPtr = POP(&actor->context) << 12;
@@ -965,7 +965,7 @@ s32 opHandler_FMOVE(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->msgPosY = POP(&actor->context) << 12;
         actor->msgPosX = POP(&actor->context) << 12;
         actor->msgTextPtr = POP(&actor->context) << 12;
@@ -995,7 +995,7 @@ s32 opHandler_FMOVEA(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->field_0x1DA = 0;
     }
 
@@ -1028,7 +1028,7 @@ s32 opHandler_FMOVEP(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->field_0x1DA = 0;
     }
 
@@ -1059,7 +1059,7 @@ s32 opHandler_RMOVE(Actor *actor) {
     s32 new_var;
     u16 saved;
 
-    saved = actor->msgChannel;
+    saved = actor->baseMoveSpeed;
     actor->msgActive = 1;
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
@@ -1090,7 +1090,7 @@ s32 opHandler_RMOVEA(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     func_800B6738(actor);
 
     actor->msgTextPtr = D_80085230[PEEK(&actor->context)]->posX;
@@ -1116,7 +1116,7 @@ s32 opHandler_RPMOVEA(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     func_800B6738(actor);
 
     idx = g_fieldVars->memberSlot[POP(&actor->context)];
@@ -1142,7 +1142,7 @@ s32 opHandler_RCMOVE(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     actor->msgPosY = POP(&actor->context) << 12;
     actor->msgPosX = POP(&actor->context) << 12;
     actor->msgTextPtr = POP(&actor->context) << 12;
@@ -1166,7 +1166,7 @@ s32 opHandler_RFMOVE(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     actor->msgPosY = POP(&actor->context) << 12;
     actor->msgPosX = POP(&actor->context) << 12;
     actor->msgTextPtr = POP(&actor->context) << 12;
@@ -1296,7 +1296,7 @@ s32 opHandler_MACCEL(Actor *actor) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->msgActive = 1;
         actor->msgState = 0;
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->field_0x204 = POP(&actor->context);
         actor->windowId = POP(&actor->context);
         actor->msgPosY = POP(&actor->context) << 12;

@@ -87,7 +87,7 @@ void func_800B91D8(Actor *actor, s32 a1, s32 a2, s32 a3) {
 /**
  * @brief Per-frame motion tick for the entity.
  *
- * Advances @c field_0x206 (current position) by @c field_0x208 (step)
+ * Advances @c field_0x206 (current position) by @c animationSpeed (step)
  * each frame. When @c flags & 0x80 is set and the entity is in
  * @c msgActive == 1, fires @c func_800B2864 hooks if the half-range
  * boundary or zero-crossing on @c (val - 0x80) flips during the step.
@@ -117,13 +117,13 @@ void func_800B9288(Actor *actor) {
         u16 oldUnsigned = actor->field_0x206;
         oldSigned = (s16)actor->field_0x206;
         newPos = oldUnsigned;
-        newPos = newPos + (u16)actor->field_0x208;
+        newPos = newPos + (u16)actor->animationSpeed;
         actor->field_0x206 = newPos;
         if ((actor->context.flags & 0x80) && actor->msgActive == 1) {
             newMid = (s16)newPos - 0x80;
             oldMid = 0x80;
             oldMid = oldSigned - oldMid;
-            halfRange = ((s16)actor->field_0x20C - (s16)actor->field_0x208) >> 1;
+            halfRange = ((s16)actor->field_0x20C - (s16)actor->animationSpeed) >> 1;
             s2_v = newMid - halfRange;
             s1_v = oldMid - halfRange;
             if ((((u32)newMid >> 31) & ((u32)~oldMid >> 31))
@@ -142,7 +142,7 @@ void func_800B9288(Actor *actor) {
             actor->field_0x206 = actor->field_0x20A;
         } else if (flags & 0x8000) {
             actor->context.flags = (flags & ~0xF800) | 0x1000;
-            actor->field_0x20C -= actor->field_0x208;
+            actor->field_0x20C -= actor->animationSpeed;
             actor->field_0x206 = actor->field_0x20C;
         } else if (flags & 0x4000) {
             func_800B912C(actor, actor->field_0x24F);
@@ -166,7 +166,7 @@ s32 opHandler_PUSHANIME(Actor *actor) {
     actor->field_0x20E = actor->context.flags;
     actor->field_0x24D = actor->field_0x24E;
     actor->field_0x210 = actor->field_0x206;
-    actor->field_0x212 = actor->field_0x208;
+    actor->field_0x212 = actor->animationSpeed;
     actor->field_0x214 = actor->field_0x20A;
     actor->field_0x216 = actor->field_0x20C;
     return 2;
@@ -185,7 +185,7 @@ s32 opHandler_PUSHANIME(Actor *actor) {
 s32 opHandler_POPANIME(Actor *actor) {
     actor->field_0x24E = actor->field_0x24D;
     actor->field_0x206 = actor->field_0x210;
-    actor->field_0x208 = actor->field_0x212;
+    actor->animationSpeed = actor->field_0x212;
     actor->field_0x20A = actor->field_0x214;
     actor->field_0x20C = actor->field_0x216;
     func_800AA46C(actor->field_0x256, 0xD, actor->field_0x24E, 0);
@@ -197,10 +197,10 @@ s32 opHandler_POPANIME(Actor *actor) {
 }
 
 /**
- * @brief Pop the top stack slot as a halfword into @c field_0x208.
+ * @brief Pop the top stack slot as a halfword into @c animationSpeed.
  */
 s32 opHandler_ANIMESPEED(Actor *actor) {
-    actor->field_0x208 = POP(&actor->context);
+    actor->animationSpeed = POP(&actor->context);
     return 2;
 }
 
@@ -545,7 +545,7 @@ s32 opHandler_DIR(Actor *actor) {
  * Returns 1 (wait for message) without popping.
  *
  * If the bit is clear, the message is skipped: @c msgState=2,
- * @c msgActive=0, the current @c msgChannel is preserved into
+ * @c msgActive=0, the current @c baseMoveSpeed is preserved into
  * @c moveSpeed, and three stack entries are discarded.
  * Returns 2 (advance PC).
  *
@@ -565,7 +565,7 @@ s32 opHandler_DIRP(Actor *actor) {
     actor->msgState     = 2;
     actor->msgActive    = 0;
     actor->context.stackPtr    -= 3;
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     return 2;
 }
 

@@ -1199,7 +1199,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
 /**
  * @brief Broadcast "trigger active party" event.
  *
- * If @c D_800DE4FD is clear, also clears @c g_fieldContext.userControlOff. Then if the
+ * If @c g_fieldMovieFlags is clear, also clears @c g_fieldContext.userControlOff. Then if the
  * trigger flag @c D_80085390 is non-zero, clears it and walks the 3
  * active party members. For each member whose @c memberSlot is set and
  * whose field-entity is NOT locked (flags bit 0x40 clear), records the
@@ -1208,7 +1208,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
  * entity flags bit 0x4. Returns 2.
  */
 s32 opHandler_UCON(void) {
-    if (D_800DE4FD[0] == 0) {
+    if (g_fieldMovieFlags == 0) {
         g_fieldContext.userControlOff = 0;
     }
 

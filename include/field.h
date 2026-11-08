@@ -175,24 +175,19 @@ typedef struct {
     /* 0x180 */ u8 unkActive180[16]; /**< 16-byte active-marker region, cleared on @c func_800BF718 mode 1 init. */
     /* 0x190 */ u8 slotActive[16];
     /* 0x1A0 */ u8 introScreenType;
-    /* 0x1A1 */ u8 unk1A1;          /**< Cleared unconditionally by @c func_800A5700 each dialog tick. */
+    /* 0x1A1 */ u8 skipFieldDraw; // stops rendering the field, when set screen is frozen but game is running
     /* 0x1A2 */ u8 mapJumpOff;
     /* 0x1A3 */ u8 userControlOff;
     /* 0x1A4 */ u8 unk1A4;
     /* 0x1A5 */ u8 unk1A5;          /**< Non-zero suppresses the load-mode-1 framebuffer copy. */
     /* 0x1A6 */ u8 unk1A6;          /**< Cleared by @c func_800BFBBC on full reset. */
-    /* 0x1A7 */ u8 unk1A7;
+    /* 0x1A7 */ u8 movieMaskOff; // 0 draws the movie mask, which keeps the characters behind objects in movies
     /* 0x1A8 */ u8 unk1A8;
     /* 0x1A9 */ u8 unk1A9;
     /* 0x1AA */ u8 unk1AA;
     /* 0x1AB */ u8 menuArg;
-    /* 0x1AC */ u8 unk1AC;          /**< Passed as the mode argument to @c renderAndUpdateDisplay
-                                         and @c VSync on the branch @c func_800BE274 gates.
-                                         @note Nothing in the decompiled tree writes it yet, so the
-                                         purpose is inferred from those two argument positions only. */
-    /* 0x1AD */ u8 unk1AD;          /**< Non-zero makes @c func_80099348 skip the entity-aim, blob-shadow
-                                         and shimmer-ribbon passes.
-                                         @note Read only there; no writer decompiled yet. */
+    /* 0x1AC */ u8 movieFrameVBlanks; // vertical blanks each frame lasts while a movie plays
+    /* 0x1AD */ u8 hideActors; // non-zero hides the field's characters and their shadows
     /* 0x1AE */ u8 unk1AE;          /**< Script-writable byte (set by opcode handler @c opHandler_COUNTERCLOCKWISETURN2, read by @c func_8009BEC8 as the distance-per-step divisor). */
     /* 0x1AF */ u8 packedFlagSlot;  /**< Last @c getPackedField2Bit result for the active dispatcher slot; written each tick by @c func_800BD9C4. */
     /* 0x1B0 */ u8 unk1B0;          /**< 1 selects the actor-pool install path on engine state 1. */
@@ -244,7 +239,7 @@ typedef struct {
     /* 0x44 */ s32 killSum;             /**< Sum of @c chars[i].kills across all 8 characters. */
     /* 0x48 */ s32 gilMirror;           /**< Mirror of @c g_gameState.mainData.party.gil, kept in sync by fe_object6. */
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
-    /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
+    /* 0x50 */ s32 currentMovieFrame;
     /* 0x54 */ u16 field54;
     /* 0x56 */ u8 field56;              /**< Copy of @c g_worldTransfer.vehicle. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
@@ -310,7 +305,7 @@ typedef struct {
 #define FIELD_STATE_FLAG_200       0x200 /**< Bit 9: toggled by the fe_object6 music/state helper. @note Purpose unknown. */
 #define FIELD_STATE_FLAG_400       0x400 /**< Bit 10: staged from @c fieldCF by the music-state machine, then cleared. @note Purpose unknown. */
 #define FIELD_STATE_PARTY_OVERRIDE 0x800 /**< Bit 11: while set, @c fieldF3 mirrors into @c g_battleConfig.sealedAbilities / @c GameConfig.sealedAbilities and SETPARTY2 replays at field init. */
-#define FIELD_STATE_FLAG_1000      0x1000 /**< Bit 12: set/cleared around the fe_object5 sound-bank swap. @note Purpose unknown. */
+#define FIELD_STATE_MOVIE_PLAYING 0x1000
 
 /** @brief Field-engine variable block (canonical extern also in gamestate.h). */
 extern FieldVars *g_fieldVars;
@@ -413,14 +408,14 @@ typedef struct {
     /* 0x1FE */ s16 moveSpeed;      /**< Per-tick movement speed, 8.8 fixed point (@c 256 @c = 1.0):
                                          @c func_8009D598 scales the sin/cos step vector by it before
                                          adding it to the position. Doubled on movie entry and halved
-                                         on exit (@c opHandler_MOVIE / @c func_800B14C8) along with
-                                         @c msgChannel and @c field_0x208, and saved/restored with the
+                                         on exit (@c opHandler_MOVIE / @c ExitMovieMode) along with
+                                         @c baseMoveSpeed and @c animationSpeed, and saved/restored with the
                                          position, @c triIdx and @c facingDirection by fe_object5. */
-    /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
+    /* 0x200 */ u16 baseMoveSpeed;
     /* 0x202 */ u16 field_0x202;    /**< Saved channel for async restore. */
     /* 0x204 */ s16 field_0x204;
     /* 0x206 */ u16 field_0x206;
-    /* 0x208 */ u16 field_0x208;
+    /* 0x208 */ u16 animationSpeed;
     /* 0x20A */ u16 field_0x20A;
     /* 0x20C */ u16 field_0x20C;
     /* 0x20E */ u16 field_0x20E;
@@ -872,7 +867,9 @@ extern s32 D_80070600;
 
 /** @brief Active field-script entity index (mirrors @c actor->field_0x256). */
 extern u8 D_800DE4FC;
-extern u8 D_800DE4FD[];
+#define FIELD_MOVIE_LOADING 0x1
+#define FIELD_MOVIE_OPEN 0x2
+extern u8 g_fieldMovieFlags;
 extern u8 D_80085390;
 extern u8 D_800704BB;
 extern u8 D_800704BC;
@@ -896,9 +893,7 @@ extern u8 D_800DE8D0;
  *         load-complete callback and polled by @c EFFECTLOAD. */
 extern u8 D_800DE8D5;
 
-/** @brief Misc 4-byte field-engine slot; stash for @c func_801E8104's return
- *         value in @c MOVIEREADY / @c SPUREADY. */
-extern s32 D_800DE4EC;
+extern u8 *g_movieStripBuffer;
 
 /** @brief Id that startVibration returned for the field script's last SETVIBRATE. */
 extern s32 D_800DE878;
@@ -1054,11 +1049,8 @@ extern u8 D_800DE8D2;
  */
 extern u8 D_800C5FB0[];
 
-/** @brief CD-entry @c {LBA,size} pairs for movie load opcodes (op04F MOVIE). */
-extern u32 D_800C2D14[];
-/** @brief CD-entry @c {LBA,size,_,_} quadruples for the alt movie loader. */
-extern u32 D_800C2E14[];
-/** @brief CD-entry @c {LBA,size} pairs for the SPU-stream loader (op056). */
-extern u32 D_800C2E1C[];
+extern u32 g_movieTable[];
+extern u32 g_audioStreamTable[];
+extern u32 g_instrumentBankTable[];
 
 #endif /* FIELD_H */
