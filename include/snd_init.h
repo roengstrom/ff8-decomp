@@ -45,7 +45,6 @@ extern s32 D_80075078;
 extern s32  g_sndCmdArgs[6];    /* sound-command argument buffer (filled per command, read by the dispatcher) */
 extern s32  D_80077288[];
 extern s32  D_8007728C;
-extern s32  D_800772CC;
 extern s32  D_8007735C;
 extern s32  D_80077360;          /* active streaming handle (0 = idle) */
 
@@ -166,7 +165,7 @@ extern void sndCmdE6(s32 value);
 extern s32 sndUploadSampleBank(u8 *bank, s32 slot);
 extern void sndCmdED(s32 volume, s32 arg1);
 extern void sndCmdEC(s32 bank, s32 instrument, s32 slot, s32 arg3);
-extern s32 sndInitIrq(s32 arg0, s32 value);
+extern s32 sndInitIrq(u8 *arg0, s32 value);
 extern s32 sndTickCounters(void);
 
 #endif /* SND_INIT_H */

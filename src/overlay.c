@@ -336,7 +336,7 @@ void saveAndClearFramebuffer(s32 a0) {
  *
  * With @c MENU_FROM_WORLD_MAP set in @p a0 it also copies the 128x224 block at x 384 to x 768. When
  * D_8008520C is set, D_80085150 becomes a 320x224 display environment, moved
- * down 24 lines in PAL, and D_8005F138 points at it.
+ * down 24 lines in PAL, and g_activeDispEnv points at it.
  *
  * @param a0 The menu id; @c MENU_FROM_WORLD_MAP copies the block.
  */
@@ -367,7 +367,7 @@ void func_8003631C(s32 a0) {
         if (GetVideoMode() == MODE_PAL) {
             D_80085150.screen.y += 0x18;
         }
-        D_8005F138 = (s32)&D_80085150;
+        g_activeDispEnv = &D_80085150;
     }
 }
 

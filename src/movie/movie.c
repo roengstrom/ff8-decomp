@@ -1,40 +1,683 @@
 #include "common.h"
 #include "movie.h"
+#include "cdrom.h"
+#include "field.h"
+#include "field/fe_object1.h"
+#include "field/fe_object5.h"
+#include "gamestate.h"
+#include "lzs.h"
+#include "main.h"
+#include "psxsdk/libcd.h"
+#include "psxsdk/libgpu.h"
+#include "psxsdk/libpress.h"
+#include "snd_init.h"
+#include "sound.h"
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8000);
+#define MOVIE_FRAME_24BIT 0x01
+#define MOVIE_FRAME_FADE_IN 0x02
+#define MOVIE_FRAME_FADE_OUT 0x04
+#define MOVIE_FRAME_MASK_ON 0x08
+#define MOVIE_FRAME_MASK_OFF 0x10
+#define MOVIE_FRAME_HIDE_FIELD 0x20
+#define MOVIE_FRAME_HIDE_ACTORS 0x40
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8080);
+#define SECTOR_SIZE 0x800
+// One frame of a movie takes ten sectors on the disc.
+#define MOVIE_FRAME_SIZE (10 * SECTOR_SIZE)
+// The data a movie sector carries after its headers, in words.
+#define MOVIE_SECTOR_DATA_WORDS 0x1FE
+#define MOVIE_FRAME_SLOT_VIDEO_SIZE 0x4000
+#define MOVIE_DECODE_BUFFER_SIZE 0xFA00
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8104);
+/**
+ * Each frame slot has a block in g_movieFrameSlotBlocks that receives the frame's 'N' and 'R' sectors.
+ * The code indexes it as bytes: a struct for the block reorders the address arithmetic and breaks the match.
+ */
+#define MOVIE_FRAME_SLOT_BLOCK_SIZE 0x1000
+#define MOVIE_FRAME_SLOT_N_SECTOR 0x8
+#define MOVIE_FRAME_SLOT_FLAGS 0x8
+#define MOVIE_FRAME_SLOT_VOLUME 0x9
+#define MOVIE_FRAME_SLOT_VIEW 0x10
+#define MOVIE_FRAME_SLOT_R_SECTOR 0x808
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E82CC);
+typedef enum {
+    MOVIE_FRAME_SLOT_EMPTY = 0,
+    MOVIE_FRAME_SLOT_FULL = 2,
+    MOVIE_FRAME_SLOT_DECODING = 3
+} MovieFrameSlotState;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8304);
+#define DMA1_CHCR (*(u32 *)0x1F801098)
+#define DMA_CHCR_BUSY 0x1000000
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8370);
+typedef struct {
+    /** 0x00 */ CdlLOC loc;
+    /** 0x04 */ u8 unk4[8];
+} MovieSectorHeader;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8658);
+typedef struct {
+    /** 0x00 */ u8 *dest;
+    /** 0x04 */ s32 cdMode;
+    /** 0x08 */ s32 unk8;
+    /** 0x0C */ s32 reading;
+    /** 0x10 */ s32 unk10;
+    /** 0x14 */ u32 nextSector;
+    /** 0x18 */ CdlCB savedSyncCallback;
+    /** 0x1C */ CdlCB savedReadyCallback;
+} MovieReader;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E870C);
+typedef struct {
+    /** 0x00 */ s32 frameCount;
+    /** 0x04 */ u32 firstSector;
+    /** 0x08 */ u32 endSector;
+    /** 0x0C */ u16 framesDecoded;
+    /** 0x0E */ u16 framesRead;
+    /** 0x10 */ u8 bufferSize;
+    /** 0x11 */ u8 decodeFrameSlot;
+    /** 0x12 */ u8 readFrameSlot;
+    /** 0x13 */ u8 flags;
+    /** 0x14 */ u8 readDeferred;
+    /** 0x15 */ u8 unk15;
+    /** 0x16 */ u8 volatile playing;
+    /** 0x17 */ u8 volatile audioStreaming;
+    /** 0x18 */ u8 volatile pictureDone;
+    /** 0x19 */ u8 unk19[7];
+} MovieState;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8804);
+typedef struct {
+    /** 0x00 */ s16 bufferIndex;
+    /** 0x02 */ u8 is24Bit;
+    /** 0x03 */ u8 next24Bit;
+    /** 0x04 */ u16 width;
+    /** 0x06 */ u16 height;
+    /** 0x08 */ u32 *mdecInput[2];
+    /** 0x10 */ u32 *stripBuffer;
+    /** 0x14 */ RECT stripRect;
+    /** 0x1C */ RECT unk1C;
+    /** 0x24 */ u8 unk24[12];
+} MovieDecoder;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E888C);
+typedef struct {
+    /** 0x0 */ u8 magic[2];
+    /** 0x2 */ u8 type;
+    /** 0x3 */ u8 unk3;
+    /** 0x4 */ u8 index;
+    /** 0x5 */ u8 lastIndex;
+    /** 0x6 */ u16 frame;
+    /** 0x8 */ u8 unk8[8];
+} MovieSectorTag;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8B58);
+typedef struct {
+    /** 0x0 */ u8 lastSector;
+    /** 0x1 */ u8 lastIndex;
+    /** 0x2 */ u16 is24Bit;
+    /** 0x4 */ u16 state;
+    /** 0x6 */ u16 frame;
+    /** 0x8 */ u8 *video;
+} MovieFrameSlot;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8B84);
+static DECDCTTAB g_movieVlcTable;
+static MovieState g_movieState;
+static MovieDecoder g_movieDecoder;
+static MovieReader g_movieReader;
+static MovieSectorTag g_movieSectorTag;
+static MovieFrameSlot g_movieFrameSlots[12];
+static FieldView g_movieFrameView;
+static u8 *g_movieFrameSlotBlocks;
+static s32 g_movieStalled;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8B98);
+static u32 *MoviePeekFrame(void);
+static void MovieResumeReading(void);
+static void MoviePopFrame(void);
+static void MovieInitReader(void);
+static void MovieStopReading(void);
+static void MovieReadCallback(u8 status, u8 *result);
+static void MovieAudioReadCallback(u8 status, u8 *result);
+static s32 MovieStartReading(void);
+static void MovieDecodeCallback(void);
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8BAC);
+/**
+ * @brief Gets the movie player ready for a new movie or audio-only stream.
+ *
+ * @param bufferSize The number of frame slots in the ring.
+ */
+void MovieInit(s32 bufferSize) {
+    DecDCTReset(1);
+    g_movieState.bufferSize = bufferSize;
+    g_movieReader.dest = NULL;
+    g_movieReader.cdMode = 0;
+    g_movieReader.reading = 0;
+    g_movieReader.unk10 = -1;
+    g_movieReader.nextSector = 0;
+    g_movieReader.savedSyncCallback = NULL;
+    g_movieReader.savedReadyCallback = NULL;
+    g_movieStalled = 0;
+    sndCmdE4(0x7F);
+    g_movieState.readDeferred = 0;
+    g_movieState.unk15 = 0;
+}
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8C88);
+/**
+ * @brief "Allocates" the frame slots' memory from buf.
+ *
+ * @param buf The start of the free memory the movie player takes its buffers from.
+ * @return The address just past the blocks, where the free memory continues.
+ */
+inline u8 *MovieInitFrameSlots(u8 *buf) {
+    s32 i;
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8CC8);
+    if (!(g_movieState.flags & MOVIE_AUDIO_ONLY)) {
+        for (i = 0; i < g_movieState.bufferSize; i++) {
+            g_movieFrameSlots[i].video = buf;
+            buf += MOVIE_FRAME_SLOT_VIDEO_SIZE;
+            g_movieFrameSlots[i].lastSector = 0;
+            g_movieFrameSlots[i].lastIndex = 0;
+            g_movieFrameSlots[i].is24Bit = 0;
+            g_movieFrameSlots[i].state = MOVIE_FRAME_SLOT_EMPTY;
+            g_movieFrameSlots[i].frame = 0;
+        }
+    }
+    g_movieFrameSlotBlocks = buf;
+    return buf + g_movieState.bufferSize * MOVIE_FRAME_SLOT_BLOCK_SIZE;
+}
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E8FD0);
+/**
+ * @brief Opens a movie or an audio-only stream and starts reading it from the disc.
+ *
+ * @param lba The first sector on the disc.
+ * @param size The size in bytes.
+ * @param flags MOVIE_HAS_PICTURE for a movie, MOVIE_AUDIO_ONLY for an audio-only stream.
+ * @param buf The memory the player allocates its buffers from.
+ * @return For a movie, the start of the strip buffer; for an audio-only stream, the end of
+ *         the memory it used in buf.
+ */
+u8 *MovieOpen(s32 lba, s32 size, s32 flags, u8 *buf) {
+    g_fieldContext.movieMaskOff = 1;
+    g_movieState.playing = 0;
+    g_movieState.audioStreaming = 0;
+    g_movieState.flags = flags;
+    g_movieState.firstSector = lba;
+    g_movieState.endSector = lba + (size + SECTOR_SIZE - 1) / SECTOR_SIZE;
+    g_movieState.decodeFrameSlot = 0;
+    g_movieState.readFrameSlot = 0;
+    g_movieState.framesDecoded = 0;
+    g_movieState.framesRead = 0;
+    g_movieState.frameCount = (size + SECTOR_SIZE - 1) / MOVIE_FRAME_SIZE;
+    buf = MovieInitFrameSlots(buf);
+    if (!(g_movieState.flags & MOVIE_AUDIO_ONLY)) {
+        g_movieDecoder.mdecInput[0] = (u32 *)buf;
+        buf += MOVIE_DECODE_BUFFER_SIZE;
+        g_movieDecoder.mdecInput[1] = (u32 *)buf;
+        buf += MOVIE_DECODE_BUFFER_SIZE;
+        g_movieDecoder.bufferIndex = 0;
+        g_movieDecoder.stripBuffer = (u32 *)buf;
+        g_movieDecoder.width = 320;
+        g_movieDecoder.height = 224;
+        g_movieDecoder.stripRect.x = 0;
+        g_movieDecoder.stripRect.y = 32;
+        g_movieDecoder.stripRect.w = 16;
+        g_movieDecoder.stripRect.h = 224;
+        g_movieDecoder.unk1C.x = 0;
+        g_movieDecoder.unk1C.y = 32;
+        g_movieDecoder.unk1C.w = 20;
+        g_movieDecoder.unk1C.h = 224;
+        g_movieDecoder.is24Bit = 0;
+        g_movieDecoder.next24Bit = 0;
+        DecDCTvlcBuild(g_movieVlcTable);
+        DecDCToutCallback(MovieDecodeCallback);
+    }
+    sndInitIrq(g_movieFrameSlotBlocks, g_movieState.bufferSize * MOVIE_FRAME_SLOT_BLOCK_SIZE);
+    func_800387F8(g_movieState.firstSector, MovieInitReader);
+    return buf;
+}
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E91C0);
+/**
+ * @brief Checks if enough of the movie is loaded to start playing.
+ *
+ * @return 1 if more than half of the frame slots are full, otherwise 0.
+ */
+s32 MovieIsBuffered(void) {
+    return g_movieFrameSlots[g_movieState.bufferSize >> 1].state == MOVIE_FRAME_SLOT_FULL;
+}
 
-INCLUDE_ASM("asm/ovl/movie/nonmatchings/movie", func_801E92AC);
+/**
+ * @brief Starts reading the disc again if the reading stopped before the end of the movie.
+ */
+static void MovieResumeReading(void) {
+    MovieReader *reader = &g_movieReader;
+
+    if (reader->reading == 0 && CdSync(1, NULL) == CdlComplete && reader->nextSector < g_movieState.endSector) {
+        MovieStartReading();
+    }
+}
+
+/**
+ * @brief Gets the frame at the head of the queue, without removing it, and applies its settings.
+ *
+ * If the picture is too far behind the sound, it removes the frame instead.
+ *
+ * @return The frame's compressed picture, or NULL if there is no frame to show now.
+ */
+static u32 *MoviePeekFrame(void) {
+    MovieReader *reader = &g_movieReader;
+    s32 value;
+    s32 last;
+
+    if (reader->reading == 0 && CdSync(1, NULL) == CdlComplete && reader->nextSector < g_movieState.endSector) {
+        MovieStartReading();
+    }
+    MovieResumeReading();
+    if (g_movieFrameSlots[g_movieState.decodeFrameSlot].state == MOVIE_FRAME_SLOT_FULL) {
+        if (g_sndStream.unk20 == g_movieState.frameCount - 5) {
+            sndCmdE5(0x14, 0);
+        }
+        value = g_movieFrameSlotBlocks[g_movieState.decodeFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_FLAGS];
+        if (value & MOVIE_FRAME_FADE_IN) {
+            sndCmdE5(0x3C, 0x7F);
+        }
+        if (value & MOVIE_FRAME_FADE_OUT) {
+            sndCmdE5(0x3C, 0);
+        }
+        if (value & MOVIE_FRAME_MASK_ON) {
+            g_fieldContext.movieMaskOff = 0;
+        }
+        if (value & MOVIE_FRAME_MASK_OFF) {
+            g_fieldContext.movieMaskOff = 1;
+        }
+        if (value & MOVIE_FRAME_HIDE_FIELD) {
+            g_fieldContext.skipFieldDraw = 1;
+        } else {
+            g_fieldContext.skipFieldDraw = 0;
+        }
+        g_fieldContext.hideActors = value & MOVIE_FRAME_HIDE_ACTORS;
+        if (g_movieStalled != 0) {
+            if (g_movieState.framesRead - g_movieState.framesDecoded < (g_movieState.bufferSize >> 1)) {
+                return NULL;
+            }
+            sndDisableReverb(3);
+            g_movieStalled = 0;
+        }
+        sndTickCounters();
+        g_fieldContext.movieFrameVBlanks = 4;
+        if (g_sndStream.unk20 > g_movieState.framesDecoded + 1) {
+            last = g_sndStream.unk20 - 1;
+            value = last - g_movieState.framesDecoded;
+            if (value >= 2) {
+                MoviePopFrame();
+                return NULL;
+            }
+            g_fieldContext.movieFrameVBlanks = 3;
+        }
+        g_movieFrameSlots[g_movieState.decodeFrameSlot].state = MOVIE_FRAME_SLOT_DECODING;
+        g_movieFrameSlots[g_movieState.decodeFrameSlot].is24Bit = g_movieFrameSlotBlocks[g_movieState.decodeFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_FLAGS] & MOVIE_FRAME_24BIT;
+        FastMemCpy((u8 *)&g_movieFrameView, &g_movieFrameSlotBlocks[g_movieState.decodeFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_VIEW], sizeof(FieldView));
+        g_movieView = &g_movieFrameView;
+        return (u32 *)g_movieFrameSlots[g_movieState.decodeFrameSlot].video;
+    }
+    sndEnableReverb(3);
+    g_movieStalled = 1;
+    if (CdStatus() & CdlStatShellOpen) {
+        g_movieReader.reading = 0;
+        CdControlF(CdlNop, NULL);
+    }
+    return NULL;
+}
+
+/**
+ * @brief Frees the slot at the head of the queue, so the disc reader can reuse it.
+ */
+static void MoviePopFrame(void) {
+    g_movieFrameSlots[g_movieState.decodeFrameSlot].lastSector = 0;
+    g_movieFrameSlots[g_movieState.decodeFrameSlot].lastIndex = 0;
+    g_movieFrameSlots[g_movieState.decodeFrameSlot].is24Bit = 0;
+    g_movieFrameSlots[g_movieState.decodeFrameSlot].state = MOVIE_FRAME_SLOT_EMPTY;
+    g_movieState.framesDecoded++;
+    if (++g_movieState.decodeFrameSlot >= g_movieState.bufferSize) {
+        g_movieState.decodeFrameSlot = 0;
+    }
+}
+
+/**
+ * @brief Starts playing the movie.
+ *
+ * For an audio-only stream, it only marks the CD drive as busy.
+ */
+void MoviePlay(void) {
+    u32 *bs;
+
+    if (!(g_movieState.flags & MOVIE_AUDIO_ONLY)) {
+        sndCmdE4(g_movieFrameSlotBlocks[g_movieState.decodeFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_VOLUME]);
+        DecDCTvlcSize2(0);
+        sndTickCounters();
+        sndTickCounters();
+        while ((bs = MoviePeekFrame()) == NULL) {
+        }
+        g_movieDecoder.next24Bit = g_movieFrameSlots[g_movieState.decodeFrameSlot].is24Bit;
+        g_prevDispEnv->isrgb24 = g_movieDecoder.next24Bit;
+        DecDCTvlc2(bs, g_movieDecoder.mdecInput[g_movieDecoder.bufferIndex], g_movieVlcTable);
+        MoviePopFrame();
+        g_movieState.playing = 1;
+    }
+    setCdBusyFlag();
+}
+
+/**
+ * @brief Stops the movie or the audio-only stream.
+ *
+ * After a movie, the field goes back to normal.
+ */
+void MovieStop(void) {
+    MovieStopReading();
+    clearCdBusyFlag();
+    sndCmdE2();
+    if (!(g_movieState.flags & MOVIE_AUDIO_ONLY)) {
+        g_activeDispEnv->isrgb24 = 0;
+        g_prevDispEnv->isrgb24 = 0;
+        ExitMovieMode();
+        g_fieldContext.movieMaskOff = 1;
+        g_fieldContext.hideActors = 0;
+    }
+    g_movieState.playing = 0;
+    g_movieState.audioStreaming = 0;
+}
+
+/**
+ * @brief Plays the next frame of the movie or the audio-only stream.
+ */
+void MovieUpdate(void) {
+    u32 *bs;
+
+    if (!(g_movieState.flags & MOVIE_AUDIO_ONLY)) {
+        if (g_movieState.playing == 0) {
+            return;
+        }
+        g_movieState.pictureDone = 0;
+        g_movieDecoder.stripRect.x = g_activeDrawEnv->clip.x;
+        g_movieDecoder.unk1C.x = g_activeDrawEnv->clip.x;
+        g_movieDecoder.stripRect.y = g_activeDrawEnv->clip.y;
+        g_movieDecoder.unk1C.y = g_activeDrawEnv->clip.y;
+        g_movieDecoder.is24Bit = g_movieDecoder.next24Bit;
+        if (g_movieDecoder.next24Bit != 0) {
+            g_movieDecoder.stripRect.w = 24;
+            g_movieDecoder.unk1C.w = 30;
+        } else {
+            g_movieDecoder.stripRect.w = 16;
+            g_movieDecoder.unk1C.w = 20;
+        }
+        DecDCTin(g_movieDecoder.mdecInput[g_movieDecoder.bufferIndex], g_movieDecoder.is24Bit);
+        DecDCTout(g_movieDecoder.stripBuffer, g_movieDecoder.stripRect.w * g_movieDecoder.stripRect.h / 2);
+        do {
+            bs = MoviePeekFrame();
+        } while (bs == NULL && g_movieReader.nextSector < g_movieState.endSector);
+        if (bs == NULL) {
+            MovieStop();
+        } else {
+            g_movieDecoder.next24Bit = g_movieFrameSlots[g_movieState.decodeFrameSlot].is24Bit;
+            g_activeDispEnv->isrgb24 = g_movieDecoder.next24Bit;
+            g_movieDecoder.bufferIndex = g_movieDecoder.bufferIndex == 0;
+            DecDCTvlc2(bs, g_movieDecoder.mdecInput[g_movieDecoder.bufferIndex], g_movieVlcTable);
+            MoviePopFrame();
+        }
+        while (g_movieState.pictureDone == 0) {
+            MovieResumeReading();
+        }
+        return;
+    }
+    if (g_movieState.audioStreaming == 0) {
+        return;
+    }
+    if (g_movieStalled != 0) {
+        if (g_movieReader.reading != 0 && g_sndStream.tickCounter - g_sndStream.unk20 >= (g_movieState.bufferSize >> 1)) {
+            sndDisableReverb(3);
+            g_movieStalled = 0;
+        }
+        g_movieReader.reading = 0;
+    } else if (g_movieState.readFrameSlot == g_sndStream.unk34) {
+        g_movieReader.reading = 0;
+        sndEnableReverb(3);
+        g_movieStalled = 1;
+    }
+    if (g_movieReader.reading == 0) {
+        MovieStartReading();
+    }
+    if (g_movieReader.nextSector >= g_movieState.endSector) {
+        MovieStop();
+    }
+}
+
+/**
+ * @brief Gets the number of the current movie frame.
+ */
+s32 MovieGetFrame(void) {
+    return g_movieFrameSlots[g_movieState.decodeFrameSlot].frame;
+}
+
+/**
+ * @brief Checks if a movie is playing.
+ *
+ * @return 1 while a movie is playing, otherwise 0.
+ */
+s32 MovieIsPlaying(void) {
+    return g_movieState.playing;
+}
+
+/**
+ * @brief Checks if an audio-only stream is playing.
+ *
+ * @return 1 while an audio-only stream is playing, otherwise 0.
+ */
+s32 MovieIsAudioStreaming(void) {
+    return g_movieState.audioStreaming;
+}
+
+/**
+ * @brief Sets up the disc reader at the start of the movie and starts reading.
+ */
+static void MovieInitReader(void) {
+    u8 param[4];
+    u8 mode;
+
+    g_movieReader.cdMode = CdlModeSpeed | CdlModeSize1;
+    g_movieReader.dest = g_movieFrameSlots[g_movieState.readFrameSlot].video;
+    g_movieReader.reading = 0;
+    g_movieReader.nextSector = g_movieState.firstSector;
+    g_movieReader.savedSyncCallback = CdSyncCallback(NULL);
+    g_movieReader.savedReadyCallback = CdReadyCallback(NULL);
+    if (CdStatus() & (CdlStatPlay | CdlStatSeek)) {
+        CdControlB(CdlPause, NULL, NULL);
+    }
+    while (MovieStartReading() == 0) {
+    }
+    mode = g_movieReader.cdMode;
+    param[0] = mode;
+    if (mode != CdMode()) {
+        while (CdControl(CdlSetmode, param, NULL) == 0) {
+        }
+    }
+}
+
+/**
+ * @brief Stops reading the disc.
+ */
+static void MovieStopReading(void) {
+    CdSyncCallback(NULL);
+    CdReadyCallback(NULL);
+    CdFlush();
+    CdControl(CdlPause, NULL, NULL);
+}
+
+/**
+ * @brief CD callback that puts each sector of a movie into its frame slot.
+ *
+ * @param status One of libcd's CD interrupt codes, CdlNoIntr to CdlDiskError.
+ * @param result The CD drive's result bytes.
+ */
+static void MovieReadCallback(u8 status, u8 *result) {
+    MovieSectorHeader header;
+
+    if (g_movieDecoder.is24Bit != 0 && (DMA1_CHCR & DMA_CHCR_BUSY)) {
+        g_movieState.readDeferred = 1;
+        return;
+    }
+    status = CdReady(1, result);
+    if (status == CdlDataReady && g_movieReader.reading != 0) {
+        CdGetSector(&header, sizeof(header) / 4);
+        if (CdPosToInt(&header.loc) != g_movieReader.nextSector) {
+            g_movieReader.reading = 0;
+        }
+        if (g_movieReader.reading != 0) {
+            CdGetSector(&g_movieSectorTag, 2);
+            switch (g_movieSectorTag.type) {
+            case 'J':
+                CdGetSector(g_movieReader.dest, MOVIE_SECTOR_DATA_WORDS);
+                g_movieReader.dest += MOVIE_SECTOR_DATA_WORDS * 4;
+                break;
+            case 'N':
+                CdGetSector(&g_movieFrameSlotBlocks[g_movieState.readFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_N_SECTOR], MOVIE_SECTOR_DATA_WORDS);
+                break;
+            case 'R':
+                CdGetSector(&g_movieFrameSlotBlocks[g_movieState.readFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_R_SECTOR], MOVIE_SECTOR_DATA_WORDS);
+                break;
+            }
+            g_movieReader.nextSector++;
+            g_movieFrameSlots[g_movieState.readFrameSlot].lastSector = g_movieSectorTag.index;
+            g_movieFrameSlots[g_movieState.readFrameSlot].lastIndex = g_movieSectorTag.lastIndex;
+            g_movieFrameSlots[g_movieState.readFrameSlot].frame = g_movieSectorTag.frame;
+            if (g_movieFrameSlots[g_movieState.readFrameSlot].lastSector == g_movieFrameSlots[g_movieState.readFrameSlot].lastIndex) {
+                g_movieFrameSlots[g_movieState.readFrameSlot].state = MOVIE_FRAME_SLOT_FULL;
+                g_movieState.framesRead++;
+                if (++g_movieState.readFrameSlot >= g_movieState.bufferSize) {
+                    g_movieState.readFrameSlot = 0;
+                }
+                g_movieReader.dest = g_movieFrameSlots[g_movieState.readFrameSlot].video;
+                if (g_movieFrameSlots[g_movieState.readFrameSlot].state != MOVIE_FRAME_SLOT_EMPTY || g_movieState.readFrameSlot == g_sndStream.unk34) {
+                    MovieStopReading();
+                    g_movieReader.reading = 0;
+                    return;
+                }
+            }
+        }
+    } else {
+        g_movieReader.reading = 0;
+    }
+    if (g_movieReader.reading == 0) {
+        MovieStartReading();
+    }
+    if (g_movieReader.nextSector >= g_movieState.endSector) {
+        MovieStopReading();
+    }
+}
+
+/**
+ * @brief CD callback that puts each sector of an audio-only stream into its frame slot.
+ *
+ * @param status One of libcd's CD interrupt codes, CdlNoIntr to CdlDiskError.
+ * @param result The CD drive's result bytes. Not used.
+ */
+static void MovieAudioReadCallback(u8 status, u8 *result) {
+    MovieSectorHeader header;
+    s32 last;
+    s32 mask;
+
+    mask = 0xFF;
+    status &= mask;
+    if (status == CdlDataReady && g_movieReader.reading != 0) {
+        CdGetSector(&header, sizeof(header) / 4);
+        if (CdPosToInt(&header.loc) != g_movieReader.nextSector) {
+            g_movieReader.reading = 0;
+        }
+        if (g_movieReader.reading != 0) {
+            g_movieState.audioStreaming = status;
+            CdGetSector(&g_movieSectorTag, 2);
+            switch (g_movieSectorTag.type) {
+            case 'N':
+                last = g_sndStream.unk34 - 1;
+                if (last < 0) {
+                    last = g_movieState.bufferSize - 1;
+                }
+                if (last != g_movieState.readFrameSlot) {
+                    CdGetSector(&g_movieFrameSlotBlocks[g_movieState.readFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_N_SECTOR], MOVIE_SECTOR_DATA_WORDS);
+                    g_movieReader.nextSector++;
+                } else {
+                    g_movieReader.reading = 0;
+                }
+                break;
+            case 'R':
+                CdGetSector(&g_movieFrameSlotBlocks[g_movieState.readFrameSlot * MOVIE_FRAME_SLOT_BLOCK_SIZE + MOVIE_FRAME_SLOT_R_SECTOR], MOVIE_SECTOR_DATA_WORDS);
+                g_movieReader.nextSector++;
+                sndTickCounters();
+                if (++g_movieState.readFrameSlot >= g_movieState.bufferSize) {
+                    g_movieState.readFrameSlot = 0;
+                }
+                g_movieState.framesRead++;
+                break;
+            }
+        }
+    } else {
+        g_movieReader.reading = 0;
+    }
+    if (g_movieReader.reading == 0) {
+        MovieStartReading();
+    }
+    if (g_movieReader.nextSector >= g_movieState.endSector) {
+        MovieStopReading();
+    }
+}
+
+/**
+ * @brief Starts reading the disc at the reader's next sector.
+ *
+ * @return 1 if the reading started, otherwise 0.
+ */
+static s32 MovieStartReading(void) {
+    u8 param[4];
+    CdlLOC loc;
+    u8 mode;
+
+    g_movieReader.reading = 0;
+    CdSyncCallback(NULL);
+    CdReadyCallback(NULL);
+    mode = g_movieReader.cdMode;
+    param[0] = mode;
+    if (mode != CdMode()) {
+        if (CdControl(CdlSetmode, param, NULL) == 0) {
+            return 0;
+        }
+    }
+    CdFlush();
+    CdIntToPos(g_movieReader.nextSector, &loc);
+    if (CdControl(CdlSetloc, (u8 *)&loc, NULL) == 0) {
+        return 0;
+    }
+    if (g_movieState.flags & MOVIE_AUDIO_ONLY) {
+        CdReadyCallback(MovieAudioReadCallback);
+    } else {
+        CdReadyCallback(MovieReadCallback);
+    }
+    CdControlF(CdlReadN, NULL);
+    g_movieReader.reading = 1;
+    return 1;
+}
+
+/**
+ * @brief MDEC callback that copies each decoded strip of the picture into video memory and asks for the next one.
+ */
+static void MovieDecodeCallback(void) {
+    s32 limit;
+
+    if (g_movieState.readDeferred != 0) {
+        MovieReadCallback(0xFF, NULL);
+        g_movieState.readDeferred = 0;
+    }
+    LoadImage(&g_movieDecoder.stripRect, g_movieDecoder.stripBuffer);
+    g_movieDecoder.stripRect.x += g_movieDecoder.stripRect.w;
+    if (g_movieDecoder.is24Bit == 0) {
+        limit = g_activeDrawEnv->clip.x + g_movieDecoder.width;
+    } else {
+        limit = g_activeDrawEnv->clip.x + ((g_movieDecoder.width * 3) >> 1);
+    }
+    if (g_movieDecoder.stripRect.x < limit) {
+        DecDCTout(g_movieDecoder.stripBuffer, g_movieDecoder.stripRect.w * g_movieDecoder.stripRect.h / 2);
+    } else {
+        g_movieState.pictureDone = 1;
+    }
+}
