@@ -472,10 +472,9 @@ s32 opHandler_ACTORMODE(Actor *actor) {
 }
 
 /**
- * @brief op0A3 MOVIEREADY — peek the top two stack slots
- *        (a @c movieIndex and a @c priorityMode) and kick off an
- *        asynchronous CD read of the corresponding movie data into
- *        the @c 0x801E8000 frame buffer.
+ * @brief op0A3 MOVIEREADY: peek the top two stack slots
+ *        (a @c movieIndex and a @c priorityMode), load movie.ovl
+ *        into @c 0x801E8000 and open the movie.
  *
  *        @c priorityMode picks one of three ring sizes (the
  *        @c bufferSize passed to @c MovieInit):

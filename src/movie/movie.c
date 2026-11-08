@@ -240,9 +240,9 @@ s32 MovieIsBuffered(void) {
  * @brief Starts reading the disc again if the reading stopped before the end of the movie.
  */
 static void MovieResumeReading(void) {
-    MovieReader *state = &g_movieReader;
+    MovieReader *reader = &g_movieReader;
 
-    if (state->reading == 0 && CdSync(1, NULL) == CdlComplete && state->nextSector < g_movieState.endSector) {
+    if (reader->reading == 0 && CdSync(1, NULL) == CdlComplete && reader->nextSector < g_movieState.endSector) {
         MovieStartReading();
     }
 }
@@ -250,14 +250,16 @@ static void MovieResumeReading(void) {
 /**
  * @brief Gets the frame at the head of the queue, without removing it, and applies its settings.
  *
+ * If the picture is too far behind the sound, it removes the frame instead.
+ *
  * @return The frame's compressed picture, or NULL if there is no frame to show now.
  */
 static u32 *MoviePeekFrame(void) {
-    MovieReader *state = &g_movieReader;
+    MovieReader *reader = &g_movieReader;
     s32 value;
     s32 last;
 
-    if (state->reading == 0 && CdSync(1, NULL) == CdlComplete && state->nextSector < g_movieState.endSector) {
+    if (reader->reading == 0 && CdSync(1, NULL) == CdlComplete && reader->nextSector < g_movieState.endSector) {
         MovieStartReading();
     }
     MovieResumeReading();
