@@ -132,6 +132,11 @@ static void MovieAudioReadCallback(u8 status, u8 *result);
 static s32 MovieStartReading(void);
 static void MovieDecodeCallback(void);
 
+/**
+ * @brief Gets the movie player ready for a new movie or audio-only stream.
+ *
+ * @param bufferSize The number of frame slots in the ring.
+ */
 void MovieInit(s32 bufferSize) {
     DecDCTReset(1);
     g_movieState.bufferSize = bufferSize;
@@ -148,7 +153,12 @@ void MovieInit(s32 bufferSize) {
     g_movieState.unk15 = 0;
 }
 
-// Not static: the binary keeps this out-of-line copy as well as the copy inlined into MovieOpen.
+/**
+ * @brief "Allocates" the frame slots' memory from buf.
+ *
+ * @param buf The start of the free memory the movie player takes its buffers from.
+ * @return The address just past the blocks, where the free memory continues.
+ */
 inline u8 *MovieInitFrameSlots(u8 *buf) {
     s32 i;
 
@@ -167,6 +177,16 @@ inline u8 *MovieInitFrameSlots(u8 *buf) {
     return buf + g_movieState.bufferSize * MOVIE_FRAME_SLOT_BLOCK_SIZE;
 }
 
+/**
+ * @brief Opens a movie or an audio-only stream and starts reading it from the disc.
+ *
+ * @param lba The first sector on the disc.
+ * @param size The size in bytes.
+ * @param flags MOVIE_HAS_PICTURE for a movie, MOVIE_AUDIO_ONLY for an audio-only stream.
+ * @param buf The memory the player allocates its buffers from.
+ * @return For a movie, the start of the strip buffer; for an audio-only stream, the end of
+ *         the memory it used in buf.
+ */
 u8 *MovieOpen(s32 lba, s32 size, s32 flags, u8 *buf) {
     g_fieldContext.movieMaskOff = 1;
     g_movieState.playing = 0;
@@ -207,10 +227,18 @@ u8 *MovieOpen(s32 lba, s32 size, s32 flags, u8 *buf) {
     return buf;
 }
 
+/**
+ * @brief Checks if enough of the movie is loaded to start playing.
+ *
+ * @return 1 if more than half of the frame slots are full, otherwise 0.
+ */
 s32 MovieIsBuffered(void) {
     return g_movieFrameSlots[g_movieState.bufferSize >> 1].state == MOVIE_FRAME_SLOT_FULL;
 }
 
+/**
+ * @brief Starts reading the disc again if the reading stopped before the end of the movie.
+ */
 static void MovieResumeReading(void) {
     MovieReader *state = &g_movieReader;
 
@@ -219,6 +247,11 @@ static void MovieResumeReading(void) {
     }
 }
 
+/**
+ * @brief Gets the frame at the head of the queue, without removing it, and applies its settings.
+ *
+ * @return The frame's compressed picture, or NULL if there is no frame to show now.
+ */
 static u32 *MoviePeekFrame(void) {
     MovieReader *state = &g_movieReader;
     s32 value;
@@ -284,6 +317,9 @@ static u32 *MoviePeekFrame(void) {
     return NULL;
 }
 
+/**
+ * @brief Frees the slot at the head of the queue, so the disc reader can reuse it.
+ */
 static void MoviePopFrame(void) {
     g_movieFrameSlots[g_movieState.decodeFrameSlot].lastSector = 0;
     g_movieFrameSlots[g_movieState.decodeFrameSlot].lastIndex = 0;
@@ -295,6 +331,11 @@ static void MoviePopFrame(void) {
     }
 }
 
+/**
+ * @brief Starts playing the movie.
+ *
+ * For an audio-only stream, it only marks the CD drive as busy.
+ */
 void MoviePlay(void) {
     u32 *bs;
 
@@ -314,6 +355,11 @@ void MoviePlay(void) {
     setCdBusyFlag();
 }
 
+/**
+ * @brief Stops the movie or the audio-only stream.
+ *
+ * After a movie, the field goes back to normal.
+ */
 void MovieStop(void) {
     MovieStopReading();
     clearCdBusyFlag();
@@ -329,6 +375,9 @@ void MovieStop(void) {
     g_movieState.audioStreaming = 0;
 }
 
+/**
+ * @brief Plays the next frame of the movie or the audio-only stream.
+ */
 void MovieUpdate(void) {
     u32 *bs;
 
@@ -390,18 +439,34 @@ void MovieUpdate(void) {
     }
 }
 
+/**
+ * @brief Gets the number of the current movie frame.
+ */
 s32 MovieGetFrame(void) {
     return g_movieFrameSlots[g_movieState.decodeFrameSlot].frame;
 }
 
+/**
+ * @brief Checks if a movie is playing.
+ *
+ * @return 1 while a movie is playing, otherwise 0.
+ */
 s32 MovieIsPlaying(void) {
     return g_movieState.playing;
 }
 
+/**
+ * @brief Checks if an audio-only stream is playing.
+ *
+ * @return 1 while an audio-only stream is playing, otherwise 0.
+ */
 s32 MovieIsAudioStreaming(void) {
     return g_movieState.audioStreaming;
 }
 
+/**
+ * @brief Sets up the disc reader at the start of the movie and starts reading.
+ */
 static void MovieInitReader(void) {
     u8 param[4];
     u8 mode;
@@ -425,6 +490,9 @@ static void MovieInitReader(void) {
     }
 }
 
+/**
+ * @brief Stops reading the disc.
+ */
 static void MovieStopReading(void) {
     CdSyncCallback(NULL);
     CdReadyCallback(NULL);
@@ -432,6 +500,12 @@ static void MovieStopReading(void) {
     CdControl(CdlPause, NULL, NULL);
 }
 
+/**
+ * @brief CD callback that puts each sector of a movie into its frame slot.
+ *
+ * @param status One of libcd's CD interrupt codes, CdlNoIntr to CdlDiskError.
+ * @param result The CD drive's result bytes.
+ */
 static void MovieReadCallback(u8 status, u8 *result) {
     MovieSectorHeader header;
 
@@ -488,12 +562,17 @@ static void MovieReadCallback(u8 status, u8 *result) {
     }
 }
 
+/**
+ * @brief CD callback that puts each sector of an audio-only stream into its frame slot.
+ *
+ * @param status One of libcd's CD interrupt codes, CdlNoIntr to CdlDiskError.
+ * @param result The CD drive's result bytes. Not used.
+ */
 static void MovieAudioReadCallback(u8 status, u8 *result) {
     MovieSectorHeader header;
     s32 last;
     s32 mask;
 
-    // A no-op on a u8; it puts the zero-extension of status at the top of the function, where the original has it.
     mask = 0xFF;
     status &= mask;
     if (status == CdlDataReady && g_movieReader.reading != 0) {
@@ -539,6 +618,11 @@ static void MovieAudioReadCallback(u8 status, u8 *result) {
     }
 }
 
+/**
+ * @brief Starts reading the disc at the reader's next sector.
+ *
+ * @return 1 if the reading started, otherwise 0.
+ */
 static s32 MovieStartReading(void) {
     u8 param[4];
     CdlLOC loc;
@@ -569,6 +653,9 @@ static s32 MovieStartReading(void) {
     return 1;
 }
 
+/**
+ * @brief MDEC callback that copies each decoded strip of the picture into video memory and asks for the next one.
+ */
 static void MovieDecodeCallback(void) {
     s32 limit;
 
