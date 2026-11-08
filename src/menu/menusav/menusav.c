@@ -12,6 +12,7 @@
 #include "cdrom.h"
 #include "menumain3.h"
 #include "psxsdk/libetc.h"
+#include "psxsdk/kernel.h"
 
 extern u8 D_801EC294;
 extern u8 D_801EC301;
@@ -167,28 +168,19 @@ typedef struct {
 } SaveBlockHeader;
 
 typedef struct {
-    /** 0x000 */ u16 unk0;
+    /** 0x000 */ u16 checksum;
     /** 0x002 */ u8 pad2[8];
     /** 0x00A */ u16 unkA;
     /** 0x00C */ u8 padC[0xCC4];
-    /** 0xCD0 */ s32 unkCD0;
+    /** 0xCD0 */ s32 playTimeSeconds;
     /** 0xCD4 */ u8 padCD4[8];
-    /** 0xCDC */ u16 unkCDC;
+    /** 0xCDC */ u16 fieldCDC;
     /** 0xCDE */ u8 padCDE[2];
-    /** 0xCE0 */ u16 unkCE0;
-    /** 0xCE2 */ u16 unkCE2;
+    /** 0xCE0 */ u16 fieldCE0;
+    /** 0xCE2 */ u16 fieldCE2;
     /** 0xCE4 */ u8 padCE4[0x6BC];
-    /** 0x13A0 */ u16 unk13A0;
-} func_801E3098_save;
-
-typedef struct {
-    /** 0x00 */ char name[20];
-    /** 0x14 */ long attr;
-    /** 0x18 */ long size;
-    /** 0x1C */ void *next;
-    /** 0x20 */ long head;
-    /** 0x24 */ char system[4];
-} func_801E3098_dirEntry;
+    /** 0x13A0 */ u16 checksumCopy;
+} SaveData;
 
 extern u8 D_80085148[];
 extern u32 highestSaveSequence;
@@ -208,8 +200,8 @@ void loadSubOverlay(s32, s32);
 s32 pollCardReady(s32);
 s32 pollCardStatus(s32);
 void copyString(char *, char *);
-s32 openFirstFileRetry(s32, char *, func_801E3098_dirEntry *);
-s32 cardNextFile(func_801E3098_dirEntry *);
+s32 openFirstFileRetry(s32, char *, struct DIRENTRY *);
+s32 cardNextFile(struct DIRENTRY *);
 s32 btlStrlen(char *);
 s32 compareBytes(void *, void *, s32);
 s32 readCardFileSync(s32, char *, s32, s32, s32);
@@ -498,7 +490,7 @@ static s32 func_801E2ECC(SaveMenuCtx *a0, s32 a1) {
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2F6C); /* 0x12C */
 
 static s32 func_801E3098(SaveMenuCtx *ctx) {
-    func_801E3098_dirEntry dirEntry;
+    struct DIRENTRY dirEntry;
     char fileNames[16][32];
     char searchPattern[32];
     char slotName[32];
@@ -507,7 +499,7 @@ static s32 func_801E3098(SaveMenuCtx *ctx) {
     char slotName4[32];
     char slotName5[32];
     MenuDisplayConfig *cfg;
-    func_801E3098_save *save;
+    SaveData *save;
     s32 result;
     u16 *stepPtr;
     u8 *slotStates;
@@ -1634,14 +1626,14 @@ dispatch:
         }
         break;
     case SAVE_MENU_LOAD_VERIFY:
-        save = (func_801E3098_save *)0x801D1000;
+        save = (SaveData *)0x801D1000;
         checksum = func_800377B4(0x1350, 0x801D1050);
         // The first compare uses the raw return value, the second the narrowed one.
-        if (checksum == save->unk0 && (u16)checksum == save->unk13A0) {
-            sum0 = save->unkCD0;
-            sum1 = save->unkCDC + sum0;
+        if (checksum == save->checksum && (u16)checksum == save->checksumCopy) {
+            sum0 = save->playTimeSeconds;
+            sum1 = save->fieldCDC + sum0;
             partial = save->unkA + sum1;
-            D_80083792[0] = partial + save->unkCE0 + save->unkCE2;
+            D_80083792[0] = partial + save->fieldCE0 + save->fieldCE2;
             ctx->progress = 0x1000;
             btlMemcpyForward(0x801D1000, &g_gameState, 0x13A4);
             recalcPartyStats();
