@@ -2,9 +2,16 @@
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
 #include "menu_tint.h"
 #include "menusav.h"
 #include "gamestate.h"
+#include "overlay.h"
+#include "snd_sfx.h"
+#include "party_stats.h"
+#include "cdrom.h"
+#include "menumain3.h"
+#include "psxsdk/libetc.h"
 
 extern u8 D_801EC294;
 extern u8 D_801EC301;
@@ -13,6 +20,234 @@ extern u8 D_80097424[];
 extern u8 D_801EBD5C[];
 extern u16 D_801EBD24[];
 extern s32 D_801EC2E4;
+
+typedef enum {
+    SAVE_MENU_INIT = 0x00,
+    SAVE_MENU_CARD_SELECT_FADE_IN = 0x01,
+    SAVE_MENU_TITLE_INIT = 0x02,
+    SAVE_MENU_UNK_03 = 0x03,
+    SAVE_MENU_UNK_04 = 0x04,
+    SAVE_MENU_UNK_05 = 0x05,
+    SAVE_MENU_TITLE_INPUT = 0x06,
+    SAVE_MENU_UNK_07 = 0x07,
+    SAVE_MENU_CARD_SELECT_ENTER = 0x08,
+    SAVE_MENU_CARD_CHECK_FAILED = 0x09,
+    SAVE_MENU_UNK_0A = 0x0A,
+    SAVE_MENU_UNK_0B = 0x0B,
+    SAVE_MENU_CARD_SELECT_INPUT = 0x0C,
+    SAVE_MENU_UNK_0D = 0x0D,
+    SAVE_MENU_UNK_0E = 0x0E,
+    SAVE_MENU_CHOCOBO_WAIT = 0x0F,
+    SAVE_MENU_UNK_10 = 0x10,
+    SAVE_MENU_UNK_11 = 0x11,
+    SAVE_MENU_LIST_OPEN = 0x12,
+    SAVE_MENU_LIST_PREPARE = 0x13,
+    SAVE_MENU_LIST_CHECK_CARD = 0x14,
+    SAVE_MENU_LIST_READ_DIRECTORY = 0x15,
+    SAVE_MENU_LIST_NEXT_BLOCK = 0x16,
+    SAVE_MENU_LIST_WAIT_CARD = 0x17,
+    SAVE_MENU_LIST_WAIT_READ = 0x18,
+    SAVE_MENU_UNK_19 = 0x19,
+    SAVE_MENU_LIST_LOADED = 0x1A,
+    SAVE_MENU_LIST_ENTER = 0x1B,
+    SAVE_MENU_UNK_1C = 0x1C,
+    SAVE_MENU_LIST_SHOW = 0x1D,
+    SAVE_MENU_LIST_INPUT = 0x1E,
+    SAVE_MENU_NO_CARD = 0x1F,
+    SAVE_MENU_NO_CARD_WAIT = 0x20,
+    SAVE_MENU_PAGE_LEFT_START = 0x21,
+    SAVE_MENU_PAGE_LEFT_SLIDE = 0x22,
+    SAVE_MENU_PAGE_RIGHT_START = 0x23,
+    SAVE_MENU_PAGE_RIGHT_SLIDE = 0x24,
+    SAVE_MENU_FORMAT_PROMPT_OPEN = 0x25,
+    SAVE_MENU_UNK_26 = 0x26,
+    SAVE_MENU_UNK_27 = 0x27,
+    SAVE_MENU_UNK_28 = 0x28,
+    SAVE_MENU_UNK_29 = 0x29,
+    SAVE_MENU_UNK_2A = 0x2A,
+    SAVE_MENU_UNK_2B = 0x2B,
+    SAVE_MENU_FORMAT_OK = 0x2C,
+    SAVE_MENU_UNK_2D = 0x2D,
+    SAVE_MENU_FORMAT_FAILED = 0x2E,
+    SAVE_MENU_UNK_2F = 0x2F,
+    SAVE_MENU_NO_EMPTY_BLOCKS = 0x30,
+    SAVE_MENU_NO_SAVE_DATA = 0x31,
+    SAVE_MENU_MESSAGE_WAIT = 0x32,
+    SAVE_MENU_OVERWRITE_OPEN = 0x33,
+    SAVE_MENU_OVERWRITE_INPUT = 0x34,
+    SAVE_MENU_SAVE_CHECK_FORMAT = 0x35,
+    SAVE_MENU_UNK_36 = 0x36,
+    SAVE_MENU_UNK_37 = 0x37,
+    SAVE_MENU_SAVE_WRITE = 0x38,
+    SAVE_MENU_SAVE_WRITE_DONE = 0x39,
+    SAVE_MENU_UNK_3A = 0x3A,
+    SAVE_MENU_UNK_3B = 0x3B,
+    SAVE_MENU_UNK_3C = 0x3C,
+    SAVE_MENU_UNK_3D = 0x3D,
+    SAVE_MENU_UNK_3E = 0x3E,
+    SAVE_MENU_SAVE_WRITE_2 = 0x3F,
+    SAVE_MENU_UNK_40 = 0x40,
+    SAVE_MENU_SAVE_DONE = 0x41,
+    SAVE_MENU_SAVE_FAILED = 0x42,
+    SAVE_MENU_SAVE_NO_ROOM = 0x43,
+    SAVE_MENU_UNK_44 = 0x44,
+    SAVE_MENU_LOAD_OPEN = 0x45,
+    SAVE_MENU_UNK_46 = 0x46,
+    SAVE_MENU_UNK_47 = 0x47,
+    SAVE_MENU_LOAD_WAIT = 0x48,
+    SAVE_MENU_LOAD_VERIFY = 0x49,
+    SAVE_MENU_LOAD_READ_FAILED = 0x4A,
+    SAVE_MENU_LOAD_DAMAGED = 0x4B,
+    SAVE_MENU_UNK_4C = 0x4C,
+    SAVE_MENU_CHOCOBO_CHANGED = 0x4D,
+    SAVE_MENU_UNK_4E = 0x4E,
+    SAVE_MENU_EXIT_START = 0x4F,
+    SAVE_MENU_EXIT = 0x50,
+} SaveMenuState;
+
+typedef enum {
+    BLOCK_UNUSED = 0,
+    BLOCK_FF8_SAVE = 1,
+    BLOCK_DAMAGED = 2,
+    BLOCK_OTHER_TITLE = 3,
+    BLOCK_NO_CARD = 4,
+    BLOCK_CHOCOBO_WORLD = 5,
+    BLOCK_CHOCOBO_WORLD_FAILED = 6,
+} BlockStatus;
+
+typedef struct {
+    /** 0x00 */ s32 task[4];
+    /** 0x10 */ u16 state;
+    /** 0x12 */ u8 pad12[0xE];
+    /** 0x20 */ s32 helpMsg;
+    /** 0x24 */ s32 infoMsg;
+    /** 0x28 */ s32 fileHandle;
+    /** 0x2C */ u8 hasPocketStation[2];
+    /** 0x2E */ u8 cardStatus[2];
+    /** 0x30 */ u16 cardColumnWidth; // on the memory card select screen, box for the "Final Fantasy VIII" text
+    /** 0x32 */ u16 cardColumnX; // x position of the column holding the memory card boxes on memory card select screen
+    /** 0x34 */ u16 chocoboColumnWidth; // on memory card select screen, box width for Chocobo world container
+    /** 0x36 */ u16 chocoboColumnX; // on memory card select screen, x position of the chocobo world column
+    /** 0x38 */ u16 slotLabelWidth; // on the memory card select screen, box for the Slot 1/Slot 2 text
+    /** 0x3A */ u8 pad3A[2];
+    /** 0x3C */ s16 timer;
+    /** 0x3E */ u16 progress;
+    /** 0x40 */ u16 progressLimit;
+    /** 0x42 */ s16 pageSlide;
+    /** 0x44 */ u8 pad44[2];
+    /** 0x46 */ s16 brightness;
+    /** 0x48 */ u8 layout;
+    /** 0x49 */ u8 isLoading;
+    /** 0x4A */ u8 selectedBlock;
+    /** 0x4B */ u8 anyCardReady;
+    /** 0x4C */ u8 unk4C;
+    /** 0x4D */ u8 freeBlocks;
+    /** 0x4E */ u8 scanBlock;
+    /** 0x4F */ u8 yesNoCursor;
+    /** 0x50 */ u8 titleCursor;
+    /** 0x51 */ u8 showProgress;
+    /** 0x52 */ u8 savedPopupTimer;
+    /** 0x53 */ u8 cardReadyResult;
+    /** 0x54 */ u8 noCardPolls;
+    /** 0x55 */ u8 showChocoboColumn;
+    /** 0x56 */ u8 columnCursor;
+    /** 0x57 */ u8 pollPort;
+    /** 0x58 */ u8 selectedCard;
+    /** 0x59 */ u8 unk59;
+    /** 0x5A */ u16 writeSize;
+    /** 0x5C */ u16 titleMenuX;
+    /** 0x5E */ u8 readRetries;
+} func_801E3098_arg0;
+
+typedef struct {
+    /** 0x00 */ u8 pad0[0x4C];
+    /** 0x4C */ u32 unk4C;
+    /** 0x50 */ u8 pad50[2];
+    /** 0x52 */ u8 unk52[4];
+} func_801E3098_slot;
+
+typedef struct {
+    /** 0x000 */ u16 unk0;
+    /** 0x002 */ u8 pad2[8];
+    /** 0x00A */ u16 unkA;
+    /** 0x00C */ u8 padC[0xCC4];
+    /** 0xCD0 */ s32 unkCD0;
+    /** 0xCD4 */ u8 padCD4[8];
+    /** 0xCDC */ u16 unkCDC;
+    /** 0xCDE */ u8 padCDE[2];
+    /** 0xCE0 */ u16 unkCE0;
+    /** 0xCE2 */ u16 unkCE2;
+    /** 0xCE4 */ u8 padCE4[0x6BC];
+    /** 0x13A0 */ u16 unk13A0;
+} func_801E3098_save;
+
+typedef struct {
+    /** 0x00 */ char name[20];
+    /** 0x14 */ long attr;
+    /** 0x18 */ long size;
+    /** 0x1C */ void *next;
+    /** 0x20 */ long head;
+    /** 0x24 */ char system[4];
+} func_801E3098_dirEntry;
+
+extern u8 D_80085148[];
+extern u32 D_801EC298;
+extern u8 D_801EC2A0[];
+extern u16 D_801EC290;
+extern u16 D_801EC292;
+extern u16 D_80083792[];
+extern char D_801EB9E0[];
+extern char D_801EB9E4[];
+extern char D_8005624C[];
+
+void initCardDataBlock(void);
+void initCardEventHandlers(void);
+void setModeBit(s32);
+void dispatchVsyncCallback(void);
+void loadSubOverlay(s32, s32);
+s32 pollCardReady(s32);
+s32 pollCardStatus(s32);
+void copyString(char *, char *);
+s32 openFirstFileRetry(s32, char *, func_801E3098_dirEntry *);
+s32 cardNextFile(func_801E3098_dirEntry *);
+s32 btlStrlen(char *);
+s32 compareBytes(void *, void *, s32);
+s32 readCardFileSync(s32, char *, s32, s32, s32);
+s32 pollCardEventsDiscard(void);
+void closeFileDescriptorWrapper(s32);
+void markCardBusy(s32);
+s32 createCardFile(s32, char *, s32);
+s32 writeCardSector(s32, char *, s32, s32, s32);
+void btlMemcpyForward(s32, void *, s32);
+// Returns s32 here, not u16 as in memcard.h: the first checksum compare reads the raw return register.
+s32 func_800377B4(s32, s32);
+// Takes the card number as an integer here, where memcard.h declares a pointer.
+s32 func_800379AC(s32);
+static void func_801EAE74(void);
+static void func_801EAE4C(void);
+void func_801F1D34(s32);
+s32 func_801F6800(u16, s32, s32);
+void func_801F7C98(s32, char *);
+void func_801F7954(void);
+void func_801F7928(void);
+void func_801F7A08(void);
+static void func_801E73C0(void);
+static void func_801E73E8(void);
+static void func_801E7408(void);
+void func_801F728C(s32, s32);
+s32 func_801EFFB8(void);
+static void func_801E283C(void);
+static void func_801E2860(void);
+s32 func_801E2958(s32, s32);
+s32 func_801E2AB0(s32, s32);
+void func_801E2DDC(func_801E3098_arg0 *);
+s32 func_801E2E9C(func_801E3098_arg0 *);
+void func_801E2F6C(void);
+
+static void func_801E2CE8(func_801E3098_arg0 *a0, s32 a1, s32 a2);
+static s32 func_801E2ECC(func_801E3098_arg0 *a0, s32 a1);
+static s32 func_801E3098(func_801E3098_arg0 *ctx);
+static void func_801E7B18(s32 a0);
 
 /**
  * @brief Compute save slot data address.
@@ -54,7 +289,7 @@ s32 func_801E282C(void) {
 /**
  * @brief Clear 0x2000 bytes of sprite buffer at 0x801D1000.
  */
-void func_801E283C(void) {
+static void func_801E283C(void) {
     u8 *ptr = (u8 *)0x801D1000;
     s32 count = 0x2000;
     do {
@@ -71,7 +306,7 @@ void func_801E283C(void) {
  * to 0x801D1000, waits for completion, then copies the data to
  * the game state region using table entry 0x12 from D_80097424.
  */
-void func_801E2860(void) {
+static void func_801E2860(void) {
     s32 v0;
     s32 idx = 0x12;
 
@@ -147,7 +382,7 @@ s32 func_801E2CBC(s32 a0) {
  * @param a1 Width selector (non-zero = 0x98, zero = 0x64)
  * @param a2 Offset selector (non-zero = use offset 0x36, zero = use 0x32)
  */
-void func_801E2CE8(s32 a0, s32 a1, s32 a2) {
+static void func_801E2CE8(func_801E3098_arg0 *a0, s32 a1, s32 a2) {
     s32 width = 0x64;
     s32 ypos;
 
@@ -155,9 +390,9 @@ void func_801E2CE8(s32 a0, s32 a1, s32 a2) {
         width = 0x98;
     }
     if (a2 != 0) {
-        ypos = *(u16 *)(a0 + 0x36) + 7;
+        ypos = a0->chocoboColumnX + 7;
     } else {
-        ypos = *(u16 *)(a0 + 0x32) + 7;
+        ypos = a0->cardColumnX + 7;
     }
     func_801F0994(0, ypos, width);
 }
@@ -233,17 +468,16 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C); /* 0x30 */
  * @param a1 Mode selector (0 or non-zero).
  * @return Decoded string pointer.
  */
-s32 func_801E2ECC(u8 *a0, s32 a1) {
+static s32 func_801E2ECC(func_801E3098_arg0 *a0, s32 a1) {
+    s32 idx;
     s32 v0;
-    u8 *v1;
 
-    v0 = a0[0x58];
-    v1 = a0 + v0;
-    v0 = v1[0x2E];
+    idx = a0->selectedCard;
+    v0 = a0->cardStatus[idx];
 
     if (a1 != 0) {
         if ((u32)v0 < 2) {
-            if (v1[0x2C] == 1) {
+            if (a0->hasPocketStation[idx] == 1) {
                 return func_801E2CBC(0x20);
             }
             return func_801E2C90(0x25);
@@ -252,7 +486,7 @@ s32 func_801E2ECC(u8 *a0, s32 a1) {
     } else {
         if ((u32)v0 < 2) {
             s32 id = 0x1F;
-            if (a0[0x49] == 1) {
+            if (a0->isLoading == 1) {
                 id = 0x28;
             }
             return func_801E2CBC(id);
@@ -263,7 +497,1329 @@ s32 func_801E2ECC(u8 *a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2F6C); /* 0x12C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E3098); /* 0x23CC */
+static s32 func_801E3098(func_801E3098_arg0 *ctx) {
+    func_801E3098_dirEntry dirEntry;
+    char fileNames[16][32];
+    char searchPattern[32];
+    char slotName[32];
+    char slotName2[32];
+    char slotName3[32];
+    char slotName4[32];
+    char slotName5[32];
+    MenuDisplayConfig *cfg;
+    func_801E3098_save *save;
+    s32 result;
+    u16 *stepPtr;
+    u8 *slotStates;
+    s32 hasSharedFile;
+    s32 sum0;
+    s32 sum1;
+    char (*nameTable)[32];
+    s32 blocksLeft;
+    s32 row;
+    u16 state;
+    u16 inputRepeat;
+    u16 inputNew;
+    u16 repeat;
+    s32 one;
+    s32 slotAvailable;
+    // One result variable per case: sharing a single variable changes the register allocation.
+    s32 poll1;
+    s32 poll2;
+    s32 poll3;
+    s32 poll4;
+    s32 poll5;
+    s32 poll6;
+    s32 poll7;
+    s32 poll8;
+    s32 poll9;
+    s32 poll10;
+    s32 poll11;
+    s32 poll12;
+    s32 poll13;
+    s32 poll14;
+    s32 poll15;
+    s32 poll16;
+    s32 slotStatus;
+    s32 blockSize;
+    s32 writeSize;
+    s32 writeSize2;
+    s32 fileFound;
+    s32 usedBytes;
+    s32 checksum;
+    s32 fileCount;
+    s32 matchCount;
+    s32 usedCount;
+    s32 slotB;
+    s32 freeCount;
+    s32 partial;
+    s32 i;
+    s32 slotIndex;
+    s32 clearSlot;
+    s32 slot;
+    s32 fillSlot;
+    s32 j;
+    s32 rowUp;
+    s32 rowDown;
+    s32 moved;
+    s32 colUp;
+    s32 colDown;
+
+    result = 1;
+    stepPtr = &ctx->state;
+    cfg = &g_menuDisplayCfg;
+    inputRepeat = cfg->inputRepeat;
+    inputNew = cfg->inputNew;
+    state = *stepPtr;
+
+dispatch:
+    switch (state) {
+    case SAVE_MENU_INIT:
+        if (ctx->isLoading == 1) {
+            ctx->selectedBlock = 0xFF;
+            *stepPtr = SAVE_MENU_TITLE_INIT;
+            break;
+        }
+        ctx->selectedBlock = 0xFF;
+        *stepPtr = SAVE_MENU_CARD_SELECT_FADE_IN;
+        ctx->cardStatus[0] = 3;
+        ctx->cardStatus[1] = 3;
+        ctx->hasPocketStation[0] = 0;
+        ctx->hasPocketStation[1] = 0;
+        ctx->selectedCard = 0;
+        initCardDataBlock();
+        func_801EAE74();
+        break;
+    case SAVE_MENU_CARD_SELECT_FADE_IN:
+        ctx->layout = 1;
+        ctx->brightness += 0x199;
+        func_801E2DDC(ctx);
+        ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
+        if (ctx->brightness >= 0x1000) {
+            ctx->brightness = 0x1000;
+            *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
+        }
+        func_801F0948(ctx->brightness);
+        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        break;
+    case SAVE_MENU_TITLE_INIT:
+        one = 1;
+        initCardEventHandlers();
+        if (ctx->isLoading == one) {
+            func_801F1DB0(0);
+        }
+        ctx->pollPort = 0;
+        ctx->layout = 0;
+        ctx->titleCursor = one;
+        initCardDataBlock();
+        func_801EAE74();
+        func_801E2D38(0, ctx->titleMenuX, ctx->titleCursor);
+        *stepPtr = SAVE_MENU_UNK_03;
+        break;
+    case SAVE_MENU_UNK_03:
+        func_801E2DDC(ctx);
+        func_801E2E9C(ctx);
+        if (pollCdReadStatus() == 0) {
+            *stepPtr = SAVE_MENU_UNK_04;
+        }
+        func_801E2D38(0, ctx->titleMenuX, ctx->titleCursor);
+        break;
+    case SAVE_MENU_UNK_04:
+        func_801E2DDC(ctx);
+        func_801E2E9C(ctx);
+        ctx->brightness += 0x199;
+        if (ctx->brightness >= 0x1000) {
+            ctx->brightness = 0x1000;
+            state = SAVE_MENU_UNK_05;
+            goto dispatch;
+        }
+        func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+        break;
+    case SAVE_MENU_UNK_05:
+        func_801E2DDC(ctx);
+        func_801E2E9C(ctx);
+        *stepPtr = SAVE_MENU_TITLE_INPUT;
+    case SAVE_MENU_TITLE_INPUT:
+        func_801E2DDC(ctx);
+        slotAvailable = func_801E2E9C(ctx);
+        ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
+        if (inputRepeat & (PADLup | PADLdown)) {
+            ctx->unk4C = 0xFF;
+            ctx->titleCursor = func_801F6768(inputRepeat, 2, ctx->titleCursor);
+        }
+        func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+        if (inputNew & PADRdown) {
+            if (ctx->titleCursor != 0) {
+                if (slotAvailable != 0) {
+                    sendSpuCommand(2);
+                    func_801EAE4C();
+                    initCardEventHandlers();
+                    *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
+                } else {
+                    sendSpuCommand(5);
+                }
+            } else {
+                *stepPtr = SAVE_MENU_UNK_07;
+            }
+        }
+        break;
+    case SAVE_MENU_UNK_07:
+        playSoundEffect(0xC);
+        playSoundEffect(0xD);
+        playSoundEffect(0xE);
+        playSoundEffect(0xF);
+        func_801E73C0();
+        func_801E73E8();
+        func_801E2860();
+        func_801E7408();
+        func_801E2F6C();
+        setModeBit(1);
+        func_801F7954();
+        func_801F798C();
+        func_801F7928();
+        func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+        D_80085148[0] = 0;
+        D_80085148[1] = 0;
+        *stepPtr = SAVE_MENU_EXIT_START;
+        break;
+    case SAVE_MENU_CARD_SELECT_ENTER:
+        ctx->pollPort = 0;
+        ctx->layout = 1;
+        ctx->showProgress = 0;
+        ctx->savedPopupTimer = 0;
+        initCardDataBlock();
+        func_801EAE74();
+        *stepPtr = SAVE_MENU_CARD_SELECT_INPUT;
+        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        break;
+    case SAVE_MENU_CARD_CHECK_FAILED:
+        sendSpuCommand(5);
+        ctx->layout = 3;
+        ctx->showProgress = 0;
+        ctx->timer = 60;
+        ctx->helpMsg = 0;
+        initCardDataBlock();
+        func_801EAE74();
+        *stepPtr = SAVE_MENU_UNK_0A;
+    case SAVE_MENU_UNK_0A:
+        func_801E2DDC(ctx);
+        ctx->timer--;
+        if (inputNew & (PADRup | PADRdown)) {
+            func_801F7BEC(inputNew);
+            ctx->timer = 0;
+        }
+        if (ctx->timer <= 0) {
+            *stepPtr = SAVE_MENU_UNK_0B;
+        }
+        break;
+    case SAVE_MENU_UNK_0B:
+        ctx->layout = 1;
+        ctx->cardStatus[ctx->selectedCard] = 3;
+        ctx->hasPocketStation[ctx->selectedCard] = 0;
+        D_80085148[ctx->selectedCard] = 0;
+        ctx->selectedBlock = 0xFF;
+        func_801E2DDC(ctx);
+        state = SAVE_MENU_CARD_SELECT_ENTER;
+        goto dispatch;
+    case SAVE_MENU_CARD_SELECT_INPUT:
+        func_801E2DDC(ctx);
+        // The mask is redundant on a u16, but the original has this andi.
+        repeat = inputRepeat & 0xFFFF;
+        ctx->selectedCard = func_801F6768(repeat, 2, ctx->selectedCard);
+        if (ctx->showChocoboColumn != 0) {
+            ctx->columnCursor = func_801F6800(repeat, 2, ctx->columnCursor);
+        }
+        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
+        if (inputNew & PADRup) {
+            sendSpuCommand(3);
+            if (ctx->isLoading == 0) {
+                if (D_801EC294 != 0) {
+                    *stepPtr = SAVE_MENU_CHOCOBO_CHANGED;
+                } else {
+                    *stepPtr = SAVE_MENU_EXIT_START;
+                }
+            } else {
+                *stepPtr = SAVE_MENU_TITLE_INIT;
+            }
+        }
+        if (inputNew & PADRdown) {
+            if (ctx->cardStatus[ctx->selectedCard] < 2) {
+                if (ctx->columnCursor != 0) {
+                    if (ctx->hasPocketStation[ctx->selectedCard] == 1) {
+                        sendSpuCommand(2);
+                        func_801EAE4C();
+                        initCardEventHandlers();
+                        dispatchVsyncCallback();
+                        loadSubOverlay(7, 0x801CD000);
+                        loadSubOverlay(0x5A, 0x801CE800);
+                        loadOverlayWithTimCallback(0xC, 0x801D3000);
+                        *stepPtr = SAVE_MENU_UNK_0D;
+                    } else {
+                        sendSpuCommand(5);
+                    }
+                } else {
+                    func_801EAE4C();
+                    initCardEventHandlers();
+                    sendSpuCommand(2);
+                    *stepPtr = SAVE_MENU_LIST_OPEN;
+                }
+            } else {
+                sendSpuCommand(5);
+            }
+        }
+        break;
+    case SAVE_MENU_UNK_0D:
+        ctx->brightness -= 0x199;
+        if (ctx->brightness <= 0) {
+            ctx->brightness = 0;
+            *stepPtr = SAVE_MENU_UNK_0E;
+        }
+        func_801F0948(ctx->brightness);
+        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        break;
+    case SAVE_MENU_UNK_0E:
+        func_801F0C5C(0x1B, ctx);
+        *stepPtr = SAVE_MENU_CHOCOBO_WAIT;
+        break;
+    case SAVE_MENU_CHOCOBO_WAIT:
+        if (func_801F0D84() == 6 || func_801F0D84() == 0x10) {
+            *stepPtr = SAVE_MENU_UNK_10;
+        }
+        break;
+    case SAVE_MENU_UNK_10:
+        initCardDataBlock();
+        func_801EAE74();
+        *stepPtr = SAVE_MENU_UNK_11;
+        break;
+    case SAVE_MENU_UNK_11:
+        ctx->brightness += 0x199;
+        func_801E2DDC(ctx);
+        ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
+        if (ctx->brightness >= 0x1000) {
+            ctx->brightness = 0x1000;
+            if (pollCdReadStatus() == 0) {
+                *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
+            }
+        }
+        func_801F0948(ctx->brightness);
+        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        break;
+    case SAVE_MENU_LIST_OPEN:
+        ctx->layout = 2;
+        ctx->scanBlock = 0;
+        ctx->readRetries = 0;
+        slotStatus = ctx->cardStatus[ctx->selectedCard];
+        D_801EC298 = 0;
+        ctx->infoMsg = func_801E2C90(ctx->selectedCard + 0x22);
+        if (slotStatus == 1) {
+            ctx->helpMsg = func_801E2C90(0x19);
+            D_80085148[ctx->selectedCard] = 0;
+            ctx->selectedBlock = 0xFF;
+        } else {
+            ctx->helpMsg = func_801E2C90(0x10);
+        }
+        *stepPtr = SAVE_MENU_LIST_PREPARE;
+        break;
+    case SAVE_MENU_LIST_PREPARE:
+        *stepPtr = SAVE_MENU_LIST_CHECK_CARD;
+        break;
+    case SAVE_MENU_LIST_CHECK_CARD:
+        result = pollCardReady(ctx->selectedCard << 4);
+        switch (result) {
+        case 0:
+            ctx->showProgress = 1;
+            ctx->progress = 0;
+            ctx->cardReadyResult = 0;
+            break;
+        case 2:
+            ctx->selectedBlock = 0xFF;
+            ctx->cardReadyResult = result;
+            break;
+        case 3:
+        default:
+            ctx->selectedBlock = 0xFF;
+            state = SAVE_MENU_CARD_CHECK_FAILED;
+            goto dispatch;
+        }
+        *stepPtr = SAVE_MENU_LIST_READ_DIRECTORY;
+        break;
+    case SAVE_MENU_LIST_READ_DIRECTORY:
+        ctx->showProgress = 1;
+        ctx->progress = 0;
+        ctx->helpMsg = func_801E2C90(0x10);
+        ctx->progress = 0x100;
+        if (ctx->cardReadyResult == 2) {
+            for (i = 0; i < 15; i++) {
+                D_801EC2A0[i] = BLOCK_UNUSED;
+            }
+            ctx->freeBlocks = i;
+        } else {
+            copyString(searchPattern, D_801EB9E0);
+            fileCount = 0;
+            dirEntry.name[0] = 0;
+            fileNames[0][0] = 0;
+            fileFound = openFirstFileRetry(ctx->selectedCard << 4, searchPattern, &dirEntry);
+            nameTable = fileNames;
+            if (fileFound != 0) {
+                copyString(*nameTable, dirEntry.name);
+            }
+            usedBytes = 0;
+            if (fileFound != 0) {
+                while (1) {
+                    fileCount++;
+                    usedBytes += dirEntry.size;
+                    dirEntry.name[0] = 0;
+                    fileFound = cardNextFile(&dirEntry);
+                    nameTable[fileCount][0] = 0;
+                    if (fileFound == 0) {
+                        break;
+                    }
+                    copyString(nameTable[fileCount], dirEntry.name);
+                }
+            }
+            ctx->freeBlocks = 15 - usedBytes / 8192;
+            matchCount = 0;
+            hasSharedFile = 0;
+            for (i = 0; i < 15; i++) {
+                D_801EC2A0[i] = BLOCK_UNUSED;
+                for (j = 0; j < fileCount; j++) {
+                    func_801F7C98(i, searchPattern);
+                    if (compareBytes(fileNames[j], D_8005624C, btlStrlen(D_8005624C)) != 0) {
+                        hasSharedFile = 1;
+                    }
+                    if (compareBytes(searchPattern, fileNames[j], btlStrlen(searchPattern)) != 0) {
+                        D_801EC2A0[i] = BLOCK_FF8_SAVE;
+                        matchCount++;
+                        break;
+                    }
+                }
+            }
+            blocksLeft = (15 - ctx->freeBlocks) - matchCount;
+            ctx->unk59 = hasSharedFile;
+            if (hasSharedFile == 1) {
+                blocksLeft -= 7;
+            }
+            matchCount = 14;
+            while (blocksLeft > 0) {
+                if (D_801EC2A0[matchCount] == BLOCK_UNUSED) {
+                    D_801EC2A0[matchCount] = BLOCK_OTHER_TITLE;
+                    blocksLeft--;
+                }
+                matchCount--;
+            }
+            if (hasSharedFile != 0) {
+                blocksLeft = 7;
+                while (blocksLeft > 0) {
+                    if (D_801EC2A0[matchCount] == BLOCK_UNUSED) {
+                        D_801EC2A0[matchCount] = BLOCK_CHOCOBO_WORLD;
+                        blocksLeft--;
+                    }
+                    matchCount--;
+                }
+            }
+        }
+        initCardDataBlock();
+        *stepPtr = SAVE_MENU_LIST_NEXT_BLOCK;
+        break;
+    case SAVE_MENU_LIST_NEXT_BLOCK:
+        if (ctx->scanBlock >= 15) {
+            state = SAVE_MENU_UNK_19;
+            goto dispatch;
+        }
+        ctx->progress += 0x40;
+        ctx->progressLimit = (ctx->scanBlock + 2) << 8;
+        if (ctx->progress > ctx->progressLimit) {
+            ctx->progress = ctx->progressLimit;
+        }
+        slotStates = D_801EC2A0;
+        if (slotStates[ctx->scanBlock] == BLOCK_FF8_SAVE) {
+            func_801F7C98(ctx->scanBlock, slotName);
+            result = readCardFileSync(ctx->selectedCard << 4, slotName, func_801E2800(ctx->scanBlock), 0x80, 0x180);
+            ctx->fileHandle = result;
+            if (result == -1) {
+                slotStates[ctx->scanBlock] = BLOCK_UNUSED;
+                ctx->selectedBlock = 0xFF;
+                ctx->showProgress = 0;
+                state = SAVE_MENU_CARD_CHECK_FAILED;
+                goto dispatch;
+            }
+            ctx->timer = 60;
+            *stepPtr = SAVE_MENU_LIST_WAIT_READ;
+            break;
+        }
+        if (slotStates[ctx->scanBlock] == BLOCK_CHOCOBO_WORLD && ctx->unk59 != 0) {
+            result = readCardFileSync(ctx->selectedCard << 4, D_8005624C, func_801E2800(ctx->scanBlock), 0x80, 0);
+            ctx->fileHandle = result;
+            if (result == -1) {
+                slotStates[ctx->scanBlock] = BLOCK_UNUSED;
+                ctx->selectedBlock = 0xFF;
+                ctx->showProgress = 0;
+                state = SAVE_MENU_CARD_CHECK_FAILED;
+                goto dispatch;
+            }
+            ctx->timer = 60;
+            *stepPtr = SAVE_MENU_LIST_WAIT_READ;
+            break;
+        }
+        initCardDataBlock();
+        poll1 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll1 != -1) {
+            if (poll1 != 0) {
+                if (poll1 != 1 || ctx->cardReadyResult != 2) {
+                    state = SAVE_MENU_CARD_CHECK_FAILED;
+                    goto dispatch;
+                }
+            }
+        }
+        *stepPtr = SAVE_MENU_LIST_WAIT_CARD;
+        break;
+    case SAVE_MENU_LIST_WAIT_CARD:
+        poll2 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll2 != -1) {
+            if (poll2 != 0) {
+                if (poll2 != 1 || ctx->cardReadyResult != 2) {
+                    state = SAVE_MENU_CARD_CHECK_FAILED;
+                    goto dispatch;
+                }
+            }
+        }
+        ctx->progress += 0x40;
+        if (ctx->progress > ctx->progressLimit) {
+            ctx->progress = ctx->progressLimit;
+            ctx->scanBlock++;
+            *stepPtr = SAVE_MENU_LIST_NEXT_BLOCK;
+        }
+        break;
+    case SAVE_MENU_LIST_WAIT_READ:
+        poll3 = pollCardEventsDiscard();
+        ctx->progress += 0x40;
+        if (ctx->progress > ctx->progressLimit) {
+            ctx->progress = ctx->progressLimit;
+        }
+        switch (poll3) {
+        case 0:
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            if (D_801EC2A0[ctx->scanBlock] == BLOCK_CHOCOBO_WORLD && ctx->unk59 != 0) {
+                ctx->unk59 = 0;
+                if (compareBytes(((func_801E3098_slot *)func_801E2800(ctx->scanBlock))->unk52, D_801EB9E4, 4) == 0) {
+                    for (slotIndex = 0; slotIndex < 15; slotIndex++) {
+                        if (D_801EC2A0[slotIndex] == BLOCK_CHOCOBO_WORLD) {
+                            D_801EC2A0[slotIndex] = BLOCK_CHOCOBO_WORLD_FAILED;
+                        }
+                    }
+                }
+            } else {
+                func_801E3098_slot *header = (func_801E3098_slot *)func_801E2800(ctx->scanBlock);
+
+                if (D_801EC298 < header->unk4C) {
+                    D_801EC298 = header->unk4C;
+                    D_80085148[ctx->selectedCard] = ctx->scanBlock;
+                }
+                if (func_801E292C(ctx->scanBlock) == 0) {
+                    D_801EC2A0[ctx->scanBlock] = BLOCK_DAMAGED;
+                }
+            }
+            ctx->readRetries = 0;
+            ctx->scanBlock++;
+            *stepPtr = SAVE_MENU_LIST_NEXT_BLOCK;
+            break;
+        case 1:
+        case 2:
+        case 3:
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            if (ctx->readRetries < 2) {
+                ctx->readRetries++;
+                state = SAVE_MENU_LIST_NEXT_BLOCK;
+                goto dispatch;
+            }
+            ctx->showProgress = 0;
+            state = SAVE_MENU_CARD_CHECK_FAILED;
+            goto dispatch;
+        default:
+            ctx->timer--;
+            if (ctx->timer != 0) {
+                break;
+            }
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            ctx->showProgress = 0;
+            state = SAVE_MENU_CARD_CHECK_FAILED;
+            goto dispatch;
+        }
+        break;
+    case SAVE_MENU_UNK_19:
+        initCardEventHandlers();
+        initCardDataBlock();
+        initCardEventHandlers();
+        result = pollCardReady(ctx->selectedCard << 4);
+        switch (result) {
+        case 0:
+            ctx->progress = 0x1000;
+            *stepPtr = SAVE_MENU_LIST_LOADED;
+            break;
+        case 2:
+            ctx->progress = 0x1000;
+            ctx->cardReadyResult = result;
+            for (clearSlot = 0; clearSlot < 15; clearSlot++) {
+                D_801EC2A0[clearSlot] = BLOCK_UNUSED;
+            }
+            ctx->freeBlocks = 15;
+            *stepPtr = SAVE_MENU_LIST_LOADED;
+            break;
+        case 3:
+            sendSpuCommand(5);
+            ctx->selectedBlock = 0xFF;
+            state = SAVE_MENU_CARD_CHECK_FAILED;
+            goto dispatch;
+        default:
+            sendSpuCommand(5);
+            break;
+        }
+        break;
+    case SAVE_MENU_LIST_LOADED:
+        ctx->showProgress = 0;
+        if (ctx->isLoading == 1) {
+            freeCount = 0;
+            for (slot = 0; slot < 15; slot++) {
+                if (D_801EC2A0[slot] == BLOCK_FF8_SAVE) {
+                    freeCount++;
+                }
+            }
+            if (freeCount == 0) {
+                state = SAVE_MENU_NO_SAVE_DATA;
+                goto dispatch;
+            }
+        }
+        if (ctx->isLoading == 0) {
+            usedCount = 0;
+            for (slotB = 0; slotB < 15; slotB++) {
+                if (D_801EC2A0[slotB] == BLOCK_OTHER_TITLE) {
+                    usedCount++;
+                }
+            }
+            if (usedCount == 15) {
+                state = SAVE_MENU_NO_EMPTY_BLOCKS;
+                goto dispatch;
+            }
+        }
+        playSoundEffect(0x10);
+        *stepPtr = SAVE_MENU_LIST_ENTER;
+        break;
+    case SAVE_MENU_LIST_ENTER:
+        initCardEventHandlers();
+        initCardDataBlock();
+        if (ctx->selectedBlock == 0xFF) {
+            ctx->selectedBlock = D_80085148[ctx->selectedCard];
+        }
+        *stepPtr = SAVE_MENU_UNK_1C;
+    case SAVE_MENU_UNK_1C:
+        if (pollCdReadStatus() != 0) {
+            break;
+        }
+        state = SAVE_MENU_LIST_SHOW;
+        goto dispatch;
+    case SAVE_MENU_LIST_SHOW:
+        ctx->layout = 5;
+        if (ctx->isLoading == 0) {
+            ctx->helpMsg = func_801E2C90(4);
+        } else {
+            ctx->helpMsg = func_801E2C90(0x1D);
+        }
+        initCardEventHandlers();
+        initCardDataBlock();
+        ctx->noCardPolls = 0;
+        func_801E2D78(ctx->selectedBlock);
+        *stepPtr = SAVE_MENU_LIST_INPUT;
+        break;
+    case SAVE_MENU_NO_CARD:
+        ctx->savedPopupTimer = 0;
+        ctx->helpMsg = func_801E2C90(0xA);
+        for (fillSlot = 0; fillSlot < 15; fillSlot++) {
+            D_801EC2A0[fillSlot] = BLOCK_NO_CARD;
+        }
+        D_80085148[ctx->selectedCard] = 0;
+        markCardBusy(ctx->selectedCard << 4);
+        *stepPtr = SAVE_MENU_NO_CARD_WAIT;
+    case SAVE_MENU_NO_CARD_WAIT:
+        if ((u32)pollCardStatus(ctx->selectedCard << 4) < 2) {
+            *stepPtr = SAVE_MENU_LIST_OPEN;
+        }
+        if (inputNew & PADRup) {
+            sendSpuCommand(3);
+            ctx->savedPopupTimer = 0;
+            ctx->selectedBlock = 0xFF;
+            initCardDataBlock();
+            func_801EAE74();
+            state = SAVE_MENU_UNK_0B;
+            goto dispatch;
+        }
+        break;
+    case SAVE_MENU_LIST_INPUT:
+        poll4 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll4 != -1) {
+            if (poll4 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 3) {
+                    state = SAVE_MENU_NO_CARD;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        // The (u8) casts on the row and column are needed for the match.
+        row = (u8)(ctx->selectedBlock / 3);
+        moved = func_801F6768(inputRepeat, 3, (u8)(ctx->selectedBlock % 3));
+        if (inputRepeat & (PADLup | PADLdown)) {
+            ctx->savedPopupTimer = 0;
+        }
+        if (inputRepeat & PADLleft) {
+            ctx->savedPopupTimer = 0;
+            *stepPtr = SAVE_MENU_PAGE_LEFT_START;
+        }
+        if (inputRepeat & PADLright) {
+            ctx->savedPopupTimer = 0;
+            *stepPtr = SAVE_MENU_PAGE_RIGHT_START;
+        }
+        ctx->selectedBlock = moved + row * 3;
+        func_801E2D78(ctx->selectedBlock);
+        if (inputNew & PADRdown) {
+            ctx->savedPopupTimer = 0;
+            if (ctx->isLoading == 1) {
+                if (D_801EC2A0[ctx->selectedBlock] == BLOCK_FF8_SAVE) {
+                    sendSpuCommand(2);
+                    initCardEventHandlers();
+                    *stepPtr = SAVE_MENU_LOAD_OPEN;
+                } else {
+                    sendSpuCommand(5);
+                }
+            } else {
+                switch (D_801EC2A0[ctx->selectedBlock]) {
+                case BLOCK_FF8_SAVE:
+                case BLOCK_DAMAGED:
+                    sendSpuCommand(2);
+                    initCardEventHandlers();
+                    *stepPtr = SAVE_MENU_OVERWRITE_OPEN;
+                    break;
+                case BLOCK_UNUSED:
+                    sendSpuCommand(2);
+                    initCardEventHandlers();
+                    *stepPtr = SAVE_MENU_SAVE_CHECK_FORMAT;
+                    break;
+                default:
+                    sendSpuCommand(5);
+                    break;
+                }
+            }
+        }
+        if (inputNew & PADRup) {
+            sendSpuCommand(3);
+            ctx->savedPopupTimer = 0;
+            ctx->selectedBlock = 0xFF;
+            state = SAVE_MENU_CARD_SELECT_ENTER;
+            goto dispatch;
+        }
+        break;
+    case SAVE_MENU_PAGE_LEFT_START:
+        // The (u8) casts on the row and column are needed for the match.
+        colUp = (u8)(ctx->selectedBlock % 3);
+        rowUp = (u8)(ctx->selectedBlock / 3);
+        rowUp--;
+        if (rowUp < 0) {
+            rowUp = 4;
+        }
+        ctx->selectedBlock = colUp + rowUp * 3;
+        sendSpuCommand(1);
+        ctx->pageSlide = -0xF80;
+        func_801E2D78(ctx->selectedBlock);
+        poll5 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll5 != -1) {
+            if (poll5 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 3) {
+                    ctx->pageSlide = 0;
+                    state = SAVE_MENU_NO_CARD;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        *stepPtr = SAVE_MENU_PAGE_LEFT_SLIDE;
+        break;
+    case SAVE_MENU_PAGE_LEFT_SLIDE:
+        poll6 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll6 != -1) {
+            if (poll6 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 3) {
+                    ctx->pageSlide = 0;
+                    state = SAVE_MENU_NO_CARD;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        func_801E2D78(ctx->selectedBlock);
+        ctx->pageSlide += 0x80;
+        if (ctx->pageSlide >= 0) {
+            ctx->pageSlide = 0;
+            *stepPtr = SAVE_MENU_LIST_SHOW;
+        }
+        if (inputNew & PADLright) {
+            *stepPtr = SAVE_MENU_PAGE_RIGHT_START;
+        }
+        if (inputNew & PADLleft) {
+            *stepPtr = SAVE_MENU_PAGE_LEFT_START;
+        }
+        break;
+    case SAVE_MENU_PAGE_RIGHT_START:
+        // The (u8) casts on the row and column are needed for the match.
+        colDown = (u8)(ctx->selectedBlock % 3);
+        rowDown = (u8)(ctx->selectedBlock / 3);
+        rowDown++;
+        if (rowDown >= 5) {
+            rowDown = 0;
+        }
+        ctx->selectedBlock = colDown + rowDown * 3;
+        sendSpuCommand(1);
+        ctx->pageSlide = 0xF80;
+        func_801E2D78(ctx->selectedBlock);
+        poll7 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll7 != -1) {
+            if (poll7 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 3) {
+                    ctx->pageSlide = 0;
+                    state = SAVE_MENU_NO_CARD;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        *stepPtr = SAVE_MENU_PAGE_RIGHT_SLIDE;
+        break;
+    case SAVE_MENU_PAGE_RIGHT_SLIDE:
+        poll8 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll8 != -1) {
+            if (poll8 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 3) {
+                    ctx->pageSlide = 0;
+                    state = SAVE_MENU_NO_CARD;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        func_801E2D78(ctx->selectedBlock);
+        ctx->pageSlide -= 0x80;
+        if (ctx->pageSlide <= 0) {
+            ctx->pageSlide = 0;
+            *stepPtr = SAVE_MENU_LIST_SHOW;
+        }
+        if (inputNew & PADLright) {
+            *stepPtr = SAVE_MENU_PAGE_RIGHT_START;
+        }
+        if (inputNew & PADLleft) {
+            *stepPtr = SAVE_MENU_PAGE_LEFT_START;
+        }
+        break;
+    case SAVE_MENU_NO_EMPTY_BLOCKS:
+        sendSpuCommand(5);
+        initCardDataBlock();
+        ctx->layout = 0xA;
+        ctx->timer = 300;
+        *stepPtr = SAVE_MENU_MESSAGE_WAIT;
+        break;
+    case SAVE_MENU_NO_SAVE_DATA:
+        sendSpuCommand(5);
+        initCardDataBlock();
+        ctx->layout = 0xB;
+        ctx->timer = 300;
+        *stepPtr = SAVE_MENU_MESSAGE_WAIT;
+        break;
+    case SAVE_MENU_MESSAGE_WAIT:
+        ctx->noCardPolls = 0;
+        ctx->timer--;
+        poll9 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll9 != -1) {
+            if (poll9 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 3) {
+                    state = SAVE_MENU_UNK_0B;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        if (inputNew & (PADRup | PADRdown)) {
+            func_801F7BEC(inputNew);
+            ctx->timer = 0;
+        }
+        if (ctx->timer <= 0) {
+            *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
+        }
+        break;
+    case SAVE_MENU_OVERWRITE_OPEN:
+        ctx->layout = 4;
+        ctx->yesNoCursor = 1;
+        func_801F728C(func_801E2C90(5), 0x54);
+        initCardDataBlock();
+        ctx->noCardPolls = 0;
+        *stepPtr = SAVE_MENU_OVERWRITE_INPUT;
+    case SAVE_MENU_OVERWRITE_INPUT:
+        poll10 = pollCardStatus(ctx->selectedCard << 4);
+        if (poll10 != -1) {
+            if (poll10 == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 4) {
+                    ctx->layout = 5;
+                    state = SAVE_MENU_NO_CARD;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        ctx->yesNoCursor = func_801F6768(inputRepeat, 2, ctx->yesNoCursor);
+        func_801F6F88(ctx->yesNoCursor);
+        if (inputNew & PADRdown) {
+            sendSpuCommand(2);
+            if (ctx->yesNoCursor == 0) {
+                *stepPtr = SAVE_MENU_SAVE_CHECK_FORMAT;
+            } else {
+                *stepPtr = SAVE_MENU_LIST_SHOW;
+            }
+        }
+        if (inputNew & PADRup) {
+            sendSpuCommand(3);
+            *stepPtr = SAVE_MENU_LIST_SHOW;
+        }
+        break;
+    case SAVE_MENU_SAVE_CHECK_FORMAT:
+        if (ctx->cardReadyResult == 2) {
+            *stepPtr = SAVE_MENU_FORMAT_PROMPT_OPEN;
+            break;
+        }
+    case SAVE_MENU_UNK_36:
+        initCardDataBlock();
+        if (D_801EC2A0[ctx->selectedBlock] == BLOCK_UNUSED) {
+            blockSize = func_801E2AB0(ctx->selectedBlock, 0x801D1000);
+            if (ctx->freeBlocks < (blockSize + 0x1FFF) / 8192) {
+                state = SAVE_MENU_SAVE_NO_ROOM;
+                goto dispatch;
+            }
+        }
+        ctx->layout = 7;
+        ctx->helpMsg = func_801E2C90(9);
+        *stepPtr = SAVE_MENU_UNK_37;
+        break;
+    case SAVE_MENU_UNK_37:
+        initCardDataBlock();
+        *stepPtr = SAVE_MENU_SAVE_WRITE;
+        break;
+    case SAVE_MENU_SAVE_WRITE:
+        ctx->progress = 0;
+        func_801F7C98(ctx->selectedBlock, slotName);
+        func_801F7A08();
+        writeSize = func_801E2AB0(ctx->selectedBlock, 0x801D1000);
+        ctx->writeSize = writeSize;
+        if (D_801EC2A0[ctx->selectedBlock] == BLOCK_UNUSED) {
+            if (createCardFile(ctx->selectedCard << 4, slotName, writeSize) == -1) {
+                state = SAVE_MENU_SAVE_FAILED;
+                goto dispatch;
+            }
+        }
+        poll11 = writeCardSector(ctx->selectedCard << 4, slotName, 0x801D1000, writeSize, 0);
+        ctx->timer = 300;
+        ctx->fileHandle = poll11;
+        if (poll11 != writeSize) {
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        }
+        *stepPtr = SAVE_MENU_SAVE_WRITE_DONE;
+        break;
+    case SAVE_MENU_SAVE_WRITE_DONE:
+        *stepPtr = SAVE_MENU_UNK_3E;
+        break;
+    case SAVE_MENU_UNK_3A:
+        func_801F7C98(ctx->scanBlock, slotName2);
+        result = readCardFileSync(ctx->selectedCard << 4, slotName2, 0x801D1000, 0x80, 0x180);
+        ctx->fileHandle = result;
+        if (result == -1) {
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        }
+        ctx->progress += 0x2A;
+        *stepPtr = SAVE_MENU_UNK_3B;
+    case SAVE_MENU_UNK_3B:
+        poll12 = pollCardEventsDiscard();
+        ctx->progress += 0x2A;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFD6;
+        }
+        switch (poll12) {
+        case 0:
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            // The original reads these words of the save buffer through hard-coded addresses.
+            D_801EC290 = *(u16 *)0x801D1000;
+            *stepPtr = SAVE_MENU_UNK_3C;
+            break;
+        case 1:
+        case 2:
+        case 3:
+            sendSpuCommand(5);
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        default:
+            ctx->timer--;
+            if (ctx->timer != 0) {
+                break;
+            }
+            sendSpuCommand(5);
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        }
+        break;
+    case SAVE_MENU_UNK_3C:
+        ctx->progress += 0x2A;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFD6;
+        }
+        func_801F7C98(ctx->scanBlock, slotName3);
+        result = readCardFileSync(ctx->selectedCard << 4, slotName3, 0x801D2380, 0x80, 0x1A7);
+        ctx->fileHandle = result;
+        if (result == -1) {
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        }
+        ctx->progress += 0x2A;
+        *stepPtr = SAVE_MENU_UNK_3D;
+    case SAVE_MENU_UNK_3D:
+        poll13 = pollCardEventsDiscard();
+        ctx->progress += 0x2A;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFD6;
+        }
+        switch (poll13) {
+        case 0:
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            if (D_801EC290 != (D_801EC292 = *(u16 *)0x801D23A0)) {
+                state = SAVE_MENU_SAVE_FAILED;
+                goto dispatch;
+            }
+            *stepPtr = SAVE_MENU_UNK_3E;
+            break;
+        case 1:
+        case 2:
+        case 3:
+            sendSpuCommand(5);
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        default:
+            ctx->timer--;
+            if (ctx->timer != 0) {
+                break;
+            }
+            sendSpuCommand(5);
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        }
+        break;
+    case SAVE_MENU_UNK_3E:
+        ctx->progress += 0x2A;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFD6;
+        }
+        *stepPtr = SAVE_MENU_SAVE_WRITE_2;
+    case SAVE_MENU_SAVE_WRITE_2:
+        ctx->progress += 0x2A;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFD6;
+        }
+        func_801F7C98(ctx->selectedBlock, slotName4);
+        writeSize2 = func_801E2958(ctx->selectedBlock, 0x801D1000);
+        poll14 = writeCardSector(ctx->selectedCard << 4, slotName4, 0x801D1000, writeSize2, 0);
+        ctx->writeSize = writeSize2;
+        ctx->timer = 300;
+        ctx->fileHandle = poll14;
+        if (poll14 != writeSize2) {
+            state = SAVE_MENU_SAVE_FAILED;
+            goto dispatch;
+        }
+        playSoundEffect(0x13);
+        D_801EC294 = 0;
+        *stepPtr = SAVE_MENU_UNK_40;
+        break;
+    case SAVE_MENU_UNK_40:
+        ctx->progress += 0x2A;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFD6;
+        }
+        *stepPtr = SAVE_MENU_SAVE_DONE;
+        break;
+    case SAVE_MENU_SAVE_DONE:
+        ctx->showProgress = 0;
+        ctx->savedPopupTimer = 0x40;
+        *stepPtr = SAVE_MENU_LIST_ENTER;
+        break;
+    case SAVE_MENU_SAVE_FAILED:
+        sendSpuCommand(5);
+        ctx->showProgress = 0;
+        ctx->layout = 9;
+        *stepPtr = SAVE_MENU_UNK_44;
+        break;
+    case SAVE_MENU_SAVE_NO_ROOM:
+        sendSpuCommand(5);
+        ctx->showProgress = 0;
+        ctx->layout = 0xA;
+        *stepPtr = SAVE_MENU_UNK_44;
+        break;
+    case SAVE_MENU_LOAD_OPEN:
+        ctx->layout = 6;
+        ctx->helpMsg = func_801E2C90(8);
+        ctx->showProgress = 1;
+        ctx->progress = 0;
+        *stepPtr = SAVE_MENU_UNK_46;
+    case SAVE_MENU_UNK_46:
+        *stepPtr = SAVE_MENU_UNK_47;
+    case SAVE_MENU_UNK_47:
+        func_801F7C98(ctx->selectedBlock, slotName5);
+        if (D_801EC2A0[ctx->selectedBlock] == BLOCK_UNUSED) {
+            *stepPtr = SAVE_MENU_LOAD_READ_FAILED;
+        }
+        func_801E283C();
+        func_801E283C();
+        poll15 = readCardFileSync(ctx->selectedCard << 4, slotName5, 0x801D1000, 0x1400, 0x180);
+        ctx->timer = 300;
+        ctx->fileHandle = poll15;
+        if (poll15 == -1) {
+            *stepPtr = SAVE_MENU_LOAD_READ_FAILED;
+        }
+        *stepPtr = SAVE_MENU_LOAD_WAIT;
+        break;
+    case SAVE_MENU_LOAD_WAIT:
+        poll16 = pollCardEventsDiscard();
+        ctx->progress += 0x33;
+        if (ctx->progress >= 0x1000) {
+            ctx->progress = 0xFCD;
+        }
+        switch (poll16) {
+        case 0:
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            *stepPtr = SAVE_MENU_LOAD_VERIFY;
+            break;
+        case 1:
+        case 2:
+        case 3:
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            *stepPtr = SAVE_MENU_LOAD_READ_FAILED;
+        default:
+            ctx->timer--;
+            if (ctx->timer != 0) {
+                break;
+            }
+            closeFileDescriptorWrapper(ctx->fileHandle);
+            *stepPtr = SAVE_MENU_LOAD_READ_FAILED;
+            break;
+        }
+        break;
+    case SAVE_MENU_LOAD_VERIFY:
+        save = (func_801E3098_save *)0x801D1000;
+        checksum = func_800377B4(0x1350, 0x801D1050);
+        // The first compare uses the raw return value, the second the narrowed one.
+        if (checksum == save->unk0 && (u16)checksum == save->unk13A0) {
+            sum0 = save->unkCD0;
+            sum1 = save->unkCDC + sum0;
+            partial = save->unkA + sum1;
+            D_80083792[0] = partial + save->unkCE0 + save->unkCE2;
+            ctx->progress = 0x1000;
+            btlMemcpyForward(0x801D1000, &g_gameState, 0x13A4);
+            recalcPartyStats();
+            func_801F7954();
+            func_801F798C();
+            func_801F7928();
+            playSoundEffect(0x13);
+            D_801EC294 = 0;
+            *stepPtr = SAVE_MENU_EXIT_START;
+            break;
+        }
+        sendSpuCommand(5);
+        *stepPtr = SAVE_MENU_LOAD_DAMAGED;
+        break;
+    case SAVE_MENU_LOAD_READ_FAILED:
+        sendSpuCommand(5);
+        ctx->showProgress = 0;
+        ctx->layout = 0xC;
+        *stepPtr = SAVE_MENU_UNK_4C;
+        break;
+    case SAVE_MENU_LOAD_DAMAGED:
+        sendSpuCommand(5);
+        ctx->showProgress = 0;
+        ctx->layout = 0xD;
+        *stepPtr = SAVE_MENU_UNK_4C;
+        break;
+    case SAVE_MENU_FORMAT_PROMPT_OPEN:
+        func_801F728C(func_801E2C90(ctx->selectedCard + 0xB), 0x42);
+        ctx->layout = 8;
+        ctx->yesNoCursor = 1;
+        initCardDataBlock();
+        *stepPtr = SAVE_MENU_UNK_26;
+        break;
+    case SAVE_MENU_UNK_26:
+        *stepPtr = SAVE_MENU_UNK_27;
+    case SAVE_MENU_UNK_27:
+        ctx->helpMsg = 0;
+        *stepPtr = SAVE_MENU_UNK_28;
+    case SAVE_MENU_UNK_28:
+        result = pollCardStatus(ctx->selectedCard << 4);
+        if (result == 3) {
+            initCardEventHandlers();
+            state = SAVE_MENU_UNK_0B;
+            goto dispatch;
+        }
+        ctx->yesNoCursor = func_801F6768(inputRepeat, 2, ctx->yesNoCursor);
+        func_801F6F88(ctx->yesNoCursor);
+        if (inputNew & PADRdown) {
+            sendSpuCommand(2);
+            if (ctx->yesNoCursor == 0) {
+                initCardEventHandlers();
+                *stepPtr = SAVE_MENU_UNK_29;
+            } else {
+                *stepPtr = SAVE_MENU_LIST_ENTER;
+            }
+        }
+        if (inputNew & PADRup) {
+            sendSpuCommand(3);
+            *stepPtr = SAVE_MENU_LIST_ENTER;
+        }
+        break;
+    case SAVE_MENU_UNK_29:
+        ctx->helpMsg = 0;
+        ctx->layout = 0xF;
+        *stepPtr = SAVE_MENU_UNK_2A;
+        break;
+    case SAVE_MENU_UNK_2A:
+        *stepPtr = SAVE_MENU_UNK_2B;
+        break;
+    case SAVE_MENU_UNK_2B:
+        result = func_800379AC(ctx->selectedCard << 4);
+        if (result == 1) {
+            ctx->cardReadyResult = 0;
+            *stepPtr = SAVE_MENU_FORMAT_OK;
+            break;
+        }
+        *stepPtr = SAVE_MENU_FORMAT_FAILED;
+        break;
+    case SAVE_MENU_FORMAT_OK:
+        ctx->layout = 0x11;
+        ctx->timer = 60;
+        playSoundEffect(0x10);
+        initCardDataBlock();
+        *stepPtr = SAVE_MENU_UNK_2D;
+        break;
+    case SAVE_MENU_UNK_2D:
+        result = pollCardStatus(ctx->selectedCard << 4);
+        ctx->timer--;
+        if (result != -1) {
+            if (result == 3) {
+                ctx->noCardPolls++;
+                if (ctx->noCardPolls >= 4) {
+                    state = SAVE_MENU_UNK_0B;
+                    goto dispatch;
+                }
+            } else {
+                ctx->noCardPolls = 0;
+            }
+        }
+        if (inputNew & PADRdown) {
+            sendSpuCommand(2);
+            ctx->cardStatus[ctx->selectedCard] = 1;
+            *stepPtr = SAVE_MENU_UNK_36;
+        }
+        if (ctx->timer < 0) {
+            ctx->cardStatus[ctx->selectedCard] = 1;
+            *stepPtr = SAVE_MENU_UNK_36;
+        }
+        break;
+    case SAVE_MENU_FORMAT_FAILED:
+        ctx->layout = 0x10;
+        sendSpuCommand(5);
+        *stepPtr = SAVE_MENU_UNK_2F;
+        break;
+    case SAVE_MENU_UNK_2F:
+    case SAVE_MENU_UNK_44:
+    case SAVE_MENU_UNK_4C:
+        if (inputNew & (PADRup | PADRdown)) {
+            func_801F7BEC(inputNew);
+            state = SAVE_MENU_UNK_0B;
+            goto dispatch;
+        }
+        break;
+    case SAVE_MENU_CHOCOBO_CHANGED:
+        sendSpuCommand(5);
+        ctx->showProgress = 0;
+        ctx->layout = 0xE;
+        initCardDataBlock();
+        func_801EAE74();
+        *stepPtr = SAVE_MENU_UNK_4E;
+        break;
+    case SAVE_MENU_UNK_4E:
+        func_801E2DDC(ctx);
+        ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
+        if (inputNew & (PADRup | PADRdown)) {
+            func_801F7BEC(inputNew);
+            D_801EC294 = 0;
+            *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
+        }
+        break;
+    case SAVE_MENU_EXIT_START:
+        func_801EAE4C();
+        initCardEventHandlers();
+        loadOverlayWithTimCallback(9, 0x801CD000);
+        loadOverlayWithTimCallback(0xA, 0x801D5000);
+        *stepPtr = SAVE_MENU_EXIT;
+    case SAVE_MENU_EXIT:
+        ctx->brightness -= 0x199;
+        if (ctx->brightness < 0) {
+            ctx->brightness = 0;
+            clearCdBusyFlag();
+            func_801F18FC(ctx->task);
+            func_801F0BB0();
+            if (ctx->isLoading == 1) {
+                func_801F1D34(0);
+            }
+        }
+        if (ctx->isLoading == 1) {
+            if (ctx->titleCursor == 0) {
+                func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+                break;
+            }
+            func_801F1DB0(ctx->brightness);
+            break;
+        }
+        func_801F0948(ctx->brightness);
+        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        break;
+    }
+    if (ctx->savedPopupTimer != 0) {
+        ctx->savedPopupTimer--;
+    }
+    if (func_801EFFB8() == 0x18) {
+        func_801F1DB0(ctx->brightness);
+    }
+    return result;
+}
+
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5464); /* 0xAC */
 
@@ -501,21 +2057,21 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7190); /* 0xD8 */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268); /* 0x158 */
 
 /** @brief Call memzero16 with g_gameState and 0x13A. */
-void func_801E73C0(void) {
+static void func_801E73C0(void) {
     memzero16(&g_gameState, 0x13A);
 }
 
 /**
  * @brief Wrapper that calls func_801E7428 (save menu handler).
  */
-void func_801E73E8(void) {
+static void func_801E73E8(void) {
     func_801E7428();
 }
 
 /**
  * @brief Wrapper that calls recalcPartyStats (save menu input handler).
  */
-void func_801E7408(void) {
+static void func_801E7408(void) {
     recalcPartyStats();
 }
 
@@ -710,7 +2266,7 @@ s32 func_801E7A84(u8 *a0, s32 a1) {
 }
 
 /** @brief Call loadSubOverlay with a0 + 0xB4 and 0x801D3000. */
-void func_801E7B18(u8 *a0) {
+static void func_801E7B18(s32 a0) {
     loadSubOverlay(a0 + 0xB4, 0x801D3000);
 }
 
@@ -851,7 +2407,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EA9AC); /* 0x37C */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801EAD28); /* 0x124 */
 
 /** @brief Call sfxInit with all arguments set to zero. */
-void func_801EAE4C(void) {
+static void func_801EAE4C(void) {
     sfxInit(0, 0, 0);
 }
 
@@ -861,7 +2417,7 @@ void func_801EAE4C(void) {
 /**
  * @brief Call func_801EAE4C then clear D_801EC301.
  */
-void func_801EAE74(void) {
+static void func_801EAE74(void) {
     func_801EAE4C();
     D_801EC301 = 0;
 }

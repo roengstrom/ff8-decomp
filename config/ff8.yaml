@@ -401,6 +401,9 @@ binaries:
     subsegments:
     - [0x0, c, menusav]
     - [0x91E0, rodata]
+    - [0x91F0, .rodata, menusav]
+    - [0x9334, pad]
+    - [0x9338, rodata]
   - [0x9A90]
 - name: menushop
   sha1: b968bdd8b9335ffa5e998ea8ef985cfc1863c2db
