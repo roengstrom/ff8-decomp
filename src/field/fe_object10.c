@@ -147,7 +147,7 @@ void updateSeedLevel(void) {
     if (g_gameState.mainData.party.gil > 0x5F5E0FEu)
         g_gameState.mainData.party.gil = 0x5F5E0FF;
 
-    if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+    if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
         if (!(g_fieldVars->stateFlags & FIELD_STATE_FLAG_1000)) {
             s32 oldLevel = (s16)g_fieldVars->prevSeedExp / 100;
             s32 newLevel = (s16)g_fieldVars->seedExp / 100;

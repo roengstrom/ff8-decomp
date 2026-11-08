@@ -535,7 +535,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
  * Once ready, doubles the three rate halfwords
  * (@c moveSpeed / @c msgChannel / @c field_0x208) of every active
  * entity — counterpart of @c func_800B14C8's halve step. If the
- * @ref FIELD_STATE_FIELD_READY is clear, also hides the SeeD rank notification
+ * @ref FIELD_STATE_SALARY_DISPLAY_OFF is clear, also hides the SeeD rank notification
  * (@c resetSeedRankNotification, so the next scene starts clean) and
  * resets @c g_fieldVars->levelUpDisplayTimer. Finally calls
  * @c func_801E870C to commit the mode switch.
@@ -560,7 +560,7 @@ s32 opHandler_MOVIE(ScriptContext *context) {
             p->field_0x208 = fc << 1;
             p++;
         }
-        if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+        if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
             resetSeedRankNotification();
             g_fieldVars->levelUpDisplayTimer = 0;
         }
