@@ -157,11 +157,11 @@ typedef struct {
     /** 0x5A */ u16 writeSize;
     /** 0x5C */ u16 titleMenuX;
     /** 0x5E */ u8 readRetries;
-} func_801E3098_arg0;
+} SaveMenuCtx;
 
 typedef struct {
     /** 0x00 */ u8 pad0[0x4C];
-    /** 0x4C */ u32 unk4C;
+    /** 0x4C */ u32 saveSequence;
     /** 0x50 */ u8 pad50[2];
     /** 0x52 */ u8 unk52[4];
 } func_801E3098_slot;
@@ -191,7 +191,7 @@ typedef struct {
 } func_801E3098_dirEntry;
 
 extern u8 D_80085148[];
-extern u32 D_801EC298;
+extern u32 highestSaveSequence;
 extern u8 D_801EC2A0[];
 extern u16 D_801EC290;
 extern u16 D_801EC292;
@@ -240,13 +240,13 @@ static void func_801E283C(void);
 static void func_801E2860(void);
 s32 func_801E2958(s32, s32);
 s32 func_801E2AB0(s32, s32);
-void func_801E2DDC(func_801E3098_arg0 *);
-s32 func_801E2E9C(func_801E3098_arg0 *);
+void func_801E2DDC(SaveMenuCtx *);
+s32 func_801E2E9C(SaveMenuCtx *);
 void func_801E2F6C(void);
 
-static void func_801E2CE8(func_801E3098_arg0 *a0, s32 a1, s32 a2);
-static s32 func_801E2ECC(func_801E3098_arg0 *a0, s32 a1);
-static s32 func_801E3098(func_801E3098_arg0 *ctx);
+static void func_801E2CE8(SaveMenuCtx *a0, s32 a1, s32 a2);
+static s32 func_801E2ECC(SaveMenuCtx *a0, s32 a1);
+static s32 func_801E3098(SaveMenuCtx *ctx);
 static void func_801E7B18(s32 a0);
 
 /**
@@ -382,7 +382,7 @@ s32 func_801E2CBC(s32 a0) {
  * @param a1 Width selector (non-zero = 0x98, zero = 0x64)
  * @param a2 Offset selector (non-zero = use offset 0x36, zero = use 0x32)
  */
-static void func_801E2CE8(func_801E3098_arg0 *a0, s32 a1, s32 a2) {
+static void func_801E2CE8(SaveMenuCtx *a0, s32 a1, s32 a2) {
     s32 width = 0x64;
     s32 ypos;
 
@@ -468,7 +468,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2E9C); /* 0x30 */
  * @param a1 Mode selector (0 or non-zero).
  * @return Decoded string pointer.
  */
-static s32 func_801E2ECC(func_801E3098_arg0 *a0, s32 a1) {
+static s32 func_801E2ECC(SaveMenuCtx *a0, s32 a1) {
     s32 idx;
     s32 v0;
 
@@ -497,7 +497,7 @@ static s32 func_801E2ECC(func_801E3098_arg0 *a0, s32 a1) {
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2F6C); /* 0x12C */
 
-static s32 func_801E3098(func_801E3098_arg0 *ctx) {
+static s32 func_801E3098(SaveMenuCtx *ctx) {
     func_801E3098_dirEntry dirEntry;
     char fileNames[16][32];
     char searchPattern[32];
@@ -810,7 +810,7 @@ dispatch:
         ctx->scanBlock = 0;
         ctx->readRetries = 0;
         slotStatus = ctx->cardStatus[ctx->selectedCard];
-        D_801EC298 = 0;
+        highestSaveSequence = 0;
         ctx->infoMsg = func_801E2C90(ctx->selectedCard + 0x22);
         if (slotStatus == 1) {
             ctx->helpMsg = func_801E2C90(0x19);
@@ -1012,8 +1012,8 @@ dispatch:
             } else {
                 func_801E3098_slot *header = (func_801E3098_slot *)func_801E2800(ctx->scanBlock);
 
-                if (D_801EC298 < header->unk4C) {
-                    D_801EC298 = header->unk4C;
+                if (highestSaveSequence < header->saveSequence) {
+                    highestSaveSequence = header->saveSequence;
                     D_80085148[ctx->selectedCard] = ctx->scanBlock;
                 }
                 if (func_801E292C(ctx->scanBlock) == 0) {
