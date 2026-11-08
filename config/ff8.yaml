@@ -728,7 +728,10 @@ binaries:
     vram: 0x801E8000
     subsegments:
     - [0x0, c, movie]
-    - [0x13B4, data]
+    - start: 0x13B4
+      type: .bss
+      name: movie
+      linker_section_order: .data
   - [0x124F4]
 - name: effect_001
   sha1: d2269dde125f54b3f00c61eb318b58d3ca3c6f40

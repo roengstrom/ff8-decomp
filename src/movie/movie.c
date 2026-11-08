@@ -80,6 +80,7 @@ typedef struct {
     /** 0x16 */ u8 volatile playing;
     /** 0x17 */ u8 volatile audioStreaming;
     /** 0x18 */ u8 volatile pictureDone;
+    /** 0x19 */ u8 unk19[7];
 } MovieState;
 
 typedef struct {
@@ -92,6 +93,7 @@ typedef struct {
     /** 0x10 */ u32 *stripBuffer;
     /** 0x14 */ RECT stripRect;
     /** 0x1C */ RECT unk1C;
+    /** 0x24 */ u8 unk24[12];
 } MovieDecoder;
 
 typedef struct {
@@ -101,6 +103,7 @@ typedef struct {
     /** 0x4 */ u8 index;
     /** 0x5 */ u8 lastIndex;
     /** 0x6 */ u16 frame;
+    /** 0x8 */ u8 unk8[8];
 } MovieSectorTag;
 
 typedef struct {
@@ -112,15 +115,15 @@ typedef struct {
     /** 0x8 */ u8 *video;
 } MovieFrameSlot;
 
-extern DECDCTTAB g_movieVlcTable;
-extern MovieState g_movieState;
-extern MovieDecoder g_movieDecoder;
-extern MovieReader g_movieReader;
-extern MovieSectorTag g_movieSectorTag;
-extern MovieFrameSlot g_movieFrameSlots[];
-extern FieldView g_movieFrameView;
-extern u8 *g_movieFrameSlotBlocks;
-extern s32 g_movieStalled;
+static DECDCTTAB g_movieVlcTable;
+static MovieState g_movieState;
+static MovieDecoder g_movieDecoder;
+static MovieReader g_movieReader;
+static MovieSectorTag g_movieSectorTag;
+static MovieFrameSlot g_movieFrameSlots[12];
+static FieldView g_movieFrameView;
+static u8 *g_movieFrameSlotBlocks;
+static s32 g_movieStalled;
 
 static u32 *MoviePeekFrame(void);
 static void MovieResumeReading(void);
