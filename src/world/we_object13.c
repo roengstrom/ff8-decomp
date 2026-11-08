@@ -249,7 +249,7 @@ void func_800C4644(void) {
  * adjusts @c seedExp by @c (totalKills - prevKillSum) - 10 (clamped to
  * @c [100, 3100]), then pays salary into @c gil from the per-rank
  * salary table at @c g_seedSalaryTable[level] (capped at 99,999,999
- * gil). When neither @ref FIELD_STATE_FIELD_READY nor @ref FIELD_STATE_MOVIE_PLAYING is
+ * gil). When neither @ref FIELD_STATE_SALARY_DISPLAY_OFF nor @ref FIELD_STATE_MOVIE_PLAYING is
  * set, fires the level-up notification (@c showSeedRankNotification + 3 rank-up
  * SFX). Stores @c totalKills as the new @c prevKillSum.
  */
@@ -280,7 +280,7 @@ void func_800C4688(void) {
     if (g_gameState.mainData.party.gil > 0x5F5E0FEu)
         g_gameState.mainData.party.gil = 0x5F5E0FF;
 
-    if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+    if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
         if (!(g_fieldVars->stateFlags & FIELD_STATE_MOVIE_PLAYING)) {
             s32 oldLevel = (s16)g_fieldVars->prevSeedExp / 100;
             s32 newLevel = (s16)g_fieldVars->seedExp / 100;
@@ -430,7 +430,7 @@ void func_800C4AE4(s32 stepDelta) {
         func_800C492C();
     }
     if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) return;
-    if (!(g_fieldVars->stateFlags & FIELD_STATE_TRANSITION)) {
+    if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_OFF)) {
         g_fieldVars->seedExpStepAcc += stepDelta;
         if (g_fieldVars->seedExpStepAcc >= 24576u) {
             g_fieldVars->seedExpStepAcc = 0;

@@ -536,7 +536,7 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
  * Once ready, doubles the three rate halfwords
  * (@c moveSpeed / @c baseMoveSpeed / @c animationSpeed) of every active
  * entity, the counterpart of @c ExitMovieMode's halving. If the
- * @ref FIELD_STATE_FIELD_READY is clear, also hides the SeeD rank notification
+ * @ref FIELD_STATE_SALARY_DISPLAY_OFF is clear, also hides the SeeD rank notification
  * (@c resetSeedRankNotification, so the next scene starts clean) and
  * resets @c g_fieldVars->levelUpDisplayTimer. Finally calls
  * @c MoviePlay to commit the mode switch.
@@ -561,7 +561,7 @@ s32 opHandler_MOVIE(ScriptContext *context) {
             p->animationSpeed = fc << 1;
             p++;
         }
-        if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+        if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
             resetSeedRankNotification();
             g_fieldVars->levelUpDisplayTimer = 0;
         }

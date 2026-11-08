@@ -1087,7 +1087,7 @@ s32 opHandler_SARALYOFF(ScriptContext *context) {
  */
 s32 opHandler_SARALYON() {
     s32 dummy[2];
-    g_fieldVars->stateFlags &= ~(FIELD_STATE_TRANSITION | FIELD_STATE_FIELD_READY);
+    g_fieldVars->stateFlags &= ~(FIELD_STATE_SALARY_OFF | FIELD_STATE_SALARY_DISPLAY_OFF);
     setSalaryEnabled(1);
     return 2;
     dummy[0] = 0;
@@ -1095,13 +1095,13 @@ s32 opHandler_SARALYON() {
 
 /** @brief Set bit 0x10 in @c g_fieldVars->stateFlags. Returns 2. */
 s32 opHandler_SARALYDISPOFF(void) {
-    g_fieldVars->stateFlags |= FIELD_STATE_FIELD_READY;
+    g_fieldVars->stateFlags |= FIELD_STATE_SALARY_DISPLAY_OFF;
     return 2;
 }
 
 /** @brief Clear bit 0x10 in @c g_fieldVars->stateFlags. Returns 2. */
 s32 opHandler_SARALYDISPON(void) {
-    g_fieldVars->stateFlags &= ~FIELD_STATE_FIELD_READY;
+    g_fieldVars->stateFlags &= ~FIELD_STATE_SALARY_DISPLAY_OFF;
     return 2;
 }
 

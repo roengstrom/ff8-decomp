@@ -41,7 +41,7 @@
  *
  * After the dispatch all paths run a common tail:
  *   - @ref FIELD_STATE_COUNTDOWN → show the countdown timer again.
- *   - @ref FIELD_STATE_FIELD_READY clear and @c levelUpDisplayTimer @c > @c 0
+ *   - @ref FIELD_STATE_SALARY_DISPLAY_OFF clear and @c levelUpDisplayTimer @c > @c 0
  *     → fire the SeeD level-up notification via @ref showSeedRankNotification.
  *   - Set each dialog's text speed from the message-speed setting
  * (@ref setDialogTextSpeed).
@@ -144,7 +144,7 @@ void func_800BF718(s32 mode) {
         setCountdownVisible(1);
     }
     seed = g_fieldVars;
-    if (!(seed->stateFlags & FIELD_STATE_FIELD_READY)) {
+    if (!(seed->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
         if ((s16)seed->levelUpDisplayTimer > 0) {
             prevLevel = (s32)((s16)seed->prevSeedExp) / 100;
             currLevel = (s32)((s16)seed->seedExp) / 100;

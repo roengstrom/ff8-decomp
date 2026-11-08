@@ -25,8 +25,8 @@
  * It then resets the MDEC decoder and:
  *  - On @p fullReset: clears the whole of @c *g_fieldVars,
  *    stamps the "FF-8" init tag, and seeds the defaults — disc 1, battle
- *    music 5, both volumes 0x7F, SeeD exp 500, the @ref FIELD_STATE_TRANSITION
- *    and @ref FIELD_STATE_FIELD_READY state bits,
+ *    music 5, both volumes 0x7F, SeeD exp 500, the @ref FIELD_STATE_SALARY_OFF
+ *    and @ref FIELD_STATE_SALARY_DISPLAY_OFF state bits,
  *    and message speed 2 (@c GameConfig.fieldMsgSpeed).
  *  - Always: clears the dialog masks and the first two anim-shadow slots,
  *    disables reverb, resets the sound-bank selector, and marks all
@@ -36,7 +36,7 @@
  *    and @c GameConfig.sealedAbilities and replays @c opHandler_SETPARTY2.
  *  - Publishes @c field56 to @c g_worldTransfer.vehicle, pushes the expected disc to
  *    the CD layer (@c setDiscNumber, @c g_gameState.unk048 = disc - 1), derives
- *    the salary-enabled flag from @ref FIELD_STATE_TRANSITION, and installs the
+ *    the salary-enabled flag from @ref FIELD_STATE_SALARY_OFF, and installs the
  *    @c stopAllSounds VSync callback and @c func_80037D40 draw callback.
  *
  * @param fullReset Nonzero to wipe @c *g_fieldVars and apply new-game
@@ -73,7 +73,7 @@ void SmInitEventAll(s32 fullReset)
         g_fieldVars->musicVolume = 0x7F;
         g_fieldVars->sfxVolume = 0x7F;
         g_fieldVars->seedExp = 500;
-        g_fieldVars->stateFlags |= FIELD_STATE_TRANSITION | FIELD_STATE_FIELD_READY;
+        g_fieldVars->stateFlags |= FIELD_STATE_SALARY_OFF | FIELD_STATE_SALARY_DISPLAY_OFF;
         g_gameState.config.fieldMsgSpeed = 2;
     }
 

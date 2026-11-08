@@ -299,8 +299,8 @@ typedef struct {
 
 /* FieldVars.stateFlags bits (partial map — bits are named as their usages
  * are identified; several more bits are used as bare hex elsewhere). */
-#define FIELD_STATE_TRANSITION 0x8 /**< Bit 3: SeeD salary off (SARALYOFF sets it, SARALYON clears it); its inverse is pushed to @c setSalaryEnabled at field init. Set on new game. */
-#define FIELD_STATE_FIELD_READY    0x10  /**< Bit 4: set on new game; returned (with bit 3) by @c getFieldStateFlags. @note Purpose uncertain. */
+#define FIELD_STATE_SALARY_OFF 0x8
+#define FIELD_STATE_SALARY_DISPLAY_OFF 0x10
 #define FIELD_STATE_COUNTDOWN 0x40 /**< Bit 6: the countdown timer is shown (DISPTIMER sets it, KILLTIMER clears it); the field tick tail shows it again. */
 #define FIELD_STATE_FLAG_200       0x200 /**< Bit 9: toggled by the fe_object6 music/state helper. @note Purpose unknown. */
 #define FIELD_STATE_FLAG_400       0x400 /**< Bit 10: staged from @c fieldCF by the music-state machine, then cleared. @note Purpose unknown. */

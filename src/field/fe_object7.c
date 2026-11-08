@@ -57,7 +57,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
         context->resultSlots[1] = 0;
 
         if (result >= 5) {
-            if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+            if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
                 resetSeedRankNotification();
             }
 
