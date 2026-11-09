@@ -103,6 +103,8 @@ static void func_801F0274(s32, u32, s32, s32);
 static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut);
 static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
+static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index);
+static u16 func_801F0E5C(u16 arg0);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -585,7 +587,7 @@ s32 func_801F0DB0(void) {
 /* Animation/Transition                                                     */
 /* ======================================================================== */
 
-s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
+static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
     s32 mask;
     s32 val1;
     s32 val2;
@@ -633,7 +635,7 @@ s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
     return ret;
 }
 
-u16 func_801F0E5C(u16 arg0) {
+static u16 func_801F0E5C(u16 arg0) {
     GamePad *gamePad = &g_engine.gamePads[g_engine.gamePads[0].inputSourceIndex];
     u16 ret = func_801F0DC0(&g_engine, gamePad, arg0, 0);
     ret |= func_801F0DC0(&g_engine, gamePad, arg0, 1);
