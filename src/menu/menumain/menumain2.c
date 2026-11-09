@@ -66,8 +66,8 @@ typedef struct MenuTask {
 typedef void (*UNK_FUNC)(s32);
 
 typedef struct {
-    s32 unk0;
-    UNK_FUNC unk4;
+    UNK_FUNC unk0;
+    s32 unk4;
 } ST_D_801F7E6C; /* 8 bytes */
 
 extern RECT D_801F7E64;
