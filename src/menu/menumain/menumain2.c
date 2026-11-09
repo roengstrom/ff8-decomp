@@ -82,8 +82,8 @@ extern u16 D_801FAA00[];
 extern s16 D_801FAA08[];
 extern u8 D_801FAA10;
 extern s8 D_801FAA11;
-extern u16 D_801FAA12;
-extern u16 D_801FAA14;
+extern s16 D_801FAA12;
+extern s16 D_801FAA14;
 extern u8 D_801FAA18[];
 extern s16 D_801FAA1E;          /**< Text queue count / blink phase (added to g_menuDisplayCfg.animCounter). */
 extern TextQueueEntry D_801FAA20[]; /**< Queued text-glyph draw requests. */
@@ -105,6 +105,7 @@ static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
 static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index);
 static u16 func_801F0E5C(u16 arg0);
+static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -693,7 +694,83 @@ void func_801F0FD0(s32 a0, s32 a1) {
     D_801FAA14 = a0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0FEC);
+void *func_801F0FEC(void *ot, void *prim, s32 x, s32 y, u8 *iconIds, u32 clutFlags) {
+    s32 startX;
+    s32 rightClip;
+    s32 leftClip;
+    u32 head;
+    u32 next;
+
+    if (iconIds == NULL) {
+        return prim;
+    }
+    rightClip = D_801FAA12;
+    leftClip = D_801FAA14;
+    getAddrNewFast(ot, head);
+    startX = x;
+    if (y >= 257) {
+        return prim;
+    }
+    if (y < -8) {
+        return prim;
+    }
+    while (1) {
+        s32 iconId = *iconIds++;
+        if (iconId == 2) {
+            x = startX;
+            y += 13;
+        } else if (iconId == 5) {
+            s32 head2;
+
+            setDrawTPage(prim, 1, 0, 0x41F);
+
+            // Dead code added to match with the original game binary.
+            if (head) { head++; head--; }
+
+            next = (u32)prim << 8;
+            setAddrFast(prim, head);
+            prim += sizeof(DR_TPAGE);
+            setAddrFast(ot, next);
+            iconId = *iconIds++;
+            iconId = func_8002C734(iconId);
+            prim = drawIcon(ot, prim, iconId, x, y, g_menuTint[MENU_TINT_NORMAL]);
+            x += getIconWidth(iconId);
+            x++;
+
+            // Dead code added to match with the original game binary.
+            if (head) { head++; head--; }
+
+            head = head2;
+            getAddrFast(ot, head);
+            head2 = head;
+        } else if (iconId >= 25 && rightClip >= x) {
+            if (iconId >= 32) {
+                iconId -= 32;
+            } else {
+                iconId *= 224;
+                iconId += *iconIds++;
+                iconId -= 5408;
+            }
+            if (x >= leftClip) {
+                head = func_801F0F20(head, prim, iconId, clutFlags, (y << 0x10) | (x & 0xFFFF));
+                prim += sizeof(SPRT);
+            }
+            x += getNibbleValue(iconId);
+        } else {
+            break;
+        }
+    }
+
+    setDrawTPage(prim, 1, 0, 0x41F);
+    addOtFast(prim, head);
+    prim += sizeof(DR_TPAGE);
+    setAddrFast(ot, head);
+
+    // Dead code added to match with the original game binary.
+    if (next) { next++; next--; }
+
+    return prim;
+}
 
 /** @brief Get animation completion flag. */
 s32 func_801F1200(void) {
@@ -714,7 +791,20 @@ void func_801F1210(s32 a0, s32 a1) {
     D_801FAAF8 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1240);
+static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3) {
+    RECT rect;
+    s32 width;
+    s32 height;
+    width = measureMessage(arg3);
+    height = width >> 0x10;
+    width = func_801F738C(width & 0xFFFF);
+    height = func_801F7394(height);
+    rect.x = arg1 - (width / 2);
+    rect.y = arg2 - (height / 2);
+    rect.w = width;
+    rect.h = height;    
+    setDialogRect(arg0, &rect);
+}
 
 /** @brief Stop the current animation/transition. */
 void func_801F12F0(void) {
