@@ -9,6 +9,15 @@ typedef struct ToT  { unsigned long *head; long size; } ToT;
 typedef struct TCBH { struct TCB *entry;   long flag; } TCBH;
 typedef struct TCB  { s32 status; u8 pad04[0xBC]; } TCB;
 
+struct DIRENTRY {
+	char name[20];
+	long attr;
+	long size;
+	struct DIRENTRY *next;
+	long head;
+	char system[4];
+};
+
 #define TcbStACTIVE 0x4000
 
 #define DescRC 0xf2000000
