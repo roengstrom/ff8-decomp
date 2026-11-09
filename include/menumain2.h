@@ -60,7 +60,7 @@ void func_801F0A34(s32, s32, s32, s32);
 void func_801F0A78(s32, s32, s32, s32, s32);
 s32 func_801F0BB0(void);
 void func_801F0BF8(s32);
-void func_801F0C5C(u8, void *);
+void func_801F0C5C(s32, void *);
 s32 func_801F0D84(void);
 s32 func_801F0F20(s32, SPRT *, s32, u32, s32);
 void func_801F0FD0(s32, s32);

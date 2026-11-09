@@ -1,4 +1,5 @@
 #include "ability_list.h"
+#include "battle_anim.h"
 #include "btl_anim.h"
 #include "btl_anim_packet.h"
 #include "card.h"
@@ -62,14 +63,23 @@ typedef struct MenuTask {
     u8 pad46[0x32];
 } MenuTask; /* 0x78 bytes */
 
+typedef void (*UNK_FUNC)(s32);
+
+typedef struct {
+    UNK_FUNC unk0;
+    s32 unk4;
+} ST_D_801F7E6C; /* 8 bytes */
+
 extern RECT D_801F7E64;
-extern u8 D_801F7E6C[];
+extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
 extern u8 D_801F7F78[];
 extern u8 D_801F7FB0[];        /**< String table base (two-level offset table). */
 extern MenuTask *D_801FA450;    /**< Head of the active menu-task list. */
 extern MenuTask D_801FA4D0;     /**< Menu-task list head node. */
 extern MenuTask D_801FA550[10]; /**< Menu-task pool. */
+extern u16 D_801FAA00[];
+extern s16 D_801FAA08[];
 extern u8 D_801FAA10;
 extern s8 D_801FAA11;
 extern u16 D_801FAA12;
@@ -90,8 +100,11 @@ extern u8 D_801FAB88[];
 extern u16 g_menumain_partyMemberMask;
 
 static void func_801F0274(s32, u32, s32, s32);
+static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut);
 static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
+static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index);
+static u16 func_801F0E5C(u16 arg0);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -313,7 +326,28 @@ void func_801F04E8(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
     GP_RESTORE_RET(savedGp, tempGp);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F07D8);
+static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut) {
+    s32 x;
+    s32 y;
+
+    // Dead code added to match with the original game binary.
+    while (0);
+
+    y = packedCoords >> 16;
+    x = packedCoords << 16;
+    x >>= 16;
+
+    while (1) {
+        s32 iconId = *iconIds++;
+        if (iconId == 0) {
+            break;
+        }
+        if (iconId != 7) {
+            prim = drawIconClut(ot, prim, iconId, x, y, color, clut);
+        }
+        x += 8;
+    }   
+}
 
 /** @brief Render text string with default style (last param = 0). */
 void func_801F0884(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
@@ -488,15 +522,51 @@ s32 func_801F0BB0(void) {
  * differs from what is currently playing, loads and plays it.
  */
 void func_801F0BF8(s32 a0) {
-    u8 *entry = D_801F7E6C + a0 * 8;
-    s32 val = *(s32 *)(entry + 4);
+    ST_D_801F7E6C *entry = &D_801F7E6C[a0];
+    s32 val = entry->unk4;
     if (val == 0xFF) return;
     if (val <= 0) return;
     if (getOverlayLoadStatus() == val) return;
     loadOverlay(val, 0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0C5C);
+void func_801F0C5C(s32 arg0, void *arg1) {
+    ST_D_801F7E6C *ptr = &D_801F7E6C[arg0];
+    s32 unkn4 = ptr->unk4;
+    UNK_FUNC unkn0 = ptr->unk0;
+    if (unkn4 == 0xFF) {
+        if (unkn0 != NULL) {
+            unkn0(arg1);
+        }
+        return;
+    }
+    D_801FAA11++;
+    D_801FAA18[D_801FAA11] = arg0;
+    if (unkn0 == NULL) {
+        D_801FAA11--;
+        return;
+    }
+    if (unkn4 > 0) {
+        s32 loadStatus = getOverlayLoadStatus();
+        if (loadStatus == unkn4) {
+            unkn0(arg1);
+            return;
+        }
+        if (loadStatus == -2) {
+            while (pollCdReadStatus());
+            if (getOverlayLoadStatus() == unkn4) {
+                unkn0(arg1);
+                return;
+            }
+            loadOverlay(ptr->unk4, unkn0, arg1);
+        } else {
+            loadOverlay(unkn4, unkn0, arg1);
+        }
+        return;
+    }
+    while (pollCdReadStatus());
+    unkn0(arg1);
+}
 
 /** @brief Peek at top of menu navigation stack without popping. */
 s32 func_801F0D84(void) {
@@ -517,9 +587,62 @@ s32 func_801F0DB0(void) {
 /* Animation/Transition                                                     */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0DC0);
+static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
+    s32 mask;
+    s32 val1;
+    s32 val2;
+    s32 val3;
+    s32 val4;
+    s32 ret;
+    s32 tmp;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0E5C);
+    val1 = D_801FAA00[index];
+    D_801FAA00[index] = arg2;
+    val2 = engine->repeatDelays.hword;
+    val3 = D_801FAA08[index];
+    mask = gamePad->autoRepeatButtonMasks[index];
+    val4 = val2 >> 8;
+    val2 &= 0xFF;
+    arg2 &= mask;
+
+    // Dead code added to match with the original game binary.
+    if (arg2) { arg2++; arg2--; }
+
+    ret = arg2;
+    tmp = val1 & mask;
+    mask = tmp;
+
+    // Dead code added to match with the original game binary.
+    if (arg2) { arg2++; arg2--; }
+
+    arg2 &= mask;
+    val1 = mask;
+    if (arg2 != 0) {
+        if (ret != tmp) {
+            val3 = val2;
+        }
+        val3--;
+        val1 = 0;
+        if (val3 < val1) {
+            val3 = val4;
+        } else {
+            ret = 0;
+        }
+    } else {
+        val3 = val2;
+    }
+    D_801FAA08[index] = val3;
+    return ret;
+}
+
+static u16 func_801F0E5C(u16 arg0) {
+    GamePad *gamePad = &g_engine.gamePads[g_engine.gamePads[0].inputSourceIndex];
+    u16 ret = func_801F0DC0(&g_engine, gamePad, arg0, 0);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 1);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 2);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 3);
+    return ret;
+}
 
 /**
  * @brief Build a 12x12 menu-font sprite primitive and prepend it to the OT chain.
