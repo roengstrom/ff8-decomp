@@ -602,13 +602,15 @@ s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
     val4 = val2 >> 8;
     val2 &= 0xFF;
     arg2 &= mask;
-    
+
+    // Dead code added to match with the original game binary.
     if (arg2) { arg2++; arg2--; }
-    
+
     ret = arg2;
     tmp = val1 & mask;
     mask = tmp;
-    
+
+    // Dead code added to match with the original game binary.
     if (arg2) { arg2++; arg2--; }
 
     arg2 &= mask;
