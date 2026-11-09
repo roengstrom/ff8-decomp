@@ -1,4 +1,5 @@
 #include "ability_list.h"
+#include "battle_anim.h"
 #include "btl_anim.h"
 #include "btl_anim_packet.h"
 #include "card.h"
@@ -68,16 +69,6 @@ typedef struct {
     s32 unk0;
     UNK_FUNC unk4;
 } ST_D_801F7E6C; /* 8 bytes */
-
-typedef struct {
-    u8 pad[0x1E0];
-    u16 unk1E0;
-} ST_801F0DC0_0;
-
-typedef struct {
-    u8 pad[0x10];
-    u16 unk10[1];
-} ST_801F0DC0_1;
 
 extern RECT D_801F7E64;
 extern ST_D_801F7E6C D_801F7E6C[];
@@ -594,7 +585,7 @@ s32 func_801F0DB0(void) {
 /* Animation/Transition                                                     */
 /* ======================================================================== */
 
-s32 func_801F0DC0(ST_801F0DC0_0 *arg0, ST_801F0DC0_1 *arg1, s32 arg2, s32 arg3) {
+s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
     s32 mask;
     s32 val1;
     s32 val2;
@@ -603,11 +594,11 @@ s32 func_801F0DC0(ST_801F0DC0_0 *arg0, ST_801F0DC0_1 *arg1, s32 arg2, s32 arg3) 
     s32 ret;
     s32 tmp;
 
-    val1 = D_801FAA00[arg3];
-    D_801FAA00[arg3] = arg2;
-    val2 = arg0->unk1E0;
-    val3 = D_801FAA08[arg3];
-    mask = arg1->unk10[arg3];
+    val1 = D_801FAA00[index];
+    D_801FAA00[index] = arg2;
+    val2 = engine->repeatDelays.hword;
+    val3 = D_801FAA08[index];
+    mask = gamePad->autoRepeatButtonMasks[index];
     val4 = val2 >> 8;
     val2 &= 0xFF;
     arg2 &= mask;
@@ -636,11 +627,18 @@ s32 func_801F0DC0(ST_801F0DC0_0 *arg0, ST_801F0DC0_1 *arg1, s32 arg2, s32 arg3) 
     } else {
         val3 = val2;
     }
-    D_801FAA08[arg3] = val3;
+    D_801FAA08[index] = val3;
     return ret;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0E5C);
+u16 func_801F0E5C(u16 arg0) {
+    GamePad *gamePad = &g_engine.gamePads[g_engine.gamePads[0].inputSourceIndex];
+    u16 ret = func_801F0DC0(&g_engine, gamePad, arg0, 0);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 1);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 2);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 3);
+    return ret;
+}
 
 /**
  * @brief Build a 12x12 menu-font sprite primitive and prepend it to the OT chain.
