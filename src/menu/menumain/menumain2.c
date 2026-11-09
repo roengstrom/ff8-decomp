@@ -69,6 +69,16 @@ typedef struct {
     UNK_FUNC unk4;
 } ST_D_801F7E6C; /* 8 bytes */
 
+typedef struct {
+    u8 pad[0x1E0];
+    u16 unk1E0;
+} ST_801F0DC0_0;
+
+typedef struct {
+    u8 pad[0x10];
+    u16 unk10[1];
+} ST_801F0DC0_1;
+
 extern RECT D_801F7E64;
 extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
@@ -77,6 +87,8 @@ extern u8 D_801F7FB0[];        /**< String table base (two-level offset table). 
 extern MenuTask *D_801FA450;    /**< Head of the active menu-task list. */
 extern MenuTask D_801FA4D0;     /**< Menu-task list head node. */
 extern MenuTask D_801FA550[10]; /**< Menu-task pool. */
+extern u16 D_801FAA00[];
+extern s16 D_801FAA08[];
 extern u8 D_801FAA10;
 extern s8 D_801FAA11;
 extern u16 D_801FAA12;
@@ -582,7 +594,51 @@ s32 func_801F0DB0(void) {
 /* Animation/Transition                                                     */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0DC0);
+s32 func_801F0DC0(ST_801F0DC0_0 *arg0, ST_801F0DC0_1 *arg1, s32 arg2, s32 arg3) {
+    s32 mask;
+    s32 val1;
+    s32 val2;
+    s32 val3;
+    s32 val4;
+    s32 ret;
+    s32 tmp;
+
+    val1 = D_801FAA00[arg3];
+    D_801FAA00[arg3] = arg2;
+    val2 = arg0->unk1E0;
+    val3 = D_801FAA08[arg3];
+    mask = arg1->unk10[arg3];
+    val4 = val2 >> 8;
+    val2 &= 0xFF;
+    arg2 &= mask;
+    
+    if (arg2) { arg2++; arg2--; }
+    
+    ret = arg2;
+    tmp = val1 & mask;
+    mask = tmp;
+    
+    if (arg2) { arg2++; arg2--; }
+
+    arg2 &= mask;
+    val1 = mask;
+    if (arg2 != 0) {
+        if (ret != tmp) {
+            val3 = val2;
+        }
+        val3--;
+        val1 = 0;
+        if (val3 < val1) {
+            val3 = val4;
+        } else {
+            ret = 0;
+        }
+    } else {
+        val3 = val2;
+    }
+    D_801FAA08[arg3] = val3;
+    return ret;
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0E5C);
 
