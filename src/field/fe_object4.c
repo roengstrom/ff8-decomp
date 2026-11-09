@@ -1087,7 +1087,7 @@ s32 opHandler_SARALYOFF(ScriptContext *context) {
  */
 s32 opHandler_SARALYON() {
     s32 dummy[2];
-    g_fieldVars->stateFlags &= ~(FIELD_STATE_TRANSITION | FIELD_STATE_FIELD_READY);
+    g_fieldVars->stateFlags &= ~(FIELD_STATE_SALARY_OFF | FIELD_STATE_SALARY_DISPLAY_OFF);
     setSalaryEnabled(1);
     return 2;
     dummy[0] = 0;
@@ -1095,13 +1095,13 @@ s32 opHandler_SARALYON() {
 
 /** @brief Set bit 0x10 in @c g_fieldVars->stateFlags. Returns 2. */
 s32 opHandler_SARALYDISPOFF(void) {
-    g_fieldVars->stateFlags |= FIELD_STATE_FIELD_READY;
+    g_fieldVars->stateFlags |= FIELD_STATE_SALARY_DISPLAY_OFF;
     return 2;
 }
 
 /** @brief Clear bit 0x10 in @c g_fieldVars->stateFlags. Returns 2. */
 s32 opHandler_SARALYDISPON(void) {
-    g_fieldVars->stateFlags &= ~FIELD_STATE_FIELD_READY;
+    g_fieldVars->stateFlags &= ~FIELD_STATE_SALARY_DISPLAY_OFF;
     return 2;
 }
 
@@ -1199,7 +1199,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
 /**
  * @brief Broadcast "trigger active party" event.
  *
- * If @c D_800DE4FD is clear, also clears @c g_fieldContext.userControlOff. Then if the
+ * If @c g_fieldMovieFlags is clear, also clears @c g_fieldContext.userControlOff. Then if the
  * trigger flag @c D_80085390 is non-zero, clears it and walks the 3
  * active party members. For each member whose @c memberSlot is set and
  * whose field-entity is NOT locked (flags bit 0x40 clear), records the
@@ -1208,7 +1208,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
  * entity flags bit 0x4. Returns 2.
  */
 s32 opHandler_UCON(void) {
-    if (D_800DE4FD[0] == 0) {
+    if (g_fieldMovieFlags == 0) {
         g_fieldContext.userControlOff = 0;
     }
 

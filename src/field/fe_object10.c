@@ -147,8 +147,8 @@ void updateSeedLevel(void) {
     if (g_gameState.mainData.party.gil > 0x5F5E0FEu)
         g_gameState.mainData.party.gil = 0x5F5E0FF;
 
-    if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
-        if (!(g_fieldVars->stateFlags & FIELD_STATE_FLAG_1000)) {
+    if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
+        if (!(g_fieldVars->stateFlags & FIELD_STATE_MOVIE_PLAYING)) {
             s32 oldLevel = (s16)g_fieldVars->prevSeedExp / 100;
             s32 newLevel = (s16)g_fieldVars->seedExp / 100;
 
@@ -304,8 +304,8 @@ void func_800BD804(s32 stepDelta) {
  *        field-entity array and processes per-step accumulators.
  *
  * Stores @p stepDelta into the field status block and toggles its busy
- * byte. If the pad-init bit (@c D_800DE4FD[0] & 2) is armed, captures the
- * @c func_801E8B58 status into @c g_fieldVars->padInitStatus. Bails out
+ * byte. While a movie is open (@c FIELD_MOVIE_OPEN), stores its current
+ * frame (@c MovieGetFrame) in @c g_fieldVars->currentMovieFrame. Bails out
  * if a CD read is in flight (@c g_cdReadState.flags bit 0).
  *
  * On entry, mirrors party gil/dreamGil from @c g_gameState to
@@ -346,8 +346,8 @@ void func_800BD9C4(FieldFrameBuf *frame) {
     D_800DE8C8[0] = (s32)frame;
     fs = (u8 *)D_800DE8C8;
     fs[0xB] = !fs[0xB];
-    if (D_800DE4FD[0] & 2) {
-        g_fieldVars->padInitStatus = func_801E8B58();
+    if (g_fieldMovieFlags & FIELD_MOVIE_OPEN) {
+        g_fieldVars->currentMovieFrame = MovieGetFrame();
     }
     if (g_cdReadState.flags & 1) return;
 
@@ -565,33 +565,33 @@ void func_800BD9C4(FieldFrameBuf *frame) {
 }
 
 /**
- * Returns the value of the global byte D_800DE4FD.
+ * Returns the value of the global byte g_fieldMovieFlags.
  *
- * @return The value of D_800DE4FD.
+ * @return The value of g_fieldMovieFlags.
  */
 s32 func_800BE264(void) {
-    return D_800DE4FD[0];
+    return g_fieldMovieFlags;
 }
 
-/** @brief Call func_801E8B84 if D_800DE4FD bit 1 is set. Returns result or 0. */
+/** @brief Call MovieIsPlaying if FIELD_MOVIE_OPEN is set in g_fieldMovieFlags. Returns result or 0. */
 s32 func_800BE274(void) {
-    if (*(u8 *)D_800DE4FD & 2) {
-        return func_801E8B84();
+    if (g_fieldMovieFlags & FIELD_MOVIE_OPEN) {
+        return MovieIsPlaying();
     }
     return 0;
 }
 
-/** @brief Call func_801E8804 if D_800DE4FD bit 1 is set. */
+/** @brief Call MovieStop if FIELD_MOVIE_OPEN is set in g_fieldMovieFlags. */
 void func_800BE2AC(void) {
-    if (*(u8 *)D_800DE4FD & 2) {
-        func_801E8804();
+    if (g_fieldMovieFlags & FIELD_MOVIE_OPEN) {
+        MovieStop();
     }
 }
 
-/** @brief Call func_801E888C if D_800DE4FD bit 1 is set. */
+/** @brief Call MovieUpdate if FIELD_MOVIE_OPEN is set in g_fieldMovieFlags. */
 void func_800BE2DC(void) {
-    if (*(u8 *)D_800DE4FD & 2) {
-        func_801E888C();
+    if (g_fieldMovieFlags & FIELD_MOVIE_OPEN) {
+        MovieUpdate();
     }
 }
 

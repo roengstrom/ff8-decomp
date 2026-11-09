@@ -472,55 +472,55 @@ s32 opHandler_ACTORMODE(Actor *actor) {
 }
 
 /**
- * @brief op0A3 MOVIEREADY — peek the top two stack slots
- *        (a @c movieIndex and a @c priorityMode) and kick off an
- *        asynchronous CD read of the corresponding movie data into
- *        the @c 0x801E8000 frame buffer.
+ * @brief op0A3 MOVIEREADY: peek the top two stack slots
+ *        (a @c movieIndex and a @c priorityMode), load movie.ovl
+ *        into @c 0x801E8000 and open the movie.
  *
- *        @c priorityMode picks one of three priorities:
+ *        @c priorityMode picks one of three ring sizes (the
+ *        @c bufferSize passed to @c MovieInit):
  *          0 -> 8, 1 -> 0xA, anything else -> 6.
  *        The first invocation (active for this script slot) seeds the
  *        movie subsystem (@c func_800A59D0, then @c LoadCompressedDataFromDisc with
- *        @c D_800C2D14[0..1] as the LBA/size pair) and marks
- *        @c D_800DE4FD as in-flight. Subsequent invocations poll
+ *        @c g_movieTable[0..1] as the LBA/size pair) and marks
+ *        @c g_fieldMovieFlags as in-flight. Subsequent invocations poll
  *        @c UpdateCdRead — they return @c 1 to keep the script
  *        blocked until the read completes, then commit the movie
- *        entry @c (movieIndex + 1) via @c func_801E8104 and pop both
+ *        entry @c (movieIndex + 1) via @c MovieOpen and pop both
  *        stack slots before returning @c 2.
  *
  * @return 1 while CD read is pending, 2 once committed.
  */
 s32 opHandler_MOVIEREADY(ScriptContext *context) {
-    s32 priority;
+    s32 bufferSize;
     s32 entryIdx;
 
-    priority = context->stack[(s8)context->stackPtr];
+    bufferSize = context->stack[(s8)context->stackPtr];
     entryIdx = context->stack[(s8)context->stackPtr - 1] + 1;
 
-    switch (priority) {
-    case 0:  priority = 8;   break;
-    case 1:  priority = 0xA; break;
-    default: priority = 6;   break;
+    switch (bufferSize) {
+    case 0: bufferSize = 8; break;
+    case 1: bufferSize = 0xA; break;
+    default: bufferSize = 6; break;
     }
 
     if ((context->activeMask >> context->scriptSlot) & 1) {
         g_fieldContext.userControlOff = 1;
         func_800A59D0();
-        LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
-        D_800DE4FD[0] = 1;
+        LoadCompressedDataFromDisc(g_movieTable[0], g_movieTable[1], 0x801E8000, 0);
+        g_fieldMovieFlags = FIELD_MOVIE_LOADING;
     }
 
     if (UpdateCdRead() != CD_READ_IDLE) {
         return 1;
     }
 
-    D_800DE4FD[0] |= 0x2;
-    func_801E8000(priority);
-    D_800DE4EC = func_801E8104(D_800C2D14[entryIdx * 2],
-                               D_800C2D14[entryIdx * 2 + 1],
-                               1,
+    g_fieldMovieFlags |= FIELD_MOVIE_OPEN;
+    MovieInit(bufferSize);
+    g_movieStripBuffer = MovieOpen(g_movieTable[entryIdx * 2],
+                               g_movieTable[entryIdx * 2 + 1],
+                               MOVIE_HAS_PICTURE,
                                g_fieldSoundBuffer);
-    g_fieldVars->padInitStatus = 0;
+    g_fieldVars->currentMovieFrame = 0;
     context->stackPtr -= 2;
     return 2;
 }
@@ -528,17 +528,17 @@ s32 opHandler_MOVIEREADY(ScriptContext *context) {
 /**
  * @brief op04F MOVIE — enter cinematic mode.
  *
- * Sets the @c 0x1000 bit in @c g_fieldVars->stateFlags and asks the
- * movie subsystem (@c func_801E82CC) whether it is ready to play. If
+ * Sets @c FIELD_STATE_MOVIE_PLAYING in @c g_fieldVars->stateFlags and asks the
+ * movie subsystem (@c MovieIsBuffered) whether it is ready to play. If
  * it returns @c 0 (busy), the opcode blocks by returning @c 1.
  *
  * Once ready, doubles the three rate halfwords
- * (@c moveSpeed / @c msgChannel / @c field_0x208) of every active
- * entity — counterpart of @c func_800B14C8's halve step. If the
- * @ref FIELD_STATE_FIELD_READY is clear, also hides the SeeD rank notification
+ * (@c moveSpeed / @c baseMoveSpeed / @c animationSpeed) of every active
+ * entity, the counterpart of @c ExitMovieMode's halving. If the
+ * @ref FIELD_STATE_SALARY_DISPLAY_OFF is clear, also hides the SeeD rank notification
  * (@c resetSeedRankNotification, so the next scene starts clean) and
  * resets @c g_fieldVars->levelUpDisplayTimer. Finally calls
- * @c func_801E870C to commit the mode switch.
+ * @c MoviePlay to commit the mode switch.
  *
  * @return 1 to block while the movie subsystem is busy, 2 once it
  *         takes over.
@@ -548,75 +548,69 @@ s32 opHandler_MOVIE(ScriptContext *context) {
     Actor *p;
     s32 sc, mc, fc;
 
-    g_fieldVars->stateFlags |= FIELD_STATE_FLAG_1000;
-    if (func_801E82CC()) {
+    g_fieldVars->stateFlags |= FIELD_STATE_MOVIE_PLAYING;
+    if (MovieIsBuffered()) {
         p = g_fieldActors;
         for (i = 0; i < g_fieldActorCount; i++) {
             sc = (s16)p->moveSpeed;
-            mc = (s16)p->msgChannel;
-            fc = (s16)p->field_0x208;
+            mc = (s16)p->baseMoveSpeed;
+            fc = (s16)p->animationSpeed;
             p->moveSpeed = sc << 1;
-            p->msgChannel = mc << 1;
-            p->field_0x208 = fc << 1;
+            p->baseMoveSpeed = mc << 1;
+            p->animationSpeed = fc << 1;
             p++;
         }
-        if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+        if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
             resetSeedRankNotification();
             g_fieldVars->levelUpDisplayTimer = 0;
         }
-        func_801E870C();
+        MoviePlay();
         return 2;
     }
     return 1;
 }
 
 /**
- * @brief Halve the rate triple (@c moveSpeed / @c msgChannel /
- *        @c field_0x208 ) of every active entity,
- *        clear the @c 0x1000 bit of the state flags, and reset two
- *        re-arm flags ( @c g_fieldContext.userControlOff — only if @c unk015 is
- *        clear — and @c D_800DE4FD[0] ). Counterpart of @c
- *        opHandler_MOVIE's doubling step — called as part of the
- *        cinematic / movie postlude to restore the dialog channels
- *        after a scene.
+ * @brief Halve the rate triple (@c moveSpeed / @c baseMoveSpeed /
+ *        @c animationSpeed ) of every active entity,
+ *        clear @c FIELD_STATE_MOVIE_PLAYING, and reset two
+ *        re-arm flags (@c g_fieldContext.userControlOff, only if @c unk015 is
+ *        clear, and @c g_fieldMovieFlags). Counterpart of @c
+ *        opHandler_MOVIE's doubling step, run when a movie ends.
  *
- * @note Falls through without a return statement — callers don't read
- *       the value (it leaves @c hi(D_800DE4FD) in @c $v0).
+ * @note Falls through without a return statement: callers don't read
+ *       the value (it leaves @c hi(g_fieldMovieFlags) in @c $v0).
  */
-void func_800B14C8(void) {
+void ExitMovieMode(void) {
     s32 i;
     Actor *p;
 
-    g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_1000;
+    g_fieldVars->stateFlags &= ~FIELD_STATE_MOVIE_PLAYING;
     p = g_fieldActors;
     for (i = 0; i < g_fieldActorCount; i++) {
         p->moveSpeed = (s16)p->moveSpeed / 2;
-        p->msgChannel = (s16)p->msgChannel / 2;
-        p->field_0x208 = (s16)p->field_0x208 / 2;
+        p->baseMoveSpeed = (s16)p->baseMoveSpeed / 2;
+        p->animationSpeed = (s16)p->animationSpeed / 2;
         p++;
     }
     if (g_fieldContext.unk015 == 0) {
         g_fieldContext.userControlOff = 0;
     }
-    D_800DE4FD[0] = 0;
+    g_fieldMovieFlags = 0;
 }
 
 /**
  * @brief Wait for the movie to finish playing.
  *
- * Re-runs while @c func_801E8B84 returns nonzero, then lets the script
+ * Re-runs while @c MovieIsPlaying returns nonzero, then lets the script
  * advance.
- *
- * @note @c func_801E8B84 lives in another overlay and has no body here, so
- *       "movie still playing" is inferred from the opcode name and from the
- *       shape it shares with the other @c *SYNC waits.
  *
  * @param context Context of the script running the opcode.
  * @return 1 to run this opcode again, 2 once the movie has finished.
  */
 s32 opHandler_MOVIESYNC(ScriptContext *context) {
     s32 result;
-    result = func_801E8B84(context);
+    result = MovieIsPlaying();
     if (result != 0) {
         return 1;
     }
@@ -624,54 +618,50 @@ s32 opHandler_MOVIESYNC(ScriptContext *context) {
 }
 
 /**
- * @brief op056 SPUREADY — peek the top stack slot as a sound-bank
- *        index and kick off an asynchronous CD read of the
- *        corresponding sample bank into the @c 0x801E8000 staging
- *        buffer.
+ * @brief op056 SPUREADY: peek the top stack slot as the index of an
+ *        audio-only stream, load movie.ovl and start the stream.
  *
- * The first invocation (active for this script slot) seeds the
- * subsystem via @c func_800A59D0 + @c LoadCompressedDataFromDisc with
- * @c D_800C2D14[0..1] as the LBA/size pair and marks
- * @c D_800DE4FD as in-flight. Subsequent invocations poll
- * @c UpdateCdRead — returning @c 1 to keep the script blocked
- * until the read completes, then committing the indexed bank entry
- * via @c func_801E8104 (priority @c 0x10, mode @c 2 for SPU vs
- * mode @c 1 for the movie variant in @c MOVIEREADY) before popping
- * the stack and returning @c 2.
+ * The first invocation (active for this script slot) loads movie.ovl into
+ * @c 0x801E8000 via @c func_800A59D0 + @c LoadCompressedDataFromDisc with
+ * @c g_movieTable[0..1] as the LBA/size pair and marks @c g_fieldMovieFlags as
+ * in flight. Subsequent invocations poll @c UpdateCdRead, returning @c 1
+ * to keep the script blocked until the read completes. Then it opens the
+ * stream's @c g_audioStreamTable entry with @c MovieOpen (16 slots, @c MOVIE_AUDIO_ONLY,
+ * where @c MOVIEREADY passes @c MOVIE_HAS_PICTURE), starts it
+ * with @c MoviePlay, pops the stack and returns @c 2.
  *
- * @return 1 while CD read is pending, 2 once the SPU bank is loaded.
+ * @return 1 while the CD read is pending, 2 once the stream is started.
  */
 s32 opHandler_SPUREADY(ScriptContext *context) {
     s32 entryIdx = context->stack[(s8)context->stackPtr];
 
     if ((context->activeMask >> context->scriptSlot) & 1) {
         func_800A59D0();
-        LoadCompressedDataFromDisc(D_800C2D14[0], D_800C2D14[1], 0x801E8000, 0);
-        D_800DE4FD[0] = 1;
+        LoadCompressedDataFromDisc(g_movieTable[0], g_movieTable[1], 0x801E8000, 0);
+        g_fieldMovieFlags = FIELD_MOVIE_LOADING;
     }
     if (UpdateCdRead() != CD_READ_IDLE) {
         return 1;
     }
-    D_800DE4FD[0] |= 0x2;
-    func_801E8000(0x10);
-    func_801E8104(D_800C2E14[entryIdx * 4],
-                  D_800C2E14[entryIdx * 4 + 1],
-                  2,
+    g_fieldMovieFlags |= FIELD_MOVIE_OPEN;
+    MovieInit(0x10);
+    MovieOpen(g_audioStreamTable[entryIdx * 4],
+                  g_audioStreamTable[entryIdx * 4 + 1],
+                  MOVIE_AUDIO_ONLY,
                   g_fieldSoundBuffer);
-    func_801E870C();
+    MoviePlay();
     context->stackPtr -= 1;
     return 2;
 }
 
 /**
- * @brief op164 SPUSYNC — peek top-of-stack; if positive and below the
- *        SPU's free-sample threshold (@c D_800772B8), pop and return 2
- *        (advance). If non-positive, defer to @c func_801E8B98 (an SPU
- *        readiness query) and pop only when it reports ready. Otherwise
- *        return 1 to block the script.
+ * @brief op164 SPUSYNC: peek top-of-stack. If it is positive, block until
+ *        the stream's frame number (@c D_800772B8, the frame whose sound
+ *        the sound engine loaded last) has passed it; if it is 0 or less,
+ *        block until the audio-only stream has ended (@c MovieIsAudioStreaming
+ *        returns 0). Then pop and return 2; while blocked, return 1.
  *
- * Counterpart to SPUREADY — used right after a sample upload to wait
- * for the SPU to actually have the requested sample loaded.
+ * Counterpart to SPUREADY.
  */
 s32 opHandler_SPUSYNC(ScriptContext *context) {
     s32 top = context->stack[(s8)context->stackPtr];
@@ -680,7 +670,7 @@ s32 opHandler_SPUSYNC(ScriptContext *context) {
             return 1;
         }
     } else {
-        if (func_801E8B98() != 0) {
+        if (MovieIsAudioStreaming() != 0) {
             return 1;
         }
     }
@@ -1145,7 +1135,7 @@ void func_800B2188(void) {
 /**
  * @brief Helper for @c EFFECTLOAD (op0BD, @c opHandler_EFFECTLOAD) — looks up
  *        the SFX entry indexed by @c g_fieldVars->audioChannel2State
- *        in the @c D_800C2E1C @c {LBA, size} table and issues a
+ *        in the @c g_instrumentBankTable @c {LBA, size} table and issues a
  *        @c LoadDataFromDisc targeting the @c g_fieldSoundBuffer SPU staging buffer,
  *        with @c func_800B2188 as the load-complete callback. Also
  *        clears the @c D_800DE8D5 ready-flag so the caller's poll
@@ -1155,8 +1145,8 @@ void func_800B21E0(void) {
     s32 entryIdx = g_fieldVars->audioChannel2State;
     D_800DE8D5 = 0;
     func_800A59D0();
-    LoadDataFromDisc(D_800C2E1C[entryIdx * 2],
-           D_800C2E1C[entryIdx * 2 + 1],
+    LoadDataFromDisc(g_instrumentBankTable[entryIdx * 2],
+           g_instrumentBankTable[entryIdx * 2 + 1],
            g_fieldSoundBuffer,
            func_800B2188);
 }
@@ -1166,7 +1156,7 @@ void func_800B21E0(void) {
  *        @c g_fieldVars->audioChannel2State, and kick off a deferred
  *        CD load of the corresponding sample bank via the helper
  *        @c func_800B21E0 (which looks the entry up in
- *        @c D_800C2E1C and issues @c LoadDataFromDisc targeting the SPU staging
+ *        @c g_instrumentBankTable and issues @c LoadDataFromDisc targeting the SPU staging
  *        buffer).
  *
  * The stack-pop / store / helper-call dance is only performed on the

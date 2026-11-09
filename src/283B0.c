@@ -313,9 +313,9 @@ void clearEntityFlags(void) {
 
 
 /** @brief Returns the transition/ready bits of @c g_fieldVars->stateFlags
- *         (@ref FIELD_STATE_TRANSITION | @ref FIELD_STATE_FIELD_READY). */
+ *         (@ref FIELD_STATE_SALARY_OFF | @ref FIELD_STATE_SALARY_DISPLAY_OFF). */
 s32 getFieldStateFlags(void) {
-    return g_fieldVars->stateFlags & (FIELD_STATE_TRANSITION | FIELD_STATE_FIELD_READY);
+    return g_fieldVars->stateFlags & (FIELD_STATE_SALARY_OFF | FIELD_STATE_SALARY_DISPLAY_OFF);
 }
 
 

@@ -2038,7 +2038,7 @@ void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
  *        when @c func_800BE274 reports a script gate is open.
  *
  * Decrements @c dialogTimer by @c dialogCount (one count-down step),
- * unconditionally clears the @c unk1A1 flag, then:
+ * unconditionally clears the @c skipFieldDraw flag, then:
  *   - If the new timer is still positive (more frames to wait), polls
  *     @c func_800BE274, if it returns 0 (gate not yet open), we keep
  *     the dialog state intact and return.
@@ -2052,7 +2052,7 @@ void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
 void func_800A5698(void) {
     FieldContext *sys = &g_fieldContext;
     sys->dialogTimer -= sys->dialogCount;
-    sys->unk1A1 = 0;
+    sys->skipFieldDraw = 0;
     if ((s16)*(volatile u16 *)&sys->dialogTimer > 0) {
         if (func_800BE274() == 0) return;
     }
@@ -2064,7 +2064,7 @@ void func_800A5698(void) {
  * @brief Advance the dialog timer by one step and clamp at 0xFF.
  *
  * Adds @c dialogCount to @c dialogTimer (one tick of the dialog scroll
- * accumulator), unconditionally clears the @c unk1A1 flag, then if the
+ * accumulator), unconditionally clears the @c skipFieldDraw flag, then if the
  * advanced timer overflows 8-bit range (>= 256 as signed) clamps it
  * back down to 0xFF.
  *
@@ -2076,7 +2076,7 @@ void func_800A5698(void) {
 void func_800A5700(void) {
     FieldContext *sys = &g_fieldContext;
     sys->dialogTimer += sys->dialogCount;
-    sys->unk1A1 = 0;
+    sys->skipFieldDraw = 0;
     if ((s16)*(volatile u16 *)&sys->dialogTimer >= 256) {
         sys->dialogTimer = 0xFF;
     }
@@ -2117,7 +2117,7 @@ s16 func_800A5748(s16 start, s16 end, s16 progress, s16 total) {
 void func_800A5788(FieldFrameBuf *buf) {
     FieldContext *sys = &g_fieldContext;
 
-    sys->unk1A1 = 0;
+    sys->skipFieldDraw = 0;
     sys->dialogTimer++;
     if ((s16)*(volatile u16 *)&sys->dialogTimer >= (s16)*(volatile u16 *)&sys->dialogCount) {
         sys->field_0x114 = sys->field_0x11A;
@@ -2161,7 +2161,7 @@ void func_800A5898(FieldFrameBuf *buf) {
 
     switch (sys->dialogState) {
     case 0:
-        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.skipFieldDraw = 0;
         g_fieldContext.field_0x114 = 0;
         g_fieldContext.field_0x116 = 0;
         g_fieldContext.field_0x118 = 0;
@@ -2182,12 +2182,12 @@ void func_800A5898(FieldFrameBuf *buf) {
         D_80070649 = 1;
         break;
     case 7:
-        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.skipFieldDraw = 0;
         SetFadeBlendMode(BLEND_ADD);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 8:
-        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.skipFieldDraw = 0;
         SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;

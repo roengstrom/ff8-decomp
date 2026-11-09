@@ -450,7 +450,7 @@ extern volatile s16 g_gameMode;
 extern DISPENV      g_dispEnvs[2];
 extern DRAWENV      g_drawEnvs[2];
 extern DRAWENV *g_activeDrawEnv; // draw environment of the buffer currently being built
-extern s32 D_8005F138; // active display environment (holds a DISPENV *)
+extern DISPENV *g_activeDispEnv;
 extern u8 g_fadeCounter;
 
 /** @brief Bit @c 0x10 mirrors into @c FieldVars.field58 on full field reset. */
