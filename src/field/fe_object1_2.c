@@ -617,7 +617,7 @@ void func_800A2128(func_800A2128_arg0 *t) {
  * Builds a unit octagon once per call, @c func_8009D234 / @c func_8009D254 sampled
  * at the eight 32-step headings give the cos/sin pair for each ring point, then
  * walks the @ref Actor pool. An entity casts a shadow only when it is not flagged
- * out (@c flags bit 3), is active (@c unk218 @c != @c -1) and is in the state
+ * out (@c flags bit 3), is active (@c modelId @c != @c -1) and is in the state
  * @c unk258 @c == @c 1.
  *
  * The fan centre is the entity's position dropped to integer world units, and ring
@@ -670,7 +670,7 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
         if (ents->context.flags & 8) {
             continue;
         }
-        if (ents->unk218 == -1) {
+        if (ents->modelId == -1) {
             continue;
         }
         if (ents->unk258 != 1) {

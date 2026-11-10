@@ -120,12 +120,7 @@ typedef struct {
     /* 0x004 */ s16 position_x;     /**< Spawn X, or @c SPAWN_UNSET to use the triangle centroid. */
     /* 0x006 */ s16 position_y;     /**< Spawn Y. */
     /* 0x008 */ u16 unk008;         /**< Extra halfword popped only by @c opHandler_MAPJUMP3. */
-    /* 0x00A */ s16 unk00A;         /**< Reset to 20 by @c func_8009AEC0 and scaled into the self
-                                         entity's @c moveSpeed with the same factor
-                                         @c func_800B6738 uses on @c D_800704B2 (134.8046875,
-                                         written there as @c *69020>>9 and here as @c *17255>>7), so
-                                         the entity starts exactly at that threshold.
-                                         @note Both quantities are unnamed; only ever written as 20. */
+    /* 0x00A */ s16 moveUnit; // walk speed, run speed and the gap between party followers are all multiples of this
     /* 0x00C */ s16 spawnTriIdx;    /**< Spawn navmesh triangle — assigned straight to @c Actor::triIdx
                                          by both @c func_8009AEC0 and @c func_800BE264.
                                          @c SPAWN_UNSET means "keep the entity where it is". */
@@ -332,10 +327,12 @@ typedef struct {
     /* 0x176 */ u16 pc;             /**< Instruction pointer of the running slot. */
     /* 0x178 */ u16 rangeLo;        /**< Lower bound of this entity's script range. */
     /* 0x17A */ u16 rangeHi;        /**< Upper bound of this entity's script range. */
-    /* 0x17C */ u8  savedStackPtr[8]; /**< Saved stack base per script slot. */
+    /* 0x17C */ s8  savedStackPtr[8]; /**< Saved stack base per script slot. */
     /* 0x184 */ s8  stackPtr;       /**< Top stack slot; @c -1 when empty, pre-incremented by @c PUSH. */
     /* 0x185 */ u8  pad185[0x03];
 } ScriptContext; /* 0x188 */
+
+#define ACTOR_NO_CHARACTER_ID 0xFE // partyCharacterId of an actor that is none of the CharacterId characters
 
 /**
  * @brief Actor — opcode handler / script-VM view of a field entity.
@@ -360,8 +357,8 @@ typedef struct {
  */
 typedef struct {
     /* 0x000 */ ScriptContext context; // Has to be first field in struct so that Actor instance can be cast as ScriptContext
-    /* 0x188 */ u8 unk188;          /**< Script parameter byte. */
-    /* 0x189 */ u8 unk189;          /**< Script parameter byte. */
+    /* 0x188 */ s8 unk188;          /**< Script parameter byte. */
+    /* 0x189 */ s8 unk189;          /**< Script parameter byte. */
     /* 0x18A */ u16 unk18A;         /**< Step delta added to unk188 each movement tick. */
     /* 0x18C */ u16 unk18C;         /**< Halfword saved during async msg state. */
     /* 0x18E */ u16 unk18E;         /**< Halfword saved during async msg state. */
@@ -423,7 +420,7 @@ typedef struct {
     /* 0x212 */ u16 field_0x212;
     /* 0x214 */ u16 field_0x214;
     /* 0x216 */ u16 field_0x216;
-    /* 0x218 */ s16 unk218;         /**< -1 = inactive (skipped by collision tests in @c func_8009E468). */
+    /* 0x218 */ s16 modelId; // which loaded model this actor is drawn with; -1 = no model, and then nothing bumps into it
     /* 0x21A */ s16 windowId;       /**< Message window ID (read signed; @c 1 selects the inverted input mapping in @c func_8009F990). */
     /* 0x21C */ u16 field_0x21C;    /**< Saved window ID for async restore. */
     /* 0x21E */ s16 msgState;       /**< Message state (0=init, 2=complete). */
@@ -468,8 +465,8 @@ typedef struct {
     /* 0x252 */ u8 field_0x252;
     /* 0x253 */ u8 field_0x253;
     /* 0x254 */ u8 field_0x254;
-    /* 0x255 */ u8 field_0x255;
-    /* 0x256 */ u8 field_0x256;
+    /* 0x255 */ u8 partyCharacterId; // which CharacterId character this actor is, in the party or not, or ACTOR_NO_CHARACTER_ID
+    /* 0x256 */ u8 selfIndex; // this actor's own number in the field's actor list
     /* 0x257 */ u8 field_0x257;
     /* 0x258 */ u8 unk258;          /**< Set from path-table entry's @c unk8 by @c func_8009BB18. */
     /** 0x259: Blob-shadow radius per octagon direction — entry @c k is the heading
@@ -616,7 +613,7 @@ typedef struct {
     s32 subBuffer;   /**< @c 0x98 — caller of @c func_800A8CDC uses the returned @c &subBuffer pointer. */
 } EntityRenderSlot;
 
-/** @brief Entity render-slot pointer table; indexed by @c actor->field_0x256. */
+/** @brief Entity render-slot pointer table; indexed by @c actor->selfIndex. */
 extern EntityRenderSlot *D_800D9630[];
 
 /** @brief Entity Actor pointer table; indexed by raw field-entity id. */
@@ -865,7 +862,7 @@ extern s32 D_800DE4D8;
 /** @brief Global SFX-status flags packed scalar (tested with 0xC0 etc.). */
 extern s32 D_80070600;
 
-/** @brief Active field-script entity index (mirrors @c actor->field_0x256). */
+/** @brief Active field-script entity index (mirrors @c actor->selfIndex). */
 extern u8 D_800DE4FC;
 #define FIELD_MOVIE_LOADING 0x1
 #define FIELD_MOVIE_OPEN 0x2
@@ -955,7 +952,7 @@ extern u32 D_80082C14;
 /** @brief Reset to 20 on field entry by @c func_8009AEC0 and scaled by
  *         134.8046875 (@c *69020>>9) in @c func_800B6738 to form the threshold
  *         the entity's @c moveSpeed is compared against — the same scale
- *         @c func_8009AEC0 applies to @c FieldContext::unk00A when seeding it.
+ *         @c func_8009AEC0 applies to @c FieldContext::moveUnit when seeding it.
  *  @note Both quantities are unnamed; the pair only ever holds 20. */
 extern s16 D_800704B2;
 

@@ -621,7 +621,7 @@ s32 func_800AE8B4(Actor *actor, u8 newGroup, u16 pcIdx) {
 /**
  * @brief Pop @c pcIdx and @c newGroup off the script stack, look up
  *        @c D_80085230[a1] (the target entity); if the target is active
- *        and its @c field_0x256 matches @c D_800DE4FC, bump @c e->context.pc
+ *        and its @c selfIndex matches @c D_800DE4FC, bump @c e->context.pc
  *        and return 4. Otherwise return 3. The popped values are passed
  *        to @c func_800AE8B4 which applies the actual group/pc update.
  *
@@ -633,7 +633,7 @@ s32 opHandler_REQ(ScriptContext *context, s32 a1) {
     s32 retVal;
 
     if (D_80085230[a1] != 0) {
-        if (D_800DE4FC == D_80085230[a1]->field_0x256) {
+        if (D_800DE4FC == D_80085230[a1]->selfIndex) {
             retVal = 4;
             context->pc++;
         } else {
@@ -944,7 +944,7 @@ s32 opHandler_RND(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_SETMODEL(Actor *actor, s32 a1) {
-    actor->unk218 = a1;
+    actor->modelId = a1;
     return 2;
 }
 
@@ -1332,14 +1332,14 @@ s32 opHandler_KEY(ScriptContext *context) {
 s32 opHandler_SETPC(Actor *actor) {
     s32 v1;
     actor->context.flags |= 0x80;
-    actor->field_0x255 = (u8)POP(&actor->context);
-    v1 = actor->field_0x255;
+    actor->partyCharacterId = (u8)POP(&actor->context);
+    v1 = actor->partyCharacterId;
     if (v1 >= 3 && (v1 < 6 || v1 == 7)) {
         actor->context.flags |= 0x4000000;
     }
-    if (g_gameState.battleParty[0] != actor->field_0x255
-        && g_gameState.battleParty[1] != actor->field_0x255
-        && g_gameState.battleParty[2] != actor->field_0x255) {
+    if (g_gameState.battleParty[0] != actor->partyCharacterId
+        && g_gameState.battleParty[1] != actor->partyCharacterId
+        && g_gameState.battleParty[2] != actor->partyCharacterId) {
         actor->context.flags &= ~2;
     }
     return 2;
