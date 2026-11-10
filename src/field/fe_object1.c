@@ -189,13 +189,13 @@ s32 *func_800983F0(void) {
     buf = (u8 *)func_800A0640((SPRT_16 *)buf);
 
     if (g_curFieldInfo->movieMask == 1) {
-        D_800D5EC8[0] = buf;
+        D_800D5EC8[0] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EC8[1] = buf;
+        D_800D5EC8[1] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EB8[0] = buf;
+        D_800D5EB8[0] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
-        D_800D5EB8[1] = buf;
+        D_800D5EB8[1] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
     }
 

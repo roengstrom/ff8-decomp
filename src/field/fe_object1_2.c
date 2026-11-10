@@ -792,7 +792,29 @@ func_800A2A30_item *func_800A2A30(func_800A2A30_item *p) {
     return p;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1_2", func_800A2AF8);
+void func_800A2AF8(FieldFrameBuf *buf, POLY_F3 *arg1, DR_TPAGE *arg2, FieldView *view) {
+    SVert *verts;
+    s32 i;
+    s32 otz;
+
+    PushMatrix();
+    SetRotMatrix(&view->m);
+    SetTransMatrix(&view->m);
+    verts = (*g_fieldMovieMask)->tris[0].v;
+    SetPriority(&buf->unk5F80, 1, 0);
+    addPrim(&buf->ot[0xFFF], &buf->unk5F80);
+    for (i = 0; i < (u16)(*g_fieldMovieMask)->count; i++) { // matching hack
+        gte_ldv3(&verts[i * 3], &verts[i * 3 + 1], &verts[i * 3 + 2]);
+        gte_rtpt();
+        gte_stsxy3(&arg1[i].x0, &arg1[i].x1, &arg1[i].x2);
+        gte_stszotz(&otz);
+        addPrim(&buf->ot[0xFFF], &arg1[i]);
+        addPrim(&buf->ot[0xFFF], &arg2[i]);
+    }
+    SetPriority(&buf->unk5F8C, 0, 1);
+    addPrim(&buf->ot[0xFFF], &buf->unk5F8C);
+    PopMatrix();
+}
 
 /** @brief Signed/unsigned halfword view of the split-image header word. */
 typedef union {
