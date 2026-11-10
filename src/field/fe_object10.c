@@ -66,7 +66,7 @@ void func_800BD250(s32 dir, s16 *out) {
  * Pops one value off the actor's script stack, passes it to
  * @c func_800BD250 to fill @c buf with a 3-halfword rect derived from that
  * direction code, then dispatches @c func_800A9434 against the actor's
- * @c field_0x256 with cmd @c 0x30 and sub-cmd @c 1.
+ * @c selfIndex with cmd @c 0x30 and sub-cmd @c 1.
  *
  * @param actor Actor whose script is running.
  * @return @c 2 (continue processing).
@@ -78,7 +78,7 @@ s32 opHandler_OP167(Actor *actor) {
     s16 buf[4];
     actor->context.stackPtr = idx - 1;
     func_800BD250(actor->context.stack[(s8)idx], buf);
-    func_800A9434(actor->field_0x256, 0x30, 1, (u8 *)buf, 0x1E);
+    func_800A9434(actor->selfIndex, 0x30, 1, (u8 *)buf, 0x1E);
     return 2;
 }
 
@@ -99,7 +99,7 @@ s32 opHandler_OP168(Actor *actor) {
     buf[0] = -buf[0];
     buf[1] = -buf[1];
     buf[2] = -buf[2];
-    func_800A9434(actor->field_0x256, 0x30, 1, (u8 *)buf, 0x1E);
+    func_800A9434(actor->selfIndex, 0x30, 1, (u8 *)buf, 0x1E);
     return 2;
 }
 
@@ -624,7 +624,7 @@ void func_800BE30C(u8 *header) {
  * the @c g_fieldActors entity pool and keeps only entries whose @c flags
  * bit @c 0x2 is set. Each kept @c Actor is copied to the next compacted
  * slot at the head of the array, tagged with its new index in
- * @c field_0x256, and registered in @c D_80085230 (NULL for dropped
+ * @c selfIndex, and registered in @c D_80085230 (NULL for dropped
  * entries). @c g_fieldActorCount is set to the new entry count.
  *
  * @param header Event preamble forwarded to @c func_800BE30C.
@@ -644,7 +644,7 @@ Actor *func_800BE36C(u8 *header) {
                 if (src->context.flags & 2) {
                     D_80085230[srcIdx] = dst;
                     *dst = *src;
-                    dst->field_0x256 = (u8)dstIdx;
+                    dst->selfIndex = (u8)dstIdx;
                     dst++;
                     dstIdx++;
                 }
@@ -720,7 +720,78 @@ s32 *func_800BE4B0(u8 *header, u16 *table) {
     return &D_80085380[dstIdx];
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object10", func_800BE5E4);
+Actor *InitActors(Actor *buf) {
+    Actor *actor;
+    s32 i;
+    u16 scriptRange;
+    u16 startPc;
+    u16 shadowRadius;
+    s32 moveSpeed;
+
+    func_800396E0(buf, g_fieldActorCount * sizeof(Actor));
+    actor = g_fieldActors;
+    i = 0;
+    if (g_fieldActorCount == 0) {
+        return actor;
+    }
+    do {
+        D_80085230[i] = actor;
+        actor->context.flags = 0x10080002;
+        actor->context.stackPtr = -1;
+        actor->context.savedStackPtr[actor->context.scriptSlot] = -1;
+        scriptRange = *D_800DE4E0;
+        actor->context.rangeLo = scriptRange >> 7;
+        actor->context.rangeHi = scriptRange & 0x7F;
+        D_800DE4E0++;
+        actor->context.rangeHi = actor->context.rangeLo + actor->context.rangeHi + 1;
+        startPc = D_800852F0[actor->context.rangeLo];
+        actor->partyCharacterId = ACTOR_NO_CHARACTER_ID;
+        actor->field_0x257 = 0x11;
+        actor->selfIndex = i;
+        actor->context.activeMask = 0xFF;
+        actor->context.savedPc[0] = 0xFFFF;
+        actor->context.savedPc[1] = 0xFFFF;
+        actor->context.savedPc[2] = 0xFFFF;
+        actor->context.savedPc[3] = 0xFFFF;
+        actor->context.savedPc[4] = 0xFFFF;
+        actor->context.savedPc[5] = 0xFFFF;
+        actor->context.savedPc[6] = 0xFFFF;
+        actor->context.savedPc[7] = 0xFFFF;
+        actor->unk188 = -1;
+        actor->unk189 = -1;
+        ((u8 *)&actor->unk18A)[2] = 0x80;
+        ((u8 *)&actor->unk18A)[1] = 0x80;
+        ((u8 *)&actor->unk18A)[0] = 0x80;
+        actor->context.pc = startPc;
+        actor->field_0x244 = 0;
+        actor->field_0x24E = 0xFF;
+        actor->animationSpeed = 0x10;
+        actor->modelId = -1;
+        actor->radius = 0x30;
+        actor->talkRadius = 0x80;
+
+        shadowRadius = actor->radius >> 2;
+        moveSpeed = (g_fieldContext.moveUnit * 203000) >> 9;
+        actor->moveSpeed = moveSpeed;
+        actor->baseMoveSpeed = moveSpeed;
+        actor->field_0x263 = 0x80;
+        actor->shadowLevel = 0x60;
+        actor->shadowRadius[0] = shadowRadius;
+        actor->shadowRadius[1] = actor->shadowRadius[0];
+        actor->shadowRadius[2] = actor->shadowRadius[0];
+        actor->shadowRadius[3] = actor->shadowRadius[0];
+        actor->shadowRadius[4] = actor->shadowRadius[0];
+        actor->shadowRadius[5] = actor->shadowRadius[0];
+        actor->shadowRadius[6] = actor->shadowRadius[0];
+        actor->shadowRadius[7] = actor->shadowRadius[0];
+        actor->turnYawRate = 0x2A;
+        actor->field_0x239 = 0x2A;
+        actor->turnPitchRate = 0x2A;
+        actor++;
+        i++;
+    } while (i < g_fieldActorCount);
+    return actor;
+}
 
 /**
  * @brief Initialize the @ref Eline pool — the "Block B" field entities.
@@ -1120,8 +1191,8 @@ void func_800BF080(void) {
  * animation update.
  */
 void func_800BF230(Actor *actor) {
-    func_800AA46C(actor->field_0x256, 0xD, actor->field_0x24E, 0);
-    D_800D9630[actor->field_0x256]->unk52 = actor->field_0x206;
+    func_800AA46C(actor->selfIndex, 0xD, actor->field_0x24E, 0);
+    D_800D9630[actor->selfIndex]->unk52 = actor->field_0x206;
 }
 
 /**
@@ -1134,11 +1205,11 @@ void func_800BF230(Actor *actor) {
  * @c field_0x24F and ORs in @c flags bit @c 0x2000. Then fires
  * @c func_800A97E4 dispatches based on bit flags:
  *   - 0x100000  → cmd 0x2E with the per-entity counter slot
- *   - 0x200000  → cmd 0x2F with the entity's @c field_0x256
+ *   - 0x200000  → cmd 0x2F with the entity's @c selfIndex
  *   - 0x80000   → cmd 0x27 with arg3 = @c field_0x263
  * Always copies @c flags-bit-8 into the render slot's @c unk60, plus
  * @c field_0x220 into @c unk62 and @c field_0x257 into @c unk61, and
- * issues @c func_800A97E4(field_0x256, 0x10, &entity->unk18A, 0).
+ * issues @c func_800A97E4(selfIndex, 0x10, &entity->unk18A, 0).
  * Two more conditional dispatches follow:
  *   - 0x1000000 → cmd 0x21
  *   - 0x2000000 → cmd 0xF with arg2 = 1
@@ -1162,9 +1233,9 @@ void func_800BF28C(s32 a0) {
             if (flags & 0x100000) {
                 func_800A97E4(D_800DE4FC, 0x2E, 0, 0);
             } else if (flags & 0x200000) {
-                func_800A97E4(e->field_0x256, 0x2F, 0, 0);
+                func_800A97E4(e->selfIndex, 0x2F, 0, 0);
             } else if (flags & 0x80000) {
-                func_800A97E4(e->field_0x256, 0x27, 0, e->field_0x263);
+                func_800A97E4(e->selfIndex, 0x27, 0, e->field_0x263);
             }
             if (e->context.flags & 8) {
                 D_800D9630[D_800DE4FC]->unk60 = 1;
@@ -1173,12 +1244,12 @@ void func_800BF28C(s32 a0) {
             }
             D_800D9630[D_800DE4FC]->unk62 = e->field_0x220;
             D_800D9630[D_800DE4FC]->unk61 = e->field_0x257;
-            func_800A97E4(e->field_0x256, 0x10, (s32)&e->unk18A, 0);
+            func_800A97E4(e->selfIndex, 0x10, (s32)&e->unk18A, 0);
             if (e->context.flags & 0x1000000) {
-                func_800A97E4(e->field_0x256, 0x21, 0, 0);
+                func_800A97E4(e->selfIndex, 0x21, 0, 0);
             }
             if (e->context.flags & 0x2000000) {
-                func_800A97E4(e->field_0x256, 0xF, 1, 0);
+                func_800A97E4(e->selfIndex, 0xF, 1, 0);
             }
             D_800DE4FC++;
             e++;
