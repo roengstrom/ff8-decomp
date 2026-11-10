@@ -457,6 +457,7 @@ void SetDrawEnv(DR_ENV *dr_env, DRAWENV *env);
 DRAWENV *SetDefDrawEnv(DRAWENV *env, s32 x, s32 y, s32 w, s32 h);
 DISPENV *SetDefDispEnv(DISPENV *env, s32 x, s32 y, s32 w, s32 h);
 DRAWENV *PutDrawEnv(DRAWENV *env);
+DRAWENV *GetDrawEnv(DRAWENV *env);
 DISPENV *PutDispEnv(DISPENV *env);
 s32 ClearImage(RECT *rect, u8 r, u8 g, u8 b);
 /* Pack a mask-bit setting into the primitive @p p: with @p pbw set, drawn pixels get their mask bit set. */
