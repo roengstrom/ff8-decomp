@@ -12,6 +12,7 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
+#include "field/fe_object3.h"
 #include "field/fe_object10.h"
 #include "input/gamepad.h"
 
@@ -855,7 +856,7 @@ void func_80099348(void) {
             && func_800BE274() == 0 && g_fieldContext.dialogState != 4
             && g_fieldContext.dialogState != 3
             && g_fieldContext.dialogState != 2 && g_fieldContext.userControlOff == 0) {
-            func_800AD7AC(0);
+            FieldPause(NULL);
         }
 
         if (g_fieldContext.unk1AA == 1) {

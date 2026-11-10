@@ -8,15 +8,13 @@
 #include "ui/window.h"
 #include "field/fe_object3.h"
 
-// The original called this without a prototype in scope, so it saw the implicit int return.
-extern s32 GetNewlyPressedButtons(s32 idx, s32 offset);
-extern u8 D_80053B28[];
+extern u8 g_unpauseVibrationPattern[];
 
-static inline void func_800AD7AC_body(void (*callback)(void)) {
+static inline void RunFieldPauseScreen(void (*callback)(void)) {
     DRAWENV view;
     DRAWENV save;
     RECT frame;
-    RECT bar;
+    RECT valueBox;
     u32 ot[0x202];
     s32 tick;
     s32 enabled;
@@ -25,7 +23,7 @@ static inline void func_800AD7AC_body(void (*callback)(void)) {
     s32 clut;
     void *prim;
     s32 y;
-    s32 iconIdx;
+    s32 stateIcon;
     s32 color;
     s32 full;
     s32 halfW;
@@ -43,15 +41,15 @@ static inline void func_800AD7AC_body(void (*callback)(void)) {
     PutDrawEnv(&view);
 
     disp = g_activeDispEnv;
-    halfW = (disp->disp.w - 0x80) / 2;
+    halfW = (disp->disp.w - 128) / 2;
     frame.x = halfW - 1;
-    frame.y = (disp->disp.h - 0x16) / 2 - 1;
-    frame.w = 0x80;
-    bar.y = frame.y;
-    frame.h = 0x16;
-    bar.x = halfW + 0x5E;
-    bar.w = 8;
-    bar.h = 0x16;
+    frame.y = (disp->disp.h - 22) / 2 - 1;
+    frame.w = 128;
+    valueBox.y = frame.y;
+    frame.h = 22;
+    valueBox.x = halfW + 94;
+    valueBox.w = 8;
+    valueBox.h = 22;
 
     IsVibrationEnabled(0);
     SetVibrationIntensity(0, 0, 0);
@@ -88,16 +86,16 @@ static inline void func_800AD7AC_body(void (*callback)(void)) {
             clut = 0x140;
         }
 
-        prim = drawIconClut(ot, prim, 0xA0, frame.x + 6, y = frame.y + 8, color, clut);
-        iconIdx = 0xA2;
+        prim = drawIconClut(ot, prim, ICON_VIBRATION, frame.x + 6, y = frame.y + 8, color, clut);
+        stateIcon = ICON_OFF;
         if (enabled == full) {
-            iconIdx = 0xA1;
+            stateIcon = ICON_ON;
         }
-        prim = drawIconClut(ot, prim, iconIdx, frame.x + 0x65, y, color, clut);
+        prim = drawIconClut(ot, prim, stateIcon, frame.x + 101, y, color, clut);
         if (!((tick >> 4) & 1)) {
-            prim = drawIcon(ot, prim, 0x4B, frame.x, frame.y, color);
+            prim = drawIcon(ot, prim, ICON_PAUSE, frame.x, frame.y, color);
         }
-        prim = func_8002B3A0(ot, prim, &bar, color, 1);
+        prim = func_8002B3A0(ot, prim, &valueBox, color, WINDOW_FRAME_LEFT);
         prim = func_8002B898(ot, prim, &frame, color);
         func_8002B8BC(ot, prim, &frame, color, 8);
 
@@ -111,7 +109,7 @@ static inline void func_800AD7AC_body(void (*callback)(void)) {
     }
 
     if (IsVibrationEnabled(0) == 0xFF && !isVibrating()) {
-        startVibration(D_80053B28, 1, 1);
+        startVibration(g_unpauseVibrationPattern, 1, 1);
     }
     PutDrawEnv(&save);
     SetPlayTimePaused(0);
@@ -119,8 +117,8 @@ static inline void func_800AD7AC_body(void (*callback)(void)) {
     VSync(0);
 }
 
-void func_800AD7AC(void (*callback)(void)) {
-    func_800AD7AC_body(callback); // matching hack?
+void FieldPause(void (*callback)(void)) {
+    RunFieldPauseScreen(callback); // matching hack?
 }
 
 /**

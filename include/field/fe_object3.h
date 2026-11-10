@@ -22,6 +22,6 @@ extern CmdQueue D_800DE7B0;
 
 extern void func_800ADAF4(s32 a, u32 size, u32 c);
 
-extern void func_800AD7AC(void (*callback)(void));
+extern void FieldPause(void (*callback)(void));
 
 #endif
