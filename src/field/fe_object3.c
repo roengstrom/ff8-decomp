@@ -13,23 +13,23 @@ extern u8 g_unpauseVibrationPattern[];
 static inline void RunFieldPauseScreen(void (*callback)(void)) {
     DRAWENV view;
     DRAWENV save;
-    RECT frame;
-    RECT valueBox;
+    RECT pauseWindow;
+    RECT vibrationSettingBoxDivider;
     u32 ot[0x202];
     s32 tick;
-    s32 enabled;
-    s32 connected;
-    u16 pressed;
+    s32 vibrationMask;
+    s32 controllerSupportsVibration;
+    u16 newlyPressedButtons;
     s32 clut;
     void *prim;
     s32 y;
-    s32 stateIcon;
-    s32 color;
-    s32 full;
-    s32 halfW;
+    s32 vibrationStateIcon;
+    s32 neutralColor;
+    s32 vibrationEnabledMask;
+    s32 pauseWindowXPos;
     DISPENV *disp;
 
-    color = 0x64808080;
+    neutralColor = 0x64808080;
     tick = 0;
     RequestActuatorSetup(0);
     DrawSync(0);
@@ -41,44 +41,46 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
     PutDrawEnv(&view);
 
     disp = g_activeDispEnv;
-    halfW = (disp->disp.w - 128) / 2;
-    frame.x = halfW - 1;
-    frame.y = (disp->disp.h - 22) / 2 - 1;
-    frame.w = 128;
-    valueBox.y = frame.y;
-    frame.h = 22;
-    valueBox.x = halfW + 94;
-    valueBox.w = 8;
-    valueBox.h = 22;
+    pauseWindowXPos = (disp->disp.w - 128) / 2;
+    pauseWindow.x = pauseWindowXPos - 1;
+    pauseWindow.y = (disp->disp.h - 22) / 2 - 1;
+    pauseWindow.w = 128;
+    vibrationSettingBoxDivider.y = pauseWindow.y;
+    pauseWindow.h = 22;
+    vibrationSettingBoxDivider.x = pauseWindowXPos + 94;
+    vibrationSettingBoxDivider.w = 8;
+    vibrationSettingBoxDivider.h = 22;
 
     IsVibrationEnabled(0);
     SetVibrationIntensity(0, 0, 0);
     SetPlayTimePaused(1);
 
-    full = 0xFF;
+    vibrationEnabledMask = GAMEPAD_VIBRATION_ENABLED_MASK;
     while (1) {
         DrawSync(0);
         ClearOTag(ot, 2);
         prim = &ot[2];
         RecordGamePadInput();
-        pressed = GetNewlyPressedButtons(0, 0);
-        if (pressed & PADstart) {
+        newlyPressedButtons = GetNewlyPressedButtons(0, 0);
+        if (newlyPressedButtons & PADstart) {
+            // Unpause
             break;
         }
 
-        connected = 1;
+        controllerSupportsVibration = 1;
         if (!IsFirstGamePadConnected() || !GetActuatorCountForGamePad(0)) {
-            SetVibrationEnabled(0, 0);
-            connected = 0;
+            SetVibrationEnabled(0, GAMEPAD_VIBRATION_DISABLED_MASK);
+            controllerSupportsVibration = 0;
         }
-        enabled = IsVibrationEnabled(0);
-        if ((pressed & (PADLup | PADLright | PADLdown | PADLleft | PADRright | PADRdown)) && connected) {
-            if (enabled == full) {
-                enabled = 0;
+        vibrationMask = IsVibrationEnabled(0);
+        // Toggle vibration ON/OFF when any of below buttons were newlyPressedButtons
+        if ((newlyPressedButtons & (PADLup | PADLright | PADLdown | PADLleft | PADRright | PADRdown)) && controllerSupportsVibration) {
+            if (vibrationMask == vibrationEnabledMask) {
+                vibrationMask = GAMEPAD_VIBRATION_DISABLED_MASK;
             } else {
-                enabled = 0xFF;
+                vibrationMask = GAMEPAD_VIBRATION_ENABLED_MASK;
             }
-            SetVibrationEnabled(0, enabled);
+            SetVibrationEnabled(0, vibrationMask);
         }
         if (GetActuatorCountForGamePad(0)) {
             clut = 0;
@@ -86,29 +88,29 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
             clut = 0x140;
         }
 
-        prim = drawIconClut(ot, prim, ICON_VIBRATION, frame.x + 6, y = frame.y + 8, color, clut);
-        stateIcon = ICON_OFF;
-        if (enabled == full) {
-            stateIcon = ICON_ON;
+        prim = drawIconClut(ot, prim, ICON_VIBRATION, pauseWindow.x + 6, y = pauseWindow.y + 8, neutralColor, clut);
+        vibrationStateIcon = ICON_OFF;
+        if (vibrationMask == vibrationEnabledMask) {
+            vibrationStateIcon = ICON_ON;
         }
-        prim = drawIconClut(ot, prim, stateIcon, frame.x + 101, y, color, clut);
+        prim = drawIconClut(ot, prim, vibrationStateIcon, pauseWindow.x + 101, y, neutralColor, clut);
+        // blink pause, 16 frames on then 16 frames off
         if (!((tick >> 4) & 1)) {
-            prim = drawIcon(ot, prim, ICON_PAUSE, frame.x, frame.y, color);
+            prim = drawIcon(ot, prim, ICON_PAUSE, pauseWindow.x, pauseWindow.y, neutralColor);
         }
-        prim = func_8002B3A0(ot, prim, &valueBox, color, WINDOW_FRAME_LEFT);
-        prim = func_8002B898(ot, prim, &frame, color);
-        func_8002B8BC(ot, prim, &frame, color, 8);
+        prim = func_8002B3A0(ot, prim, &vibrationSettingBoxDivider, neutralColor, WINDOW_FRAME_LEFT);
+        prim = func_8002B898(ot, prim, &pauseWindow, neutralColor);
+        func_8002B8BC(ot, prim, &pauseWindow, neutralColor, 8);
 
         VSync(0);
         DrawOTag(ot);
         tick++;
-        if (callback == NULL) {
-            continue;
+        if (callback != NULL) {
+            callback();
         }
-        callback();
     }
 
-    if (IsVibrationEnabled(0) == 0xFF && !isVibrating()) {
+    if (IsVibrationEnabled(0) == GAMEPAD_VIBRATION_ENABLED_MASK && !isVibrating()) {
         startVibration(g_unpauseVibrationPattern, 1, 1);
     }
     PutDrawEnv(&save);
