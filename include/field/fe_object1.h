@@ -274,7 +274,7 @@ extern void func_8009FE18(s32 entIdx, Actor *actor, s32 flags);
 #define PRIM_CODE_SEMI_TRANS 0x02
 
 extern SPRT_16 *func_800A0640(SPRT_16 *prim);
-extern void func_800A06F0(s32 a, FieldFrameBuf *buf, u8 *b, u8 *c);
+extern void func_800A06F0(s16 arg0, FieldFrameBuf *arg1, u8 *arg2, u8 *arg3);
 extern void func_800A0D6C(u8 *buf);
 extern s32  func_800A0E54(s32 start, s32 end, s32 total, s32 progress);
 extern s32  func_800A0EB8(s32 start, s32 end, s32 total, s32 angle);

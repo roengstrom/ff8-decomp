@@ -58,8 +58,8 @@ typedef struct {
     /* 0x12 */ s16 p2;
     /* 0x14 */ u16 p3;
     /* 0x16 */ u16 p4;
-    /* 0x18 */ u16 p5;
-    /* 0x1A */ u16 p6;
+    /* 0x18 */ s16 p5;
+    /* 0x1A */ s16 p6;
 } SystemSubMode; /* 0x1C = 28 bytes */
 
 /**
@@ -675,8 +675,8 @@ typedef struct {
     /* 0x192 */ u16 animSpeed2;     /**< Reload partner of @ref animSpeed; written with the same value. */
     /* 0x194 */ u16 animFlag;       /**< Set by @c BGANIMEFLAG from the script stack. */
     /* 0x196 */ u8  pad196[0x06];
-    /* 0x19C */ u16 shadeCounter;   /**< Shade wait counter; @c BGSHADE pops it, @c BGSHADESTOP zeros it, the opcode finishes when it reaches 0. */
-    /* 0x19E */ u16 unk19E;         /**< Zeroed whenever a shade sequence starts or stops. */
+    /* 0x19C */ s16 shadeCounter;   /**< Shade wait counter; @c BGSHADE pops it, @c BGSHADESTOP zeros it, the opcode finishes when it reaches 0. */
+    /* 0x19E */ s16 unk19E;         /**< Zeroed whenever a shade sequence starts or stops. */
     /* 0x1A0 */ u16 unk1A0;         /**< Loop counter popped by @c RBGSHADELOOP. */
     /* 0x1A2 */ u16 unk1A2;         /**< Timer popped by @c RBGSHADELOOP. */
     /* 0x1A4 */ u8  unk1A4;         /**< Per-tick counter, primed from @ref unk1A5. */

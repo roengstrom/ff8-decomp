@@ -90,7 +90,7 @@ typedef struct {
                                           (@c func_800A1CC0) even for load modes 1 and 6. */
     /* 0x00E */ u8 movieMask;        /**< 1 for a field with a movie mask: gates building and drawing it,
                                           and the palette-strip StoreImage in @c func_800A1BB8. */
-    /* 0x00F */ u8 pad0F;
+    /* 0x00F */ u8 unk0F;
     /* 0x010 */ u8 tpageX;           /**< Texture-page X written into every field sprite's tpage word. */
     /* 0x011 */ u8 pad11;
     /* 0x012 */ u16 baseZ;           /**< Base Z offset added to the per-entity Z when building SVECTOR (func_800A11E0). */
