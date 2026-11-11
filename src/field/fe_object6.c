@@ -392,7 +392,7 @@ void func_800B2B48(Actor *actor) {
 void func_800B2BA0(Bganime *bganime) {
     s32 flags = bganime->context.flags;
 
-    if ((flags & 0x200) && (s16)bganime->shadeCounter == 0) {
+    if ((flags & 0x200) && bganime->shadeCounter == 0) {
         if (bganime->unk1A4 == 0) {
             if (flags & 0x400) {
                 bganime->context.flags = flags & ~0x400;
@@ -644,7 +644,7 @@ s32 opHandler_BGSHADE(Bganime *bganime) {
         e->unk1A8 = POP_BYTE(&bganime->context);
         e->unk1A7 = POP_BYTE(&bganime->context);
         e->shadeCounter = POP(&bganime->context);
-    } else if ((s16)e->shadeCounter == 0) {
+    } else if (e->shadeCounter == 0) {
         return 2;
     }
     return 1;

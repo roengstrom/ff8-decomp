@@ -3466,7 +3466,120 @@ SPRT_16 *func_800A0640(SPRT_16 *prim) {
     return prim;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1", func_800A06F0);
+void func_800A06F0(s16 arg0, FieldFrameBuf *arg1, u8 *arg2, u8 *arg3) {
+    CVECTOR *colors = (CVECTOR *)getScratchAddr(0);
+    DVECTOR *trans = (DVECTOR *)getScratchAddr(32);
+    DVECTOR *vis = (DVECTOR *)getScratchAddr(48);
+    DVECTOR *clip = (DVECTOR *)getScratchAddr(64);
+    DVECTOR *modulus = (DVECTOR *)getScratchAddr(68);
+    Bganime *bgAnim;
+    s16 i;
+
+    for (i = 0; i < 8; i++) {
+        vis[i].vx = g_curFieldInfo->unk0F & (1 << i);
+    }
+
+    for (i = 0; i < 8; i++) {
+        modulus[i].vx = g_curFieldInfo->cameraRanges[i].right * 2;
+        modulus[i].vy = g_curFieldInfo->cameraRanges[i].bottom * 2;
+    }
+
+    bgAnim = g_fieldBgAnims;
+    for (i = 0; i < g_fieldBgAnimCount; bgAnim++, i++) {
+        if (bgAnim->shadeCounter > bgAnim->unk19E) {
+            colors[i].r = bgAnim->unk1A7 + (((bgAnim->unk1AA - bgAnim->unk1A7) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            colors[i].g = bgAnim->unk1A8 + (((bgAnim->unk1AB - bgAnim->unk1A8) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            colors[i].b = bgAnim->unk1A9 + (((bgAnim->unk1AC - bgAnim->unk1A9) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            bgAnim->unk19E++;
+        } else {
+            colors[i].r = bgAnim->unk1AA;
+            colors[i].g = bgAnim->unk1AB;
+            colors[i].b = bgAnim->unk1AC;
+            bgAnim->unk19E = 0;
+            bgAnim->shadeCounter = 0;
+        }
+        colors[i].cd = bgAnim->unk188 >> 6;
+    }
+
+    if (g_fieldContext.unk1A6 == 0) {
+        FieldView *view;
+        s16 negViewY;
+        s16 x0;
+        s32 x0Wide;
+
+        trans[0].vx = g_fieldContext.slots[arg0].q1;
+        trans[0].vy = g_fieldContext.slots[arg0].q2;
+        x0 = trans[0].vx;
+        x0Wide = trans[0].vx;
+        for (i = 1; i < 8; i++) {
+            trans[i].vx = (g_fieldContext.slots[arg0 + i].p3 + (x0 - g_fieldContext.slots[arg0 + i].q1)) - ((x0Wide * g_fieldContext.slots[arg0 + i].p5) / 256);
+            trans[i].vy = (g_fieldContext.slots[arg0 + i].p4 + (trans[0].vy - g_fieldContext.slots[arg0 + i].q2)) - ((trans[0].vy * g_fieldContext.slots[arg0 + i].p6) / 256);
+        }
+        view = g_curFieldView;
+        negViewY = -view->viewOfsY;
+        view = NULL; // matching hack
+        trans[0].vx = -g_curFieldView->viewOfsX;
+        trans[0].vy = negViewY;
+    } else {
+        FieldView *view;
+        s16 negViewX;
+
+        trans[1].vx = g_fieldContext.slots[1].q1;
+        trans[1].vy = g_fieldContext.slots[1].q2;
+        for (i = 2; i < 8; i++) {
+            trans[i].vx = (g_fieldContext.slots[arg0 + i].p3 + (trans[1].vx - g_fieldContext.slots[arg0 + i].q1)) - ((trans[1].vx * g_fieldContext.slots[arg0 + i].p5) / 256);
+            trans[i].vy = (g_fieldContext.slots[arg0 + i].p4 + (trans[1].vy - g_fieldContext.slots[arg0 + i].q2)) - ((trans[1].vy * g_fieldContext.slots[arg0 + i].p6) / 256);
+        }
+        view = g_curFieldView;
+        negViewX = -view->viewOfsX;
+        view = NULL; // matching hack
+        trans[0].vy = -g_curFieldView->viewOfsY;
+        trans[1].vx = -g_curFieldView->viewOfsX;
+        trans[1].vy = -g_curFieldView->viewOfsY;
+        trans[0].vx = negViewX;
+    }
+
+    if (g_fieldContext.unk1A6 == 1) {
+        FieldInfo *info = g_curFieldInfo;
+        FieldView *view;
+        s32 width;
+        u16 viewX;
+        s32 height;
+
+        width = info->screenRanges[0].left - info->screenRanges[0].right;
+        info = NULL; // matching hack
+        view = g_curFieldView;
+        viewX = view->viewOfsX;
+        view = NULL; // matching hack
+        clip[0].vy = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2 + ((g_fieldContext.slots[1].q1 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsX;
+        clip[1].vx = ((g_curFieldInfo->screenRanges[0].top - g_curFieldInfo->screenRanges[0].bottom) / 2 + ((g_fieldContext.slots[1].q2 - 0x20) & 0xFFFF)) - g_curFieldView->viewOfsY;
+        height = g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
+        clip[0].vx = (width / 2 + ((g_fieldContext.slots[1].q1 - 0x20) & 0xFFFF)) - viewX;
+        clip[1].vy = (height / 2 + ((g_fieldContext.slots[1].q2 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsY;
+    } else {
+        FieldInfo *info = g_curFieldInfo;
+        FieldView *view;
+        s32 width;
+        u16 viewX;
+        s32 xMin;
+        u16 slotX;
+        s32 height;
+
+        width = info->screenRanges[0].left - info->screenRanges[0].right;
+        info = NULL; // matching hack
+        slotX = g_fieldContext.slots[arg0].q1;
+        xMin = g_fieldContext.slots[arg0].q1 - 0x20;
+        view = g_curFieldView;
+        viewX = view->viewOfsX;
+        view = NULL; // matching hack
+        clip[0].vy = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2 + ((slotX + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsX;
+        clip[1].vx = ((g_curFieldInfo->screenRanges[0].top - g_curFieldInfo->screenRanges[0].bottom) / 2 + ((g_fieldContext.slots[arg0].q2 - 0x20) & 0xFFFF)) - g_curFieldView->viewOfsY;
+        height = g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
+        clip[0].vx = (width / 2 + xMin) - viewX;
+        clip[1].vy = (height / 2 + ((g_fieldContext.slots[arg0].q2 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsY;
+    }
+    func_800A19B8(arg1, arg2, arg3, *g_fieldTileMap);
+}
 
 /**
  * @brief Restore VRAM regions for the dialog window and 16 strip layers.
