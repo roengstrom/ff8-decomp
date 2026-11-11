@@ -11,8 +11,8 @@
 extern u8 g_unpauseVibrationPattern[];
 
 static inline void RunFieldPauseScreen(void (*callback)(void)) {
-    DRAWENV view;
-    DRAWENV save;
+    DRAWENV pauseDrawEnv;
+    DRAWENV fieldDrawEnv;
     RECT pauseWindow;
     RECT vibrationSettingBoxDivider;
     u32 ot[0x202];
@@ -22,11 +22,10 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
     u16 newlyPressedButtons;
     s32 clut;
     void *prim;
-    s32 y;
+    s32 x, y;
     s32 vibrationStateIcon;
     s32 neutralColor;
     s32 vibrationEnabledMask;
-    DISPENV *disp;
 
     neutralColor = 0x64808080;
     tick = 0;
@@ -34,17 +33,17 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
     DrawSync(0);
     VSync(0);
 
-    SetDefDrawEnv(&view, g_activeDispEnv->disp.x, g_activeDispEnv->disp.y, g_activeDispEnv->disp.w, g_activeDispEnv->disp.h);
-    view.isbg = 0;
-    GetDrawEnv(&save);
-    PutDrawEnv(&view);
+    SetDefDrawEnv(&pauseDrawEnv, g_activeDispEnv->disp.x, g_activeDispEnv->disp.y, g_activeDispEnv->disp.w, g_activeDispEnv->disp.h);
+    pauseDrawEnv.isbg = 0; // keep the frozen field frame visible behind the pause window
+    GetDrawEnv(&fieldDrawEnv);
+    PutDrawEnv(&pauseDrawEnv);
 
-    disp = g_activeDispEnv;
-    pauseWindow.x = (disp->disp.w - 128) / 2 - 1;
-    pauseWindow.y = (disp->disp.h - 22) / 2 - 1;
+    pauseWindow.x = (g_activeDispEnv->disp.w - 128) / 2 - 1;
+    pauseWindow.y = (g_activeDispEnv->disp.h - 22) / 2 - 1;
     pauseWindow.w = 128;
-    vibrationSettingBoxDivider.y = pauseWindow.y;
     pauseWindow.h = 22;
+
+    vibrationSettingBoxDivider.y = pauseWindow.y;
     vibrationSettingBoxDivider.x = pauseWindow.x + 95;
     vibrationSettingBoxDivider.w = 8;
     vibrationSettingBoxDivider.h = 22;
@@ -86,12 +85,16 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
             clut = 0x140;
         }
 
-        prim = drawIconClut(ot, prim, ICON_VIBRATION, pauseWindow.x + 6, y = pauseWindow.y + 8, neutralColor, clut);
+        x = pauseWindow.x + 6;
+        y = pauseWindow.y + 8;
+        prim = drawIconClut(ot, prim, ICON_VIBRATION, x, y, neutralColor, clut);
         vibrationStateIcon = ICON_OFF;
         if (vibrationMask == vibrationEnabledMask) {
             vibrationStateIcon = ICON_ON;
         }
-        prim = drawIconClut(ot, prim, vibrationStateIcon, pauseWindow.x + 101, y, neutralColor, clut);
+
+        x = pauseWindow.x + 101;
+        prim = drawIconClut(ot, prim, vibrationStateIcon, x, y, neutralColor, clut);
         // blink pause, 16 frames on then 16 frames off
         if (!((tick >> 4) & 1)) {
             prim = drawIcon(ot, prim, ICON_PAUSE, pauseWindow.x, pauseWindow.y, neutralColor);
@@ -111,7 +114,7 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
     if (IsVibrationEnabled(0) == GAMEPAD_VIBRATION_ENABLED_MASK && !isVibrating()) {
         startVibration(g_unpauseVibrationPattern, 1, 1);
     }
-    PutDrawEnv(&save);
+    PutDrawEnv(&fieldDrawEnv);
     SetPlayTimePaused(0);
     DrawSync(0);
     VSync(0);
