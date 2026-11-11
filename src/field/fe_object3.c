@@ -26,7 +26,6 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
     s32 vibrationStateIcon;
     s32 neutralColor;
     s32 vibrationEnabledMask;
-    s32 pauseWindowXPos;
     DISPENV *disp;
 
     neutralColor = 0x64808080;
@@ -41,13 +40,12 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
     PutDrawEnv(&view);
 
     disp = g_activeDispEnv;
-    pauseWindowXPos = (disp->disp.w - 128) / 2;
-    pauseWindow.x = pauseWindowXPos - 1;
+    pauseWindow.x = (disp->disp.w - 128) / 2 - 1;
     pauseWindow.y = (disp->disp.h - 22) / 2 - 1;
     pauseWindow.w = 128;
     vibrationSettingBoxDivider.y = pauseWindow.y;
     pauseWindow.h = 22;
-    vibrationSettingBoxDivider.x = pauseWindowXPos + 94;
+    vibrationSettingBoxDivider.x = pauseWindow.x + 95;
     vibrationSettingBoxDivider.w = 8;
     vibrationSettingBoxDivider.h = 22;
 
@@ -73,7 +71,7 @@ static inline void RunFieldPauseScreen(void (*callback)(void)) {
             controllerSupportsVibration = 0;
         }
         vibrationMask = IsVibrationEnabled(0);
-        // Toggle vibration ON/OFF when any of below buttons were newlyPressedButtons
+        // Toggle vibration ON/OFF when any of below buttons were pressed
         if ((newlyPressedButtons & (PADLup | PADLright | PADLdown | PADLleft | PADRright | PADRdown)) && controllerSupportsVibration) {
             if (vibrationMask == vibrationEnabledMask) {
                 vibrationMask = GAMEPAD_VIBRATION_DISABLED_MASK;
