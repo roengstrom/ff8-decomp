@@ -42,7 +42,7 @@ extern void func_800A2128();  /* arg is a file-private buffer view in fe_object1
 extern void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents);
 extern func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p);
 extern func_800A2A30_item *func_800A2A30(func_800A2A30_item *p);
-extern void func_800A2AF8(FieldFrameBuf *buf, POLY_F3 *arg1, DR_TPAGE *arg2, FieldView *view);
+extern void DrawMovieMask(FieldFrameBuf *frameBuf, POLY_F3 *maskTris, DR_TPAGE *maskTPages, FieldView *view);
 extern void func_800A2D2C(s16 *buf, s32 slot);
 extern s16  func_800A2EA4(s16 range);
 extern s16  func_800A2FE0();  /* arg is a file-private buffer view in fe_object1.c */

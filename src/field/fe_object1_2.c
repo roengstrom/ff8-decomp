@@ -744,15 +744,6 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
     PopMatrix();
 }
 
-/**
- * @brief Initialize a run of items at @p p; return the pointer past the
- *        last item.
- *
- * Writes one item per @c g_fieldMovieMask triangle, each with the fixed
- * trio (@c b3 = 4, @c b7 = 0x22, @c b4/b5/b6 = 0). Returns the input pointer
- * advanced past the items written, used by @c func_800983F0 to chain
- * multiple init regions into one growing buffer.
- */
 func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
     s32 i;
     for (i = 0; i < (*g_fieldMovieMask)->count; i++) {
@@ -766,16 +757,6 @@ func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
     return p;
 }
 
-/**
- * @brief Append one GPU draw-mode prim per @c g_fieldMovieMask triangle;
- *        return the advanced output pointer.
- *
- * For each triangle, calls @c GetTPage(0, 1, 0, 0) to get a color value, masks to 9 bits,
- * ORs with the GPU draw-mode command base @c 0xE1000200, and writes
- * one 8-byte prim with @c tag=1 + @c cmd=combined.
- *
- * Used by @c func_800983F0 's draw-prim chain layout.
- */
 func_800A2A30_item *func_800A2A30(func_800A2A30_item *p) {
     s32 i;
     for (i = 0; i < (*g_fieldMovieMask)->count; i++) {
@@ -788,27 +769,27 @@ func_800A2A30_item *func_800A2A30(func_800A2A30_item *p) {
     return p;
 }
 
-void func_800A2AF8(FieldFrameBuf *buf, POLY_F3 *arg1, DR_TPAGE *arg2, FieldView *view) {
-    SVert *verts;
+void DrawMovieMask(FieldFrameBuf *frameBuf, POLY_F3 *maskTris, DR_TPAGE *maskTPages, FieldView *view) {
+    SVert *maskVerts;
     s32 i;
     s32 otz;
 
     PushMatrix();
     SetRotMatrix(&view->m);
     SetTransMatrix(&view->m);
-    verts = (*g_fieldMovieMask)->tris[0].v;
-    SetPriority(&buf->unk5F80, 1, 0);
-    addPrim(&buf->ot[0xFFF], &buf->unk5F80);
+    maskVerts = (*g_fieldMovieMask)->tris[0].v;
+    SetPriority(&frameBuf->unk5F80, 1, 0);
+    addPrim(&frameBuf->ot[0xFFF], &frameBuf->unk5F80);
     for (i = 0; i < (*g_fieldMovieMask)->count; i++) {
-        gte_ldv3(&verts[i * 3], &verts[i * 3 + 1], &verts[i * 3 + 2]);
+        gte_ldv3(&maskVerts[i * 3], &maskVerts[i * 3 + 1], &maskVerts[i * 3 + 2]);
         gte_rtpt();
-        gte_stsxy3(&arg1[i].x0, &arg1[i].x1, &arg1[i].x2);
+        gte_stsxy3(&maskTris[i].x0, &maskTris[i].x1, &maskTris[i].x2);
         gte_stszotz(&otz);
-        addPrim(&buf->ot[0xFFF], &arg1[i]);
-        addPrim(&buf->ot[0xFFF], &arg2[i]);
+        addPrim(&frameBuf->ot[0xFFF], &maskTris[i]);
+        addPrim(&frameBuf->ot[0xFFF], &maskTPages[i]);
     }
-    SetPriority(&buf->unk5F8C, 0, 1);
-    addPrim(&buf->ot[0xFFF], &buf->unk5F8C);
+    SetPriority(&frameBuf->unk5F8C, 0, 1);
+    addPrim(&frameBuf->ot[0xFFF], &frameBuf->unk5F8C);
     PopMatrix();
 }
 

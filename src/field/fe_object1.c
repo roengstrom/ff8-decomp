@@ -742,7 +742,7 @@ void func_80099348(void) {
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
                    && g_fieldContext.movieMaskOff == 0) {
-            func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
+            DrawMovieMask(D_800C71E0, D_800D5EC8[g_bufferIndex],
                           D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
 
