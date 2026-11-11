@@ -135,6 +135,12 @@ typedef struct {
     /* 0x4 */ Triangle tris[1];        /* variable length */
 } TriangleList;
 
+typedef struct {
+    /* 0x0 */ u16 count;
+    /* 0x2 */ u16 pad2;
+    /* 0x4 */ Triangle tris[1];
+} MovieMask;
+
 /** @brief 6-byte per-triangle adjacency record — neighbor triangle index per edge (0xFFFF = none). */
 typedef struct {
     u16 neighbor[3];
@@ -280,8 +286,7 @@ typedef struct {
     /* 0x04 */ FieldView          *views;
     /* 0x08 */ TriangleList       *walkmesh;
     /* 0x0C */ MapTile            *tileMap;
-    /* 0x10 */ TriangleList       *movieMask;     /**< Drawn only while a movie plays, to set the GPU
-                                                       mask bit, and only when @c FieldInfo::movieMask is 1. */
+    /* 0x10 */ MovieMask          *movieMask;
     /* 0x14 */ FieldEncounterRate *encounterRate;
     /* 0x18 */ FieldFormations    *formations;
     /* 0x1C */ OffsetTable        *sfxTable;      /**< Entries are AKAO sound sequences. */
@@ -305,7 +310,7 @@ extern FieldInfo          **g_fieldInfo;
 extern FieldView          **g_fieldViews;
 extern TriangleList       **g_fieldWalkmesh;
 extern MapTile            **g_fieldTileMap;
-extern TriangleList       **g_fieldMovieMask;
+extern MovieMask          **g_fieldMovieMask;
 extern FieldEncounterRate **g_fieldEncounterRate;
 extern FieldFormations    **g_fieldFormations;
 extern OffsetTable        **g_fieldSfxTable;

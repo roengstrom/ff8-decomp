@@ -794,7 +794,9 @@ typedef struct {
     /* 0x4EC0 */ u8 pad4EC0[0x40];
     /* 0x4F00 */ DR_ENV unk4F00;               /**< Second env prim; linked into @c ot[1]. */
     /* 0x4F40 */ DR_ENV unk4F40;                /**< Third env prim, built by @c SetDrawEnv alongside @c unk4F00. */
-    /* 0x4F80 */ u8 unk4F80[0x1018];           /**< Output block @ref func_800A06F0 fills. */
+    /* 0x4F80 */ u8 unk4F80[0x1000];           /**< Output block @ref func_800A06F0 fills. */
+    /* 0x5F80 */ DR_PRIO unk5F80;
+    /* 0x5F8C */ DR_PRIO unk5F8C;
     /* 0x5F98 */ FieldRibbonPrims ribbonPrims[8];   /**< Shimmer-ribbon line strips (@ref func_800A5224). */
     /* 0x6538 */ FieldRibbonTPages ribbonTPages[8]; /**< Their tpage commands. */
 } FieldFrameBuf; /* 0x6638 = 26168 bytes */

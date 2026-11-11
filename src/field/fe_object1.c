@@ -12,6 +12,7 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
+#include "field/fe_object3.h"
 #include "field/fe_object10.h"
 #include "input/gamepad.h"
 
@@ -188,13 +189,13 @@ s32 *func_800983F0(void) {
     buf = (u8 *)func_800A0640((SPRT_16 *)buf);
 
     if (g_curFieldInfo->movieMask == 1) {
-        D_800D5EC8[0] = buf;
+        D_800D5EC8[0] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EC8[1] = buf;
+        D_800D5EC8[1] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EB8[0] = buf;
+        D_800D5EB8[0] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
-        D_800D5EB8[1] = buf;
+        D_800D5EB8[1] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
     }
 
@@ -741,7 +742,7 @@ void func_80099348(void) {
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
                    && g_fieldContext.movieMaskOff == 0) {
-            func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
+            DrawMovieMask(D_800C71E0, D_800D5EC8[g_bufferIndex],
                           D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
 
@@ -855,7 +856,7 @@ void func_80099348(void) {
             && func_800BE274() == 0 && g_fieldContext.dialogState != 4
             && g_fieldContext.dialogState != 3
             && g_fieldContext.dialogState != 2 && g_fieldContext.userControlOff == 0) {
-            func_800AD7AC(0);
+            FieldPause(NULL);
         }
 
         if (g_fieldContext.unk1AA == 1) {

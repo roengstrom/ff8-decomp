@@ -26,8 +26,8 @@ extern FieldParticles *g_curFieldParticles;
 
 /** @brief Double-buffered prim-chain heads laid out after the field bundle. */
 extern u8 *D_800C6D98[2];
-extern u8 *D_800D5EC8[2];
-extern u8 *D_800D5EB8[2];
+extern POLY_F3 *D_800D5EC8[2];
+extern DR_TPAGE *D_800D5EB8[2];
 
 /** @brief Field-VM command tables selected by @c FieldInfo::unk0D. */
 extern u8 D_800C30DC[];
@@ -305,8 +305,6 @@ typedef struct {
     /* 0x03 */ u8  tag;     /**< Always written as @c 1. */
     /* 0x04 */ s32 cmd;     /**< @c 0xE1000200 | (color & 0x9FF). */
 } func_800A2A30_item;  /* 8 bytes */
-
-extern void func_800A2AF8(FieldFrameBuf *buf, u8 *a, u8 *b, FieldView *view);
 
 /** @brief Emit one field sprite for a movement accumulator and link it into the OT. */
 

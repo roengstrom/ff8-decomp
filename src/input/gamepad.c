@@ -574,9 +574,9 @@ s32 IsVibrationEnabled(s32 idx) {
 void SetVibrationEnabled(s32 idx, s32 enabled) {
     GamePad *port = &g_engine.gamePads[idx & 1];
     if (enabled != 0) {
-        port->vibrationMask = 0xFF;
+        port->vibrationMask = GAMEPAD_VIBRATION_ENABLED_MASK;
     } else {
-        port->vibrationMask = 0;
+        port->vibrationMask = GAMEPAD_VIBRATION_DISABLED_MASK;
     }
 }
 
