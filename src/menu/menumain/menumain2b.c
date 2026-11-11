@@ -36,6 +36,7 @@ extern u8 D_800562A4;
 extern u8 D_801F7DF4;
 extern u8 D_801F7E00;
 extern u8 D_801F7E0C;
+extern u8 D_801F7F90[];
 extern u8 D_801F8BB8[];
 extern u8 D_801FAB7C;
 extern ST_D_801FAB98 D_801FAB98[];
@@ -537,7 +538,40 @@ restart:
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F2FAC);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F3270);
+void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4) {
+    u8 buffer[16];
+    u8 *ptr;
+    u32 seconds;
+    u32 minutes;
+    u32 color;
+
+    if (GetVideoMode() == MODE_NTSC) {
+        arg4 /= 60;
+    } else {
+        arg4 /= 50;
+    }
+    arg4 = CLAMP(arg4, arg4, 35999);
+    seconds = arg4;
+    minutes = seconds / 60;
+    seconds %= 60;
+    prim = drawIconClut(ot, prim, ICON_PLAY, x, y, g_menuTint[MENU_TINT_NORMAL], 450);
+    x += 32;
+    color = D_801F7F90[minutes / 100];
+    ptr = &buffer[0];
+    intToDecStringShort(minutes, ptr, g_numberFormat.digits[0]);
+    ptr = &buffer[3];
+    if (*ptr == g_numberFormat.digits[0]) {
+        *ptr = getMenuString(11)[0];
+    }
+    prim = func_8002C56C(ot, prim, x, y, ptr, color);
+    x += 16;
+    prim = func_8002C56C(ot, prim, x, y, func_801F6AFC(13), color);
+    x += 8;
+    ptr = &buffer[0];
+    intToDecStringShort(seconds, ptr, g_numberFormat.digits[0]);
+    ptr = &buffer[3];
+    func_8002C56C(ot, prim, x, y, ptr, color);
+}
 
 /**
  * @brief Draw the menu clock: the play time as hours:minutes, or the running
