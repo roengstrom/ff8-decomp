@@ -20,6 +20,7 @@
 #include "party_stats.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 #include "render.h"
 #include "snd_sfx.h"
 #include "ui/font.h"
@@ -72,6 +73,11 @@ typedef struct {
     s32 unk4;
 } ST_D_801F7E6C; /* 8 bytes */
 
+typedef struct {
+    u16 count;
+    u16 offsets[1];
+} ST_FUNC_801F12FC;
+
 extern RECT D_801F7E64;
 extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
@@ -90,10 +96,13 @@ extern u8 D_801FAA18[];
 extern s16 D_801FAA1E;          /**< Text queue count / blink phase (added to g_menuDisplayCfg.animCounter). */
 extern TextQueueEntry D_801FAA20[]; /**< Queued text-glyph draw requests. */
 extern s16 D_801FAAE0;          /**< Current text color/font parameter. */
-extern s32 D_801FAAE4;
-extern s32 D_801FAAE8;
+extern u16 *D_801FAAE4;
+extern ST_FUNC_801F12FC *D_801FAAE8;
+extern s32 D_801FAAEC;
 extern u8 D_801FAAF0;
-extern u16 D_801FAAF2;
+extern s16 D_801FAAF2;
+extern s16 D_801FAAF4;
+extern s16 D_801FAAF6;
 extern u8 D_801FAAF8;
 extern s32 D_801FAB2C;
 extern u8 D_801FAB38[];
@@ -109,6 +118,7 @@ static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 in
 static u16 func_801F0E5C(u16 arg0);
 static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3);
 static void func_801F1584(void);
+static s32 func_801F12FC(void);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -818,7 +828,114 @@ void func_801F12F0(void) {
 /* Panel Iteration & Callbacks                                              */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F12FC);
+static s32 func_801F12FC(void) {
+    u16 result = 0;
+    s32 pressedButtons = applyButtonRemapTranslation(GetPressedButtons(0, 0));
+
+    D_801FAAF2--;
+
+    if (D_801FAAF2 <= 0) {
+        if (D_801FAAF2 == 0) {
+            D_801FAAE4++;
+        } else {
+            D_801FAAF2 = 0;
+        }
+
+        if (D_801FAAF8 != 0) {
+            return result;
+        }
+
+        while (1) {
+            u16 val1 = *D_801FAAE4;
+            u16 val2 = val1 >> 0xC;
+
+            val1 &= 0xFFF;
+
+            switch (val2) {
+            default:
+                continue;
+
+            case 1:
+                result |= 1 << val1;
+                D_801FAAE4++;
+                continue;
+
+            case 2:
+                if (getDialogTypingDone(0) != 0) {
+                    D_801FAAE4++;
+                }
+                break;
+
+            case 3: {
+                u8* message;
+                if (D_801FAAE8 != NULL) {
+                    message = (u8 *)D_801FAAE8 + D_801FAAE8->offsets[D_801FAAEC];
+                } else {
+                    message = NULL;
+                }
+                setDialogMessage(0, message);
+                func_801F1240(0, D_801FAAF4, D_801FAAF6, message);
+                setDialogCornerIcon(0, 0);
+                setDialogTextSpeed(0, ONE);
+                openDialogAnimated(0);
+                D_801FAAE4++;
+                break;
+            }
+
+            case 4:
+                closeDialogAnimated(0);
+                D_801FAAE4++;
+                continue;
+
+            case 5:
+                D_801FAAEC = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 6:
+                D_801FAAF4 = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 7:
+                D_801FAAF6 = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 8:
+                if (pressedButtons & PADRdown) {
+                    D_801FAAE4++;
+                }
+                if (pressedButtons & PADRup) {
+                    sendSpuCommand(3);
+                    closeDialogInstant(0);
+                    D_801FAAF8 = 1;
+                }
+                break;
+
+            case 9:
+                D_801FAAF2 = val1;
+                break;
+
+            case 10:
+                if (getOpenDialogScale(0) == 0) {
+                    D_801FAAE4++;
+                }
+                break;
+
+            case 15:
+                setDialogTextSpeed(0, 0);
+                D_801FAAF0 = 0;
+                break;
+
+            }
+
+            break;
+        }
+    }
+
+    return result;
+}
 
 static void func_801F1584(void) {
     MenuTask *task = D_801FA450;
