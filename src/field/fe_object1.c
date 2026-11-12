@@ -519,7 +519,6 @@ void func_8009912C(void) {
     renderAndUpdateDisplay(1);
 }
 
-extern s32  GetPressedButtons(s32 slot, s32 sub); /* per-pad held buttons (s32 view) */
 extern s32  GetNewlyPressedButtons(s32 a, s32 b);          /* per-pad newly-pressed input */
 // TODO: Drop this and include the prototype from the owner.
 extern s32 applyButtonRemapTranslation(s32 arg); /* s32 view: input/button_remap.h's u16 (u16) masks arg and result, changing codegen */

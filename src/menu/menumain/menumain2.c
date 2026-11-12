@@ -7,6 +7,8 @@
 #include "game.h"
 #include "gamestate.h"
 #include "gf.h"
+#include "input/button_remap.h"
+#include "input/gamepad.h"
 #include "main.h"
 #include "menu.h"
 #include "menumain.h"
@@ -18,6 +20,7 @@
 #include "party_stats.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 #include "render.h"
 #include "snd_sfx.h"
 #include "ui/font.h"
@@ -70,6 +73,11 @@ typedef struct {
     s32 unk4;
 } ST_D_801F7E6C; /* 8 bytes */
 
+typedef struct {
+    u16 count;
+    u16 offsets[1];
+} ST_FUNC_801F12FC;
+
 extern RECT D_801F7E64;
 extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
@@ -82,16 +90,19 @@ extern u16 D_801FAA00[];
 extern s16 D_801FAA08[];
 extern u8 D_801FAA10;
 extern s8 D_801FAA11;
-extern u16 D_801FAA12;
-extern u16 D_801FAA14;
+extern s16 D_801FAA12;
+extern s16 D_801FAA14;
 extern u8 D_801FAA18[];
 extern s16 D_801FAA1E;          /**< Text queue count / blink phase (added to g_menuDisplayCfg.animCounter). */
 extern TextQueueEntry D_801FAA20[]; /**< Queued text-glyph draw requests. */
 extern s16 D_801FAAE0;          /**< Current text color/font parameter. */
-extern s32 D_801FAAE4;
-extern s32 D_801FAAE8;
+extern u16 *D_801FAAE4;
+extern ST_FUNC_801F12FC *D_801FAAE8;
+extern s32 D_801FAAEC;
 extern u8 D_801FAAF0;
-extern u16 D_801FAAF2;
+extern s16 D_801FAAF2;
+extern s16 D_801FAAF4;
+extern s16 D_801FAAF6;
 extern u8 D_801FAAF8;
 extern s32 D_801FAB2C;
 extern u8 D_801FAB38[];
@@ -105,6 +116,9 @@ static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
 static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index);
 static u16 func_801F0E5C(u16 arg0);
+static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3);
+static void func_801F1584(void);
+static s32 func_801F12FC(void);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -693,7 +707,83 @@ void func_801F0FD0(s32 a0, s32 a1) {
     D_801FAA14 = a0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0FEC);
+u32 func_801F0FEC(void *ot, void *prim, s32 x, s32 y, u8 *iconIds, u32 clutFlags) {
+    s32 startX;
+    s32 rightClip;
+    s32 leftClip;
+    u32 head;
+    u32 next;
+
+    if (iconIds == NULL) {
+        return prim;
+    }
+    rightClip = D_801FAA12;
+    leftClip = D_801FAA14;
+    getAddrNewFast(ot, head);
+    startX = x;
+    if (y >= 257) {
+        return prim;
+    }
+    if (y < -8) {
+        return prim;
+    }
+    while (1) {
+        s32 iconId = *iconIds++;
+        if (iconId == 2) {
+            x = startX;
+            y += 13;
+        } else if (iconId == 5) {
+            s32 head2;
+
+            setDrawTPage(prim, 1, 0, 0x41F);
+
+            // Dead code added to match with the original game binary.
+            if (head) { head++; head--; }
+
+            next = (u32)prim << 8;
+            setAddrFast(prim, head);
+            prim += sizeof(DR_TPAGE);
+            setAddrFast(ot, next);
+            iconId = *iconIds++;
+            iconId = func_8002C734(iconId);
+            prim = drawIcon(ot, prim, iconId, x, y, g_menuTint[MENU_TINT_NORMAL]);
+            x += getIconWidth(iconId);
+            x++;
+
+            // Dead code added to match with the original game binary.
+            if (head) { head++; head--; }
+
+            head = head2;
+            getAddrFast(ot, head);
+            head2 = head;
+        } else if (iconId >= 25 && rightClip >= x) {
+            if (iconId >= 32) {
+                iconId -= 32;
+            } else {
+                iconId *= 224;
+                iconId += *iconIds++;
+                iconId -= 5408;
+            }
+            if (x >= leftClip) {
+                head = func_801F0F20(head, prim, iconId, clutFlags, (y << 0x10) | (x & 0xFFFF));
+                prim += sizeof(SPRT);
+            }
+            x += getNibbleValue(iconId);
+        } else {
+            break;
+        }
+    }
+
+    setDrawTPage(prim, 1, 0, 0x41F);
+    addOtFast(prim, head);
+    prim += sizeof(DR_TPAGE);
+    setAddrFast(ot, head);
+
+    // Dead code added to match with the original game binary.
+    if (next) { next++; next--; }
+
+    return prim;
+}
 
 /** @brief Get animation completion flag. */
 s32 func_801F1200(void) {
@@ -714,7 +804,20 @@ void func_801F1210(s32 a0, s32 a1) {
     D_801FAAF8 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1240);
+static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3) {
+    RECT rect;
+    s32 width;
+    s32 height;
+    width = measureMessage(arg3);
+    height = width >> 0x10;
+    width = func_801F738C(width & 0xFFFF);
+    height = func_801F7394(height);
+    rect.x = arg1 - (width / 2);
+    rect.y = arg2 - (height / 2);
+    rect.w = width;
+    rect.h = height;    
+    setDialogRect(arg0, &rect);
+}
 
 /** @brief Stop the current animation/transition. */
 void func_801F12F0(void) {
@@ -725,9 +828,159 @@ void func_801F12F0(void) {
 /* Panel Iteration & Callbacks                                              */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F12FC);
+static s32 func_801F12FC(void) {
+    u16 result = 0;
+    s32 pressedButtons = applyButtonRemapTranslation(GetPressedButtons(0, 0));
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1584);
+    D_801FAAF2--;
+
+    if (D_801FAAF2 <= 0) {
+        if (D_801FAAF2 == 0) {
+            D_801FAAE4++;
+        } else {
+            D_801FAAF2 = 0;
+        }
+
+        if (D_801FAAF8 != 0) {
+            return result;
+        }
+
+        while (1) {
+            u16 val1 = *D_801FAAE4;
+            u16 val2 = val1 >> 0xC;
+
+            val1 &= 0xFFF;
+
+            switch (val2) {
+            default:
+                continue;
+
+            case 1:
+                result |= 1 << val1;
+                D_801FAAE4++;
+                continue;
+
+            case 2:
+                if (getDialogTypingDone(0) != 0) {
+                    D_801FAAE4++;
+                }
+                break;
+
+            case 3: {
+                u8* message;
+                if (D_801FAAE8 != NULL) {
+                    message = (u8 *)D_801FAAE8 + D_801FAAE8->offsets[D_801FAAEC];
+                } else {
+                    message = NULL;
+                }
+                setDialogMessage(0, message);
+                func_801F1240(0, D_801FAAF4, D_801FAAF6, message);
+                setDialogCornerIcon(0, 0);
+                setDialogTextSpeed(0, ONE);
+                openDialogAnimated(0);
+                D_801FAAE4++;
+                break;
+            }
+
+            case 4:
+                closeDialogAnimated(0);
+                D_801FAAE4++;
+                continue;
+
+            case 5:
+                D_801FAAEC = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 6:
+                D_801FAAF4 = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 7:
+                D_801FAAF6 = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 8:
+                if (pressedButtons & PADRdown) {
+                    D_801FAAE4++;
+                }
+                if (pressedButtons & PADRup) {
+                    sendSpuCommand(3);
+                    closeDialogInstant(0);
+                    D_801FAAF8 = 1;
+                }
+                break;
+
+            case 9:
+                D_801FAAF2 = val1;
+                break;
+
+            case 10:
+                if (getOpenDialogScale(0) == 0) {
+                    D_801FAAE4++;
+                }
+                break;
+
+            case 15:
+                setDialogTextSpeed(0, 0);
+                D_801FAAF0 = 0;
+                break;
+
+            }
+
+            break;
+        }
+    }
+
+    return result;
+}
+
+static void func_801F1584(void) {
+    MenuTask *task = D_801FA450;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    RecordGamePadInput();
+    if (D_801FAAF0 == 1) {
+        s32 tmp;
+        s32 input;
+        tmp = func_801F12FC();
+
+        // Dead code added to match with the original game binary.
+        if (input) { input++; input--; }
+
+        input = tmp & 0xFFFF;
+        cfg->inputRaw = input;
+        cfg->inputRepeat = input;
+        cfg->inputNew = input;
+    } else {
+        s32 newInputRaw = applyButtonRemapTranslation(GetPressedButtons(0, 0));
+        s32 oldInputRaw = cfg->inputRaw;
+        s32 stickAxis2 = GetAnalogStickAxis(0, 2, 0);
+        if (!(newInputRaw & 0xF000) && stickAxis2 >= 0) {
+            s32 stickAxis3 = GetAnalogStickAxis(0, 3, 0);
+            do {
+                newInputRaw |= StickToDPadButton(0, stickAxis2 - 128, stickAxis3 - 128);
+            } while (0);
+        }
+        cfg->inputRaw = newInputRaw;
+        cfg->inputNew = (newInputRaw ^ oldInputRaw) & newInputRaw;
+        cfg->inputRepeat = func_801F0E5C(newInputRaw);
+    }
+    while (1) {
+        MenuTask *oldTask;
+        MenuTickCallback tickCallback;
+        if (task == NULL) {
+            break;
+        }
+        oldTask = task;
+        tickCallback = task->tickCb;
+        task = task->next;
+        if (tickCallback != NULL) {
+            tickCallback(oldTask);
+        }
+    }
+}
 
 /**
  * @brief Per-frame menu render driver.

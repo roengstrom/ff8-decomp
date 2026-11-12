@@ -4,6 +4,7 @@
 #include "battle.h"
 #include "common.h"
 
+void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4);
 s32 func_801F3DE4(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801F3FB4(s32);
 s32 func_801F5104(s32);
