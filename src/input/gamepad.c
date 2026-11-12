@@ -411,7 +411,7 @@ static inline GamePadInputFrame *GetHistoricalFrame(s32 idx, s32 offset) {
     return &gamePad->frames[(gamePad->frameCounter - offset) & 7];
 }
 
-u16 GetPressedButtons(s32 idx, s32 offset) {
+s32 GetPressedButtons(s32 idx, s32 offset) {
     return GetHistoricalFrame(idx, offset)->currentlyPressedButtons;
 }
 

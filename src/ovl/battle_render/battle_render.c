@@ -1,4 +1,5 @@
 #include "common.h"
+#include "input/gamepad.h"
 #include "menu.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
@@ -29,8 +30,6 @@ extern u8 D_80098000[];
 extern u8 D_8009800C[];
 extern u8 D_80098018[];
 extern s32 D_800ABA08;
-extern void RecordGamePadInput(s32 a0);
-extern s32 GetPressedButtons(s32 idx, s32 offset);
 extern void func_8009AF64(void *cmd, ...);
 extern s16 D_800D3C70;
 extern u8 D_8009801C[];
@@ -134,7 +133,7 @@ s32 func_80098798(s32 a0) {
     s32 prevVal;
     s32 v;
 
-    RecordGamePadInput(a0);
+    RecordGamePadInput();
     v = GetPressedButtons(a0, 0);
     currArr[a0] = v;
     prevVal = D_8009B54C[a0];

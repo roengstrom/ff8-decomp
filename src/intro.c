@@ -13,9 +13,6 @@
 
 #define INTRO_MUSIC_BUFFER_ADDR 0x80110000
 
-/* s32 view of gamepad.c's u16 GetPressedButtons; see gamepad.h. */
-extern s32 GetPressedButtons(s32 slot, s32 sub);
-
 /**
  * @brief Display-init overlay entry point — set up display + run 60-frame intro.
  *

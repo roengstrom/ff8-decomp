@@ -49,6 +49,7 @@ void SetStickDeadZone(s32 idx, s32 deadZoneLevel);
 void SetSwapAnalogSticks(s32 idx, s32 enabled);
 void RequestActuatorSetup(s32 idx);
 s32 GetActuatorCountForGamePad(s32 idx);
+s32 GetPressedButtons(s32 idx, s32 offset);
 s32 IsFirstGamePadConnected(void);
 s32 IsPlayTimePaused(void);
 s32 SetPlayTimePaused(s32 value);

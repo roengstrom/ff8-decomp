@@ -25,7 +25,6 @@
 void callCdTick(void);
 void shutdownCardSubsystem(void);
 void initBattleSubsystems(void);
-s32 GetPressedButtons(s32, s32);
 s32 GetAutoRepeatedButtons(s32, s32);
 static u8 *getDisplayListPacketPtr(void);
 

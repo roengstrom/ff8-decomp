@@ -7,6 +7,8 @@
 #include "game.h"
 #include "gamestate.h"
 #include "gf.h"
+#include "input/button_remap.h"
+#include "input/gamepad.h"
 #include "main.h"
 #include "menu.h"
 #include "menumain.h"
@@ -106,6 +108,7 @@ static u8 *func_801F08AC(u8 *, s32);
 static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index);
 static u16 func_801F0E5C(u16 arg0);
 static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3);
+static void func_801F1584(void);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
@@ -694,7 +697,7 @@ void func_801F0FD0(s32 a0, s32 a1) {
     D_801FAA14 = a0;
 }
 
-void *func_801F0FEC(void *ot, void *prim, s32 x, s32 y, u8 *iconIds, u32 clutFlags) {
+u32 func_801F0FEC(void *ot, void *prim, s32 x, s32 y, u8 *iconIds, u32 clutFlags) {
     s32 startX;
     s32 rightClip;
     s32 leftClip;
@@ -817,7 +820,50 @@ void func_801F12F0(void) {
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F12FC);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1584);
+static void func_801F1584(void) {
+    MenuTask *task = D_801FA450;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    RecordGamePadInput();
+    if (D_801FAAF0 == 1) {
+        s32 tmp;
+        s32 input;
+        tmp = func_801F12FC();
+
+        // Dead code added to match with the original game binary.
+        if (input) { input++; input--; }
+
+        input = tmp & 0xFFFF;
+        cfg->inputRaw = input;
+        cfg->inputRepeat = input;
+        cfg->inputNew = input;
+    } else {
+        s32 newInputRaw = applyButtonRemapTranslation(GetPressedButtons(0, 0));
+        s32 oldInputRaw = cfg->inputRaw;
+        s32 stickAxis2 = GetAnalogStickAxis(0, 2, 0);
+        if (!(newInputRaw & 0xF000) && stickAxis2 >= 0) {
+            s32 stickAxis3 = GetAnalogStickAxis(0, 3, 0);
+            do {
+                newInputRaw |= StickToDPadButton(0, stickAxis2 - 128, stickAxis3 - 128);
+            } while (0);
+        }
+        cfg->inputRaw = newInputRaw;
+        cfg->inputNew = (newInputRaw ^ oldInputRaw) & newInputRaw;
+        cfg->inputRepeat = func_801F0E5C(newInputRaw);
+    }
+    while (1) {
+        MenuTask *oldTask;
+        MenuTickCallback tickCallback;
+        if (task == NULL) {
+            break;
+        }
+        oldTask = task;
+        tickCallback = task->tickCb;
+        task = task->next;
+        if (tickCallback != NULL) {
+            tickCallback(oldTask);
+        }
+    }
+}
 
 /**
  * @brief Per-frame menu render driver.
