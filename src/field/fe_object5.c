@@ -101,7 +101,7 @@ s32 opHandler_SHOW(Actor *actor) {
     *(volatile s32 *)&actor->context.flags = *(volatile s32 *)&actor->context.flags & ~0x8;
     if (!(D_800DE8CC & 0x2)) {
         EntityRenderSlot **base = D_800D9630;
-        u8 slot = actor->field_0x256;
+        u8 slot = actor->selfIndex;
         *(u8 *)((s32)base[slot] + 0x60) = 0;
     }
     if (*(volatile s32 *)&actor->context.flags & 0x10) {
@@ -124,7 +124,7 @@ s32 opHandler_HIDE(Actor *actor) {
     *(volatile s32 *)&actor->context.flags = *(volatile s32 *)&actor->context.flags | 0x8;
     if (!(D_800DE8CC & 0x2)) {
         EntityRenderSlot **base = D_800D9630;
-        u8 slot = actor->field_0x256;
+        u8 slot = actor->selfIndex;
         *(u8 *)((s32)base[slot] + 0x60) = 1;
     }
     if (actor->field_0x24C != 0) {
@@ -165,7 +165,7 @@ s32 opHandler_PUSHOFF(Actor *actor) {
 /**
  * @brief op0AB — counterpart of @c opHandler_FOLLOWON. Finds the active-
  *        party slot whose @c battleParty member matches
- *        @c e->field_0x255, then disables that entity: clears flag
+ *        @c e->partyCharacterId, then disables that entity: clears flag
  *        bit @c 0x4, calls @c func_800B912C with the entity's
  *        animation byte, sets the @c 0x2040 flag pair, and marks the
  *        slot in @c g_fieldContext.entityIndex as inactive (@c 0xFF).
@@ -175,7 +175,7 @@ s32 opHandler_PUSHOFF(Actor *actor) {
 s32 opHandler_FOLLOWOFF(Actor *actor) {
     s32 i;
     for (i = 0; i < 3; i++) {
-        if (g_gameState.battleParty[i] == actor->field_0x255) {
+        if (g_gameState.battleParty[i] == actor->partyCharacterId) {
             actor->context.flags &= ~4;
             func_800B912C(actor, actor->field_0x24F);
             actor->context.flags |= 0x2040;
@@ -188,8 +188,8 @@ s32 opHandler_FOLLOWOFF(Actor *actor) {
 
 /**
  * @brief op0AC — locate the active-party slot whose @c battleParty
- *        member matches @c e->field_0x255, then snapshot
- *        @c e->field_0x256 into @c g_fieldContext.entityIndex for that
+ *        member matches @c e->partyCharacterId, then snapshot
+ *        @c e->selfIndex into @c g_fieldContext.entityIndex for that
  *        slot and clear the entity's "needs broadcast" flag (0x40).
  *
  * @return 2 (continue processing).
@@ -197,9 +197,9 @@ s32 opHandler_FOLLOWOFF(Actor *actor) {
 s32 opHandler_FOLLOWON(Actor *actor) {
     s32 i;
     for (i = 0; i < 3; i++) {
-        if (g_gameState.battleParty[i] == actor->field_0x255) {
+        if (g_gameState.battleParty[i] == actor->partyCharacterId) {
             actor->context.flags &= ~0x40;
-            g_fieldContext.entityIndex[i] = actor->field_0x256;
+            g_fieldContext.entityIndex[i] = actor->selfIndex;
             break;
         }
     }
@@ -429,7 +429,7 @@ s32 opHandler_PCOPYINFO(Actor *actor) {
 /**
  * @brief op12D ACTORMODE — pop a mode byte and toggle two flag bits
  *        in the entity's @c flags word, then invoke @c func_800A97E4
- *        with the entity's @c field_0x256 and a mode-specific
+ *        with the entity's @c selfIndex and a mode-specific
  *        (mask, param) tuple to update derived actor state.
  *
  *        Mode  flags          mask  param
@@ -467,7 +467,7 @@ s32 opHandler_ACTORMODE(Actor *actor) {
         a1_val = 0x21;
         break;
     }
-    func_800A97E4(actor->field_0x256, a1_val, a2_val, 0);
+    func_800A97E4(actor->selfIndex, a1_val, a2_val, 0);
     return 2;
 }
 

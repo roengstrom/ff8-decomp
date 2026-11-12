@@ -14,6 +14,9 @@ typedef struct {
     u16 newlyReleasedButtons;
 } GamePadInputFrame; /* 0x14 */
 
+#define GAMEPAD_VIBRATION_ENABLED_MASK 0xFF
+#define GAMEPAD_VIBRATION_DISABLED_MASK 0
+
 typedef struct {
     u8 gamePadTransmitBuf[6];
     u8 vibrationIntensity[2]; // one for each motor in the gamepad
@@ -25,7 +28,7 @@ typedef struct {
     u8 frameCounter;
     s8 actuatorSetupPending;
     s8 gamePadState;
-    u8 vibrationMask; // 0xFF with vibration on, 0 with it off.
+    u8 vibrationMask; // GAMEPAD_VIBRATION_ENABLED_MASK or GAMEPAD_VIBRATION_DISABLED_MASK
     GamePadInputFrame frames[8];
     u8 actuatorAlign[6]; // actuator parameter transmission bytes (used when calling SDK PadSetActAlign)
     u8 inputSourceIndex; // this gamepad's input is read from g_engine.gamePads[inputSourceIndex]

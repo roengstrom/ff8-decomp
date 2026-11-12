@@ -33,7 +33,7 @@
  *   - @c mode @c == @c 1 — full slot reset: zero the 16-byte
  *     @c g_fieldContext.unkActive180 region, walk the @ref g_fieldActors
  *     Actor pool and clear the cleanup-trigger bytes / @c flags @c & @c ~8
- *     on each entity flagged @c unk218 @c == @c -1, then fall into
+ *     on each entity flagged @c modelId @c == @c -1, then fall into
  *     the mode-3 slot-clear block.
  *   - @c mode @c == @c 2 — just @ref func_800BF4A4 (Actor pool reset).
  *   - @c mode @c == @c 3 — slot table reset: @ref func_800BF28C plus
@@ -73,7 +73,7 @@ void func_800BF718(s32 mode) {
         D_800DE4FC = 0;
         if (g_fieldActorCount != 0) {
             do {
-                if (e->unk218 == -1) {
+                if (e->modelId == -1) {
                     e->context.flags &= ~8;
                     e->field_0x24C = 0;
                     e->unk249 = 0;
@@ -268,7 +268,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldDoors = (Dline *)func_800BE7F4((Eline *)eline);
         g_fieldBgAnims = (Bganime *)func_800BEA84(g_fieldDoors);
         g_fieldActors = (Actor *)func_800BE924(g_fieldBgAnims);
-        func_800BE5E4(g_fieldActors);
+        InitActors(g_fieldActors);
 
         gs_bytes = (u8 *)&g_gameState;
         for (i = 0x400; i < 0x500; i++) {
@@ -287,15 +287,15 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
 
         for (i = 0; i < 3; i++) {
             for (e = g_fieldActors, D_800DE4FC = 0; D_800DE4FC < g_fieldActorCount; D_800DE4FC++, e++) {
-                if (g_gameState.battleParty[i] == e->field_0x255) {
+                if (g_gameState.battleParty[i] == e->partyCharacterId) {
                     e->posX = g_fieldContext.position_x << 12;
                     e->posY = g_fieldContext.position_y << 12;
                     e->facingDirection = g_fieldContext.facingDirection;
                     rot = g_fieldContext.spawnTriIdx;
                     e->context.flags |= 4;
                     e->triIdx = rot;
-                    g_fieldVars->memberSlot[i] = e->field_0x256;
-                    g_fieldContext.entityIndex[i] = e->field_0x256;
+                    g_fieldVars->memberSlot[i] = e->selfIndex;
+                    g_fieldContext.entityIndex[i] = e->selfIndex;
                     break;
                 }
             }

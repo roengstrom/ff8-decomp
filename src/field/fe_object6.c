@@ -229,7 +229,7 @@ void func_800B2864(Actor *actor, s32 channel, s32 unused2, s32 unused3) {
 
     if (!(actor->context.flags & 0x80)) return;
 
-    func_800B27C4(actor->field_0x256, &pitch, &volume);
+    func_800B27C4(actor->selfIndex, &pitch, &volume);
 
     if (pitch < -0x200) pitch = -0x200;
     else if (pitch >= 0x1FC) pitch = 0x1FC;
@@ -392,7 +392,7 @@ void func_800B2B48(Actor *actor) {
 void func_800B2BA0(Bganime *bganime) {
     s32 flags = bganime->context.flags;
 
-    if ((flags & 0x200) && (s16)bganime->shadeCounter == 0) {
+    if ((flags & 0x200) && bganime->shadeCounter == 0) {
         if (bganime->unk1A4 == 0) {
             if (flags & 0x400) {
                 bganime->context.flags = flags & ~0x400;
@@ -644,7 +644,7 @@ s32 opHandler_BGSHADE(Bganime *bganime) {
         e->unk1A8 = POP_BYTE(&bganime->context);
         e->unk1A7 = POP_BYTE(&bganime->context);
         e->shadeCounter = POP(&bganime->context);
-    } else if ((s16)e->shadeCounter == 0) {
+    } else if (e->shadeCounter == 0) {
         return 2;
     }
     return 1;
@@ -839,7 +839,7 @@ s32 opHandler_CSCROLL(ScriptContext *context) {
 
 /**
  * Pop a script index, look up the corresponding entity pointer
- * via the @c D_80085230 table, and stage its @c field_0x256 byte into
+ * via the @c D_80085230 table, and stage its @c selfIndex byte into
  * FieldContext @c unk021 with mode @c unk020 = 0 and submode @c unk022
  * = 0.
  *
@@ -848,7 +848,7 @@ s32 opHandler_CSCROLL(ScriptContext *context) {
  */
 s32 opHandler_DSCROLLA(ScriptContext *context) {
     s32 val = POP(context);
-    u8 byte = D_80085230[val]->field_0x256;
+    u8 byte = D_80085230[val]->selfIndex;
     g_fieldContext.slots[0].mode = 0;
     g_fieldContext.slots[0].submode = 0;
     g_fieldContext.slots[0].param = byte;
@@ -858,7 +858,7 @@ s32 opHandler_DSCROLLA(ScriptContext *context) {
 /**
  * Pop two stack values, store the first into FieldContext halfword
  * @c unk024 (mode-1 timer), look up the second through the @c D_80085230
- * entity-pointer table and copy @c field_0x256 into @c unk021. Mode
+ * entity-pointer table and copy @c selfIndex into @c unk021. Mode
  * byte is set to 1.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -868,7 +868,7 @@ s32 opHandler_LSCROLLA(ScriptContext *context) {
     s32 val1 = POP(context);
     s32 val2 = POP(context);
     g_fieldContext.slots[0].timer = val1;
-    g_fieldContext.slots[0].param = D_80085230[val2]->field_0x256;
+    g_fieldContext.slots[0].param = D_80085230[val2]->selfIndex;
     g_fieldContext.slots[0].mode = 1;
     g_fieldContext.slots[0].submode = 0;
     return 2;
@@ -884,7 +884,7 @@ s32 opHandler_CSCROLLA(ScriptContext *context) {
     s32 val1 = POP(context);
     s32 val2 = POP(context);
     g_fieldContext.slots[0].timer = val1;
-    g_fieldContext.slots[0].param = D_80085230[val2]->field_0x256;
+    g_fieldContext.slots[0].param = D_80085230[val2]->selfIndex;
     g_fieldContext.slots[0].mode = 2;
     g_fieldContext.slots[0].submode = 0;
     return 2;
@@ -1036,7 +1036,7 @@ s32 opHandler_CSCROLL2(ScriptContext *context) {
 
 /**
  * Pop an entity index and a slot index, look up the entity's
- * @c field_0x256 byte via @c D_80085230 and stage it into
+ * @c selfIndex byte via @c D_80085230 and stage it into
  * @c slots[slotIdx].param with @c mode = 0.
  *
  * @param actor Pointer to the Actor event-script context.
@@ -1045,7 +1045,7 @@ s32 opHandler_CSCROLL2(ScriptContext *context) {
 s32 opHandler_DSCROLLA2(ScriptContext *context) {
     s32 entityIdx = POP(context);
     s32 slotIdx = POP(context);
-    g_fieldContext.slots[slotIdx].param = D_80085230[entityIdx]->field_0x256;
+    g_fieldContext.slots[slotIdx].param = D_80085230[entityIdx]->selfIndex;
     g_fieldContext.slots[slotIdx].mode = 0;
     g_fieldContext.slots[slotIdx].submode = 0;
     return 3;
@@ -1054,7 +1054,7 @@ s32 opHandler_DSCROLLA2(ScriptContext *context) {
 /**
  * Pop a timer halfword, an entity index, and a slot index; arm
  * @c slots[slotIdx] with @c mode = 1, the timer, and the entity's
- * @c field_0x256 byte from @c D_80085230.
+ * @c selfIndex byte from @c D_80085230.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (continue processing).
@@ -1064,7 +1064,7 @@ s32 opHandler_LSCROLLA2(ScriptContext *context) {
     s32 entityIdx = POP(context);
     s32 slotIdx = POP(context);
     g_fieldContext.slots[slotIdx].timer = timer;
-    g_fieldContext.slots[slotIdx].param = D_80085230[entityIdx]->field_0x256;
+    g_fieldContext.slots[slotIdx].param = D_80085230[entityIdx]->selfIndex;
     g_fieldContext.slots[slotIdx].mode = 1;
     g_fieldContext.slots[slotIdx].submode = 0;
     return 2;
@@ -1081,7 +1081,7 @@ s32 opHandler_CSCROLLA2(ScriptContext *context) {
     s32 entityIdx = POP(context);
     s32 slotIdx = POP(context);
     g_fieldContext.slots[slotIdx].timer = timer;
-    g_fieldContext.slots[slotIdx].param = D_80085230[entityIdx]->field_0x256;
+    g_fieldContext.slots[slotIdx].param = D_80085230[entityIdx]->selfIndex;
     g_fieldContext.slots[slotIdx].mode = 2;
     g_fieldContext.slots[slotIdx].submode = 0;
     return 2;

@@ -26,8 +26,8 @@ extern FieldParticles *g_curFieldParticles;
 
 /** @brief Double-buffered prim-chain heads laid out after the field bundle. */
 extern u8 *D_800C6D98[2];
-extern u8 *D_800D5EC8[2];
-extern u8 *D_800D5EB8[2];
+extern POLY_F3 *D_800D5EC8[2];
+extern DR_TPAGE *D_800D5EB8[2];
 
 /** @brief Field-VM command tables selected by @c FieldInfo::unk0D. */
 extern u8 D_800C30DC[];
@@ -274,7 +274,7 @@ extern void func_8009FE18(s32 entIdx, Actor *actor, s32 flags);
 #define PRIM_CODE_SEMI_TRANS 0x02
 
 extern SPRT_16 *func_800A0640(SPRT_16 *prim);
-extern void func_800A06F0(s32 a, FieldFrameBuf *buf, u8 *b, u8 *c);
+extern void func_800A06F0(s16 arg0, FieldFrameBuf *arg1, u8 *arg2, u8 *arg3);
 extern void func_800A0D6C(u8 *buf);
 extern s32  func_800A0E54(s32 start, s32 end, s32 total, s32 progress);
 extern s32  func_800A0EB8(s32 start, s32 end, s32 total, s32 angle);
@@ -305,8 +305,6 @@ typedef struct {
     /* 0x03 */ u8  tag;     /**< Always written as @c 1. */
     /* 0x04 */ s32 cmd;     /**< @c 0xE1000200 | (color & 0x9FF). */
 } func_800A2A30_item;  /* 8 bytes */
-
-extern void func_800A2AF8(FieldFrameBuf *buf, u8 *a, u8 *b, FieldView *view);
 
 /** @brief Emit one field sprite for a movement accumulator and link it into the OT. */
 

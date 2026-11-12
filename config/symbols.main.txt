@@ -1475,6 +1475,7 @@ g_cardFileActive = 0x80052958;
 g_battleSfxTable = 0x80052A34;
 rankAText = 0x80052A64;
 g_iconTable = 0x80052A68;
+g_unpauseVibrationPattern = 0x80053B28;
 load_table = 0x80053C58; // 19-entry file descriptor table (overlays + mngrp.bin + init.out)
 g_portraitsTable = 0x80054508;
 g_fieldVars = 0x800562C4;

@@ -270,7 +270,7 @@ void func_800381BC(void) {
 
         ent = g_fieldActors;
         for (j = 0; j < g_fieldActorCount; j++) {
-            if (g_gameState.battleParty[i] == ent->field_0x255) {
+            if (g_gameState.battleParty[i] == ent->partyCharacterId) {
                 g_fieldVars->memberSlot[i] = j;
                 g_fieldContext.entityIndex[i] = j;
                 break;

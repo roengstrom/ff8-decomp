@@ -12,6 +12,7 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
+#include "field/fe_object3.h"
 #include "field/fe_object10.h"
 #include "input/gamepad.h"
 
@@ -188,13 +189,13 @@ s32 *func_800983F0(void) {
     buf = (u8 *)func_800A0640((SPRT_16 *)buf);
 
     if (g_curFieldInfo->movieMask == 1) {
-        D_800D5EC8[0] = buf;
+        D_800D5EC8[0] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EC8[1] = buf;
+        D_800D5EC8[1] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EB8[0] = buf;
+        D_800D5EB8[0] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
-        D_800D5EB8[1] = buf;
+        D_800D5EB8[1] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
     }
 
@@ -740,7 +741,7 @@ void func_80099348(void) {
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
                    && g_fieldContext.movieMaskOff == 0) {
-            func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
+            DrawMovieMask(D_800C71E0, D_800D5EC8[g_bufferIndex],
                           D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
 
@@ -854,7 +855,7 @@ void func_80099348(void) {
             && func_800BE274() == 0 && g_fieldContext.dialogState != 4
             && g_fieldContext.dialogState != 3
             && g_fieldContext.dialogState != 2 && g_fieldContext.userControlOff == 0) {
-            func_800AD7AC(0);
+            FieldPause(NULL);
         }
 
         if (g_fieldContext.unk1AA == 1) {
@@ -1389,7 +1390,7 @@ s16 func_8009AC9C(s16 px, s16 py, s16 pz, TriangleList *list) {
     return (s16)bestIdx;
 }
 
-/** @brief Scale applied to @c g_fieldContext.unk00A when seeding @c Actor::moveSpeed. */
+/** @brief Scale applied to @c g_fieldContext.moveUnit when seeding @c Actor::moveSpeed. */
 #define FIELD_CHANNEL_SCALE 0x4367
 
 /**
@@ -1430,7 +1431,7 @@ void func_8009AEC0(void) {
     s16 i;
 
     D_8005F102 = 0;
-    g_fieldContext.unk00A = 20;
+    g_fieldContext.moveUnit = 20;
     D_8005F148 = g_fieldContext.entityIndex[0];
 
     for (i = 0; i < g_fieldActorCount; i++) {
@@ -1466,7 +1467,7 @@ void func_8009AEC0(void) {
                 g_fieldActors[D_8005F148].field_0x251 = 2;
                 /* Same scale func_800B6738 applies to D_800704B2 (there as *69020>>9), so
                    the entity starts exactly at the threshold that picks field_0x251. */
-                g_fieldActors[D_8005F148].moveSpeed = ((u32)(g_fieldContext.unk00A * 17255)) >> 7;
+                g_fieldActors[D_8005F148].moveSpeed = ((u32)(g_fieldContext.moveUnit * 17255)) >> 7;
                 g_fieldActors[D_8005F148].radius = 0x30;
                 g_fieldActors[D_8005F148].triIdx = 0;
                 g_fieldActors[D_8005F148].posX =
@@ -1900,15 +1901,15 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             }
             if ((flags & FIELD_PAD_WALK) || g_fieldContext.unk1A4 == 1) {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x4367) >> 7;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x4367) >> 7;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x4367) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x4367) >> 6;
                 }
             } else {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x631F) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x631F) >> 6;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x631F) >> 5;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x631F) >> 5;
                 }
             }
             SCRATCH_STACK_ENTER();
@@ -2115,7 +2116,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
  *
  * Otherwise every entity @c i is scored into @c angleTable: candidates are
  * skipped when they are the self entity, flagged busy (@c field_0x24B), inactive
- * (@c unk218 == -1), share the self's X/Y cell, lie outside a ±0xFF Z band, or
+ * (@c modelId == -1), share the self's X/Y cell, lie outside a ±0xFF Z band, or
  * fall outside the combined talk/collision radius. For the rest, the score is how
  * far the entity's bearing (via @ref func_8009A0E8) deviates from the self's
  * facing angle (@c facingDirection), folded to 0..0x80. The entity with the smallest
@@ -2154,7 +2155,7 @@ void func_8009CEE8(void) {
         angleTable[i] = 0x100;
         if (i == D_8005F148) continue;
         if (g_fieldActors[i].field_0x24B != 0) continue;
-        if (g_fieldActors[i].unk218 == -1) continue;
+        if (g_fieldActors[i].modelId == -1) continue;
         entPos[0] = g_fieldActors[i].posX >> 12;
         entPos[1] = g_fieldActors[i].posY >> 12;
         entPos[2] = g_fieldActors[i].posZ >> 12;
@@ -2173,7 +2174,7 @@ void func_8009CEE8(void) {
     best = 0x40;
     bestIdx = D_8005F148;
     for (i = 0; i < g_fieldActorCount; i++) {
-        if (g_fieldActors[i].unk218 == -1) continue;
+        if (g_fieldActors[i].modelId == -1) continue;
         if (angleTable[i] < (s16)best) {
             best = (u16)angleTable[i];
             bestIdx = i;
@@ -2747,7 +2748,7 @@ s32 func_8009E338(Vec3i *a0, Vec3i *a1, Vec3i *a2, Vec3s *a3) {
  * @brief Test if @p selfIdx overlaps with any other active entity at world @p pos.
  *
  * Iterates over the @c g_fieldActors entity table, skipping @p selfIdx itself
- * and any entity with @c unk218 == -1 (inactive). For each remaining entity,
+ * and any entity with @c modelId == -1 (inactive). For each remaining entity,
  * a quick z-axis bounding-band check is applied (|dz| < 0x7E after shifting
  * the entity's @c posZ down by 12 fixed-point bits and subtracting @p pos->z),
  * then a 2D radius overlap test against the average of the two radii.
@@ -2769,10 +2770,10 @@ s32 func_8009E468(s16 selfIdx, Vec3i *pos) {
     s16 i;
 
     selfRadius = g_fieldActors[selfIdx].radius;
-    if (g_fieldActors[selfIdx].unk218 != -1) {
+    if (g_fieldActors[selfIdx].modelId != -1) {
         for (i = 0; i < g_fieldActorCount; i++) {
             if (i == selfIdx) continue;
-            if (g_fieldActors[i].unk218 == -1) continue;
+            if (g_fieldActors[i].modelId == -1) continue;
             dz = (g_fieldActors[i].posZ >> 12) - pos->z;
             if ((u32)(dz + 0x7E) >= 0xFE) continue;
             dx = (g_fieldActors[i].posX - pos->x) >> 12;
@@ -2830,7 +2831,7 @@ s32 func_8009E604(Actor *a, Actor *b) {
  * Otherwise the trail is synthesised backwards from the player. Slot 0 holds the
  * exact position and slots 63..1 each step one trail spacing further back along
  * the player's facing, the step being @c sin / @c cos (@ref func_8009D234 /
- * @ref func_8009D254) scaled by @c FieldContext::unk00A. Each stepped point is
+ * @ref func_8009D254) scaled by @c FieldContext::moveUnit. Each stepped point is
  * snapped onto the navmesh by @ref func_8009AC9C and its Z read off that
  * triangle's plane (@ref func_8009DED8 twice, then @ref func_8009E338); if the
  * plane Z lands further than @c 0x136 from the stepped Z the point is off the
@@ -2907,9 +2908,9 @@ void func_8009E660(void) {
                applies to D_800704B2; written *4 >> 9 because that is the shift pair
                the original emits. */
             x -= func_8009D234(g_fieldActors[D_8005F148].facingDirection) *
-                 ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
+                 ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
             y -= -(func_8009D254(g_fieldActors[D_8005F148].facingDirection) *
-                   ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
+                   ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
         }
     }
 }
@@ -2968,7 +2969,7 @@ void func_8009ECA4(void) {
     trail1.vy = g_fieldActors[g_fieldVars->memberSlot[1]].posY / 4096;
     trail2.vy = g_fieldActors[g_fieldVars->memberSlot[2]].posY / 4096;
 
-    stride = (g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9;
+    stride = (g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9;
     dir1 = func_8009A0E8(&trail1.vx, &lead.vx, &slots1);
     slots1 = (slots1 << 8) / stride;
     dir2 = func_8009A0E8(&trail2.vx, &lead.vx, &slots2);
@@ -2986,10 +2987,10 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail1.vx / 4096), (s16)(trail1.vy / 4096),
                               (s16)(trail1.vz / 4096), *g_fieldWalkmesh);
             trail1.vx -= func_8009D234((u8)dir1)
-                         * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail1.vy -= -(func_8009D254((u8)dir1)
-                           * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070760[63 - i].z =
@@ -3025,10 +3026,10 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail2.vx / 4096), (s16)(trail2.vy / 4096),
                               (s16)(trail2.vz / 4096), *g_fieldWalkmesh);
             trail2.vx -= func_8009D234((u8)dir2)
-                         * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail2.vy -= -(func_8009D254((u8)dir2)
-                           * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070A60[63 - i].z =
@@ -3464,7 +3465,120 @@ SPRT_16 *func_800A0640(SPRT_16 *prim) {
     return prim;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1", func_800A06F0);
+void func_800A06F0(s16 arg0, FieldFrameBuf *arg1, u8 *arg2, u8 *arg3) {
+    CVECTOR *colors = (CVECTOR *)getScratchAddr(0);
+    DVECTOR *trans = (DVECTOR *)getScratchAddr(32);
+    DVECTOR *vis = (DVECTOR *)getScratchAddr(48);
+    DVECTOR *clip = (DVECTOR *)getScratchAddr(64);
+    DVECTOR *modulus = (DVECTOR *)getScratchAddr(68);
+    Bganime *bgAnim;
+    s16 i;
+
+    for (i = 0; i < 8; i++) {
+        vis[i].vx = g_curFieldInfo->unk0F & (1 << i);
+    }
+
+    for (i = 0; i < 8; i++) {
+        modulus[i].vx = g_curFieldInfo->cameraRanges[i].right * 2;
+        modulus[i].vy = g_curFieldInfo->cameraRanges[i].bottom * 2;
+    }
+
+    bgAnim = g_fieldBgAnims;
+    for (i = 0; i < g_fieldBgAnimCount; bgAnim++, i++) {
+        if (bgAnim->shadeCounter > bgAnim->unk19E) {
+            colors[i].r = bgAnim->unk1A7 + (((bgAnim->unk1AA - bgAnim->unk1A7) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            colors[i].g = bgAnim->unk1A8 + (((bgAnim->unk1AB - bgAnim->unk1A8) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            colors[i].b = bgAnim->unk1A9 + (((bgAnim->unk1AC - bgAnim->unk1A9) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            bgAnim->unk19E++;
+        } else {
+            colors[i].r = bgAnim->unk1AA;
+            colors[i].g = bgAnim->unk1AB;
+            colors[i].b = bgAnim->unk1AC;
+            bgAnim->unk19E = 0;
+            bgAnim->shadeCounter = 0;
+        }
+        colors[i].cd = bgAnim->unk188 >> 6;
+    }
+
+    if (g_fieldContext.unk1A6 == 0) {
+        FieldView *view;
+        s16 negViewY;
+        s16 x0;
+        s32 x0Wide;
+
+        trans[0].vx = g_fieldContext.slots[arg0].q1;
+        trans[0].vy = g_fieldContext.slots[arg0].q2;
+        x0 = trans[0].vx;
+        x0Wide = trans[0].vx;
+        for (i = 1; i < 8; i++) {
+            trans[i].vx = (g_fieldContext.slots[arg0 + i].p3 + (x0 - g_fieldContext.slots[arg0 + i].q1)) - ((x0Wide * g_fieldContext.slots[arg0 + i].p5) / 256);
+            trans[i].vy = (g_fieldContext.slots[arg0 + i].p4 + (trans[0].vy - g_fieldContext.slots[arg0 + i].q2)) - ((trans[0].vy * g_fieldContext.slots[arg0 + i].p6) / 256);
+        }
+        view = g_curFieldView;
+        negViewY = -view->viewOfsY;
+        view = NULL; // matching hack
+        trans[0].vx = -g_curFieldView->viewOfsX;
+        trans[0].vy = negViewY;
+    } else {
+        FieldView *view;
+        s16 negViewX;
+
+        trans[1].vx = g_fieldContext.slots[1].q1;
+        trans[1].vy = g_fieldContext.slots[1].q2;
+        for (i = 2; i < 8; i++) {
+            trans[i].vx = (g_fieldContext.slots[arg0 + i].p3 + (trans[1].vx - g_fieldContext.slots[arg0 + i].q1)) - ((trans[1].vx * g_fieldContext.slots[arg0 + i].p5) / 256);
+            trans[i].vy = (g_fieldContext.slots[arg0 + i].p4 + (trans[1].vy - g_fieldContext.slots[arg0 + i].q2)) - ((trans[1].vy * g_fieldContext.slots[arg0 + i].p6) / 256);
+        }
+        view = g_curFieldView;
+        negViewX = -view->viewOfsX;
+        view = NULL; // matching hack
+        trans[0].vy = -g_curFieldView->viewOfsY;
+        trans[1].vx = -g_curFieldView->viewOfsX;
+        trans[1].vy = -g_curFieldView->viewOfsY;
+        trans[0].vx = negViewX;
+    }
+
+    if (g_fieldContext.unk1A6 == 1) {
+        FieldInfo *info = g_curFieldInfo;
+        FieldView *view;
+        s32 width;
+        u16 viewX;
+        s32 height;
+
+        width = info->screenRanges[0].left - info->screenRanges[0].right;
+        info = NULL; // matching hack
+        view = g_curFieldView;
+        viewX = view->viewOfsX;
+        view = NULL; // matching hack
+        clip[0].vy = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2 + ((g_fieldContext.slots[1].q1 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsX;
+        clip[1].vx = ((g_curFieldInfo->screenRanges[0].top - g_curFieldInfo->screenRanges[0].bottom) / 2 + ((g_fieldContext.slots[1].q2 - 0x20) & 0xFFFF)) - g_curFieldView->viewOfsY;
+        height = g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
+        clip[0].vx = (width / 2 + ((g_fieldContext.slots[1].q1 - 0x20) & 0xFFFF)) - viewX;
+        clip[1].vy = (height / 2 + ((g_fieldContext.slots[1].q2 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsY;
+    } else {
+        FieldInfo *info = g_curFieldInfo;
+        FieldView *view;
+        s32 width;
+        u16 viewX;
+        s32 xMin;
+        u16 slotX;
+        s32 height;
+
+        width = info->screenRanges[0].left - info->screenRanges[0].right;
+        info = NULL; // matching hack
+        slotX = g_fieldContext.slots[arg0].q1;
+        xMin = g_fieldContext.slots[arg0].q1 - 0x20;
+        view = g_curFieldView;
+        viewX = view->viewOfsX;
+        view = NULL; // matching hack
+        clip[0].vy = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2 + ((slotX + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsX;
+        clip[1].vx = ((g_curFieldInfo->screenRanges[0].top - g_curFieldInfo->screenRanges[0].bottom) / 2 + ((g_fieldContext.slots[arg0].q2 - 0x20) & 0xFFFF)) - g_curFieldView->viewOfsY;
+        height = g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
+        clip[0].vx = (width / 2 + xMin) - viewX;
+        clip[1].vy = (height / 2 + ((g_fieldContext.slots[arg0].q2 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsY;
+    }
+    func_800A19B8(arg1, arg2, arg3, *g_fieldTileMap);
+}
 
 /**
  * @brief Restore VRAM regions for the dialog window and 16 strip layers.

@@ -45,6 +45,8 @@ MATRIX *ScaleMatrix(MATRIX *m, VECTOR *scale);
 MATRIX *ScaleMatrixL(MATRIX *m, VECTOR *scale);
 MATRIX *TransposeMatrix(MATRIX *m0, MATRIX *m1);
 void MatrixNormal_2(MATRIX *m, MATRIX *n);   /**< Orthonormalise @p m into @p n via the GTE. */
+void PushMatrix(void);
+void PopMatrix(void);
 void SetRotMatrix(MATRIX *m);
 void SetTransMatrix(MATRIX *m);
 void SetLightMatrix(MATRIX *m);
