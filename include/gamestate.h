@@ -146,7 +146,8 @@ enum SealedAbilityFlag {
     SEALED_DRAW = 0x08,
     SEALED_COMMAND_ABILITIES = 0x10, // every other junctioned command
     SEALED_LIMIT_BREAK = 0x20,
-    SEALED_RESURRECTION = 0x40
+    SEALED_RESURRECTION = 0x40,
+    SEALED_SAVE = 0x80
 };
 
 /** @brief GameConfig.flags bitfield. */

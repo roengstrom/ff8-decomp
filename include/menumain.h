@@ -43,6 +43,7 @@ void func_801EFF64(void);
 void func_801EFFE4(s32);
 void *func_801EFBB4(void *, void *, MenuRowCallback);
 void func_801EFFC8(s32);
+s32 func_801EFFD4(void);
 void func_801F0000(s32);
 void func_801F001C(s32);
 void func_801F0038(void);

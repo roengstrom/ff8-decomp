@@ -54,7 +54,8 @@ typedef struct MenuTask {
     s32 (*drawCb)(struct MenuTask *, s32, s32);   /* 0x0C: (task, ctx, dl) -> dl (func_801F16AC). */
     u16 state;                                    /* 0x10: per-task state word, zeroed on alloc. */
     s8 inUse;                                     /* 0x12: pool slot occupied. */
-    u8 pad13[0x15];
+    s8 unk13;
+    u8 pad14[0x14];
     u32 unk28;
     u8 *unk2C;
     u32 unk30;
@@ -78,10 +79,15 @@ typedef struct {
     u16 offsets[1];
 } ST_FUNC_801F12FC;
 
+typedef struct {
+    u32 unk0;
+    u32 unk4;
+} ST_801F1B4C; /* 8 bytes */
+
 extern RECT D_801F7E64;
 extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
-extern u8 D_801F7F78[];
+extern ST_D_801FAB98 D_801F7F78[];
 extern u8 D_801F7FB0[];        /**< String table base (two-level offset table). */
 extern MenuTask *D_801FA450;    /**< Head of the active menu-task list. */
 extern MenuTask D_801FA4D0;     /**< Menu-task list head node. */
@@ -105,7 +111,7 @@ extern s16 D_801FAAF4;
 extern s16 D_801FAAF6;
 extern u8 D_801FAAF8;
 extern s32 D_801FAB2C;
-extern u8 D_801FAB38[];
+extern ST_801F1B4C D_801FAB38[];
 extern s16 D_801FAB78;
 extern u8 D_801FAB88[];
 extern u16 g_menumain_partyMemberMask;
@@ -122,7 +128,9 @@ static s32 func_801F12FC(void);
 static s32 func_801F16AC(s32, s32);
 static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
+static void func_801F1924(void);
 static s32 func_801F1A40(s32);
+static void func_801F1E88(MainMenuCtx *s, s32 arg1, s32 arg2);
 static void func_801F22A8(void);
 
 #define gte_ldfcdir_uniform( x ) __asm__ volatile (       \
@@ -1154,7 +1162,50 @@ void func_801F18FC(s32 *a0) {
     *(s16 *)((u8 *)a0 + 0x10) = 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1924);
+static void func_801F1924(void) {
+    MenuDisplayConfig *cfg;
+    s32 i;
+    MenuTask *task1;
+    MenuTask *task2;
+    D_801FAA1E = 0;
+    cfg = &g_menuDisplayCfg;
+    func_801F0948(ONE);
+    for (i = 0; i < 10; i++) {
+        D_801FA550[i].unk13 = i;
+        D_801FA550[i].inUse = 0;
+        D_801FA550[i].tickCb = NULL;
+        D_801FA550[i].drawCb = NULL;
+        D_801FA550[i].state = 0;
+        func_801F177C(&D_801FA550[i]);
+    }
+    task1 = &D_801FA450;
+    task2 = &D_801FA4D0;
+    task1->unk13 = -1;
+    task2->unk13 = -1;
+    task1->inUse = 0;
+    task2->inUse = 0;
+    task1->next = task2;
+    task1->prev = NULL;
+    task2->next = NULL;
+    task2->prev = task1;
+    task1->tickCb = NULL;
+    task1->drawCb = NULL;
+    task2->tickCb = NULL;
+    task2->drawCb = NULL;
+    D_801FAA00[0] = 0;
+    D_801FAA00[1] = 0;
+    D_801FAA00[2] = 0;
+    D_801FAA00[3] = 0;
+    D_801FAA08[0] = 0;
+    D_801FAA08[1] = 0;
+    D_801FAA08[2] = 0;
+    D_801FAA08[3] = 0;
+    D_801FAA11 = 0;
+    cfg->animCounter = 0;
+    D_801FAAF0 = 0;
+    D_801FAAF8 = 0;
+    func_801F0FD0(0, 0);
+}
 
 /* ======================================================================== */
 /* Cursor/Input Handling                                                    */
@@ -1215,7 +1266,43 @@ void func_801F1B10(void) {
     setNextPageMarkerBrightness(D_801FAB78);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1B4C);
+void func_801F1B4C(s32 charId) {
+    u32 buffer[2];
+    u8 *ptr1;
+    u32 *ptr2;
+    s32 i;
+    ptr1 = &g_gameState.chars[charId].magic[0].magicId;
+    ptr2 = &D_801FAB38[charId].unk0;
+    ptr2[0] = 0;
+    ptr2[1] = 0;
+    buffer[0] = 0;
+    buffer[1] = 0;
+    for (i = 0; i < 32; i++) {
+        s32 id = ptr1[0];
+        s32 qty = ptr1[1];
+        if (qty == 0 || id == 0) {
+            id = 0;
+            ptr1[0] = 0;
+            ptr1[1] = 0;
+        }
+        ptr1 += 2;
+        if (id != 0 && qty != 0) {
+            buffer[id / 32] |= 1 << (id % 32U);
+        }
+    }
+    ptr1 = g_gameState.chars[charId].junctions;
+    for (i = 0; i < 20; i++, ptr1++) {
+        s32 junction = ptr1[0];
+        if (junction != 0) {
+            u32 val = buffer[junction / 32] & (1 << (junction % 32U));
+            if (val) {
+                ptr2[junction / 32] |= 1 << (junction % 32U);
+            } else {
+                ptr1[0] = 0;
+            }
+        }
+    }
+}
 
 /** @brief Update all 8 party member cursor/panel states. */
 void func_801F1CAC(void) {
@@ -1225,10 +1312,10 @@ void func_801F1CAC(void) {
     }
 }
 
-/** @brief Test if ability bit a1 is set for character a0. */
-s32 func_801F1CE8(s32 a0, s32 a1) {
-    u32 *base = (u32 *)(D_801FAB38 + a0 * 8);
-    return (base[a1 / 32] & (1 << (a1 & 0x1F))) != 0;
+/** @brief Test if ability bit a1 is set for character charId. */
+s32 func_801F1CE8(s32 charId, s32 a1) {
+    u32 *base = &D_801FAB38[charId].unk0;
+    return (base[a1 / 32] & (1 << (a1 % 32U))) != 0;
 }
 
 /* ======================================================================== */
@@ -1287,14 +1374,14 @@ void func_801F1DB0(s32 a0) {
  * list and sets the selection index to the found position.
  */
 void func_801F1DBC(s32 a0) {
-    u8 *ptr = D_801F7F78;
+    ST_D_801FAB98 *ptr = D_801F7F78;
     s32 i;
 
-    for (i = 0; ; i++, ptr += 2) {
-        if (*ptr == 0xFF) {
+    for (i = 0; ; i++, ptr++) {
+        if (ptr->unk0 == 0xFF) {
             return;
         }
-        if (*ptr == a0) {
+        if (ptr->unk0 == a0) {
             func_801F1D34(D_801F7F78);
             D_801FAB31 = i;
             return;
@@ -1326,7 +1413,29 @@ void func_801F1E54(MainMenuCtx *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1E88);
+static void func_801F1E88(MainMenuCtx *s, s32 arg1, s32 arg2) {
+    s32 x;
+    s32 y;
+    if (s->unk34 == 0) {
+        x = 38;
+        y = (arg1 * 52) + 42;
+    } else {
+        if (arg1 < 3) {
+            x = 38;
+            y = (arg1 * 26) + 42;
+        } else {
+            s32 xVal = (arg1 - 3) % 2;
+            s32 yVal = (arg1 - 3) / 2;
+            x = (xVal * 120) + 38;
+            y = (yVal * 24) + 116;
+        }
+    }
+    if (arg2 != 0) {
+        func_801F0994(0, x, y);
+    } else {
+        func_801F0A04(0, x - 4, y - 4);
+    }
+}
 
 /** @brief Swap party members (forward direction). */
 void func_801F1F58(s32 a0, s32 a1) {
@@ -1378,7 +1487,36 @@ void func_801F1F98(MainMenuCtx *ctx) {
 /* Character/Entity Data Access                                             */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F202C);
+void func_801F202C(void) {
+    s32 hasMultipleAvailableCharacters = 0;
+    ST_D_801FAB98 *ptr1 = D_801F7F78;
+    ST_D_801FAB98 *ptr2 = D_801FAB98;
+    s32 isItemUsableInMenu = func_801EFFD4() & ITEM_FLAG_USABLE_IN_MENU;
+    if (func_801F79F8(SEALED_SAVE) != 0) {
+        isItemUsableInMenu = 0;
+    }
+    if (popcount(func_80036EC0()) >= 2) {
+        hasMultipleAvailableCharacters = 1;
+    }
+    while (ptr1->unk0 != 0xFF) {
+        if (
+            (ptr1->unk0 == 8 && isItemUsableInMenu == 0)
+            || (ptr1->unk0 == 53 && hasMultipleAvailableCharacters == 0)
+            || (ptr1->unk0 == 1 && getGfAvailabilityMask() == 0)
+            || (ptr1->unk0 == 4 && getGfAvailabilityMask() == 0)
+            || (ptr1->unk0 == 52 && (func_801F72B4() == 0 || func_801F79F8(SEALED_GF) != 0))
+            || (ptr1->unk0 == 2 && func_801F79F8(SEALED_ITEM) != 0)
+        ) {
+            *ptr2 = *ptr1++;
+            ptr2->unk1 = 0;
+        } else {
+            *ptr2 = *ptr1++;
+        }
+        ptr2++;
+    }
+    ptr2->unk0 = 0xFF;
+    func_801F1D34(&D_801FAB98->unk0);
+}
 
 /** @brief Get character status flags. */
 s32 func_801F21D0(s32 a0) {

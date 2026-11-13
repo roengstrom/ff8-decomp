@@ -4,6 +4,13 @@
 #include "battle.h"
 #include "common.h"
 
+typedef struct {
+    u8 unk0;
+    u8 unk1;
+} ST_D_801FAB98;
+
+extern ST_D_801FAB98 D_801FAB98[];
+
 void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4);
 s32 func_801F3DE4(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801F3FB4(s32);

@@ -5,6 +5,18 @@
 #include "menu.h"
 #include "psxsdk/libgpu.h"
 
+/** @brief Item flags. */
+enum {
+    ITEM_FLAG_USABLE_IN_MENU   = 0x01,
+    ITEM_FLAG_TARGET_CHARA     = 0x02,
+    ITEM_FLAG_TARGET_GF        = 0x04,
+    ITEM_FLAG_TARGET_ALL       = 0x08,
+    ITEM_FLAG_TARGET_ALL_BOTH  = 0x10,
+    ITEM_FLAG_TARGET_DEAD      = 0x20,
+    ITEM_FLAG_QUISTIS_ONLY     = 0x40,
+    ITEM_FLAG_GF_COMPAT_OTHERS = 0x80,
+};
+
 /**
  * @brief The main menu's view of its menu-task slot.
  *
@@ -74,6 +86,7 @@ void func_801F1CAC(void);
 void func_801F1D2C(s32, s32, s32);
 void func_801F1D84(void);
 void func_801F1DB0(s32);
+void func_801F1DBC(s32 a0);
 void func_801F1E20(MainMenuCtx *ctx);
 void func_801F1E54(MainMenuCtx *ctx);
 void func_801F1F58(s32, s32);
