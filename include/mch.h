@@ -15,6 +15,20 @@ typedef struct {
 } MchBone;
 
 typedef struct {
+    /** 0x00 */ u16 x;
+    /** 0x02 */ u16 y;
+} MchTexAnimFrame;
+
+typedef struct {
+    /** 0x00 */ u8 pad0[3];
+    /** 0x03 */ u8 width;
+    /** 0x04 */ u8 height;
+    /** 0x05 */ u8 frameCount;
+    /** 0x06 */ u16 destX;
+    /** 0x08 */ MchTexAnimFrame frames[1]; // FIXME: frames[0] holds destY and period, the frames start at frames[1]
+} MchTexAnim;
+
+typedef struct {
     /** 0x00 */ s16 firstVertexIndex; // index to the first vertex of this skin in the shared vertex list
     /** 0x02 */ s16 vertexCount;
     /** 0x04 */ s16 boneId; // the bone that "owns" this skin

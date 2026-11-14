@@ -519,37 +519,6 @@ extern u16 g_seedSalaryTable[];
 /** @brief Field-only party-member status predicate (used by dialog opcodes). */
 extern s32 func_800211B4(s32 partyMember, s32 code);
 
-/**
- * @brief Per-entity render slot (rotational/animation state).
- *
- * One slot per field-engine entity, addressed via @ref D_800D9630. The
- * full structure is around 0x64 bytes; only the fields touched by the
- * opcode handlers are named so far.
- */
-/**
- * @brief One animation frame: destination X/Y for the sprite rect.
- */
-typedef struct {
-    u16 x;
-    u16 y;
-} EntityAnimFrame; /* 4 bytes */
-
-/**
- * @brief Animation descriptor referenced by @ref Model.
- *
- * A short header (sprite rect size, frame-reload count, source X) followed
- * by the per-frame destination-coordinate table. The animation loop period
- * is stored in the first frame's @c y slot (@c frames[0].y).
- */
-typedef struct {
-    u8 pad0[3];
-    u8 rectW;                 /**< 0x03 — sprite rect width. */
-    u8 rectH;                 /**< 0x04 — sprite rect height. */
-    u8 frameReload;           /**< 0x05 — value reloaded into @c slot->frameIdx. */
-    u16 srcX;                 /**< 0x06 — source X passed to the frame loader. */
-    EntityAnimFrame frames[1];/**< 0x08 — per-frame dest coords; @c frames[0].y doubles as the loop period. */
-} EntityAnimData;
-
 #define FIELD_OBJECT_FLAG_1 0x1
 
 /**
@@ -557,7 +526,7 @@ typedef struct {
  */
 typedef struct {
     /** 0x00 */ u8 pad00[0x14];
-    /** 0x14 */ EntityAnimData *anim;
+    /** 0x14 */ MchTexAnim *anim;
     /** 0x18 */ u8 pad18[0x04];
     /** 0x1C */ MchDrawGroup *drawGroups;
     /** 0x20 */ MchSkinObject *skinObjects;
@@ -598,6 +567,13 @@ typedef struct {
 #define ENTITY_ANIM_FLAG_20 0x20
 #define ENTITY_ANIM_FLAG_40 0x40
 
+/**
+ * @brief Per-entity render slot (rotational/animation state).
+ *
+ * One slot per field-engine entity, addressed via @ref D_800D9630. The
+ * full structure is around 0x64 bytes; only the fields touched by the
+ * opcode handlers are named so far.
+ */
 typedef struct {
     /** 0x00 */ union {
         Model *def; // entity definition/template
@@ -626,7 +602,7 @@ typedef struct {
     u16 unk62;
     u16 unk64;
     u8 frameTimer;   /**< 0x66 — per-frame countdown; on expiry the frame advances. */
-    u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameReload). */
+    u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameCount). */
     u16 *unk68;
     CVECTOR *unk6C;
     u8 unk70;

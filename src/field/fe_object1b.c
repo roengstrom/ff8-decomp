@@ -328,7 +328,7 @@ s32 *func_800A8CDC(s32 idx, s32 firstWord, ModelInstance *slot) {
 void *func_800A8DAC(s32 spatialIdx, s32 cmd, void *arg, void *out) {
     SVECTOR vec;
     SVECTOR offset;
-    SVECTOR unused; // never used, but the stack frame only matches the original with it
+    SVECTOR unused;
     VECTOR rotated;
     VECTOR origin;
     MATRIX transposed;
@@ -441,7 +441,7 @@ s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
     s32 j;
     POLY_FT3 *ft3;
     POLY_FT4 *ft4;
-    s32 unused[2]; // never used, but the stack frame only matches the original with it
+    s32 unused[2];
 
     if (D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E & (MCH_DRAW_GROUP_FLAG_1 | MCH_DRAW_GROUP_FLAG_2)) {
         return -1;
@@ -484,7 +484,7 @@ s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
 s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
     CVECTOR color;
     RECT rect;
-    s32 ret; // never assigned, but the compiled code only matches the original with it
+    s32 ret;
     s32 i;
     s32 j;
     POLY_G3 *g3;
@@ -515,7 +515,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_10;
-        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->unk00.def->anim->frameReload;
+        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->unk00.def->anim->frameCount;
         break;
     case 0x2F:
         if (!(D_800D9630[spatialIdx]->unk00.def->unk5F & FIELD_OBJECT_FLAG_1)) {
@@ -523,11 +523,11 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_20;
-        rect.w = D_800D9630[spatialIdx]->unk00.def->anim->rectW;
-        rect.h = D_800D9630[spatialIdx]->unk00.def->anim->rectH;
+        rect.w = D_800D9630[spatialIdx]->unk00.def->anim->width;
+        rect.h = D_800D9630[spatialIdx]->unk00.def->anim->height;
         rect.x = D_800D9630[spatialIdx]->unk00.def->anim->frames[1].x;
         rect.y = D_800D9630[spatialIdx]->unk00.def->anim->frames[1].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.def->anim->srcX, D_800D9630[spatialIdx]->unk00.def->anim->frames[0].x);
+        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.def->anim->destX, D_800D9630[spatialIdx]->unk00.def->anim->frames[0].x);
         break;
     case 0x2E:
         if (!(D_800D9630[spatialIdx]->unk00.def->unk5F & FIELD_OBJECT_FLAG_1)) {
@@ -535,12 +535,12 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_40;
-        rect.w = D_800D9630[spatialIdx]->unk00.def->anim->rectW;
-        rect.h = D_800D9630[spatialIdx]->unk00.def->anim->rectH;
+        rect.w = D_800D9630[spatialIdx]->unk00.def->anim->width;
+        rect.h = D_800D9630[spatialIdx]->unk00.def->anim->height;
         // matching hack
-        rect.x = D_800D9630[spatialIdx]->unk00.def->anim->frameReload[D_800D9630[spatialIdx]->unk00.def->anim->frames].x;
-        rect.y = D_800D9630[spatialIdx]->unk00.def->anim->frameReload[D_800D9630[spatialIdx]->unk00.def->anim->frames].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.def->anim->srcX, D_800D9630[spatialIdx]->unk00.def->anim->frames[0].x);
+        rect.x = D_800D9630[spatialIdx]->unk00.def->anim->frameCount[D_800D9630[spatialIdx]->unk00.def->anim->frames].x;
+        rect.y = D_800D9630[spatialIdx]->unk00.def->anim->frameCount[D_800D9630[spatialIdx]->unk00.def->anim->frames].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.def->anim->destX, D_800D9630[spatialIdx]->unk00.def->anim->frames[0].x);
         break;
     case 0x25:
         D_800D9630[spatialIdx]->unk78 = (SVECTOR *)-1;
@@ -775,18 +775,18 @@ s32 func_800AA5F8(s32 idx) {
     if (D_800D9630[idx]->frameIdx == 0) {
         D_800D9630[idx]->animFlags &= 0x0F;
         D_800D9630[idx]->animFlags |= 0x80;
-        D_800D9630[idx]->frameIdx = D_800D9630[idx]->unk00.def->anim->frameReload;
+        D_800D9630[idx]->frameIdx = D_800D9630[idx]->unk00.def->anim->frameCount;
     }
 
-    D_800D5ED8.w = D_800D9630[idx]->unk00.def->anim->rectW;
-    D_800D5ED8.h = D_800D9630[idx]->unk00.def->anim->rectH;
+    D_800D5ED8.w = D_800D9630[idx]->unk00.def->anim->width;
+    D_800D5ED8.h = D_800D9630[idx]->unk00.def->anim->height;
     /* frameIdx[frames] is frames[frameIdx]; the swapped index keeps the array
        index in the first addu operand, matching the original codegen. */
     D_800D5ED8.x = D_800D9630[idx]->frameIdx[D_800D9630[idx]->unk00.def->anim->frames].x;
     D_800D5ED8.y = D_800D9630[idx]->frameIdx[D_800D9630[idx]->unk00.def->anim->frames].y;
 
     MoveImage(&D_800D5ED8,
-              D_800D9630[idx]->unk00.def->anim->srcX,
+              D_800D9630[idx]->unk00.def->anim->destX,
               D_800D9630[idx]->unk00.def->anim->frames[0].x);
     return 0;
 }
