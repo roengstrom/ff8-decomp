@@ -627,7 +627,7 @@ typedef struct {
 
 typedef struct {
     /* 0x00 */ union {
-        Model *def;
+        Model *model;
         s32 modelId;
     } unk00;
     /* 0x04 */ MchBone *bones;
