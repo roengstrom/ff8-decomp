@@ -605,8 +605,8 @@ typedef struct {
     u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameCount). */
     u16 *unk68;
     CVECTOR *unk6C;
-    u8 unk70;
-    u8 unk71;
+    u8 headBone;
+    u8 bodyBone;
     u8 animFlags;    /**< 0x72 — bit0x80 = retrigger, bit0x10 = active, low nibble reused. */
     u8 pad73;
     u8 timerReload;  /**< 0x74 — reload value for frameTimer when the period is non-negative. */
