@@ -521,9 +521,6 @@ extern s32 func_800211B4(s32 partyMember, s32 code);
 
 #define FIELD_OBJECT_FLAG_1 0x1
 
-/**
- * @brief A field-engine object instance (element of the @c D_800D6620 table).
- */
 typedef struct {
     /** 0x00 */ u8 pad00[0x14];
     /** 0x14 */ MchTexAnim *anim;
@@ -567,13 +564,6 @@ typedef struct {
 #define ENTITY_ANIM_FLAG_20 0x20
 #define ENTITY_ANIM_FLAG_40 0x40
 
-/**
- * @brief Per-entity render slot (rotational/animation state).
- *
- * One slot per field-engine entity, addressed via @ref D_800D9630. The
- * full structure is around 0x64 bytes; only the fields touched by the
- * opcode handlers are named so far.
- */
 typedef struct {
     /** 0x00 */ union {
         Model *def; // entity definition/template
