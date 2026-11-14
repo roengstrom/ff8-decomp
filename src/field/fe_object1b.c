@@ -254,7 +254,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A7564);
  * If the slot is already occupied, returns 0 without touching it. Otherwise it
  * installs @p newObj into @c D_800D6620[idx], stamps the @c 0x12345678 signature
  * and the @c D_800D60E8 seed, invokes @c func_800A7564 to build the object, and
- * clears the per-part @c field0E and per-sub @c field06 accumulators across
+ * clears the per-part @c field0E and per-skin-object @c unk6 accumulators across
  * every part's sub-range.
  *
  * @param idx    Object slot index into @ref D_800D6620 (0..63).
@@ -278,12 +278,12 @@ s32 func_800A8058(s32 idx, s32 arg1, Model *newObj, u8 count) {
     D_800D6620[idx]->signature = 0x12345678;
     D_800D6620[idx]->field50 = D_800D60E8;
     ret = func_800A7564(arg1, 0x11, count, idx);
-    for (i = 0; i < D_800D6620[idx]->partCount; i++) {
-        D_800D6620[idx]->parts[i].field0E = 0;
-        for (j = D_800D6620[idx]->parts[i].subStart;
-             j < D_800D6620[idx]->parts[i].subStart + D_800D6620[idx]->parts[i].subCount;
+    for (i = 0; i < D_800D6620[idx]->drawGroupCount; i++) {
+        D_800D6620[idx]->drawGroups[i].field0E = 0;
+        for (j = D_800D6620[idx]->drawGroups[i].firstSkinObjectIndex;
+             j < D_800D6620[idx]->drawGroups[i].firstSkinObjectIndex + D_800D6620[idx]->drawGroups[i].skinObjectCount;
              j++) {
-            D_800D6620[idx]->subs[j].field06 = 0;
+            D_800D6620[idx]->skinObjects[j].unk6 = 0;
         }
     }
     return ret;
@@ -344,10 +344,10 @@ void *func_800A8DAC(s32 spatialIdx, s32 cmd, void *arg, void *out) {
 
     switch (cmd) {
     case 0x1C:
-        ret = &D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC;
+        ret = &D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].rotation;
         break;
     case 0x1D:
-        ret = &D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC;
+        ret = &D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk71 + 1].rotation;
         break;
     case 0x1E:
         view = *(MATRIX *)arg;
@@ -362,13 +362,13 @@ void *func_800A8DAC(s32 spatialIdx, s32 cmd, void *arg, void *out) {
         transposed.m[2][2] = view.m[2][2];
         SetRotMatrix(&transposed);
         SetTransMatrix(&transposed);
-        vec.vx = D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unk14.t[0];
-        vec.vy = D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unk14.t[1];
-        vec.vz = D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unk14.t[2];
+        vec.vx = D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].transform.t[0];
+        vec.vy = D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].transform.t[1];
+        vec.vz = D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].transform.t[2];
         RotTrans(&vec, &rotated, &D_800DD6C8);
-        vec.vx = D_800D9630[spatialIdx]->unk04[0].unk14.t[0];
-        vec.vy = D_800D9630[spatialIdx]->unk04[0].unk14.t[1];
-        vec.vz = D_800D9630[spatialIdx]->unk04[0].unk14.t[2];
+        vec.vx = D_800D9630[spatialIdx]->bones[0].transform.t[0];
+        vec.vy = D_800D9630[spatialIdx]->bones[0].transform.t[1];
+        vec.vz = D_800D9630[spatialIdx]->bones[0].transform.t[2];
         RotTrans(&vec, &origin, &D_800DD6C8);
         vec.vx = rotated.vx - origin.vx;
         vec.vy = rotated.vy - origin.vy;
@@ -409,27 +409,27 @@ void func_800A91C8(s32 arg0, s32 arg1, s32 arg2, SVECTOR *arg3) {
     i = arg2 + 2;
     switch (arg1) {
     case 0x2A:
-        D_800D9630[arg0]->unk04[i].unk0 = (s32)arg3;
+        D_800D9630[arg0]->bones[i].parent = (s32)arg3;
         break;
     case 0x28:
-        D_800D9630[arg0]->unk04[i].unk4 = *arg3;
+        D_800D9630[arg0]->bones[i].boneVector = *arg3;
         break;
     case 0x29:
         delta = *arg3;
-        D_800D9630[arg0]->unk04[i].unk4.vx += delta.vx;
-        D_800D9630[arg0]->unk04[i].unk4.vy += delta.vy;
-        D_800D9630[arg0]->unk04[i].unk4.vz += delta.vz;
+        D_800D9630[arg0]->bones[i].boneVector.vx += delta.vx;
+        D_800D9630[arg0]->bones[i].boneVector.vy += delta.vy;
+        D_800D9630[arg0]->bones[i].boneVector.vz += delta.vz;
         break;
     case 0x2B:
-        D_800D9630[arg0]->unk04[i].unk34 = 1;
-        D_800D9630[arg0]->unk04[i].unkC = *arg3;
+        D_800D9630[arg0]->bones[i].lockRotation = 1;
+        D_800D9630[arg0]->bones[i].rotation = *arg3;
         break;
     case 0x2C:
-        D_800D9630[arg0]->unk04[i].unk34 = 1;
+        D_800D9630[arg0]->bones[i].lockRotation = 1;
         delta = *arg3;
-        D_800D9630[arg0]->unk04[i].unkC.vx += delta.vx;
-        D_800D9630[arg0]->unk04[i].unkC.vy += delta.vy;
-        D_800D9630[arg0]->unk04[i].unkC.vz += delta.vz;
+        D_800D9630[arg0]->bones[i].rotation.vx += delta.vx;
+        D_800D9630[arg0]->bones[i].rotation.vy += delta.vy;
+        D_800D9630[arg0]->bones[i].rotation.vz += delta.vz;
         break;
     }
 }
@@ -443,37 +443,37 @@ s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
     POLY_FT4 *ft4;
     s32 unused[2]; // never used, but the stack frame only matches the original with it
 
-    if (D_800D9630[arg0]->unk00.def->parts[arg2].field0E & (FIELD_OBJECT_PART_FLAG_1 | FIELD_OBJECT_PART_FLAG_2)) {
+    if (D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E & (MCH_DRAW_GROUP_FLAG_1 | MCH_DRAW_GROUP_FLAG_2)) {
         return -1;
     }
-    D_800D9630[arg0]->unk00.def->parts[arg2].field0E = 0;
-    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.pad = arg4;
-    D_800D9630[arg0]->unk00.def->parts[arg2].unk4 = 1;
-    D_800D9630[arg0]->unk00.def->parts[arg2].unk8 = D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vx;
-    D_800D9630[arg0]->unk00.def->parts[arg2].unkA = D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vy;
-    D_800D9630[arg0]->unk00.def->parts[arg2].unkC = D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vz;
-    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vx += arg3[0];
-    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vy += arg3[1];
-    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vz += arg3[2];
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E = 0;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.pad = arg4;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk4 = 1;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8 = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vx;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unkA = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vy;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unkC = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vz;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vx += arg3[0];
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vy += arg3[1];
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vz += arg3[2];
     switch (arg1) {
     case 0x30:
-        D_800D9630[arg0]->unk00.def->parts[arg2].field0E |= FIELD_OBJECT_PART_FLAG_1;
+        D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E |= MCH_DRAW_GROUP_FLAG_1;
         func_800A97E4(arg0, 0x25, 0, 0);
         break;
     case 0x32:
         sumA = 0;
         sumB = 0;
         for (j = 0; j < arg2; j++) {
-            sumA += D_800D9630[arg0]->unk00.def->parts[j].unk12;
-            sumB += D_800D9630[arg0]->unk00.def->parts[j].unk16;
+            sumA += D_800D9630[arg0]->unk00.def->drawGroups[j].triangleCount;
+            sumB += D_800D9630[arg0]->unk00.def->drawGroups[j].quadCount;
         }
         for (k = 0; k < 2; k++) {
             ft3 = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->unk00.def->unk30) + D_800D9630[arg0]->unk00.def->unk34);
-            for (j = 0; j < D_800D9630[arg0]->unk00.def->parts[arg2].unk12; j++) {
+            for (j = 0; j < D_800D9630[arg0]->unk00.def->drawGroups[arg2].triangleCount; j++) {
                 ft3[sumA + j].pad1 = arg4;
             }
             ft4 = (POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->unk00.def->unk30) + D_800D9630[arg0]->unk00.def->unk34) + D_800D9630[arg0]->unk00.def->unk38);
-            for (j = 0; j < D_800D9630[arg0]->unk00.def->parts[arg2].unk16; j++) {
+            for (j = 0; j < D_800D9630[arg0]->unk00.def->drawGroups[arg2].quadCount; j++) {
                 ft4[sumB + j].pad1 = arg4;
             }
         }
@@ -562,28 +562,28 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         break;
     case 0x13:
         D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_2;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC = *(SVECTOR *)arg2;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].rotation = *(SVECTOR *)arg2;
         break;
     case 0x1C:
         D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_2;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC = *(SVECTOR *)arg2;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].rotation = *(SVECTOR *)arg2;
         break;
     case 0x14:
     case 0x1D:
         D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_4;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC = *(SVECTOR *)arg2;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk71 + 1].rotation = *(SVECTOR *)arg2;
         break;
     case 0x19:
         D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_2;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC.vx += ((SVECTOR *)arg2)->vx;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC.vy += ((SVECTOR *)arg2)->vy;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC.vz += ((SVECTOR *)arg2)->vz;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].rotation.vx += ((SVECTOR *)arg2)->vx;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].rotation.vy += ((SVECTOR *)arg2)->vy;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk70 + 1].rotation.vz += ((SVECTOR *)arg2)->vz;
         break;
     case 0x1A:
         D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_4;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC.vx = ((SVECTOR *)arg2)->vx;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC.vy = ((SVECTOR *)arg2)->vy;
-        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC.vz = ((SVECTOR *)arg2)->vz;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk71 + 1].rotation.vx = ((SVECTOR *)arg2)->vx;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk71 + 1].rotation.vy = ((SVECTOR *)arg2)->vy;
+        D_800D9630[spatialIdx]->bones[D_800D9630[spatialIdx]->unk71 + 1].rotation.vz = ((SVECTOR *)arg2)->vz;
         break;
     case 0x15:
         D_800D9630[spatialIdx]->unk60 &= ~ENTITY_RENDER_FLAG_2;

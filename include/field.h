@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "lzs.h"
+#include "mch.h"
 #include "psxsdk/libgpu.h"
 #include "psxsdk/libgte.h"
 
@@ -549,39 +550,6 @@ typedef struct {
     EntityAnimFrame frames[1];/**< 0x08 — per-frame dest coords; @c frames[0].y doubles as the loop period. */
 } EntityAnimData;
 
-/**
- * @brief Element of a @ref Model part's sub-range (8-byte stride).
- */
-typedef struct {
-    /** 0x00 */ u8 pad00[6];
-    /** 0x06 */ s16 field06;
-} FieldObjectSub;
-
-/**
- * @brief One part of a @ref Model (0x20-byte stride).
- *
- * Each part owns a contiguous @c [subStart, @c subStart+subCount) slice of the
- * object's @ref FieldObjectSub array.
- */
-typedef struct {
-    /** 0x00 */ s16 subStart; // first sub-element index owned by this part
-    /** 0x02 */ s16 subCount; // number of sub-elements in the part
-    /** 0x04 */ s16 unk4;
-    /** 0x06 */ u8 pad6[0x02];
-    /** 0x08 */ s16 unk8;
-    /** 0x0A */ s16 unkA;
-    /** 0x0C */ s16 unkC;
-    /** 0x0E */ u16 field0E;
-    /** 0x10 */ u8 pad10[0x02];
-    /** 0x12 */ s16 unk12;
-    /** 0x14 */ u8 pad14[0x02];
-    /** 0x16 */ s16 unk16;
-    /** 0x18 */ SVECTOR unk18;
-} FieldObjectPart;
-
-#define FIELD_OBJECT_PART_FLAG_1 0x1
-#define FIELD_OBJECT_PART_FLAG_2 0x2
-
 #define FIELD_OBJECT_FLAG_1 0x1
 
 /**
@@ -591,9 +559,9 @@ typedef struct {
     /** 0x00 */ u8 pad00[0x14];
     /** 0x14 */ EntityAnimData *anim;
     /** 0x18 */ u8 pad18[0x04];
-    /** 0x1C */ FieldObjectPart *parts;
-    /** 0x20 */ FieldObjectSub *subs; // sub-element array indexed by parts
-    /** 0x24 */ s32 partCount;
+    /** 0x1C */ MchDrawGroup *drawGroups;
+    /** 0x20 */ MchSkinObject *skinObjects;
+    /** 0x24 */ s32 drawGroupCount;
     /** 0x28 */ u8 pad28[0x08];
     /** 0x30 */ s32 unk30;
     /** 0x34 */ s32 unk34;
@@ -621,16 +589,6 @@ typedef struct {
     s32 field2C;     /**< Mode-0 only (mode-1 leaves it untouched). */
 } EntityRenderXform;
 
-typedef struct {
-    /** 0x00 */ u16 unk0;
-    /** 0x02 */ u8 pad2[0x02];
-    /** 0x04 */ SVECTOR unk4;
-    /** 0x0C */ SVECTOR unkC;
-    /** 0x14 */ MATRIX unk14;
-    /** 0x34 */ s32 unk34;
-    /** 0x38 */ u8 pad38[0x08];
-} EntityRenderSlotUnk04;
-
 #define ENTITY_RENDER_FLAG_2 0x02
 #define ENTITY_RENDER_FLAG_4 0x04
 #define ENTITY_RENDER_FLAG_20 0x20
@@ -645,7 +603,7 @@ typedef struct {
         Model *def; // entity definition/template
         s32 modelId;
     } unk00;
-    EntityRenderSlotUnk04 *unk04;
+    MchBone *bones;
     SVECTOR *unk08;
     u16 unk0C;
     u16 unk0E;
