@@ -103,7 +103,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A6A80);
  * 1. Calls @c memset on each of 64 @c D_800DD6D0
  *    entries (stride 0x30 = 48 bytes), zeroing each in turn.
  * 2. Clears 64 @c s32 entries at @c D_800D6620.
- * 3. Clears 32 @c EntityRenderSlot* pointer entries at @c D_800D9630.
+ * 3. Clears 32 @c ModelInstance* pointer entries at @c D_800D9630.
  *
  * The forward for-loops in the scratch source compile to backward
  * @c bgez loops — gcc strength-reduces the index since each iteration
@@ -126,7 +126,7 @@ void func_800A7194(void) {
     }
 }
 
-/** @brief 8-byte (2-aligned) block copied into an @ref EntityRenderSlot's
+/** @brief 8-byte (2-aligned) block copied into a @ref ModelInstance's
  *         @c unk10 region by @c func_800A7224 mode 0. The 2-byte alignment is
  *         what makes the copy emit as an unaligned @c lwl/lwr/swl/swr pair. */
 typedef struct {
@@ -134,7 +134,7 @@ typedef struct {
 } RenderSlotVec4;
 
 /**
- * @brief Per-mode update of an @ref EntityRenderSlot's @c unk10 vector, then a
+ * @brief Per-mode update of a @ref ModelInstance's @c unk10 vector, then a
  *        change-detect that re-snapshots and clears flags when it moved.
  *
  * Dispatches on @p mode over @c D_800D9630[idx]:
@@ -151,7 +151,7 @@ typedef struct {
  * @param mode Selects overwrite (0), accumulate (1), or compare-only.
  */
 void func_800A7224(s32 idx, u16 *vals, s32 mode) {
-    EntityRenderSlot *slot;
+    ModelInstance *slot;
 
     switch (mode) {
     case 0:
@@ -176,7 +176,7 @@ void func_800A7224(s32 idx, u16 *vals, s32 mode) {
 
 /**
  * @brief Twin of @c func_800A7224 for the @c unk18 vector of an
- *        @ref EntityRenderSlot (same switch + change-detect, offset +8).
+ *        @ref ModelInstance (same switch + change-detect, offset +8).
  *
  * Dispatches on @p mode over @c D_800D9630[idx]:
  *  - @c mode @c 0: overwrite the 8-byte @c unk18 block from @p vals.
@@ -192,7 +192,7 @@ void func_800A7224(s32 idx, u16 *vals, s32 mode) {
  * @param mode Selects overwrite (0), accumulate (1), or compare-only.
  */
 void func_800A736C(s32 idx, u16 *vals, s32 mode) {
-    EntityRenderSlot *slot;
+    ModelInstance *slot;
 
     switch (mode) {
     case 0:
@@ -217,7 +217,7 @@ void func_800A736C(s32 idx, u16 *vals, s32 mode) {
 
 /**
  * @brief Per-mode write/accumulate of three or four @c s32 values into
- *        an @ref EntityRenderSlot.
+ *        a @ref ModelInstance.
  *
  * Dispatches on @p mode over the render slot @c D_800D9630[idx]:
  *  - @c mode @c 0: overwrite the whole @c xform block — a single
@@ -231,7 +231,7 @@ void func_800A736C(s32 idx, u16 *vals, s32 mode) {
  * @param mode  Selects overwrite (0), accumulate (1), or no-op.
  */
 void func_800A74B4(s32 idx, EntityRenderXform *vals, s32 mode) {
-    EntityRenderSlot *slot;
+    ModelInstance *slot;
 
     switch (mode) {
     case 0:
@@ -263,7 +263,7 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A7564);
  * @param count  Build count for @c func_800A7564; defaults to 0x10 when zero.
  * @return @c func_800A7564's result, or 0 if the slot was already occupied.
  */
-s32 func_800A8058(s32 idx, s32 arg1, FieldObject *newObj, u8 count) {
+s32 func_800A8058(s32 idx, s32 arg1, Model *newObj, u8 count) {
     s32 ret;
     s32 i, j;
 
@@ -274,7 +274,7 @@ s32 func_800A8058(s32 idx, s32 arg1, FieldObject *newObj, u8 count) {
         count = 0x10;
     }
     D_800D6620[idx] = newObj;
-    newObj->field5F = 0;
+    newObj->unk5F = 0;
     D_800D6620[idx]->signature = 0x12345678;
     D_800D6620[idx]->field50 = D_800D60E8;
     ret = func_800A7564(arg1, 0x11, count, idx);
@@ -303,12 +303,12 @@ INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A81AC);
  * @return @p slot @c + @c 0x98 on successful claim, or @c NULL if the
  *         render-slot was already occupied.
  */
-s32 *func_800A8CDC(s32 idx, s32 firstWord, EntityRenderSlot *slot) {
+s32 *func_800A8CDC(s32 idx, s32 firstWord, ModelInstance *slot) {
     if (D_800D9630[idx] != NULL) {
         return NULL;
     }
     D_800D9630[idx] = slot;
-    *(s32 *)slot = firstWord;
+    slot->unk00.modelId = firstWord;
     D_800D9630[idx]->unk60 = 0;
     D_800D9630[idx]->unk10 = 0;
     D_800D9630[idx]->unk12 = 0x190;
@@ -443,37 +443,37 @@ s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
     POLY_FT4 *ft4;
     s32 unused[2]; // never used, but the stack frame only matches the original with it
 
-    if (D_800D9630[arg0]->def->unk1C[arg2].unk8.pad & (ENTITY_DEF_UNK1C_FLAG_1 | ENTITY_DEF_UNK1C_FLAG_2)) {
+    if (D_800D9630[arg0]->unk00.def->parts[arg2].field0E & (FIELD_OBJECT_PART_FLAG_1 | FIELD_OBJECT_PART_FLAG_2)) {
         return -1;
     }
-    D_800D9630[arg0]->def->unk1C[arg2].unk8.pad = 0;
-    D_800D9630[arg0]->def->unk1C[arg2].unk18.pad = arg4;
-    D_800D9630[arg0]->def->unk1C[arg2].unk4 = 1;
-    D_800D9630[arg0]->def->unk1C[arg2].unk8.vx = D_800D9630[arg0]->def->unk1C[arg2].unk18.vx;
-    D_800D9630[arg0]->def->unk1C[arg2].unk8.vy = D_800D9630[arg0]->def->unk1C[arg2].unk18.vy;
-    D_800D9630[arg0]->def->unk1C[arg2].unk8.vz = D_800D9630[arg0]->def->unk1C[arg2].unk18.vz;
-    D_800D9630[arg0]->def->unk1C[arg2].unk18.vx += arg3[0];
-    D_800D9630[arg0]->def->unk1C[arg2].unk18.vy += arg3[1];
-    D_800D9630[arg0]->def->unk1C[arg2].unk18.vz += arg3[2];
+    D_800D9630[arg0]->unk00.def->parts[arg2].field0E = 0;
+    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.pad = arg4;
+    D_800D9630[arg0]->unk00.def->parts[arg2].unk4 = 1;
+    D_800D9630[arg0]->unk00.def->parts[arg2].unk8 = D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vx;
+    D_800D9630[arg0]->unk00.def->parts[arg2].unkA = D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vy;
+    D_800D9630[arg0]->unk00.def->parts[arg2].unkC = D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vz;
+    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vx += arg3[0];
+    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vy += arg3[1];
+    D_800D9630[arg0]->unk00.def->parts[arg2].unk18.vz += arg3[2];
     switch (arg1) {
     case 0x30:
-        D_800D9630[arg0]->def->unk1C[arg2].unk8.pad |= ENTITY_DEF_UNK1C_FLAG_1;
+        D_800D9630[arg0]->unk00.def->parts[arg2].field0E |= FIELD_OBJECT_PART_FLAG_1;
         func_800A97E4(arg0, 0x25, 0, 0);
         break;
     case 0x32:
         sumA = 0;
         sumB = 0;
         for (j = 0; j < arg2; j++) {
-            sumA += D_800D9630[arg0]->def->unk1C[j].unk12;
-            sumB += D_800D9630[arg0]->def->unk1C[j].unk16;
+            sumA += D_800D9630[arg0]->unk00.def->parts[j].unk12;
+            sumB += D_800D9630[arg0]->unk00.def->parts[j].unk16;
         }
         for (k = 0; k < 2; k++) {
-            ft3 = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->def->unk30) + D_800D9630[arg0]->def->unk34);
-            for (j = 0; j < D_800D9630[arg0]->def->unk1C[arg2].unk12; j++) {
+            ft3 = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->unk00.def->unk30) + D_800D9630[arg0]->unk00.def->unk34);
+            for (j = 0; j < D_800D9630[arg0]->unk00.def->parts[arg2].unk12; j++) {
                 ft3[sumA + j].pad1 = arg4;
             }
-            ft4 = (POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->def->unk30) + D_800D9630[arg0]->def->unk34) + D_800D9630[arg0]->def->unk38);
-            for (j = 0; j < D_800D9630[arg0]->def->unk1C[arg2].unk16; j++) {
+            ft4 = (POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->unk00.def->unk30) + D_800D9630[arg0]->unk00.def->unk34) + D_800D9630[arg0]->unk00.def->unk38);
+            for (j = 0; j < D_800D9630[arg0]->unk00.def->parts[arg2].unk16; j++) {
                 ft4[sumB + j].pad1 = arg4;
             }
         }
@@ -492,16 +492,16 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
     POLY_FT3 *ft3;
     POLY_FT4 *ft4;
 
-    if (D_800D9630[spatialIdx]->def == (EntityDef *)-1) {
+    if (D_800D9630[spatialIdx]->unk00.modelId == NO_MODEL) {
         return -1;
     }
     switch (cmd) {
     case 0x27:
-        if (!(D_800D9630[spatialIdx]->def->unk5F & ENTITY_DEF_FLAG_1)) {
+        if (!(D_800D9630[spatialIdx]->unk00.def->unk5F & FIELD_OBJECT_FLAG_1)) {
             return 1;
         }
-        if ((s16)D_800D9630[spatialIdx]->def->anim->frames[0].y >= 0) {
-            D_800D9630[spatialIdx]->def->anim->frames[0].y = arg3;
+        if ((s16)D_800D9630[spatialIdx]->unk00.def->anim->frames[0].y >= 0) {
+            D_800D9630[spatialIdx]->unk00.def->anim->frames[0].y = arg3;
             if (arg2 != 0) {
                 D_800D9630[spatialIdx]->frameTimer = arg2;
                 D_800D9630[spatialIdx]->timerReload = arg2;
@@ -510,37 +510,37 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
                 D_800D9630[spatialIdx]->timerReload = rand() % 8 + 1;
             }
         } else {
-            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->def->anim->frames[0].y;
-            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->def->anim->frames[0].y;
+            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->unk00.def->anim->frames[0].y;
+            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->unk00.def->anim->frames[0].y;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_10;
-        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->def->anim->frameReload;
+        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->unk00.def->anim->frameReload;
         break;
     case 0x2F:
-        if (!(D_800D9630[spatialIdx]->def->unk5F & ENTITY_DEF_FLAG_1)) {
+        if (!(D_800D9630[spatialIdx]->unk00.def->unk5F & FIELD_OBJECT_FLAG_1)) {
             return 1;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_20;
-        rect.w = D_800D9630[spatialIdx]->def->anim->rectW;
-        rect.h = D_800D9630[spatialIdx]->def->anim->rectH;
-        rect.x = D_800D9630[spatialIdx]->def->anim->frames[1].x;
-        rect.y = D_800D9630[spatialIdx]->def->anim->frames[1].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->def->anim->srcX, D_800D9630[spatialIdx]->def->anim->frames[0].x);
+        rect.w = D_800D9630[spatialIdx]->unk00.def->anim->rectW;
+        rect.h = D_800D9630[spatialIdx]->unk00.def->anim->rectH;
+        rect.x = D_800D9630[spatialIdx]->unk00.def->anim->frames[1].x;
+        rect.y = D_800D9630[spatialIdx]->unk00.def->anim->frames[1].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.def->anim->srcX, D_800D9630[spatialIdx]->unk00.def->anim->frames[0].x);
         break;
     case 0x2E:
-        if (!(D_800D9630[spatialIdx]->def->unk5F & ENTITY_DEF_FLAG_1)) {
+        if (!(D_800D9630[spatialIdx]->unk00.def->unk5F & FIELD_OBJECT_FLAG_1)) {
             return 1;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_40;
-        rect.w = D_800D9630[spatialIdx]->def->anim->rectW;
-        rect.h = D_800D9630[spatialIdx]->def->anim->rectH;
+        rect.w = D_800D9630[spatialIdx]->unk00.def->anim->rectW;
+        rect.h = D_800D9630[spatialIdx]->unk00.def->anim->rectH;
         // matching hack
-        rect.x = D_800D9630[spatialIdx]->def->anim->frameReload[D_800D9630[spatialIdx]->def->anim->frames].x;
-        rect.y = D_800D9630[spatialIdx]->def->anim->frameReload[D_800D9630[spatialIdx]->def->anim->frames].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->def->anim->srcX, D_800D9630[spatialIdx]->def->anim->frames[0].x);
+        rect.x = D_800D9630[spatialIdx]->unk00.def->anim->frameReload[D_800D9630[spatialIdx]->unk00.def->anim->frames].x;
+        rect.y = D_800D9630[spatialIdx]->unk00.def->anim->frameReload[D_800D9630[spatialIdx]->unk00.def->anim->frames].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.def->anim->srcX, D_800D9630[spatialIdx]->unk00.def->anim->frames[0].x);
         break;
     case 0x25:
         D_800D9630[spatialIdx]->unk78 = (SVECTOR *)-1;
@@ -595,25 +595,25 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         for (i = 0; i < 2; i++) {
             g3 = D_800D9630[spatialIdx]->unk58[i];
             D_800D5EE0[i] = g3;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk30; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk30; j++) {
                 SetSemiTrans(g3, arg2);
                 g3++;
             }
             g4 = (POLY_G4 *)g3;
             D_800D5EE8[i] = g4;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk34; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk34; j++) {
                 SetSemiTrans(g4, arg2);
                 g4++;
             }
             ft3 = (POLY_FT3 *)g4;
             D_800D6600[i] = ft3;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk38; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk38; j++) {
                 SetSemiTrans(ft3, arg2);
                 ft3++;
             }
             ft4 = (POLY_FT4 *)ft3;
             D_800D6610[i] = ft4;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk3C; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk3C; j++) {
                 SetSemiTrans(ft4, arg2);
                 ft4++;
             }
@@ -626,7 +626,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         for (i = 0; i < 2; i++) {
             g3 = D_800D9630[spatialIdx]->unk58[i];
             D_800D5EE0[i] = g3;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk30; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk30; j++) {
                 g3->r0 = color.r;
                 g3->g0 = color.g;
                 g3->b0 = color.b;
@@ -640,7 +640,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
             }
             g4 = (POLY_G4 *)g3;
             D_800D5EE8[i] = g4;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk34; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk34; j++) {
                 g4->r0 = color.r;
                 g4->g0 = color.g;
                 g4->b0 = color.b;
@@ -654,7 +654,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
             }
             ft3 = (POLY_FT3 *)g4;
             D_800D6600[i] = ft3;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk38; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk38; j++) {
                 ft3->r0 = color.r;
                 ft3->g0 = color.g;
                 ft3->b0 = color.b;
@@ -662,7 +662,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
             }
             ft4 = (POLY_FT4 *)ft3;
             D_800D6610[i] = ft4;
-            for (j = 0; j < D_800D9630[spatialIdx]->def->unk3C; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->unk00.def->unk3C; j++) {
                 ft4->r0 = color.r;
                 ft4->g0 = color.g;
                 ft4->b0 = color.b;
@@ -682,7 +682,7 @@ void func_800AA46C(s32 spatialIdx, s32 cmd, u32 arg, s32 arg4) {
     u32 first;
     u32 second;
 
-    if (D_800D9630[spatialIdx]->def != (EntityDef *)-1 && cmd == 13) {
+    if (D_800D9630[spatialIdx]->unk00.modelId != NO_MODEL && cmd == 13) {
         if (arg >= D_800D9630[spatialIdx]->unk64) {
             func_800ACBCC(spatialIdx, D_800D9630[spatialIdx]->unk64, arg, 0);
             SystemError(0x53, 0x17);
@@ -737,8 +737,8 @@ s32 func_800AA5F8(s32 idx) {
     u8 flags;
     s16 per;
 
-    period = D_800D9630[idx]->def->anim->frames[0].y;
-    if ((D_800D9630[idx]->def->unk5F & 1) == 0) {
+    period = D_800D9630[idx]->unk00.def->anim->frames[0].y;
+    if (!(D_800D9630[idx]->unk00.def->unk5F & FIELD_OBJECT_FLAG_1)) {
         return 1;
     }
 
@@ -775,19 +775,19 @@ s32 func_800AA5F8(s32 idx) {
     if (D_800D9630[idx]->frameIdx == 0) {
         D_800D9630[idx]->animFlags &= 0x0F;
         D_800D9630[idx]->animFlags |= 0x80;
-        D_800D9630[idx]->frameIdx = D_800D9630[idx]->def->anim->frameReload;
+        D_800D9630[idx]->frameIdx = D_800D9630[idx]->unk00.def->anim->frameReload;
     }
 
-    D_800D5ED8.w = D_800D9630[idx]->def->anim->rectW;
-    D_800D5ED8.h = D_800D9630[idx]->def->anim->rectH;
+    D_800D5ED8.w = D_800D9630[idx]->unk00.def->anim->rectW;
+    D_800D5ED8.h = D_800D9630[idx]->unk00.def->anim->rectH;
     /* frameIdx[frames] is frames[frameIdx]; the swapped index keeps the array
        index in the first addu operand, matching the original codegen. */
-    D_800D5ED8.x = D_800D9630[idx]->frameIdx[D_800D9630[idx]->def->anim->frames].x;
-    D_800D5ED8.y = D_800D9630[idx]->frameIdx[D_800D9630[idx]->def->anim->frames].y;
+    D_800D5ED8.x = D_800D9630[idx]->frameIdx[D_800D9630[idx]->unk00.def->anim->frames].x;
+    D_800D5ED8.y = D_800D9630[idx]->frameIdx[D_800D9630[idx]->unk00.def->anim->frames].y;
 
     MoveImage(&D_800D5ED8,
-              D_800D9630[idx]->def->anim->srcX,
-              D_800D9630[idx]->def->anim->frames[0].x);
+              D_800D9630[idx]->unk00.def->anim->srcX,
+              D_800D9630[idx]->unk00.def->anim->frames[0].x);
     return 0;
 }
 

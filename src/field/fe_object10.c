@@ -766,7 +766,7 @@ Actor *InitActors(Actor *buf) {
         actor->field_0x244 = 0;
         actor->field_0x24E = 0xFF;
         actor->animationSpeed = 0x10;
-        actor->modelId = -1;
+        actor->modelId = NO_MODEL;
         actor->radius = 0x30;
         actor->talkRadius = 0x80;
 

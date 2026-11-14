@@ -479,6 +479,8 @@ typedef struct {
     /* 0x263 */ u8 field_0x263;
 } Actor;
 
+#define NO_MODEL -1
+
 /** @brief Push one s32 onto the actor's bytecode stack. */
 #define PUSH(ctx, val) (((s32 *)(ctx))[(s8)(++(ctx)->stackPtr)] = (val))
 
@@ -532,7 +534,7 @@ typedef struct {
 } EntityAnimFrame; /* 4 bytes */
 
 /**
- * @brief Animation descriptor referenced by @ref EntityDef.
+ * @brief Animation descriptor referenced by @ref Model.
  *
  * A short header (sprite rect size, frame-reload count, source X) followed
  * by the per-frame destination-coordinate table. The animation loop period
@@ -547,43 +549,66 @@ typedef struct {
     EntityAnimFrame frames[1];/**< 0x08 — per-frame dest coords; @c frames[0].y doubles as the loop period. */
 } EntityAnimData;
 
+/**
+ * @brief Element of a @ref Model part's sub-range (8-byte stride).
+ */
 typedef struct {
-    /** 0x00 */ u8 pad0[0x04];
+    /** 0x00 */ u8 pad00[6];
+    /** 0x06 */ s16 field06;
+} FieldObjectSub;
+
+/**
+ * @brief One part of a @ref Model (0x20-byte stride).
+ *
+ * Each part owns a contiguous @c [subStart, @c subStart+subCount) slice of the
+ * object's @ref FieldObjectSub array.
+ */
+typedef struct {
+    /** 0x00 */ s16 subStart; // first sub-element index owned by this part
+    /** 0x02 */ s16 subCount; // number of sub-elements in the part
     /** 0x04 */ s16 unk4;
     /** 0x06 */ u8 pad6[0x02];
-    /** 0x08 */ SVECTOR unk8;
+    /** 0x08 */ s16 unk8;
+    /** 0x0A */ s16 unkA;
+    /** 0x0C */ s16 unkC;
+    /** 0x0E */ u16 field0E;
     /** 0x10 */ u8 pad10[0x02];
     /** 0x12 */ s16 unk12;
     /** 0x14 */ u8 pad14[0x02];
     /** 0x16 */ s16 unk16;
     /** 0x18 */ SVECTOR unk18;
-} EntityDefUnk1C;
+} FieldObjectPart;
 
-#define ENTITY_DEF_UNK1C_FLAG_1 0x1
-#define ENTITY_DEF_UNK1C_FLAG_2 0x2
+#define FIELD_OBJECT_PART_FLAG_1 0x1
+#define FIELD_OBJECT_PART_FLAG_2 0x2
 
-#define ENTITY_DEF_FLAG_1 0x1
+#define FIELD_OBJECT_FLAG_1 0x1
 
 /**
- * @brief Entity definition/template referenced by @ref EntityRenderSlot.
+ * @brief A field-engine object instance (element of the @c D_800D6620 table).
  */
 typedef struct {
-    u8 pad00[0x14];
-    EntityAnimData *anim;     /**< 0x14 — animation descriptor. */
+    /** 0x00 */ u8 pad00[0x14];
+    /** 0x14 */ EntityAnimData *anim;
     /** 0x18 */ u8 pad18[0x04];
-    /** 0x1C */ EntityDefUnk1C *unk1C;
-    /** 0x20 */ u8 pad20[0x10];
+    /** 0x1C */ FieldObjectPart *parts;
+    /** 0x20 */ FieldObjectSub *subs; // sub-element array indexed by parts
+    /** 0x24 */ s32 partCount;
+    /** 0x28 */ u8 pad28[0x08];
     /** 0x30 */ s32 unk30;
     /** 0x34 */ s32 unk34;
     /** 0x38 */ s32 unk38;
     /** 0x3C */ s32 unk3C;
-    /** 0x40 */ u8 pad40[0x1F];
-    u8 unk5F;                 /**< 0x5F — bit 0 set = entity is animated. */
-} EntityDef;
+    /** 0x40 */ u8 pad40[0x0C];
+    /** 0x4C */ u32 signature;
+    /** 0x50 */ u16 field50;
+    /** 0x52 */ u8 pad52[0x0D];
+    /** 0x5F */ u8 unk5F; // bit 0 set = entity is animated
+} Model;
 
 /**
  * @brief The four consecutive @c s32 transform words at offset @c 0x20 of an
- *        @ref EntityRenderSlot, modelled as one 16-byte block.
+ *        @ref ModelInstance, modelled as one 16-byte block.
  *
  * @c func_800A74B4 mode 0 overwrites all four at once via a single aggregate
  * copy; the compiler emits that as a 4-word load-all/store-all block, which is
@@ -616,7 +641,10 @@ typedef struct {
 #define ENTITY_ANIM_FLAG_40 0x40
 
 typedef struct {
-    EntityDef *def;  /**< 0x00 — entity definition/template. */
+    /** 0x00 */ union {
+        Model *def; // entity definition/template
+        s32 modelId;
+    } unk00;
     EntityRenderSlotUnk04 *unk04;
     SVECTOR *unk08;
     u16 unk0C;
@@ -662,10 +690,10 @@ typedef struct {
     s16 field90;     /**< 0x90 — snapshot of @c unk1C. */
     u8 pad92[0x06];
     s32 subBuffer;   /**< @c 0x98 — caller of @c func_800A8CDC uses the returned @c &subBuffer pointer. */
-} EntityRenderSlot;
+} ModelInstance;
 
 /** @brief Entity render-slot pointer table; indexed by @c actor->selfIndex. */
-extern EntityRenderSlot *D_800D9630[];
+extern ModelInstance *D_800D9630[];
 
 /** @brief Entity Actor pointer table; indexed by raw field-entity id. */
 extern Actor *D_80085230[];

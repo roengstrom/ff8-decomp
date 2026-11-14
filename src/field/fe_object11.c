@@ -73,7 +73,7 @@ void func_800BF718(s32 mode) {
         D_800DE4FC = 0;
         if (g_fieldActorCount != 0) {
             do {
-                if (e->modelId == -1) {
+                if (e->modelId == NO_MODEL) {
                     e->context.flags &= ~8;
                     e->field_0x24C = 0;
                     e->unk249 = 0;

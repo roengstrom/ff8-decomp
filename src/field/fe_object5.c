@@ -100,7 +100,7 @@ s32 opHandler_HOLD(ScriptContext *context) {
 s32 opHandler_SHOW(Actor *actor) {
     *(volatile s32 *)&actor->context.flags = *(volatile s32 *)&actor->context.flags & ~0x8;
     if (!(D_800DE8CC & 0x2)) {
-        EntityRenderSlot **base = D_800D9630;
+        ModelInstance **base = D_800D9630;
         u8 slot = actor->selfIndex;
         *(u8 *)((s32)base[slot] + 0x60) = 0;
     }
@@ -123,7 +123,7 @@ s32 opHandler_SHOW(Actor *actor) {
 s32 opHandler_HIDE(Actor *actor) {
     *(volatile s32 *)&actor->context.flags = *(volatile s32 *)&actor->context.flags | 0x8;
     if (!(D_800DE8CC & 0x2)) {
-        EntityRenderSlot **base = D_800D9630;
+        ModelInstance **base = D_800D9630;
         u8 slot = actor->selfIndex;
         *(u8 *)((s32)base[slot] + 0x60) = 1;
     }

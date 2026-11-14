@@ -670,7 +670,7 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
         if (ents->context.flags & 8) {
             continue;
         }
-        if (ents->modelId == -1) {
+        if (ents->modelId == NO_MODEL) {
             continue;
         }
         if (ents->unk258 != 1) {
