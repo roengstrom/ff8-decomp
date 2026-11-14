@@ -40,10 +40,7 @@ typedef struct {
     /** 0x02 */ s16 skinObjectCount;
     /** 0x04 */ s16 unk4;
     /** 0x06 */ u8 pad6[0x02];
-    /** 0x08 */ s16 unk8;
-    /** 0x0A */ s16 unkA;
-    /** 0x0C */ s16 unkC;
-    /** 0x0E */ u16 field0E;
+    /** 0x08 */ SVECTOR unk8;
     /** 0x10 */ s16 firstTriangleIndex;
     /** 0x12 */ s16 triangleCount;
     /** 0x14 */ s16 firstQuadIndex;
@@ -53,5 +50,6 @@ typedef struct {
 
 #define MCH_DRAW_GROUP_FLAG_1 0x1
 #define MCH_DRAW_GROUP_FLAG_2 0x2
+#define MCH_DRAW_GROUP_FLAG_4 0x4
 
 #endif

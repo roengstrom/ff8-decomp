@@ -323,7 +323,7 @@ extern u8 D_80070649;
 /** @brief 64-slot field-engine object table (indexed by object id). */
 extern Model *D_800D6620[];
 /** @brief u16 seed value written into @c Model::field50 at init. */
-extern u16 D_800D60E8;
+extern u16 D_800D60E8[];
 
 /** @brief Scratch sprite rectangle built by @c func_800AA5F8 before a @c MoveImage upload. */
 extern RECT D_800D5ED8;
@@ -347,7 +347,10 @@ extern u8 D_800C3320[];
 extern u8 D_800C3520[];
 extern u8 D_800C6D90;            /**< PRNG counter advanced 13/step by func_800A2EA4 */
 
+extern void func_8004D664(void *p);
 extern void func_8004D684(void *p);
+extern void func_8004D6A4(void *p);
+extern void func_8004D6C4(void *p);
 
 extern void *D_800C71E4;         /**< Buffer handed to @c StoreImage / @c LoadImage; points at @c D_800D3E88 once @c func_800A1BB8 runs. */
 extern s32 D_800C71FC;           /**< Latched result of @c func_800A0F34 from @c func_800A11E0. */

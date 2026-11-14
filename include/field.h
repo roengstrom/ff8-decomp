@@ -522,21 +522,79 @@ extern s32 func_800211B4(s32 partyMember, s32 code);
 #define FIELD_OBJECT_FLAG_1 0x1
 
 typedef struct {
-    /** 0x00 */ u8 pad00[0x14];
+    /** 0x00 */ u8 pad0[0x0C];
+    /** 0x0C */ CVECTOR unkC;
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ CVECTOR unk14;
+} ModelUnk04;
+
+typedef struct {
+    /** 0x00 */ u8 pad0[0x10];
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ CVECTOR unk14;
+    /** 0x18 */ CVECTOR unk18;
+    /** 0x1C */ CVECTOR unk1C;
+} ModelUnk08;
+
+typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u16 unk2;
+    /** 0x04 */ u16 unk4;
+    /** 0x06 */ u16 unk6;
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ s32 unk14;
+} ModelUnk0C;
+
+#define MODEL_UNK0C_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u16 unk2;
+    /** 0x04 */ u16 unk4;
+    /** 0x06 */ u16 unk6;
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ u16 unk10;
+    /** 0x12 */ u16 unk12;
+    /** 0x14 */ CVECTOR unk14;
+    /** 0x18 */ s32 unk18;
+} ModelUnk10;
+
+#define MODEL_UNK10_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ MchBone *unk00;
+    /** 0x04 */ ModelUnk04 *unk04;
+    /** 0x08 */ ModelUnk08 *unk08;
+    /** 0x0C */ ModelUnk0C *unk0C;
+    /** 0x10 */ ModelUnk10 *unk10;
     /** 0x14 */ MchTexAnim *anim;
-    /** 0x18 */ u8 pad18[0x04];
+    /** 0x18 */ SVECTOR *unk18;
     /** 0x1C */ MchDrawGroup *drawGroups;
     /** 0x20 */ MchSkinObject *skinObjects;
     /** 0x24 */ s32 drawGroupCount;
-    /** 0x28 */ u8 pad28[0x08];
+    /** 0x28 */ s32 unk28;
+    /** 0x2C */ s32 unk2C;
     /** 0x30 */ s32 unk30;
     /** 0x34 */ s32 unk34;
     /** 0x38 */ s32 unk38;
     /** 0x3C */ s32 unk3C;
-    /** 0x40 */ u8 pad40[0x0C];
+    /** 0x40 */ SVECTOR *unk40;
+    /** 0x44 */ u8 pad44[0x08];
     /** 0x4C */ u32 signature;
     /** 0x50 */ u16 field50;
-    /** 0x52 */ u8 pad52[0x0D];
+    /** 0x52 */ u16 unk52;
+    /** 0x54 */ u16 *unk54;
+    /** 0x58 */ SVECTOR *unk58;
+    /** 0x5C */ u8 unk5C;
+    /** 0x5D */ u8 unk5D;
+    /** 0x5E */ u8 unk5E;
     /** 0x5F */ u8 unk5F; // bit 0 set = entity is animated
 } Model;
 
@@ -555,8 +613,11 @@ typedef struct {
     s32 field2C;     /**< Mode-0 only (mode-1 leaves it untouched). */
 } EntityRenderXform;
 
+#define ENTITY_RENDER_FLAG_1 0x01
 #define ENTITY_RENDER_FLAG_2 0x02
 #define ENTITY_RENDER_FLAG_4 0x04
+#define ENTITY_RENDER_FLAG_8 0x08
+#define ENTITY_RENDER_FLAG_10 0x10
 #define ENTITY_RENDER_FLAG_20 0x20
 #define ENTITY_RENDER_FLAG_40 0x40
 
@@ -585,7 +646,7 @@ typedef struct {
     MATRIX unk30;
     u16 unk50;       /**< Cleared on init. */
     u16 unk52;       /**< Current motion halfword (mirror of Actor @c field_0x206). */
-    u8 pad54[0x04];
+    POLY_G3 *unk54;
     POLY_G3 *unk58[2];
     u8 unk60;
     u8 unk61;
@@ -598,13 +659,13 @@ typedef struct {
     u8 headBone;
     u8 bodyBone;
     u8 animFlags;    /**< 0x72 — bit0x80 = retrigger, bit0x10 = active, low nibble reused. */
-    u8 pad73;
+    u8 unk73;
     u8 timerReload;  /**< 0x74 — reload value for frameTimer when the period is non-negative. */
     u8 pad75[0x03];
     SVECTOR *unk78;
     u16 unk7C;
     u16 unk7E;       /**< 0x7E — animation id currently playing; @c func_8009B4A8 resets @c unk52 when it changes. */
-    u8 pad80[0x04];
+    u16 *unk80;
     u16 field84;     /**< 0x84 — snapshot of @c unk10 (dirty-check by @c func_800A7224). */
     u16 field86;     /**< 0x86 — snapshot of @c unk12. */
     s16 field88;     /**< 0x88 — snapshot of @c unk14. */
@@ -612,7 +673,8 @@ typedef struct {
     u16 field8C;     /**< 0x8C — snapshot of @c unk18 (dirty-check by @c func_800A736C). */
     u16 field8E;     /**< 0x8E — snapshot of @c unk1A. */
     s16 field90;     /**< 0x90 — snapshot of @c unk1C. */
-    u8 pad92[0x06];
+    u8 pad92[0x02];
+    SVECTOR *unk94;
     s32 subBuffer;   /**< @c 0x98 — caller of @c func_800A8CDC uses the returned @c &subBuffer pointer. */
 } ModelInstance;
 

@@ -23,79 +23,241 @@
 #include "field/fe_object1b.h"
 #include "field/fe_object2.h"
 
+typedef struct {
+    /** 0x00 */ s32 unk0;
+    /** 0x04 */ u8 pad4[0x04];
+    /** 0x08 */ s16 unk8;
+    /** 0x0A */ u8 padA[0x02];
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ u16 unk10;
+    /** 0x12 */ u16 unk12;
+    /** 0x14 */ u8 pad14[0x09];
+    /** 0x1D */ u8 unk1D;
+    /** 0x1E */ u8 pad1E[0x0E];
+    /** 0x2C */ u16 unk2C;
+    /** 0x2E */ u16 unk2E;
+    /** 0x30 */ u16 unk30;
+    /** 0x32 */ u16 unk32;
+    /** 0x34 */ u8 pad34[0x02];
+    /** 0x36 */ s16 unk36;
+    /** 0x38 */ u8 pad38[0x08];
+} func_800A7564_entry;
+
+typedef union {
+    struct {
+        /** 0x0 */ u16 unk0;
+        /** 0x2 */ u16 unk2;
+    } half;
+    u8 byte[4];
+} func_800A7564_unk58;
+
+extern u32 D_800C3768;
+extern s32 D_800C376C;
+
 extern POLY_G3 *D_800D5EE0[2];
 extern POLY_G4 *D_800D5EE8[2];
 extern POLY_FT3 *D_800D6600[2];
 extern POLY_FT4 *D_800D6610[2];
+extern u16 D_800D6300[][6];
+extern func_800A7564_arg0 *D_800D60A0;
+extern MchBone *D_800D60A4;
 extern u16 D_800D6720[];
+extern u16 D_800D9328[][6];
+extern u32 D_800D96B0[];
+extern SVECTOR *D_800DD6C0;
 extern long D_800DD6C8;
 extern u8 D_800DD6D0[];
 
-/**
- * @brief Per-frame entity render pipeline orchestrator.
- *
- * Three-phase walk over the @c D_800D9630[] entity slot table:
- *
- *  1. **Prepare**: for each active slot (@c slot->base @c != -1), call
- *     @c func_800AA5F8 (per-entity preparation).
- *
- *  2. **Cache update / vertex backup**: for each active slot, either
- *     copy its @c POLY_FT4 / @c POLY_GT4 vertex blocks from the main
- *     buffer to the alt buffer (when @c flags @c & @c 0x10 = DIRTY), or
- *     update the entity's cached @c ctxId / @c frameKey (when not).
- *
- *  3. **Transform** (call @c func_800ACBD4 with the OT base + 1) — runs
- *     the GTE transform pass for all queued vertices.
- *
- *  4. **OT linkage**: for each active slot with @c READY bit set, walk
- *     the slot's quads and link each transformed primitive (via the
- *     classic @c setaddr(prim,getaddr(ot)) + @c setaddr(ot,prim) pair)
- *     into the ordering table at the slot's per-vertex OT index.
- *
- * @note Permuter base at @c permuter/func_800A63AC/base.c sits at 77.02%
- *       — function structure and the three loops match; remaining diff
- *       is register-allocation cascade (reg names s1/s2/s3 shuffled,
- *       t-regs in different slots) and a 0x30-byte stack-frame size
- *       gap. Needs permuter to close the last 23%.
- */
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A63AC);
+void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2) {
+    s32 unused[12];
+    s32 i;
+    s32 j;
+    s32 k;
+    s32 idx;
+    s32 nFt3;
+    s32 nFt4;
+    POLY_G3 *src;
+    POLY_G3 *dst;
+    POLY_FT3 *ft3Src;
+    POLY_FT3 *ft3Dst;
+    POLY_FT4 *ft4Src;
+    POLY_FT4 *ft4Dst;
+    s32 offA;
+    s32 offB;
 
-/**
- * @brief Per-quad vertex transform + GTE scratch dispatch.
- *
- * For each quad in the entity's @c ref->quads array, iterates over its
- * vertices (from @c quad->h0 up to @c quad->h0 @c + @c quad->h2) and
- * dispatches on @c quad->hE flags:
- *
- *  - @c bit 0 set (path A): full keyframe transform — calls
- *    @c SetRotMatrix to set GTE registers, @c SetTransMatrix to push,
- *    interpolates the @c (h18-h8)/(h1A-hA)/(h1C-hC) position triplet by
- *    @c h4/h1E, runs the GTE transform via @c func_80040E74, copies an
- *    8-word vertex block from the source buffer, applies the delta, runs
- *    a second @c func_80040E74 + @c SetRotMatrix pair, increments
- *    @c h4 and either flips the @c hE bit-0 / sets bit-2 (if exhausted)
- *    or sets @c slot->unk78 = -1 (otherwise).
- *
- *  - @c bit 2 set (path B): same single-step transform without the
- *    second round.
- *
- *  - @c neither set (path C): just @c SetRotMatrix + @c SetTransMatrix
- *    on the vertex buffer.
- *
- * After the per-vertex dispatch, calls @c func_800AD048 (or zeroes the
- * D_800D96B0/D_800D6720 entries if the @c slot->flags @c & @c 0x20
- * cached-keyframe path applies) and advances the counters.
- *
- * After the inner loop completes per-quad, calls @c func_800AD0E8 to
- * link @c POLY_FT4 primitives and @c func_800AD300 for @c POLY_GT4.
- *
- * @note Permuter base at @c permuter/func_800A6A80/base.c sits at 56.85%
- *       — three-path branch + shared tail + final calls are in place,
- *       but path A's vertex copy + double-transform sequence is partial
- *       and the stack-frame size is short (0x68 vs target's 0x88).
- *       Needs permuter to close the gap.
- */
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A6A80);
+    for (i = 0; i < g_fieldActorCount; i++) {
+        if (D_800D9630[i]->unk00.modelId != NO_MODEL) {
+            func_800AA5F8(i);
+        }
+    }
+
+    for (i = 0; i < g_fieldActorCount; i++) {
+        if (D_800D9630[i]->unk00.modelId != NO_MODEL) {
+            if (D_800D9630[i]->unk60 & ENTITY_RENDER_FLAG_10) {
+                D_800D9630[i]->unk60 &= ~ENTITY_RENDER_FLAG_10;
+                D_800D9630[i]->unk60 |= ENTITY_RENDER_FLAG_8;
+                dst = D_800D9630[i]->unk58[0];
+                src = D_800D9630[i]->unk54;
+                if (src == dst) {
+                    dst = D_800D9630[i]->unk58[1];
+                }
+                idx = 0;
+                nFt3 = 0;
+                nFt4 = 0;
+                offA = D_800D9630[i]->unk00.def->unk30 * sizeof(POLY_G3);
+                offB = D_800D9630[i]->unk00.def->unk34 * sizeof(POLY_G4);
+                ft3Src = (POLY_FT3 *)((u8 *)src + offA + offB);
+                ft3Dst = (POLY_FT3 *)((u8 *)dst + offA + offB);
+                for (k = 0; k < D_800D9630[i]->unk00.def->drawGroupCount; k++) {
+                    for (j = 0; j < D_800D9630[i]->unk00.def->drawGroups[k].triangleCount; j++) {
+                        if (D_800D9630[i]->unk80[idx] != 0) {
+                            ft3Dst[nFt3] = ft3Src[nFt3];
+                        }
+                        nFt3++;
+                        idx++;
+                    }
+                    ft4Src = (POLY_FT4 *)(ft3Src + D_800D9630[i]->unk00.def->unk38);
+                    ft4Dst = (POLY_FT4 *)(ft3Dst + D_800D9630[i]->unk00.def->unk38);
+                    for (j = 0; j < D_800D9630[i]->unk00.def->drawGroups[k].quadCount; j++) {
+                        if (D_800D9630[i]->unk80[idx] != 0) {
+                            ft4Dst[nFt4] = ft4Src[nFt4];
+                        }
+                        nFt4++;
+                        idx++;
+                    }
+                }
+            }
+            if (!(D_800D9630[i]->unk60 & ENTITY_RENDER_FLAG_1) && D_800D9630[i]->unk08 == D_800D9630[i]->unk78 && D_800D9630[i]->unk52 == D_800D9630[i]->unk7C) {
+                if (!(D_800D9630[i]->unk60 & (ENTITY_RENDER_FLAG_8 | ENTITY_RENDER_FLAG_10))) {
+                    D_800D9630[i]->unk60 |= ENTITY_RENDER_FLAG_10;
+                }
+            } else {
+                D_800D9630[i]->unk60 &= ~(ENTITY_RENDER_FLAG_8 | ENTITY_RENDER_FLAG_10);
+                D_800D9630[i]->unk78 = D_800D9630[i]->unk08;
+                D_800D9630[i]->unk7C = D_800D9630[i]->unk52;
+            }
+        }
+    }
+
+    func_800ACBD4(&arg0->ot[1], arg1);
+
+    for (i = 0; i < g_fieldActorCount; i++) {
+        if (D_800D9630[i]->unk00.modelId != NO_MODEL && (D_800D9630[i]->unk60 & ENTITY_RENDER_FLAG_8)) {
+            idx = 0;
+            nFt3 = 0;
+            nFt4 = 0;
+            ft3Src = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[i]->unk54 + D_800D9630[i]->unk00.def->unk30) + D_800D9630[i]->unk00.def->unk34);
+            for (k = 0; k < D_800D9630[i]->unk00.def->drawGroupCount; k++) {
+                for (j = 0; j < D_800D9630[i]->unk00.def->drawGroups[k].triangleCount; j++) {
+                    if (D_800D9630[i]->unk80[idx] != 0) {
+                        setaddr(&ft3Src[nFt3], getaddr(&arg0->ot[D_800D9630[i]->unk80[idx]]));
+                        setaddr(&arg0->ot[D_800D9630[i]->unk80[idx]], &ft3Src[nFt3]);
+                    }
+                    idx++;
+                    nFt3++;
+                }
+                ft4Src = (POLY_FT4 *)(ft3Src + D_800D9630[i]->unk00.def->unk38);
+                for (j = 0; j < D_800D9630[i]->unk00.def->drawGroups[k].quadCount; j++) {
+                    if (D_800D9630[i]->unk80[idx] != 0) {
+                        setaddr(&ft4Src[nFt4], getaddr(&arg0->ot[D_800D9630[i]->unk80[idx]]));
+                        setaddr(&arg0->ot[D_800D9630[i]->unk80[idx]], &ft4Src[nFt4]);
+                    }
+                    idx++;
+                    nFt4++;
+                }
+            }
+        }
+    }
+}
+
+void func_800A6A80(s32 arg0, s32 arg1, ModelInstance **arg2) {
+    MATRIX m;
+    SVECTOR step;
+    VECTOR v;
+    u16 nFt3;
+    u16 nFt4;
+    s32 indexOffset;
+    s32 i;
+    s32 vertCount;
+    s32 partIdx;
+    MchDrawGroup *rec;
+    s32 j;
+    ModelInstance *slot;
+    Model *def;
+    s32 vertIdx;
+
+    nFt3 = 0;
+    nFt4 = 0;
+    indexOffset = 0;
+    for (i = 0; i < (*arg2)->unk00.def->drawGroupCount; i++) {
+        vertCount = 0;
+        for (partIdx = (*arg2)->unk00.def->drawGroups[i].firstSkinObjectIndex; partIdx < (*arg2)->unk00.def->drawGroups[i].firstSkinObjectIndex + (*arg2)->unk00.def->drawGroups[i].skinObjectCount; partIdx++) {
+            if ((*arg2)->unk00.def->drawGroups[i].unk8.pad & MCH_DRAW_GROUP_FLAG_1) {
+                m.t[0] = 0;
+                m.t[1] = 0;
+                m.t[2] = 0;
+                SetRotMatrix(&(*arg2)->bones[(*arg2)->unk00.def->skinObjects[partIdx].boneId].transform);
+                SetTransMatrix(&m);
+                rec = &(*arg2)->unk00.def->drawGroups[i];
+                step.vx = (rec->unk4 * (rec->unk18.vx - rec->unk8.vx)) / rec->unk18.pad;
+                step.vy = (rec->unk4 * (rec->unk18.vy - rec->unk8.vy)) / rec->unk18.pad;
+                step.vz = (rec->unk4 * (rec->unk18.vz - rec->unk8.vz)) / rec->unk18.pad;
+                RotTrans(&step, &v, &D_800DD6C8);
+                m = (*arg2)->bones[(*arg2)->unk00.def->skinObjects[partIdx].boneId].transform;
+                m.t[0] += v.vx;
+                m.t[1] += v.vy;
+                m.t[2] += v.vz;
+                RotTrans(&rec->unk8, &v, &D_800DD6C8);
+                m.t[0] += v.vx;
+                m.t[1] += v.vy;
+                m.t[2] += v.vz;
+                SetRotMatrix(&m);
+                SetTransMatrix(&m);
+                if (rec->unk18.pad < ++rec->unk4) {
+                    rec->unk8.pad = (rec->unk8.pad ^ MCH_DRAW_GROUP_FLAG_1) | MCH_DRAW_GROUP_FLAG_4;
+                } else {
+                    (*arg2)->unk78 = (SVECTOR *)-1;
+                }
+            } else if ((*arg2)->unk00.def->drawGroups[i].unk8.pad & MCH_DRAW_GROUP_FLAG_4) {
+                m.t[0] = 0;
+                m.t[1] = 0;
+                m.t[2] = 0;
+                SetRotMatrix(&(*arg2)->bones[(*arg2)->unk00.def->skinObjects[partIdx].boneId].transform);
+                SetTransMatrix(&m);
+                rec = &(*arg2)->unk00.def->drawGroups[i];
+                RotTrans(&rec->unk18, &v, &D_800DD6C8);
+                m = (*arg2)->bones[(*arg2)->unk00.def->skinObjects[partIdx].boneId].transform;
+                m.t[0] += v.vx;
+                m.t[1] += v.vy;
+                m.t[2] += v.vz;
+                SetRotMatrix(&m);
+                SetTransMatrix(&m);
+            } else {
+                SetRotMatrix(&(*arg2)->bones[(*arg2)->unk00.def->skinObjects[partIdx].boneId].transform);
+                SetTransMatrix(&(*arg2)->bones[(*arg2)->unk00.def->skinObjects[partIdx].boneId].transform);
+            }
+            slot = *arg2;
+            def = slot->unk00.def;
+            vertIdx = def->skinObjects[partIdx].firstVertexIndex;
+            if (!(slot->unk60 & ENTITY_RENDER_FLAG_20) || def->skinObjects[partIdx].boneId != slot->unk73 + 1) {
+                func_800AD048(&def->unk18[vertIdx], &D_800D96B0[vertCount], &D_800D6720[vertCount], def->skinObjects[partIdx].vertexCount);
+            } else {
+                for (j = 0; j < (*arg2)->unk00.def->skinObjects[partIdx].vertexCount; j++) {
+                    D_800D96B0[vertCount + j] = 0;
+                    D_800D6720[vertCount + j] = 0;
+                }
+            }
+            vertCount += (*arg2)->unk00.def->skinObjects[partIdx].vertexCount;
+        }
+        func_800AD0E8((POLY_FT3 *)((POLY_G4 *)((*arg2)->unk54 + (*arg2)->unk00.def->unk30) + (*arg2)->unk00.def->unk34) + nFt3, &(*arg2)->unk00.def->unk0C[nFt3], &(*arg2)->unk80[indexOffset], (*arg2)->unk00.def->drawGroups[i].triangleCount);
+        nFt3 += (*arg2)->unk00.def->drawGroups[i].triangleCount;
+        indexOffset += (*arg2)->unk00.def->drawGroups[i].triangleCount;
+        func_800AD300((POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)((*arg2)->unk54 + (*arg2)->unk00.def->unk30) + (*arg2)->unk00.def->unk34) + (*arg2)->unk00.def->unk38) + nFt4, &(*arg2)->unk00.def->unk10[nFt4], &(*arg2)->unk80[indexOffset], (*arg2)->unk00.def->drawGroups[i].quadCount);
+        nFt4 += (*arg2)->unk00.def->drawGroups[i].quadCount;
+        indexOffset += (*arg2)->unk00.def->drawGroups[i].quadCount;
+    }
+}
 
 /**
  * @brief Reset three field-engine tables.
@@ -246,29 +408,178 @@ void func_800A74B4(s32 idx, EntityRenderXform *vals, s32 mode) {
     }
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A7564);
+void *func_800A7564(func_800A7564_arg0 *arg0, s32 arg1, s32 arg2, s32 arg3) {
+    func_800A7564_entry desc;
+    void *ret;
+    s32 count;
+    s32 off;
+    s32 *unk28p;
+    func_800A7564_entry *src;
+    s32 i;
+    s32 j;
+    s32 l;
+    s32 k;
+    s32 cursor;
+    s32 idx;
+    u32 packed;
+    u16 *p;
+    u16 *stream;
+    u16 outer;
+    u16 inner;
+    u16 nFt3;
+    u16 nFt4;
+
+    if (arg1 == 0x12) {
+        idx = arg3;
+        p = (u16 *)arg0;
+        k = 0;
+        cursor = 0;
+        for (i = 0; i < D_800D6620[idx]->unk52; i++) {
+            outer = *p++;
+            inner = *p++;
+            D_800D6620[idx]->unk54[k++] = outer;
+            D_800D6620[idx]->unk54[k++] = inner + 1;
+            for (j = 0; j < outer; j++) {
+                ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor].half.unk0 = *p++;
+                ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor++].half.unk2 = *p++;
+                ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor++].half.unk0 = *p++;
+                for (l = 0; l < inner; l++) {
+                    ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor].byte[0] = ((u8 *)p)[0];
+                    ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor].byte[1] = ((u8 *)p)[1];
+                    ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor].byte[2] = ((u8 *)p)[2];
+                    ((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor].byte[3] = ((u8 *)p)[3];
+                    p += 2;
+                    cursor++;
+                }
+            }
+        }
+        return &((func_800A7564_unk58 *)D_800D6620[idx]->unk58)[cursor];
+    }
+    if (arg1 == 0x11) {
+        D_800D6620[arg3]->drawGroupCount = arg0->unk10;
+        D_800D60A0 = arg0;
+        // matching hack
+        unk28p = &D_800D6620[arg3]->unk28;
+        *unk28p = D_800D60A0->unk14;
+        D_800D6620[arg3]->unk2C = D_800D60A0->unk00;
+        D_800D6620[arg3]->unk30 = D_800D60A0->unk18;
+        D_800D6620[arg3]->unk34 = D_800D60A0->unk1A;
+        D_800D6620[arg3]->unk38 = D_800D60A0->unk1C;
+        D_800D6620[arg3]->unk3C = D_800D60A0->unk1E;
+        count = D_800D60A0->unk0C;
+        D_800C3768 = D_800D60A0->unk04;
+        D_800C376C = D_800D60A0->unk08;
+        idx = arg3;
+        if (arg0->unk08 != 0) {
+            D_800D6620[idx]->unk5F |= FIELD_OBJECT_FLAG_1;
+        } else {
+            D_800D6620[idx]->unk5F &= ~FIELD_OBJECT_FLAG_1;
+        }
+        D_800D6620[idx]->unk00 = (MchBone *)(D_800D6620[idx] + 1);
+        D_800D6620[idx]->unk04 = (ModelUnk04 *)(D_800D6620[idx]->unk00 + D_800D60A0->unk00 + 1);
+        D_800D6620[idx]->unk08 = (ModelUnk08 *)(D_800D6620[idx]->unk04 + D_800D6620[idx]->unk30);
+        D_800D6620[idx]->unk0C = (ModelUnk0C *)(D_800D6620[idx]->unk08 + D_800D6620[idx]->unk34);
+        D_800D6620[idx]->unk10 = (ModelUnk10 *)(D_800D6620[idx]->unk0C + D_800D6620[idx]->unk38);
+        D_800D6620[idx]->anim = (MchTexAnim *)(D_800D6620[idx]->unk10 + D_800D6620[idx]->unk3C);
+        D_800D6620[idx]->unk18 = (SVECTOR *)((u8 *)D_800D6620[idx]->anim + (D_800D60A0->unk08 << 3));
+        D_800D6620[idx]->drawGroups = (MchDrawGroup *)(D_800D6620[idx]->unk18 + D_800D60A0->unk04);
+        D_800D6620[idx]->skinObjects = (MchSkinObject *)(D_800D6620[idx]->drawGroups + D_800D60A0->unk10);
+        D_800D60A4 = (MchBone *)((u8 *)arg0 + D_800D60A0->unk20);
+        FastMemCpy((u8 *)(D_800D6620[idx]->unk00 + 1), (u8 *)D_800D60A4, D_800D6620[idx]->unk2C << 6);
+        for (j = 0; j < D_800D6620[idx]->unk2C; j++) {
+            D_800D6620[idx]->unk00[j + 1].boneVector.vz = (arg2 * D_800D60A4[j].boneVector.vz) >> 4;
+            D_800D6620[idx]->unk00[j + 1].lockRotation = 0;
+        }
+        D_800DD6C0 = (SVECTOR *)((u8 *)arg0 + D_800D60A0->unk24);
+        for (j = 0; j < D_800C3768; j++) {
+            D_800D6620[idx]->unk18[j].vx = (arg2 * D_800DD6C0[j].vx) >> 4;
+            D_800D6620[idx]->unk18[j].vy = (arg2 * D_800DD6C0[j].vy) >> 4;
+            D_800D6620[idx]->unk18[j].vz = (arg2 * D_800DD6C0[j].vz) >> 4;
+        }
+        off = D_800D60A0->unk28;
+        FastMemCpy((u8 *)D_800D6620[idx]->anim, (u8 *)arg0 + off, D_800D60A0->unk08);
+        FastMemCpy((u8 *)D_800D6620[idx]->drawGroups, (u8 *)arg0 + D_800D60A0->unk30, D_800D6620[idx]->drawGroupCount << 5);
+        FastMemCpy((u8 *)D_800D6620[idx]->skinObjects, (u8 *)arg0 + D_800D60A0->unk34, D_800D6620[idx]->unk28 << 3);
+        stream = D_800D60A0->unk38;
+        D_800D6620[idx]->unk52 = *stream++;
+        D_800D6620[idx]->unk54 = (u16 *)(D_800D6620[idx]->skinObjects + D_800D60A0->unk14);
+        D_800D6620[idx]->unk58 = (SVECTOR *)(D_800D6620[idx]->unk54 + D_800D6620[idx]->unk52 * 2);
+        D_800D6620[idx]->unk40 = (SVECTOR *)(D_800D6620[idx]->unk54 + D_800D6620[idx]->unk52 * 2);
+        ret = func_800A7564((func_800A7564_arg0 *)stream, 0x12, 0, idx);
+        packed = D_800D60A0->unk3C;
+        D_800D6620[idx]->unk5C = packed;
+        D_800D6620[idx]->unk5D = packed >> 8;
+        D_800D6620[idx]->unk5E = packed >> 16;
+        src = (func_800A7564_entry *)((u8 *)arg0 + D_800D60A0->unk2C);
+        nFt3 = 0;
+        nFt4 = 0;
+        if ((u32)src < (u32)ret) {
+            SystemError(0x53, 0x14);
+        }
+        for (j = 0; j < count; j++) {
+            desc = *src++;
+            switch (desc.unk0) {
+            case 0x25010607:
+                D_800D6620[idx]->unk0C[nFt3].unk0 = desc.unkC;
+                D_800D6620[idx]->unk0C[nFt3].unk2 = desc.unkE;
+                D_800D6620[idx]->unk0C[nFt3].unk4 = desc.unk10;
+                D_800D6620[idx]->unk0C[nFt3].unk6 = desc.unk2C + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk0C[nFt3].unk8 = desc.unk2E + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk0C[nFt3].unkA = desc.unk30 + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk0C[nFt3].unkC = D_800D9328[arg3][desc.unk36];
+                D_800D6620[idx]->unk0C[nFt3].unkE = D_800D6300[arg3][desc.unk36];
+                D_800D6620[idx]->unk0C[nFt3].unk10.r = 0x80;
+                D_800D6620[idx]->unk0C[nFt3].unk10.g = 0x80;
+                D_800D6620[idx]->unk0C[nFt3].unk10.b = 0x80;
+                D_800D6620[idx]->unk0C[nFt3].unk10.cd = desc.unk1D;
+                D_800D6620[idx]->unk0C[nFt3].unk14 = desc.unk8;
+                nFt3++;
+                break;
+            case 0x2D010709:
+                D_800D6620[idx]->unk10[nFt4].unk0 = desc.unkC;
+                D_800D6620[idx]->unk10[nFt4].unk2 = desc.unkE;
+                D_800D6620[idx]->unk10[nFt4].unk4 = desc.unk10;
+                D_800D6620[idx]->unk10[nFt4].unk6 = desc.unk12;
+                D_800D6620[idx]->unk10[nFt4].unk8 = desc.unk2C + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk10[nFt4].unkA = desc.unk2E + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk10[nFt4].unkC = desc.unk30 + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk10[nFt4].unkE = desc.unk32 + D_800D60E8[desc.unk36];
+                D_800D6620[idx]->unk10[nFt4].unk10 = D_800D9328[arg3][desc.unk36];
+                D_800D6620[idx]->unk10[nFt4].unk12 = D_800D6300[arg3][desc.unk36];
+                D_800D6620[idx]->unk10[nFt4].unk14.r = 0x80;
+                D_800D6620[idx]->unk10[nFt4].unk14.g = 0x80;
+                D_800D6620[idx]->unk10[nFt4].unk14.b = 0x80;
+                D_800D6620[idx]->unk10[nFt4].unk14.cd = desc.unk1D;
+                D_800D6620[idx]->unk10[nFt4].unk18 = desc.unk8;
+                nFt4++;
+                break;
+            }
+        }
+    }
+    return ret;
+}
 
 /**
  * @brief Allocate and initialize the field-object slot @p idx from @p newObj.
  *
- * If the slot is already occupied, returns 0 without touching it. Otherwise it
+ * If the slot is already occupied, returns NULL without touching it. Otherwise it
  * installs @p newObj into @c D_800D6620[idx], stamps the @c 0x12345678 signature
  * and the @c D_800D60E8 seed, invokes @c func_800A7564 to build the object, and
- * clears the per-part @c field0E and per-skin-object @c unk6 accumulators across
+ * clears the per-part @c unk8.pad and per-skin-object @c unk6 accumulators across
  * every part's sub-range.
  *
  * @param idx    Object slot index into @ref D_800D6620 (0..63).
  * @param arg1   Opaque handle forwarded to @c func_800A7564 as its first arg.
  * @param newObj Object instance to install into the slot.
  * @param count  Build count for @c func_800A7564; defaults to 0x10 when zero.
- * @return @c func_800A7564's result, or 0 if the slot was already occupied.
+ * @return @c func_800A7564's result, or NULL if the slot was already occupied.
  */
-s32 func_800A8058(s32 idx, s32 arg1, Model *newObj, u8 count) {
-    s32 ret;
+void *func_800A8058(s32 idx, func_800A7564_arg0 *arg1, Model *newObj, u8 count) {
+    void *ret;
     s32 i, j;
 
     if (D_800D6620[idx] != NULL) {
-        return 0;
+        return NULL;
     }
     if (count == 0) {
         count = 0x10;
@@ -276,10 +587,10 @@ s32 func_800A8058(s32 idx, s32 arg1, Model *newObj, u8 count) {
     D_800D6620[idx] = newObj;
     newObj->unk5F = 0;
     D_800D6620[idx]->signature = 0x12345678;
-    D_800D6620[idx]->field50 = D_800D60E8;
+    D_800D6620[idx]->field50 = D_800D60E8[0];
     ret = func_800A7564(arg1, 0x11, count, idx);
     for (i = 0; i < D_800D6620[idx]->drawGroupCount; i++) {
-        D_800D6620[idx]->drawGroups[i].field0E = 0;
+        D_800D6620[idx]->drawGroups[i].unk8.pad = 0;
         for (j = D_800D6620[idx]->drawGroups[i].firstSkinObjectIndex;
              j < D_800D6620[idx]->drawGroups[i].firstSkinObjectIndex + D_800D6620[idx]->drawGroups[i].skinObjectCount;
              j++) {
@@ -289,7 +600,143 @@ s32 func_800A8058(s32 idx, s32 arg1, Model *newObj, u8 count) {
     return ret;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A81AC);
+POLY_FT4 *func_800A81AC(s32 arg0, s32 arg1, ModelInstance *arg2) {
+    s32 i;
+    s32 j;
+    u16 *cursor;
+    u32 misalign;
+    POLY_G3 *g3;
+    POLY_G4 *g4;
+    POLY_FT4 *ft4;
+
+    if (D_800D9630[arg0] != NULL) {
+        return NULL;
+    }
+    D_800D9630[arg0] = arg2;
+    arg2->unk00.def = D_800D6620[arg1];
+    D_800D9630[arg0]->unk60 = 0;
+    D_800D9630[arg0]->animFlags = 0;
+    D_800D9630[arg0]->unk61 = 0x11;
+    D_800D9630[arg0]->unk62 = 0;
+    D_800D9630[arg0]->headBone = D_800D6620[arg1]->unk5C;
+    D_800D9630[arg0]->bodyBone = D_800D6620[arg1]->unk5D;
+    D_800D9630[arg0]->unk73 = D_800D6620[arg1]->unk5E;
+    D_800D9630[arg0]->unk78 = (SVECTOR *)-1;
+    D_800D9630[arg0]->unk7C = 0xFFFF;
+    D_800D9630[arg0]->unk7E = 0;
+    D_800D9630[arg0]->bones = (MchBone *)&D_800D9630[arg0]->subBuffer;
+    FastMemCpy((u8 *)D_800D9630[arg0]->bones, (u8 *)D_800D9630[arg0]->unk00.def->unk00, D_800D9630[arg0]->unk00.def->unk2C * sizeof(MchBone) + sizeof(MchBone));
+    D_800D9630[arg0]->unk64 = D_800D6620[arg1]->unk52;
+    D_800D9630[arg0]->unk68 = D_800D6620[arg1]->unk54;
+    D_800D9630[arg0]->unk08 = D_800D6620[arg1]->unk58;
+    D_800D9630[arg0]->bones->rotation.vx = 0;
+    D_800D9630[arg0]->bones->rotation.vy = 0x400;
+    D_800D9630[arg0]->bones->rotation.vz = 0;
+    D_800D9630[arg0]->bones->boneVector.vx = 0;
+    D_800D9630[arg0]->bones->boneVector.vy = 0;
+    D_800D9630[arg0]->bones->boneVector.vz = 0;
+    cursor = (u16 *)&D_800D9630[arg0]->bones[D_800D9630[arg0]->unk00.def->unk2C + 2];
+    D_800D9630[arg0]->unk80 = cursor;
+    for (j = 0; j < D_800D6620[arg1]->unk30 + D_800D6620[arg1]->unk34 + D_800D6620[arg1]->unk38 + D_800D6620[arg1]->unk3C; j++) {
+        D_800D9630[arg0]->unk80[0] = 0;
+        D_800D9630[arg0]->unk80[j] = 0;
+    }
+    cursor += D_800D6620[arg1]->unk30 + D_800D6620[arg1]->unk34 + D_800D6620[arg1]->unk38 + D_800D6620[arg1]->unk3C;
+    misalign = (u32)cursor & 3;
+    if (misalign != 0) {
+        cursor = (u16 *)((u8 *)cursor + (4 - misalign));
+    }
+    D_800D9630[arg0]->unk0C = D_800D9630[arg0]->unk68[0] << 4;
+    D_800D9630[arg0]->unk0E = D_800D9630[arg0]->unk68[1];
+    D_800D9630[arg0]->unk6C = (CVECTOR *)D_800D9630[arg0]->unk08;
+    D_800D9630[arg0]->unk94 = D_800D9630[arg0]->unk08;
+    ft4 = (POLY_FT4 *)cursor;
+    D_800D9630[arg0]->unk54 = (POLY_G3 *)ft4;
+    for (i = 0; i < 2; i++) {
+        D_800D9630[arg0]->unk58[i] = (POLY_G3 *)ft4;
+        D_800D5EE0[i] = (POLY_G3 *)ft4;
+        g3 = (POLY_G3 *)ft4;
+        for (j = 0; j < D_800D6620[arg1]->unk30; j++) {
+            func_8004D684(g3);
+            g3->r0 = D_800D6620[arg1]->unk04[j].unkC.r;
+            g3->g0 = D_800D6620[arg1]->unk04[j].unkC.g;
+            g3->b0 = D_800D6620[arg1]->unk04[j].unkC.b;
+            g3->r1 = D_800D6620[arg1]->unk04[j].unk10.r;
+            g3->g1 = D_800D6620[arg1]->unk04[j].unk10.g;
+            g3->b1 = D_800D6620[arg1]->unk04[j].unk10.b;
+            g3->r2 = D_800D6620[arg1]->unk04[j].unk14.r;
+            g3->g2 = D_800D6620[arg1]->unk04[j].unk14.g;
+            g3->b2 = D_800D6620[arg1]->unk04[j].unk14.b;
+            g3++;
+        }
+        g4 = (POLY_G4 *)g3;
+        D_800D5EE8[i] = g4;
+        for (j = 0; j < D_800D6620[arg1]->unk34; j++) {
+            func_8004D6C4(g4);
+            g4->r0 = D_800D6620[arg1]->unk08[j].unk10.r;
+            g4->g0 = D_800D6620[arg1]->unk08[j].unk10.g;
+            g4->b0 = D_800D6620[arg1]->unk08[j].unk10.b;
+            g4->r1 = D_800D6620[arg1]->unk08[j].unk14.r;
+            g4->g1 = D_800D6620[arg1]->unk08[j].unk14.g;
+            g4->b1 = D_800D6620[arg1]->unk08[j].unk14.b;
+            g4->r2 = D_800D6620[arg1]->unk08[j].unk18.r;
+            g4->g2 = D_800D6620[arg1]->unk08[j].unk18.g;
+            g4->b2 = D_800D6620[arg1]->unk08[j].unk18.b;
+            g4->r3 = D_800D6620[arg1]->unk08[j].unk1C.r;
+            g4->g3 = D_800D6620[arg1]->unk08[j].unk1C.g;
+            g4->b3 = D_800D6620[arg1]->unk08[j].unk1C.b;
+            g4++;
+        }
+        ft4 = (POLY_FT4 *)g4;
+        D_800D6600[i] = (POLY_FT3 *)ft4;
+        for (j = 0; j < D_800D6620[arg1]->unk38; j++) {
+            func_8004D664(ft4);
+            ft4->r0 = D_800D6620[arg1]->unk0C[j].unk10.r;
+            ft4->g0 = D_800D6620[arg1]->unk0C[j].unk10.g;
+            ft4->b0 = D_800D6620[arg1]->unk0C[j].unk10.b;
+            ft4->pad1 = D_800D6620[arg1]->unk0C[j].unk10.cd;
+            ft4->tpage = D_800D6620[arg1]->unk0C[j].unkE;
+            ft4->clut = D_800D6620[arg1]->unk0C[j].unkC;
+            *(u16 *)&ft4->u0 = D_800D6620[arg1]->unk0C[j].unk6;
+            *(u16 *)&ft4->u1 = D_800D6620[arg1]->unk0C[j].unk8;
+            *(u16 *)&ft4->u2 = D_800D6620[arg1]->unk0C[j].unkA;
+            if (D_800D6620[arg1]->unk0C[j].unk14 & MODEL_UNK0C_FLAG_4) {
+                SetSemiTrans(ft4, 1);
+            }
+            ft4 = (POLY_FT4 *)((POLY_FT3 *)ft4 + 1); // matching hack
+        }
+        D_800D6610[i] = ft4;
+        for (j = 0; j < D_800D6620[arg1]->unk3C; j++) {
+            func_8004D6A4(ft4);
+            ft4->r0 = D_800D6620[arg1]->unk10[j].unk14.r;
+            ft4->g0 = D_800D6620[arg1]->unk10[j].unk14.g;
+            ft4->b0 = D_800D6620[arg1]->unk10[j].unk14.b;
+            ft4->pad1 = D_800D6620[arg1]->unk10[j].unk14.cd;
+            ft4->tpage = D_800D6620[arg1]->unk10[j].unk12;
+            ft4->clut = D_800D6620[arg1]->unk10[j].unk10;
+            *(u16 *)&ft4->u0 = D_800D6620[arg1]->unk10[j].unk8;
+            *(u16 *)&ft4->u1 = D_800D6620[arg1]->unk10[j].unkA;
+            *(u16 *)&ft4->u2 = D_800D6620[arg1]->unk10[j].unkC;
+            *(u16 *)&ft4->u3 = D_800D6620[arg1]->unk10[j].unkE;
+            if (D_800D6620[arg1]->unk10[j].unk18 & MODEL_UNK10_FLAG_4) {
+                SetSemiTrans(ft4, 1);
+            }
+            ft4++;
+        }
+    }
+    D_800D9630[arg0]->unk10 = 0;
+    D_800D9630[arg0]->unk12 = 0x190;
+    D_800D9630[arg0]->unk14 = 0;
+    D_800D9630[arg0]->unk18 = 0;
+    D_800D9630[arg0]->unk1A = 0;
+    D_800D9630[arg0]->unk1C = 0;
+    D_800D9630[arg0]->xform.field20 = 0x1000;
+    D_800D9630[arg0]->xform.field24 = 0x1000;
+    D_800D9630[arg0]->xform.field28 = 0x1000;
+    D_800D9630[arg0]->unk50 = 0;
+    D_800D9630[arg0]->unk52 = 0;
+    return ft4;
+}
 
 /**
  * @brief Claim a render-slot pool entry and initialize its state.
@@ -443,21 +890,21 @@ s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
     POLY_FT4 *ft4;
     s32 unused[2];
 
-    if (D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E & (MCH_DRAW_GROUP_FLAG_1 | MCH_DRAW_GROUP_FLAG_2)) {
+    if (D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8.pad & (MCH_DRAW_GROUP_FLAG_1 | MCH_DRAW_GROUP_FLAG_2)) {
         return -1;
     }
-    D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E = 0;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8.pad = 0;
     D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.pad = arg4;
     D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk4 = 1;
-    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8 = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vx;
-    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unkA = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vy;
-    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unkC = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vz;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8.vx = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vx;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8.vy = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vy;
+    D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8.vz = D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vz;
     D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vx += arg3[0];
     D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vy += arg3[1];
     D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk18.vz += arg3[2];
     switch (arg1) {
     case 0x30:
-        D_800D9630[arg0]->unk00.def->drawGroups[arg2].field0E |= MCH_DRAW_GROUP_FLAG_1;
+        D_800D9630[arg0]->unk00.def->drawGroups[arg2].unk8.pad |= MCH_DRAW_GROUP_FLAG_1;
         func_800A97E4(arg0, 0x25, 0, 0);
         break;
     case 0x32:
