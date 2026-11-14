@@ -20,11 +20,11 @@ extern int  func_800A7564();
 extern s32  func_800A8058(s32 idx, s32 arg1, FieldObject *newObj, u8 count);
 extern int  func_800A81AC();
 extern s32 *func_800A8CDC(s32 idx, s32 firstWord, EntityRenderSlot *slot);
-extern u8  *func_800A8DAC(s32 spatialIdx, s32 cmd, u32 arg, void *out);
-extern int  func_800A91C8();
-extern int  func_800A9434();
-extern void func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3);
-extern void func_800AA46C(s32 spatialIdx, s32 cmd, s32 arg, s32 arg4);
+extern void *func_800A8DAC(s32 spatialIdx, s32 cmd, void *arg, void *out);
+extern void func_800A91C8(s32 arg0, s32 arg1, s32 arg2, SVECTOR *arg3);
+extern s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4);
+extern s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3);
+extern void func_800AA46C(s32 spatialIdx, s32 cmd, u32 arg, s32 arg4);
 /** @brief Per-entity animation tick: advances the frame and rebuilds the sprite rect. */
 extern s32  func_800AA5F8(s32 idx);
 extern int  func_800AA8A0();

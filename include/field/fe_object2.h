@@ -5,7 +5,7 @@
 #include "field.h"
 
 extern u8  *func_800ACB10(void);
-extern void func_800ACBCC(void);
+extern void func_800ACBCC(s32 arg0, s32 arg1, u32 arg2, s32 arg3);
 
 /* INCLUDE_ASM stubs — bodies still in assembly, signatures unknown.
  * Declared K&R-style; refine when these get decomped to C. */

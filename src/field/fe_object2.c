@@ -42,11 +42,7 @@ u8 *func_800ACB10(void) {
     return base;
 }
 
-/**
- * Empty function — returns immediately. Likely an unused dispatch slot
- * or a stub left in place to preserve a function-table layout.
- */
-void func_800ACBCC(void) {
+void func_800ACBCC(s32 arg0, s32 arg1, u32 arg2, s32 arg3) {
 }
 
 INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800ACBD4);

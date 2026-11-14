@@ -15,12 +15,20 @@
 
 #include "common.h"
 #include "field.h"
+#include "psxsdk/libapi.h"
 #include "psxsdk/libc.h"
 #include "psxsdk/libgte.h"
 #include "psxsdk/libgpu.h"
 #include "field/fe_object1.h"
 #include "field/fe_object1b.h"
+#include "field/fe_object2.h"
 
+extern POLY_G3 *D_800D5EE0[2];
+extern POLY_G4 *D_800D5EE8[2];
+extern POLY_FT3 *D_800D6600[2];
+extern POLY_FT4 *D_800D6610[2];
+extern u16 D_800D6720[];
+extern long D_800DD6C8;
 extern u8 D_800DD6D0[];
 
 /**
@@ -317,15 +325,388 @@ s32 *func_800A8CDC(s32 idx, s32 firstWord, EntityRenderSlot *slot) {
     return &slot->subBuffer;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A8DAC);
+void *func_800A8DAC(s32 spatialIdx, s32 cmd, void *arg, void *out) {
+    SVECTOR vec;
+    SVECTOR offset;
+    SVECTOR unused; // never used, but the stack frame only matches the original with it
+    VECTOR rotated;
+    VECTOR origin;
+    MATRIX transposed;
+    MATRIX view;
+    CVECTOR col;
+    void *ret;
+    s32 j;
+    s32 k;
+    s32 sum;
+    s32 productSum;
+    u32 first;
+    u32 second;
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A91C8);
+    switch (cmd) {
+    case 0x1C:
+        ret = &D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC;
+        break;
+    case 0x1D:
+        ret = &D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC;
+        break;
+    case 0x1E:
+        view = *(MATRIX *)arg;
+        transposed.m[0][0] = view.m[0][0];
+        transposed.m[0][1] = view.m[1][0];
+        transposed.m[0][2] = view.m[2][0];
+        transposed.m[1][0] = view.m[0][1];
+        transposed.m[1][1] = view.m[1][1];
+        transposed.m[1][2] = view.m[2][1];
+        transposed.m[2][0] = view.m[0][2];
+        transposed.m[2][1] = view.m[1][2];
+        transposed.m[2][2] = view.m[2][2];
+        SetRotMatrix(&transposed);
+        SetTransMatrix(&transposed);
+        vec.vx = D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unk14.t[0];
+        vec.vy = D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unk14.t[1];
+        vec.vz = D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unk14.t[2];
+        RotTrans(&vec, &rotated, &D_800DD6C8);
+        vec.vx = D_800D9630[spatialIdx]->unk04[0].unk14.t[0];
+        vec.vy = D_800D9630[spatialIdx]->unk04[0].unk14.t[1];
+        vec.vz = D_800D9630[spatialIdx]->unk04[0].unk14.t[2];
+        RotTrans(&vec, &origin, &D_800DD6C8);
+        vec.vx = rotated.vx - origin.vx;
+        vec.vy = rotated.vy - origin.vy;
+        vec.vz = rotated.vz - origin.vz;
+        offset = *D_800D9630[spatialIdx]->unk08;
+        vec.vx += offset.vx;
+        vec.vy += offset.vy;
+        vec.vz += offset.vz;
+        *(SVECTOR *)out = vec;
+        break;
+    case 0x1F:
+        ret = &D_800D9630[spatialIdx]->unk30;
+        break;
+    case 0x20:
+        k = 2;
+        productSum = 0;
+        sum = 0;
+        for (j = 0; j < D_800D9630[spatialIdx]->unk7E; j++) {
+            first = D_800D9630[spatialIdx]->unk68[k - 2];
+            second = D_800D9630[spatialIdx]->unk68[k - 1];
+            sum += first;
+            productSum += first * second;
+            k += 2;
+        }
+        col = D_800D9630[spatialIdx]->unk6C[productSum + D_800D9630[spatialIdx]->unk70 + sum + 2];
+        ((s16 *)arg)[0] = ((col.cd << 10) & 0xC00) | (col.r << 2);
+        ((s16 *)arg)[1] = ((col.cd << 8) & 0xC00) | (col.g << 2);
+        ((s16 *)arg)[2] = ((col.cd << 6) & 0xC00) | (col.b << 2);
+        break;
+    }
+    return ret;
+}
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A9434);
+void func_800A91C8(s32 arg0, s32 arg1, s32 arg2, SVECTOR *arg3) {
+    SVECTOR delta;
+    s32 i;
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800A97E4);
+    i = arg2 + 2;
+    switch (arg1) {
+    case 0x2A:
+        D_800D9630[arg0]->unk04[i].unk0 = (s32)arg3;
+        break;
+    case 0x28:
+        D_800D9630[arg0]->unk04[i].unk4 = *arg3;
+        break;
+    case 0x29:
+        delta = *arg3;
+        D_800D9630[arg0]->unk04[i].unk4.vx += delta.vx;
+        D_800D9630[arg0]->unk04[i].unk4.vy += delta.vy;
+        D_800D9630[arg0]->unk04[i].unk4.vz += delta.vz;
+        break;
+    case 0x2B:
+        D_800D9630[arg0]->unk04[i].unk34 = 1;
+        D_800D9630[arg0]->unk04[i].unkC = *arg3;
+        break;
+    case 0x2C:
+        D_800D9630[arg0]->unk04[i].unk34 = 1;
+        delta = *arg3;
+        D_800D9630[arg0]->unk04[i].unkC.vx += delta.vx;
+        D_800D9630[arg0]->unk04[i].unkC.vy += delta.vy;
+        D_800D9630[arg0]->unk04[i].unkC.vz += delta.vz;
+        break;
+    }
+}
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800AA46C);
+s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
+    s32 sumA;
+    s32 sumB;
+    s32 k;
+    s32 j;
+    POLY_FT3 *ft3;
+    POLY_FT4 *ft4;
+    s32 unused[2]; // never used, but the stack frame only matches the original with it
+
+    if (D_800D9630[arg0]->def->unk1C[arg2].unk8.pad & (ENTITY_DEF_UNK1C_FLAG_1 | ENTITY_DEF_UNK1C_FLAG_2)) {
+        return -1;
+    }
+    D_800D9630[arg0]->def->unk1C[arg2].unk8.pad = 0;
+    D_800D9630[arg0]->def->unk1C[arg2].unk18.pad = arg4;
+    D_800D9630[arg0]->def->unk1C[arg2].unk4 = 1;
+    D_800D9630[arg0]->def->unk1C[arg2].unk8.vx = D_800D9630[arg0]->def->unk1C[arg2].unk18.vx;
+    D_800D9630[arg0]->def->unk1C[arg2].unk8.vy = D_800D9630[arg0]->def->unk1C[arg2].unk18.vy;
+    D_800D9630[arg0]->def->unk1C[arg2].unk8.vz = D_800D9630[arg0]->def->unk1C[arg2].unk18.vz;
+    D_800D9630[arg0]->def->unk1C[arg2].unk18.vx += arg3[0];
+    D_800D9630[arg0]->def->unk1C[arg2].unk18.vy += arg3[1];
+    D_800D9630[arg0]->def->unk1C[arg2].unk18.vz += arg3[2];
+    switch (arg1) {
+    case 0x30:
+        D_800D9630[arg0]->def->unk1C[arg2].unk8.pad |= ENTITY_DEF_UNK1C_FLAG_1;
+        func_800A97E4(arg0, 0x25, 0, 0);
+        break;
+    case 0x32:
+        sumA = 0;
+        sumB = 0;
+        for (j = 0; j < arg2; j++) {
+            sumA += D_800D9630[arg0]->def->unk1C[j].unk12;
+            sumB += D_800D9630[arg0]->def->unk1C[j].unk16;
+        }
+        for (k = 0; k < 2; k++) {
+            ft3 = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->def->unk30) + D_800D9630[arg0]->def->unk34);
+            for (j = 0; j < D_800D9630[arg0]->def->unk1C[arg2].unk12; j++) {
+                ft3[sumA + j].pad1 = arg4;
+            }
+            ft4 = (POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->unk58[k] + D_800D9630[arg0]->def->unk30) + D_800D9630[arg0]->def->unk34) + D_800D9630[arg0]->def->unk38);
+            for (j = 0; j < D_800D9630[arg0]->def->unk1C[arg2].unk16; j++) {
+                ft4[sumB + j].pad1 = arg4;
+            }
+        }
+        break;
+    }
+}
+
+s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
+    CVECTOR color;
+    RECT rect;
+    s32 ret; // never assigned, but the compiled code only matches the original with it
+    s32 i;
+    s32 j;
+    POLY_G3 *g3;
+    POLY_G4 *g4;
+    POLY_FT3 *ft3;
+    POLY_FT4 *ft4;
+
+    if (D_800D9630[spatialIdx]->def == (EntityDef *)-1) {
+        return -1;
+    }
+    switch (cmd) {
+    case 0x27:
+        if (!(D_800D9630[spatialIdx]->def->unk5F & ENTITY_DEF_FLAG_1)) {
+            return 1;
+        }
+        if ((s16)D_800D9630[spatialIdx]->def->anim->frames[0].y >= 0) {
+            D_800D9630[spatialIdx]->def->anim->frames[0].y = arg3;
+            if (arg2 != 0) {
+                D_800D9630[spatialIdx]->frameTimer = arg2;
+                D_800D9630[spatialIdx]->timerReload = arg2;
+            } else {
+                D_800D9630[spatialIdx]->frameTimer = rand() % 8 + 1;
+                D_800D9630[spatialIdx]->timerReload = rand() % 8 + 1;
+            }
+        } else {
+            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->def->anim->frames[0].y;
+            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->def->anim->frames[0].y;
+        }
+        D_800D9630[spatialIdx]->animFlags &= 0xF;
+        D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_10;
+        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->def->anim->frameReload;
+        break;
+    case 0x2F:
+        if (!(D_800D9630[spatialIdx]->def->unk5F & ENTITY_DEF_FLAG_1)) {
+            return 1;
+        }
+        D_800D9630[spatialIdx]->animFlags &= 0xF;
+        D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_20;
+        rect.w = D_800D9630[spatialIdx]->def->anim->rectW;
+        rect.h = D_800D9630[spatialIdx]->def->anim->rectH;
+        rect.x = D_800D9630[spatialIdx]->def->anim->frames[1].x;
+        rect.y = D_800D9630[spatialIdx]->def->anim->frames[1].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->def->anim->srcX, D_800D9630[spatialIdx]->def->anim->frames[0].x);
+        break;
+    case 0x2E:
+        if (!(D_800D9630[spatialIdx]->def->unk5F & ENTITY_DEF_FLAG_1)) {
+            return 1;
+        }
+        D_800D9630[spatialIdx]->animFlags &= 0xF;
+        D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_40;
+        rect.w = D_800D9630[spatialIdx]->def->anim->rectW;
+        rect.h = D_800D9630[spatialIdx]->def->anim->rectH;
+        // matching hack
+        rect.x = D_800D9630[spatialIdx]->def->anim->frameReload[D_800D9630[spatialIdx]->def->anim->frames].x;
+        rect.y = D_800D9630[spatialIdx]->def->anim->frameReload[D_800D9630[spatialIdx]->def->anim->frames].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->def->anim->srcX, D_800D9630[spatialIdx]->def->anim->frames[0].x);
+        break;
+    case 0x25:
+        D_800D9630[spatialIdx]->unk78 = (SVECTOR *)-1;
+        break;
+    case 0x23:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_40;
+        break;
+    case 0x24:
+        D_800D9630[spatialIdx]->unk60 = 0;
+        break;
+    case 0x21:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_20;
+        for (j = 0; j < 0x1003; j++) {
+            D_800D6720[j] = 0xFFFF;
+        }
+        break;
+    case 0x22:
+        D_800D9630[spatialIdx]->unk60 &= ~ENTITY_RENDER_FLAG_20;
+        break;
+    case 0x13:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_2;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC = *(SVECTOR *)arg2;
+        break;
+    case 0x1C:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_2;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC = *(SVECTOR *)arg2;
+        break;
+    case 0x14:
+    case 0x1D:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_4;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC = *(SVECTOR *)arg2;
+        break;
+    case 0x19:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_2;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC.vx += ((SVECTOR *)arg2)->vx;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC.vy += ((SVECTOR *)arg2)->vy;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk70 + 1].unkC.vz += ((SVECTOR *)arg2)->vz;
+        break;
+    case 0x1A:
+        D_800D9630[spatialIdx]->unk60 |= ENTITY_RENDER_FLAG_4;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC.vx = ((SVECTOR *)arg2)->vx;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC.vy = ((SVECTOR *)arg2)->vy;
+        D_800D9630[spatialIdx]->unk04[D_800D9630[spatialIdx]->unk71 + 1].unkC.vz = ((SVECTOR *)arg2)->vz;
+        break;
+    case 0x15:
+        D_800D9630[spatialIdx]->unk60 &= ~ENTITY_RENDER_FLAG_2;
+        break;
+    case 0x16:
+        D_800D9630[spatialIdx]->unk60 &= ~ENTITY_RENDER_FLAG_4;
+        break;
+    case 0xF:
+        for (i = 0; i < 2; i++) {
+            g3 = D_800D9630[spatialIdx]->unk58[i];
+            D_800D5EE0[i] = g3;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk30; j++) {
+                SetSemiTrans(g3, arg2);
+                g3++;
+            }
+            g4 = (POLY_G4 *)g3;
+            D_800D5EE8[i] = g4;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk34; j++) {
+                SetSemiTrans(g4, arg2);
+                g4++;
+            }
+            ft3 = (POLY_FT3 *)g4;
+            D_800D6600[i] = ft3;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk38; j++) {
+                SetSemiTrans(ft3, arg2);
+                ft3++;
+            }
+            ft4 = (POLY_FT4 *)ft3;
+            D_800D6610[i] = ft4;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk3C; j++) {
+                SetSemiTrans(ft4, arg2);
+                ft4++;
+            }
+        }
+        break;
+    case 0x10:
+        color.r = ((CVECTOR *)arg2)->r;
+        color.g = ((CVECTOR *)arg2)->g;
+        color.b = ((CVECTOR *)arg2)->b;
+        for (i = 0; i < 2; i++) {
+            g3 = D_800D9630[spatialIdx]->unk58[i];
+            D_800D5EE0[i] = g3;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk30; j++) {
+                g3->r0 = color.r;
+                g3->g0 = color.g;
+                g3->b0 = color.b;
+                g3->r1 = color.r;
+                g3->g1 = color.g;
+                g3->b1 = color.b;
+                g3->r2 = color.r;
+                g3->g2 = color.g;
+                g3->b2 = color.b;
+                g3++;
+            }
+            g4 = (POLY_G4 *)g3;
+            D_800D5EE8[i] = g4;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk34; j++) {
+                g4->r0 = color.r;
+                g4->g0 = color.g;
+                g4->b0 = color.b;
+                g4->r1 = color.r;
+                g4->g1 = color.g;
+                g4->b1 = color.b;
+                g4->r2 = color.r;
+                g4->g2 = color.g;
+                g4->b2 = color.b;
+                g4++;
+            }
+            ft3 = (POLY_FT3 *)g4;
+            D_800D6600[i] = ft3;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk38; j++) {
+                ft3->r0 = color.r;
+                ft3->g0 = color.g;
+                ft3->b0 = color.b;
+                ft3++;
+            }
+            ft4 = (POLY_FT4 *)ft3;
+            D_800D6610[i] = ft4;
+            for (j = 0; j < D_800D9630[spatialIdx]->def->unk3C; j++) {
+                ft4->r0 = color.r;
+                ft4->g0 = color.g;
+                ft4->b0 = color.b;
+                ft4++;
+            }
+        }
+        break;
+    }
+    return ret;
+}
+
+void func_800AA46C(s32 spatialIdx, s32 cmd, u32 arg, s32 arg4) {
+    u32 i;
+    s32 j;
+    s32 sum;
+    s32 productSum;
+    u32 first;
+    u32 second;
+
+    if (D_800D9630[spatialIdx]->def != (EntityDef *)-1 && cmd == 13) {
+        if (arg >= D_800D9630[spatialIdx]->unk64) {
+            func_800ACBCC(spatialIdx, D_800D9630[spatialIdx]->unk64, arg, 0);
+            SystemError(0x53, 0x17);
+        }
+        j = 2;
+        productSum = 0;
+        sum = 0;
+        D_800D9630[spatialIdx]->unk7E = arg;
+        for (i = 0; i < arg; i++) {
+            first = D_800D9630[spatialIdx]->unk68[j - 2];
+            second = D_800D9630[spatialIdx]->unk68[j - 1];
+            sum += first;
+            productSum += first * second;
+            j += 2;
+        }
+        D_800D9630[spatialIdx]->unk0C = D_800D9630[spatialIdx]->unk68[j - 2] << 4;
+        D_800D9630[spatialIdx]->unk0E = D_800D9630[spatialIdx]->unk68[j - 1];
+        D_800D9630[spatialIdx]->unk08 = (SVECTOR *)(D_800D9630[spatialIdx]->unk6C + (productSum + sum));
+        D_800D9630[spatialIdx]->unk50 = 0;
+        D_800D9630[spatialIdx]->unk50 = 0;
+        D_800D9630[spatialIdx]->unk78 = (SVECTOR *)-1;
+        D_800D9630[spatialIdx]->unk7C = 0xFFFF;
+    }
+}
 
 /**
  * @brief Per-entity animation tick — advances the frame and stages the next

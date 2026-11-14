@@ -4,6 +4,7 @@
 #include "common.h"
 #include "lzs.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 
 /*
  * ============================================================================
@@ -546,13 +547,37 @@ typedef struct {
     EntityAnimFrame frames[1];/**< 0x08 — per-frame dest coords; @c frames[0].y doubles as the loop period. */
 } EntityAnimData;
 
+typedef struct {
+    /** 0x00 */ u8 pad0[0x04];
+    /** 0x04 */ s16 unk4;
+    /** 0x06 */ u8 pad6[0x02];
+    /** 0x08 */ SVECTOR unk8;
+    /** 0x10 */ u8 pad10[0x02];
+    /** 0x12 */ s16 unk12;
+    /** 0x14 */ u8 pad14[0x02];
+    /** 0x16 */ s16 unk16;
+    /** 0x18 */ SVECTOR unk18;
+} EntityDefUnk1C;
+
+#define ENTITY_DEF_UNK1C_FLAG_1 0x1
+#define ENTITY_DEF_UNK1C_FLAG_2 0x2
+
+#define ENTITY_DEF_FLAG_1 0x1
+
 /**
  * @brief Entity definition/template referenced by @ref EntityRenderSlot.
  */
 typedef struct {
     u8 pad00[0x14];
     EntityAnimData *anim;     /**< 0x14 — animation descriptor. */
-    u8 pad18[0x47];
+    /** 0x18 */ u8 pad18[0x04];
+    /** 0x1C */ EntityDefUnk1C *unk1C;
+    /** 0x20 */ u8 pad20[0x10];
+    /** 0x30 */ s32 unk30;
+    /** 0x34 */ s32 unk34;
+    /** 0x38 */ s32 unk38;
+    /** 0x3C */ s32 unk3C;
+    /** 0x40 */ u8 pad40[0x1F];
     u8 unk5F;                 /**< 0x5F — bit 0 set = entity is animated. */
 } EntityDef;
 
@@ -572,10 +597,30 @@ typedef struct {
 } EntityRenderXform;
 
 typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u8 pad2[0x02];
+    /** 0x04 */ SVECTOR unk4;
+    /** 0x0C */ SVECTOR unkC;
+    /** 0x14 */ MATRIX unk14;
+    /** 0x34 */ s32 unk34;
+    /** 0x38 */ u8 pad38[0x08];
+} EntityRenderSlotUnk04;
+
+#define ENTITY_RENDER_FLAG_2 0x02
+#define ENTITY_RENDER_FLAG_4 0x04
+#define ENTITY_RENDER_FLAG_20 0x20
+#define ENTITY_RENDER_FLAG_40 0x40
+
+#define ENTITY_ANIM_FLAG_10 0x10
+#define ENTITY_ANIM_FLAG_20 0x20
+#define ENTITY_ANIM_FLAG_40 0x40
+
+typedef struct {
     EntityDef *def;  /**< 0x00 — entity definition/template. */
-    u8 pad04[0x08];
+    EntityRenderSlotUnk04 *unk04;
+    SVECTOR *unk08;
     u16 unk0C;
-    u8 pad0E[0x02];
+    u16 unk0E;
     u16 unk10;       /**< Cleared on init by @c func_800A8CDC. */
     u16 unk12;       /**< Init to @c 0x190 by @c func_800A8CDC. */
     u16 unk14;       /**< Cleared on init. */
@@ -585,21 +630,27 @@ typedef struct {
     u16 unk1C;       /**< Cleared on init. */
     u8 pad1E[0x02];
     EntityRenderXform xform;  /**< 0x20 — transform block (field20..field2C); see @c func_800A74B4. */
-    u8 pad30[0x20];
+    MATRIX unk30;
     u16 unk50;       /**< Cleared on init. */
     u16 unk52;       /**< Current motion halfword (mirror of Actor @c field_0x206). */
-    u8 pad54[0x0C];
+    u8 pad54[0x04];
+    POLY_G3 *unk58[2];
     u8 unk60;
     u8 unk61;
     u16 unk62;
-    u8 pad64[0x02];
+    u16 unk64;
     u8 frameTimer;   /**< 0x66 — per-frame countdown; on expiry the frame advances. */
     u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameReload). */
-    u8 pad68[0x0A];
+    u16 *unk68;
+    CVECTOR *unk6C;
+    u8 unk70;
+    u8 unk71;
     u8 animFlags;    /**< 0x72 — bit0x80 = retrigger, bit0x10 = active, low nibble reused. */
     u8 pad73;
     u8 timerReload;  /**< 0x74 — reload value for frameTimer when the period is non-negative. */
-    u8 pad75[0x09];
+    u8 pad75[0x03];
+    SVECTOR *unk78;
+    u16 unk7C;
     u16 unk7E;       /**< 0x7E — animation id currently playing; @c func_8009B4A8 resets @c unk52 when it changes. */
     u8 pad80[0x04];
     u16 field84;     /**< 0x84 — snapshot of @c unk10 (dirty-check by @c func_800A7224). */
