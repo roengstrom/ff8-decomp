@@ -1511,9 +1511,9 @@ void func_8009AEC0(void) {
  * through @c func_800AA46C), restarting the cycle from phase zero whenever the
  * requested animation differs from the one already playing.
  *
- * @p delta then advances the slot's phase counter @c unk52 by
+ * @p delta then advances the slot's phase counter @c animationPhase by
  * @c delta @c * the entity's per-frame phase step (@ref Actor::animationSpeed),
- * wrapping against the cycle length @c unk0C: forward motion past the end
+ * wrapping against the cycle length @c animationLength: forward motion past the end
  * restarts at zero, reverse motion below zero jumps to the last phase. A
  * @p delta of zero leaves the phase alone (the entity is standing still).
  *
@@ -1540,22 +1540,22 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     s16 newOff;
     s16 oldOff;
 
-    if (D_800D9630[idx]->unk7E != anim) {
-        D_800D9630[idx]->unk52 = 0;
+    if (D_800D9630[idx]->animationIndex != anim) {
+        D_800D9630[idx]->animationPhase = 0;
     }
     func_800AA46C(idx, 13, anim, 0);
 
-    oldPhase = D_800D9630[idx]->unk52;
+    oldPhase = D_800D9630[idx]->animationPhase;
     if (delta != 0) {
         if (delta > 0) {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].animationSpeed * delta;
-            if (D_800D9630[idx]->unk52 >= D_800D9630[idx]->unk0C) {
-                D_800D9630[idx]->unk52 = 0;
+            newPhase = D_800D9630[idx]->animationPhase = oldPhase + g_fieldActors[idx].animationSpeed * delta;
+            if (D_800D9630[idx]->animationPhase >= D_800D9630[idx]->animationLength) {
+                D_800D9630[idx]->animationPhase = 0;
             }
         } else {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].animationSpeed * delta;
-            if (D_800D9630[idx]->unk0C < D_800D9630[idx]->unk52) {
-                D_800D9630[idx]->unk52 = D_800D9630[idx]->unk0C - 1;
+            newPhase = D_800D9630[idx]->animationPhase = oldPhase + g_fieldActors[idx].animationSpeed * delta;
+            if (D_800D9630[idx]->animationLength < D_800D9630[idx]->animationPhase) {
+                D_800D9630[idx]->animationPhase = D_800D9630[idx]->animationLength - 1;
             }
         }
     }
@@ -1563,7 +1563,7 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     if (mode == 1) {
         newRel = newPhase - 0x80;
         oldRel = oldPhase - 0x80;
-        half = (D_800D9630[idx]->unk0C - (s16)g_fieldActors[idx].animationSpeed) >> 1;
+        half = (D_800D9630[idx]->animationLength - (s16)g_fieldActors[idx].animationSpeed) >> 1;
         newOff = newRel - half;
         oldOff = oldRel - half;
         if ((newRel < 0 & oldRel >= 0) || (oldRel < 0 & newRel >= 0)) {
@@ -2057,7 +2057,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].msgState = 2;
                     } else {
                         ents[i].field_0x1DA--;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, -1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, -1);
                     }
                 }
                 if (flags & FIELD_PAD_YHIGH) {
@@ -2066,7 +2066,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].triIdx = ents[i].field_0x1FC;
                     } else {
                         ents[i].field_0x1DA++;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, 1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, 1);
                     }
                 }
             } else {
@@ -2075,7 +2075,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].msgState = 2;
                     } else {
                         ents[i].field_0x1DA--;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, -1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, -1);
                     }
                 }
                 if (flags & FIELD_PAD_YLOW) {
@@ -2084,7 +2084,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].triIdx = ents[i].field_0x1FC;
                     } else {
                         ents[i].field_0x1DA++;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, 1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, 1);
                     }
                 }
             }
@@ -2093,9 +2093,9 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             ents[i].triIdx = ents[i].field_0x1FC;
         } else {
             ents[i].field_0x1DA++;
-            D_800D9630[i]->unk52 += ents[i].animationSpeed;
-            if (D_800D9630[i]->unk0C - 1 < D_800D9630[i]->unk52) {
-                D_800D9630[i]->unk52 = 0;
+            D_800D9630[i]->animationPhase += ents[i].animationSpeed;
+            if (D_800D9630[i]->animationLength - 1 < D_800D9630[i]->animationPhase) {
+                D_800D9630[i]->animationPhase = 0;
             }
         }
         ents[i].posX = func_800A0E54(ents[i].moveStartX, ents[i].msgTextPtr, ents[i].field_0x1D8, ents[i].field_0x1DA);
@@ -3176,7 +3176,7 @@ void func_8009F8D0(s16 idx) {
  *
  * The passive path just ages @c field_0x1DA toward @c field_0x1D8 (reporting
  * state 2 once there) while advancing the entity's render-slot motion counter
- * @c unk52 by @c animationSpeed, wrapping it at @c unk0C.
+ * @c animationPhase by @c animationSpeed, wrapping it at @c animationLength.
  *
  * @param idx   Entity index.
  * @param flags Input bits; @c 0x3000 and @c 0xC000 select the two directions.
@@ -3260,9 +3260,9 @@ void func_8009F990(s16 idx, s32 flags) {
             g_fieldActors[idx].msgState = 2;
         } else {
             g_fieldActors[idx].field_0x1DA++;
-            D_800D9630[idx]->unk52 += g_fieldActors[idx].animationSpeed;
-            if (D_800D9630[idx]->unk0C - 1 < D_800D9630[idx]->unk52) {
-                D_800D9630[idx]->unk52 = 0;
+            D_800D9630[idx]->animationPhase += g_fieldActors[idx].animationSpeed;
+            if (D_800D9630[idx]->animationLength - 1 < D_800D9630[idx]->animationPhase) {
+                D_800D9630[idx]->animationPhase = 0;
             }
             func_8009F8D0(idx);
         }
@@ -3327,7 +3327,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
             D_80070760[p].field_0A = D_80070A60[p].field_0A = 5;
             func_8009F7F4((s16)idx, -1, actor->field_0x254, 1);
         }
-        actor->field_0x1D8 = (D_800D9630[(s16)idx]->unk0C >> 4) - 2;
+        actor->field_0x1D8 = (D_800D9630[(s16)idx]->animationLength >> 4) - 2;
         actor->posX = func_800A0E54(actor->moveStartX, actor->unk1A8, actor->field_0x1D8, actor->field_0x1DA);
         actor->posY = func_800A0E54(actor->moveStartY, actor->unk1AC, actor->field_0x1D8, actor->field_0x1DA);
         actor->posZ = func_800A0E54(actor->moveStartZ, actor->unk1B0, actor->field_0x1D8, actor->field_0x1DA);
@@ -3361,7 +3361,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
             D_80070760[p].field_0A = D_80070A60[p].field_0A = 3;
             func_8009F7F4((s16)idx, -1, actor->field_0x252, 1);
         }
-        actor->field_0x1D8 = (D_800D9630[(s16)idx]->unk0C >> 4) - 2;
+        actor->field_0x1D8 = (D_800D9630[(s16)idx]->animationLength >> 4) - 2;
         actor->posX = func_800A0E54(actor->field_0x1C0, actor->msgTextPtr, actor->field_0x1D8, actor->field_0x1DA);
         actor->posY = func_800A0E54(actor->field_0x1C4, actor->msgPosX, actor->field_0x1D8, actor->field_0x1DA);
         actor->posZ = func_800A0E54(actor->field_0x1C8, actor->msgPosY, actor->field_0x1D8, actor->field_0x1DA);
@@ -3387,7 +3387,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
             D_80070760[p].field_0A = D_80070A60[p].field_0A = 5;
             func_8009F7F4((s16)idx, 1, actor->field_0x254, 1);
         }
-        actor->field_0x1D8 = (D_800D9630[(s16)idx]->unk0C >> 4) - 2;
+        actor->field_0x1D8 = (D_800D9630[(s16)idx]->animationLength >> 4) - 2;
         actor->posX = func_800A0E54(actor->unk1A8, actor->moveStartX, actor->field_0x1D8, actor->field_0x1DA);
         actor->posY = func_800A0E54(actor->unk1AC, actor->moveStartY, actor->field_0x1D8, actor->field_0x1DA);
         actor->posZ = func_800A0E54(actor->unk1B0, actor->moveStartZ, actor->field_0x1D8, actor->field_0x1DA);
