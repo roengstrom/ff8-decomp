@@ -629,7 +629,7 @@ typedef struct {
     /* 0x00 */ union {
         Model *model;
         s32 modelId;
-    } unk00;
+    } modelSlot;
     /* 0x04 */ MchBone *bones;
     /* 0x08 */ SVECTOR *animationStart;
     /* 0x0C */ u16 animationLength;

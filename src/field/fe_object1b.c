@@ -87,13 +87,13 @@ void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2) {
     s32 untexturedQuadBytes;
 
     for (i = 0; i < g_fieldActorCount; i++) {
-        if (D_800D9630[i]->unk00.modelId != NO_MODEL) {
+        if (D_800D9630[i]->modelSlot.modelId != NO_MODEL) {
             func_800AA5F8(i);
         }
     }
 
     for (i = 0; i < g_fieldActorCount; i++) {
-        if (D_800D9630[i]->unk00.modelId != NO_MODEL) {
+        if (D_800D9630[i]->modelSlot.modelId != NO_MODEL) {
             if (D_800D9630[i]->renderFlags & ENTITY_RENDER_FLAG_10) {
                 D_800D9630[i]->renderFlags &= ~ENTITY_RENDER_FLAG_10;
                 D_800D9630[i]->renderFlags |= ENTITY_RENDER_FLAG_8;
@@ -105,21 +105,21 @@ void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2) {
                 primIndex = 0;
                 triangleIndex = 0;
                 quadIndex = 0;
-                untexturedTriangleBytes = D_800D9630[i]->unk00.model->unk30 * sizeof(POLY_G3);
-                untexturedQuadBytes = D_800D9630[i]->unk00.model->unk34 * sizeof(POLY_G4);
+                untexturedTriangleBytes = D_800D9630[i]->modelSlot.model->unk30 * sizeof(POLY_G3);
+                untexturedQuadBytes = D_800D9630[i]->modelSlot.model->unk34 * sizeof(POLY_G4);
                 trianglePrims = (POLY_FT3 *)((u8 *)currentPrims + untexturedTriangleBytes + untexturedQuadBytes);
                 otherTrianglePrims = (POLY_FT3 *)((u8 *)otherPrims + untexturedTriangleBytes + untexturedQuadBytes);
-                for (groupIndex = 0; groupIndex < D_800D9630[i]->unk00.model->drawGroupCount; groupIndex++) {
-                    for (j = 0; j < D_800D9630[i]->unk00.model->drawGroups[groupIndex].triangleCount; j++) {
+                for (groupIndex = 0; groupIndex < D_800D9630[i]->modelSlot.model->drawGroupCount; groupIndex++) {
+                    for (j = 0; j < D_800D9630[i]->modelSlot.model->drawGroups[groupIndex].triangleCount; j++) {
                         if (D_800D9630[i]->primOrderIndices[primIndex] != 0) {
                             otherTrianglePrims[triangleIndex] = trianglePrims[triangleIndex];
                         }
                         triangleIndex++;
                         primIndex++;
                     }
-                    quadPrims = (POLY_FT4 *)(trianglePrims + D_800D9630[i]->unk00.model->triangleCount);
-                    otherQuadPrims = (POLY_FT4 *)(otherTrianglePrims + D_800D9630[i]->unk00.model->triangleCount);
-                    for (j = 0; j < D_800D9630[i]->unk00.model->drawGroups[groupIndex].quadCount; j++) {
+                    quadPrims = (POLY_FT4 *)(trianglePrims + D_800D9630[i]->modelSlot.model->triangleCount);
+                    otherQuadPrims = (POLY_FT4 *)(otherTrianglePrims + D_800D9630[i]->modelSlot.model->triangleCount);
+                    for (j = 0; j < D_800D9630[i]->modelSlot.model->drawGroups[groupIndex].quadCount; j++) {
                         if (D_800D9630[i]->primOrderIndices[primIndex] != 0) {
                             otherQuadPrims[quadIndex] = quadPrims[quadIndex];
                         }
@@ -143,13 +143,13 @@ void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2) {
     func_800ACBD4(&arg0->ot[1], arg1);
 
     for (i = 0; i < g_fieldActorCount; i++) {
-        if (D_800D9630[i]->unk00.modelId != NO_MODEL && (D_800D9630[i]->renderFlags & ENTITY_RENDER_FLAG_8)) {
+        if (D_800D9630[i]->modelSlot.modelId != NO_MODEL && (D_800D9630[i]->renderFlags & ENTITY_RENDER_FLAG_8)) {
             primIndex = 0;
             triangleIndex = 0;
             quadIndex = 0;
-            trianglePrims = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[i]->prims + D_800D9630[i]->unk00.model->unk30) + D_800D9630[i]->unk00.model->unk34);
-            for (groupIndex = 0; groupIndex < D_800D9630[i]->unk00.model->drawGroupCount; groupIndex++) {
-                for (j = 0; j < D_800D9630[i]->unk00.model->drawGroups[groupIndex].triangleCount; j++) {
+            trianglePrims = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[i]->prims + D_800D9630[i]->modelSlot.model->unk30) + D_800D9630[i]->modelSlot.model->unk34);
+            for (groupIndex = 0; groupIndex < D_800D9630[i]->modelSlot.model->drawGroupCount; groupIndex++) {
+                for (j = 0; j < D_800D9630[i]->modelSlot.model->drawGroups[groupIndex].triangleCount; j++) {
                     if (D_800D9630[i]->primOrderIndices[primIndex] != 0) {
                         setaddr(&trianglePrims[triangleIndex], getaddr(&arg0->ot[D_800D9630[i]->primOrderIndices[primIndex]]));
                         setaddr(&arg0->ot[D_800D9630[i]->primOrderIndices[primIndex]], &trianglePrims[triangleIndex]);
@@ -157,8 +157,8 @@ void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2) {
                     primIndex++;
                     triangleIndex++;
                 }
-                quadPrims = (POLY_FT4 *)(trianglePrims + D_800D9630[i]->unk00.model->triangleCount);
-                for (j = 0; j < D_800D9630[i]->unk00.model->drawGroups[groupIndex].quadCount; j++) {
+                quadPrims = (POLY_FT4 *)(trianglePrims + D_800D9630[i]->modelSlot.model->triangleCount);
+                for (j = 0; j < D_800D9630[i]->modelSlot.model->drawGroups[groupIndex].quadCount; j++) {
                     if (D_800D9630[i]->primOrderIndices[primIndex] != 0) {
                         setaddr(&quadPrims[quadIndex], getaddr(&arg0->ot[D_800D9630[i]->primOrderIndices[primIndex]]));
                         setaddr(&arg0->ot[D_800D9630[i]->primOrderIndices[primIndex]], &quadPrims[quadIndex]);
@@ -190,21 +190,21 @@ void func_800A6A80(s32 arg0, s32 arg1, ModelInstance **arg2) {
     firstTriangleIndex = 0;
     firstQuadIndex = 0;
     primIndex = 0;
-    for (i = 0; i < (*arg2)->unk00.model->drawGroupCount; i++) {
+    for (i = 0; i < (*arg2)->modelSlot.model->drawGroupCount; i++) {
         groupVertexIndex = 0;
-        for (skinObjectIndex = (*arg2)->unk00.model->drawGroups[i].firstSkinObjectIndex; skinObjectIndex < (*arg2)->unk00.model->drawGroups[i].firstSkinObjectIndex + (*arg2)->unk00.model->drawGroups[i].skinObjectCount; skinObjectIndex++) {
-            if ((*arg2)->unk00.model->drawGroups[i].unk8.pad & MCH_DRAW_GROUP_FLAG_1) {
+        for (skinObjectIndex = (*arg2)->modelSlot.model->drawGroups[i].firstSkinObjectIndex; skinObjectIndex < (*arg2)->modelSlot.model->drawGroups[i].firstSkinObjectIndex + (*arg2)->modelSlot.model->drawGroups[i].skinObjectCount; skinObjectIndex++) {
+            if ((*arg2)->modelSlot.model->drawGroups[i].unk8.pad & MCH_DRAW_GROUP_FLAG_1) {
                 m.t[0] = 0;
                 m.t[1] = 0;
                 m.t[2] = 0;
-                SetRotMatrix(&(*arg2)->bones[(*arg2)->unk00.model->skinObjects[skinObjectIndex].boneId].transform);
+                SetRotMatrix(&(*arg2)->bones[(*arg2)->modelSlot.model->skinObjects[skinObjectIndex].boneId].transform);
                 SetTransMatrix(&m);
-                group = &(*arg2)->unk00.model->drawGroups[i];
+                group = &(*arg2)->modelSlot.model->drawGroups[i];
                 groupMoveStep.vx = (group->unk4 * (group->unk18.vx - group->unk8.vx)) / group->unk18.pad;
                 groupMoveStep.vy = (group->unk4 * (group->unk18.vy - group->unk8.vy)) / group->unk18.pad;
                 groupMoveStep.vz = (group->unk4 * (group->unk18.vz - group->unk8.vz)) / group->unk18.pad;
                 RotTrans(&groupMoveStep, &rotatedOffset, &D_800DD6C8);
-                m = (*arg2)->bones[(*arg2)->unk00.model->skinObjects[skinObjectIndex].boneId].transform;
+                m = (*arg2)->bones[(*arg2)->modelSlot.model->skinObjects[skinObjectIndex].boneId].transform;
                 m.t[0] += rotatedOffset.vx;
                 m.t[1] += rotatedOffset.vy;
                 m.t[2] += rotatedOffset.vz;
@@ -219,43 +219,43 @@ void func_800A6A80(s32 arg0, s32 arg1, ModelInstance **arg2) {
                 } else {
                     (*arg2)->cachedAnimationStart = (SVECTOR *)-1;
                 }
-            } else if ((*arg2)->unk00.model->drawGroups[i].unk8.pad & MCH_DRAW_GROUP_FLAG_4) {
+            } else if ((*arg2)->modelSlot.model->drawGroups[i].unk8.pad & MCH_DRAW_GROUP_FLAG_4) {
                 m.t[0] = 0;
                 m.t[1] = 0;
                 m.t[2] = 0;
-                SetRotMatrix(&(*arg2)->bones[(*arg2)->unk00.model->skinObjects[skinObjectIndex].boneId].transform);
+                SetRotMatrix(&(*arg2)->bones[(*arg2)->modelSlot.model->skinObjects[skinObjectIndex].boneId].transform);
                 SetTransMatrix(&m);
-                group = &(*arg2)->unk00.model->drawGroups[i];
+                group = &(*arg2)->modelSlot.model->drawGroups[i];
                 RotTrans(&group->unk18, &rotatedOffset, &D_800DD6C8);
-                m = (*arg2)->bones[(*arg2)->unk00.model->skinObjects[skinObjectIndex].boneId].transform;
+                m = (*arg2)->bones[(*arg2)->modelSlot.model->skinObjects[skinObjectIndex].boneId].transform;
                 m.t[0] += rotatedOffset.vx;
                 m.t[1] += rotatedOffset.vy;
                 m.t[2] += rotatedOffset.vz;
                 SetRotMatrix(&m);
                 SetTransMatrix(&m);
             } else {
-                SetRotMatrix(&(*arg2)->bones[(*arg2)->unk00.model->skinObjects[skinObjectIndex].boneId].transform);
-                SetTransMatrix(&(*arg2)->bones[(*arg2)->unk00.model->skinObjects[skinObjectIndex].boneId].transform);
+                SetRotMatrix(&(*arg2)->bones[(*arg2)->modelSlot.model->skinObjects[skinObjectIndex].boneId].transform);
+                SetTransMatrix(&(*arg2)->bones[(*arg2)->modelSlot.model->skinObjects[skinObjectIndex].boneId].transform);
             }
             inst = *arg2;
-            model = inst->unk00.model;
+            model = inst->modelSlot.model;
             firstVertexIndex = model->skinObjects[skinObjectIndex].firstVertexIndex;
             if (!(inst->renderFlags & RENDER_FLAG_EXTRA_BONE_HIDDEN) || model->skinObjects[skinObjectIndex].boneId != inst->extraBone + 1) {
                 func_800AD048(&model->vertices[firstVertexIndex], &D_800D96B0[groupVertexIndex], &D_800D6720[groupVertexIndex], model->skinObjects[skinObjectIndex].vertexCount);
             } else {
-                for (j = 0; j < (*arg2)->unk00.model->skinObjects[skinObjectIndex].vertexCount; j++) {
+                for (j = 0; j < (*arg2)->modelSlot.model->skinObjects[skinObjectIndex].vertexCount; j++) {
                     D_800D96B0[groupVertexIndex + j] = 0;
                     D_800D6720[groupVertexIndex + j] = 0;
                 }
             }
-            groupVertexIndex += (*arg2)->unk00.model->skinObjects[skinObjectIndex].vertexCount;
+            groupVertexIndex += (*arg2)->modelSlot.model->skinObjects[skinObjectIndex].vertexCount;
         }
-        func_800AD0E8((POLY_FT3 *)((POLY_G4 *)((*arg2)->prims + (*arg2)->unk00.model->unk30) + (*arg2)->unk00.model->unk34) + firstTriangleIndex, &(*arg2)->unk00.model->triangles[firstTriangleIndex], &(*arg2)->primOrderIndices[primIndex], (*arg2)->unk00.model->drawGroups[i].triangleCount);
-        firstTriangleIndex += (*arg2)->unk00.model->drawGroups[i].triangleCount;
-        primIndex += (*arg2)->unk00.model->drawGroups[i].triangleCount;
-        func_800AD300((POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)((*arg2)->prims + (*arg2)->unk00.model->unk30) + (*arg2)->unk00.model->unk34) + (*arg2)->unk00.model->triangleCount) + firstQuadIndex, &(*arg2)->unk00.model->quads[firstQuadIndex], &(*arg2)->primOrderIndices[primIndex], (*arg2)->unk00.model->drawGroups[i].quadCount);
-        firstQuadIndex += (*arg2)->unk00.model->drawGroups[i].quadCount;
-        primIndex += (*arg2)->unk00.model->drawGroups[i].quadCount;
+        func_800AD0E8((POLY_FT3 *)((POLY_G4 *)((*arg2)->prims + (*arg2)->modelSlot.model->unk30) + (*arg2)->modelSlot.model->unk34) + firstTriangleIndex, &(*arg2)->modelSlot.model->triangles[firstTriangleIndex], &(*arg2)->primOrderIndices[primIndex], (*arg2)->modelSlot.model->drawGroups[i].triangleCount);
+        firstTriangleIndex += (*arg2)->modelSlot.model->drawGroups[i].triangleCount;
+        primIndex += (*arg2)->modelSlot.model->drawGroups[i].triangleCount;
+        func_800AD300((POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)((*arg2)->prims + (*arg2)->modelSlot.model->unk30) + (*arg2)->modelSlot.model->unk34) + (*arg2)->modelSlot.model->triangleCount) + firstQuadIndex, &(*arg2)->modelSlot.model->quads[firstQuadIndex], &(*arg2)->primOrderIndices[primIndex], (*arg2)->modelSlot.model->drawGroups[i].quadCount);
+        firstQuadIndex += (*arg2)->modelSlot.model->drawGroups[i].quadCount;
+        primIndex += (*arg2)->modelSlot.model->drawGroups[i].quadCount;
     }
 }
 
@@ -613,7 +613,7 @@ POLY_FT4 *func_800A81AC(s32 arg0, s32 arg1, ModelInstance *arg2) {
         return NULL;
     }
     D_800D9630[arg0] = arg2;
-    arg2->unk00.model = D_800D6620[arg1];
+    arg2->modelSlot.model = D_800D6620[arg1];
     D_800D9630[arg0]->renderFlags = 0;
     D_800D9630[arg0]->animFlags = 0;
     D_800D9630[arg0]->unk61 = 0x11;
@@ -625,7 +625,7 @@ POLY_FT4 *func_800A81AC(s32 arg0, s32 arg1, ModelInstance *arg2) {
     D_800D9630[arg0]->cachedPhase = 0xFFFF;
     D_800D9630[arg0]->animationIndex = 0;
     D_800D9630[arg0]->bones = (MchBone *)&D_800D9630[arg0]->subBuffer;
-    FastMemCpy((u8 *)D_800D9630[arg0]->bones, (u8 *)D_800D9630[arg0]->unk00.model->boneTemplate, D_800D9630[arg0]->unk00.model->boneCount * sizeof(MchBone) + sizeof(MchBone));
+    FastMemCpy((u8 *)D_800D9630[arg0]->bones, (u8 *)D_800D9630[arg0]->modelSlot.model->boneTemplate, D_800D9630[arg0]->modelSlot.model->boneCount * sizeof(MchBone) + sizeof(MchBone));
     D_800D9630[arg0]->animationCount = D_800D6620[arg1]->animationCount;
     D_800D9630[arg0]->animationTable = D_800D6620[arg1]->animationTable;
     D_800D9630[arg0]->animationStart = D_800D6620[arg1]->animations;
@@ -635,7 +635,7 @@ POLY_FT4 *func_800A81AC(s32 arg0, s32 arg1, ModelInstance *arg2) {
     D_800D9630[arg0]->bones->boneVector.vx = 0;
     D_800D9630[arg0]->bones->boneVector.vy = 0;
     D_800D9630[arg0]->bones->boneVector.vz = 0;
-    primCursor = (u16 *)&D_800D9630[arg0]->bones[D_800D9630[arg0]->unk00.model->boneCount + 2];
+    primCursor = (u16 *)&D_800D9630[arg0]->bones[D_800D9630[arg0]->modelSlot.model->boneCount + 2];
     D_800D9630[arg0]->primOrderIndices = primCursor;
     for (j = 0; j < D_800D6620[arg1]->unk30 + D_800D6620[arg1]->unk34 + D_800D6620[arg1]->triangleCount + D_800D6620[arg1]->quadCount; j++) {
         D_800D9630[arg0]->primOrderIndices[0] = 0;
@@ -755,7 +755,7 @@ s32 *func_800A8CDC(s32 idx, s32 firstWord, ModelInstance *slot) {
         return NULL;
     }
     D_800D9630[idx] = slot;
-    slot->unk00.modelId = firstWord;
+    slot->modelSlot.modelId = firstWord;
     D_800D9630[idx]->renderFlags = 0;
     D_800D9630[idx]->unk10 = 0;
     D_800D9630[idx]->unk12 = 0x190;
@@ -890,37 +890,37 @@ s32 func_800A9434(s32 arg0, s32 arg1, u32 arg2, s16 *arg3, s32 arg4) {
     POLY_FT4 *ft4;
     s32 unused[2];
 
-    if (D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk8.pad & (MCH_DRAW_GROUP_FLAG_1 | MCH_DRAW_GROUP_FLAG_2)) {
+    if (D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk8.pad & (MCH_DRAW_GROUP_FLAG_1 | MCH_DRAW_GROUP_FLAG_2)) {
         return -1;
     }
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk8.pad = 0;
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.pad = arg4;
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk4 = 1;
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk8.vx = D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.vx;
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk8.vy = D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.vy;
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk8.vz = D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.vz;
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.vx += arg3[0];
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.vy += arg3[1];
-    D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk18.vz += arg3[2];
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk8.pad = 0;
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.pad = arg4;
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk4 = 1;
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk8.vx = D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.vx;
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk8.vy = D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.vy;
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk8.vz = D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.vz;
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.vx += arg3[0];
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.vy += arg3[1];
+    D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk18.vz += arg3[2];
     switch (arg1) {
     case 0x30:
-        D_800D9630[arg0]->unk00.model->drawGroups[arg2].unk8.pad |= MCH_DRAW_GROUP_FLAG_1;
+        D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].unk8.pad |= MCH_DRAW_GROUP_FLAG_1;
         func_800A97E4(arg0, 0x25, 0, 0);
         break;
     case 0x32:
         sumA = 0;
         sumB = 0;
         for (j = 0; j < arg2; j++) {
-            sumA += D_800D9630[arg0]->unk00.model->drawGroups[j].triangleCount;
-            sumB += D_800D9630[arg0]->unk00.model->drawGroups[j].quadCount;
+            sumA += D_800D9630[arg0]->modelSlot.model->drawGroups[j].triangleCount;
+            sumB += D_800D9630[arg0]->modelSlot.model->drawGroups[j].quadCount;
         }
         for (k = 0; k < 2; k++) {
-            ft3 = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->primBuffers[k] + D_800D9630[arg0]->unk00.model->unk30) + D_800D9630[arg0]->unk00.model->unk34);
-            for (j = 0; j < D_800D9630[arg0]->unk00.model->drawGroups[arg2].triangleCount; j++) {
+            ft3 = (POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->primBuffers[k] + D_800D9630[arg0]->modelSlot.model->unk30) + D_800D9630[arg0]->modelSlot.model->unk34);
+            for (j = 0; j < D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].triangleCount; j++) {
                 ft3[sumA + j].pad1 = arg4;
             }
-            ft4 = (POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->primBuffers[k] + D_800D9630[arg0]->unk00.model->unk30) + D_800D9630[arg0]->unk00.model->unk34) + D_800D9630[arg0]->unk00.model->triangleCount);
-            for (j = 0; j < D_800D9630[arg0]->unk00.model->drawGroups[arg2].quadCount; j++) {
+            ft4 = (POLY_FT4 *)((POLY_FT3 *)((POLY_G4 *)(D_800D9630[arg0]->primBuffers[k] + D_800D9630[arg0]->modelSlot.model->unk30) + D_800D9630[arg0]->modelSlot.model->unk34) + D_800D9630[arg0]->modelSlot.model->triangleCount);
+            for (j = 0; j < D_800D9630[arg0]->modelSlot.model->drawGroups[arg2].quadCount; j++) {
                 ft4[sumB + j].pad1 = arg4;
             }
         }
@@ -939,16 +939,16 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
     POLY_FT3 *ft3;
     POLY_FT4 *ft4;
 
-    if (D_800D9630[spatialIdx]->unk00.modelId == NO_MODEL) {
+    if (D_800D9630[spatialIdx]->modelSlot.modelId == NO_MODEL) {
         return -1;
     }
     switch (cmd) {
     case 0x27:
-        if (!(D_800D9630[spatialIdx]->unk00.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
+        if (!(D_800D9630[spatialIdx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
             return 1;
         }
-        if ((s16)D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[0].y >= 0) {
-            D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[0].y = arg3;
+        if ((s16)D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y >= 0) {
+            D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y = arg3;
             if (arg2 != 0) {
                 D_800D9630[spatialIdx]->frameTimer = arg2;
                 D_800D9630[spatialIdx]->timerReload = arg2;
@@ -957,37 +957,37 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
                 D_800D9630[spatialIdx]->timerReload = rand() % 8 + 1;
             }
         } else {
-            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[0].y;
-            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[0].y;
+            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y;
+            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_10;
-        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frameCount;
+        D_800D9630[spatialIdx]->frameIdx = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount;
         break;
     case 0x2F:
-        if (!(D_800D9630[spatialIdx]->unk00.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
+        if (!(D_800D9630[spatialIdx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
             return 1;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_20;
-        rect.w = D_800D9630[spatialIdx]->unk00.model->textureAnimation->width;
-        rect.h = D_800D9630[spatialIdx]->unk00.model->textureAnimation->height;
-        rect.x = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[1].x;
-        rect.y = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[1].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.model->textureAnimation->destX, D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[0].x);
+        rect.w = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->width;
+        rect.h = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->height;
+        rect.x = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[1].x;
+        rect.y = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[1].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->destX, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].x);
         break;
     case 0x2E:
-        if (!(D_800D9630[spatialIdx]->unk00.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
+        if (!(D_800D9630[spatialIdx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
             return 1;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_40;
-        rect.w = D_800D9630[spatialIdx]->unk00.model->textureAnimation->width;
-        rect.h = D_800D9630[spatialIdx]->unk00.model->textureAnimation->height;
+        rect.w = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->width;
+        rect.h = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->height;
         // matching hack
-        rect.x = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frameCount[D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames].x;
-        rect.y = D_800D9630[spatialIdx]->unk00.model->textureAnimation->frameCount[D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->unk00.model->textureAnimation->destX, D_800D9630[spatialIdx]->unk00.model->textureAnimation->frames[0].x);
+        rect.x = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount[D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames].x;
+        rect.y = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount[D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames].y;
+        MoveImage(&rect, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->destX, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].x);
         break;
     case 0x25:
         D_800D9630[spatialIdx]->cachedAnimationStart = (SVECTOR *)-1;
@@ -1042,25 +1042,25 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         for (i = 0; i < 2; i++) {
             g3 = D_800D9630[spatialIdx]->primBuffers[i];
             D_800D5EE0[i] = g3;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->unk30; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->unk30; j++) {
                 SetSemiTrans(g3, arg2);
                 g3++;
             }
             g4 = (POLY_G4 *)g3;
             D_800D5EE8[i] = g4;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->unk34; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->unk34; j++) {
                 SetSemiTrans(g4, arg2);
                 g4++;
             }
             ft3 = (POLY_FT3 *)g4;
             D_800D6600[i] = ft3;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->triangleCount; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->triangleCount; j++) {
                 SetSemiTrans(ft3, arg2);
                 ft3++;
             }
             ft4 = (POLY_FT4 *)ft3;
             D_800D6610[i] = ft4;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->quadCount; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->quadCount; j++) {
                 SetSemiTrans(ft4, arg2);
                 ft4++;
             }
@@ -1073,7 +1073,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         for (i = 0; i < 2; i++) {
             g3 = D_800D9630[spatialIdx]->primBuffers[i];
             D_800D5EE0[i] = g3;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->unk30; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->unk30; j++) {
                 g3->r0 = color.r;
                 g3->g0 = color.g;
                 g3->b0 = color.b;
@@ -1087,7 +1087,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
             }
             g4 = (POLY_G4 *)g3;
             D_800D5EE8[i] = g4;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->unk34; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->unk34; j++) {
                 g4->r0 = color.r;
                 g4->g0 = color.g;
                 g4->b0 = color.b;
@@ -1101,7 +1101,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
             }
             ft3 = (POLY_FT3 *)g4;
             D_800D6600[i] = ft3;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->triangleCount; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->triangleCount; j++) {
                 ft3->r0 = color.r;
                 ft3->g0 = color.g;
                 ft3->b0 = color.b;
@@ -1109,7 +1109,7 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
             }
             ft4 = (POLY_FT4 *)ft3;
             D_800D6610[i] = ft4;
-            for (j = 0; j < D_800D9630[spatialIdx]->unk00.model->quadCount; j++) {
+            for (j = 0; j < D_800D9630[spatialIdx]->modelSlot.model->quadCount; j++) {
                 ft4->r0 = color.r;
                 ft4->g0 = color.g;
                 ft4->b0 = color.b;
@@ -1129,7 +1129,7 @@ void func_800AA46C(s32 spatialIdx, s32 cmd, u32 arg, s32 arg4) {
     u32 first;
     u32 second;
 
-    if (D_800D9630[spatialIdx]->unk00.modelId != NO_MODEL && cmd == 13) {
+    if (D_800D9630[spatialIdx]->modelSlot.modelId != NO_MODEL && cmd == 13) {
         if (arg >= D_800D9630[spatialIdx]->animationCount) {
             func_800ACBCC(spatialIdx, D_800D9630[spatialIdx]->animationCount, arg, 0);
             SystemError(0x53, 0x17);
@@ -1184,8 +1184,8 @@ s32 func_800AA5F8(s32 idx) {
     u8 flags;
     s16 per;
 
-    period = D_800D9630[idx]->unk00.model->textureAnimation->frames[0].y;
-    if (!(D_800D9630[idx]->unk00.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
+    period = D_800D9630[idx]->modelSlot.model->textureAnimation->frames[0].y;
+    if (!(D_800D9630[idx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
         return 1;
     }
 
@@ -1222,19 +1222,19 @@ s32 func_800AA5F8(s32 idx) {
     if (D_800D9630[idx]->frameIdx == 0) {
         D_800D9630[idx]->animFlags &= 0x0F;
         D_800D9630[idx]->animFlags |= 0x80;
-        D_800D9630[idx]->frameIdx = D_800D9630[idx]->unk00.model->textureAnimation->frameCount;
+        D_800D9630[idx]->frameIdx = D_800D9630[idx]->modelSlot.model->textureAnimation->frameCount;
     }
 
-    D_800D5ED8.w = D_800D9630[idx]->unk00.model->textureAnimation->width;
-    D_800D5ED8.h = D_800D9630[idx]->unk00.model->textureAnimation->height;
+    D_800D5ED8.w = D_800D9630[idx]->modelSlot.model->textureAnimation->width;
+    D_800D5ED8.h = D_800D9630[idx]->modelSlot.model->textureAnimation->height;
     /* frameIdx[frames] is frames[frameIdx]; the swapped index keeps the array
        index in the first addu operand, matching the original codegen. */
-    D_800D5ED8.x = D_800D9630[idx]->frameIdx[D_800D9630[idx]->unk00.model->textureAnimation->frames].x;
-    D_800D5ED8.y = D_800D9630[idx]->frameIdx[D_800D9630[idx]->unk00.model->textureAnimation->frames].y;
+    D_800D5ED8.x = D_800D9630[idx]->frameIdx[D_800D9630[idx]->modelSlot.model->textureAnimation->frames].x;
+    D_800D5ED8.y = D_800D9630[idx]->frameIdx[D_800D9630[idx]->modelSlot.model->textureAnimation->frames].y;
 
     MoveImage(&D_800D5ED8,
-              D_800D9630[idx]->unk00.model->textureAnimation->destX,
-              D_800D9630[idx]->unk00.model->textureAnimation->frames[0].x);
+              D_800D9630[idx]->modelSlot.model->textureAnimation->destX,
+              D_800D9630[idx]->modelSlot.model->textureAnimation->frames[0].x);
     return 0;
 }
 
