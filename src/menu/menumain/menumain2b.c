@@ -27,11 +27,6 @@
 #define STATUS_ICON_MASK (STATUS_POISON | STATUS_PETRIFY | STATUS_DARKNESS | STATUS_SILENCE | \
     STATUS_BERSERK | STATUS_ZOMBIE)
 
-typedef struct {
-    u8 unk0;
-    u8 unk1;
-} ST_D_801FAB98;
-
 extern u8 D_800562A4;
 extern u8 D_801F7DF4;
 extern u8 D_801F7E00;
@@ -39,7 +34,6 @@ extern u8 D_801F7E0C;
 extern u8 D_801F7F90[];
 extern u8 D_801F8BB8[];
 extern u8 D_801FAB7C;
-extern ST_D_801FAB98 D_801FAB98[];
 extern u8 D_801FABC4[4];
 extern u16 D_801FACE2;
 extern u16 D_801FACE4;
