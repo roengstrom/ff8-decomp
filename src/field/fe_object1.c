@@ -2155,7 +2155,7 @@ void func_8009CEE8(void) {
         angleTable[i] = 0x100;
         if (i == D_8005F148) continue;
         if (g_fieldActors[i].field_0x24B != 0) continue;
-        if (g_fieldActors[i].modelId == -1) continue;
+        if (g_fieldActors[i].modelId == NO_MODEL) continue;
         entPos[0] = g_fieldActors[i].posX >> 12;
         entPos[1] = g_fieldActors[i].posY >> 12;
         entPos[2] = g_fieldActors[i].posZ >> 12;
@@ -2174,7 +2174,7 @@ void func_8009CEE8(void) {
     best = 0x40;
     bestIdx = D_8005F148;
     for (i = 0; i < g_fieldActorCount; i++) {
-        if (g_fieldActors[i].modelId == -1) continue;
+        if (g_fieldActors[i].modelId == NO_MODEL) continue;
         if (angleTable[i] < (s16)best) {
             best = (u16)angleTable[i];
             bestIdx = i;
@@ -2770,10 +2770,10 @@ s32 func_8009E468(s16 selfIdx, Vec3i *pos) {
     s16 i;
 
     selfRadius = g_fieldActors[selfIdx].radius;
-    if (g_fieldActors[selfIdx].modelId != -1) {
+    if (g_fieldActors[selfIdx].modelId != NO_MODEL) {
         for (i = 0; i < g_fieldActorCount; i++) {
             if (i == selfIdx) continue;
-            if (g_fieldActors[i].modelId == -1) continue;
+            if (g_fieldActors[i].modelId == NO_MODEL) continue;
             dz = (g_fieldActors[i].posZ >> 12) - pos->z;
             if ((u32)(dz + 0x7E) >= 0xFE) continue;
             dx = (g_fieldActors[i].posX - pos->x) >> 12;

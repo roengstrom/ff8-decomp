@@ -3,7 +3,9 @@
 
 #include "common.h"
 #include "lzs.h"
+#include "mch.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 
 /*
  * ============================================================================
@@ -478,6 +480,8 @@ typedef struct {
     /* 0x263 */ u8 field_0x263;
 } Actor;
 
+#define NO_MODEL -1
+
 /** @brief Push one s32 onto the actor's bytecode stack. */
 #define PUSH(ctx, val) (((s32 *)(ctx))[(s8)(++(ctx)->stackPtr)] = (val))
 
@@ -515,50 +519,30 @@ extern u16 g_seedSalaryTable[];
 /** @brief Field-only party-member status predicate (used by dialog opcodes). */
 extern s32 func_800211B4(s32 partyMember, s32 code);
 
-/**
- * @brief Per-entity render slot (rotational/animation state).
- *
- * One slot per field-engine entity, addressed via @ref D_800D9630. The
- * full structure is around 0x64 bytes; only the fields touched by the
- * opcode handlers are named so far.
- */
-/**
- * @brief One animation frame: destination X/Y for the sprite rect.
- */
-typedef struct {
-    u16 x;
-    u16 y;
-} EntityAnimFrame; /* 4 bytes */
+#define FIELD_OBJECT_FLAG_1 0x1
 
-/**
- * @brief Animation descriptor referenced by @ref EntityDef.
- *
- * A short header (sprite rect size, frame-reload count, source X) followed
- * by the per-frame destination-coordinate table. The animation loop period
- * is stored in the first frame's @c y slot (@c frames[0].y).
- */
 typedef struct {
-    u8 pad0[3];
-    u8 rectW;                 /**< 0x03 — sprite rect width. */
-    u8 rectH;                 /**< 0x04 — sprite rect height. */
-    u8 frameReload;           /**< 0x05 — value reloaded into @c slot->frameIdx. */
-    u16 srcX;                 /**< 0x06 — source X passed to the frame loader. */
-    EntityAnimFrame frames[1];/**< 0x08 — per-frame dest coords; @c frames[0].y doubles as the loop period. */
-} EntityAnimData;
-
-/**
- * @brief Entity definition/template referenced by @ref EntityRenderSlot.
- */
-typedef struct {
-    u8 pad00[0x14];
-    EntityAnimData *anim;     /**< 0x14 — animation descriptor. */
-    u8 pad18[0x47];
-    u8 unk5F;                 /**< 0x5F — bit 0 set = entity is animated. */
-} EntityDef;
+    /** 0x00 */ u8 pad00[0x14];
+    /** 0x14 */ MchTexAnim *anim;
+    /** 0x18 */ u8 pad18[0x04];
+    /** 0x1C */ MchDrawGroup *drawGroups;
+    /** 0x20 */ MchSkinObject *skinObjects;
+    /** 0x24 */ s32 drawGroupCount;
+    /** 0x28 */ u8 pad28[0x08];
+    /** 0x30 */ s32 unk30;
+    /** 0x34 */ s32 unk34;
+    /** 0x38 */ s32 unk38;
+    /** 0x3C */ s32 unk3C;
+    /** 0x40 */ u8 pad40[0x0C];
+    /** 0x4C */ u32 signature;
+    /** 0x50 */ u16 field50;
+    /** 0x52 */ u8 pad52[0x0D];
+    /** 0x5F */ u8 unk5F; // bit 0 set = entity is animated
+} Model;
 
 /**
  * @brief The four consecutive @c s32 transform words at offset @c 0x20 of an
- *        @ref EntityRenderSlot, modelled as one 16-byte block.
+ *        @ref ModelInstance, modelled as one 16-byte block.
  *
  * @c func_800A74B4 mode 0 overwrites all four at once via a single aggregate
  * copy; the compiler emits that as a 4-word load-all/store-all block, which is
@@ -571,11 +555,24 @@ typedef struct {
     s32 field2C;     /**< Mode-0 only (mode-1 leaves it untouched). */
 } EntityRenderXform;
 
+#define ENTITY_RENDER_FLAG_2 0x02
+#define ENTITY_RENDER_FLAG_4 0x04
+#define ENTITY_RENDER_FLAG_20 0x20
+#define ENTITY_RENDER_FLAG_40 0x40
+
+#define ENTITY_ANIM_FLAG_10 0x10
+#define ENTITY_ANIM_FLAG_20 0x20
+#define ENTITY_ANIM_FLAG_40 0x40
+
 typedef struct {
-    EntityDef *def;  /**< 0x00 — entity definition/template. */
-    u8 pad04[0x08];
+    /** 0x00 */ union {
+        Model *def; // entity definition/template
+        s32 modelId;
+    } unk00;
+    MchBone *bones;
+    SVECTOR *unk08;
     u16 unk0C;
-    u8 pad0E[0x02];
+    u16 unk0E;
     u16 unk10;       /**< Cleared on init by @c func_800A8CDC. */
     u16 unk12;       /**< Init to @c 0x190 by @c func_800A8CDC. */
     u16 unk14;       /**< Cleared on init. */
@@ -585,21 +582,27 @@ typedef struct {
     u16 unk1C;       /**< Cleared on init. */
     u8 pad1E[0x02];
     EntityRenderXform xform;  /**< 0x20 — transform block (field20..field2C); see @c func_800A74B4. */
-    u8 pad30[0x20];
+    MATRIX unk30;
     u16 unk50;       /**< Cleared on init. */
     u16 unk52;       /**< Current motion halfword (mirror of Actor @c field_0x206). */
-    u8 pad54[0x0C];
+    u8 pad54[0x04];
+    POLY_G3 *unk58[2];
     u8 unk60;
     u8 unk61;
     u16 unk62;
-    u8 pad64[0x02];
+    u16 unk64;
     u8 frameTimer;   /**< 0x66 — per-frame countdown; on expiry the frame advances. */
-    u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameReload). */
-    u8 pad68[0x0A];
+    u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameCount). */
+    u16 *unk68;
+    CVECTOR *unk6C;
+    u8 headBone;
+    u8 bodyBone;
     u8 animFlags;    /**< 0x72 — bit0x80 = retrigger, bit0x10 = active, low nibble reused. */
     u8 pad73;
     u8 timerReload;  /**< 0x74 — reload value for frameTimer when the period is non-negative. */
-    u8 pad75[0x09];
+    u8 pad75[0x03];
+    SVECTOR *unk78;
+    u16 unk7C;
     u16 unk7E;       /**< 0x7E — animation id currently playing; @c func_8009B4A8 resets @c unk52 when it changes. */
     u8 pad80[0x04];
     u16 field84;     /**< 0x84 — snapshot of @c unk10 (dirty-check by @c func_800A7224). */
@@ -611,10 +614,10 @@ typedef struct {
     s16 field90;     /**< 0x90 — snapshot of @c unk1C. */
     u8 pad92[0x06];
     s32 subBuffer;   /**< @c 0x98 — caller of @c func_800A8CDC uses the returned @c &subBuffer pointer. */
-} EntityRenderSlot;
+} ModelInstance;
 
 /** @brief Entity render-slot pointer table; indexed by @c actor->selfIndex. */
-extern EntityRenderSlot *D_800D9630[];
+extern ModelInstance *D_800D9630[];
 
 /** @brief Entity Actor pointer table; indexed by raw field-entity id. */
 extern Actor *D_80085230[];

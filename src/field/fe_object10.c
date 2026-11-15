@@ -78,7 +78,7 @@ s32 opHandler_OP167(Actor *actor) {
     s16 buf[4];
     actor->context.stackPtr = idx - 1;
     func_800BD250(actor->context.stack[(s8)idx], buf);
-    func_800A9434(actor->selfIndex, 0x30, 1, (u8 *)buf, 0x1E);
+    func_800A9434(actor->selfIndex, 0x30, 1, buf, 0x1E);
     return 2;
 }
 
@@ -99,7 +99,7 @@ s32 opHandler_OP168(Actor *actor) {
     buf[0] = -buf[0];
     buf[1] = -buf[1];
     buf[2] = -buf[2];
-    func_800A9434(actor->selfIndex, 0x30, 1, (u8 *)buf, 0x1E);
+    func_800A9434(actor->selfIndex, 0x30, 1, buf, 0x1E);
     return 2;
 }
 
@@ -766,7 +766,7 @@ Actor *InitActors(Actor *buf) {
         actor->field_0x244 = 0;
         actor->field_0x24E = 0xFF;
         actor->animationSpeed = 0x10;
-        actor->modelId = -1;
+        actor->modelId = NO_MODEL;
         actor->radius = 0x30;
         actor->talkRadius = 0x80;
 
