@@ -1253,7 +1253,7 @@ s32 opHandler_UCON(void) {
  *
  * Per-slot processing calls @c func_800AA46C, copies the entity's
  * @c field_0x24F into @c field_0x24E, zeroes @c field_0x206 / @c 0x20A,
- * loads @c field_0x20C from @c D_800D9630[slot]->unk0C, masks the
+ * loads @c field_0x20C from @c D_800D9630[slot]->animationLength, masks the
  * entity flags to bits 0x0000F800 → 0x00002000, and clears bit 0x4.
  */
 s32 opHandler_UCOFF(void) {
@@ -1272,7 +1272,7 @@ s32 opHandler_UCOFF(void) {
         g_fieldActors[g_fieldVars->memberSlot[0]].field_0x206 = 0;
         g_fieldActors[g_fieldVars->memberSlot[0]].field_0x20A = 0;
         g_fieldActors[g_fieldVars->memberSlot[0]].field_0x20C =
-            D_800D9630[g_fieldVars->memberSlot[0]]->unk0C;
+            D_800D9630[g_fieldVars->memberSlot[0]]->animationLength;
         g_fieldActors[g_fieldVars->memberSlot[0]].context.flags &= 0xFFFF07FF;
         g_fieldActors[g_fieldVars->memberSlot[0]].context.flags |= 0x2000;
         g_fieldActors[g_fieldVars->memberSlot[0]].context.flags &= ~4;
@@ -1286,7 +1286,7 @@ s32 opHandler_UCOFF(void) {
         g_fieldActors[g_fieldVars->memberSlot[1]].field_0x206 = 0;
         g_fieldActors[g_fieldVars->memberSlot[1]].field_0x20A = 0;
         g_fieldActors[g_fieldVars->memberSlot[1]].field_0x20C =
-            D_800D9630[g_fieldVars->memberSlot[1]]->unk0C;
+            D_800D9630[g_fieldVars->memberSlot[1]]->animationLength;
         g_fieldActors[g_fieldVars->memberSlot[1]].context.flags &= 0xFFFF07FF;
         g_fieldActors[g_fieldVars->memberSlot[1]].context.flags |= 0x2000;
         g_fieldContext.entityIndex[1] = 0xFF;
@@ -1301,7 +1301,7 @@ s32 opHandler_UCOFF(void) {
         g_fieldActors[g_fieldVars->memberSlot[2]].field_0x206 = 0;
         g_fieldActors[g_fieldVars->memberSlot[2]].field_0x20A = 0;
         g_fieldActors[g_fieldVars->memberSlot[2]].field_0x20C =
-            D_800D9630[g_fieldVars->memberSlot[2]]->unk0C;
+            D_800D9630[g_fieldVars->memberSlot[2]]->animationLength;
         g_fieldActors[g_fieldVars->memberSlot[2]].context.flags &= 0xFFFF07FF;
         g_fieldActors[g_fieldVars->memberSlot[2]].context.flags |= 0x2000;
         g_fieldContext.entityIndex[2] = 0xFF;

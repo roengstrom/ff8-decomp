@@ -10,15 +10,15 @@
 #include "field.h"
 #include "field/fe_object1.h"
 
-extern int  func_800A63AC();
-extern int  func_800A6A80();
+extern void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2);
+extern void func_800A6A80(s32 arg0, s32 arg1, ModelInstance **arg2);
 extern void func_800A7194(void);
 extern void func_800A7224(s32 idx, u16 *vals, s32 mode);
 extern void func_800A736C(s32 idx, u16 *vals, s32 mode);
 extern void func_800A74B4(s32 idx, EntityRenderXform *vals, s32 mode);
-extern int  func_800A7564();
-extern s32  func_800A8058(s32 idx, s32 arg1, Model *newObj, u8 count);
-extern int  func_800A81AC();
+extern void *func_800A7564(MchModelHeader *arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void *func_800A8058(s32 idx, MchModelHeader *arg1, Model *newObj, u8 count);
+extern POLY_FT4 *func_800A81AC(s32 arg0, s32 arg1, ModelInstance *arg2);
 extern s32 *func_800A8CDC(s32 idx, s32 firstWord, ModelInstance *slot);
 extern void *func_800A8DAC(s32 spatialIdx, s32 cmd, void *arg, void *out);
 extern void func_800A91C8(s32 arg0, s32 arg1, s32 arg2, SVECTOR *arg3);

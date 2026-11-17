@@ -46,8 +46,8 @@ s32 opHandler_BLINKEYES(Actor *actor) {
  * cmd table @c func_800AA46C) carrying the sign-extended low byte of
  * @p a1, mirrors @p a1 into @c field_0x24E, zeroes the live motion
  * halfwords (@c field_0x206/20A), snapshots the render slot's
- * @c unk0C into @c field_0x20C, clears the same render slot's
- * @c unk52, and clears the @c 0xF800 flag band. Called by the RANIME
+ * @c animationLength into @c field_0x20C, clears the same render slot's
+ * @c animationPhase, and clears the @c 0xF800 flag band. Called by the RANIME
  * family handlers in this file.
  */
 void func_800B912C(Actor *actor, s16 a1) {
@@ -55,8 +55,8 @@ void func_800B912C(Actor *actor, s16 a1) {
     actor->field_0x24E = a1;
     actor->field_0x206 = 0;
     actor->field_0x20A = 0;
-    actor->field_0x20C = D_800D9630[actor->selfIndex]->unk0C;
-    D_800D9630[actor->selfIndex]->unk52 = actor->field_0x206;
+    actor->field_0x20C = D_800D9630[actor->selfIndex]->animationLength;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
     actor->context.flags &= ~0xF800;
 }
 
@@ -67,7 +67,7 @@ void func_800B912C(Actor *actor, s16 a1) {
  * (infinite-loops on mismatch). Encodes the popped halfwords @p a2 and
  * @p a3 as @c (n-1)<<4 into @c field_0x20A and @c field_0x20C, mirrors
  * the byte arg into @c field_0x24E, copies @c field_0x20A into the live
- * motion halfword @c field_0x206 and into the render slot's @c unk52,
+ * motion halfword @c field_0x206 and into the render slot's @c animationPhase,
  * then dispatches motion command @c 0xD with byte arg @p a1 via
  * @c func_800AA46C and clears flag band @c 0xF800.
  */
@@ -79,7 +79,7 @@ void func_800B91D8(Actor *actor, s32 a1, s32 a2, s32 a3) {
     actor->field_0x20C = (a3 - 1) << 4;
     actor->field_0x24E = a1;
     actor->field_0x206 = actor->field_0x20A;
-    D_800D9630[actor->selfIndex]->unk52 = actor->field_0x20A;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x20A;
     func_800AA46C(actor->selfIndex, 0xD, a1, 0);
     actor->context.flags &= ~0xF800;
 }
@@ -96,7 +96,7 @@ void func_800B91D8(Actor *actor, s32 a1, s32 a2, s32 a3) {
  * flag bits 0x2000 (loop-rewind), 0x8000 (loop-step-back), or
  * 0x4000 (one-shot via @c func_800B912C), and sets the completion
  * flag 0x800. Otherwise clears flag 0x800. Always writes
- * @c field_0x206 into the render slot's @c unk52 at the end (unless
+ * @c field_0x206 into the render slot's @c animationPhase at the end (unless
  * the early @c 0x4 disable bit was set on entry).
  */
 void func_800B9288(Actor *actor) {
@@ -152,7 +152,7 @@ void func_800B9288(Actor *actor) {
     } else {
         actor->context.flags &= ~0x800;
     }
-    D_800D9630[actor->selfIndex]->unk52 = actor->field_0x206;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
 }
 
 /**
@@ -179,7 +179,7 @@ s32 opHandler_PUSHANIME(Actor *actor) {
  * the live motion state (@c field_0x206/208/20A/20C), mirrors
  * @c field_0x24D into @c field_0x24E, dispatches motion command
  * @c 0xD via @c func_800AA46C, copies @c field_0x206 into the render
- * slot's @c unk52, and restores the saved 0xF800 flag band from
+ * slot's @c animationPhase, and restores the saved 0xF800 flag band from
  * @c field_0x20E.
  */
 s32 opHandler_POPANIME(Actor *actor) {
@@ -189,7 +189,7 @@ s32 opHandler_POPANIME(Actor *actor) {
     actor->field_0x20A = actor->field_0x214;
     actor->field_0x20C = actor->field_0x216;
     func_800AA46C(actor->selfIndex, 0xD, actor->field_0x24E, 0);
-    D_800D9630[actor->selfIndex]->unk52 = actor->field_0x206;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
     actor->context.flags &= ~0xF800;
     actor->field_0x20E &= 0xF800;
     actor->context.flags |= actor->field_0x20E;
@@ -462,7 +462,7 @@ s32 opHandler_SETGETA(Actor *actor) {
  * Pop one halfword from the script stack and store it into
  * @c actor->field_0x220. If @c D_800DE8CC bit @c 0x2 is clear, also
  * store the same halfword into the entity's render slot at
- * @c D_800D9630[actor->selfIndex]->unk62.
+ * @c D_800D9630[actor->selfIndex]->heightOffset.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (advance PC).
@@ -471,7 +471,7 @@ s32 opHandler_SETROOTTRANS(Actor *actor) {
     u16 half = POP(&actor->context);
     *(volatile u16 *)&actor->field_0x220 = half;
     if (!(D_800DE8CC & 0x2)) {
-        D_800D9630[actor->selfIndex]->unk62 = half;
+        D_800D9630[actor->selfIndex]->heightOffset = half;
     }
     return 2;
 }

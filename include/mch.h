@@ -17,7 +17,7 @@ typedef struct {
 typedef struct {
     /** 0x00 */ u16 x;
     /** 0x02 */ u16 y;
-} MchTexAnimFrame;
+} MchTextureAnimationFrame;
 
 typedef struct {
     /** 0x00 */ u8 pad0[3];
@@ -25,8 +25,8 @@ typedef struct {
     /** 0x04 */ u8 height;
     /** 0x05 */ u8 frameCount;
     /** 0x06 */ u16 destX;
-    /** 0x08 */ MchTexAnimFrame frames[1]; // FIXME: frames[0] holds destY and period, the frames start at frames[1]
-} MchTexAnim;
+    /** 0x08 */ MchTextureAnimationFrame frames[1]; // FIXME: frames[0] holds destY and period, the frames start at frames[1]
+} MchTextureAnimation;
 
 typedef struct {
     /** 0x00 */ s16 firstVertexIndex; // index to the first vertex of this skin in the shared vertex list
@@ -40,10 +40,7 @@ typedef struct {
     /** 0x02 */ s16 skinObjectCount;
     /** 0x04 */ s16 unk4;
     /** 0x06 */ u8 pad6[0x02];
-    /** 0x08 */ s16 unk8;
-    /** 0x0A */ s16 unkA;
-    /** 0x0C */ s16 unkC;
-    /** 0x0E */ u16 field0E;
+    /** 0x08 */ SVECTOR unk8;
     /** 0x10 */ s16 firstTriangleIndex;
     /** 0x12 */ s16 triangleCount;
     /** 0x14 */ s16 firstQuadIndex;
@@ -53,5 +50,27 @@ typedef struct {
 
 #define MCH_DRAW_GROUP_FLAG_1 0x1
 #define MCH_DRAW_GROUP_FLAG_2 0x2
+#define MCH_DRAW_GROUP_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ s32 boneCount;
+    /** 0x04 */ u32 vertexCount;
+    /** 0x08 */ s32 textureAnimationSectionSize;
+    /** 0x0C */ s32 faceCount;
+    /** 0x10 */ s32 drawGroupCount;
+    /** 0x14 */ s32 skinObjectCount;
+    /** 0x18 */ u16 untexturedTriangleCount;
+    /** 0x1A */ u16 untexturedQuadCount;
+    /** 0x1C */ u16 texturedTriangleCount;
+    /** 0x1E */ u16 texturedQuadCount;
+    /** 0x20 */ s32 boneSectionOffset;
+    /** 0x24 */ s32 vertexSectionOffset;
+    /** 0x28 */ s32 textureAnimationSectionOffset;
+    /** 0x2C */ s32 faceSectionOffset;
+    /** 0x30 */ s32 drawGroupSectionOffset;
+    /** 0x34 */ s32 skinObjectSectionOffset;
+    /** 0x38 */ u16 *animationSection;
+    /** 0x3C */ u32 specialBones;
+} MchModelHeader;
 
 #endif

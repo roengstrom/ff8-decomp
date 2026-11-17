@@ -519,25 +519,83 @@ extern u16 g_seedSalaryTable[];
 /** @brief Field-only party-member status predicate (used by dialog opcodes). */
 extern s32 func_800211B4(s32 partyMember, s32 code);
 
-#define FIELD_OBJECT_FLAG_1 0x1
+#define MODEL_FLAG_TEXTURE_ANIMATION 0x1
 
 typedef struct {
-    /** 0x00 */ u8 pad00[0x14];
-    /** 0x14 */ MchTexAnim *anim;
-    /** 0x18 */ u8 pad18[0x04];
+    /** 0x00 */ u8 pad0[0x0C];
+    /** 0x0C */ CVECTOR unkC;
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ CVECTOR unk14;
+} ModelUnk04;
+
+typedef struct {
+    /** 0x00 */ u8 pad0[0x10];
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ CVECTOR unk14;
+    /** 0x18 */ CVECTOR unk18;
+    /** 0x1C */ CVECTOR unk1C;
+} ModelUnk08;
+
+typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u16 unk2;
+    /** 0x04 */ u16 unk4;
+    /** 0x06 */ u16 unk6;
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ s32 unk14;
+} ModelTriangle;
+
+#define MODEL_TRIANGLE_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u16 unk2;
+    /** 0x04 */ u16 unk4;
+    /** 0x06 */ u16 unk6;
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ u16 unk10;
+    /** 0x12 */ u16 unk12;
+    /** 0x14 */ CVECTOR unk14;
+    /** 0x18 */ s32 unk18;
+} ModelQuad;
+
+#define MODEL_QUAD_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ MchBone *boneTemplate;
+    /** 0x04 */ ModelUnk04 *unk04;
+    /** 0x08 */ ModelUnk08 *unk08;
+    /** 0x0C */ ModelTriangle *triangles;
+    /** 0x10 */ ModelQuad *quads;
+    /** 0x14 */ MchTextureAnimation *textureAnimation;
+    /** 0x18 */ SVECTOR *vertices;
     /** 0x1C */ MchDrawGroup *drawGroups;
     /** 0x20 */ MchSkinObject *skinObjects;
     /** 0x24 */ s32 drawGroupCount;
-    /** 0x28 */ u8 pad28[0x08];
+    /** 0x28 */ s32 skinObjectCount;
+    /** 0x2C */ s32 boneCount;
     /** 0x30 */ s32 unk30;
     /** 0x34 */ s32 unk34;
-    /** 0x38 */ s32 unk38;
-    /** 0x3C */ s32 unk3C;
-    /** 0x40 */ u8 pad40[0x0C];
+    /** 0x38 */ s32 triangleCount;
+    /** 0x3C */ s32 quadCount;
+    /** 0x40 */ SVECTOR *ownAnimations;
+    /** 0x44 */ u8 pad44[0x08];
     /** 0x4C */ u32 signature;
     /** 0x50 */ u16 field50;
-    /** 0x52 */ u8 pad52[0x0D];
-    /** 0x5F */ u8 unk5F; // bit 0 set = entity is animated
+    /** 0x52 */ u16 animationCount;
+    /** 0x54 */ u16 *animationTable;
+    /** 0x58 */ SVECTOR *animations;
+    /** 0x5C */ u8 headBone;
+    /** 0x5D */ u8 bodyBone;
+    /** 0x5E */ u8 extraBone;
+    /** 0x5F */ u8 flags;
 } Model;
 
 /**
@@ -555,9 +613,12 @@ typedef struct {
     s32 field2C;     /**< Mode-0 only (mode-1 leaves it untouched). */
 } EntityRenderXform;
 
+#define RENDER_FLAG_HIDDEN 0x01
 #define ENTITY_RENDER_FLAG_2 0x02
 #define ENTITY_RENDER_FLAG_4 0x04
-#define ENTITY_RENDER_FLAG_20 0x20
+#define ENTITY_RENDER_FLAG_8 0x08
+#define ENTITY_RENDER_FLAG_10 0x10
+#define RENDER_FLAG_EXTRA_BONE_HIDDEN 0x20
 #define ENTITY_RENDER_FLAG_40 0x40
 
 #define ENTITY_ANIM_FLAG_10 0x10
@@ -565,55 +626,56 @@ typedef struct {
 #define ENTITY_ANIM_FLAG_40 0x40
 
 typedef struct {
-    /** 0x00 */ union {
-        Model *def; // entity definition/template
+    /* 0x00 */ union {
+        Model *model;
         s32 modelId;
-    } unk00;
-    MchBone *bones;
-    SVECTOR *unk08;
-    u16 unk0C;
-    u16 unk0E;
-    u16 unk10;       /**< Cleared on init by @c func_800A8CDC. */
-    u16 unk12;       /**< Init to @c 0x190 by @c func_800A8CDC. */
-    u16 unk14;       /**< Cleared on init. */
-    u8 pad16[0x02];
-    u16 unk18;       /**< Cleared on init. */
-    u16 unk1A;       /**< Cleared on init. */
-    u16 unk1C;       /**< Cleared on init. */
-    u8 pad1E[0x02];
-    EntityRenderXform xform;  /**< 0x20 — transform block (field20..field2C); see @c func_800A74B4. */
-    MATRIX unk30;
-    u16 unk50;       /**< Cleared on init. */
-    u16 unk52;       /**< Current motion halfword (mirror of Actor @c field_0x206). */
-    u8 pad54[0x04];
-    POLY_G3 *unk58[2];
-    u8 unk60;
-    u8 unk61;
-    u16 unk62;
-    u16 unk64;
-    u8 frameTimer;   /**< 0x66 — per-frame countdown; on expiry the frame advances. */
-    u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameCount). */
-    u16 *unk68;
-    CVECTOR *unk6C;
-    u8 headBone;
-    u8 bodyBone;
-    u8 animFlags;    /**< 0x72 — bit0x80 = retrigger, bit0x10 = active, low nibble reused. */
-    u8 pad73;
-    u8 timerReload;  /**< 0x74 — reload value for frameTimer when the period is non-negative. */
-    u8 pad75[0x03];
-    SVECTOR *unk78;
-    u16 unk7C;
-    u16 unk7E;       /**< 0x7E — animation id currently playing; @c func_8009B4A8 resets @c unk52 when it changes. */
-    u8 pad80[0x04];
-    u16 field84;     /**< 0x84 — snapshot of @c unk10 (dirty-check by @c func_800A7224). */
-    u16 field86;     /**< 0x86 — snapshot of @c unk12. */
-    s16 field88;     /**< 0x88 — snapshot of @c unk14. */
-    u8 pad8A[0x02];
-    u16 field8C;     /**< 0x8C — snapshot of @c unk18 (dirty-check by @c func_800A736C). */
-    u16 field8E;     /**< 0x8E — snapshot of @c unk1A. */
-    s16 field90;     /**< 0x90 — snapshot of @c unk1C. */
-    u8 pad92[0x06];
-    s32 subBuffer;   /**< @c 0x98 — caller of @c func_800A8CDC uses the returned @c &subBuffer pointer. */
+    } modelSlot;
+    /* 0x04 */ MchBone *bones;
+    /* 0x08 */ SVECTOR *animationStart;
+    /* 0x0C */ u16 animationLength;
+    /* 0x0E */ u16 posesPerFrame;
+    /* 0x10 */ u16 unk10;
+    /* 0x12 */ u16 unk12;
+    /* 0x14 */ u16 unk14;
+    /* 0x16 */ u8 pad16[0x02];
+    /* 0x18 */ u16 unk18;
+    /* 0x1A */ u16 unk1A;
+    /* 0x1C */ u16 unk1C;
+    /* 0x1E */ u8 pad1E[0x02];
+    /* 0x20 */ EntityRenderXform xform;
+    /* 0x30 */ MATRIX unk30;
+    /* 0x50 */ u16 unk50;
+    /* 0x52 */ u16 animationPhase;
+    /* 0x54 */ POLY_G3 *prims;
+    /* 0x58 */ POLY_G3 *primBuffers[2];
+    /* 0x60 */ u8 renderFlags;
+    /* 0x61 */ u8 unk61;
+    /* 0x62 */ u16 heightOffset;
+    /* 0x64 */ u16 animationCount;
+    /* 0x66 */ u8 frameTimer;
+    /* 0x67 */ u8 frameIdx;
+    /* 0x68 */ u16 *animationTable;
+    /* 0x6C */ CVECTOR *animations;
+    /* 0x70 */ u8 headBone;
+    /* 0x71 */ u8 bodyBone;
+    /* 0x72 */ u8 animFlags;
+    /* 0x73 */ u8 extraBone;
+    /* 0x74 */ u8 timerReload;
+    /* 0x75 */ u8 pad75[0x03];
+    /* 0x78 */ SVECTOR *cachedAnimationStart;
+    /* 0x7C */ u16 cachedPhase;
+    /* 0x7E */ u16 animationIndex;
+    /* 0x80 */ u16 *primOrderIndices;
+    /* 0x84 */ u16 field84;
+    /* 0x86 */ u16 field86;
+    /* 0x88 */ s16 field88;
+    /* 0x8A */ u8 pad8A[0x02];
+    /* 0x8C */ u16 field8C;
+    /* 0x8E */ u16 field8E;
+    /* 0x90 */ s16 field90;
+    /* 0x92 */ u8 pad92[0x02];
+    /* 0x94 */ SVECTOR *unk94;
+    /* 0x98 */ s32 subBuffer;
 } ModelInstance;
 
 /** @brief Entity render-slot pointer table; indexed by @c actor->selfIndex. */

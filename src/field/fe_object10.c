@@ -1186,13 +1186,13 @@ void func_800BF080(void) {
 
 /**
  * Re-issue motion command @c 0xD to the active spatial entity, then
- * mirror @c field_0x206 into the entity's render slot @c unk52. Used
+ * mirror @c field_0x206 into the entity's render slot @c animationPhase. Used
  * by the dispatch table to keep the renderer in sync after an
  * animation update.
  */
 void func_800BF230(Actor *actor) {
     func_800AA46C(actor->selfIndex, 0xD, actor->field_0x24E, 0);
-    D_800D9630[actor->selfIndex]->unk52 = actor->field_0x206;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
 }
 
 /**
@@ -1207,8 +1207,8 @@ void func_800BF230(Actor *actor) {
  *   - 0x100000  → cmd 0x2E with the per-entity counter slot
  *   - 0x200000  → cmd 0x2F with the entity's @c selfIndex
  *   - 0x80000   → cmd 0x27 with arg3 = @c field_0x263
- * Always copies @c flags-bit-8 into the render slot's @c unk60, plus
- * @c field_0x220 into @c unk62 and @c field_0x257 into @c unk61, and
+ * Always copies @c flags-bit-8 into the render slot's @c renderFlags, plus
+ * @c field_0x220 into @c heightOffset and @c field_0x257 into @c unk61, and
  * issues @c func_800A97E4(selfIndex, 0x10, &entity->unk18A, 0).
  * Two more conditional dispatches follow:
  *   - 0x1000000 → cmd 0x21
@@ -1238,11 +1238,11 @@ void func_800BF28C(s32 a0) {
                 func_800A97E4(e->selfIndex, 0x27, 0, e->field_0x263);
             }
             if (e->context.flags & 8) {
-                D_800D9630[D_800DE4FC]->unk60 = 1;
+                D_800D9630[D_800DE4FC]->renderFlags = 1;
             } else {
-                D_800D9630[D_800DE4FC]->unk60 = 0;
+                D_800D9630[D_800DE4FC]->renderFlags = 0;
             }
-            D_800D9630[D_800DE4FC]->unk62 = e->field_0x220;
+            D_800D9630[D_800DE4FC]->heightOffset = e->field_0x220;
             D_800D9630[D_800DE4FC]->unk61 = e->field_0x257;
             func_800A97E4(e->selfIndex, 0x10, (s32)&e->unk18A, 0);
             if (e->context.flags & 0x1000000) {
