@@ -16,4 +16,6 @@ extern int  func_800AD300();
 extern int  func_800AD570();
 extern int  func_800AD6E0();
 
+extern u8 *D_800D6198[3];
+
 #endif

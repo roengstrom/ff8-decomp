@@ -490,6 +490,8 @@ void SetDrawTPage(void *p, s32 dfe, s32 dtd, u16 tpage);
 void SetTile(void *p);
 void SetSprt(SPRT *p);
 u16 GetClut(s32 x, s32 y);
+u16 LoadClut(u32 *clut, s32 x, s32 y);
+u16 LoadTPage(u32 *pix, s32 tp, s32 abr, s32 x, s32 y, s32 w, s32 h);
 u16 GetTPage(s32 tp, s32 abr, s32 x, s32 y);
 
 #endif /* LIBGPU_H */

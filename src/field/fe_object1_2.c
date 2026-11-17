@@ -387,18 +387,12 @@ void func_800A1C64(void) {
 
 /** @brief Initialize 3 entries in D_800D5F50 and D_800D61A8 arrays to -1. */
 void func_800A1CC0(void) {
-    s32 i = 0;
-    s32 val = -1;
-    u8 *a = D_800D5F50;
-    u8 *b = D_800D61A8;
+    s32 i;
 
-    do {
-        *(s32 *)b = val;
-        *(s32 *)a = val;
-        a += 0x70;
-        i++;
-        b += 0x70;
-    } while (i < 3);
+    for (i = 0; i < 3; i++) {
+        D_800D61A8[i].tag = -1;
+        D_800D5F50[i].tag = -1;
+    }
 }
 
 /**
