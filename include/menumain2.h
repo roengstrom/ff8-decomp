@@ -54,8 +54,14 @@ typedef struct {
     u8 field4B; /**< 0x4B */
 } MainMenuCtx;
 
+typedef struct {
+    u8 unk0;
+    u8 unk1;
+} ST_D_801FAB98;
+
 extern s16 D_801FAB28;
 extern s16 D_801FAB2A;
+extern ST_D_801FAB98 *D_801FAB2C;
 extern u8 D_801FAB30;
 extern u8 D_801FAB31;
 extern u8 D_801FAB7A;
@@ -84,6 +90,7 @@ void func_801F1B10(void);
 void func_801F1B4C(s32);
 void func_801F1CAC(void);
 void func_801F1D2C(s32, s32, s32);
+void func_801F1D34(ST_D_801FAB98 *a0);
 void func_801F1D84(void);
 void func_801F1DB0(s32);
 void func_801F1DBC(s32 a0);

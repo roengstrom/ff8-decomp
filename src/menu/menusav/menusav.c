@@ -214,7 +214,6 @@ s32 writeCardSector(s32, char *, s32, s32, s32);
 void btlMemcpyForward(s32, void *, s32);
 static void func_801EAE74(void);
 static void func_801EAE4C(void);
-void func_801F1D34(s32);
 s32 func_801F6800(u16, s32, s32);
 void func_801F7C98(s32, char *);
 void func_801F7954(void);
