@@ -45,7 +45,7 @@ static void *func_801F36E8(void *ot, void *prim, s32 x, s32 y);
 static void *func_801F39D0(s32, s32, s32, s32, s32, s32);
 static void *func_801F3B64(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color);
 static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3);
-static s32 func_801F42A4(u8 *, s32, s32, s32);
+void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot);
 static s32 func_801F4744(u8 *, s32);
 static s32 func_801F4A98(s32, s32, s32);
 static void func_801F5490(s32);
@@ -953,7 +953,35 @@ void func_801F4274(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
     func_801F4168(a0, a1, a2, a3, a4, a5, 0);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F42A4);
+static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot) {
+    u8 charId = ctx->party[partySlot];
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 yOffset = partySlot * 52;
+    s32 panelY = yOffset + 34;
+    if (charId != PARTY_SLOT_EMPTY) {
+        s32 x;
+        s32 itemY = yOffset + 44;
+        MenuCharData *menuData = &D_801FABC8[charId];
+        CharacterData *charData = &g_gameState.chars[charId];
+        s32 color = func_801F3FB4(menuData->statusFlags);
+        u8 *charName = getCharName(charData->characterId);
+        prim = func_801F3994(charName, ot, prim, 40, itemY, color);
+        x = 162;
+        itemY = yOffset + 46;
+        prim = func_801F3B64(menuData->currentHp, menuData->maxHp, ot, prim, x, itemY, color);
+        prim = func_801F39D0(menuData->currentLevel, ot, prim, 114, itemY, color);
+        itemY = yOffset + 59;
+        x = 98;
+        prim = func_801F3DE4(menuData->currentExp, menuData->expToNextLevel, ot, prim, x, itemY, DIALOG_COLOR_WHITE);
+    }
+    cfg->iconType = ICON_STATUS;
+    cfg->iconSubType = 0;
+    cfg->x = 32;
+    cfg->y = panelY;
+    cfg->w = 232;
+    cfg->h = 50;
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4454);
 
