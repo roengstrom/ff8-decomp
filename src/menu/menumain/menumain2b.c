@@ -40,8 +40,10 @@ extern u16 D_801FACE4;
 extern s32 D_801FACE8;
 
 static void func_801F2458(MainMenuCtx *ctx);
-static s32 func_801F2FAC(s32, s32);
+static void *drawMenuClock(MainMenuCtx *s, void *ot, TSPRT *prim, s32 x, s32 y, u32 time, s32 isPlayTime);
+static void *func_801F36E8(void *ot, void *prim, s32 x, s32 y);
 static void func_801F39D0(s32, s32, s32, s32, s32, s32);
+static void *func_801F3B64(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color);
 static s32 func_801F3FE8(u8 *, s32, s32, s32);
 static s32 func_801F42A4(u8 *, s32, s32, s32);
 static s32 func_801F4744(u8 *, s32);
@@ -530,7 +532,85 @@ restart:
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F2FAC);
+DR_AREA *func_801F2FAC(P_TAG *ot, DR_AREA *prim) {
+    u32 oldBrightness;
+    MenuDisplayConfig *cfg;
+    s32 xBase;
+    s32 yBase;
+    s32 x;
+    s32 y;
+    s32 h;
+    s32 i;
+    ST_D_801FAB98 *entry;
+    s32 y1;
+    s32 y2;
+    s32 h1;
+    s32 h2;
+    s32 brightness;
+
+    xBase = 270;
+    yBase = 6;
+
+    if (g_activeDrawEnv->clip.w < 384) {
+        return prim;
+    }
+
+    brightness = D_801FAB28;
+    if (brightness == 0) {
+        return prim;
+    }
+
+    ot++;
+    prim = func_801F03E8(ot, prim);
+    oldBrightness = g_menuBrightness;
+    setMenuBrightness(brightness);
+    
+    cfg = &g_menuDisplayCfg;
+    x = 277;
+    y = 12;
+
+    y1 = D_801FAB31;
+    y2 = (ONE - D_801FAB2A) * 14;
+    y -= (y1 * y2) / 4096;
+
+    entry = D_801FAB2C;
+    if (entry != NULL) {
+        for (i = 0; i < D_801FAB30; i++, entry++) {
+            u32 color = (entry->unk1 != 0) ? DIALOG_COLOR_WHITE : DIALOG_COLOR_GRAY;
+            u8 *text = func_801F6AFC(entry->unk0);
+            if (entry->unk0 == 6 && D_801FAB7C != 0) {
+                s32 w = getFirstLineWidth(text);
+                prim = drawIcon(ot, prim, 213, x + w, y + 1, g_menuTint[MENU_TINT_NORMAL]);
+            }
+            prim = func_801F0FEC(ot, prim, x, y, text, color);
+            y += 14;
+        }
+    }
+
+    h = D_801FAB30 * 14;
+    h1 = h * D_801FAB2A;
+    h2 = (ONE - D_801FAB2A) * 12;
+    h = (h1 + h2) / ONE;
+
+    cfg->x = xBase + 2;
+    cfg->y = yBase + 6;
+    cfg->w = 88;
+    cfg->h = h;
+
+    prim = func_801EF800(ot, prim, cfg);
+    h += 10;
+
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = xBase;
+    cfg->y = yBase;
+    cfg->w = 90;
+    cfg->h = h;
+
+    prim = DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    setMenuBrightness(oldBrightness);
+    return func_801F03E8(ot, prim);
+}
 
 void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4) {
     u8 buffer[16];
@@ -574,9 +654,9 @@ void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4) {
  * The colon is drawn at the menu brightness while @c colonTimer runs and at 2/3
  * of it otherwise, so it blinks once a second; a countdown at 0 keeps it bright.
  *
- * @param ctx The main menu's context.
+ * @param s The main menu's context.
  * @param ot Ordering table.
- * @param pkt Packet cursor.
+ * @param prim Packet cursor.
  * @param x Left edge of the clock icon; the digits follow it.
  * @param y Top of the clock.
  * @param time The play time, divided by 60 (50 on PAL) into minutes, or the
@@ -584,11 +664,85 @@ void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4) {
  * @param isPlayTime Non-zero for the play time.
  * @return The packet cursor after the clock.
  */
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", drawMenuClock);
+static void *drawMenuClock(MainMenuCtx *s, void *ot, TSPRT *prim, s32 x, s32 y, u32 time, s32 isPlayTime) {
+    u8 buffer[16];
+    u8 *ptr;
+    u8 *text;
+    u32 iconId;
+    u32 seconds;
+    u32 color;
+    u32 timeOld;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F36E8);
+    timeOld = time;
+    if (isPlayTime != 0) {
+        if (GetVideoMode() == MODE_NTSC) {
+            time /= 60;
+        } else {
+            time /= 50;
+        }
+    }
+    time = CLAMP(time, time, 35999);
+    seconds = time;
+    time = seconds / 60;
+    seconds %= 60;
+    iconId = isPlayTime != 0 ? ICON_PLAY : ICON_TIME_YELLOW;
+    prim = drawIconClut(ot, prim, iconId, x, y, g_menuTint[MENU_TINT_NORMAL], 450);
+    x += 32;
+    color = D_801F7F90[time / 100];
+    ptr = &buffer[0];
+    intToDecStringShort(time, ptr, g_numberFormat.digits[0]);
+    ptr = &buffer[3];
+    if (*ptr == g_numberFormat.digits[0]) {
+        *ptr = getMenuString(11)[0];
+    }
+    prim = func_8002C56C(ot, prim, x, y, ptr, color);
+    x += 16;
+    text = func_801F6AFC(13);
+    if (s->colonTimer != 0) {
+        setMenuBrightness(s->brightness);
+    } else {
+        setMenuBrightness((s->brightness * 2) / 3);
+    }
+    if (isPlayTime == 0 && timeOld == 0) {
+        setMenuBrightness(s->brightness);
+    }
+    prim = func_8002C56C(ot, prim, x, y, text, color);
+    x += 8;
+    setMenuBrightness(s->brightness);
+    ptr = &buffer[0];
+    intToDecStringShort(seconds, ptr, g_numberFormat.digits[0]);
+    ptr = &buffer[3];
+    prim = func_8002C56C(ot, prim, x, y, ptr, color);
+    return prim;
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F3824);
+static void *func_801F36E8(void *ot, void *prim, s32 x, s32 y) {
+    u8 buffer[16];
+    s32 digitBase = g_numberFormat.digits[0];
+    s32 x2 = x + 48;
+    s32 val = func_801F7A54();
+    if (val >= 0) {
+        prim = drawIconClut(ot, prim, ICON_SEED, x, y, g_menuTint[MENU_TINT_NORMAL], 450);
+        if (val != 31) {
+            intToDecStringShort(val, &buffer[0], digitBase);
+            replaceLeadingZeros(&buffer[2], 2, digitBase, getMenuString(11)[0]);
+            prim = func_8002C56C(ot, prim, x2, y, &buffer[2], 7);
+        } else {
+            prim = drawIconClut(ot, prim, ICON_A_YELLOW, x2, y, g_menuTint[MENU_TINT_NORMAL], 450);
+        }
+    }
+    return prim;
+}
+
+void func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
+    u8 buffer[16];
+    s32 digitBase = g_numberFormat.digits[0];
+    intToDecString(value, &buffer[0], digitBase);
+    replaceLeadingZeros(&buffer[2], 7, digitBase, getMenuString(11)[0]);
+    prim = func_8002C56C(ot, prim, x, y, &buffer[2], 7);
+    x += 64;
+    drawIcon(ot, prim, 11, x, y, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /**
  * @brief Draw character name panel with icon.
@@ -649,13 +803,82 @@ static void func_801F39D0(s32 val, s32 ctx, s32 dl, s32 y, s32 a4, s32 a5) {
     func_8002C56C(ctx, cursor, y, a4, buf + 2, a5);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F3ABC);
+void *func_801F3ABC(s32 value, void *ot, void *prim, s32 x, s32 y, u32 color) {
+    u8 *str = func_801F6AFC(18);
+    prim = func_801F0FEC(ot, prim, x, y, str, color);
+    x += 62;
+    return drawNumberMenuTint(ot, prim, (y << 16) | (x & 0xFFFF), value, color);
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F3B64);
+static void *func_801F3B64(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color) {
+    u8 buffer[16];
+    u8 *ptr;
+    s32 digitBase;
+    s32 text;
+    digitBase = g_numberFormat.digits[0];
+    prim = drawIconClut(ot, prim, ICON_HP_YELLOW, x, y, g_menuTint[MENU_TINT_NORMAL], (color * 64) + 2);
+    x += 20;
+    ptr = &buffer[0];
+    intToDecStringShort(value1, ptr, digitBase);
+    ptr = &buffer[1];
+    replaceLeadingZeros(ptr, 3, digitBase, getMenuString(11)[0]);
+    ptr = &buffer[1];
+    prim = func_8002C56C(ot, prim, x, y, ptr, color);
+    text = func_801F6AFC(16);
+    x += 33;
+    prim = func_8002C56C(ot, prim, x, y, text, color);
+    x += 9;
+    ptr = &buffer[0];
+    intToDecStringShort(value2, ptr, digitBase);
+    ptr = &buffer[1];
+    replaceLeadingZeros(ptr, 3, digitBase, getMenuString(11)[0]);
+    ptr = &buffer[1];
+    return func_8002C56C(ot, prim, x, y, ptr, color);
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F3CE0);
+void *func_801F3CE0(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color) {
+    prim = func_801F0FEC(ot, prim, x, y, func_801F6AFC(17), color);
+    x += 62;
+    prim = drawNumberMenuTint(ot, prim, (y << 0x10) | (x & 0xFFFF), value1, color);
+    prim = func_801F0FEC(ot, prim, x, y, func_801F6AFC(16), color);
+    x += 48;
+    return drawNumberMenuTint(ot, prim, (y << 0x10) | (x & 0xFFFF), value2, color);
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F3DE4);
+void *func_801F3DE4(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color) {
+    u8 buffer[16];
+    u8 *ptr;
+    s32 digitBase;
+    u8 *text;
+    s32 x2;
+    s32 y2;
+    void *prim2;
+    void *prim3;
+    digitBase = g_numberFormat.digits[0];
+    x2 = x;
+    y2 = y;
+    text = func_801F6AFC(14);
+    y -= 3;
+    prim2 = drawDecodedText(ot, prim, x, y, text, color);
+    x += 86;
+    ptr = &buffer[0];
+    intToDecString(value1, ptr, digitBase);
+    ptr = &buffer[2];
+    replaceLeadingZeros(ptr, 7, digitBase, getMenuString(11)[0]);
+    ptr = &buffer[2];
+    prim = func_8002C56C(ot, prim2, x, y + 2, ptr, color);
+    prim = drawIcon(ot, prim, ICON_LETTER_P, x + 64, y + 2, g_menuTint[MENU_TINT_NORMAL]);
+    text = func_801F6AFC(15);
+    prim3 = drawDecodedText(ot, prim, x2, y2 + 8, text, color);
+    x = x2 + 86;
+    ptr = &buffer[0];
+    intToDecString(value2, ptr, digitBase);
+    ptr = &buffer[2];
+    replaceLeadingZeros(ptr, 7, digitBase, getMenuString(11)[0]);
+    ptr = &buffer[2];
+    prim = func_8002C56C(ot, prim3, x, y2 + 10, ptr, color);
+    return drawIcon(ot, prim, ICON_LETTER_P, x2 + 150, y2 + 10, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /**
  * @brief Map status flags to display text color.

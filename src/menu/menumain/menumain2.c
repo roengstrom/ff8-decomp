@@ -110,7 +110,6 @@ extern s16 D_801FAAF2;
 extern s16 D_801FAAF4;
 extern s16 D_801FAAF6;
 extern u8 D_801FAAF8;
-extern s32 D_801FAB2C;
 extern ST_801F1B4C D_801FAB38[];
 extern s16 D_801FAB78;
 extern u8 D_801FAB88[];
@@ -1332,23 +1331,20 @@ void func_801F1D2C(s32 a0, s32 a1, s32 a2) {
  * Counts entries (stride 2 bytes) and stores the data pointer,
  * entry count, and resets the selection index.
  */
-void func_801F1D34(u8 *a0) {
-    s32 count;
-    s32 sentinel;
-
-    D_801FAB2C = (s32)a0;
+void func_801F1D34(ST_D_801FAB98 *a0) {
+    D_801FAB2C = a0;
     D_801FAB31 = 0;
-    if (a0 == 0) {
+    if (a0 == NULL) {
         D_801FAB30 = 0;
     } else {
-        count = 0;
-        sentinel = 0xFF;
-    top:
-        if (*a0 == sentinel) goto out;
-        a0 += 2;
-        count++;
-        goto top;
-    out:
+        s32 count = 0;
+        while (1) {
+            if (a0->unk0 == 255) {
+                break;
+            }
+            a0++;
+            count++;
+        }
         D_801FAB30 = count;
     }
 }
@@ -1515,7 +1511,7 @@ void func_801F202C(void) {
         ptr2++;
     }
     ptr2->unk0 = 0xFF;
-    func_801F1D34(&D_801FAB98->unk0);
+    func_801F1D34(D_801FAB98);
 }
 
 /** @brief Get character status flags. */

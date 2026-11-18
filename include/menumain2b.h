@@ -3,16 +3,16 @@
 
 #include "battle.h"
 #include "common.h"
-
-typedef struct {
-    u8 unk0;
-    u8 unk1;
-} ST_D_801FAB98;
+#include "menumain2.h"
 
 extern ST_D_801FAB98 D_801FAB98[];
 
+DR_AREA *func_801F2FAC(P_TAG *ot, DR_AREA *prim);
 void func_801F3270(void *ot, void *prim, s32 x, s32 y, u32 arg4);
-s32 func_801F3DE4(s32, s32, s32, s32, s32, s32, s32);
+void func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value);
+void *func_801F3ABC(s32 value, void *ot, void *prim, s32 x, s32 y, u32 color);
+void *func_801F3CE0(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color);
+void *func_801F3DE4(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color);
 s32 func_801F3FB4(s32);
 s32 func_801F5104(s32);
 s32 func_801F510C(s32);
