@@ -15,17 +15,15 @@ typedef struct {
 } MchBone;
 
 typedef struct {
-    /** 0x00 */ u16 x;
-    /** 0x02 */ u16 y;
-} MchTextureAnimationFrame;
-
-typedef struct {
-    /** 0x00 */ u8 pad0[3];
+    /** 0x00 */ u8 pad0[2];
+    /** 0x02 */ u8 unk2;
     /** 0x03 */ u8 width;
     /** 0x04 */ u8 height;
     /** 0x05 */ u8 frameCount;
     /** 0x06 */ u16 destX;
-    /** 0x08 */ MchTextureAnimationFrame frames[1]; // FIXME: frames[0] holds destY and period, the frames start at frames[1]
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 frameCoords[2]; // x and y of each frame
 } MchTextureAnimation;
 
 typedef struct {

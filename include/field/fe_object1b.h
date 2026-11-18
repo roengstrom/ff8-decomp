@@ -27,6 +27,6 @@ extern s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3);
 extern void func_800AA46C(s32 spatialIdx, s32 cmd, u32 arg, s32 arg4);
 /** @brief Per-entity animation tick: advances the frame and rebuilds the sprite rect. */
 extern s32  func_800AA5F8(s32 idx);
-extern int  func_800AA8A0();
+extern void *func_800AA8A0(void *arg0, u8 *arg1, u32 *arg2, u32 *arg3, CdFileDesc *arg4, s32 arg5, CdFileDesc *arg6, u8 *arg7);
 
 #endif

@@ -30,11 +30,11 @@ extern POLY_F3 *D_800D5EC8[2];
 extern DR_TPAGE *D_800D5EB8[2];
 
 /** @brief Field-VM command tables selected by @c FieldInfo::unk0D. */
-extern u8 D_800C30DC[];
-extern u8 D_800C311C[];
-extern u8 D_800C315C[];
+extern u32 D_800C30DC[];
+extern u32 D_800C311C[];
+extern u32 D_800C315C[];
 /** @brief Shared scratch block handed to @c func_800AA8A0. */
-extern u8 D_800C06A0[];
+extern CdFileDesc D_800C06A0[];
 
 /** @brief 12-byte signed integer 3D position (x, y, z). */
 typedef struct {
@@ -355,8 +355,19 @@ extern void func_8004D6C4(void *p);
 extern void *D_800C71E4;         /**< Buffer handed to @c StoreImage / @c LoadImage; points at @c D_800D3E88 once @c func_800A1BB8 runs. */
 extern s32 D_800C71FC;           /**< Latched result of @c func_800A0F34 from @c func_800A11E0. */
 extern u16 D_800D3E88[];         /**< Saved 256x16 VRAM palette strip, one 16-bit colour per entry. */
-extern u8 D_800D5F50[];
-extern u8 D_800D61A8[];
+typedef struct {
+    /** 0x00 */ s32 tag;
+    /** 0x04 */ u32 size;
+    /** 0x08 */ u8 *src;
+    /** 0x0C */ RECT unkC[6];
+    /** 0x3C */ RECT unk3C[6];
+    /** 0x6C */ s16 unk6C;
+    /** 0x6E */ u8 unk6E;
+    /** 0x6F */ u8 unk6F;
+} SoundBufDesc;
+
+extern SoundBufDesc D_800D5F50[3];
+extern SoundBufDesc D_800D61A8[3];
 extern u8 D_8005F168[];
 
 /**

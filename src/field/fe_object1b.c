@@ -14,14 +14,19 @@
  */
 
 #include "common.h"
+#include "cdrom.h"
 #include "field.h"
+#include "lzs.h"
 #include "psxsdk/libapi.h"
 #include "psxsdk/libc.h"
+#include "psxsdk/libetc.h"
 #include "psxsdk/libgte.h"
 #include "psxsdk/libgpu.h"
 #include "field/fe_object1.h"
 #include "field/fe_object1b.h"
 #include "field/fe_object2.h"
+#include "field/fe_object3.h"
+#include "field/fe_object4.h"
 
 typedef struct {
     /** 0x00 */ s32 unk0;
@@ -52,6 +57,39 @@ typedef union {
     u8 byte[4];
 } func_800A7564_unk58;
 
+typedef struct {
+    /** 0x00 */ s32 unk0;
+    /** 0x04 */ s32 unk4;
+    /** 0x08 */ s32 unk8;
+    /** 0x0C */ s32 unkC;
+    /** 0x10 */ s32 unk10[6];
+    /** 0x28 */ s32 unk28;
+    /** 0x2C */ s32 unk2C;
+} func_800AA8A0_node;
+
+typedef struct {
+    /** 0x0 */ s16 unk0;
+    /** 0x2 */ s16 unk2;
+    /** 0x4 */ s16 unk4;
+    /** 0x6 */ s16 pad6;
+} func_800AA8A0_pos;
+
+typedef struct {
+    /** 0x0 */ u8 pad0[4];
+    /** 0x4 */ s16 unk4;
+    /** 0x6 */ s16 unk6;
+} func_800AA8A0_tim_unkC;
+
+typedef struct {
+    /** 0x00 */ s32 unk0;
+    /** 0x04 */ s32 unk4;
+    /** 0x08 */ u32 *unk8;
+    /** 0x0C */ func_800AA8A0_tim_unkC *unkC;
+    /** 0x10 */ u32 *unk10;
+} func_800AA8A0_tim;
+
+#define FUNC_800AA8A0_COLOR_BIT15 0x8000
+
 extern u32 D_800C3768;
 extern s32 D_800C376C;
 
@@ -67,7 +105,15 @@ extern u16 D_800D9328[][6];
 extern u32 D_800D96B0[];
 extern SVECTOR *D_800DD6C0;
 extern long D_800DD6C8;
-extern u8 D_800DD6D0[];
+extern func_800AA8A0_node D_800DD6D0[];
+extern u8 D_800D9628[];
+extern u8 D_800DD6C4[];
+extern u16 D_800D8728[][2][0x100];
+extern u16 D_800DE2D0[];
+extern u8 D_800D5EF0[];
+extern u8 D_800D60A8[];
+extern s32 D_800DD6BC;
+extern s16 D_800D60F8[];
 
 void func_800A63AC(FieldFrameBuf *arg0, FieldView *arg1, s32 arg2) {
     s32 unused[12];
@@ -273,12 +319,12 @@ void func_800A6A80(s32 arg0, s32 arg1, ModelInstance **arg2) {
  */
 void func_800A7194(void) {
     s32 i = 0;
-    u8 *p = D_800DD6D0;
+    func_800AA8A0_node *p = D_800DD6D0;
 
     do {
-        memset(p, 0, 0x30);
+        memset(p, 0, sizeof(func_800AA8A0_node));
         i++;
-        p += 0x30;
+        p++;
     } while (i < 64);
     for (i = 0; i < 64; i++) {
         D_800D6620[i] = 0;
@@ -947,8 +993,8 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         if (!(D_800D9630[spatialIdx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
             return 1;
         }
-        if ((s16)D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y >= 0) {
-            D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y = arg3;
+        if ((s16)D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->unkA >= 0) {
+            D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->unkA = arg3;
             if (arg2 != 0) {
                 D_800D9630[spatialIdx]->frameTimer = arg2;
                 D_800D9630[spatialIdx]->timerReload = arg2;
@@ -957,8 +1003,8 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
                 D_800D9630[spatialIdx]->timerReload = rand() % 8 + 1;
             }
         } else {
-            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y;
-            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].y;
+            D_800D9630[spatialIdx]->frameTimer = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->unkA;
+            D_800D9630[spatialIdx]->timerReload = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->unkA;
         }
         D_800D9630[spatialIdx]->animFlags &= 0xF;
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_10;
@@ -972,9 +1018,9 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_20;
         rect.w = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->width;
         rect.h = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->height;
-        rect.x = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[1].x;
-        rect.y = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[1].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->destX, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].x);
+        rect.x = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCoords[0];
+        rect.y = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCoords[1];
+        MoveImage(&rect, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->destX, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->unk8);
         break;
     case 0x2E:
         if (!(D_800D9630[spatialIdx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
@@ -984,10 +1030,9 @@ s32 func_800A97E4(s32 spatialIdx, s32 cmd, s32 arg2, s32 arg3) {
         D_800D9630[spatialIdx]->animFlags |= ENTITY_ANIM_FLAG_40;
         rect.w = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->width;
         rect.h = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->height;
-        // matching hack
-        rect.x = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount[D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames].x;
-        rect.y = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount[D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames].y;
-        MoveImage(&rect, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->destX, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frames[0].x);
+        rect.x = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCoords[D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount * 2 - 2];
+        rect.y = D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCoords[D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->frameCount * 2 - 1];
+        MoveImage(&rect, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->destX, D_800D9630[spatialIdx]->modelSlot.model->textureAnimation->unk8);
         break;
     case 0x25:
         D_800D9630[spatialIdx]->cachedAnimationStart = (SVECTOR *)-1;
@@ -1184,7 +1229,7 @@ s32 func_800AA5F8(s32 idx) {
     u8 flags;
     s16 per;
 
-    period = D_800D9630[idx]->modelSlot.model->textureAnimation->frames[0].y;
+    period = D_800D9630[idx]->modelSlot.model->textureAnimation->unkA;
     if (!(D_800D9630[idx]->modelSlot.model->flags & MODEL_FLAG_TEXTURE_ANIMATION)) {
         return 1;
     }
@@ -1227,15 +1272,607 @@ s32 func_800AA5F8(s32 idx) {
 
     D_800D5ED8.w = D_800D9630[idx]->modelSlot.model->textureAnimation->width;
     D_800D5ED8.h = D_800D9630[idx]->modelSlot.model->textureAnimation->height;
-    /* frameIdx[frames] is frames[frameIdx]; the swapped index keeps the array
-       index in the first addu operand, matching the original codegen. */
-    D_800D5ED8.x = D_800D9630[idx]->frameIdx[D_800D9630[idx]->modelSlot.model->textureAnimation->frames].x;
-    D_800D5ED8.y = D_800D9630[idx]->frameIdx[D_800D9630[idx]->modelSlot.model->textureAnimation->frames].y;
+    D_800D5ED8.x = D_800D9630[idx]->modelSlot.model->textureAnimation->frameCoords[D_800D9630[idx]->frameIdx * 2 - 2];
+    D_800D5ED8.y = D_800D9630[idx]->modelSlot.model->textureAnimation->frameCoords[D_800D9630[idx]->frameIdx * 2 - 1];
 
     MoveImage(&D_800D5ED8,
               D_800D9630[idx]->modelSlot.model->textureAnimation->destX,
-              D_800D9630[idx]->modelSlot.model->textureAnimation->frames[0].x);
+              D_800D9630[idx]->modelSlot.model->textureAnimation->unk8);
     return 0;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1b", func_800AA8A0);
+void *func_800AA8A0(void *arg0, u8 *arg1, u32 *arg2, u32 *arg3, CdFileDesc *arg4, s32 arg5, CdFileDesc *arg6, u8 *arg7) {
+    func_800AA8A0_tim tim;
+    u8 modelTable[0x400];
+    u8 modelUnk6F[0x40];
+    u16 texturePageX[8];
+    u16 texturePageY[8];
+    func_800AA8A0_pos colorOffsets[0x40];
+    u32 texturePagePositions[16];
+    u32 clutPositions[16];
+    u16 texturePagePositionIndex;
+    u16 clutPositionIndex;
+    void *freeSpace;
+    Actor *actor;
+    func_800AA8A0_node *node;
+    s32 i, modelIndex;
+    s32 j, k;
+    Actor *current;
+    MchModelHeader *header;
+    s32 cacheIndex;
+    u8 *loadCursor;
+    u32 word;
+    s32 cacheSlotIndex;
+    u16 *palette;
+    s32 *cursor;
+
+    for (i = 0; i < 0x10; i++) {
+        texturePagePositions[i] = arg3[i];
+        clutPositions[i] = arg2[i];
+    }
+
+    D_800DD6BC = 0;
+
+    for (i = 0; i < 0x4E; i++) {
+        D_800D60F8[i] = -1;
+    }
+
+    for (j = 0; j < 3; j++) {
+        s16 acc;
+        if ((u32)D_800D61A8[j].tag < 0x4E) {
+            acc = 0;
+            for (k = 0; k < D_800D61A8[j].unk6C; k++) {
+                acc |= D_800D61A8[j].unkC[k].y;
+            }
+            if (acc < 0x100) {
+                D_800D60F8[D_800D61A8[j].tag] = D_800D61A8[j].unk6E;
+            }
+        }
+        D_800D5F50[j].tag = -1;
+    }
+    freeSpace = arg0;
+    texturePagePositionIndex = 0;
+    clutPositionIndex = 0;
+    cdReadSync(arg4->sector, 0x400, arg1, 0);
+    FastMemCpy(modelTable, arg1, 0x400);
+    loadCursor = arg1;
+
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    for (i = 0; i < 0x40; i++) {
+        D_800D60A8[i] = 0;
+    }
+
+    actor = g_fieldActors;
+    modelIndex = 0;
+    for (j = 0, current = actor; j < g_fieldActorCount; j++, current++) {
+        node = &D_800DD6D0[modelIndex];
+        if (current->modelId != -1) {
+            u8 *modelTableIndex = &D_800D5EF0[current->modelId];
+            cursor = (s32 *)modelTable;
+            if (*modelTableIndex == 0xFF) {
+                *modelTableIndex = modelIndex;
+                for (i = 0; i < current->modelId; i++) {
+                    while ((*cursor & 0xF0000000) != 0xD0000000 && (*cursor & 0xF0000000) != 0xF0000000) {
+                        cursor++;
+                    }
+                    cursor += 5;
+                }
+                node->unk0 = *cursor++;
+                node->unk4 = *cursor++;
+                node->unk8 = *cursor++;
+                if ((*cursor & 0xF0000000) == 0xD0000000) {
+                    node->unkC = *cursor & 0xFFFF;
+                    modelUnk6F[modelIndex] = ((u8 *)cursor)[2];
+                    cursor++;
+                    node->unk2C = *cursor;
+                    for (k = 0; k < 6; k++) {
+                        D_800DD6D0[modelIndex].unk10[k] = -1;
+                    }
+                    cursor++;
+                } else if ((*cursor & 0xF0000000) == 0xA0000000) {
+                    D_800DD6D0[modelIndex].unk10[0] = *cursor;
+                    cursor++;
+                    for (k = 1; k < 6; k++) {
+                        D_800DD6D0[modelIndex].unk10[k] = -1;
+                    }
+                    cursor++;
+                    D_800DD6D0[modelIndex].unk28 = *cursor++;
+                    node->unkC = -1;
+                    modelUnk6F[modelIndex] = 0x10;
+                } else {
+                    node->unkC = -1;
+                    modelUnk6F[modelIndex] = 0x10;
+                    for (k = 0; *cursor >= 0; k++) {
+                        D_800DD6D0[modelIndex].unk10[k] = *cursor++ & 0xFFFFFFF;
+                    }
+                    for (; k < 6; k++) {
+                        D_800DD6D0[modelIndex].unk10[k] = -1;
+                    }
+                    cursor++;
+                    D_800DD6D0[modelIndex].unk28 = *cursor++;
+                }
+                {
+                    func_800AA8A0_pos *colorOffset = &colorOffsets[modelIndex];
+                    word = cursor[1];
+                    modelIndex++;
+                    colorOffset->unk0 = word & 0xFF;
+                    colorOffset->unk2 = (word >> 8) & 0xFF;
+                    colorOffset->unk4 = (word >> 0x10) & 0xFF;
+                    colorOffset->unk0 -= 0x80;
+                    colorOffset->unk2 -= 0x80;
+                    colorOffset->unk4 -= 0x80;
+                }
+            }
+        }
+    }
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    actor = g_fieldActors;
+    modelIndex = 0;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        if (actor->modelId != -1 && D_800D5EF0[actor->modelId] == 0xFF) {
+            D_800D5EF0[actor->modelId] = modelIndex;
+            if (D_800DD6D0[modelIndex].unkC != -1) {
+                if (D_800D61A8[D_800D60F8[D_800DD6D0[modelIndex].unkC]].unk6F != modelUnk6F[modelIndex]) {
+                    D_800D60F8[D_800DD6D0[modelIndex].unkC] = -1;
+                }
+                if (D_800D60F8[D_800DD6D0[modelIndex].unkC] != -1) {
+                    FastMemCpy(freeSpace, D_800D6198[D_800D60F8[D_800DD6D0[modelIndex].unkC]], D_800D61A8[D_800D60F8[D_800DD6D0[modelIndex].unkC]].size);
+                    D_800DD6D0[modelIndex].unk28 = (s32)freeSpace;
+                    D_800D6620[modelIndex] = freeSpace;
+                    freeSpace = (u8 *)freeSpace + D_800D61A8[D_800D60F8[D_800DD6D0[modelIndex].unkC]].size;
+                }
+            }
+            modelIndex++;
+        }
+    }
+
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    actor = g_fieldActors;
+    modelIndex = 0;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        if (actor->modelId != -1 && D_800D5EF0[actor->modelId] == 0xFF) {
+            D_800D5EF0[actor->modelId] = modelIndex;
+            func_800ADAF4(arg4->sector + ((u32)D_800DD6D0[modelIndex].unk0 >> 0xB), D_800DD6D0[modelIndex].unk8, D_800DD6D0[modelIndex].unk4);
+            modelIndex++;
+        }
+    }
+    func_800ADB68(loadCursor, 0);
+
+    {
+        s32 loadedSize = 0;
+        for (i = 0; i < 0x40; i++) {
+            D_800D5EF0[i] = 0xFF;
+        }
+        actor = g_fieldActors;
+        modelIndex = 0;
+        for (i = 0; i < g_fieldActorCount; i++, actor++) {
+            if (actor->modelId != -1 && D_800D5EF0[actor->modelId] == 0xFF) {
+                D_800D5EF0[actor->modelId] = modelIndex;
+                if (D_800DD6D0[modelIndex].unkC == -1) {
+                    header = (MchModelHeader *)(D_800DD6D0[modelIndex].unk28 = D_800DD6D0[modelIndex].unk28 + (s32)loadCursor + loadedSize);
+                    D_800DD6D0[modelIndex].unk2C = (s32)header->animationSection;
+                    header->animationSection = (u16 *)((u8 *)header->animationSection + D_800DD6D0[modelIndex].unk28);
+                } else {
+                    D_800DD6D0[modelIndex].unk2C = (s32)loadCursor + loadedSize;
+                }
+                for (k = 0; D_800DD6D0[modelIndex].unk10[k] != -1 && (D_800DD6D0[modelIndex].unk10[k] & 0xF0000000) != 0xA0000000 && k < 6; k++) {
+                    D_800DD6D0[modelIndex].unk10[k] = (D_800DD6D0[modelIndex].unk10[k] & 0xFFFFFFF) + (s32)loadCursor + loadedSize;
+                }
+                loadedSize += D_800DD6D0[modelIndex].unk4;
+                modelIndex++;
+            }
+        }
+        loadCursor += loadedSize;
+    }
+
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    actor = g_fieldActors;
+    modelIndex = 0;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        if (actor->modelId != -1 && D_800D5EF0[actor->modelId] == 0xFF) {
+            D_800D5EF0[actor->modelId] = modelIndex;
+            if (D_800DD6D0[modelIndex].unkC != -1 && D_800D60F8[D_800DD6D0[modelIndex].unkC] == -1) {
+                s32 fileSize;
+                cdReadSync(arg6[D_800DD6D0[modelIndex].unkC].sector,
+                    arg6[D_800DD6D0[modelIndex].unkC].size, loadCursor, 0);
+                cursor = (s32 *)loadCursor;
+                fileSize = arg6[D_800DD6D0[modelIndex].unkC].size;
+                for (k = 0; *cursor >= 0; k++, cursor++) {
+                    D_800DD6D0[modelIndex].unk10[k] = (s32)loadCursor + (*cursor & 0xFFFFFFF);
+                }
+                for (; k < 6; k++) {
+                    D_800DD6D0[modelIndex].unk10[k] = -1;
+                }
+                D_800DD6D0[modelIndex].unk28 = (s32)loadCursor + (cursor[1] & 0xFFFFFFF);
+                ((MchModelHeader *)D_800DD6D0[modelIndex].unk28)->animationSection = (u16 *)D_800DD6D0[modelIndex].unk2C;
+                loadCursor += fileSize;
+            }
+            modelIndex++;
+        }
+    }
+
+    if (arg7 < loadCursor) {
+        SystemError(0x53, 0x13);
+    }
+    {
+        word = arg7 - loadCursor;
+        if (word & 3) {
+            word -= (word & 3);
+        }
+        memmove(arg1 + word, arg1, loadCursor - arg1);
+
+        for (i = 0; i < 0x40; i++) {
+            D_800D5EF0[i] = 0xFF;
+        }
+        actor = g_fieldActors;
+        modelIndex = 0;
+        for (i = 0; i < g_fieldActorCount; i++, actor++) {
+            if (D_800D5EF0[actor->modelId] == 0xFF) {
+                D_800D5EF0[actor->modelId] = modelIndex;
+                {
+                    header = (MchModelHeader *)(D_800DD6D0[modelIndex].unk28 = D_800DD6D0[modelIndex].unk28 + word);
+                    D_800DD6D0[modelIndex].unk2C += word;
+                    header->animationSection = (u16 *)((u8 *)header->animationSection + word);
+                }
+                for (k = 0; k < 6; k++) {
+                    if (D_800DD6D0[modelIndex].unk10[k] != -1 && (D_800DD6D0[modelIndex].unk10[k] & 0xF0000000) != 0xA0000000) {
+                        D_800DD6D0[modelIndex].unk10[k] += word;
+                    }
+                }
+                modelIndex++;
+            }
+        }
+    }
+
+    for (i = 0; i < 3; i++) {
+        D_800D9628[i] = 0xFF;
+        D_800DD6C4[i] = 0xFF;
+    }
+
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    actor = g_fieldActors;
+    modelIndex = 0;
+    cacheSlotIndex = 0;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        if (cacheSlotIndex >= 3) {
+            break;
+        }
+        if (D_800D5EF0[actor->modelId] == 0xFF) {
+            D_800D5EF0[actor->modelId] = modelIndex;
+            if (D_800DD6D0[modelIndex].unkC != -1 && D_800D60F8[D_800DD6D0[modelIndex].unkC] != -1) {
+                D_800D9628[D_800D60F8[D_800DD6D0[modelIndex].unkC]] = D_800DD6D0[modelIndex].unkC;
+                D_800DD6C4[D_800D60F8[D_800DD6D0[modelIndex].unkC]] = D_800D60F8[D_800DD6D0[modelIndex].unkC];
+                cacheIndex = D_800D60F8[D_800DD6D0[modelIndex].unkC];
+                for (k = 0; k < D_800D61A8[cacheIndex].unk6C; k++) {
+                    word = D_800D61A8[cacheIndex].unkC[k].x | (D_800D61A8[cacheIndex].unkC[k].y << 16);
+                    for (j = 0; j < 0x10; j++) {
+                        if (texturePagePositions[j] == word) {
+                            texturePagePositions[j] = -1;
+                        }
+                    }
+                    word = D_800D61A8[cacheIndex].unk3C[k].x | (D_800D61A8[cacheIndex].unk3C[k].y << 16);
+                    for (j = 0; j < 0x10; j++) {
+                        if (clutPositions[j] == word) {
+                            clutPositions[j] = -1;
+                        }
+                    }
+                }
+            }
+            modelIndex++;
+        }
+    }
+
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    actor = g_fieldActors;
+    modelIndex = 0;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        if (D_800D5EF0[actor->modelId] == 0xFF) {
+            D_800D5EF0[actor->modelId] = modelIndex;
+            if (D_800DD6D0[modelIndex].unkC != -1 && D_800D60F8[D_800DD6D0[modelIndex].unkC] == -1) {
+                func_800AA8A0_node *node;
+                cacheSlotIndex = 0;
+                node = &D_800DD6D0[modelIndex];
+                for (; cacheSlotIndex < 3; cacheSlotIndex++) {
+                    if (D_800D9628[cacheSlotIndex] == 0xFF) {
+                        D_800D9628[cacheSlotIndex] = node->unkC;
+                        D_800DD6C4[cacheSlotIndex] = 0xFF;
+                        break;
+                    }
+                }
+            }
+            modelIndex++;
+        }
+    }
+
+    for (i = 0; i < 0x40; i++) {
+        D_800D5EF0[i] = 0xFF;
+    }
+    actor = g_fieldActors;
+    modelIndex = 0;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        s32 p2C;
+        SoundBufDesc *cacheSlot;
+        if (D_800D5EF0[actor->modelId] != 0xFF) {
+            continue;
+        }
+        D_800D5EF0[actor->modelId] = modelIndex;
+        for (D_800DD6BC = 0; D_800DD6BC < 3; D_800DD6BC++) {
+            if (D_800DD6D0[modelIndex].unkC == D_800D9628[D_800DD6BC] && D_800DD6C4[D_800DD6BC] != 0xFF) {
+                break;
+            }
+        }
+        if (D_800DD6BC < 3) {
+            cacheIndex = D_800DD6C4[D_800DD6BC];
+            for (k = 0; k < D_800D61A8[cacheIndex].unk6C; k++) {
+                D_800D6300[modelIndex][k] = GetTPage(1, 1, D_800D61A8[cacheIndex].unkC[k].x, D_800D61A8[cacheIndex].unkC[k].y);
+                texturePageX[k] = D_800D61A8[cacheIndex].unkC[k].x;
+                texturePageY[k] = D_800D61A8[cacheIndex].unkC[k].y;
+                D_800D9328[modelIndex][k] = GetClut(D_800D61A8[cacheIndex].unk3C[k].x, D_800D61A8[cacheIndex].unk3C[k].y);
+                D_800D60E8[k] = D_800D61A8[cacheIndex].unkC[k].y | ((D_800D61A8[cacheIndex].unkC[k].x % 0x40) << 1);
+                D_800D5F50[D_800DD6BC].tag = D_800DD6D0[modelIndex].unkC;
+                D_800D5F50[D_800DD6BC].unkC[k].x = D_800D61A8[cacheIndex].unkC[k].x;
+                D_800D5F50[D_800DD6BC].unkC[k].y = D_800D61A8[cacheIndex].unkC[k].y;
+                D_800D5F50[D_800DD6BC].unkC[k].w = D_800D61A8[cacheIndex].unkC[k].w;
+                D_800D5F50[D_800DD6BC].unkC[k].h = D_800D61A8[cacheIndex].unkC[k].h;
+                D_800D5F50[D_800DD6BC].unk3C[k].x = D_800D61A8[cacheIndex].unk3C[k].x;
+                D_800D5F50[D_800DD6BC].unk3C[k].y = D_800D61A8[cacheIndex].unk3C[k].y;
+                D_800D5F50[D_800DD6BC].unk3C[k].w = 0x100;
+                D_800D5F50[D_800DD6BC].unk3C[k].h = 1;
+                D_800D5F50[D_800DD6BC].unk6C = D_800D61A8[cacheIndex].unk6C;
+                for (j = 0; j < 0x100; j++) {
+                    s16 red, green, blue;
+                    s32 r, g, b;
+                    u16 color;
+                    color = D_800D8728[cacheIndex][k][j];
+                    if (color != 0) {
+                        r = color & 0x1F;
+                        g = (color >> 5) & 0x1F;
+                        b = (color >> 10) & 0x1F;
+                        red = r + (colorOffsets[modelIndex].unk0 >> 3);
+                        if (red <= 0) {
+                            red = 1;
+                        }
+                        if (red >= 0x20) {
+                            red = 0x1F;
+                        }
+                        green = g + (colorOffsets[modelIndex].unk2 >> 3);
+                        if (green <= 0) {
+                            green = 1;
+                        }
+                        if (green >= 0x20) {
+                            green = 0x1F;
+                        }
+                        blue = b + (colorOffsets[modelIndex].unk4 >> 3);
+                        if (blue <= 0) {
+                            blue = 1;
+                        }
+                        if (blue >= 0x20) {
+                            blue = 0x1F;
+                        }
+                        D_800DE2D0[j] = red | (green << 5) | (blue << 10) | FUNC_800AA8A0_COLOR_BIT15;
+                    } else {
+                        D_800DE2D0[j] = 0;
+                    }
+                }
+                LoadClut((u32 *)D_800DE2D0, D_800D61A8[cacheIndex].unk3C[k].x, D_800D61A8[cacheIndex].unk3C[k].y);
+                while (DrawSync(1) != 0) {
+                }
+            }
+        } else {
+            k = 0;
+            if (D_800DD6D0[modelIndex].unk10[k] != -1) {
+                for (; D_800DD6D0[modelIndex].unk10[k] != -1; k++) {
+                    if (k >= 6) {
+                        break;
+                    }
+                    if ((D_800DD6D0[modelIndex].unk10[k] & 0xF0000000) == 0xA0000000) {
+                        D_800D6300[modelIndex][k] = D_800D6300[D_800D5EF0[((u32)D_800DD6D0[modelIndex].unk10[k] & 0xFF00000) >> 20]][k];
+                        D_800D9328[modelIndex][k] = D_800D9328[D_800D5EF0[((u32)D_800DD6D0[modelIndex].unk10[k] & 0xFF00000) >> 20]][k];
+                        D_800D60E8[k] = D_800D6620[D_800D5EF0[((u32)D_800DD6D0[modelIndex].unk10[k] & 0xFF00000) >> 20]]->field50;
+                    } else {
+                        while (texturePagePositions[texturePagePositionIndex] == -1) {
+                            texturePagePositionIndex++;
+                        }
+                        while (clutPositions[clutPositionIndex] == -1) {
+                            clutPositionIndex++;
+                        }
+                        OpenTIM((u32 *)D_800DD6D0[modelIndex].unk10[k]);
+                        ReadTIM(&tim);
+                        VSync(0);
+                        {
+                            u32 *texturePagePosition = &texturePagePositions[texturePagePositionIndex];
+                            D_800D6300[modelIndex][k] = LoadTPage(tim.unk10, tim.unk0 & 7, 1, *texturePagePosition & 0xFFFF, *texturePagePosition >> 16,
+                                tim.unkC->unk4 << (2 - (tim.unk0 & 3)), tim.unkC->unk6);
+                            texturePageX[k] = texturePagePositions[texturePagePositionIndex];
+                            texturePageY[k] = texturePagePositions[texturePagePositionIndex] >> 16;
+                        }
+                        palette = (u16 *)tim.unk8;
+                        for (D_800DD6BC = 0; D_800DD6BC < 3; D_800DD6BC++) {
+                            if (D_800DD6D0[modelIndex].unkC == D_800D9628[D_800DD6BC] && D_800DD6C4[D_800DD6BC] == 0xFF) {
+                                break;
+                            }
+                        }
+                        if (D_800DD6BC < 3 && D_800DD6D0[modelIndex].unkC != -1) {
+                            for (cacheIndex = 0; cacheIndex < 0x100; cacheIndex++, palette++) {
+                                D_800D8728[D_800DD6BC][k][cacheIndex] = *palette;
+                            }
+                        }
+                        palette = (u16 *)tim.unk8;
+                        for (cacheIndex = 0; cacheIndex < 0x100; cacheIndex++, palette++) {
+                            s16 red, green, blue;
+                            s32 r, g, b;
+                            u16 color;
+                            color = *palette;
+                            if (color != 0) {
+                                r = color & 0x1F;
+                                g = (color >> 5) & 0x1F;
+                                b = (color >> 10) & 0x1F;
+                                red = r + (colorOffsets[modelIndex].unk0 >> 3);
+                                if (red <= 0) {
+                                    red = 1;
+                                }
+                                if (red >= 0x20) {
+                                    red = 0x1F;
+                                }
+                                green = g + (colorOffsets[modelIndex].unk2 >> 3);
+                                if (green <= 0) {
+                                    green = 1;
+                                }
+                                if (green >= 0x20) {
+                                    green = 0x1F;
+                                }
+                                blue = b + (colorOffsets[modelIndex].unk4 >> 3);
+                                if (blue <= 0) {
+                                    blue = 1;
+                                }
+                                if (blue >= 0x20) {
+                                    blue = 0x1F;
+                                }
+                                *palette = red | (green << 5) | (blue << 10) | FUNC_800AA8A0_COLOR_BIT15;
+                            }
+                        }
+                        D_800D9328[modelIndex][k] = LoadClut(tim.unk8, clutPositions[clutPositionIndex] & 0xFFFF, clutPositions[clutPositionIndex] >> 16);
+                        D_800D60E8[k] = ((texturePagePositions[texturePagePositionIndex] & 0x3F) << (2 - (tim.unk0 & 3))) | ((texturePagePositions[texturePagePositionIndex] >> 8) & 0xFF00);
+                        for (D_800DD6BC = 0; D_800DD6BC < 3; D_800DD6BC++) {
+                            if (D_800DD6D0[modelIndex].unkC == D_800D9628[D_800DD6BC] && D_800DD6C4[D_800DD6BC] == 0xFF) {
+                                break;
+                            }
+                        }
+                        if (D_800DD6BC < 3 && D_800DD6D0[modelIndex].unkC != -1) {
+                            D_800D5F50[D_800DD6BC].tag = -1;
+                            D_800D5F50[D_800DD6BC].unkC[k].x = texturePagePositions[texturePagePositionIndex];
+                            D_800D5F50[D_800DD6BC].unkC[k].y = texturePagePositions[texturePagePositionIndex] >> 16;
+                            D_800D5F50[D_800DD6BC].unkC[k].w = tim.unkC->unk4 << (2 - (tim.unk0 & 3));
+                            D_800D5F50[D_800DD6BC].unkC[k].h = tim.unkC->unk6;
+                            D_800D5F50[D_800DD6BC].unk3C[k].x = clutPositions[clutPositionIndex];
+                            D_800D5F50[D_800DD6BC].unk3C[k].y = clutPositions[clutPositionIndex] >> 16;
+                            D_800D5F50[D_800DD6BC].unk3C[k].w = 0x100;
+                            D_800D5F50[D_800DD6BC].unk3C[k].h = 1;
+                            D_800D5F50[D_800DD6BC].unk6C = k + 1;
+                        }
+                        texturePagePositionIndex++;
+                        clutPositionIndex++;
+                        while (DrawSync(1) != 0) {
+                        }
+                    }
+                }
+            }
+
+        }
+        if (D_800DD6BC < 3 && D_800DD6D0[modelIndex].unkC != -1) {
+            if (D_800D5F50[D_800DD6BC].tag == -1) {
+                u8 *unk6FPtr;
+                Model *model;
+                header = (MchModelHeader *)D_800DD6D0[modelIndex].unk28;
+                if ((void *)header->animationSection < freeSpace) {
+                    SystemError(0x53, 0x1A);
+                }
+                if ((u32)D_800DD6D0[modelIndex].unk28 < (u32)freeSpace) {
+                    SystemError(0x53, 0x12);
+                }
+                unk6FPtr = &modelUnk6F[modelIndex];
+                j = (s32)freeSpace; // matching hack
+                freeSpace = func_800A8058(modelIndex, (MchModelHeader *)D_800DD6D0[modelIndex].unk28, freeSpace, *unk6FPtr);
+                cacheSlot = &D_800D5F50[D_800DD6BC];
+                cacheSlot->tag = D_800DD6D0[modelIndex].unkC;
+                cacheSlot->src = (u8 *)j;
+                model = D_800D6620[modelIndex];
+                cacheSlot->size = ((u8 *)model->animationTable - (u8 *)model->boneTemplate) + 0x60;
+                cacheSlot->unk6E = D_800DD6BC;
+                if (*unk6FPtr != 0) {
+                    D_800D5F50[D_800DD6BC].unk6F = *unk6FPtr;
+                } else {
+                    D_800D5F50[D_800DD6BC].unk6F = 0x10;
+                }
+                if (D_800D6620[modelIndex]->flags & MODEL_FLAG_TEXTURE_ANIMATION) {
+                    D_800D6620[modelIndex]->textureAnimation->destX /= 0x10 / D_800D6620[modelIndex]->textureAnimation->unk2;
+                    D_800D6620[modelIndex]->textureAnimation->destX += texturePageX[0];
+                    D_800D6620[modelIndex]->textureAnimation->unk8 += texturePageY[0];
+                    D_800D6620[modelIndex]->textureAnimation->width /= 0x10 / D_800D6620[modelIndex]->textureAnimation->unk2;
+                    for (k = j = 0; k < D_800D6620[modelIndex]->textureAnimation->frameCount; k++) {
+                        D_800D6620[modelIndex]->textureAnimation->frameCoords[j] /= 0x10 / D_800D6620[modelIndex]->textureAnimation->unk2;
+                        D_800D6620[modelIndex]->textureAnimation->frameCoords[j] += texturePageX[0];
+                        j++;
+                        D_800D6620[modelIndex]->textureAnimation->frameCoords[j] += texturePageY[0];
+                        j++;
+                    }
+                }
+            } else {
+                D_800D5F50[D_800DD6BC].src = (u8 *)D_800D6620[modelIndex];
+                D_800D5F50[D_800DD6BC].size = D_800D61A8[D_800D60F8[D_800DD6D0[modelIndex].unkC]].size;
+                D_800D5F50[D_800DD6BC].unk6E = D_800DD6BC;
+                if (modelUnk6F[modelIndex] != 0) {
+                    D_800D5F50[D_800DD6BC].unk6F = modelUnk6F[modelIndex];
+                } else {
+                    D_800D5F50[D_800DD6BC].unk6F = 0x10;
+                }
+                j = D_800D61A8[D_800D60F8[D_800DD6D0[modelIndex].unkC]].src - (u8 *)D_800D6620[modelIndex];
+                D_800D6620[modelIndex]->boneTemplate = (MchBone *)((u8 *)D_800D6620[modelIndex]->boneTemplate - j);
+                D_800D6620[modelIndex]->unk04 = (ModelUnk04 *)((u8 *)D_800D6620[modelIndex]->unk04 - j);
+                D_800D6620[modelIndex]->unk08 = (ModelUnk08 *)((u8 *)D_800D6620[modelIndex]->unk08 - j);
+                D_800D6620[modelIndex]->triangles = (ModelTriangle *)((u8 *)D_800D6620[modelIndex]->triangles - j);
+                D_800D6620[modelIndex]->quads = (ModelQuad *)((u8 *)D_800D6620[modelIndex]->quads - j);
+                D_800D6620[modelIndex]->textureAnimation = (MchTextureAnimation *)((u8 *)D_800D6620[modelIndex]->textureAnimation - j);
+                D_800D6620[modelIndex]->vertices = (SVECTOR *)((u8 *)D_800D6620[modelIndex]->vertices - j);
+                D_800D6620[modelIndex]->drawGroups = (MchDrawGroup *)((u8 *)D_800D6620[modelIndex]->drawGroups - j);
+                D_800D6620[modelIndex]->skinObjects = (MchSkinObject *)((u8 *)D_800D6620[modelIndex]->skinObjects - j);
+                cursor = (s32 *)D_800DD6D0[modelIndex].unk2C;
+                D_800D6620[modelIndex]->animationCount = *(u16 *)cursor;
+                D_800D6620[modelIndex]->animationTable = freeSpace;
+                D_800D6620[modelIndex]->animations = (SVECTOR *)(D_800D6620[modelIndex]->animationTable + D_800D6620[modelIndex]->animationCount * 2);
+                freeSpace = func_800A7564((MchModelHeader *)((s16 *)cursor + 1), 0x12, 0, modelIndex);
+            }
+        } else {
+            header = (MchModelHeader *)D_800DD6D0[modelIndex].unk28;
+            if ((void *)header->animationSection < freeSpace) {
+                SystemError(0x53, 0x15);
+            }
+            if ((u32)D_800DD6D0[modelIndex].unk28 < (u32)freeSpace) {
+                SystemError(0x53, 0x12);
+            }
+            freeSpace = func_800A8058(modelIndex, (MchModelHeader *)D_800DD6D0[modelIndex].unk28, freeSpace, modelUnk6F[modelIndex]);
+            if (D_800D6620[modelIndex]->flags & MODEL_FLAG_TEXTURE_ANIMATION) {
+                D_800D6620[modelIndex]->textureAnimation->destX /= 0x10 / D_800D6620[modelIndex]->textureAnimation->unk2;
+                D_800D6620[modelIndex]->textureAnimation->destX += texturePageX[0];
+                D_800D6620[modelIndex]->textureAnimation->unk8 += texturePageY[0];
+                D_800D6620[modelIndex]->textureAnimation->width /= 0x10 / D_800D6620[modelIndex]->textureAnimation->unk2;
+                for (k = j = 0; k < D_800D6620[modelIndex]->textureAnimation->frameCount; k++) {
+                    D_800D6620[modelIndex]->textureAnimation->frameCoords[j] /= 0x10 / D_800D6620[modelIndex]->textureAnimation->unk2;
+                    D_800D6620[modelIndex]->textureAnimation->frameCoords[j] += texturePageX[0];
+                    j++;
+                    D_800D6620[modelIndex]->textureAnimation->frameCoords[j] += texturePageY[0];
+                    j++;
+                }
+            }
+        }
+        modelIndex++;
+    }
+
+    for (cacheIndex = 0; cacheIndex < 3; cacheIndex++) {
+        D_800D61A8[cacheIndex] = D_800D5F50[cacheIndex];
+    }
+
+    actor = g_fieldActors;
+    for (i = 0; i < g_fieldActorCount; i++, actor++) {
+        if (actor->modelId < 0) {
+            freeSpace = func_800A8CDC(i, actor->modelId, freeSpace);
+        } else {
+            freeSpace = func_800A81AC(i, D_800D5EF0[actor->modelId], freeSpace);
+        }
+    }
+
+    return freeSpace;
+}
+

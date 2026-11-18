@@ -210,13 +210,11 @@ s32 *func_800983F0(void) {
     }
 
     if (g_curFieldInfo->unk0D == 0) {
-        buf = (u8 *)func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C311C,
-                                  (u8 *)&D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0,
-                                  heapEnd);
+        buf = func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C311C,
+                            &D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0, heapEnd);
     } else {
-        buf = (u8 *)func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C315C,
-                                  (u8 *)&D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0,
-                                  heapEnd);
+        buf = func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C315C,
+                            &D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0, heapEnd);
     }
 
     if (D_8007064D == 0) {
