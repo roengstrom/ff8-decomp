@@ -4866,7 +4866,7 @@ s32 renderStatRowGrid(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s
     xPos = x + 0x21;
     yPos = y + 9;
     highlight = 7;
-    title = getBattleCommandName((*(cmiTable = &g_charMenuInfo))[ctx->charIdx].unk12);
+    title = getBattleCommandName((*(cmiTable = &g_charMenuInfo))[ctx->charIdx].commandIds[0]);
     cursorY = func_801F0FEC(renderCtx, cursorY, xPos, yPos, title, highlight);
 
     for (i = 0; i < 3; i++) {

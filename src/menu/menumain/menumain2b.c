@@ -193,7 +193,7 @@ restart:
                 s->unk22 = s->party[index];
             }
 
-            if ((val & 0x20 && D_801FABC8[s->unk22].statusFlags & 1) || s->unk22 == 0xFF) {
+            if ((val & 0x20 && g_charMenuInfo[s->unk22].statusFlags & 1) || s->unk22 == 0xFF) {
                *statePtr = 18;
                 break;
             }
@@ -907,15 +907,15 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     s32 y = arg3 * 26;
     s32 y2 = y + 34;
     if (charId != 255) {
-        MenuCharData *menuCharData = &D_801FABC8[charId];
+        CharMenuInfo *charMenuInfo = &g_charMenuInfo[charId];
         CharacterData *charData = &g_gameState.chars[charId];
-        u32 color = func_801F3FB4(menuCharData->statusFlags);
+        u32 color = func_801F3FB4(charMenuInfo->statusFlags);
         u8 *charName = getCharName(charData->characterId);
         s32 y3 = y + 44;
         prim = func_801F3994(charName, ot, prim, 40, y3, color);
         y3 = y + 46;
-        prim = func_801F3B64(menuCharData->currentHp, menuCharData->maxHp, ot, prim, 162, y3, color);
-        prim = func_801F39D0(menuCharData->currentLevel, ot, prim, 114, y3, color);
+        prim = func_801F3B64(charMenuInfo->currentHp, charMenuInfo->maxHp, ot, prim, 162, y3, color);
+        prim = func_801F39D0(charMenuInfo->currentLevel, ot, prim, 114, y3, color);
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
@@ -961,18 +961,18 @@ static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot
     if (charId != PARTY_SLOT_EMPTY) {
         s32 x;
         s32 itemY = yOffset + 44;
-        MenuCharData *menuData = &D_801FABC8[charId];
+        CharMenuInfo *charMenuInfo = &g_charMenuInfo[charId];
         CharacterData *charData = &g_gameState.chars[charId];
-        s32 color = func_801F3FB4(menuData->statusFlags);
+        s32 color = func_801F3FB4(charMenuInfo->statusFlags);
         u8 *charName = getCharName(charData->characterId);
         prim = func_801F3994(charName, ot, prim, 40, itemY, color);
         x = 162;
         itemY = yOffset + 46;
-        prim = func_801F3B64(menuData->currentHp, menuData->maxHp, ot, prim, x, itemY, color);
-        prim = func_801F39D0(menuData->currentLevel, ot, prim, 114, itemY, color);
+        prim = func_801F3B64(charMenuInfo->currentHp, charMenuInfo->maxHp, ot, prim, x, itemY, color);
+        prim = func_801F39D0(charMenuInfo->currentLevel, ot, prim, 114, itemY, color);
         itemY = yOffset + 59;
         x = 98;
-        prim = func_801F3DE4(menuData->currentExp, menuData->expToNextLevel, ot, prim, x, itemY, DIALOG_COLOR_WHITE);
+        prim = func_801F3DE4(charMenuInfo->currentExp, charMenuInfo->expToNextLevel, ot, prim, x, itemY, DIALOG_COLOR_WHITE);
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
@@ -1106,12 +1106,12 @@ s32 func_801F5150(s32 a0, s32 a1, s32 a2) {
  * @param charId Character ID.
  */
 void func_801F5190(s32 charId) {
-    MenuCharData *data;
+    CharMenuInfo *data;
     BattleCharData *btlChars;
     s32 statusFlags;
     s32 i;
 
-    data = &D_801FABC8[charId];
+    data = &g_charMenuInfo[charId];
     btlChars = &g_battleChars.chars[0];
     setPartyLeader(charId);
     data->currentLevel = btlChars->currentLevel;
@@ -1245,14 +1245,14 @@ void func_801F5868(s32 entityId, s32 hp) {
         g_battleChars.gfs[gfId].hp = hp;
     } else {
         g_gameState.chars[entityId].currentHp = hp;
-        D_801FABC8[entityId].currentHp = hp;
+        g_charMenuInfo[entityId].currentHp = hp;
     }
 }
 
 /** @brief Get entity max HP. */
 s32 func_801F58EC(s32 entityId) {
     if (entityId < 16) {
-        return D_801FABC8[entityId].maxHp;
+        return g_charMenuInfo[entityId].maxHp;
     } else {
         s32 gfId = entityId - 16;
         return g_battleChars.gfs[gfId].maxHp;
@@ -1262,7 +1262,7 @@ s32 func_801F58EC(s32 entityId) {
 /** @brief Get entity level. */
 s32 func_801F5938(s32 entityId) {
     if (entityId < 16) {
-        return D_801FABC8[entityId].currentLevel;
+        return g_charMenuInfo[entityId].currentLevel;
     } else {
         s32 gfId = entityId - 16;
         return g_battleChars.gfs[gfId].level;

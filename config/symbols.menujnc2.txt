@@ -103,4 +103,3 @@ g_assignedAbilities = 0x801EEFC0; // allow_duplicated:True
 g_availableAbilities = 0x801EEFD0;
 g_junctionPreview = 0x801EEFE0; // size:0x1D0
 D_801FA3C8 = 0x801FA3C8; // defined:False
-g_charMenuInfo = 0x801FABC8;
