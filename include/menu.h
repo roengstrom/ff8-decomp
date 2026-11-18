@@ -328,6 +328,7 @@ extern u8 D_801F7F98[];
 extern FlagEntry D_801F87B8[];
 extern MItemEntry D_801F889C[];
 extern u16 D_801FA3C8[];  /**< 65-entry falloff table, built by menumain func_801EFF64. */
+extern u8 D_801FABC7;
 extern MenuCharData D_801FABC8[];
 
 #endif /* MENU_H */

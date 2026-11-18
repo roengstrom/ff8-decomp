@@ -1,8 +1,8 @@
 #include "common.h"
+#include "game.h"
 #include "ui/sprite.h"
 #include "gamestate.h"
 
-extern u8 *getCharName(CharacterId charId);
 extern SpriteTable g_portraitsTable;
 
 #define STRIP_STRIDE   0x300

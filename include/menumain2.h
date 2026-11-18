@@ -84,6 +84,7 @@ s32 func_801F0F20(s32, SPRT *, s32, u32, s32);
 void func_801F0FD0(s32, s32);
 u32 func_801F0FEC(void *ot, void *prim, s32 x, s32 y, u8 *iconIds, u32 clutFlags);
 void *func_801F179C(MenuTickCallback, MenuDrawCallback);
+void func_801F12F0(void);
 void func_801F18FC(s32 *);
 void func_801F1AFC(void);
 void func_801F1B10(void);

@@ -6,6 +6,7 @@
 s32 func_801F776C(s32, s32);
 void func_801F798C(void);
 s32 func_801F79F8(s32);
+s32 func_801F7A54(void);
 void func_801F7AD4(s32);
 void func_801F7B10(s32);
 void func_801F7B60(void);                     /**< Menu teardown/exit helper. */

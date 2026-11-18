@@ -462,6 +462,8 @@ extern u16 *D_800852F0;
 
 /* --- Save / GF / chocobo-world state setters --- */
 extern void setGfExists(s32 gfId);
+extern void setFieldFlag(s32 bitIdx);
+extern s32 testFieldFlag(s32 bitIdx);
 
 /** @brief Card / character refresh hook: invoked when a party member
  *         changes; refreshes derived character data. */

@@ -5,6 +5,7 @@
 #include "menumain2.h"
 #include "menumain2b.h"
 #include "character.h"
+#include "game.h"
 #include "menuext.h"
 #include "gamestate.h"
 #include "item.h"
@@ -442,8 +443,6 @@ typedef struct {
     /* 0x53 */ u8 state;          /**< Render state (0xFF = inactive). */
 } ExtMenuCtx;
 
-extern u8 *getCharName(s32 charId);
-extern u8 *getMagicNamePtr(s32 magicId);
 
 /**
  * @brief Render a character/magic equipment row + selection highlight.

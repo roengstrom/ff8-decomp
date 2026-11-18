@@ -11,6 +11,7 @@
 #include "party_stats.h"
 #include "cdrom.h"
 #include "menumain3.h"
+#include "btl_anim.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/kernel.h"
 #include "memcard.h"
@@ -197,10 +198,8 @@ void initCardDataBlock(void);
 void initCardEventHandlers(void);
 void setModeBit(s32);
 void dispatchVsyncCallback(void);
-void loadSubOverlay(s32, s32);
 s32 pollCardReady(s32);
 s32 pollCardStatus(s32);
-void copyString(char *, char *);
 s32 openFirstFileRetry(s32, char *, struct DIRENTRY *);
 s32 cardNextFile(struct DIRENTRY *);
 s32 btlStrlen(char *);
@@ -223,7 +222,6 @@ static void func_801E73C0(void);
 static void func_801E73E8(void);
 static void func_801E7408(void);
 void func_801F728C(s32, s32);
-s32 func_801EFFB8(void);
 static void func_801E283C(void);
 static void func_801E2860(void);
 s32 func_801E2958(s32, s32);
@@ -1784,7 +1782,7 @@ dispatch:
             func_801F18FC(ctx->task);
             func_801F0BB0();
             if (ctx->isLoading == 1) {
-                func_801F1D34(0);
+                func_801F1D34(NULL);
             }
         }
         if (ctx->isLoading == 1) {

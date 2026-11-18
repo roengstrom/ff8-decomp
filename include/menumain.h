@@ -40,14 +40,17 @@ DR_AREA *func_801EF800(P_TAG *, DR_AREA *, RECT *);
 DR_AREA *func_801EF8D8(P_TAG *, DR_AREA *);
 void *DrawMenuWindow(void *, void *, s32, u32);
 void func_801EFF64(void);
+s32 func_801EFFB8(void);
 void func_801EFFE4(s32);
 void *func_801EFBB4(void *, void *, MenuRowCallback);
 void func_801EFFC8(s32);
 s32 func_801EFFD4(void);
 void func_801F0000(s32);
+s32 func_801F000C(void);
 void func_801F001C(s32);
 void func_801F0038(void);
 void func_801F00A0(void);
+void func_801F010C(s32 width);
 void func_801F0224(void);
 
 #endif /* MENUMAIN_H */
