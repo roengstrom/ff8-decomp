@@ -925,7 +925,28 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4168);
+void *func_801F4168(void *ot, void *prim, u8 *text, s32 x, s32 y, s32 progress, s32 iconType) {
+    u32 width;
+    u32 height;
+    s32 x2;
+    if (progress == 0) {
+        return prim;
+    }
+    prim = func_801EF8D8(ot, prim);
+    width = getTextSize(text);
+    height = width >> 16;
+    width &= 0xFFFF;
+    width += 20;
+    x2 = x - (width / 2);
+    prim = func_801F0FEC(ot, prim, x2 + 10, y + 8, text, DIALOG_COLOR_WHITE);
+    g_menuDisplayCfg.iconType = iconType;
+    g_menuDisplayCfg.iconSubType = 0;
+    g_menuDisplayCfg.x = x2;
+    g_menuDisplayCfg.y = y;
+    g_menuDisplayCfg.w = width;
+    g_menuDisplayCfg.h = height + 16;
+    return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /** @brief Draw ability/status list line (default mode, last param = 0). */
 void func_801F4274(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
