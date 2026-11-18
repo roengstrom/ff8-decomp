@@ -35,15 +35,3 @@ u8 *func_800ACB10(void) {
 
 void func_800ACBCC(s32 arg0, s32 arg1, u32 arg2, s32 arg3) {
 }
-
-INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800ACBD4);
-
-INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800AD048);
-
-INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800AD0E8);
-
-INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800AD300);
-
-INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800AD570);
-
-INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800AD6E0);
