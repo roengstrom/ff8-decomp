@@ -12,12 +12,23 @@ typedef enum {
     WORLD_ENTER_FROM_BATTLE = 2,
     WORLD_EXIT_TO_BATTLE = 3,
     WORLD_ENTER_FROM_MENU = 4,
-    WORLD_EXIT_TO_MENU = 5
+    WORLD_EXIT_TO_MENU = 5,
+    WORLD_ENTER_FROM_LOAD = 6
 } WorldTransition;
+
+typedef enum {
+    VEHICLE_ON_FOOT = 0x00, // 0x00 to 0x09 and 0x80
+    VEHICLE_TRAIN = 0x10, // 0x10 to 0x16
+    VEHICLE_CAR = 0x20, // 0x20 to 0x28 and 0x84
+    VEHICLE_BALAMB_GARDEN = 0x30,
+    VEHICLE_CHOCOBO = 0x31,
+    VEHICLE_RAGNAROK = 0x32,
+    VEHICLE_BOAT = 0x40 // 0x40 to 0x42
+} Vehicle;
 
 typedef struct {
     /* 0x00 */ s8 mode;
-    /* 0x01 */ s8 cmd;
+    /* 0x01 */ s8 vehicle;
     union {
         struct {
             /* 0x02 */ s8 entranceIndex; // index into WORLD_TO_FIELD_ENTRANCES
@@ -30,7 +41,7 @@ typedef struct {
     } param;
 } SceneState;
 
-extern SceneState D_80082C8C;
+extern SceneState g_worldTransfer;
 
 /* ======================================================================== */
 /* GF Save Data                                                             */
@@ -81,7 +92,8 @@ enum GfId {
     GF_BAHAMUT    = 12,
     GF_CACTUAR    = 13,
     GF_TONBERRY   = 14,
-    GF_EDEN       = 15
+    GF_EDEN       = 15,
+    GF_NONE = 0xFF
 };
 
 /** @brief Get 24-bit forgotten abilities bitfield from GfSaveData. */
@@ -134,7 +146,8 @@ enum SealedAbilityFlag {
     SEALED_DRAW = 0x08,
     SEALED_COMMAND_ABILITIES = 0x10, // every other junctioned command
     SEALED_LIMIT_BREAK = 0x20,
-    SEALED_RESURRECTION = 0x40
+    SEALED_RESURRECTION = 0x40,
+    SEALED_SAVE = 0x80
 };
 
 /** @brief GameConfig.flags bitfield. */
@@ -450,7 +463,7 @@ extern volatile s16 g_gameMode;
 extern DISPENV      g_dispEnvs[2];
 extern DRAWENV      g_drawEnvs[2];
 extern DRAWENV *g_activeDrawEnv; // draw environment of the buffer currently being built
-extern s32 D_8005F138; // active display environment (holds a DISPENV *)
+extern DISPENV *g_activeDispEnv;
 extern u8 g_fadeCounter;
 
 /** @brief Bit @c 0x10 mirrors into @c FieldVars.field58 on full field reset. */
@@ -461,6 +474,8 @@ extern u16 *D_800852F0;
 
 /* --- Save / GF / chocobo-world state setters --- */
 extern void setGfExists(s32 gfId);
+extern void setFieldFlag(s32 bitIdx);
+extern s32 testFieldFlag(s32 bitIdx);
 
 /** @brief Card / character refresh hook: invoked when a party member
  *         changes; refreshes derived character data. */

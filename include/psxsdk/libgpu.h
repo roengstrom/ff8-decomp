@@ -268,6 +268,11 @@ typedef struct {
     u32 code[2];
 } DR_STP;
 
+typedef struct {
+    u32 tag;
+    u32 code[2];
+} DR_PRIO;
+
 /** @brief Drawing tpage command (single u32 payload). */
 typedef struct {
     u32 tag;
@@ -463,10 +468,12 @@ void SetDrawEnv(DR_ENV *dr_env, DRAWENV *env);
 DRAWENV *SetDefDrawEnv(DRAWENV *env, s32 x, s32 y, s32 w, s32 h);
 DISPENV *SetDefDispEnv(DISPENV *env, s32 x, s32 y, s32 w, s32 h);
 DRAWENV *PutDrawEnv(DRAWENV *env);
+DRAWENV *GetDrawEnv(DRAWENV *env);
 DISPENV *PutDispEnv(DISPENV *env);
 s32 ClearImage(RECT *rect, u8 r, u8 g, u8 b);
 /* Pack a mask-bit setting into the primitive @p p: with @p pbw set, drawn pixels get their mask bit set. */
 void SetDrawStp(DR_STP *p, s32 pbw);
+void SetPriority(DR_PRIO *p, s32 pbc, s32 pbw);
 void AddPrim(void *ot, void *p);
 void AddPrims(s32 *ot, void *p0, void *p1);
 void SetDrawArea(DR_AREA *p, RECT *rect);
@@ -489,6 +496,8 @@ void SetDrawTPage(void *p, s32 dfe, s32 dtd, u16 tpage);
 void SetTile(void *p);
 void SetSprt(SPRT *p);
 u16 GetClut(s32 x, s32 y);
+u16 LoadClut(u32 *clut, s32 x, s32 y);
+u16 LoadTPage(u32 *pix, s32 tp, s32 abr, s32 x, s32 y, s32 w, s32 h);
 u16 GetTPage(s32 tp, s32 abr, s32 x, s32 y);
 
 #endif /* LIBGPU_H */

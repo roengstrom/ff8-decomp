@@ -317,7 +317,7 @@ void startBattleTransition(register s32 boss) {
     AddPrim(ot, stp);
     stp++;
     move = (DR_MOVE *)stp;
-    SetDrawMove(move, &((DISPENV *)D_8005F138)->disp, SNAPSHOT_X, SNAPSHOT_Y);
+    SetDrawMove(move, &g_activeDispEnv->disp, SNAPSHOT_X, SNAPSHOT_Y);
     AddPrim(ot, move);
     move++;
     stp = (DR_STP *)move;

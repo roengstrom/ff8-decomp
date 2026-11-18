@@ -9,7 +9,7 @@ static void mcInitDirUsed(u8 *frame);
 static void mcInitDirFree(u8 *frame);
 static void mcFillFF(u8 *buf);
 
-u16 func_800377B4(s32 len, u8 *buf)
+s32 func_800377B4(s32 len, u8 *buf)
 {
     u16 table[256];
     u32 crc;
@@ -142,7 +142,7 @@ static void mcFillFF(u8 *buf) {
 }
 
 
-s32 func_800379AC(void *arg0)
+s32 func_800379AC(s32 arg0)
 {
     u8 buffer[0x80];
     s32 i;

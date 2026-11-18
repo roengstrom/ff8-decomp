@@ -22,8 +22,6 @@ extern CmdQueue D_800DE7B0;
 
 extern void func_800ADAF4(s32 a, u32 size, u32 c);
 
-/* INCLUDE_ASM stubs — bodies still in assembly, signatures unknown.
- * Declared K&R-style; refine when these get decomped to C. */
-extern int  func_800AD7AC();
+extern void FieldPause(void (*callback)(void));
 
 #endif

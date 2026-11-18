@@ -1317,13 +1317,13 @@ void sndCmdEC(s32 bank, s32 instrument, s32 slot, s32 arg3) {
  * @param value Second SPU command parameter / frame limit source (stored at g_sndCmdArgs[1]).
  * @return 0 on success, -1 if @p value is zero.
  */
-s32 sndInitIrq(s32 arg0, s32 value) {
+s32 sndInitIrq(u8 *arg0, s32 value) {
     if (value == 0) {
         return -1;
     }
     SpuSetIRQ(0);
     SpuSetIRQAddr(0);
-    g_sndCmdArgs[0] = arg0;
+    g_sndCmdArgs[0] = (s32)arg0;
     g_sndCmdArgs[1] = value;
     g_sndStream.unk34 = -1;
     g_sndStream.unk20 = 0;
@@ -1342,7 +1342,7 @@ s32 sndInitIrq(s32 arg0, s32 value) {
  * @c loopLimit. If bit 24 of @c flags is set and @c frameCounter reaches 3,
  * calls func_8001F118.
  *
- * @return The value of D_800772CC (current sound engine state word).
+ * @return The current sound engine state word.
  */
 s32 sndTickCounters(void) {
     SoundStream *stream = &g_sndStream;
@@ -1357,6 +1357,6 @@ s32 sndTickCounters(void) {
     if ((stream->flags & 0x1000000) && (u32)stream->frameCounter >= 3) {
         func_8001F118();
     }
-    return D_800772CC;
+    return g_sndStream.unk34;
 }
 

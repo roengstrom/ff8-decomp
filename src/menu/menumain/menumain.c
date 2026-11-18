@@ -416,7 +416,7 @@ void func_801F00A0(void) {
     VSync(0);
     PutDispEnv(&D_801FA3C0->dispEnv);
     PutDrawEnv(&D_801FA3C0->drawEnv);
-    D_8005F138 = &D_801FA3C0->dispEnv;
+    g_activeDispEnv = &D_801FA3C0->dispEnv;
     g_activeDrawEnv = &D_801FA3C0->drawEnv;
     DrawOTag(D_801FA3C0->ot);
 }

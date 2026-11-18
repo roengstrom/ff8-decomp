@@ -12,14 +12,16 @@ typedef enum {
     BATTLE_RESULT_UNDETERMINED = 0,
     BATTLE_RESULT_GAMEOVER = 1,
     BATTLE_RESULT_ESCAPED = 2,
-    BATTLE_RESULT_UNK3 = 3,
+    BATTLE_RESULT_TIME_UP = 3,
     BATTLE_RESULT_WIN = 4,
-    BATTLE_RESULT_UNK5 = 5
+    BATTLE_RESULT_SOFT_RESET = 5
 } BattleResult;
 
 /** @brief BattleConfig.unk2 flag: a countdown is running. The menu clock shows it
  * instead of the play time, and a battle ends when it reaches 0. */
 #define BATTLE_FLAG_COUNTDOWN 0x04
+#define NO_GAMEOVER_ON_TIME_UP 0x100
+#define NO_GAMEOVER_ON_LOSS 0x200
 
 #define GET_OFFSET(type, ptr, var) ((type*)(var + (intrptr_t)ptr))
 
@@ -27,7 +29,7 @@ typedef enum {
 typedef struct {
     u16 battleSceneId;
     u16 unk2;            // Flags?, when first bit is set, escape it not possible
-    u8  unk4[3];         // Post battle command queue?
+    u8  obtainedGf[3];   // GFs drawn in this battle, to be named after it; GF_NONE for none
     u8 result; // a BattleResult
     u8 sealedAbilities; // see @c SealedAbilityFlag
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
@@ -833,6 +835,15 @@ struct EffectAttachment {
     /* 0x04 */ struct EffectMesh *mesh;
 };
 
+typedef struct {
+    u8 unk0;
+    u8 unk1;
+    u8 unk2;
+    u8 unk3;
+    u8 pad4[0x2C - 4];
+    u16 unk2C;
+} EffectStruct;
+
 /**
  * @brief One battle entity slot; @ref D_800EF2D0 holds seven of them.
  *
@@ -844,7 +855,9 @@ struct EffectAttachment {
 typedef struct BattleEffectSlot {
     /* 0x00 */ u16 flags;          /**< See @c BATTLE_SLOT_FLAG_*. */
     /* 0x02 */ u16 unk02;          // flags again?
-    /* 0x04 */ u8 pad04[0xC - 0x4];
+    /* 0x04 */ u8 unk4;
+    /* 0x05 */ u8 pad5[3];
+    /* 0x08 */ s32 unk8;
     /* 0x0C */ u16 unkC;
     /* 0x0E */ s16 facing;         /**< Angle the slot's model is turned to. */
     /* 0x10 */ u16 unk10;
@@ -865,7 +878,7 @@ typedef struct BattleEffectSlot {
     /* 0x64 */ struct EffectMesh *mesh;
     /* 0x68 */ u8 pad068[0x6C - 0x68];
     /* 0x6C */ u8 unk06C[0x74 - 0x6C];
-    /* 0x74 */ u8 *unk074;         /**< The battle entity behind the slot;
+    /* 0x74 */ EffectStruct* unk074;         /**< The battle entity behind the slot;
                                         its @c 0x2C halfword carries the flags. */
     /* 0x78 */ struct EffectAttachment *unk078;
     /* 0x7C */ u32 unk07C;         /**< Bit @c n set: mesh part @c n is drawn. */

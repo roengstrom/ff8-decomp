@@ -3,9 +3,9 @@
 
 #include "common.h"
 
-extern u16 func_800377B4(s32 len, u8 *buf);
+extern s32 func_800377B4(s32 len, u8 *buf);
 extern void mcZeroFrame(u8 *ptr);
-extern s32 func_800379AC(void *arg0);
+extern s32 func_800379AC(s32 arg0);
 
 typedef enum {
     VERSION_JAPAN = 0,

@@ -3,7 +3,9 @@
 
 #include "common.h"
 #include "lzs.h"
+#include "mch.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 
 /*
  * ============================================================================
@@ -58,8 +60,8 @@ typedef struct {
     /* 0x12 */ s16 p2;
     /* 0x14 */ u16 p3;
     /* 0x16 */ u16 p4;
-    /* 0x18 */ u16 p5;
-    /* 0x1A */ u16 p6;
+    /* 0x18 */ s16 p5;
+    /* 0x1A */ s16 p6;
 } SystemSubMode; /* 0x1C = 28 bytes */
 
 /**
@@ -120,12 +122,7 @@ typedef struct {
     /* 0x004 */ s16 position_x;     /**< Spawn X, or @c SPAWN_UNSET to use the triangle centroid. */
     /* 0x006 */ s16 position_y;     /**< Spawn Y. */
     /* 0x008 */ u16 unk008;         /**< Extra halfword popped only by @c opHandler_MAPJUMP3. */
-    /* 0x00A */ s16 unk00A;         /**< Reset to 20 by @c func_8009AEC0 and scaled into the self
-                                         entity's @c moveSpeed with the same factor
-                                         @c func_800B6738 uses on @c D_800704B2 (134.8046875,
-                                         written there as @c *69020>>9 and here as @c *17255>>7), so
-                                         the entity starts exactly at that threshold.
-                                         @note Both quantities are unnamed; only ever written as 20. */
+    /* 0x00A */ s16 moveUnit; // walk speed, run speed and the gap between party followers are all multiples of this
     /* 0x00C */ s16 spawnTriIdx;    /**< Spawn navmesh triangle — assigned straight to @c Actor::triIdx
                                          by both @c func_8009AEC0 and @c func_800BE264.
                                          @c SPAWN_UNSET means "keep the entity where it is". */
@@ -174,25 +171,20 @@ typedef struct {
     /* 0x16C */ u8 pad16C[0x14];
     /* 0x180 */ u8 unkActive180[16]; /**< 16-byte active-marker region, cleared on @c func_800BF718 mode 1 init. */
     /* 0x190 */ u8 slotActive[16];
-    /* 0x1A0 */ u8 unk1A0;          /**< Mode-6 active marker, set with mode = 6 by fe_object6 opcode. */
-    /* 0x1A1 */ u8 unk1A1;          /**< Cleared unconditionally by @c func_800A5700 each dialog tick. */
+    /* 0x1A0 */ u8 introScreenType;
+    /* 0x1A1 */ u8 skipFieldDraw; // stops rendering the field, when set screen is frozen but game is running
     /* 0x1A2 */ u8 mapJumpOff;
     /* 0x1A3 */ u8 userControlOff;
     /* 0x1A4 */ u8 unk1A4;
     /* 0x1A5 */ u8 unk1A5;          /**< Non-zero suppresses the load-mode-1 framebuffer copy. */
     /* 0x1A6 */ u8 unk1A6;          /**< Cleared by @c func_800BFBBC on full reset. */
-    /* 0x1A7 */ u8 unk1A7;
+    /* 0x1A7 */ u8 movieMaskOff; // 0 draws the movie mask, which keeps the characters behind objects in movies
     /* 0x1A8 */ u8 unk1A8;
     /* 0x1A9 */ u8 unk1A9;
     /* 0x1AA */ u8 unk1AA;
-    /* 0x1AB */ u8 unk1AB;          /**< Sub-mode byte; written together with @c mode by fe_object6 opcodes. */
-    /* 0x1AC */ u8 unk1AC;          /**< Passed as the mode argument to @c renderAndUpdateDisplay
-                                         and @c VSync on the branch @c func_800BE274 gates.
-                                         @note Nothing in the decompiled tree writes it yet, so the
-                                         purpose is inferred from those two argument positions only. */
-    /* 0x1AD */ u8 unk1AD;          /**< Non-zero makes @c func_80099348 skip the entity-aim, blob-shadow
-                                         and shimmer-ribbon passes.
-                                         @note Read only there; no writer decompiled yet. */
+    /* 0x1AB */ u8 menuArg;
+    /* 0x1AC */ u8 movieFrameVBlanks; // vertical blanks each frame lasts while a movie plays
+    /* 0x1AD */ u8 hideActors; // non-zero hides the field's characters and their shadows
     /* 0x1AE */ u8 unk1AE;          /**< Script-writable byte (set by opcode handler @c opHandler_COUNTERCLOCKWISETURN2, read by @c func_8009BEC8 as the distance-per-step divisor). */
     /* 0x1AF */ u8 packedFlagSlot;  /**< Last @c getPackedField2Bit result for the active dispatcher slot; written each tick by @c func_800BD9C4. */
     /* 0x1B0 */ u8 unk1B0;          /**< 1 selects the actor-pool install path on engine state 1. */
@@ -244,9 +236,9 @@ typedef struct {
     /* 0x44 */ s32 killSum;             /**< Sum of @c chars[i].kills across all 8 characters. */
     /* 0x48 */ s32 gilMirror;           /**< Mirror of @c g_gameState.mainData.party.gil, kept in sync by fe_object6. */
     /* 0x4C */ s32 dreamGilMirror;      /**< Mirror of @c g_gameState.mainData.party.dreamGil. */
-    /* 0x50 */ s32 padInitStatus;       /**< Result of @c func_801E8B58 (pad-init status), updated each field tick. */
+    /* 0x50 */ s32 currentMovieFrame;
     /* 0x54 */ u16 field54;
-    /* 0x56 */ u8 field56;              /**< Copy of @c D_80082C8D byte, set by @c func_800BFBBC. */
+    /* 0x56 */ u8 field56;              /**< Copy of @c g_worldTransfer.vehicle. */
     /* 0x57 */ u8 field57;              /**< Low byte of @c g_previousGameMode, set by @c func_800BFBBC. */
     /* 0x58 */ u8 field58;              /**< Used by fe_object7 dispatch (purpose TBD). */
     /* 0x59 */ u8 pad59[0x0F];
@@ -257,7 +249,7 @@ typedef struct {
                                              8-bit key). Named after the field-init debug trace, which
                                              prints its address as @c "address(DrawPointFlag)". */
     /* 0xB4 */ u16 packedFlagsStepAcc;  /**< Step accumulator: fires packed-flags processing at @c 0x2800. */
-    /* 0xB6 */ u16 fieldB6;             /**< Used by fe_object7 dispatch (purpose TBD). */
+    /* 0xB6 */ u16 battleFlags;
     /* 0xB8 */ s16 levelUpDisplayTimer; /**< Frames remaining for the SeeD-rank-up notification (set to 150). */
     /* 0xBA */ u16 prevSeedExp;         /**< Snapshot of @c seedExp from the previous tick (for rank-change detection). */
     /* 0xBC */ u8 partyOrderA[3];       /**< Bench list (members not in active party). */
@@ -275,7 +267,7 @@ typedef struct {
     /* 0xCE */ u8 countdownY; /**< Countdown timer y, popped by DISPTIMER. */
     /* 0xCF */ u8 fieldCF;              /**< Blocks random encounters while set (func_800A5D28 guard); also read by fe_object7 dispatch. */
     /* 0xD0 */ u8 padD0;
-    /* 0xD1 */ u8 fieldD1;              /**< Bit 0 toggled by fe_object6 helper. */
+    /* 0xD1 */ u8 menuArgs;      /**< @c MENU_ALLOW_* flags for the main menu. */
     /* 0xD2 */ u8 dialogActiveMask;        /**< Per-slot dialog active bitmask (set when shown, cleared when done). */
     /* 0xD3 */ u8 dialogStartMask;         /**< Per-slot dialog start bitmask (set when shown). */
     /* 0xD4 */ u8 dialogEntryMask;         /**< Per-slot dialog entry-table bitmask (set when the slot is registered in @c D_80085300). */
@@ -304,13 +296,13 @@ typedef struct {
 
 /* FieldVars.stateFlags bits (partial map — bits are named as their usages
  * are identified; several more bits are used as bare hex elsewhere). */
-#define FIELD_STATE_TRANSITION 0x8 /**< Bit 3: SeeD salary off (SARALYOFF sets it, SARALYON clears it); its inverse is pushed to @c setSalaryEnabled at field init. Set on new game. */
-#define FIELD_STATE_FIELD_READY    0x10  /**< Bit 4: set on new game; returned (with bit 3) by @c getFieldStateFlags. @note Purpose uncertain. */
+#define FIELD_STATE_SALARY_OFF 0x8
+#define FIELD_STATE_SALARY_DISPLAY_OFF 0x10
 #define FIELD_STATE_COUNTDOWN 0x40 /**< Bit 6: the countdown timer is shown (DISPTIMER sets it, KILLTIMER clears it); the field tick tail shows it again. */
 #define FIELD_STATE_FLAG_200       0x200 /**< Bit 9: toggled by the fe_object6 music/state helper. @note Purpose unknown. */
 #define FIELD_STATE_FLAG_400       0x400 /**< Bit 10: staged from @c fieldCF by the music-state machine, then cleared. @note Purpose unknown. */
 #define FIELD_STATE_PARTY_OVERRIDE 0x800 /**< Bit 11: while set, @c fieldF3 mirrors into @c g_battleConfig.sealedAbilities / @c GameConfig.sealedAbilities and SETPARTY2 replays at field init. */
-#define FIELD_STATE_FLAG_1000      0x1000 /**< Bit 12: set/cleared around the fe_object5 sound-bank swap. @note Purpose unknown. */
+#define FIELD_STATE_MOVIE_PLAYING 0x1000
 
 /** @brief Field-engine variable block (canonical extern also in gamestate.h). */
 extern FieldVars *g_fieldVars;
@@ -337,10 +329,12 @@ typedef struct {
     /* 0x176 */ u16 pc;             /**< Instruction pointer of the running slot. */
     /* 0x178 */ u16 rangeLo;        /**< Lower bound of this entity's script range. */
     /* 0x17A */ u16 rangeHi;        /**< Upper bound of this entity's script range. */
-    /* 0x17C */ u8  savedStackPtr[8]; /**< Saved stack base per script slot. */
+    /* 0x17C */ s8  savedStackPtr[8]; /**< Saved stack base per script slot. */
     /* 0x184 */ s8  stackPtr;       /**< Top stack slot; @c -1 when empty, pre-incremented by @c PUSH. */
     /* 0x185 */ u8  pad185[0x03];
 } ScriptContext; /* 0x188 */
+
+#define ACTOR_NO_CHARACTER_ID 0xFE // partyCharacterId of an actor that is none of the CharacterId characters
 
 /**
  * @brief Actor — opcode handler / script-VM view of a field entity.
@@ -365,8 +359,8 @@ typedef struct {
  */
 typedef struct {
     /* 0x000 */ ScriptContext context; // Has to be first field in struct so that Actor instance can be cast as ScriptContext
-    /* 0x188 */ u8 unk188;          /**< Script parameter byte. */
-    /* 0x189 */ u8 unk189;          /**< Script parameter byte. */
+    /* 0x188 */ s8 unk188;          /**< Script parameter byte. */
+    /* 0x189 */ s8 unk189;          /**< Script parameter byte. */
     /* 0x18A */ u16 unk18A;         /**< Step delta added to unk188 each movement tick. */
     /* 0x18C */ u16 unk18C;         /**< Halfword saved during async msg state. */
     /* 0x18E */ u16 unk18E;         /**< Halfword saved during async msg state. */
@@ -413,14 +407,14 @@ typedef struct {
     /* 0x1FE */ s16 moveSpeed;      /**< Per-tick movement speed, 8.8 fixed point (@c 256 @c = 1.0):
                                          @c func_8009D598 scales the sin/cos step vector by it before
                                          adding it to the position. Doubled on movie entry and halved
-                                         on exit (@c opHandler_MOVIE / @c func_800B14C8) along with
-                                         @c msgChannel and @c field_0x208, and saved/restored with the
+                                         on exit (@c opHandler_MOVIE / @c ExitMovieMode) along with
+                                         @c baseMoveSpeed and @c animationSpeed, and saved/restored with the
                                          position, @c triIdx and @c facingDirection by fe_object5. */
-    /* 0x200 */ u16 msgChannel;     /**< Current message channel. */
+    /* 0x200 */ u16 baseMoveSpeed;
     /* 0x202 */ u16 field_0x202;    /**< Saved channel for async restore. */
     /* 0x204 */ s16 field_0x204;
     /* 0x206 */ u16 field_0x206;
-    /* 0x208 */ u16 field_0x208;
+    /* 0x208 */ u16 animationSpeed;
     /* 0x20A */ u16 field_0x20A;
     /* 0x20C */ u16 field_0x20C;
     /* 0x20E */ u16 field_0x20E;
@@ -428,7 +422,7 @@ typedef struct {
     /* 0x212 */ u16 field_0x212;
     /* 0x214 */ u16 field_0x214;
     /* 0x216 */ u16 field_0x216;
-    /* 0x218 */ s16 unk218;         /**< -1 = inactive (skipped by collision tests in @c func_8009E468). */
+    /* 0x218 */ s16 modelId; // which loaded model this actor is drawn with; -1 = no model, and then nothing bumps into it
     /* 0x21A */ s16 windowId;       /**< Message window ID (read signed; @c 1 selects the inverted input mapping in @c func_8009F990). */
     /* 0x21C */ u16 field_0x21C;    /**< Saved window ID for async restore. */
     /* 0x21E */ s16 msgState;       /**< Message state (0=init, 2=complete). */
@@ -473,8 +467,8 @@ typedef struct {
     /* 0x252 */ u8 field_0x252;
     /* 0x253 */ u8 field_0x253;
     /* 0x254 */ u8 field_0x254;
-    /* 0x255 */ u8 field_0x255;
-    /* 0x256 */ u8 field_0x256;
+    /* 0x255 */ u8 partyCharacterId; // which CharacterId character this actor is, in the party or not, or ACTOR_NO_CHARACTER_ID
+    /* 0x256 */ u8 selfIndex; // this actor's own number in the field's actor list
     /* 0x257 */ u8 field_0x257;
     /* 0x258 */ u8 unk258;          /**< Set from path-table entry's @c unk8 by @c func_8009BB18. */
     /** 0x259: Blob-shadow radius per octagon direction — entry @c k is the heading
@@ -485,6 +479,8 @@ typedef struct {
     /* 0x262 */ u8 field_0x262;
     /* 0x263 */ u8 field_0x263;
 } Actor;
+
+#define NO_MODEL -1
 
 /** @brief Push one s32 onto the actor's bytecode stack. */
 #define PUSH(ctx, val) (((s32 *)(ctx))[(s8)(++(ctx)->stackPtr)] = (val))
@@ -523,50 +519,88 @@ extern u16 g_seedSalaryTable[];
 /** @brief Field-only party-member status predicate (used by dialog opcodes). */
 extern s32 func_800211B4(s32 partyMember, s32 code);
 
-/**
- * @brief Per-entity render slot (rotational/animation state).
- *
- * One slot per field-engine entity, addressed via @ref D_800D9630. The
- * full structure is around 0x64 bytes; only the fields touched by the
- * opcode handlers are named so far.
- */
-/**
- * @brief One animation frame: destination X/Y for the sprite rect.
- */
-typedef struct {
-    u16 x;
-    u16 y;
-} EntityAnimFrame; /* 4 bytes */
+#define MODEL_FLAG_TEXTURE_ANIMATION 0x1
 
-/**
- * @brief Animation descriptor referenced by @ref EntityDef.
- *
- * A short header (sprite rect size, frame-reload count, source X) followed
- * by the per-frame destination-coordinate table. The animation loop period
- * is stored in the first frame's @c y slot (@c frames[0].y).
- */
 typedef struct {
-    u8 pad0[3];
-    u8 rectW;                 /**< 0x03 — sprite rect width. */
-    u8 rectH;                 /**< 0x04 — sprite rect height. */
-    u8 frameReload;           /**< 0x05 — value reloaded into @c slot->frameIdx. */
-    u16 srcX;                 /**< 0x06 — source X passed to the frame loader. */
-    EntityAnimFrame frames[1];/**< 0x08 — per-frame dest coords; @c frames[0].y doubles as the loop period. */
-} EntityAnimData;
+    /** 0x00 */ u8 pad0[0x0C];
+    /** 0x0C */ CVECTOR unkC;
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ CVECTOR unk14;
+} ModelUnk04;
 
-/**
- * @brief Entity definition/template referenced by @ref EntityRenderSlot.
- */
 typedef struct {
-    u8 pad00[0x14];
-    EntityAnimData *anim;     /**< 0x14 — animation descriptor. */
-    u8 pad18[0x47];
-    u8 unk5F;                 /**< 0x5F — bit 0 set = entity is animated. */
-} EntityDef;
+    /** 0x00 */ u8 pad0[0x10];
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ CVECTOR unk14;
+    /** 0x18 */ CVECTOR unk18;
+    /** 0x1C */ CVECTOR unk1C;
+} ModelUnk08;
+
+typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u16 unk2;
+    /** 0x04 */ u16 unk4;
+    /** 0x06 */ u16 unk6;
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ CVECTOR unk10;
+    /** 0x14 */ s32 unk14;
+} ModelTriangle;
+
+#define MODEL_TRIANGLE_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ u16 unk0;
+    /** 0x02 */ u16 unk2;
+    /** 0x04 */ u16 unk4;
+    /** 0x06 */ u16 unk6;
+    /** 0x08 */ u16 unk8;
+    /** 0x0A */ u16 unkA;
+    /** 0x0C */ u16 unkC;
+    /** 0x0E */ u16 unkE;
+    /** 0x10 */ u16 unk10;
+    /** 0x12 */ u16 unk12;
+    /** 0x14 */ CVECTOR unk14;
+    /** 0x18 */ s32 unk18;
+} ModelQuad;
+
+#define MODEL_QUAD_FLAG_4 0x4
+
+typedef struct {
+    /** 0x00 */ MchBone *boneTemplate;
+    /** 0x04 */ ModelUnk04 *unk04;
+    /** 0x08 */ ModelUnk08 *unk08;
+    /** 0x0C */ ModelTriangle *triangles;
+    /** 0x10 */ ModelQuad *quads;
+    /** 0x14 */ MchTextureAnimation *textureAnimation;
+    /** 0x18 */ SVECTOR *vertices;
+    /** 0x1C */ MchDrawGroup *drawGroups;
+    /** 0x20 */ MchSkinObject *skinObjects;
+    /** 0x24 */ s32 drawGroupCount;
+    /** 0x28 */ s32 skinObjectCount;
+    /** 0x2C */ s32 boneCount;
+    /** 0x30 */ s32 unk30;
+    /** 0x34 */ s32 unk34;
+    /** 0x38 */ s32 triangleCount;
+    /** 0x3C */ s32 quadCount;
+    /** 0x40 */ SVECTOR *ownAnimations;
+    /** 0x44 */ u8 pad44[0x08];
+    /** 0x4C */ u32 signature;
+    /** 0x50 */ u16 field50;
+    /** 0x52 */ u16 animationCount;
+    /** 0x54 */ u16 *animationTable;
+    /** 0x58 */ SVECTOR *animations;
+    /** 0x5C */ u8 headBone;
+    /** 0x5D */ u8 bodyBone;
+    /** 0x5E */ u8 extraBone;
+    /** 0x5F */ u8 flags;
+} Model;
 
 /**
  * @brief The four consecutive @c s32 transform words at offset @c 0x20 of an
- *        @ref EntityRenderSlot, modelled as one 16-byte block.
+ *        @ref ModelInstance, modelled as one 16-byte block.
  *
  * @c func_800A74B4 mode 0 overwrites all four at once via a single aggregate
  * copy; the compiler emits that as a 4-word load-all/store-all block, which is
@@ -579,50 +613,73 @@ typedef struct {
     s32 field2C;     /**< Mode-0 only (mode-1 leaves it untouched). */
 } EntityRenderXform;
 
-typedef struct {
-    EntityDef *def;  /**< 0x00 — entity definition/template. */
-    u8 pad04[0x08];
-    u16 unk0C;
-    u8 pad0E[0x02];
-    u16 unk10;       /**< Cleared on init by @c func_800A8CDC. */
-    u16 unk12;       /**< Init to @c 0x190 by @c func_800A8CDC. */
-    u16 unk14;       /**< Cleared on init. */
-    u8 pad16[0x02];
-    u16 unk18;       /**< Cleared on init. */
-    u16 unk1A;       /**< Cleared on init. */
-    u16 unk1C;       /**< Cleared on init. */
-    u8 pad1E[0x02];
-    EntityRenderXform xform;  /**< 0x20 — transform block (field20..field2C); see @c func_800A74B4. */
-    u8 pad30[0x20];
-    u16 unk50;       /**< Cleared on init. */
-    u16 unk52;       /**< Current motion halfword (mirror of Actor @c field_0x206). */
-    u8 pad54[0x0C];
-    u8 unk60;
-    u8 unk61;
-    u16 unk62;
-    u8 pad64[0x02];
-    u8 frameTimer;   /**< 0x66 — per-frame countdown; on expiry the frame advances. */
-    u8 frameIdx;     /**< 0x67 — current frame index (counts down; reloaded from anim->frameReload). */
-    u8 pad68[0x0A];
-    u8 animFlags;    /**< 0x72 — bit0x80 = retrigger, bit0x10 = active, low nibble reused. */
-    u8 pad73;
-    u8 timerReload;  /**< 0x74 — reload value for frameTimer when the period is non-negative. */
-    u8 pad75[0x09];
-    u16 unk7E;       /**< 0x7E — animation id currently playing; @c func_8009B4A8 resets @c unk52 when it changes. */
-    u8 pad80[0x04];
-    u16 field84;     /**< 0x84 — snapshot of @c unk10 (dirty-check by @c func_800A7224). */
-    u16 field86;     /**< 0x86 — snapshot of @c unk12. */
-    s16 field88;     /**< 0x88 — snapshot of @c unk14. */
-    u8 pad8A[0x02];
-    u16 field8C;     /**< 0x8C — snapshot of @c unk18 (dirty-check by @c func_800A736C). */
-    u16 field8E;     /**< 0x8E — snapshot of @c unk1A. */
-    s16 field90;     /**< 0x90 — snapshot of @c unk1C. */
-    u8 pad92[0x06];
-    s32 subBuffer;   /**< @c 0x98 — caller of @c func_800A8CDC uses the returned @c &subBuffer pointer. */
-} EntityRenderSlot;
+#define RENDER_FLAG_HIDDEN 0x01
+#define ENTITY_RENDER_FLAG_2 0x02
+#define ENTITY_RENDER_FLAG_4 0x04
+#define ENTITY_RENDER_FLAG_8 0x08
+#define ENTITY_RENDER_FLAG_10 0x10
+#define RENDER_FLAG_EXTRA_BONE_HIDDEN 0x20
+#define ENTITY_RENDER_FLAG_40 0x40
 
-/** @brief Entity render-slot pointer table; indexed by @c actor->field_0x256. */
-extern EntityRenderSlot *D_800D9630[];
+#define ENTITY_ANIM_FLAG_10 0x10
+#define ENTITY_ANIM_FLAG_20 0x20
+#define ENTITY_ANIM_FLAG_40 0x40
+
+typedef struct {
+    /* 0x00 */ union {
+        Model *model;
+        s32 modelId;
+    } modelSlot;
+    /* 0x04 */ MchBone *bones;
+    /* 0x08 */ SVECTOR *animationStart;
+    /* 0x0C */ u16 animationLength;
+    /* 0x0E */ u16 posesPerFrame;
+    /* 0x10 */ u16 unk10;
+    /* 0x12 */ u16 unk12;
+    /* 0x14 */ u16 unk14;
+    /* 0x16 */ u8 pad16[0x02];
+    /* 0x18 */ u16 unk18;
+    /* 0x1A */ u16 unk1A;
+    /* 0x1C */ u16 unk1C;
+    /* 0x1E */ u8 pad1E[0x02];
+    /* 0x20 */ EntityRenderXform xform;
+    /* 0x30 */ MATRIX unk30;
+    /* 0x50 */ u16 unk50;
+    /* 0x52 */ u16 animationPhase;
+    /* 0x54 */ POLY_G3 *prims;
+    /* 0x58 */ POLY_G3 *primBuffers[2];
+    /* 0x60 */ u8 renderFlags;
+    /* 0x61 */ u8 unk61;
+    /* 0x62 */ u16 heightOffset;
+    /* 0x64 */ u16 animationCount;
+    /* 0x66 */ u8 frameTimer;
+    /* 0x67 */ u8 frameIdx;
+    /* 0x68 */ u16 *animationTable;
+    /* 0x6C */ CVECTOR *animations;
+    /* 0x70 */ u8 headBone;
+    /* 0x71 */ u8 bodyBone;
+    /* 0x72 */ u8 animFlags;
+    /* 0x73 */ u8 extraBone;
+    /* 0x74 */ u8 timerReload;
+    /* 0x75 */ u8 pad75[0x03];
+    /* 0x78 */ SVECTOR *cachedAnimationStart;
+    /* 0x7C */ u16 cachedPhase;
+    /* 0x7E */ u16 animationIndex;
+    /* 0x80 */ u16 *primOrderIndices;
+    /* 0x84 */ u16 field84;
+    /* 0x86 */ u16 field86;
+    /* 0x88 */ s16 field88;
+    /* 0x8A */ u8 pad8A[0x02];
+    /* 0x8C */ u16 field8C;
+    /* 0x8E */ u16 field8E;
+    /* 0x90 */ s16 field90;
+    /* 0x92 */ u8 pad92[0x02];
+    /* 0x94 */ SVECTOR *unk94;
+    /* 0x98 */ s32 subBuffer;
+} ModelInstance;
+
+/** @brief Entity render-slot pointer table; indexed by @c actor->selfIndex. */
+extern ModelInstance *D_800D9630[];
 
 /** @brief Entity Actor pointer table; indexed by raw field-entity id. */
 extern Actor *D_80085230[];
@@ -683,8 +740,8 @@ typedef struct {
     /* 0x192 */ u16 animSpeed2;     /**< Reload partner of @ref animSpeed; written with the same value. */
     /* 0x194 */ u16 animFlag;       /**< Set by @c BGANIMEFLAG from the script stack. */
     /* 0x196 */ u8  pad196[0x06];
-    /* 0x19C */ u16 shadeCounter;   /**< Shade wait counter; @c BGSHADE pops it, @c BGSHADESTOP zeros it, the opcode finishes when it reaches 0. */
-    /* 0x19E */ u16 unk19E;         /**< Zeroed whenever a shade sequence starts or stops. */
+    /* 0x19C */ s16 shadeCounter;   /**< Shade wait counter; @c BGSHADE pops it, @c BGSHADESTOP zeros it, the opcode finishes when it reaches 0. */
+    /* 0x19E */ s16 unk19E;         /**< Zeroed whenever a shade sequence starts or stops. */
     /* 0x1A0 */ u16 unk1A0;         /**< Loop counter popped by @c RBGSHADELOOP. */
     /* 0x1A2 */ u16 unk1A2;         /**< Timer popped by @c RBGSHADELOOP. */
     /* 0x1A4 */ u8  unk1A4;         /**< Per-tick counter, primed from @ref unk1A5. */
@@ -802,7 +859,9 @@ typedef struct {
     /* 0x4EC0 */ u8 pad4EC0[0x40];
     /* 0x4F00 */ DR_ENV unk4F00;               /**< Second env prim; linked into @c ot[1]. */
     /* 0x4F40 */ DR_ENV unk4F40;                /**< Third env prim, built by @c SetDrawEnv alongside @c unk4F00. */
-    /* 0x4F80 */ u8 unk4F80[0x1018];           /**< Output block @ref func_800A06F0 fills. */
+    /* 0x4F80 */ u8 unk4F80[0x1000];           /**< Output block @ref func_800A06F0 fills. */
+    /* 0x5F80 */ DR_PRIO unk5F80;
+    /* 0x5F8C */ DR_PRIO unk5F8C;
     /* 0x5F98 */ FieldRibbonPrims ribbonPrims[8];   /**< Shimmer-ribbon line strips (@ref func_800A5224). */
     /* 0x6538 */ FieldRibbonTPages ribbonTPages[8]; /**< Their tpage commands. */
 } FieldFrameBuf; /* 0x6638 = 26168 bytes */
@@ -870,9 +929,11 @@ extern s32 D_800DE4D8;
 /** @brief Global SFX-status flags packed scalar (tested with 0xC0 etc.). */
 extern s32 D_80070600;
 
-/** @brief Active field-script entity index (mirrors @c actor->field_0x256). */
+/** @brief Active field-script entity index (mirrors @c actor->selfIndex). */
 extern u8 D_800DE4FC;
-extern u8 D_800DE4FD[];
+#define FIELD_MOVIE_LOADING 0x1
+#define FIELD_MOVIE_OPEN 0x2
+extern u8 g_fieldMovieFlags;
 extern u8 D_80085390;
 extern u8 D_800704BB;
 extern u8 D_800704BC;
@@ -896,9 +957,7 @@ extern u8 D_800DE8D0;
  *         load-complete callback and polled by @c EFFECTLOAD. */
 extern u8 D_800DE8D5;
 
-/** @brief Misc 4-byte field-engine slot; stash for @c func_801E8104's return
- *         value in @c MOVIEREADY / @c SPUREADY. */
-extern s32 D_800DE4EC;
+extern u8 *g_movieStripBuffer;
 
 /** @brief Id that startVibration returned for the field script's last SETVIBRATE. */
 extern s32 D_800DE878;
@@ -922,7 +981,7 @@ extern u8 D_8007064C;
 /** @brief Resident table of text strings read by the field-VM string opcodes. */
 extern OffsetTable D_8005630C;
 
-extern u8 *D_8005F13C;
+extern u8 *g_fieldSoundBuffer;
 
 /** @brief Field/battle load sub-state halfword driving the @c ff8main state
  *         machine (values 0/1/2/3/6/0xA). Read as a signed halfword there
@@ -945,8 +1004,6 @@ extern u8 D_8005F102;
 
 extern u8 *g_prefetchBuffer;
 
-/** @brief Misc field byte; copied into @c FieldVars.field56 on full reset. */
-extern u8  D_80082C8D;
 
 /** @brief Bitfield words tested by fe_object4 opcode handlers. */
 extern s32 D_800705E8;
@@ -960,7 +1017,7 @@ extern u8  D_8007809A;
 /** @brief Reset to 20 on field entry by @c func_8009AEC0 and scaled by
  *         134.8046875 (@c *69020>>9) in @c func_800B6738 to form the threshold
  *         the entity's @c moveSpeed is compared against — the same scale
- *         @c func_8009AEC0 applies to @c FieldContext::unk00A when seeding it.
+ *         @c func_8009AEC0 applies to @c FieldContext::moveUnit when seeding it.
  *  @note Both quantities are unnamed; the pair only ever holds 20. */
 extern s16 D_800704B2;
 
@@ -1054,11 +1111,8 @@ extern u8 D_800DE8D2;
  */
 extern u8 D_800C5FB0[];
 
-/** @brief CD-entry @c {LBA,size} pairs for movie load opcodes (op04F MOVIE). */
-extern u32 D_800C2D14[];
-/** @brief CD-entry @c {LBA,size,_,_} quadruples for the alt movie loader. */
-extern u32 D_800C2E14[];
-/** @brief CD-entry @c {LBA,size} pairs for the SPU-stream loader (op056). */
-extern u32 D_800C2E1C[];
+extern u32 g_movieTable[];
+extern u32 g_audioStreamTable[];
+extern u32 g_instrumentBankTable[];
 
 #endif /* FIELD_H */

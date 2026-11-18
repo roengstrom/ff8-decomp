@@ -1,19 +1,45 @@
 #include "common.h"
 #include "battle_results/number.h"
+#include "btl_anim.h"
 #include "gamestate.h"
 #include "overlay.h"
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
+#include "menumain3.h"
 #include "menututo.h"
 #include "numstr.h"
+#include "party_stats.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgte.h"
+#include "snd_sfx.h"
+#include "ui/sprite.h"
 #include "ui/text.h"
+
+static void func_801E28A8(s32 a0);
+static u8 *func_801E28E4(s32 a0);
+static u8 *func_801E2910(s32 a0);
+static void func_801E293C(s32 a0, s32 a1);
+static void func_801E296C(s32 a0, TutoState *data);
+static void func_801E29F8(s32 a0, TutoState *data);
+static void func_801E2D3C(void);
+static void func_801E2EF0(void);
+static void func_801E30C4(TutoState *ctx);
+static void func_801E3140(TutoState *ctx);
+static s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y);
+static u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y);
+static u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y);
+static s32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 x);
+static u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y);
+static s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY);
+static s32 func_801E4598(TutoState *state, s32 renderCtx, s32 cursorY);
+static void func_801E48C0(TutoState *self);
+static TSPRT *func_801E4BD0(u32 *ot, TSPRT *prim, s32 fade);
+static s32 func_801E4CB0(TutoState *state, s32 renderCtx, s32 cursorY);
 
 /**
  * @brief Read tutorial column index 1.
- *
  * @return Byte value of D_801E4EC1.
  */
 s32 func_801E2800(void) {
@@ -22,7 +48,6 @@ s32 func_801E2800(void) {
 
 /**
  * @brief Read tutorial column index 2.
- *
  * @return Byte value of D_801E4EC2.
  */
 s32 func_801E2810(void) {
@@ -31,14 +56,10 @@ s32 func_801E2810(void) {
 
 /**
  * @brief Load a sub-overlay at an offset from the base address.
- *
- * Dispatches to loadSubOverlay with a base pointer adjusted by a
- * fixed offset determined by the tutorial section index.
- *
  * @param index Tutorial section index (0-6).
- * @param base Base address of the overlay data.
+ * @param base Value the section offset is added to.
  */
-void func_801E2820(s32 index, u8 *base) {
+void func_801E2820(s32 index, s32 base) {
     switch (index) {
     case 0:
         base += 0x1C;
@@ -68,24 +89,18 @@ void func_801E2820(s32 index, u8 *base) {
 
 /**
  * @brief Load tutorial page indices from table.
- *
- * Reads two bytes from D_801E4EB4[a0] (4-byte stride) and stores
- * them into D_801E4EC1 and D_801E4EC2 respectively.
- *
  * @param a0 Tutorial page table index.
  */
-void func_801E28A8(s32 a0) {
-    u8 *entry;
+static void func_801E28A8(s32 a0) {
+    TutoPageEntry *entry = D_801E4EB4;
 
-    entry = D_801E4EB4;
-    entry = entry + a0 * 4;
-    D_801E4EC1 = entry[0];
-    D_801E4EC2 = entry[1];
+    entry += a0;
+    D_801E4EC1 = entry->unk0;
+    D_801E4EC2 = entry->unk1;
 }
 
 /**
  * @brief Read tutorial page index.
- *
  * @return Byte value of D_801E4EC0.
  */
 s32 func_801E28D4(void) {
@@ -93,87 +108,60 @@ s32 func_801E28D4(void) {
 }
 
 /** @brief Look up string @p a0 in menu text category 0xD. */
-u8 *func_801E28E4(s32 a0) {
+static u8 *func_801E28E4(s32 a0) {
     return func_801F08D4(1, 0xD, a0, 0);
 }
 
 /** @brief Look up string @p a0 in menu text category 0xD, with the last flag set. */
-u8 *func_801E2910(s32 a0) {
+static u8 *func_801E2910(s32 a0) {
     return func_801F08D4(1, 0xD, a0, 1);
 }
 
-/** @brief Call func_801F0A34 with a0, 0, 0x22, and a1 * 15 + 0x3E. */
-void func_801E293C(s32 a0, s32 a1) {
+static void func_801E293C(s32 a0, s32 a1) {
     func_801F0A34(a0, 0, 0x22, a1 * 15 + 0x3E);
 }
 
 /**
  * @brief Draw tutorial text with computed CLUT and Y position.
- *
- * Computes a CLUT index from 0x1000 minus field 0x2C via lookup table
- * D_801FA3C8, then calls func_801F0A34 with the computed x/y coordinates.
- *
- * @param a0 OT pointer
- * @param a1 Pointer to tutorial state structure
+ * @param a0 OT pointer.
+ * @param data Pointer to tutorial state structure.
  */
-void func_801E296C(s32 a0, TutoState *data) {
-    s32 index;
-    s32 tableVal;
-    s32 scaled;
-    s32 val = data->fadeProgress;
-    u8 param = data->cursorPos;
+static void func_801E296C(s32 a0, TutoState *data) {
+    s32 xOffset = data->fadeProgress;
+    u8 cursorPos = data->cursorPos;
 
-    scaled = val;
-    index = (tableVal = 0x1000 - val);
-    index /= 64;
-
-    tableVal = D_801FA3C8[index];
-    scaled = (D_801FA3C8[index] * 190) / 4096;
-    func_801F0A34(a0, 0, scaled + 0xA8, (param * 15) + 0x3E);
+    xOffset = 0x1000 - xOffset;
+    xOffset = D_801FA3C8[xOffset / 64];
+    xOffset = xOffset * 190 / 4096;
+    func_801F0A34(a0, 0, xOffset + 0xA8, cursorPos * 15 + 0x3E);
 }
 
 /**
  * @brief Draw tutorial text with table-based X scaling and entry-based Y.
- *
- * Computes Y from the entry index modulo 10, and X from a CLUT lookup
- * table indexed by the scroll position divided by 64.
- *
  * @param a0 OT pointer.
  * @param data Pointer to tutorial state structure.
  */
-void func_801E29F8(s32 a0, TutoState *data) {
-    s32 tableVal;
-    u32 scaled;
-    u32 height;
-    u32 mod = 10;
-    s16 pos = data->scrollPos;
-    s8 val = (s8)data->entryIndex;
+static void func_801E29F8(s32 a0, TutoState *data) {
+    s16 scrollPos = data->scrollPos;
+    s32 entryIndex = data->entryIndex;
+    s32 y = entryIndex % 10 * 15 + 0x3E;
+    s32 tableValue = scrollPos;
+    s16 xOffset;
 
-    height = ((val % (tableVal = 10)) * 15) + 0x3E;
-    tableVal = D_801FA3C8[(tableVal = pos) / 64];
-    scaled = (tableVal * 190) / 4096;
-
-    func_801F0A34(a0, 0, scaled + 0xA8, height);
+    tableValue = D_801FA3C8[tableValue / 64];
+    xOffset = tableValue * 190 / 4096;
+    func_801F0A34(a0, 0, xOffset + 0xA8, y);
 }
 
 /**
  * @brief Initialize game state from save data buffers.
- *
- * Copies character data from 0x801DB000 and GF data from 0x801DC000
- * into g_gameState, sets initial HP to 9999, copies GF names from
- * 0x801D9000, and initializes party/limit break/config fields.
- * If D_801FABC7 is set, scans characters to build an availability
- * mask for the party selection menu.
- *
  * @param output Tutorial state receiving character availability data.
  */
 void func_801E2ABC(TutoState *output) {
-
-    s32 nameSrc = 0x801D9000;
+    GameState *save = (GameState *)0x801D9000;
     CharacterData *charSrc = (CharacterData *)0x801DB000;
     GfSaveData *gfSrc = (GfSaveData *)0x801DC000;
     s32 i;
-    s32 nameOff;
 
     for (i = 0; i < CHARACTER_COUNT; i++) {
         g_gameState.chars[i] = *charSrc;
@@ -183,12 +171,11 @@ void func_801E2ABC(TutoState *output) {
         g_gameState.chars[i].characterId = i;
     }
 
-    for (i = 0, nameOff = 0x50; i < GF_COUNT; i++) {
+    for (i = 0; i < GF_COUNT; i++) {
         g_gameState.gfs[i] = *gfSrc;
         gfSrc++;
         g_gameState.gfs[i].hp = 9999;
-        copyString((u8 *)&g_gameState.gfs[i], (u8 *)(nameSrc + nameOff));
-        nameOff += 0x44;
+        copyString(g_gameState.gfs[i].name, save->gfs[i].name);
     }
 
     g_gameState.mainData.party.partyMembers[0] = 0;
@@ -240,15 +227,8 @@ void func_801E2ABC(TutoState *output) {
     func_801F5440();
 }
 
-/**
- * @brief Save game state back to the tutorial save buffer.
- *
- * Copies character data, GF data, config, party/inventory/battle data,
- * and battle party from g_gameState back to the 0x801D9000 buffer.
- * This is the reverse of func_801E2ABC which loads from the buffer
- * into g_gameState.
- */
-void func_801E2D3C(void) {
+/** @brief Save game state back to the tutorial save buffer. */
+static void func_801E2D3C(void) {
     GameState *dst = (GameState *)0x801D9000;
     s32 i;
 
@@ -268,15 +248,8 @@ void func_801E2D3C(void) {
     }
 }
 
-/**
- * @brief Restore game state from the tutorial save buffer.
- *
- * Copies character data, GF data, config, party/inventory/battle data,
- * and battle party from the 0x801D9000 buffer back into g_gameState.
- * This is the reverse of func_801E2D3C which saves to the buffer.
- * Recalculates party stats after restoring.
- */
-void func_801E2EF0(void) {
+/** @brief Restore game state from the tutorial save buffer. */
+static void func_801E2EF0(void) {
     GameState *save = (GameState *)0x801D9000;
     s32 i;
 
@@ -299,49 +272,33 @@ void func_801E2EF0(void) {
     func_801F5440();
 }
 
-/**
- * @brief Scan tutorial entry table and build list of available entries.
- *
- * Iterates over 9 entries in D_801E4E3C (12-byte stride), calls
- * testFieldFlag to check if each entry's fieldFlagId is available.
- * Available entries' indices are stored sequentially in availSlots[]
- * and the total count is stored in availCount.
- */
-void func_801E30C4(TutoState *ctx) {
-    s32 i = 0;
-    s32 count = 0;
-    u8 *table = (u8 *)D_801E4E3C;
+/** @brief Scan tutorial entry table and build list of available entries. */
+static void func_801E30C4(TutoState *ctx) {
+    s32 i;
+    s32 count;
 
-    do {
-        if (testFieldFlag(table[8]) != 0) {
+    for (i = 0, count = 0; i < 9; i++) {
+        if (testFieldFlag(D_801E4E3C[i].fieldFlagId) != 0) {
             ctx->availSlots[count] = i;
             count++;
         }
-        i++;
-        table += 0xC;
-    } while (i < 9);
+    }
 
     ctx->availCount = count;
 }
 
 /**
  * @brief Tutorial page state machine.
- *
- * Processes tutorial state transitions including page navigation,
- * fade animations, overlay loading, input handling, and CD reads.
- * Uses a 34-entry switch (states 0x00-0x21) with goto-based
- * re-dispatch for immediate state transitions.
- *
  * @param ctx Tutorial state context.
  */
-void func_801E3140(TutoState *ctx) {
+static void func_801E3140(TutoState *ctx) {
     u16 inputRepeat = g_menuDisplayCfg.inputRepeat;
     u16 inputNew = g_menuDisplayCfg.inputNew;
     u16 *statePtr = &ctx->state;
     u16 state = ctx->state;
 
 top:
-    switch (state & 0xFFFF) {
+    switch (state) {
     case 0x00:
         if (ctx->isReentry != 0) {
             *statePtr = 0x1D;
@@ -359,43 +316,39 @@ top:
 
     case 0x02:
         ctx->fadePos += 0x100;
-        if ((s16)ctx->fadePos >= 0x1000) {
+        if (ctx->fadePos >= 0x1000) {
             ctx->fadePos = 0x1000;
             *statePtr = 3;
         }
-        func_801F0948((s16)ctx->fadePos);
+        func_801F0948(ctx->fadePos);
         func_801E293C(1, 0);
         break;
 
     case 0x03:
         *statePtr = 4;
-        /* fall through */
-    case 0x04: {
-        TutoEntry *entry;
-        u8 section;
-
-        section = func_801F6768(inputRepeat, 8, ctx->sectionIndex);
-        ctx->sectionIndex = section;
+        // fall through
+    case 0x04:
+        ctx->sectionIndex = func_801F6768(inputRepeat, 8, ctx->sectionIndex);
         func_801F12F0();
 
-        if ((&D_801E4E18[ctx->sectionIndex])->hasFlag != 0) {
-            ctx->panelHandle = func_801E2910((&D_801E4E18[ctx->sectionIndex])->panelId);
+        if (D_801E4E18[ctx->sectionIndex].hasFlag != 0) {
+            ctx->panelHandle = func_801E2910(D_801E4E18[ctx->sectionIndex].panelId);
         } else {
-            ctx->panelHandle = func_801F6AD0((&D_801E4E18[ctx->sectionIndex])->panelId);
+            ctx->panelHandle = func_801F6AD0(D_801E4E18[ctx->sectionIndex].panelId);
         }
         func_801E293C(1, ctx->sectionIndex);
 
         if (inputNew & PADRdown) {
             D_801E4EC0 = 0xFF;
 
-            if ((&D_801E4E18[ctx->sectionIndex])->panelId == 0x3D) {
+            if (D_801E4E18[ctx->sectionIndex].panelId == 0x3D) {
                 if (func_801F7A54() < 0) {
                     sendSpuCommand(5);
                     break;
                 }
             }
 
-            if ((&D_801E4E18[ctx->sectionIndex])->panelId == 0x3E) {
+            if (D_801E4E18[ctx->sectionIndex].panelId == 0x3E) {
                 if (g_gameState.mainData.tutoEntryCount == 0) {
                     sendSpuCommand(5);
                     break;
@@ -405,7 +358,7 @@ top:
                 goto top;
             }
 
-            if ((&D_801E4E18[ctx->sectionIndex])->loadCmd != 0) {
+            if (D_801E4E18[ctx->sectionIndex].loadCmd != 0) {
                 sendSpuCommand(2);
                 ctx->returnState = 0x16;
                 *statePtr = 0xE;
@@ -419,15 +372,14 @@ top:
             *statePtr = 0x20;
         }
         break;
-    }
 
     case 0x05:
         ctx->panelHandle = func_801E28E4(0x19);
         *statePtr = 6;
-        /* fall through */
+        // fall through
     case 0x06:
         ctx->scrollPos -= 0x100;
-        if ((s16)ctx->scrollPos <= 0) {
+        if (ctx->scrollPos <= 0) {
             ctx->scrollPos = 0;
             *statePtr = 7;
         }
@@ -463,10 +415,13 @@ top:
 
         if (inputNew & PADRdown) {
             if (ctx->entryIndex < g_gameState.mainData.tutoEntryCount) {
-                s32 index = ctx->entryIndex;
                 sendSpuCommand(2);
                 D_801E4EC0 = ctx->entryIndex;
-                do { ctx->returnState = 0x16; *statePtr = 0xE; } while (0);
+                // matching hack
+                do {
+                    ctx->returnState = 0x16;
+                    *statePtr = 0xE;
+                } while (0);
             } else {
                 sendSpuCommand(5);
             }
@@ -485,7 +440,7 @@ top:
         func_801E293C(0, ctx->sectionIndex);
         func_801E29F8(1, ctx);
 
-        val = (s8)ctx->entryIndex;
+        val = ctx->entryIndex;
         page = val / 10;
         rem = val % 10;
         newPage = page;
@@ -506,7 +461,7 @@ top:
         func_801E293C(0, ctx->sectionIndex);
         func_801E29F8(1, ctx);
         ctx->scrollAnim += 0x199;
-        if ((s16)ctx->scrollAnim >= 0) {
+        if (ctx->scrollAnim >= 0) {
             ctx->scrollAnim = 0;
             *statePtr = 7;
         }
@@ -529,7 +484,7 @@ top:
         func_801E293C(0, ctx->sectionIndex);
         func_801E29F8(1, ctx);
 
-        val = (s8)ctx->entryIndex;
+        val = ctx->entryIndex;
         page = val / 10;
         rem = val % 10;
         newPage = page;
@@ -550,7 +505,7 @@ top:
         func_801E293C(0, ctx->sectionIndex);
         func_801E29F8(1, ctx);
         ctx->scrollAnim -= 0x199;
-        if ((s16)ctx->scrollAnim <= 0) {
+        if (ctx->scrollAnim <= 0) {
             ctx->scrollAnim = 0;
             *statePtr = 7;
         }
@@ -565,10 +520,10 @@ top:
     case 0x0C:
         func_801E293C(0, ctx->sectionIndex);
         *statePtr = 0xD;
-        /* fall through */
+        // fall through
     case 0x0D:
         ctx->scrollPos += 0x100;
-        if ((s16)ctx->scrollPos >= 0x1000) {
+        if (ctx->scrollPos >= 0x1000) {
             ctx->scrollPos = 0x1000;
             *statePtr = 4;
         }
@@ -579,7 +534,7 @@ top:
     case 0x0E: {
         u8 cmd;
 
-        cmd = (&D_801E4E18[ctx->sectionIndex])->loadCmd;
+        cmd = D_801E4E18[ctx->sectionIndex].loadCmd;
 
         switch (cmd) {
         case 0x19:
@@ -608,10 +563,10 @@ top:
             goto top;
         }
 
-        func_801F0BF8((&D_801E4E18[ctx->sectionIndex])->loadCmd);
+        func_801F0BF8(D_801E4E18[ctx->sectionIndex].loadCmd);
         *statePtr = 0xF;
 
-        if ((&D_801E4E18[ctx->sectionIndex])->panelId == 0x3E && (&D_801E4E18[ctx->sectionIndex])->hasFlag == 0) {
+        if (D_801E4E18[ctx->sectionIndex].panelId == 0x3E && D_801E4E18[ctx->sectionIndex].hasFlag == 0) {
             func_801E293C(0, ctx->sectionIndex);
             func_801E29F8(1, ctx);
         } else {
@@ -624,15 +579,15 @@ top:
         TutoEntry *entry;
 
         ctx->fadePos -= 0x100;
-        if ((s16)ctx->fadePos <= 0) {
+        if (ctx->fadePos <= 0) {
             ctx->fadePos = 0;
             if (pollCdReadStatus() == 0) {
-                ctx->loadParam = (&D_801E4E18[ctx->sectionIndex])->loadCmd;
+                ctx->loadParam = D_801E4E18[ctx->sectionIndex].loadCmd;
                 *statePtr = 0x11;
             }
         }
-        func_801F0948((s16)ctx->fadePos);
-        func_801F1DB0((s16)ctx->fadePos);
+        func_801F0948(ctx->fadePos);
+        func_801F1DB0(ctx->fadePos);
 
         entry = &D_801E4E18[ctx->sectionIndex];
         if (entry->panelId == 0x3E && entry->hasFlag == 0) {
@@ -646,14 +601,14 @@ top:
 
     case 0x10:
         ctx->fadePos -= 0x100;
-        if ((s16)ctx->fadePos <= 0) {
+        if (ctx->fadePos <= 0) {
             ctx->fadePos = 0;
             if (pollCdReadStatus() == 0) {
                 *statePtr = 0x11;
             }
         }
-        func_801F0948((s16)ctx->fadePos);
-        func_801F1DB0((s16)ctx->fadePos);
+        func_801F0948(ctx->fadePos);
+        func_801F1DB0(ctx->fadePos);
         func_801E293C(0, ctx->sectionIndex);
         func_801E296C(1, ctx);
         break;
@@ -663,9 +618,7 @@ top:
         *statePtr = 0x12;
         break;
 
-    case 0x12: {
-        TutoEntry *entry;
-
+    case 0x12:
         if (func_801F0D84() != 0x14) {
             if (func_801F0D84() != 0x1E) {
                 break;
@@ -680,14 +633,13 @@ top:
         ctx->pageCount = g_gameState.mainData.tutoEntryCount;
         ctx->pageCount = (ctx->pageCount + 9) / 10;
 
-        if ((&D_801E4E18[ctx->sectionIndex])->hasFlag != 0) {
-            ctx->panelHandle = func_801E2910((&D_801E4E18[ctx->sectionIndex])->panelId);
+        if (D_801E4E18[ctx->sectionIndex].hasFlag != 0) {
+            ctx->panelHandle = func_801E2910(D_801E4E18[ctx->sectionIndex].panelId);
         } else {
-            ctx->panelHandle = func_801F6AD0((&D_801E4E18[ctx->sectionIndex])->panelId);
+            ctx->panelHandle = func_801F6AD0(D_801E4E18[ctx->sectionIndex].panelId);
         }
         *statePtr = 0x13;
         break;
-    }
 
     case 0x13:
         if (pollCdReadStatus() != 0) {
@@ -703,43 +655,40 @@ top:
         *statePtr = 0x15;
         break;
 
-    case 0x15: {
-        TutoEntry *entry;
-
+    case 0x15:
         if (ctx->isReentry != 0) {
             func_801F12F0();
             func_801E2EF0();
             state = 0x20;
             goto top;
         }
-        if ((&D_801E4E18[ctx->sectionIndex])->loadCmd == 0xFF) {
+        if (D_801E4E18[ctx->sectionIndex].loadCmd == 0xFF) {
             func_801E2EF0();
         }
         *statePtr = ctx->returnState;
         break;
-    }
 
     case 0x16:
         ctx->fadePos += 0x100;
         func_801F12F0();
-        if ((s16)ctx->fadePos >= 0x1000) {
+        if (ctx->fadePos >= 0x1000) {
             ctx->fadePos = 0x1000;
             *statePtr = 3;
         }
-        func_801F0948((s16)ctx->fadePos);
-        func_801F1DB0((s16)ctx->fadePos);
+        func_801F0948(ctx->fadePos);
+        func_801F1DB0(ctx->fadePos);
         func_801E293C(1, ctx->sectionIndex);
         break;
 
     case 0x17:
         ctx->fadePos += 0x100;
         func_801F12F0();
-        if ((s16)ctx->fadePos >= 0x1000) {
+        if (ctx->fadePos >= 0x1000) {
             ctx->fadePos = 0x1000;
             *statePtr = 0x1A;
         }
-        func_801F0948((s16)ctx->fadePos);
-        func_801F1DB0((s16)ctx->fadePos);
+        func_801F0948(ctx->fadePos);
+        func_801F1DB0(ctx->fadePos);
         func_801E293C(0, ctx->sectionIndex);
         func_801E296C(1, ctx);
         break;
@@ -747,10 +696,10 @@ top:
     case 0x18:
         ctx->fadeProgress = 0;
         *statePtr = 0x19;
-        /* fall through */
+        // fall through
     case 0x19:
         ctx->fadeProgress += 0x100;
-        if ((s16)ctx->fadeProgress >= 0x1000) {
+        if (ctx->fadeProgress >= 0x1000) {
             ctx->fadeProgress = 0x1000;
             *statePtr = 0x1A;
         }
@@ -760,14 +709,12 @@ top:
 
     case 0x1A:
         *statePtr = 0x1B;
-        /* fall through */
+        // fall through
     case 0x1B: {
         TutoSectionEntry *table = D_801E4E3C;
-        u8 slotIdx;
         u8 entryIdx;
 
-        slotIdx = func_801F6768(inputRepeat, ctx->availCount, ctx->cursorPos);
-        ctx->cursorPos = slotIdx;
+        ctx->cursorPos = func_801F6768(inputRepeat, ctx->availCount, ctx->cursorPos);
         func_801E293C(0, ctx->sectionIndex);
         func_801E296C(1, ctx);
 
@@ -832,10 +779,10 @@ top:
 
     case 0x1E:
         *statePtr = 0x1F;
-        /* fall through */
+        // fall through
     case 0x1F:
         ctx->fadeProgress -= 0x100;
-        if ((s16)ctx->fadeProgress <= 0) {
+        if (ctx->fadeProgress <= 0) {
             ctx->fadeProgress = 0;
             *statePtr = 3;
         }
@@ -847,43 +794,37 @@ top:
         loadOverlayWithTimCallback(9, 0x801CD000);
         loadOverlayWithTimCallback(0xA, 0x801D5000);
         *statePtr = 0x21;
-        /* fall through */
+        // fall through
     case 0x21:
         ctx->fadePos -= 0x100;
-        if ((s16)ctx->fadePos <= 0) {
+        if (ctx->fadePos <= 0) {
             ctx->fadePos = 0;
             if (pollCdReadStatus() == 0) {
-                func_801F18FC(ctx);
+                func_801F18FC(&ctx->allocNext);
                 func_801F0BB0();
             }
         }
-        func_801F0948((s16)ctx->fadePos);
+        func_801F0948(ctx->fadePos);
         func_801E293C(1, ctx->sectionIndex);
         break;
     }
 
-    /* Common tail — check for menu return signal */
     if (func_801EFFB8() == 0x1A) {
         if (func_801F0D84() == 0x14) {
-            func_801F1DB0((s16)ctx->fadePos);
+            func_801F1DB0(ctx->fadePos);
         }
     }
 }
 
 /**
  * @brief Render a tutorial panel header with text and border.
- *
- * Loads the text string for entry 0x10, draws it offset from the given
- * position, configures the display panel (icon 0x57), and renders the
- * border via DrawMenuWindow.
- *
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @param x Panel X position.
  * @param y Panel Y position.
  * @return Updated OT cursor position.
  */
-s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+static s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     u8 *textAddr;
     s32 xOff = x + 0x20;
@@ -904,19 +845,14 @@ s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
 
 /**
  * @brief Render a tutorial content panel with decoded message text.
- *
- * If the state has a message pointer (panelHandle), decodes the message
- * into a local buffer and renders it. Configures the display panel
- * (icon 0x55) and draws the border.
- *
- * @param state Tutorial state (panelHandle at 0x24 holds message pointer).
+ * @param state Tutorial state.
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @param x Panel X position.
- * @param y Panel Y position (from stack).
+ * @param y Panel Y position.
  * @return Updated OT cursor position.
  */
-u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+static u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     s32 xOff = x + 0xA;
     s32 yOff = y + 9;
@@ -941,22 +877,14 @@ u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
 
 /**
  * @brief Render the tutorial section list panel.
- *
- * Iterates over the 8 tutorial section entries in D_801E4E18 and renders
- * each section name with an appropriate color. Entries with loadCmd==0,
- * Chocobo World unavailable (panelId 0x3D, checked via func_801F7A54), or
- * PocketStation absent (panelId 0x3E, checked via g_gameState + 0xD33 /
- * g_gameState.mainData.tutoEntryCount) are rendered in grey (color 1); normal entries use color 7.
- * Also configures the display panel and draws the border.
- *
  * @param state Unused tutorial state pointer.
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @param x Panel X coordinate.
- * @param y Panel Y coordinate (5th arg, passed on stack).
+ * @param y Panel Y coordinate.
  * @return Updated OT cursor position.
  */
-u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
+static u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     TutoEntry *table = D_801E4E18;
     s32 xOff = x + 0xA;
@@ -989,8 +917,6 @@ u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
         yOff += 0xF;
     }
 
-    cursorY++; cursorY--; /* regalloc hack: boost cursorY use count above yOff so it claims s2 */
-
     cfg->iconType = 0;
     cfg->iconSubType = 0;
     cfg->x = x;
@@ -998,32 +924,26 @@ u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     cfg->w = 0x86;
     cfg->h = 0x80;
 
-    return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    cursorY = DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    return cursorY;
 }
 
 /**
  * @brief Render a single tutorial entry in a 10-per-page list.
- *
- * Computes the global entry index (index * 10 + startY) and returns
- * cursorY unchanged if it's beyond the total tutorial entry count.
- * Otherwise, renders the entry's label text at a per-slot Y offset
- * and draws the 1-indexed entry number via drawNumberMenuTint
- * (with packed X/Y coordinate).
- *
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @param index Zero-based page index.
  * @param startY Slot within the page (0-9).
- * @param x Base X coordinate (5th arg, passed on stack).
+ * @param x Base X coordinate.
  * @return Updated OT cursor position (unchanged if entry out of range).
  */
-s32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 x) {
+static s32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 x) {
     s32 panelX;
     u16 xCoord;
     s32 yPos;
     u8 *text;
     s32 endPos;
-    s32 xPos;
+    s32 labelX;
 
     endPos = (index * 10) + startY;
     if (endPos >= g_gameState.mainData.tutoEntryCount) {
@@ -1032,33 +952,27 @@ s32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 x) {
 
     endPos += 1;
     text = func_801E28E4(0x17);
-    xPos = ((long long)g_menuDisplayCfg.x) + (x + 0xA);
+    labelX = x + 0xA;
     yPos = g_menuDisplayCfg.y + 5;
     yPos += startY * 15;
 
-    cursorY = func_801F0FEC(renderCtx, cursorY, xPos, yPos, text, 7);
+    cursorY = func_801F0FEC(renderCtx, cursorY, g_menuDisplayCfg.x + labelX, yPos, text, 7);
 
     panelX = g_menuDisplayCfg.x;
     xCoord = panelX + (x + 0xC0);
-    return drawNumberMenuTint(renderCtx, cursorY, ((yPos << 15) << 1) | xCoord, endPos, 7);
+    return drawNumberMenuTint(renderCtx, cursorY, (yPos << 16) | xCoord, endPos, 7);
 }
 
 /**
  * @brief Render the tutorial page content panel (text entries + scroll).
- *
- * Configures the display panel at the given position with 10 rows,
- * copies scroll offset and page navigation state from the tutorial
- * context, optionally draws a scroll indicator if there are more than
- * 10 entries, then renders each entry via func_801E4214.
- *
  * @param state Tutorial state (scrollAnim/targetPage/prevPage drive display).
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @param x Panel X position.
- * @param y Panel Y position (5th arg, passed on stack).
+ * @param y Panel Y position.
  * @return Updated OT cursor position.
  */
-u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
+static u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
 
     cfg->iconType = 0;
@@ -1081,17 +995,12 @@ u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s16 y) {
 
 /**
  * @brief Render the tutorial section-select panel during fade-in.
- *
- * Animates the panel scale using a lookup table indexed by fadeProgress,
- * renders each available tutorial section name, and draws the panel
- * border. Early-returns cursorY unchanged if fadeProgress is 0.
- *
  * @param state Tutorial state with fadeProgress and availSlots.
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @return Updated OT cursor position.
  */
-s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
+static s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
     MenuDisplayConfig *cfg;
     TutoSectionEntry *sectionTable;
     s32 scaleVal;
@@ -1141,23 +1050,12 @@ s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
 
 /**
  * @brief Render the tutorial screen while the UI is in state 0x14.
- *
- * Short-circuits and returns cursorY unchanged unless func_801F0D84()
- * reports state 0x14. Otherwise primes the draw state via func_801F1AFC,
- * applies the fade palette intensity from state->fadePos, then draws the
- * layered panels in order: title bar (func_801E3EC0), message panel
- * (func_801E3F8C), the scrolling-section content panel while
- * scrollPos < 0x1000 (func_801E431C, with an X offset driven by
- * D_801FA3C8[scrollPos/64] * 190 / 4096 + 0x9E), the section list overlay
- * (func_801E43D4), and the main entry list (func_801E4080). Finally
- * issues func_801F1B10 as a cleanup tick and returns the updated cursor.
- *
  * @param state Tutorial state pointer.
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @return Updated OT cursor position (unchanged if not in state 0x14).
  */
-s32 func_801E4598(TutoState *state, s32 renderCtx, s32 cursorY) {
+static s32 func_801E4598(TutoState *state, s32 renderCtx, s32 cursorY) {
     s32 tableVal;
     s32 index;
     s32 scaled;
@@ -1192,23 +1090,7 @@ s32 func_801E4598(TutoState *state, s32 renderCtx, s32 cursorY) {
     return cursorY;
 }
 
-/**
- * @brief Cold-entry to tutorial menu: register callbacks and initialize state.
- *
- * Registers func_801E3140/func_801E4598 callbacks via func_801F179C,
- * primes the returned state for a fresh entry (isReentry=0,
- * fadeProgress=0, cursorPos=0), sets field flag 0x3E, populates
- * availability table via func_801E30C4, and resets fade/panel globals.
- * If func_801EFFB8() returns 0x1A, applies the D_801E4EA8 panel preset.
- *
- * If registration succeeded, dispatches the main callback and primes
- * runtime state: scrollPos=0x1000, fadePos=0, pageCount based on
- * g_gameState.mainData.tutoEntryCount (10-page sections), fadeAlpha=0x1B, pageIndex.b.hi=3.
- *
- * Finally, zeroes the two memory regions bracketing menututo's load
- * area: [0x801E5800..0x801EF800) (sibling menu overlay area above) and
- * [0x801CD000..0x801E0000) (sub-overlay scratch buffer below).
- */
+/** @brief Cold-entry to tutorial menu: register callbacks and initialize state. */
 void func_801E46DC(void) {
     TutoState *ctx;
     u8 *p;
@@ -1233,7 +1115,8 @@ void func_801E46DC(void) {
         func_801E3140(ctx);
         ctx->scrollPos = 0x1000;
         ctx->fadePos = 0;
-        ctx->pageCount = ((s8)g_gameState.mainData.tutoEntryCount + 9) / 10;
+        ctx->pageCount = g_gameState.mainData.tutoEntryCount;
+        ctx->pageCount = (ctx->pageCount + 9) / 10;
         ctx->fadeAlpha = 0x1B;
         ctx->pageIndex.b.hi = 3;
     }
@@ -1251,24 +1134,7 @@ void func_801E46DC(void) {
     } while (p != (u8 *)0x801E0000);
 }
 
-/**
- * @brief Warm-entry to tutorial menu with sibling overlay memory scrub.
- *
- * Registers the tutorial main (func_801E3140) and render (func_801E4598)
- * callbacks via func_801F179C and primes the returned state for a
- * re-entry path (isReentry=1, fadeProgress=0, cursorPos=0). Resets fade
- * and panel globals. If registration succeeds, dispatches directly into
- * the main callback with fadeAlpha=0x1B, fadePos=0, and pad23=3 preset.
- *
- * Finally, zeroes the two memory regions bracketing menututo's load
- * area: [0x801CD000..0x801E0000) (sub-overlay scratch buffer below)
- * and [0x801E5800..0x801EF800) (sibling menu overlay area above),
- * scrubbing any cached data left by previously loaded overlays.
- *
- * @note Purpose uncertain — appears to be a warm-entry variant of
- * func_801E4CE4 that bypasses normal init by dispatching directly into
- * the main callback and clearing sibling overlay memory.
- */
+/** @brief Warm-entry to tutorial menu with sibling overlay memory scrub. */
 void func_801E47F8(void) {
     TutoState *ctx;
     u8 *p;
@@ -1302,13 +1168,9 @@ void func_801E47F8(void) {
 
 /**
  * @brief Tutorial page navigation state machine.
- *
- * Walks D_801E4EAC, the page sequence table, which ends at 0xFFFF.
- *
  * @param self Pointer to tutorial callback context.
  */
-void func_801E48C0(TutoState *self) {
-
+static void func_801E48C0(TutoState *self) {
     u16 buttons = g_menuDisplayCfg.inputNew;
     u16 *state = &self->state;
 
@@ -1330,11 +1192,11 @@ void func_801E48C0(TutoState *self) {
         break;
 
     case 3: {
-        u16 val;
+        s16 val;
 
         val = self->fadeAlpha + 0x100;
         self->fadeAlpha = val;
-        if ((s16)val >= 0x1000) {
+        if (val >= 0x1000) {
             self->fadeAlpha = 0x1000;
         }
 
@@ -1342,13 +1204,13 @@ void func_801E48C0(TutoState *self) {
             sendSpuCommand(2);
             val = self->pageIndex.hword - 1;
             self->pageIndex.hword = val;
-            if ((s16)val < 0) {
-                u16 prev;
+            if (val < 0) {
+                s16 prev;
                 do {
                     prev = self->pageIndex.hword;
                     val = prev + 1;
                     self->pageIndex.hword = val;
-                } while (D_801E4EAC[(s16)val] != 0xFFFF);
+                } while (D_801E4EAC[val] != 0xFFFF);
                 self->pageIndex.hword = prev;
             }
             *state = 4;
@@ -1358,7 +1220,7 @@ void func_801E48C0(TutoState *self) {
             sendSpuCommand(2);
             val = self->pageIndex.hword + 1;
             self->pageIndex.hword = val;
-            if (D_801E4EAC[(s16)val] == 0xFFFF) {
+            if (D_801E4EAC[val] == 0xFFFF) {
                 self->pageIndex.hword = 0;
             }
             *state = 4;
@@ -1368,7 +1230,7 @@ void func_801E48C0(TutoState *self) {
             sendSpuCommand(2);
             val = self->pageIndex.hword + 1;
             self->pageIndex.hword = val;
-            if (D_801E4EAC[(s16)val] == 0xFFFF) {
+            if (D_801E4EAC[val] == 0xFFFF) {
                 *state = 6;
                 break;
             }
@@ -1383,14 +1245,14 @@ void func_801E48C0(TutoState *self) {
     }
 
     case 4:
-        loadSubOverlay(D_801E4EAC[(s16)self->pageIndex.hword], (u8 *)0x801CD000);
+        loadSubOverlay(D_801E4EAC[(s16)self->pageIndex.hword], 0x801CD000);
         *state = 5;
         break;
 
     case 5: {
-        u16 fade = self->fadeAlpha - 0x100;
+        s16 fade = self->fadeAlpha - 0x100;
         self->fadeAlpha = fade;
-        if ((s16)fade > 0) {
+        if (fade > 0) {
             break;
         }
         self->fadeAlpha = 0;
@@ -1403,9 +1265,9 @@ void func_801E48C0(TutoState *self) {
         break;
 
     case 7: {
-        u16 fade = self->fadeAlpha - 0x100;
+        s16 fade = self->fadeAlpha - 0x100;
         self->fadeAlpha = fade;
-        if ((s16)fade > 0) {
+        if (fade > 0) {
             break;
         }
         self->fadeAlpha = 0;
@@ -1429,8 +1291,8 @@ void func_801E48C0(TutoState *self) {
 
     case 11:
         SetDispMask(1);
-        loadOverlayWithTimCallback(9, (u8 *)0x801CD000);
-        loadOverlayWithTimCallback(10, (u8 *)0x801D5000);
+        loadOverlayWithTimCallback(9, 0x801CD000);
+        loadOverlayWithTimCallback(10, 0x801D5000);
         *state = 12;
         break;
 
@@ -1442,7 +1304,7 @@ void func_801E48C0(TutoState *self) {
         break;
 
     case 13:
-        func_801F18FC((u8 *)self);
+        func_801F18FC(&self->allocNext);
         func_801F0BB0();
         break;
     }
@@ -1450,85 +1312,48 @@ void func_801E48C0(TutoState *self) {
 
 /**
  * @brief Build five textured-sprite GPU primitives for the tutorial fade banner.
- *
- * Iterates 5 times to produce a 320x216 strip of TSPRT primitives at @c y=0,
- * each 64 pixels wide, sourcing from texpages at @c TX=13..15. The sprite
- * color (@c r0/g0/b0) is set to @c fade/32 so opacity ramps smoothly. Each
- * primitive is linked into the OT via @c addPrim.
- *
- * @param ot   Ordering table pointer.
+ * @param ot Ordering table pointer.
  * @param prim TSPRT packet allocation pointer.
  * @param fade Fade alpha value (signed); divided by 32 for the per-sprite tint.
  * @return Updated packet pointer (@c prim + 5*sizeof(TSPRT)).
- *
- * @note Near-match (~63%): the target uses an @c lwl/swl 3-byte swap pattern
- *       for @c addPrim that gcc 2.7.2-cdk does not emit from the project's
- *       bitfield-based @c setaddr macro (it emits load-mask-or-store — 6+
- *       instructions vs target's 4). The original source likely had hand-
- *       written inline asm for @c addPrim, or relied on a PsyQ SDK variant
- *       whose codegen our toolchain doesn't reproduce. Project policy bans
- *       inline asm, so the function stays @c INCLUDE_ASM.
- *       The cleanest matching-aware C reaches 63% — preserved below for
- *       reference. Other near-misses come from gcc not keeping the unused
- *       @c tpY anchor variable in a register without a use site for it.
- *
- * @verbatim
- * s32 func_801E4BD0(s32 ot, TSPRT *prim, s32 fade) {
- *     s32 color = fade / 32;
- *     s32 src   = 0x340;
- *     s32 x     = 0;
- *     s32 y     = 0;
- *     s32 count = 0;
- *
- * top:
- *     ((P_TAG *)prim)->len = 5;
- *     prim->drawMode = 0xE1000480 | ((src & 0x3FF) >> 6);
- *     prim->r0 = prim->g0 = prim->b0 = color;
- *     prim->code = 0x64;
- *     prim->x0   = x;
- *     prim->y0   = y;
- *     prim->u0   = (src % 64) * 2;
- *     prim->v0   = 0;
- *     prim->clut = 0x36A0;
- *     prim->w    = 0x40;
- *     prim->h    = 0xD8;
- *     addPrim((P_TAG *)ot, prim);
- *     prim++;
- *     x     += 0x40;
- *     count += 0x40;
- *     src   += 0x20;
- *     if (count < 0x140) goto top;
- *
- *     return (s32)prim;
- * }
- * @endverbatim
  */
-INCLUDE_ASM("asm/ovl/menututo/nonmatchings/menututo", func_801E4BD0); /* 0xE0 */
+static TSPRT *func_801E4BD0(u32 *ot, TSPRT *prim, s32 fade) {
+    s32 color = fade / 32;
+    s32 vramX = 0x340;
+    s32 x = 0;
+    s32 y = 0;
+    s32 i;
+
+    for (i = 0; i < 320; i += 64, x += 64, vramX += 32) {
+        setTSprtFull(prim, 1, 0, getTPage(1, 0, vramX, y));
+        setRGB0(prim, color, color, color);
+        setXY0(prim, x, y);
+        setWH(prim, 64, 216);
+        setUV0(prim, (vramX % 64) * 2, 0);
+        prim->clut = getClut(512, 218);
+        addPrimFast(ot, prim);
+        prim++;
+    }
+    return prim;
+}
 
 /**
  * @brief Tutorial render callback: forward to fade renderer if fade is active.
- *
- * @param state Tutorial state (fadeAlpha at offset 0x20).
+ * @param state Tutorial state.
  * @param renderCtx Render context handle.
  * @param cursorY Current OT cursor position.
  * @return Updated OT cursor position (unchanged if fadeAlpha is 0).
  */
-s32 func_801E4CB0(TutoState *state, s32 renderCtx, s32 cursorY) {
+static s32 func_801E4CB0(TutoState *state, s32 renderCtx, s32 cursorY) {
     s16 alpha = state->fadeAlpha;
 
     if (alpha != 0) {
-        cursorY = func_801E4BD0(renderCtx, cursorY, alpha);
+        cursorY = (s32)func_801E4BD0((u32 *)renderCtx, (TSPRT *)cursorY, alpha);
     }
     return cursorY;
 }
 
-/**
- * @brief Initialize tutorial menu: register callbacks, clear state, and enter.
- *
- * Registers func_801E48C0 and func_801E4CB0 as callbacks via func_801F179C.
- * If registration succeeds, clears fadeAlpha and pageIndex,
- * calls func_801F010C(0x140) for display setup, then enters via func_801E48C0.
- */
+/** @brief Initialize tutorial menu: register callbacks, clear state, and enter. */
 void func_801E4CE4(void) {
     TutoState *ctx = func_801F179C(func_801E48C0, func_801E4CB0);
 

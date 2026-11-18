@@ -1,16 +1,7 @@
 #include "common.h"
+#include "field/fe_object1.h"
 #include "field/fe_object2.h"
 #include "lzs.h"
-
-typedef struct {
-    /* 0x00 */ s32 tag;
-    /* 0x04 */ u32 size;
-    /* 0x08 */ u8 *src;
-    /* 0x0C */ u8  pad0C[0x64];
-} SoundBufDesc; /* 0x70 = 112 bytes */
-
-extern u8 *D_800D6198[3];
-extern SoundBufDesc D_800D61A8[3];
 
 /**
  * Pack three source buffers from their original addresses into a
@@ -42,11 +33,7 @@ u8 *func_800ACB10(void) {
     return base;
 }
 
-/**
- * Empty function — returns immediately. Likely an unused dispatch slot
- * or a stub left in place to preserve a function-table layout.
- */
-void func_800ACBCC(void) {
+void func_800ACBCC(s32 arg0, s32 arg1, u32 arg2, s32 arg3) {
 }
 
 INCLUDE_ASM("asm/field/nonmatchings/fe_object2", func_800ACBD4);

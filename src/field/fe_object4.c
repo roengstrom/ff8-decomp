@@ -621,7 +621,7 @@ s32 func_800AE8B4(Actor *actor, u8 newGroup, u16 pcIdx) {
 /**
  * @brief Pop @c pcIdx and @c newGroup off the script stack, look up
  *        @c D_80085230[a1] (the target entity); if the target is active
- *        and its @c field_0x256 matches @c D_800DE4FC, bump @c e->context.pc
+ *        and its @c selfIndex matches @c D_800DE4FC, bump @c e->context.pc
  *        and return 4. Otherwise return 3. The popped values are passed
  *        to @c func_800AE8B4 which applies the actual group/pc update.
  *
@@ -633,7 +633,7 @@ s32 opHandler_REQ(ScriptContext *context, s32 a1) {
     s32 retVal;
 
     if (D_80085230[a1] != 0) {
-        if (D_800DE4FC == D_80085230[a1]->field_0x256) {
+        if (D_800DE4FC == D_80085230[a1]->selfIndex) {
             retVal = 4;
             context->pc++;
         } else {
@@ -944,7 +944,7 @@ s32 opHandler_RND(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_SETMODEL(Actor *actor, s32 a1) {
-    actor->unk218 = a1;
+    actor->modelId = a1;
     return 2;
 }
 
@@ -1087,7 +1087,7 @@ s32 opHandler_SARALYOFF(ScriptContext *context) {
  */
 s32 opHandler_SARALYON() {
     s32 dummy[2];
-    g_fieldVars->stateFlags &= ~(FIELD_STATE_TRANSITION | FIELD_STATE_FIELD_READY);
+    g_fieldVars->stateFlags &= ~(FIELD_STATE_SALARY_OFF | FIELD_STATE_SALARY_DISPLAY_OFF);
     setSalaryEnabled(1);
     return 2;
     dummy[0] = 0;
@@ -1095,13 +1095,13 @@ s32 opHandler_SARALYON() {
 
 /** @brief Set bit 0x10 in @c g_fieldVars->stateFlags. Returns 2. */
 s32 opHandler_SARALYDISPOFF(void) {
-    g_fieldVars->stateFlags |= FIELD_STATE_FIELD_READY;
+    g_fieldVars->stateFlags |= FIELD_STATE_SALARY_DISPLAY_OFF;
     return 2;
 }
 
 /** @brief Clear bit 0x10 in @c g_fieldVars->stateFlags. Returns 2. */
 s32 opHandler_SARALYDISPON(void) {
-    g_fieldVars->stateFlags &= ~FIELD_STATE_FIELD_READY;
+    g_fieldVars->stateFlags &= ~FIELD_STATE_SALARY_DISPLAY_OFF;
     return 2;
 }
 
@@ -1199,7 +1199,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
 /**
  * @brief Broadcast "trigger active party" event.
  *
- * If @c D_800DE4FD is clear, also clears @c g_fieldContext.userControlOff. Then if the
+ * If @c g_fieldMovieFlags is clear, also clears @c g_fieldContext.userControlOff. Then if the
  * trigger flag @c D_80085390 is non-zero, clears it and walks the 3
  * active party members. For each member whose @c memberSlot is set and
  * whose field-entity is NOT locked (flags bit 0x40 clear), records the
@@ -1208,7 +1208,7 @@ s32 opHandler_UNUSE(ScriptContext *context) {
  * entity flags bit 0x4. Returns 2.
  */
 s32 opHandler_UCON(void) {
-    if (D_800DE4FD[0] == 0) {
+    if (g_fieldMovieFlags == 0) {
         g_fieldContext.userControlOff = 0;
     }
 
@@ -1253,7 +1253,7 @@ s32 opHandler_UCON(void) {
  *
  * Per-slot processing calls @c func_800AA46C, copies the entity's
  * @c field_0x24F into @c field_0x24E, zeroes @c field_0x206 / @c 0x20A,
- * loads @c field_0x20C from @c D_800D9630[slot]->unk0C, masks the
+ * loads @c field_0x20C from @c D_800D9630[slot]->animationLength, masks the
  * entity flags to bits 0x0000F800 → 0x00002000, and clears bit 0x4.
  */
 s32 opHandler_UCOFF(void) {
@@ -1272,7 +1272,7 @@ s32 opHandler_UCOFF(void) {
         g_fieldActors[g_fieldVars->memberSlot[0]].field_0x206 = 0;
         g_fieldActors[g_fieldVars->memberSlot[0]].field_0x20A = 0;
         g_fieldActors[g_fieldVars->memberSlot[0]].field_0x20C =
-            D_800D9630[g_fieldVars->memberSlot[0]]->unk0C;
+            D_800D9630[g_fieldVars->memberSlot[0]]->animationLength;
         g_fieldActors[g_fieldVars->memberSlot[0]].context.flags &= 0xFFFF07FF;
         g_fieldActors[g_fieldVars->memberSlot[0]].context.flags |= 0x2000;
         g_fieldActors[g_fieldVars->memberSlot[0]].context.flags &= ~4;
@@ -1286,7 +1286,7 @@ s32 opHandler_UCOFF(void) {
         g_fieldActors[g_fieldVars->memberSlot[1]].field_0x206 = 0;
         g_fieldActors[g_fieldVars->memberSlot[1]].field_0x20A = 0;
         g_fieldActors[g_fieldVars->memberSlot[1]].field_0x20C =
-            D_800D9630[g_fieldVars->memberSlot[1]]->unk0C;
+            D_800D9630[g_fieldVars->memberSlot[1]]->animationLength;
         g_fieldActors[g_fieldVars->memberSlot[1]].context.flags &= 0xFFFF07FF;
         g_fieldActors[g_fieldVars->memberSlot[1]].context.flags |= 0x2000;
         g_fieldContext.entityIndex[1] = 0xFF;
@@ -1301,7 +1301,7 @@ s32 opHandler_UCOFF(void) {
         g_fieldActors[g_fieldVars->memberSlot[2]].field_0x206 = 0;
         g_fieldActors[g_fieldVars->memberSlot[2]].field_0x20A = 0;
         g_fieldActors[g_fieldVars->memberSlot[2]].field_0x20C =
-            D_800D9630[g_fieldVars->memberSlot[2]]->unk0C;
+            D_800D9630[g_fieldVars->memberSlot[2]]->animationLength;
         g_fieldActors[g_fieldVars->memberSlot[2]].context.flags &= 0xFFFF07FF;
         g_fieldActors[g_fieldVars->memberSlot[2]].context.flags |= 0x2000;
         g_fieldContext.entityIndex[2] = 0xFF;
@@ -1332,14 +1332,14 @@ s32 opHandler_KEY(ScriptContext *context) {
 s32 opHandler_SETPC(Actor *actor) {
     s32 v1;
     actor->context.flags |= 0x80;
-    actor->field_0x255 = (u8)POP(&actor->context);
-    v1 = actor->field_0x255;
+    actor->partyCharacterId = (u8)POP(&actor->context);
+    v1 = actor->partyCharacterId;
     if (v1 >= 3 && (v1 < 6 || v1 == 7)) {
         actor->context.flags |= 0x4000000;
     }
-    if (g_gameState.battleParty[0] != actor->field_0x255
-        && g_gameState.battleParty[1] != actor->field_0x255
-        && g_gameState.battleParty[2] != actor->field_0x255) {
+    if (g_gameState.battleParty[0] != actor->partyCharacterId
+        && g_gameState.battleParty[1] != actor->partyCharacterId
+        && g_gameState.battleParty[2] != actor->partyCharacterId) {
         actor->context.flags &= ~2;
     }
     return 2;

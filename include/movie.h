@@ -3,11 +3,17 @@
 
 #include "common.h"
 
-extern void func_801E8000(s32 priority);
-extern s32 func_801E8104(s32 a, s32 b, s32 c, u8 *d);
-extern s32 func_801E82CC(void);
-extern void func_801E870C(void);
-extern s32 func_801E8B58(void);
-extern s32 func_801E8B98(void);
+#define MOVIE_HAS_PICTURE 0x1
+#define MOVIE_AUDIO_ONLY 0x2
+
+extern void MovieInit(s32 bufferSize);
+extern u8 *MovieOpen(s32 lba, s32 size, s32 flags, u8 *buf);
+extern s32 MovieIsBuffered(void);
+extern void MoviePlay(void);
+extern void MovieStop(void);
+extern void MovieUpdate(void);
+extern s32 MovieGetFrame(void);
+extern s32 MovieIsPlaying(void);
+extern s32 MovieIsAudioStreaming(void);
 
 #endif /* MOVIE_H */

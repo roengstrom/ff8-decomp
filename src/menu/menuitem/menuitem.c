@@ -13,6 +13,7 @@
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
 #include "menumain3.h"
 #include "numstr.h"
 #include "overlay.h"
@@ -32,18 +33,6 @@
 
 enum {
     STRING_TO_SCROLL_TO_GO_TO_ITEM_SCREEN = 22,
-};
-
-/** @brief Item flags. */
-enum {
-    ITEM_FLAG_USABLE_IN_MENU   = 0x01,
-    ITEM_FLAG_TARGET_CHARA     = 0x02,
-    ITEM_FLAG_TARGET_GF        = 0x04,
-    ITEM_FLAG_TARGET_ALL       = 0x08,
-    ITEM_FLAG_TARGET_ALL_BOTH  = 0x10,
-    ITEM_FLAG_TARGET_DEAD      = 0x20,
-    ITEM_FLAG_QUISTIS_ONLY     = 0x40,
-    ITEM_FLAG_GF_COMPAT_OTHERS = 0x80,
 };
 
 /** @brief Item types. */

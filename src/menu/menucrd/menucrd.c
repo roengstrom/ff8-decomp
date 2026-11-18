@@ -4,6 +4,7 @@
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
 #include "menucrd.h"
 #include "overlay.h"
 #include "psxsdk/libgte.h"

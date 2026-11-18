@@ -1,4 +1,5 @@
 #include "common.h"
+#include "menu.h"
 #include "283B0.h"
 #include "field.h"
 #include "gamestate.h"
@@ -32,7 +33,7 @@
  *   - @c mode @c == @c 1 — full slot reset: zero the 16-byte
  *     @c g_fieldContext.unkActive180 region, walk the @ref g_fieldActors
  *     Actor pool and clear the cleanup-trigger bytes / @c flags @c & @c ~8
- *     on each entity flagged @c unk218 @c == @c -1, then fall into
+ *     on each entity flagged @c modelId @c == @c -1, then fall into
  *     the mode-3 slot-clear block.
  *   - @c mode @c == @c 2 — just @ref func_800BF4A4 (Actor pool reset).
  *   - @c mode @c == @c 3 — slot table reset: @ref func_800BF28C plus
@@ -40,7 +41,7 @@
  *
  * After the dispatch all paths run a common tail:
  *   - @ref FIELD_STATE_COUNTDOWN → show the countdown timer again.
- *   - @ref FIELD_STATE_FIELD_READY clear and @c levelUpDisplayTimer @c > @c 0
+ *   - @ref FIELD_STATE_SALARY_DISPLAY_OFF clear and @c levelUpDisplayTimer @c > @c 0
  *     → fire the SeeD level-up notification via @ref showSeedRankNotification.
  *   - Set each dialog's text speed from the message-speed setting
  * (@ref setDialogTextSpeed).
@@ -72,7 +73,7 @@ void func_800BF718(s32 mode) {
         D_800DE4FC = 0;
         if (g_fieldActorCount != 0) {
             do {
-                if (e->unk218 == -1) {
+                if (e->modelId == NO_MODEL) {
                     e->context.flags &= ~8;
                     e->field_0x24C = 0;
                     e->unk249 = 0;
@@ -122,7 +123,7 @@ void func_800BF718(s32 mode) {
             if (ch0 == -1) {
                 sndCmdC1(D_8005F11C, 0x3C, 0);
             } else {
-                func_80037FB0(0, ch0, D_8005F13C);
+                func_80037FB0(0, ch0, g_fieldSoundBuffer);
                 while (g_fieldVars->soundLoadComplete == 0) {
                     UpdateCdRead();
                 }
@@ -130,7 +131,7 @@ void func_800BF718(s32 mode) {
                 g_fieldVars->soundHandle0 = sndCmd1A(v, 0x3C, g_fieldVars->musicVolume);
             }
         }
-        g_battleConfig.unk2 = g_fieldVars->fieldB6;
+        g_battleConfig.unk2 = g_fieldVars->battleFlags;
         sndCmd45();
         break;
     case 2:
@@ -143,7 +144,7 @@ void func_800BF718(s32 mode) {
         setCountdownVisible(1);
     }
     seed = g_fieldVars;
-    if (!(seed->stateFlags & FIELD_STATE_FIELD_READY)) {
+    if (!(seed->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
         if ((s16)seed->levelUpDisplayTimer > 0) {
             prevLevel = (s32)((s16)seed->prevSeedExp) / 100;
             currLevel = (s32)((s16)seed->seedExp) / 100;
@@ -228,12 +229,12 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
     seed->charKos[7] = g_gameState.chars[7].kos;
 
     seed->field54 = g_fieldContext.previousFieldId;
-    seed->field56 = D_80082C8D;
+    seed->field56 = g_worldTransfer.vehicle;
     D_800DE8C8[1] = 2;
     ((u8 *)D_800DE8C8)[0xB] = 0;
     resetAllDialogs();
     setHudBrightness(0x1000);
-    D_800DE4FD[0] = 0;
+    g_fieldMovieFlags = 0;
     D_800DE7B0.count = 0;
     func_800BE30C(entity);
 
@@ -246,7 +247,7 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldContext.userControlOff = 0;
         g_fieldVars->stateFlags &= ~FIELD_STATE_FLAG_400;
         g_fieldVars->fieldCF = 0;
-        g_fieldVars->fieldD1 &= 0xFC;
+        g_fieldVars->menuArgs &= ~(MENU_ALLOW_SAVE | MENU_ALLOW_PARTY_SWITCH);
         g_fieldVars->dialogStartMask = 0;
         g_fieldVars->dialogEntryMask = 0;
         g_fieldVars->dialogActiveMask = 0;
@@ -263,11 +264,11 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
         g_fieldBgAnimCount = D_800DE8D8;
         D_800852F0 = D_800DE4E4;
         D_80085380 = D_800DE4E8;
-        g_battleConfig.unk2 = g_fieldVars->fieldB6;
+        g_battleConfig.unk2 = g_fieldVars->battleFlags;
         g_fieldDoors = (Dline *)func_800BE7F4((Eline *)eline);
         g_fieldBgAnims = (Bganime *)func_800BEA84(g_fieldDoors);
         g_fieldActors = (Actor *)func_800BE924(g_fieldBgAnims);
-        func_800BE5E4(g_fieldActors);
+        InitActors(g_fieldActors);
 
         gs_bytes = (u8 *)&g_gameState;
         for (i = 0x400; i < 0x500; i++) {
@@ -286,15 +287,15 @@ s32 *func_800BFBBC(u8 *entity, Eline *eline, u16 *a2, s32 mode) {
 
         for (i = 0; i < 3; i++) {
             for (e = g_fieldActors, D_800DE4FC = 0; D_800DE4FC < g_fieldActorCount; D_800DE4FC++, e++) {
-                if (g_gameState.battleParty[i] == e->field_0x255) {
+                if (g_gameState.battleParty[i] == e->partyCharacterId) {
                     e->posX = g_fieldContext.position_x << 12;
                     e->posY = g_fieldContext.position_y << 12;
                     e->facingDirection = g_fieldContext.facingDirection;
                     rot = g_fieldContext.spawnTriIdx;
                     e->context.flags |= 4;
                     e->triIdx = rot;
-                    g_fieldVars->memberSlot[i] = e->field_0x256;
-                    g_fieldContext.entityIndex[i] = e->field_0x256;
+                    g_fieldVars->memberSlot[i] = e->selfIndex;
+                    g_fieldContext.entityIndex[i] = e->selfIndex;
                     break;
                 }
             }

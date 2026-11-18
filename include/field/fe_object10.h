@@ -30,7 +30,7 @@ extern void func_800BD9C4(FieldFrameBuf *frame);
  * Declared K&R-style; refine when these get decomped to C. */
 extern Actor *func_800BE36C(u8 *header);
 extern s32 *func_800BE4B0(u8 *header, u16 *table);
-extern int  func_800BE5E4();
+extern Actor *InitActors(Actor *buf);
 extern Eline *func_800BE7F4(Eline *buf);
 extern Bganime *func_800BE924(Bganime *buf);
 extern Dline *func_800BEA84(Dline *buf);

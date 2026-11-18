@@ -1,4 +1,6 @@
 #include "common.h"
+#include "input/gamepad.h"
+#include "menu.h"
 #include "psxsdk/libc.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
@@ -77,7 +79,6 @@ extern u8 D_80098000[];
 extern u8 D_8009800C[];
 extern u8 D_80098018[];
 extern s32 D_800ABA08;
-extern s32 GetPressedButtons(s32 idx, s32 offset);
 // No prototype: the original called it with fewer arguments than it takes.
 static void func_8009AF64();
 extern s16 D_800D3C70;
@@ -179,12 +180,12 @@ restart:
     func_8009A6CC();
     D_800ABA08 = func_8009A630();
     for (i = 0; i < 3; i++) {
-        if (g_battleConfig.unk4[i] != 0xFF) {
-            func_8003646C(g_battleConfig.unk4[i] + 5);
+        if (g_battleConfig.obtainedGf[i] != GF_NONE) {
+            RunMenu(g_battleConfig.obtainedGf[i] + MENU_NAME_GF);
         }
     }
     for (i = 0; i < 3; i++) {
-        g_battleConfig.unk4[i] = 0xFF;
+        g_battleConfig.obtainedGf[i] = GF_NONE;
     }
     DrawSync(0);
     VSync(0);
@@ -199,10 +200,10 @@ restart:
         D_800D3C28 = 0;
         result = func_80098C9C();
         if (D_800D3C64 != 0) {
-            menuResult = func_8003646C(0, 0xFFFF);
+            menuResult = RunMenu(MENU_MAIN, 0xFFFF);
             D_800D3C64 = 0;
-            if (menuResult & 4) {
-                g_battleConfig.battleSceneId = menuResult >> 16;
+            if (menuResult & MENU_RESULT_START_BATTLE) {
+                g_battleConfig.battleSceneId = menuResult >> BATTLE_SCENE_ID_SHIFT;
                 D_800D3C5C = 1;
             }
             goto restart;
@@ -219,7 +220,7 @@ restart:
         PutDispEnv(&D_800D3C58->unk5C);
         PutDrawEnv(&D_800D3C58->unk0);
         g_activeDrawEnv = &D_800D3C58->unk0;
-        D_8005F138 = (s32)&D_800D3C58->unk5C;
+        g_activeDispEnv = &D_800D3C58->unk5C;
         DrawOTag(&D_800D3C58->unk4074);
         DrawOTag(&D_800D3C58->unk70[OT_LENGTH - 1]);
         DrawOTag(&D_800D3C58->unk4070);
@@ -986,9 +987,8 @@ static void func_8009A40C(void) {
     }
 }
 
-/** @brief Call func_8003646C with display mode 0x16 and layer 7. */
 static void func_8009A60C(void) {
-    func_8003646C(0x16, 7);
+    RunMenu(MENU_PARTY_JUNCTION, 7);
 }
 
 /**

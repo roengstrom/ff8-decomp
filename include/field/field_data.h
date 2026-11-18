@@ -90,7 +90,7 @@ typedef struct {
                                           (@c func_800A1CC0) even for load modes 1 and 6. */
     /* 0x00E */ u8 movieMask;        /**< 1 for a field with a movie mask: gates building and drawing it,
                                           and the palette-strip StoreImage in @c func_800A1BB8. */
-    /* 0x00F */ u8 pad0F;
+    /* 0x00F */ u8 unk0F;
     /* 0x010 */ u8 tpageX;           /**< Texture-page X written into every field sprite's tpage word. */
     /* 0x011 */ u8 pad11;
     /* 0x012 */ u16 baseZ;           /**< Base Z offset added to the per-entity Z when building SVECTOR (func_800A11E0). */
@@ -134,6 +134,12 @@ typedef struct {
     /* 0x0 */ s32 count;
     /* 0x4 */ Triangle tris[1];        /* variable length */
 } TriangleList;
+
+typedef struct {
+    /* 0x0 */ u16 count;
+    /* 0x2 */ u16 pad2;
+    /* 0x4 */ Triangle tris[1];
+} MovieMask;
 
 /** @brief 6-byte per-triangle adjacency record — neighbor triangle index per edge (0xFFFF = none). */
 typedef struct {
@@ -280,8 +286,7 @@ typedef struct {
     /* 0x04 */ FieldView          *views;
     /* 0x08 */ TriangleList       *walkmesh;
     /* 0x0C */ MapTile            *tileMap;
-    /* 0x10 */ TriangleList       *movieMask;     /**< Drawn only while a movie plays, to set the GPU
-                                                       mask bit, and only when @c FieldInfo::movieMask is 1. */
+    /* 0x10 */ MovieMask          *movieMask;
     /* 0x14 */ FieldEncounterRate *encounterRate;
     /* 0x18 */ FieldFormations    *formations;
     /* 0x1C */ OffsetTable        *sfxTable;      /**< Entries are AKAO sound sequences. */
@@ -305,7 +310,7 @@ extern FieldInfo          **g_fieldInfo;
 extern FieldView          **g_fieldViews;
 extern TriangleList       **g_fieldWalkmesh;
 extern MapTile            **g_fieldTileMap;
-extern TriangleList       **g_fieldMovieMask;
+extern MovieMask          **g_fieldMovieMask;
 extern FieldEncounterRate **g_fieldEncounterRate;
 extern FieldFormations    **g_fieldFormations;
 extern OffsetTable        **g_fieldSfxTable;

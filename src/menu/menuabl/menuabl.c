@@ -2,7 +2,9 @@
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
 #include "menumain3.h"
+#include "game.h"
 #include "gamestate.h"
 #include "menuabl.h"
 #include "menuabl_data.h"
@@ -15,10 +17,6 @@
 #include "snd_sfx.h"
 #include "ui/dialog.h"
 #include "ui/text.h"
-
-extern s32  getAbilityDesc(s32 id);
-extern u8  *getAbilityName(s32 abilityId);
-extern void func_801F18FC(s32 *ctx);
 
 /**
  * @brief Render one cell of an ability grid at a per-slot X offset.

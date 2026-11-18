@@ -4,6 +4,7 @@
 #include "battle.h"
 #include "main.h"
 #include "gf.h"
+#include "gamestate.h"
 #include "field_init.h"
 #include "field_init_font.h"
 #include "input/gamepad.h"
@@ -63,7 +64,7 @@ void loadKernel(void) {
     D_8005F170 = 0;
 
     for (i = 0; i < 3; i++) {
-        g_battleConfig.unk4[i] = 0xFF;
+        g_battleConfig.obtainedGf[i] = GF_NONE;
     }
 
     cdReadSync(g_kernelFileDesc.sector, g_kernelFileDesc.size, LOAD_BUFFER_ADDR, 0);

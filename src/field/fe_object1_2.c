@@ -388,18 +388,12 @@ void func_800A1C64(void) {
 
 /** @brief Initialize 3 entries in D_800D5F50 and D_800D61A8 arrays to -1. */
 void func_800A1CC0(void) {
-    s32 i = 0;
-    s32 val = -1;
-    u8 *a = D_800D5F50;
-    u8 *b = D_800D61A8;
+    s32 i;
 
-    do {
-        *(s32 *)b = val;
-        *(s32 *)a = val;
-        a += 0x70;
-        i++;
-        b += 0x70;
-    } while (i < 3);
+    for (i = 0; i < 3; i++) {
+        D_800D61A8[i].tag = -1;
+        D_800D5F50[i].tag = -1;
+    }
 }
 
 /**
@@ -618,7 +612,7 @@ void func_800A2128(func_800A2128_arg0 *t) {
  * Builds a unit octagon once per call, @c func_8009D234 / @c func_8009D254 sampled
  * at the eight 32-step headings give the cos/sin pair for each ring point, then
  * walks the @ref Actor pool. An entity casts a shadow only when it is not flagged
- * out (@c flags bit 3), is active (@c unk218 @c != @c -1) and is in the state
+ * out (@c flags bit 3), is active (@c modelId @c != @c -1) and is in the state
  * @c unk258 @c == @c 1.
  *
  * The fan centre is the entity's position dropped to integer world units, and ring
@@ -671,7 +665,7 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
         if (ents->context.flags & 8) {
             continue;
         }
-        if (ents->unk218 == -1) {
+        if (ents->modelId == NO_MODEL) {
             continue;
         }
         if (ents->unk258 != 1) {
@@ -745,21 +739,9 @@ void func_800A222C(u32 *ot, MATRIX *m, POLY_G3 *prim, DR_TPAGE *tp, Actor *ents)
     PopMatrix();
 }
 
-/**
- * @brief Initialize a run of items at @p p; return the pointer past the
- *        last item.
- *
- * Writes one item per @c g_fieldMovieMask triangle, each with the fixed
- * trio (@c b3 = 4, @c b7 = 0x22, @c b4/b5/b6 = 0). The triangle count
- * is reloaded each iteration (gcc can't prove the stores don't alias
- * the indirect chain) and read as a halfword: reading the full word turns
- * the lhu into lw and the exit test into blez. Returns the input pointer
- * advanced past the items written, used by @c func_800983F0 to chain
- * multiple init regions into one growing buffer.
- */
 func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
     s32 i;
-    for (i = 0; i < (u16)(*g_fieldMovieMask)->count; i++) {
+    for (i = 0; i < (*g_fieldMovieMask)->count; i++) {
         p->b3 = 4;
         p->b7 = 0x22;
         p->b4 = 0;
@@ -770,20 +752,9 @@ func_800A29C0_arg0 *func_800A29C0(func_800A29C0_arg0 *p) {
     return p;
 }
 
-/**
- * @brief Append one GPU draw-mode prim per @c g_fieldMovieMask triangle;
- *        return the advanced output pointer.
- *
- * For each triangle (the count read as a halfword, which keeps the lhu),
- * calls @c GetTPage(0, 1, 0, 0) to get a color value, masks to 9 bits,
- * ORs with the GPU draw-mode command base @c 0xE1000200, and writes
- * one 8-byte prim with @c tag=1 + @c cmd=combined.
- *
- * Used by @c func_800983F0 's draw-prim chain layout.
- */
 func_800A2A30_item *func_800A2A30(func_800A2A30_item *p) {
     s32 i;
-    for (i = 0; i < (u16)(*g_fieldMovieMask)->count; i++) {
+    for (i = 0; i < (*g_fieldMovieMask)->count; i++) {
         s32 color;
         p->tag = 1;
         color = GetTPage(0, 1, 0, 0);
@@ -793,7 +764,29 @@ func_800A2A30_item *func_800A2A30(func_800A2A30_item *p) {
     return p;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1_2", func_800A2AF8);
+void DrawMovieMask(FieldFrameBuf *frameBuf, POLY_F3 *maskTris, DR_TPAGE *maskTPages, FieldView *view) {
+    SVert *maskVerts;
+    s32 i;
+    s32 otz;
+
+    PushMatrix();
+    SetRotMatrix(&view->m);
+    SetTransMatrix(&view->m);
+    maskVerts = (*g_fieldMovieMask)->tris[0].v;
+    SetPriority(&frameBuf->unk5F80, 1, 0);
+    addPrim(&frameBuf->ot[0xFFF], &frameBuf->unk5F80);
+    for (i = 0; i < (*g_fieldMovieMask)->count; i++) {
+        gte_ldv3(&maskVerts[i * 3], &maskVerts[i * 3 + 1], &maskVerts[i * 3 + 2]);
+        gte_rtpt();
+        gte_stsxy3(&maskTris[i].x0, &maskTris[i].x1, &maskTris[i].x2);
+        gte_stszotz(&otz);
+        addPrim(&frameBuf->ot[0xFFF], &maskTris[i]);
+        addPrim(&frameBuf->ot[0xFFF], &maskTPages[i]);
+    }
+    SetPriority(&frameBuf->unk5F8C, 0, 1);
+    addPrim(&frameBuf->ot[0xFFF], &frameBuf->unk5F8C);
+    PopMatrix();
+}
 
 /** @brief Signed/unsigned halfword view of the split-image header word. */
 typedef union {
@@ -2039,7 +2032,7 @@ void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
  *        when @c func_800BE274 reports a script gate is open.
  *
  * Decrements @c dialogTimer by @c dialogCount (one count-down step),
- * unconditionally clears the @c unk1A1 flag, then:
+ * unconditionally clears the @c skipFieldDraw flag, then:
  *   - If the new timer is still positive (more frames to wait), polls
  *     @c func_800BE274, if it returns 0 (gate not yet open), we keep
  *     the dialog state intact and return.
@@ -2053,7 +2046,7 @@ void func_800A553C(u32 *ot, s16 r, s16 g, s16 b) {
 void func_800A5698(void) {
     FieldContext *sys = &g_fieldContext;
     sys->dialogTimer -= sys->dialogCount;
-    sys->unk1A1 = 0;
+    sys->skipFieldDraw = 0;
     if ((s16)*(volatile u16 *)&sys->dialogTimer > 0) {
         if (func_800BE274() == 0) return;
     }
@@ -2065,7 +2058,7 @@ void func_800A5698(void) {
  * @brief Advance the dialog timer by one step and clamp at 0xFF.
  *
  * Adds @c dialogCount to @c dialogTimer (one tick of the dialog scroll
- * accumulator), unconditionally clears the @c unk1A1 flag, then if the
+ * accumulator), unconditionally clears the @c skipFieldDraw flag, then if the
  * advanced timer overflows 8-bit range (>= 256 as signed) clamps it
  * back down to 0xFF.
  *
@@ -2077,7 +2070,7 @@ void func_800A5698(void) {
 void func_800A5700(void) {
     FieldContext *sys = &g_fieldContext;
     sys->dialogTimer += sys->dialogCount;
-    sys->unk1A1 = 0;
+    sys->skipFieldDraw = 0;
     if ((s16)*(volatile u16 *)&sys->dialogTimer >= 256) {
         sys->dialogTimer = 0xFF;
     }
@@ -2118,7 +2111,7 @@ s16 func_800A5748(s16 start, s16 end, s16 progress, s16 total) {
 void func_800A5788(FieldFrameBuf *buf) {
     FieldContext *sys = &g_fieldContext;
 
-    sys->unk1A1 = 0;
+    sys->skipFieldDraw = 0;
     sys->dialogTimer++;
     if ((s16)*(volatile u16 *)&sys->dialogTimer >= (s16)*(volatile u16 *)&sys->dialogCount) {
         sys->field_0x114 = sys->field_0x11A;
@@ -2162,7 +2155,7 @@ void func_800A5898(FieldFrameBuf *buf) {
 
     switch (sys->dialogState) {
     case 0:
-        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.skipFieldDraw = 0;
         g_fieldContext.field_0x114 = 0;
         g_fieldContext.field_0x116 = 0;
         g_fieldContext.field_0x118 = 0;
@@ -2183,12 +2176,12 @@ void func_800A5898(FieldFrameBuf *buf) {
         D_80070649 = 1;
         break;
     case 7:
-        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.skipFieldDraw = 0;
         SetFadeBlendMode(BLEND_ADD);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;
     case 8:
-        g_fieldContext.unk1A1 = 0;
+        g_fieldContext.skipFieldDraw = 0;
         SetFadeBlendMode(BLEND_SUBTRACT);
         func_800A553C(buf->ot, g_fieldContext.field_0x10E, g_fieldContext.field_0x110, g_fieldContext.field_0x112);
         break;

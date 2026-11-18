@@ -1037,7 +1037,7 @@ void func_800AEB50(void) {
 void func_800AEC04(void) {
     if ((g_battleConfig.result == BATTLE_RESULT_UNDETERMINED) && (g_battleConfig.unk2 & BATTLE_FLAG_COUNTDOWN) && (g_gameState.mainData.countdownTimer == 0) && (g_battleConfig.battleSceneId != 317)) {
         func_800AEACC(-1);
-        g_battleConfig.result = BATTLE_RESULT_UNK3;
+        g_battleConfig.result = BATTLE_RESULT_TIME_UP;
         D_800ED148.unk1301 = 3;
         func_8009AF14(&func_8009AD7C);
     }
@@ -1136,7 +1136,7 @@ void func_800AED9C(void) {
  */
 void func_800AEE64(void) {
     SetDispMask(0);
-    g_battleConfig.result = BATTLE_RESULT_UNK5;
+    g_battleConfig.result = BATTLE_RESULT_SOFT_RESET;
     D_800ED148.header.timer = 0;
     sndStopAll();
     resetCdDrive();

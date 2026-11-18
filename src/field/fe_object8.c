@@ -15,7 +15,7 @@
  */
 s32 opHandler_CLOSEEYES(Actor *actor) {
     actor->context.flags = (actor->context.flags & 0xFFE7FFFF) | 0x200000;
-    func_800A97E4(actor->field_0x256, 0x2F, 0, 0);
+    func_800A97E4(actor->selfIndex, 0x2F, 0, 0);
     return 2;
 }
 
@@ -35,59 +35,59 @@ s32 opHandler_BLINKEYES(Actor *actor) {
     actor->context.flags = (actor->context.flags & 0xFFCFFFFF) | 0x80000;
     byte = POP_BYTE(&actor->context);
     actor->field_0x263 = byte;
-    func_800A97E4(actor->field_0x256, 0x27, 0, actor->field_0x263);
+    func_800A97E4(actor->selfIndex, 0x27, 0, actor->field_0x263);
     return 2;
 }
 
 /**
  * @brief Dispatch motion command 0xD with the given byte arg.
  *
- * Sends command @c 0xD to the entity at @c field_0x256 (via the global
+ * Sends command @c 0xD to the entity at @c selfIndex (via the global
  * cmd table @c func_800AA46C) carrying the sign-extended low byte of
  * @p a1, mirrors @p a1 into @c field_0x24E, zeroes the live motion
  * halfwords (@c field_0x206/20A), snapshots the render slot's
- * @c unk0C into @c field_0x20C, clears the same render slot's
- * @c unk52, and clears the @c 0xF800 flag band. Called by the RANIME
+ * @c animationLength into @c field_0x20C, clears the same render slot's
+ * @c animationPhase, and clears the @c 0xF800 flag band. Called by the RANIME
  * family handlers in this file.
  */
 void func_800B912C(Actor *actor, s16 a1) {
-    func_800AA46C(actor->field_0x256, 0xD, a1, 0);
+    func_800AA46C(actor->selfIndex, 0xD, a1, 0);
     actor->field_0x24E = a1;
     actor->field_0x206 = 0;
     actor->field_0x20A = 0;
-    actor->field_0x20C = D_800D9630[actor->field_0x256]->unk0C;
-    D_800D9630[actor->field_0x256]->unk52 = actor->field_0x206;
+    actor->field_0x20C = D_800D9630[actor->selfIndex]->animationLength;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
     actor->context.flags &= ~0xF800;
 }
 
 /**
  * @brief CANIME-family helper — queue curved animation + dispatch cmd 0xD.
  *
- * Asserts the active entity in @c D_800DE4FC matches @c actor->field_0x256
+ * Asserts the active entity in @c D_800DE4FC matches @c actor->selfIndex
  * (infinite-loops on mismatch). Encodes the popped halfwords @p a2 and
  * @p a3 as @c (n-1)<<4 into @c field_0x20A and @c field_0x20C, mirrors
  * the byte arg into @c field_0x24E, copies @c field_0x20A into the live
- * motion halfword @c field_0x206 and into the render slot's @c unk52,
+ * motion halfword @c field_0x206 and into the render slot's @c animationPhase,
  * then dispatches motion command @c 0xD with byte arg @p a1 via
  * @c func_800AA46C and clears flag band @c 0xF800.
  */
 void func_800B91D8(Actor *actor, s32 a1, s32 a2, s32 a3) {
-    if (D_800DE4FC != actor->field_0x256) {
+    if (D_800DE4FC != actor->selfIndex) {
         while (1) {}
     }
     actor->field_0x20A = (a2 - 1) << 4;
     actor->field_0x20C = (a3 - 1) << 4;
     actor->field_0x24E = a1;
     actor->field_0x206 = actor->field_0x20A;
-    D_800D9630[actor->field_0x256]->unk52 = actor->field_0x20A;
-    func_800AA46C(actor->field_0x256, 0xD, a1, 0);
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x20A;
+    func_800AA46C(actor->selfIndex, 0xD, a1, 0);
     actor->context.flags &= ~0xF800;
 }
 
 /**
  * @brief Per-frame motion tick for the entity.
  *
- * Advances @c field_0x206 (current position) by @c field_0x208 (step)
+ * Advances @c field_0x206 (current position) by @c animationSpeed (step)
  * each frame. When @c flags & 0x80 is set and the entity is in
  * @c msgActive == 1, fires @c func_800B2864 hooks if the half-range
  * boundary or zero-crossing on @c (val - 0x80) flips during the step.
@@ -96,7 +96,7 @@ void func_800B91D8(Actor *actor, s32 a1, s32 a2, s32 a3) {
  * flag bits 0x2000 (loop-rewind), 0x8000 (loop-step-back), or
  * 0x4000 (one-shot via @c func_800B912C), and sets the completion
  * flag 0x800. Otherwise clears flag 0x800. Always writes
- * @c field_0x206 into the render slot's @c unk52 at the end (unless
+ * @c field_0x206 into the render slot's @c animationPhase at the end (unless
  * the early @c 0x4 disable bit was set on entry).
  */
 void func_800B9288(Actor *actor) {
@@ -117,13 +117,13 @@ void func_800B9288(Actor *actor) {
         u16 oldUnsigned = actor->field_0x206;
         oldSigned = (s16)actor->field_0x206;
         newPos = oldUnsigned;
-        newPos = newPos + (u16)actor->field_0x208;
+        newPos = newPos + (u16)actor->animationSpeed;
         actor->field_0x206 = newPos;
         if ((actor->context.flags & 0x80) && actor->msgActive == 1) {
             newMid = (s16)newPos - 0x80;
             oldMid = 0x80;
             oldMid = oldSigned - oldMid;
-            halfRange = ((s16)actor->field_0x20C - (s16)actor->field_0x208) >> 1;
+            halfRange = ((s16)actor->field_0x20C - (s16)actor->animationSpeed) >> 1;
             s2_v = newMid - halfRange;
             s1_v = oldMid - halfRange;
             if ((((u32)newMid >> 31) & ((u32)~oldMid >> 31))
@@ -142,7 +142,7 @@ void func_800B9288(Actor *actor) {
             actor->field_0x206 = actor->field_0x20A;
         } else if (flags & 0x8000) {
             actor->context.flags = (flags & ~0xF800) | 0x1000;
-            actor->field_0x20C -= actor->field_0x208;
+            actor->field_0x20C -= actor->animationSpeed;
             actor->field_0x206 = actor->field_0x20C;
         } else if (flags & 0x4000) {
             func_800B912C(actor, actor->field_0x24F);
@@ -152,7 +152,7 @@ void func_800B9288(Actor *actor) {
     } else {
         actor->context.flags &= ~0x800;
     }
-    D_800D9630[actor->field_0x256]->unk52 = actor->field_0x206;
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
 }
 
 /**
@@ -166,7 +166,7 @@ s32 opHandler_PUSHANIME(Actor *actor) {
     actor->field_0x20E = actor->context.flags;
     actor->field_0x24D = actor->field_0x24E;
     actor->field_0x210 = actor->field_0x206;
-    actor->field_0x212 = actor->field_0x208;
+    actor->field_0x212 = actor->animationSpeed;
     actor->field_0x214 = actor->field_0x20A;
     actor->field_0x216 = actor->field_0x20C;
     return 2;
@@ -179,17 +179,17 @@ s32 opHandler_PUSHANIME(Actor *actor) {
  * the live motion state (@c field_0x206/208/20A/20C), mirrors
  * @c field_0x24D into @c field_0x24E, dispatches motion command
  * @c 0xD via @c func_800AA46C, copies @c field_0x206 into the render
- * slot's @c unk52, and restores the saved 0xF800 flag band from
+ * slot's @c animationPhase, and restores the saved 0xF800 flag band from
  * @c field_0x20E.
  */
 s32 opHandler_POPANIME(Actor *actor) {
     actor->field_0x24E = actor->field_0x24D;
     actor->field_0x206 = actor->field_0x210;
-    actor->field_0x208 = actor->field_0x212;
+    actor->animationSpeed = actor->field_0x212;
     actor->field_0x20A = actor->field_0x214;
     actor->field_0x20C = actor->field_0x216;
-    func_800AA46C(actor->field_0x256, 0xD, actor->field_0x24E, 0);
-    D_800D9630[actor->field_0x256]->unk52 = actor->field_0x206;
+    func_800AA46C(actor->selfIndex, 0xD, actor->field_0x24E, 0);
+    D_800D9630[actor->selfIndex]->animationPhase = actor->field_0x206;
     actor->context.flags &= ~0xF800;
     actor->field_0x20E &= 0xF800;
     actor->context.flags |= actor->field_0x20E;
@@ -197,10 +197,10 @@ s32 opHandler_POPANIME(Actor *actor) {
 }
 
 /**
- * @brief Pop the top stack slot as a halfword into @c field_0x208.
+ * @brief Pop the top stack slot as a halfword into @c animationSpeed.
  */
 s32 opHandler_ANIMESPEED(Actor *actor) {
-    actor->field_0x208 = POP(&actor->context);
+    actor->animationSpeed = POP(&actor->context);
     return 2;
 }
 
@@ -398,14 +398,14 @@ s32 opHandler_RCANIMELOOP(Actor *actor, s32 a1) {
  * Pops three bytes from the script stack — top goes to @c actor->unk18A
  * byte+2 (= offset 0x18C), then byte+1 (= 0x18B), then byte+0 (= 0x18A).
  * If @c D_800DE8CC bit @c 0x2 is clear, dispatches command @c 0x10 to
- * the entity at @c field_0x256 with the pointer to the 3-byte vector.
+ * the entity at @c selfIndex with the pointer to the 3-byte vector.
  */
 s32 opHandler_POLYCOLOR(Actor *actor) {
     ((u8 *)&actor->unk18A)[2] = POP_BYTE(&actor->context);
     ((u8 *)&actor->unk18A)[1] = POP_BYTE(&actor->context);
     ((u8 *)&actor->unk18A)[0] = POP_BYTE(&actor->context);
     if (!(D_800DE8C8[1] & 0x2)) {
-        func_800A97E4(actor->field_0x256, 0x10, (s32)&actor->unk18A, 0);
+        func_800A97E4(actor->selfIndex, 0x10, (s32)&actor->unk18A, 0);
     }
     return 2;
 }
@@ -462,7 +462,7 @@ s32 opHandler_SETGETA(Actor *actor) {
  * Pop one halfword from the script stack and store it into
  * @c actor->field_0x220. If @c D_800DE8CC bit @c 0x2 is clear, also
  * store the same halfword into the entity's render slot at
- * @c D_800D9630[actor->field_0x256]->unk62.
+ * @c D_800D9630[actor->selfIndex]->heightOffset.
  *
  * @param actor Pointer to the Actor event-script context.
  * @return 2 (advance PC).
@@ -471,7 +471,7 @@ s32 opHandler_SETROOTTRANS(Actor *actor) {
     u16 half = POP(&actor->context);
     *(volatile u16 *)&actor->field_0x220 = half;
     if (!(D_800DE8CC & 0x2)) {
-        D_800D9630[actor->field_0x256]->unk62 = half;
+        D_800D9630[actor->selfIndex]->heightOffset = half;
     }
     return 2;
 }
@@ -545,7 +545,7 @@ s32 opHandler_DIR(Actor *actor) {
  * Returns 1 (wait for message) without popping.
  *
  * If the bit is clear, the message is skipped: @c msgState=2,
- * @c msgActive=0, the current @c msgChannel is preserved into
+ * @c msgActive=0, the current @c baseMoveSpeed is preserved into
  * @c moveSpeed, and three stack entries are discarded.
  * Returns 2 (advance PC).
  *
@@ -565,7 +565,7 @@ s32 opHandler_DIRP(Actor *actor) {
     actor->msgState     = 2;
     actor->msgActive    = 0;
     actor->context.stackPtr    -= 3;
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     return 2;
 }
 
@@ -1101,7 +1101,7 @@ s32 opHandler_FACEDIRA(Actor *actor, s32 arg1) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
         idx = POP(&actor->context);
-        func_800A8DAC(D_80085230[idx]->field_0x256, 0x1E, (u32)g_curFieldView, buf);
+        func_800A8DAC(D_80085230[idx]->selfIndex, 0x1E, g_curFieldView, buf);
         actor->turnTgtX = D_80085230[idx]->posX / 4096;
         actor->turnTgtY = D_80085230[idx]->posY / 4096;
         actor->turnTgtZ = buf[2] + D_80085230[idx]->posZ / 4096;
@@ -1130,7 +1130,7 @@ s32 opHandler_FACEDIRP(Actor *actor, s32 arg1) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
         slot = g_fieldVars->memberSlot[POP(&actor->context)];
-        func_800A8DAC(slot, 0x1E, (u32)g_curFieldView, buf);
+        func_800A8DAC(slot, 0x1E, g_curFieldView, buf);
         actor->turnTgtX = g_fieldActors[slot].posX / 4096;
         actor->turnTgtY = g_fieldActors[slot].posY / 4096;
         actor->turnTgtZ = buf[2] + g_fieldActors[slot].posZ / 4096;
@@ -1145,7 +1145,7 @@ s32 opHandler_FACEDIRP(Actor *actor, s32 arg1) {
  *
  * If the entity's group bit is set, pops one halfword as the target
  * bearing (saved to @c turnLen), then queries
- * @c func_800A8DAC(field_0x256, @c 0x20, @c buf, @c 0) to fill three
+ * @c func_800A8DAC(selfIndex, @c 0x20, @c buf, @c 0) to fill three
  * halfwords describing the relative offset. Each entry is divided by
  * @c 16 (signed, round toward zero) and stored to @c turnPitchDst /
  * @c turnRollDst / @c turnYawDst. Clears @c turnTick and
@@ -1161,7 +1161,7 @@ s32 opHandler_FACEDIROFF(Actor *actor, s32 arg1) {
 
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->turnLen = POP(&actor->context);
-        ((void (*)(u8, s32, void *, void *))func_800A8DAC)(actor->field_0x256, 0x20, buf, 0);
+        func_800A8DAC(actor->selfIndex, 0x20, buf, 0);
         actor->turnPitchDst = buf[0] / 16;
         actor->turnRollDst = buf[1] / 16;
         actor->turnYawDst = buf[2] / 16;

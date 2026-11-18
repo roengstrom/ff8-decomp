@@ -1,4 +1,5 @@
 #include "ability_list.h"
+#include "battle_anim.h"
 #include "btl_anim.h"
 #include "btl_anim_packet.h"
 #include "card.h"
@@ -6,25 +7,25 @@
 #include "game.h"
 #include "gamestate.h"
 #include "gf.h"
+#include "input/button_remap.h"
+#include "input/gamepad.h"
 #include "main.h"
 #include "menu.h"
 #include "menumain.h"
 #include "menumain2.h"
+#include "menumain2b.h"
 #include "menumain3.h"
 #include "numstr.h"
 #include "overlay.h"
 #include "party_stats.h"
 #include "psxsdk/libetc.h"
 #include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 #include "render.h"
 #include "snd_sfx.h"
 #include "ui/font.h"
 #include "ui/icon.h"
 #include "ui/text.h"
-
-/** @brief The persistent statuses the menu draws as icons: all but KO. */
-#define STATUS_ICON_MASK (STATUS_POISON | STATUS_PETRIFY | STATUS_DARKNESS | STATUS_SILENCE | \
-    STATUS_BERSERK | STATUS_ZOMBIE)
 
 /**
  * @brief Queued text-glyph draw request (see func_801F0954).
@@ -53,7 +54,8 @@ typedef struct MenuTask {
     s32 (*drawCb)(struct MenuTask *, s32, s32);   /* 0x0C: (task, ctx, dl) -> dl (func_801F16AC). */
     u16 state;                                    /* 0x10: per-task state word, zeroed on alloc. */
     s8 inUse;                                     /* 0x12: pool slot occupied. */
-    u8 pad13[0x15];
+    s8 unk13;
+    u8 pad14[0x14];
     u32 unk28;
     u8 *unk2C;
     u32 unk30;
@@ -65,104 +67,70 @@ typedef struct MenuTask {
     u8 pad46[0x32];
 } MenuTask; /* 0x78 bytes */
 
-/**
- * @brief The main menu's view of its menu-task slot.
- *
- * func_801F6934 claims the slot with func_801F179C, registering func_801F2458 as
- * the update callback and func_801F4A98 as the draw callback. The first 0x10 bytes
- * are the shared MenuTask header (include/menumain.h); bytes of unknown use are
- * padding.
- */
-typedef struct {
-    /* 0x00 */ u8 pad00[0x20];  /**< MenuTask header, then the update callback's state word. */
-    /* 0x20 */ u16 field20;     /**< func_80036EC0() at start; field23 counts its set bits. */
-    /* 0x22 */ u8 pad22;
-    /* 0x23 */ u8 field23;
-    /* 0x24 */ s32 colonTimer;  /**< Frames the clock colon stays bright: 30 (25 on PAL) each time the play time ticks, counted down to 0. */
-    /* 0x28 */ s32 lastPlayTime; /**< The play time colonTimer was last started for. */
-    /* 0x2C */ s16 brightness;  /**< Menu brightness, 0x1000 = full; raised by 0x100 per frame as the menu opens. */
-    /* 0x2E */ u8 pad2E[0x4];
-    /* 0x32 */ u16 field32;     /**< func_801F22F4() at start. */
-    /* 0x34 */ u8 pad34;
-    /* 0x35 */ u8 party[3];     /**< The active party's slot ids, saved from g_gameState.mainData */
-    /* 0x38 */ u8 reserve[8];   /**< The other characters' slot ids, 0xFF for none. */
-    /* 0x40 */ u8 field40;
-    /* 0x41 */ u8 field41;      /**< D_801FAB30 at start. */
-    /* 0x42 */ u8 pad42;
-    /* 0x43 */ u8 field43;
-    /* 0x44 */ u16 field44;
-    /* 0x46 */ u8 pad46[0x5];
-    /* 0x4B */ u8 field4B;
-} MainMenuCtx;
+typedef void (*UNK_FUNC)(s32);
 
-extern u8 D_800562A4;
-extern u8 D_801F7DF4;
-extern u8 D_801F7E00;
-extern u8 D_801F7E0C;
+typedef struct {
+    UNK_FUNC unk0;
+    s32 unk4;
+} ST_D_801F7E6C; /* 8 bytes */
+
+typedef struct {
+    u16 count;
+    u16 offsets[1];
+} ST_FUNC_801F12FC;
+
+typedef struct {
+    u32 unk0;
+    u32 unk4;
+} ST_801F1B4C; /* 8 bytes */
+
 extern RECT D_801F7E64;
-extern u8 D_801F7E6C[];
+extern ST_D_801F7E6C D_801F7E6C[];
 extern u8 D_801F7F74[];        /**< Fallback string for failed text lookups. */
-extern u8 D_801F7F78[];
+extern ST_D_801FAB98 D_801F7F78[];
 extern u8 D_801F7FB0[];        /**< String table base (two-level offset table). */
-extern u8 D_801F8BB8[];
 extern MenuTask *D_801FA450;    /**< Head of the active menu-task list. */
 extern MenuTask D_801FA4D0;     /**< Menu-task list head node. */
 extern MenuTask D_801FA550[10]; /**< Menu-task pool. */
+extern u16 D_801FAA00[];
+extern s16 D_801FAA08[];
 extern u8 D_801FAA10;
 extern s8 D_801FAA11;
-extern u16 D_801FAA12;
-extern u16 D_801FAA14;
+extern s16 D_801FAA12;
+extern s16 D_801FAA14;
 extern u8 D_801FAA18[];
 extern s16 D_801FAA1E;          /**< Text queue count / blink phase (added to g_menuDisplayCfg.animCounter). */
 extern TextQueueEntry D_801FAA20[]; /**< Queued text-glyph draw requests. */
 extern s16 D_801FAAE0;          /**< Current text color/font parameter. */
-extern s32 D_801FAAE4;
-extern s32 D_801FAAE8;
+extern u16 *D_801FAAE4;
+extern ST_FUNC_801F12FC *D_801FAAE8;
+extern s32 D_801FAAEC;
 extern u8 D_801FAAF0;
-extern u16 D_801FAAF2;
+extern s16 D_801FAAF2;
+extern s16 D_801FAAF4;
+extern s16 D_801FAAF6;
 extern u8 D_801FAAF8;
-extern s16 D_801FAB28;
-extern s16 D_801FAB2A;
-extern s32 D_801FAB2C;
-extern u8 D_801FAB30;
-extern u8 D_801FAB31;
-extern u8 D_801FAB38[];
+extern ST_801F1B4C D_801FAB38[];
 extern s16 D_801FAB78;
-extern u8 D_801FAB7A;
-extern u8 D_801FAB7B;
-extern u8 D_801FAB7C;
 extern u8 D_801FAB88[];
-extern u8 D_801FABC4[4];
-extern u16 D_801FACE2;
-extern u16 D_801FACE4;
-extern s32 D_801FACE8;
 extern u16 g_menumain_partyMemberMask;
 
 static void func_801F0274(s32, u32, s32, s32);
-static DR_AREA *func_801F03E8(P_TAG *, DR_AREA *);
+static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut);
 static void *func_801F0AC8(void *ot, void *prim);
 static u8 *func_801F08AC(u8 *, s32);
+static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index);
+static u16 func_801F0E5C(u16 arg0);
+static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3);
+static void func_801F1584(void);
+static s32 func_801F12FC(void);
 static s32 func_801F16AC(s32, s32);
+static s32 *func_801F175C(s32 *, s32);
 static MenuTask *func_801F1850(MenuTickCallback, MenuDrawCallback);
+static void func_801F1924(void);
 static s32 func_801F1A40(s32);
-static void func_801F1E20(MainMenuCtx *ctx);
-static void func_801F1E54(MainMenuCtx *ctx);
-static void func_801F1F98(MainMenuCtx *ctx);
-static void func_801F2458(s32);
-static s32 func_801F2FAC(s32, s32);
-static void func_801F39D0(s32, s32, s32, s32, s32, s32);
-static s32 func_801F3FE8(u8 *, s32, s32, s32);
-static s32 func_801F42A4(u8 *, s32, s32, s32);
-static s32 func_801F4744(u8 *, s32);
-static s32 func_801F4A98(s32, s32, s32);
-static void func_801F5490(s32);
-static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
-static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
-static s32 func_801F5D5C(s32, DR_AREA *, s32, s32, s32, u16 *, s32, s32);
-static s32 func_801F5E0C(s32, s32, s32, s32, s32, s32, s32);
-static s32 func_801F6358(s32, s32, s32, s32, s32);
-static s32 func_801F6B54(s32, s32, s32, s32, s32);
-static s32 func_801F738C(s32);
+static void func_801F1E88(MainMenuCtx *s, s32 arg1, s32 arg2);
+static void func_801F22A8(void);
 
 #define gte_ldfcdir_uniform( x ) __asm__ volatile (       \
     "ctc2   %0, $21;"                                     \
@@ -279,7 +247,7 @@ void func_801F0274(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
  * @note The clip reads go through a u16 view of the s16 RECT fields (lhu, not
  *       lh) and w/h are filled by one word store — both match-required.
  */
-static DR_AREA *func_801F03E8(P_TAG *ot, DR_AREA *prim) {
+DR_AREA *func_801F03E8(P_TAG *ot, DR_AREA *prim) {
     RECT r;
     DRAWENV *env = g_activeDrawEnv;
 
@@ -368,10 +336,10 @@ void func_801F04E8(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
         MoveImage(&D_801F7E64, 0, 0);
     }
     D_80085150 = D_801FA280[0].dispEnv;
-    D_8005F138 = &D_80085150;
+    g_activeDispEnv = &D_80085150;
     DrawSync(0);
     VSync(0);
-    PutDispEnv(D_8005F138);
+    PutDispEnv(g_activeDispEnv);
     func_801F0038();
     VSync(0);
     func_801F0464(224);
@@ -379,7 +347,28 @@ void func_801F04E8(s32 arg0, u32 arg1, s32 arg2, s32 arg3) {
     GP_RESTORE_RET(savedGp, tempGp);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F07D8);
+static void func_801F07D8(void *ot, void *prim, s32 packedCoords, u8 *iconIds, s32 color, s32 clut) {
+    s32 x;
+    s32 y;
+
+    // Dead code added to match with the original game binary.
+    while (0);
+
+    y = packedCoords >> 16;
+    x = packedCoords << 16;
+    x >>= 16;
+
+    while (1) {
+        s32 iconId = *iconIds++;
+        if (iconId == 0) {
+            break;
+        }
+        if (iconId != 7) {
+            prim = drawIconClut(ot, prim, iconId, x, y, color, clut);
+        }
+        x += 8;
+    }   
+}
 
 /** @brief Render text string with default style (last param = 0). */
 void func_801F0884(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
@@ -464,7 +453,7 @@ void func_801F0954(s32 code, s32 color, s32 x, s32 y) {
 }
 
 /** @brief Render text at stored Y with default color. */
-void func_801F0994(s32 a0, s32 a1, s32 a2) {
+s32 func_801F0994(s32 a0, s32 a1, s32 a2) {
     func_801F0954(a0, D_801FAAE0, a1, a2);
 }
 
@@ -554,15 +543,51 @@ s32 func_801F0BB0(void) {
  * differs from what is currently playing, loads and plays it.
  */
 void func_801F0BF8(s32 a0) {
-    u8 *entry = D_801F7E6C + a0 * 8;
-    s32 val = *(s32 *)(entry + 4);
+    ST_D_801F7E6C *entry = &D_801F7E6C[a0];
+    s32 val = entry->unk4;
     if (val == 0xFF) return;
     if (val <= 0) return;
     if (getOverlayLoadStatus() == val) return;
     loadOverlay(val, 0, 0);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0C5C);
+void func_801F0C5C(s32 arg0, void *arg1) {
+    ST_D_801F7E6C *ptr = &D_801F7E6C[arg0];
+    s32 unkn4 = ptr->unk4;
+    UNK_FUNC unkn0 = ptr->unk0;
+    if (unkn4 == 0xFF) {
+        if (unkn0 != NULL) {
+            unkn0(arg1);
+        }
+        return;
+    }
+    D_801FAA11++;
+    D_801FAA18[D_801FAA11] = arg0;
+    if (unkn0 == NULL) {
+        D_801FAA11--;
+        return;
+    }
+    if (unkn4 > 0) {
+        s32 loadStatus = getOverlayLoadStatus();
+        if (loadStatus == unkn4) {
+            unkn0(arg1);
+            return;
+        }
+        if (loadStatus == -2) {
+            while (pollCdReadStatus());
+            if (getOverlayLoadStatus() == unkn4) {
+                unkn0(arg1);
+                return;
+            }
+            loadOverlay(ptr->unk4, unkn0, arg1);
+        } else {
+            loadOverlay(unkn4, unkn0, arg1);
+        }
+        return;
+    }
+    while (pollCdReadStatus());
+    unkn0(arg1);
+}
 
 /** @brief Peek at top of menu navigation stack without popping. */
 s32 func_801F0D84(void) {
@@ -583,9 +608,62 @@ s32 func_801F0DB0(void) {
 /* Animation/Transition                                                     */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0DC0);
+static s32 func_801F0DC0(EngineState *engine, GamePad *gamePad, s32 arg2, s32 index) {
+    s32 mask;
+    s32 val1;
+    s32 val2;
+    s32 val3;
+    s32 val4;
+    s32 ret;
+    s32 tmp;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0E5C);
+    val1 = D_801FAA00[index];
+    D_801FAA00[index] = arg2;
+    val2 = engine->repeatDelays.hword;
+    val3 = D_801FAA08[index];
+    mask = gamePad->autoRepeatButtonMasks[index];
+    val4 = val2 >> 8;
+    val2 &= 0xFF;
+    arg2 &= mask;
+
+    // Dead code added to match with the original game binary.
+    if (arg2) { arg2++; arg2--; }
+
+    ret = arg2;
+    tmp = val1 & mask;
+    mask = tmp;
+
+    // Dead code added to match with the original game binary.
+    if (arg2) { arg2++; arg2--; }
+
+    arg2 &= mask;
+    val1 = mask;
+    if (arg2 != 0) {
+        if (ret != tmp) {
+            val3 = val2;
+        }
+        val3--;
+        val1 = 0;
+        if (val3 < val1) {
+            val3 = val4;
+        } else {
+            ret = 0;
+        }
+    } else {
+        val3 = val2;
+    }
+    D_801FAA08[index] = val3;
+    return ret;
+}
+
+static u16 func_801F0E5C(u16 arg0) {
+    GamePad *gamePad = &g_engine.gamePads[g_engine.gamePads[0].inputSourceIndex];
+    u16 ret = func_801F0DC0(&g_engine, gamePad, arg0, 0);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 1);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 2);
+    ret |= func_801F0DC0(&g_engine, gamePad, arg0, 3);
+    return ret;
+}
 
 /**
  * @brief Build a 12x12 menu-font sprite primitive and prepend it to the OT chain.
@@ -636,7 +714,83 @@ void func_801F0FD0(s32 a0, s32 a1) {
     D_801FAA14 = a0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F0FEC);
+u32 func_801F0FEC(void *ot, void *prim, s32 x, s32 y, u8 *iconIds, u32 clutFlags) {
+    s32 startX;
+    s32 rightClip;
+    s32 leftClip;
+    u32 head;
+    u32 next;
+
+    if (iconIds == NULL) {
+        return prim;
+    }
+    rightClip = D_801FAA12;
+    leftClip = D_801FAA14;
+    getAddrNewFast(ot, head);
+    startX = x;
+    if (y >= 257) {
+        return prim;
+    }
+    if (y < -8) {
+        return prim;
+    }
+    while (1) {
+        s32 iconId = *iconIds++;
+        if (iconId == 2) {
+            x = startX;
+            y += 13;
+        } else if (iconId == 5) {
+            s32 head2;
+
+            setDrawTPage(prim, 1, 0, 0x41F);
+
+            // Dead code added to match with the original game binary.
+            if (head) { head++; head--; }
+
+            next = (u32)prim << 8;
+            setAddrFast(prim, head);
+            prim += sizeof(DR_TPAGE);
+            setAddrFast(ot, next);
+            iconId = *iconIds++;
+            iconId = func_8002C734(iconId);
+            prim = drawIcon(ot, prim, iconId, x, y, g_menuTint[MENU_TINT_NORMAL]);
+            x += getIconWidth(iconId);
+            x++;
+
+            // Dead code added to match with the original game binary.
+            if (head) { head++; head--; }
+
+            head = head2;
+            getAddrFast(ot, head);
+            head2 = head;
+        } else if (iconId >= 25 && rightClip >= x) {
+            if (iconId >= 32) {
+                iconId -= 32;
+            } else {
+                iconId *= 224;
+                iconId += *iconIds++;
+                iconId -= 5408;
+            }
+            if (x >= leftClip) {
+                head = func_801F0F20(head, prim, iconId, clutFlags, (y << 0x10) | (x & 0xFFFF));
+                prim += sizeof(SPRT);
+            }
+            x += getNibbleValue(iconId);
+        } else {
+            break;
+        }
+    }
+
+    setDrawTPage(prim, 1, 0, 0x41F);
+    addOtFast(prim, head);
+    prim += sizeof(DR_TPAGE);
+    setAddrFast(ot, head);
+
+    // Dead code added to match with the original game binary.
+    if (next) { next++; next--; }
+
+    return prim;
+}
 
 /** @brief Get animation completion flag. */
 s32 func_801F1200(void) {
@@ -657,7 +811,20 @@ void func_801F1210(s32 a0, s32 a1) {
     D_801FAAF8 = 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1240);
+static void func_801F1240(s32 arg0, s32 arg1, s32 arg2, u8 *arg3) {
+    RECT rect;
+    s32 width;
+    s32 height;
+    width = measureMessage(arg3);
+    height = width >> 0x10;
+    width = func_801F738C(width & 0xFFFF);
+    height = func_801F7394(height);
+    rect.x = arg1 - (width / 2);
+    rect.y = arg2 - (height / 2);
+    rect.w = width;
+    rect.h = height;    
+    setDialogRect(arg0, &rect);
+}
 
 /** @brief Stop the current animation/transition. */
 void func_801F12F0(void) {
@@ -668,9 +835,159 @@ void func_801F12F0(void) {
 /* Panel Iteration & Callbacks                                              */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F12FC);
+static s32 func_801F12FC(void) {
+    u16 result = 0;
+    s32 pressedButtons = applyButtonRemapTranslation(GetPressedButtons(0, 0));
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1584);
+    D_801FAAF2--;
+
+    if (D_801FAAF2 <= 0) {
+        if (D_801FAAF2 == 0) {
+            D_801FAAE4++;
+        } else {
+            D_801FAAF2 = 0;
+        }
+
+        if (D_801FAAF8 != 0) {
+            return result;
+        }
+
+        while (1) {
+            u16 val1 = *D_801FAAE4;
+            u16 val2 = val1 >> 0xC;
+
+            val1 &= 0xFFF;
+
+            switch (val2) {
+            default:
+                continue;
+
+            case 1:
+                result |= 1 << val1;
+                D_801FAAE4++;
+                continue;
+
+            case 2:
+                if (getDialogTypingDone(0) != 0) {
+                    D_801FAAE4++;
+                }
+                break;
+
+            case 3: {
+                u8* message;
+                if (D_801FAAE8 != NULL) {
+                    message = (u8 *)D_801FAAE8 + D_801FAAE8->offsets[D_801FAAEC];
+                } else {
+                    message = NULL;
+                }
+                setDialogMessage(0, message);
+                func_801F1240(0, D_801FAAF4, D_801FAAF6, message);
+                setDialogCornerIcon(0, 0);
+                setDialogTextSpeed(0, ONE);
+                openDialogAnimated(0);
+                D_801FAAE4++;
+                break;
+            }
+
+            case 4:
+                closeDialogAnimated(0);
+                D_801FAAE4++;
+                continue;
+
+            case 5:
+                D_801FAAEC = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 6:
+                D_801FAAF4 = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 7:
+                D_801FAAF6 = val1;
+                D_801FAAE4++;
+                continue;
+
+            case 8:
+                if (pressedButtons & PADRdown) {
+                    D_801FAAE4++;
+                }
+                if (pressedButtons & PADRup) {
+                    sendSpuCommand(3);
+                    closeDialogInstant(0);
+                    D_801FAAF8 = 1;
+                }
+                break;
+
+            case 9:
+                D_801FAAF2 = val1;
+                break;
+
+            case 10:
+                if (getOpenDialogScale(0) == 0) {
+                    D_801FAAE4++;
+                }
+                break;
+
+            case 15:
+                setDialogTextSpeed(0, 0);
+                D_801FAAF0 = 0;
+                break;
+
+            }
+
+            break;
+        }
+    }
+
+    return result;
+}
+
+static void func_801F1584(void) {
+    MenuTask *task = D_801FA450;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    RecordGamePadInput();
+    if (D_801FAAF0 == 1) {
+        s32 tmp;
+        s32 input;
+        tmp = func_801F12FC();
+
+        // Dead code added to match with the original game binary.
+        if (input) { input++; input--; }
+
+        input = tmp & 0xFFFF;
+        cfg->inputRaw = input;
+        cfg->inputRepeat = input;
+        cfg->inputNew = input;
+    } else {
+        s32 newInputRaw = applyButtonRemapTranslation(GetPressedButtons(0, 0));
+        s32 oldInputRaw = cfg->inputRaw;
+        s32 stickAxis2 = GetAnalogStickAxis(0, 2, 0);
+        if (!(newInputRaw & 0xF000) && stickAxis2 >= 0) {
+            s32 stickAxis3 = GetAnalogStickAxis(0, 3, 0);
+            do {
+                newInputRaw |= StickToDPadButton(0, stickAxis2 - 128, stickAxis3 - 128);
+            } while (0);
+        }
+        cfg->inputRaw = newInputRaw;
+        cfg->inputNew = (newInputRaw ^ oldInputRaw) & newInputRaw;
+        cfg->inputRepeat = func_801F0E5C(newInputRaw);
+    }
+    while (1) {
+        MenuTask *oldTask;
+        MenuTickCallback tickCallback;
+        if (task == NULL) {
+            break;
+        }
+        oldTask = task;
+        tickCallback = task->tickCb;
+        task = task->next;
+        if (tickCallback != NULL) {
+            tickCallback(oldTask);
+        }
+    }
+}
 
 /**
  * @brief Per-frame menu render driver.
@@ -714,7 +1031,7 @@ static s32 func_801F16AC(s32 ctx, s32 dl) {
  * @note Calls through an unspecified-args cast with no arguments — the
  *       original passes whatever $a0/$a1 hold (the callee's ctx/dl inputs
  *       are dead this frame); an ANSI call would emit argument setup. */
-s32 *func_801F175C(s32 *a0, s32 a1) {
+static s32 *func_801F175C(s32 *a0, s32 a1) {
     return func_801F16AC(a0, a1);
 }
 
@@ -844,7 +1161,50 @@ void func_801F18FC(s32 *a0) {
     *(s16 *)((u8 *)a0 + 0x10) = 0;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1924);
+static void func_801F1924(void) {
+    MenuDisplayConfig *cfg;
+    s32 i;
+    MenuTask *task1;
+    MenuTask *task2;
+    D_801FAA1E = 0;
+    cfg = &g_menuDisplayCfg;
+    func_801F0948(ONE);
+    for (i = 0; i < 10; i++) {
+        D_801FA550[i].unk13 = i;
+        D_801FA550[i].inUse = 0;
+        D_801FA550[i].tickCb = NULL;
+        D_801FA550[i].drawCb = NULL;
+        D_801FA550[i].state = 0;
+        func_801F177C(&D_801FA550[i]);
+    }
+    task1 = &D_801FA450;
+    task2 = &D_801FA4D0;
+    task1->unk13 = -1;
+    task2->unk13 = -1;
+    task1->inUse = 0;
+    task2->inUse = 0;
+    task1->next = task2;
+    task1->prev = NULL;
+    task2->next = NULL;
+    task2->prev = task1;
+    task1->tickCb = NULL;
+    task1->drawCb = NULL;
+    task2->tickCb = NULL;
+    task2->drawCb = NULL;
+    D_801FAA00[0] = 0;
+    D_801FAA00[1] = 0;
+    D_801FAA00[2] = 0;
+    D_801FAA00[3] = 0;
+    D_801FAA08[0] = 0;
+    D_801FAA08[1] = 0;
+    D_801FAA08[2] = 0;
+    D_801FAA08[3] = 0;
+    D_801FAA11 = 0;
+    cfg->animCounter = 0;
+    D_801FAAF0 = 0;
+    D_801FAAF8 = 0;
+    func_801F0FD0(0, 0);
+}
 
 /* ======================================================================== */
 /* Cursor/Input Handling                                                    */
@@ -905,7 +1265,43 @@ void func_801F1B10(void) {
     setNextPageMarkerBrightness(D_801FAB78);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1B4C);
+void func_801F1B4C(s32 charId) {
+    u32 buffer[2];
+    u8 *ptr1;
+    u32 *ptr2;
+    s32 i;
+    ptr1 = &g_gameState.chars[charId].magic[0].magicId;
+    ptr2 = &D_801FAB38[charId].unk0;
+    ptr2[0] = 0;
+    ptr2[1] = 0;
+    buffer[0] = 0;
+    buffer[1] = 0;
+    for (i = 0; i < 32; i++) {
+        s32 id = ptr1[0];
+        s32 qty = ptr1[1];
+        if (qty == 0 || id == 0) {
+            id = 0;
+            ptr1[0] = 0;
+            ptr1[1] = 0;
+        }
+        ptr1 += 2;
+        if (id != 0 && qty != 0) {
+            buffer[id / 32] |= 1 << (id % 32U);
+        }
+    }
+    ptr1 = g_gameState.chars[charId].junctions;
+    for (i = 0; i < 20; i++, ptr1++) {
+        s32 junction = ptr1[0];
+        if (junction != 0) {
+            u32 val = buffer[junction / 32] & (1 << (junction % 32U));
+            if (val) {
+                ptr2[junction / 32] |= 1 << (junction % 32U);
+            } else {
+                ptr1[0] = 0;
+            }
+        }
+    }
+}
 
 /** @brief Update all 8 party member cursor/panel states. */
 void func_801F1CAC(void) {
@@ -915,10 +1311,10 @@ void func_801F1CAC(void) {
     }
 }
 
-/** @brief Test if ability bit a1 is set for character a0. */
-s32 func_801F1CE8(s32 a0, s32 a1) {
-    u32 *base = (u32 *)(D_801FAB38 + a0 * 8);
-    return (base[a1 / 32] & (1 << (a1 & 0x1F))) != 0;
+/** @brief Test if ability bit a1 is set for character charId. */
+s32 func_801F1CE8(s32 charId, s32 a1) {
+    u32 *base = &D_801FAB38[charId].unk0;
+    return (base[a1 / 32] & (1 << (a1 % 32U))) != 0;
 }
 
 /* ======================================================================== */
@@ -935,23 +1331,20 @@ void func_801F1D2C(s32 a0, s32 a1, s32 a2) {
  * Counts entries (stride 2 bytes) and stores the data pointer,
  * entry count, and resets the selection index.
  */
-void func_801F1D34(u8 *a0) {
-    s32 count;
-    s32 sentinel;
-
-    D_801FAB2C = (s32)a0;
+void func_801F1D34(ST_D_801FAB98 *a0) {
+    D_801FAB2C = a0;
     D_801FAB31 = 0;
-    if (a0 == 0) {
+    if (a0 == NULL) {
         D_801FAB30 = 0;
     } else {
-        count = 0;
-        sentinel = 0xFF;
-    top:
-        if (*a0 == sentinel) goto out;
-        a0 += 2;
-        count++;
-        goto top;
-    out:
+        s32 count = 0;
+        while (1) {
+            if (a0->unk0 == 255) {
+                break;
+            }
+            a0++;
+            count++;
+        }
         D_801FAB30 = count;
     }
 }
@@ -977,14 +1370,14 @@ void func_801F1DB0(s32 a0) {
  * list and sets the selection index to the found position.
  */
 void func_801F1DBC(s32 a0) {
-    u8 *ptr = D_801F7F78;
+    ST_D_801FAB98 *ptr = D_801F7F78;
     s32 i;
 
-    for (i = 0; ; i++, ptr += 2) {
-        if (*ptr == 0xFF) {
+    for (i = 0; ; i++, ptr++) {
+        if (ptr->unk0 == 0xFF) {
             return;
         }
-        if (*ptr == a0) {
+        if (ptr->unk0 == a0) {
             func_801F1D34(D_801F7F78);
             D_801FAB31 = i;
             return;
@@ -997,7 +1390,7 @@ void func_801F1DBC(s32 a0) {
 /* ======================================================================== */
 
 /** @brief Save the 3 active party slot IDs from g_gameState.mainData into @c ctx->party. */
-static void func_801F1E20(MainMenuCtx *ctx) {
+void func_801F1E20(MainMenuCtx *ctx) {
     u8 *src = g_gameState.mainData.party.partyMembers;
     u8 *dst = ctx->party;
     s32 i;
@@ -1007,7 +1400,7 @@ static void func_801F1E20(MainMenuCtx *ctx) {
 }
 
 /** @brief Restore the 3 active party slot IDs from @c ctx->party to g_gameState.mainData. */
-static void func_801F1E54(MainMenuCtx *ctx) {
+void func_801F1E54(MainMenuCtx *ctx) {
     u8 *dst = g_gameState.mainData.party.partyMembers;
     u8 *src = ctx->party;
     s32 i;
@@ -1016,7 +1409,29 @@ static void func_801F1E54(MainMenuCtx *ctx) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F1E88);
+static void func_801F1E88(MainMenuCtx *s, s32 arg1, s32 arg2) {
+    s32 x;
+    s32 y;
+    if (s->unk34 == 0) {
+        x = 38;
+        y = (arg1 * 52) + 42;
+    } else {
+        if (arg1 < 3) {
+            x = 38;
+            y = (arg1 * 26) + 42;
+        } else {
+            s32 xVal = (arg1 - 3) % 2;
+            s32 yVal = (arg1 - 3) / 2;
+            x = (xVal * 120) + 38;
+            y = (yVal * 24) + 116;
+        }
+    }
+    if (arg2 != 0) {
+        func_801F0994(0, x, y);
+    } else {
+        func_801F0A04(0, x - 4, y - 4);
+    }
+}
 
 /** @brief Swap party members (forward direction). */
 void func_801F1F58(s32 a0, s32 a1) {
@@ -1034,7 +1449,7 @@ void func_801F1F78(s32 a0, s32 a1) {
  * Fills D_801FAB88 with 0xFF, then collects valid (non-0xFF) entries
  * from @c ctx->party and @c ctx->reserve.
  */
-static void func_801F1F98(MainMenuCtx *ctx) {
+void func_801F1F98(MainMenuCtx *ctx) {
     u8 *dst = D_801FAB88;
     s32 i;
     u8 *p;
@@ -1068,7 +1483,36 @@ static void func_801F1F98(MainMenuCtx *ctx) {
 /* Character/Entity Data Access                                             */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F202C);
+void func_801F202C(void) {
+    s32 hasMultipleAvailableCharacters = 0;
+    ST_D_801FAB98 *ptr1 = D_801F7F78;
+    ST_D_801FAB98 *ptr2 = D_801FAB98;
+    s32 isItemUsableInMenu = func_801EFFD4() & ITEM_FLAG_USABLE_IN_MENU;
+    if (func_801F79F8(SEALED_SAVE) != 0) {
+        isItemUsableInMenu = 0;
+    }
+    if (popcount(func_80036EC0()) >= 2) {
+        hasMultipleAvailableCharacters = 1;
+    }
+    while (ptr1->unk0 != 0xFF) {
+        if (
+            (ptr1->unk0 == 8 && isItemUsableInMenu == 0)
+            || (ptr1->unk0 == 53 && hasMultipleAvailableCharacters == 0)
+            || (ptr1->unk0 == 1 && getGfAvailabilityMask() == 0)
+            || (ptr1->unk0 == 4 && getGfAvailabilityMask() == 0)
+            || (ptr1->unk0 == 52 && (func_801F72B4() == 0 || func_801F79F8(SEALED_GF) != 0))
+            || (ptr1->unk0 == 2 && func_801F79F8(SEALED_ITEM) != 0)
+        ) {
+            *ptr2 = *ptr1++;
+            ptr2->unk1 = 0;
+        } else {
+            *ptr2 = *ptr1++;
+        }
+        ptr2++;
+    }
+    ptr2->unk0 = 0xFF;
+    func_801F1D34(D_801FAB98);
+}
 
 /** @brief Get character status flags. */
 s32 func_801F21D0(s32 a0) {
@@ -1120,7 +1564,7 @@ s32 menumain_getPartyMemberMask(void) {
  * Iterates 3 active party slots at g_gameState + 0xAF4, sets a bit
  * for each valid (non-0xFF) member ID. Stores result in g_menumain_partyMemberMask.
  */
-void func_801F22A8(void) {
+static void func_801F22A8(void) {
     s32 result = 0;
     s32 i;
     REGALLOC_BARRIER(result);
@@ -1213,1111 +1657,4 @@ void func_801F23D0(s32 idx, s32 y, u8 *text) {
     r.w = w;
     r.h = h;
     setDialogRect(idx, &r);
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F2458);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F2FAC);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3270);
-
-/**
- * @brief Draw the menu clock: the play time as hours:minutes, or the running
- * countdown as minutes:seconds.
- *
- * The colon is drawn at the menu brightness while @c colonTimer runs and at 2/3
- * of it otherwise, so it blinks once a second; a countdown at 0 keeps it bright.
- *
- * @param ctx The main menu's context.
- * @param ot Ordering table.
- * @param pkt Packet cursor.
- * @param x Left edge of the clock icon; the digits follow it.
- * @param y Top of the clock.
- * @param time The play time, divided by 60 (50 on PAL) into minutes, or the
- * countdown in seconds.
- * @param isPlayTime Non-zero for the play time.
- * @return The packet cursor after the clock.
- */
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", drawMenuClock);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F36E8);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3824);
-
-/**
- * @brief Draw character name panel with icon.
- *
- * Looks up the character name via func_801F6AD0, renders it with
- * func_801F0FEC, configures g_menuDisplayCfg (icon 0x55), and draws
- * the panel border via DrawMenuWindow.
- */
-void func_801F38F8(s32 a0, s32 a1, s32 a2) {
-    u8 *ret1;
-    s32 ret2;
-
-    ret1 = func_801F6AD0(*(u8 *)(a0 + 0x46));
-    ret2 = func_801F0FEC(a1, a2, 0x22, 0xF, ret1, 7);
-    g_menuDisplayCfg.iconType = 0x55;
-    g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 7;
-    *(s32 *)&g_menuDisplayCfg.w = 0x001900F4; /* w=0xF4, h=0x19 packed */
-    DrawMenuWindow(a1, ret2, ONE, g_menuTint[MENU_TINT_NORMAL]);
-}
-
-/** @brief Render text with explicit parameters (arg-reorder wrapper for func_801F0FEC). */
-void func_801F3994(u8 *text, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    func_801F0FEC(a1, a2, a3, a4, text, a5);
-}
-
-/**
- * @brief Draw an icon glyph plus a two-digit zero-trimmed number.
- *
- * Renders @c ICON_LV_YELLOW via drawIconClut with a (a5 << 6) + 2 selection
- * parameter, then formats @p val as two digits (leading zeros replaced by
- * the first char of menu string 0xB) and prints them 18 pixels below via
- * func_8002C56C.
- *
- * @note getMenuString (main exe) is deliberately called without a prototype
- *       here, as in the original build; bc_object2.h carries the battle-side
- *       declaration and menumain must not include battle-overlay headers.
- *
- * @param val Number to render.
- * @param ctx Render context.
- * @param dl  Display-list cursor.
- * @param y   Anchor Y for the glyph; digits render at y + 18.
- * @param a4  X anchor (passed through to both renderers).
- * @param a5  Color/selection index for the digit pass.
- */
-static void func_801F39D0(s32 val, s32 ctx, s32 dl, s32 y, s32 a4, s32 a5) {
-    u8 buf[16];
-    s32 digits = g_numberFormat.digits[0];
-    s32 cursor;
-    u8 *str;
-
-    cursor = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_LV_YELLOW, y, a4, g_menuTint[MENU_TINT_NORMAL], (a5 << 6) + 2);
-    y += 0x12;
-    intToDecStringShort(val, buf, digits);
-    str = (u8 *)getMenuString(0xB);
-    replaceLeadingZeros(buf + 2, 2, digits, str[0]);
-    func_8002C56C(ctx, cursor, y, a4, buf + 2, a5);
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3ABC);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3B64);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3CE0);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3DE4);
-
-/**
- * @brief Map status flags to display text color.
- *
- * Returns: 7 (white/normal), 2 (yellow/critical HP),
- * 5 (blue/status ailment), 1 (gray/dead).
- */
-s32 func_801F3FB4(s32 a0) {
-    s32 v1 = 7;
-
-    if (a0 & 0x100) {
-        v1 = 2;
-    }
-    if (a0 & 0xFE) {
-        v1 = 5;
-    }
-    if (a0 & 1) {
-        v1 = 1;
-    }
-    return v1;
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F3FE8);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4168);
-
-/** @brief Draw ability/status list line (default mode, last param = 0). */
-void func_801F4274(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    func_801F4168(a0, a1, a2, a3, a4, a5, 0);
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F42A4);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4454);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4744);
-
-/**
- * @brief Draw character command abilities panel.
- *
- * If a0[0x34] == 0, renders 3 command slots via func_801F42A4;
- * otherwise renders via func_801F3FE8 plus func_801F4744.
- */
-s32 func_801F486C(u8 *a0, s32 a1) {
-    s32 i;
-    s32 result;
-
-    if (a0[0x34] == 0) {
-        for (i = 0; i < 3; i++) {
-            result = func_801F42A4(a0, a1, result, i);
-        }
-    } else {
-        for (i = 0; i < 3; i++) {
-            result = func_801F3FE8(a0, a1, result, i);
-        }
-        result = func_801F4744(a0, a1);
-    }
-    return result;
-}
-
-/**
- * @brief Draw Gil (money) display panel.
- *
- * Renders the Gil label string, sets up g_menuDisplayCfg rendering params,
- * and draws the panel decoration via DrawMenuWindow.
- */
-void func_801F4918(s32 a0, s32 a1, s32 a2) {
-    s32 ret;
-    ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.unk004);
-    g_menuDisplayCfg.iconType = 0;
-    g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 0xBE;
-    g_menuDisplayCfg.w = 0xF4;
-    g_menuDisplayCfg.h = 0x1A;
-    DrawMenuWindow(a1, ret, ONE, g_menuTint[MENU_TINT_NORMAL]);
-}
-
-/* ======================================================================== */
-/* Party Status & HP Display                                                */
-/* ======================================================================== */
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F49A4);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4A98);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4C60);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4CE8);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4D70);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F4EA8);
-
-/** @brief Convert raw ability ID to menu display index (subtract 100). */
-s32 func_801F5104(s32 a0) {
-    return a0 - 0x64;
-}
-
-/**
- * @brief Compute ability learn percentage (0-100).
- *
- * Subtracts 800 or 900 threshold depending on value, then clamps
- * the result to the 0-100 range.
- */
-s32 func_801F510C(s32 a0) {
-    s32 v1;
-
-    if (a0 < 0x385) {
-        a0 -= 0x320;
-    } else {
-        a0 -= 0x384;
-    }
-    v1 = 0;
-    if (a0 >= 0) {
-        v1 = 0x64;
-        if (a0 < 0x65) {
-            v1 = a0;
-        }
-    }
-    return v1;
-}
-
-/** @brief Check if ability is fully mastered (value >= 901). */
-s32 func_801F5144(s32 a0) {
-    return a0 >= 0x385;
-}
-
-/**
- * @brief Compute HP color flags from current HP and max HP.
- *
- * Clears low bits of a2, sets 0x200 if HP < 50% max, 0x300 if
- * HP < 25% max. Returns 1 if HP <= 0 (dead).
- */
-s32 func_801F5150(s32 a0, s32 a1, s32 a2) {
-    a2 &= ~0x301;
-    if (a0 < (a1 >> 1)) {
-        a2 |= 0x200;
-    }
-    if (a0 < (a1 >> 2)) {
-        a2 |= 0x300;
-    }
-    if (a0 <= 0) {
-        a2 = 1;
-    }
-    return a2;
-}
-
-/**
- * @brief Updates a character's data for display in the main menu.
- *
- * Called for each of the eight characters when the main menu is displayed.
- *
- * @param charId Character ID.
- */
-void func_801F5190(s32 charId) {
-    MenuCharData *data;
-    BattleCharData *btlChars;
-    s32 statusFlags;
-    s32 i;
-
-    data = &D_801FABC8[charId];
-    btlChars = &g_battleChars.chars[0];
-    setPartyLeader(charId);
-    data->currentLevel = btlChars->currentLevel;
-    data->currentHp = btlChars->currentHp;
-    data->maxHp = btlChars->maxHp;
-    data->currentExp = btlChars->currentExp;
-    data->expToNextLevel = btlChars->expToNextLevel;
-    data->hpRatio = (data->currentHp * 48) / data->maxHp;
-    data->mag = btlChars->stats[BATTLE_STAT_MAG];
-    data->statusFlags = func_801F21D0(charId);
-    statusFlags = func_801F5150(data->currentHp, data->maxHp, data->statusFlags);
-    data->statusFlags = statusFlags;
-    g_gameState.chars[charId].statusFlags = statusFlags;
-    data->charId = charId;
-
-    for (i = 0; i < 4; i++) {
-        data->commandIds[i] = btlChars->abilityCommands[i].commandId;
-    }
-
-    for (i = 0; i < 4; i++) {
-        s32 abilityId;
-        s32 abilityCategory;
-
-        abilityId = g_gameState.chars[charId].abilities[i];
-        data->abilities[i].id = abilityId;
-
-        abilityCategory = getAbilityCategory(abilityId) + 216;
-        data->abilities[i].category = abilityCategory;
-    }
-}
-
-/** @brief Save 3 active party slots to D_801FABC4 and clear originals to 0xFF. */
-void func_801F5300(void) {
-    s32 i = 0;
-
-    for (; i < 3; i++) {
-        D_801FABC4[i] = g_gameState.mainData.party.partyMembers[i];
-        g_gameState.mainData.party.partyMembers[i] = PARTY_SLOT_EMPTY;
-    }
-}
-
-/** @brief Restore 3 active party slots from D_801FABC4 backup. */
-void func_801F5340(void) {
-    s32 i = 0;
-
-    for (; i < 3; i++) {
-        g_gameState.mainData.party.partyMembers[i] = D_801FABC4[i];
-    }
-}
-
-/**
- * @brief Recalculate party slot @p a0's stats and copy the result to @p dst.
- *
- * @param a0  Party slot to recalculate.
- * @param dst Receives the computed stat sheet (g_battleChars' first entry).
- */
-void func_801F537C(s32 a0, BattleCharData *dst) {
-    func_801F5300();
-    func_801F5190(a0);
-    *dst = g_battleChars.chars[0];
-    func_801F5340();
-    recalcPartyStats();
-}
-
-/** @brief Recalculate stats for a single party slot after swap. */
-void func_801F5400(s32 a0) {
-    func_801F5300();
-    func_801F5190(a0);
-    func_801F5340();
-    recalcPartyStats();
-}
-
-/** @brief Recalculate stats for all 8 party slots. */
-void func_801F5440(void) {
-    s32 i;
-    func_801F5300();
-    for (i = 0; i < 8; i++) {
-        func_801F5190(i);
-    }
-    func_801F5340();
-    recalcPartyStats();
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F5490);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F565C);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F56E4);
-
-/** @brief Set entity status flags, dispatched by type (character < 16, GF >= 16). */
-void func_801F576C(s32 a0, s32 a1) {
-    if (a0 >= 16) {
-        func_801F2238(a0 - 16);
-    } else {
-        func_801F21FC(a0, a1);
-    }
-}
-
-/** @brief Get entity status flags, dispatched by type (character < 16, GF >= 16). */
-s32 func_801F57A4(s32 a0) {
-    if (a0 >= 16) {
-        return func_801F2240(a0 - 16);
-    } else {
-        return func_801F21D0(a0);
-    }
-}
-
-/**
- * @brief Get entity current HP.
- *
- * For GF (a0 >= 16): reads from g_gameState at stride 68 + 0x62.
- * For character: returns 0 if dead, else reads at stride 152 + 0x490.
- */
-u16 func_801F57DC(s32 a0) {
-    if (a0 >= 16) {
-        a0 -= 16;
-        return g_gameState.gfs[a0].hp;
-    } else {
-        if (func_801F57A4(a0) & 1) {
-            return 0;
-        }
-        return g_gameState.chars[a0].currentHp;
-    }
-}
-
-/** @brief Set entity current HP (updates both primary and cache tables). */
-void func_801F5868(s32 entityId, s32 hp) {
-    if (entityId >= 16) {
-        s32 gfId = entityId - 16;
-        g_gameState.gfs[gfId].hp = hp;
-        g_battleChars.gfs[gfId].hp = hp;
-    } else {
-        g_gameState.chars[entityId].currentHp = hp;
-        D_801FABC8[entityId].currentHp = hp;
-    }
-}
-
-/** @brief Get entity max HP. */
-s32 func_801F58EC(s32 entityId) {
-    if (entityId < 16) {
-        return D_801FABC8[entityId].maxHp;
-    } else {
-        s32 gfId = entityId - 16;
-        return g_battleChars.gfs[gfId].maxHp;
-    }
-}
-
-/** @brief Get entity level. */
-s32 func_801F5938(s32 entityId) {
-    if (entityId < 16) {
-        return D_801FABC8[entityId].currentLevel;
-    } else {
-        s32 gfId = entityId - 16;
-        return g_battleChars.gfs[gfId].level;
-    }
-}
-
-/**
- * @brief Build cumulative pixel-width table for menu item strings.
- *
- * Iterates a -1-terminated u16 source list, measures each string's
- * pixel width via getTextSize, and accumulates offsets into dst.
- * Returns the item count.
- */
-s32 func_801F5984(u16 *src, u16 *dst, s32 a2) {
-    s32 accum = 0;
-    s32 count = 0;
-    s16 val;
-    s32 ret;
-    *dst++ = 0;
-    while (1) {
-        val = (s16)*src++;
-        if (val == -1) break;
-        ret = func_801F08D4(1, a2, val, 0);
-        ret = getTextSize((u8 *)ret) + 12;
-        accum += ret;
-        *dst++ = accum;
-        count++;
-    }
-    return count;
-}
-
-/* ======================================================================== */
-/* Number & String Rendering                                                */
-/* ======================================================================== */
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F5A38);
-
-/**
- * @brief Size and draw a text-list panel from a -1-terminated id list.
- *
- * Measures every entry of @p ids (looked up in text category @p textCat via
- * func_801F08D4) to find the widest string, then sizes g_menuDisplayCfg to
- * fit — width = 8 pixels per character + 16 padding, height = 12 per row
- * plus 10 — and draws the panel frame with DrawMenuWindow.
- *
- * @note Declaring @c count before @c maxWidth is load-bearing: the two have
- *       identical allocator priority, so the tie breaks on declaration order.
- *
- * @param ctx     Render context.
- * @param dl      Display-list cursor.
- * @param x       Panel X.
- * @param y       Panel Y.
- * @param textCat Text category for func_801F08D4 lookups.
- * @param ids     Entry ids, terminated by a negative value.
- * @param param   Intensity/param passed to DrawMenuWindow.
- * @return Display-list cursor after the panel.
- */
-static s32 func_801F5B54(s32 ctx, s32 dl, s32 x, s32 y, s32 textCat, u16 *ids, s32 param) {
-    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
-    s32 count;
-    s32 maxWidth;
-    s16 id;
-    u8 *str;
-    s32 len;
-
-    maxWidth = 0;
-    count = maxWidth;
-    while (1) {
-        id = *ids++;
-        if (id < 0) {
-            break;
-        }
-        str = func_801F08D4(1, textCat, id, 0);
-        len = 0;
-        while (*str++ != 0) {
-            len++;
-        }
-        len *= 8;
-        if (maxWidth < len) {
-            maxWidth = len;
-        }
-        count++;
-    }
-    cfg->iconType = 0;
-    cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = maxWidth + 0x10;
-    cfg->h = count * 12 + 0xA;
-    dl = DrawMenuWindow(ctx, dl, param, g_menuTint[MENU_TINT_NORMAL]);
-    return dl;
-}
-
-/**
- * @brief Draw a text-list panel's entries, greying out disabled rows.
- *
- * Renders each entry of the -1-terminated @p ids list (looked up in text
- * category @p textCat) down the panel at 12-pixel row pitch. Bit i of
- * @p enableMask selects the colour of row i: 7 when set (enabled), 1 when
- * clear (greyed out).
- *
- * @note @p enableMask must be unsigned so the per-row shift is a logical
- *       one, and the @c tx / @c ty cursor copies (assigned in that order)
- *       are what give x, textCat and ctx their saved registers.
- *
- * @param ctx        Render context.
- * @param dl         Display-list cursor.
- * @param x          Row X.
- * @param y          Y of the first row.
- * @param textCat    Text category for func_801F08D4 lookups.
- * @param ids        Entry ids, terminated by a negative value.
- * @param enableMask Per-row enabled bits, LSB = first row.
- * @return Display-list cursor after the rows.
- */
-static s32 func_801F5C84(s32 ctx, s32 dl, s32 x, s32 y, s32 textCat, u16 *ids, u32 enableMask) {
-    s32 tx;
-    s32 ty;
-    s16 id;
-    u8 *str;
-    s32 color;
-
-    tx = x;
-    ty = y;
-    while (1) {
-        id = *ids++;
-        if (id < 0) {
-            break;
-        }
-        str = func_801F08D4(1, textCat, id, 0);
-        color = 1;
-        if (enableMask & 1) {
-            color = 7;
-        }
-        dl = func_8002C56C(ctx, dl, tx, ty, str, color);
-        ty += 0xC;
-        enableMask >>= 1;
-    }
-    return dl;
-}
-
-/**
- * @brief Draw a complete menu panel: clip restore, border, then body.
- *
- * Chains three packet builders on the display list: func_801F03E8
- * (draw-area restore), func_801F5C84 at (x+8, y+7) with @p a7, then
- * func_801F5B54 at (x, y) with @p a6. Each call's return value is the
- * next call's packet cursor.
- *
- * @param ctx        Render context (also the ordering-table slot).
- * @param prim       Packet cursor.
- * @param x          Panel X.
- * @param y          Panel Y.
- * @param textCat    Text category for both panel builders.
- * @param ids        Entry ids for both panel builders.
- * @param bodyParam  Intensity/param for the body pass (func_801F5B54).
- * @param insetParam Intensity/param for the inset pass (func_801F5C84).
- * @return Packet cursor after the body pass.
- */
-static s32 func_801F5D5C(s32 ctx, DR_AREA *prim, s32 x, s32 y, s32 textCat, u16 *ids, s32 bodyParam, s32 insetParam) {
-    s32 dl = (s32)func_801F03E8((P_TAG *)ctx, prim);
-
-    dl = func_801F5C84(ctx, dl, x + 8, y + 7, textCat, ids, insetParam);
-    return func_801F5B54(ctx, dl, x, y, textCat, ids, bodyParam);
-}
-
-/**
- * @brief Draw a two-digit page/slot counter as glyphs.
- *
- * Renders @c ICON_PAGE, then the digits of @p val + 1: the tens
- * digit only when @p flag is set, then the units digit. Each glyph advances
- * the cursor.
- *
- * @note intToDecStringShort formats into five digit glyphs (its divisor table
- *       runs 10000..1), so buf[3] is the tens place and buf[4] the units;
- *       replaceLeadingZeros blanks the tens glyph when it would be a zero.
- *
- * @param ctx   Render context.
- * @param dl    Display-list cursor.
- * @param x     Start X (advances 9 then 6 pixels per drawn glyph).
- * @param y     Screen Y.
- * @param color Glyph color.
- * @param val   Zero-based value; displayed as @p val + 1.
- * @param flag  Nonzero to draw the tens digit.
- * @return Display-list cursor after the glyphs.
- */
-static s32 func_801F5E0C(s32 ctx, s32 dl, s32 x, s32 y, s32 color, s32 val, s32 flag) {
-    u8 buf[16];
-
-    intToDecStringShort(val + 1, buf, ICON_SMALL_DIGIT_0);
-    replaceLeadingZeros(buf + 3, 1, ICON_SMALL_DIGIT_0, ICON_BLANK);
-    dl = drawIcon(ctx, dl, ICON_PAGE, x, y, color);
-    x += 9;
-    if (flag != 0) {
-        dl = drawIcon(ctx, dl, buf[3], x, y, color);
-        x += 6;
-    }
-    dl = drawIcon(ctx, dl, buf[4], x, y, color);
-    return dl;
-}
-
-/** @brief Render number right-aligned (last param = 1). */
-s32 func_801F5EFC(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    func_801F5E0C(a0, a1, a2, a3, a4, a5, 1);
-}
-
-/** @brief Render number left-aligned (last param = 0). */
-s32 func_801F5F30(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    func_801F5E0C(a0, a1, a2, a3, a4, a5, 0);
-}
-
-/**
- * @brief Draw the scroll arrows along a panel's bottom edge.
- *
- * Renders the left arrow (@c ICON_ARROW_LEFT) at the panel's bottom-left and the
- * right arrow (@c ICON_ARROW_RIGHT) at its bottom-right, each gated by a bit of
- * @p arrows. Both blink together: on alternate 8-frame phases of
- * g_menuDisplayCfg.animCounter the selection parameter drops to 0.
- *
- * @note The shared @c bottom temp is what evaluates the y/h pair before
- *       the x load (scheduling match); a per-branch local does not.
- *
- * @param ctx    Render context.
- * @param dl     Display-list cursor.
- * @param color  Color passed through to both glyphs.
- * @param arrows Bit 0: draw left arrow. Bit 1: draw right arrow.
- * @return Display-list cursor after the drawn arrows.
- */
-s32 func_801F5F60(s32 ctx, s32 dl, s32 color, s32 arrows) {
-    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
-    s32 blink = 0x140;
-    s32 bottom;
-
-    if ((cfg->animCounter >> 3) & 1) {
-        blink = 0;
-    }
-    if (arrows & 1) {
-        bottom = cfg->y + cfg->h - 10;
-        dl = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_ARROW_LEFT, g_menuDisplayCfg.x + 2, bottom, color, blink);
-    }
-    if (arrows & 2) {
-        bottom = cfg->y + cfg->h - 10;
-        dl = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_ARROW_RIGHT, g_menuDisplayCfg.x + cfg->w - 9, bottom, color, blink);
-    }
-    return dl;
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F605C);
-
-/**
- * @brief Draw the status icons of @p mask in a 3-column grid.
- *
- * For each set bit i of @p mask among @c STATUS_ICON_MASK, draws icon
- * @c ICON_STATUS_KO + i at an 18x18 grid cell, filling left-to-right then
- * top-to-bottom.
- *
- * @param ctx  Render context.
- * @param dl   Display-list cursor (threaded through the glyph calls).
- * @param x    Grid origin X.
- * @param y    Grid origin Y.
- * @param mask Persistent status bits.
- * @return Display-list cursor after the drawn glyphs.
- */
-s32 func_801F6234(s32 ctx, s32 dl, s32 x, s32 y, s32 mask) {
-    s32 drawn = 0;
-    s32 i;
-
-    mask &= STATUS_ICON_MASK;
-    for (i = 0; i < 8; i++) {
-        s32 bit = 1 << i;
-
-        if (mask & bit) {
-            s32 row = drawn / 3;
-            s32 col = drawn - row * 3;
-
-            dl = drawIcon(ctx, dl, i + ICON_STATUS_KO, x + col * 18, y + row * 18, g_menuTint[MENU_TINT_NORMAL]);
-            drawn++;
-        }
-    }
-    return dl;
-}
-
-/* ======================================================================== */
-/* String Resource Lookup                                                   */
-/* ======================================================================== */
-
-/** @brief Look up string resource pointer by index from D_801F8BB8 table. */
-u8 *func_801F6324(s32 a0) {
-    u16 *table = (u16 *)D_801F8BB8;
-
-    if (a0 >= table[0]) {
-        a0 = 0;
-    }
-    a0 += 1;
-    return (u8 *)table + table[a0];
-}
-
-/** @brief Decode and render an indexed string resource to screen. */
-static s32 func_801F6358(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
-    u8 buf[256];
-    u8 *ptr = func_801F6324(a4);
-    decodeMessage(ptr, buf, -1);
-    func_801F0FEC(a0, a1, a2, a3, buf, 7);
-}
-
-void *MenuDrawPortrait(s32 idx, void *ot, void *head, s32 x, s32 y, u32 color) {
-    return DrawPortrait(ot, head, idx, x, y, color);
-}
-
-/**
- * @brief Conditionally render highlighted entry if character bit is set.
- *
- * Checks if the bit at position a0 in the party mask is set.
- * If so, renders the entry via drawIcon with a highlight color
- * of 0xD6. Otherwise returns the input OT pointer unchanged.
- *
- * @param a0 Bit position to check in party mask.
- * @param a1 OT base pointer.
- * @param a2 Current draw pointer (returned if bit not set).
- * @param a3 Y coordinate.
- * @param a4 Additional render parameter (5th arg on stack).
- * @return Updated draw pointer.
- */
-s32 func_801F6418(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
-    s32 mask = menumain_getPartyMemberMask();
-
-    if (((mask & 0xFFFF) >> a0) & 1) {
-        a2 = drawIcon(a1, a2, ICON_PARTY_MEMBER, a3, a4, g_menuTint[MENU_TINT_NORMAL]);
-    }
-    return a2;
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F64A4);
-
-/**
- * @brief Draw full character info panel.
- *
- * Chains: func_801F64A4 (header/portrait), func_801F3DE4 (stats block),
- * func_801F6234 (HP/status bar), func_801F605C (ability/junction summary).
- */
-s32 func_801F65F0(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5) {
-    s32 ret;
-
-    ret = func_801F64A4(a0, a1, a2, a3, a4, a5, 1);
-    ret = func_801F3DE4(*(s32 *)a5, *(s32 *)(a5 + 4), a0, ret, a2 + 0x20, a3 + 0x7C, 7);
-    ret = func_801F6234(a0, ret, a2 + 0xD0, a3 + 0x39, *(u16 *)(a5 + 0xE));
-    return func_801F605C(a0, ret, a2 + 0x10E, a3 + 0x38, a5);
-}
-
-/**
- * @brief Draw a weapon's name in its status panel slot.
- *
- * Anchors g_menuDisplayCfg at (x+200, y+121) with a 154x22 box and no
- * icon, draws the name from getWeaponName(weaponId) at (x+209, y+128)
- * via func_801F0FEC, then draws the panel frame with DrawMenuWindow at
- * full intensity.
- *
- * @note @p x and @p y are advanced in place — reassigning the parameters
- *       restores their true live lengths so px/py keep s0/s1 (allocation
- *       match).
- *
- * @param ctx     Render context.
- * @param dl      Display-list cursor.
- * @param x       Panel base X.
- * @param y       Panel base Y.
- * @param weaponId Weapon to display.
- */
-void func_801F66B0(s32 ctx, s32 dl, s32 x, s32 y, s32 weaponId) {
-    u8 *name;
-
-    x += 0xC8;
-    y += 0x79;
-    g_menuDisplayCfg.x = x;
-    x += 9;
-    g_menuDisplayCfg.w = 0x9A;
-    g_menuDisplayCfg.iconType = 0;
-    g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.h = 0x16;
-    y += 7;
-    name = getWeaponName(weaponId);
-    dl = func_801F0FEC(ctx, dl, x, y, name, 7);
-    DrawMenuWindow(ctx, dl, ONE, g_menuTint[MENU_TINT_NORMAL]);
-}
-
-/**
- * @brief Step a cursor down or up the D-pad, wrapping at both ends.
- *
- * If max == 1 (single option), returns 0 immediately.
- * Down advances the cursor and wraps to 0; up retreats it and wraps to max-1.
- * Plays a sound effect on each valid input.
- *
- * @param flags   One of the g_menuDisplayCfg input words.
- * @param max     Maximum position value (exclusive).
- * @param current Current cursor position.
- * @return Updated cursor position, or 0 if max == 1.
- */
-s32 func_801F6768(u16 flags, s32 max, s32 current) {
-    if (max == 1) {
-        return 0;
-    }
-    if (flags & PADLdown) {
-        sendSpuCommand(1);
-        current++;
-        if (current >= max) {
-            current = 0;
-        }
-    }
-    if (flags & PADLup) {
-        sendSpuCommand(1);
-        current--;
-        if (current < 0) {
-            current = max - 1;
-        }
-    }
-    return current;
-}
-
-/**
- * @brief Step a cursor right or left the D-pad, wrapping at both ends.
- *
- * Right advances the cursor and wraps to 0; left retreats it and wraps to max-1.
- * Plays a sound effect on each valid input.
- *
- * @param flags   One of the g_menuDisplayCfg input words.
- * @param max     Maximum position value (exclusive).
- * @param current Current cursor position.
- * @return Updated cursor position.
- */
-s32 func_801F6800(u16 flags, s32 max, s32 current) {
-    if (flags & PADLright) {
-        sendSpuCommand(1);
-        current++;
-        if (current >= max) {
-            current = 0;
-        }
-    }
-    if (flags & PADLleft) {
-        sendSpuCommand(1);
-        current--;
-        if (current < 0) {
-            current = max - 1;
-        }
-    }
-    return current;
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F6888);
-
-/**
- * @brief Initialize the main menu state.
- *
- * Clears the menu flag, recalculates party stats, sets up the panel
- * callback chain, initializes display lists, and populates the menu
- * context structure with GF availability, character masks, and defaults.
- */
-void func_801F6934(void) {
-    MainMenuCtx *ctx;
-
-    D_801FAB7C = 0;
-    recalcPartyStats();
-    ctx = func_801F179C(func_801F2458, func_801F4A98);
-    func_801F1D2C((s32)&D_800562A4, (s32)&D_801F7DF4, (s32)D_801F8BB8);
-    func_801F1D2C(0, (s32)&D_801F7E00, (s32)D_801F889C);
-    func_801F1D2C(0, (s32)&D_801F7E0C, (s32)&D_801F87B8);
-    func_801F1CAC();
-    if (ctx != NULL) {
-        D_801FAB28 = 0x1000;
-        ctx->brightness = 0;
-        D_801FAB2A = 0x1000;
-        ctx->field20 = func_80036EC0();
-        ctx->field32 = func_801F22F4();
-        ctx->field44 = 0;
-        ctx->field43 = 0;
-        ctx->field4B = 0;
-        func_801F5490((s32)ctx);
-        func_801F1E54(ctx);
-        func_801F202C();
-        ctx->brightness = 0;
-        func_801F2458((s32)ctx);
-        ctx->field23 = popcount(ctx->field20);
-        {
-            u8 tmp = D_801FAB30;
-            ctx->field40 = 0;
-            ctx->colonTimer = 0;
-            ctx->field41 = tmp;
-        }
-    }
-    func_801F1DB0(0);
-    func_801F7B60();
-}
-
-/** @brief Advance pseudo-random number generator (LCG: val*125+14 mod 32768). */
-s32 func_801F6A5C(void) {
-    s32 base = (s32)&g_engine;
-    s32 val = *(u16 *)(base + 0x9C2);
-    val = (val * 125 + 14) % 32768;
-    *(u16 *)(base + 0x9C2) = val;
-    return val;
-}
-
-/** @brief Look up string @p a0 in menu text category 3. */
-u8 *func_801F6AA4(s32 a0) {
-    return func_801F08D4(1, 3, a0, 0);
-}
-
-/** @brief Look up string @p a0 in menu text category 0, with the last flag set. */
-u8 *func_801F6AD0(s32 a0) {
-    return func_801F08D4(0, 0, a0, 1);
-}
-
-/** @brief Look up character description string. */
-u8 *func_801F6AFC(s32 a0) {
-    return func_801F08D4(0, 0, a0, 0);
-}
-
-/** @brief Map ability index to display category via double indirection. */
-s32 func_801F6B28(s32 a0) {
-    return D_801F7F98[D_801F889C[a0].type];
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F6B54);
-
-/**
- * @brief Render a column of bitmask-selected entries inside a 168x120 panel.
- *
- * For each set bit i (0..7) of @p mask, renders entry i at (x+8, ty) via
- * func_801F6B54, advancing ty by 13 per drawn row. Then anchors
- * g_menuDisplayCfg at (x, y) with size 168x120 and icon 0x49 and draws the
- * panel frame with DrawMenuWindow.
- *
- * @param ctx  Render context.
- * @param dl   Display-list cursor (threaded through the row calls).
- * @param x    Panel X.
- * @param y    Panel Y.
- * @param a4   Passed to DrawMenuWindow (intensity/param).
- * @param mask Bitmask of rows to draw, bit index = entry index.
- */
-void *func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
-    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
-    s32 tx = x + 8;
-    s32 ty = y + 0xA;
-    s32 i;
-
-    for (i = 0; i < 8; i++) {
-        if ((mask >> i) & 1) {
-            dl = func_801F6B54(ctx, dl, tx, ty, i);
-            ty += 0xD;
-        }
-    }
-    cfg->iconType = 0x49;
-    cfg->w = 0xA8;
-    cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->h = 0x78;
-    return DrawMenuWindow(ctx, dl, a4, g_menuTint[MENU_TINT_NORMAL]);
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F6D88);
-
-/* ======================================================================== */
-/* Config/Settings Display                                                  */
-/* ======================================================================== */
-
-/** @brief Get packed cursor coordinates (D_801FACE4 << 16 | D_801FACE2). */
-s32 func_801F6F6C(void) {
-    return (D_801FACE4 << 16) | D_801FACE2;
-}
-
-/** @brief Render menu item at grid position derived from hi/lo nibbles of a0. */
-void func_801F6F88(s32 a0) {
-    s32 hi = a0 >> 4;
-    s32 lo = a0 & 0xF;
-    s32 val = func_801F6F6C();
-
-    func_801F0994(lo | hi, (u16)val, (val >> 16) + lo * 13);
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F6FE4);
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F7148);
-
-/** @brief Render config option (simplified wrapper for func_801F7148). */
-void func_801F728C(s32 a0, s32 a1) {
-    func_801F7148(a0, 0, 0, a1);
-}
-
-/** @brief Get current config value. */
-s32 func_801F72B4(void) {
-    return D_801FACE8;
-}
-
-/**
- * @brief Collect the party-wide junction-ability bitmask into D_801FACE8.
- *
- * For every owned GF (GF_EXISTS), enumerates its available abilities via
- * func_800369CC and sets bit (slotIndex - 0x5C) in D_801FACE8 for each
- * entry in the junction-ability slot range 0x5C..0x73.
- */
-void func_801F72C4(void) {
-    AbilityListEntry list[22];
-    s32 i;
-
-    D_801FACE8 = 0;
-    for (i = 0; i < 16; i++) {
-        if (g_gameState.gfs[i].exists & GF_EXISTS) {
-            s32 n = func_800369CC(i, list, 0);
-            AbilityListEntry *p = list;
-
-            for (; n > 0; n--, p++) {
-                u32 c = p->slotIndex - 0x5C;
-
-                if (c < 0x18) {
-                    D_801FACE8 |= 1 << c;
-                }
-            }
-        }
-    }
-}
-
-/* ======================================================================== */
-/* Junction/Ability Management                                              */
-/* ======================================================================== */
-
-/** @brief Convert character index to GF table index (add 0x10). */
-static s32 func_801F738C(s32 a0) {
-    return a0 + 0x10;
-}
-
-/** @brief Convert character index to GF table index + 1 (add 0x11). */
-s32 func_801F7394(s32 a0) {
-    return a0 + 0x11;
-}
-
-/**
- * @brief Render scrollable panel with footer.
- *
- * Sets up g_menuDisplayCfg rendering params (icon 0x4A), then renders
- * the list, scroll indicator, and footer/help text.
- */
-void func_801F739C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, MenuRowCallback a5) {
-    s32 base = (s32)&g_menuDisplayCfg;
-    s32 ret1;
-    s32 ret2;
-
-    *(u8 *)(base + 0x10) = 0x4A;  /* iconType */
-    *(u8 *)(base + 0x11) = 0;     /* iconSubType */
-    *(s16 *)&g_menuDisplayCfg = a2;     /* x */
-    *(s16 *)(base + 4) = 0x9A;    /* w */
-    *(s16 *)(base + 2) = a3;      /* y */
-    *(s16 *)(base + 6) = 0x40;    /* h */
-    *(u8 *)(base + 0x13) = 4;     /* columnCount */
-    *(u8 *)(base + 0x1E) = a4;    /* itemId */
-
-    ret1 = func_801F5F30(a0, a1, a2 + 0x24, a3, g_menuTint[MENU_TINT_NORMAL], *(u8 *)(base + 0x16) /* pageStart */);
-    ret2 = func_801F5F60(a0, ret1, g_menuTint[MENU_TINT_NORMAL], 3);
-    func_801EFBB4(a0, ret2, a5);
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F7454);
-
-/** @brief Apply junction change, then update cursor and recalculate party stats. */
-s32 func_801F75A4(s32 a0) {
-    s32 result = func_801F7454(a0);
-    func_801F1B4C(a0);
-    func_801F5400(a0);
-    return result;
-}
-
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2", func_801F75EC);
-
-/** @brief Remove junction, then update cursor and recalculate party stats. */
-void func_801F76A8(s32 a0) {
-    func_801F75EC(a0);
-    func_801F1B4C(a0);
-    func_801F5400(a0);
-}
-
-/**
- * @brief Nudge a value right or left with the D-pad.
- *
- * Plays a sound effect if the value changed.
- */
-s32 func_801F76E0(s32 flags, s32 a1, s32 a2) {
-    s32 result = a2;
-    s32 orig = a2;
-
-    if (flags & PADLright) {
-        result = func_80035B28(a1, result);
-    }
-    if (flags & PADLleft) {
-        result = func_80035B70(a1, orig);
-    }
-    if (result != orig) {
-        sendSpuCommand(1);
-    }
-    return result;
 }

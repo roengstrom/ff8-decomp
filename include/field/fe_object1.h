@@ -26,15 +26,15 @@ extern FieldParticles *g_curFieldParticles;
 
 /** @brief Double-buffered prim-chain heads laid out after the field bundle. */
 extern u8 *D_800C6D98[2];
-extern u8 *D_800D5EC8[2];
-extern u8 *D_800D5EB8[2];
+extern POLY_F3 *D_800D5EC8[2];
+extern DR_TPAGE *D_800D5EB8[2];
 
 /** @brief Field-VM command tables selected by @c FieldInfo::unk0D. */
-extern u8 D_800C30DC[];
-extern u8 D_800C311C[];
-extern u8 D_800C315C[];
+extern u32 D_800C30DC[];
+extern u32 D_800C311C[];
+extern u32 D_800C315C[];
 /** @brief Shared scratch block handed to @c func_800AA8A0. */
-extern u8 D_800C06A0[];
+extern CdFileDesc D_800C06A0[];
 
 /** @brief 12-byte signed integer 3D position (x, y, z). */
 typedef struct {
@@ -98,8 +98,7 @@ extern s32 D_800C7214;
 /** @brief Camera/view block used instead of the field's own while @c func_800BE274 reports
  *         the overlay subsystem active; assigned to @c g_curFieldView . */
 extern FieldView *g_movieView;
-/** @brief Previous frame's display environment, snapshotted from @c D_8005F138 each frame. */
-extern s32 D_8005F110;
+extern DISPENV *g_prevDispEnv;
 
 /** @brief The frame buffer currently being built; one of the two in @ref D_800C7218 . */
 extern FieldFrameBuf *D_800C71E0;
@@ -275,7 +274,7 @@ extern void func_8009FE18(s32 entIdx, Actor *actor, s32 flags);
 #define PRIM_CODE_SEMI_TRANS 0x02
 
 extern SPRT_16 *func_800A0640(SPRT_16 *prim);
-extern void func_800A06F0(s32 a, FieldFrameBuf *buf, u8 *b, u8 *c);
+extern void func_800A06F0(s16 arg0, FieldFrameBuf *arg1, u8 *arg2, u8 *arg3);
 extern void func_800A0D6C(u8 *buf);
 extern s32  func_800A0E54(s32 start, s32 end, s32 total, s32 progress);
 extern s32  func_800A0EB8(s32 start, s32 end, s32 total, s32 angle);
@@ -307,8 +306,6 @@ typedef struct {
     /* 0x04 */ s32 cmd;     /**< @c 0xE1000200 | (color & 0x9FF). */
 } func_800A2A30_item;  /* 8 bytes */
 
-extern void func_800A2AF8(FieldFrameBuf *buf, u8 *a, u8 *b, FieldView *view);
-
 /** @brief Emit one field sprite for a movement accumulator and link it into the OT. */
 
 /** @brief Palette selector for the ribbon colour ramp (scaled by 16 to index it). */
@@ -323,54 +320,10 @@ extern u8 D_800C3729[];
 /** @brief Raised by @c func_800A5898 when the dialog state reaches @c 4. */
 extern u8 D_80070649;
 
-/**
- * @brief Element of a @ref FieldObject part's sub-range (8-byte stride).
- * @note Purpose uncertain — @c func_800A8058 clears @c field06 for every
- *       element in each part's @c [subStart, @c subStart+subCount) range.
- */
-typedef struct {
-    /* 0x00 */ u8 pad00[6];
-    /* 0x06 */ s16 field06;
-} FieldObjectSub;  /* 0x08 */
-
-/**
- * @brief One part of a @ref FieldObject (0x20-byte stride).
- *
- * Each part owns a contiguous @c [subStart, @c subStart+subCount) slice of the
- * object's @ref FieldObjectSub array.
- * @note Field naming reflects only observed usage.
- */
-typedef struct {
-    /* 0x00 */ s16 subStart;   /**< first sub-element index owned by this part. */
-    /* 0x02 */ s16 subCount;   /**< number of sub-elements in the part. */
-    /* 0x04 */ u8 pad04[0x0A];
-    /* 0x0E */ s16 field0E;    /**< cleared per part by @c func_800A8058. */
-    /* 0x10 */ u8 pad10[0x10];
-} FieldObjectPart;  /* 0x20 */
-
-/**
- * @brief A field-engine object instance (element of the @c D_800D6620 table).
- *
- * @note Purpose partially understood — holds a part list (@c parts /
- *       @c partCount) indexing a shared sub-element array (@c subs), plus a
- *       @c 0x12345678 signature word and a couple of init fields.
- */
-typedef struct {
-    /* 0x00 */ u8 pad00[0x1C];
-    /* 0x1C */ FieldObjectPart *parts;  /**< part array (@c partCount entries). */
-    /* 0x20 */ FieldObjectSub *subs;    /**< sub-element array indexed by parts. */
-    /* 0x24 */ s32 partCount;
-    /* 0x28 */ u8 pad28[0x24];
-    /* 0x4C */ u32 signature;           /**< set to @c 0x12345678 on init. */
-    /* 0x50 */ u16 field50;             /**< init'd from @c D_800D60E8. */
-    /* 0x52 */ u8 pad52[0x0D];
-    /* 0x5F */ u8 field5F;              /**< cleared on init. */
-} FieldObject;
-
 /** @brief 64-slot field-engine object table (indexed by object id). */
-extern FieldObject *D_800D6620[];
-/** @brief u16 seed value written into @c FieldObject::field50 at init. */
-extern u16 D_800D60E8;
+extern Model *D_800D6620[];
+/** @brief u16 seed value written into @c Model::field50 at init. */
+extern u16 D_800D60E8[];
 
 /** @brief Scratch sprite rectangle built by @c func_800AA5F8 before a @c MoveImage upload. */
 extern RECT D_800D5ED8;
@@ -394,13 +347,27 @@ extern u8 D_800C3320[];
 extern u8 D_800C3520[];
 extern u8 D_800C6D90;            /**< PRNG counter advanced 13/step by func_800A2EA4 */
 
+extern void func_8004D664(void *p);
 extern void func_8004D684(void *p);
+extern void func_8004D6A4(void *p);
+extern void func_8004D6C4(void *p);
 
 extern void *D_800C71E4;         /**< Buffer handed to @c StoreImage / @c LoadImage; points at @c D_800D3E88 once @c func_800A1BB8 runs. */
 extern s32 D_800C71FC;           /**< Latched result of @c func_800A0F34 from @c func_800A11E0. */
 extern u16 D_800D3E88[];         /**< Saved 256x16 VRAM palette strip, one 16-bit colour per entry. */
-extern u8 D_800D5F50[];
-extern u8 D_800D61A8[];
+typedef struct {
+    /** 0x00 */ s32 tag;
+    /** 0x04 */ u32 size;
+    /** 0x08 */ u8 *src;
+    /** 0x0C */ RECT unkC[6];
+    /** 0x3C */ RECT unk3C[6];
+    /** 0x6C */ s16 unk6C;
+    /** 0x6E */ u8 unk6E;
+    /** 0x6F */ u8 unk6F;
+} SoundBufDesc;
+
+extern SoundBufDesc D_800D5F50[3];
+extern SoundBufDesc D_800D61A8[3];
 extern u8 D_8005F168[];
 
 /**

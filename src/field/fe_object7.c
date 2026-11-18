@@ -57,7 +57,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
         context->resultSlots[1] = 0;
 
         if (result >= 5) {
-            if (!(g_fieldVars->stateFlags & FIELD_STATE_FIELD_READY)) {
+            if (!(g_fieldVars->stateFlags & FIELD_STATE_SALARY_DISPLAY_OFF)) {
                 resetSeedRankNotification();
             }
 
@@ -79,7 +79,7 @@ s32 opHandler_CARDGAME(ScriptContext *context) {
             }
 
             sndCmd40();
-            func_80037FB0(0, 0x46, D_8005F13C);
+            func_80037FB0(0, 0x46, g_fieldSoundBuffer);
 
             while (g_fieldVars->soundLoadComplete == 0) {
                 UpdateCdRead();
@@ -506,13 +506,13 @@ s32 opHandler_PARTICLEOFF(ScriptContext *context) {
 }
 
 /**
- * @brief Activate a system slot with the actor's field_0x256 value | 0x80.
+ * @brief Activate a system slot with the actor's selfIndex value | 0x80.
  *
  * @param actor Pointer to the actor (script context).
  * @return 2 (continue processing).
  */
 s32 opHandler_PARTICLESET(Actor *actor) {
-    g_fieldContext.slotActive[POP(&actor->context) & 0xF] = actor->field_0x256 | 0x80;
+    g_fieldContext.slotActive[POP(&actor->context) & 0xF] = actor->selfIndex | 0x80;
     return 2;
 }
 
@@ -574,7 +574,7 @@ s32 opHandler_SETPLACE(ScriptContext *context) {
  * @return 2 (continue processing).
  */
 s32 opHandler_BATTLEMODE(ScriptContext *context) {
-    g_battleConfig.unk2 = g_fieldVars->fieldB6 = POP(context);
+    g_battleConfig.unk2 = g_fieldVars->battleFlags = POP(context);
     do {} while (0);
     return 2;
 }
@@ -789,19 +789,19 @@ void func_800B6854(Actor *actor) {
 }
 
 /**
- * @brief Table index 0x04F handler — set message channel.
+ * @brief op03D MSPEED: set the actor's walking speed.
  *
- * Pops a channel value from the bytecode stack and stores it to both
- * moveSpeed and msgChannel fields of the actor.
+ * Pops a speed from the bytecode stack and stores it in both
+ * moveSpeed and baseMoveSpeed.
  *
  * @param actor Pointer to the actor (script context).
  * @return 2 (continue processing).
  */
 s32 opHandler_MSPEED(Actor *actor) {
-    u16 channel = POP(&actor->context);
+    u16 speed = POP(&actor->context);
 
-    actor->moveSpeed = channel;
-    actor->msgChannel = channel;
+    actor->moveSpeed = speed;
+    actor->baseMoveSpeed = speed;
     return 2;
 }
 
@@ -829,7 +829,7 @@ s32 opHandler_MOVE(Actor *actor) {
     u16 saved;
 
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
-        saved = actor->msgChannel;
+        saved = actor->baseMoveSpeed;
         actor->msgActive = 1;
         actor->msgState = 0;
 
@@ -867,7 +867,7 @@ s32 opHandler_MOVEA(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         func_800B6738(actor);
     }
 
@@ -900,7 +900,7 @@ s32 opHandler_PMOVEA(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         func_800B6738(actor);
     }
 
@@ -932,7 +932,7 @@ s32 opHandler_CMOVE(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->msgPosY = POP(&actor->context) << 12;
         actor->msgPosX = POP(&actor->context) << 12;
         actor->msgTextPtr = POP(&actor->context) << 12;
@@ -965,7 +965,7 @@ s32 opHandler_FMOVE(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->msgPosY = POP(&actor->context) << 12;
         actor->msgPosX = POP(&actor->context) << 12;
         actor->msgTextPtr = POP(&actor->context) << 12;
@@ -995,7 +995,7 @@ s32 opHandler_FMOVEA(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->field_0x1DA = 0;
     }
 
@@ -1028,7 +1028,7 @@ s32 opHandler_FMOVEP(Actor *actor) {
         actor->msgActive = 1;
         actor->msgState = 0;
         actor->windowId = POP(&actor->context);
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->field_0x1DA = 0;
     }
 
@@ -1059,7 +1059,7 @@ s32 opHandler_RMOVE(Actor *actor) {
     s32 new_var;
     u16 saved;
 
-    saved = actor->msgChannel;
+    saved = actor->baseMoveSpeed;
     actor->msgActive = 1;
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
@@ -1090,7 +1090,7 @@ s32 opHandler_RMOVEA(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     func_800B6738(actor);
 
     actor->msgTextPtr = D_80085230[PEEK(&actor->context)]->posX;
@@ -1116,7 +1116,7 @@ s32 opHandler_RPMOVEA(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     func_800B6738(actor);
 
     idx = g_fieldVars->memberSlot[POP(&actor->context)];
@@ -1142,7 +1142,7 @@ s32 opHandler_RCMOVE(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     actor->msgPosY = POP(&actor->context) << 12;
     actor->msgPosX = POP(&actor->context) << 12;
     actor->msgTextPtr = POP(&actor->context) << 12;
@@ -1166,7 +1166,7 @@ s32 opHandler_RFMOVE(Actor *actor) {
     actor->context.flags |= 0x20000;
     actor->msgState = 0;
     actor->windowId = POP(&actor->context);
-    actor->moveSpeed = actor->msgChannel;
+    actor->moveSpeed = actor->baseMoveSpeed;
     actor->msgPosY = POP(&actor->context) << 12;
     actor->msgPosX = POP(&actor->context) << 12;
     actor->msgTextPtr = POP(&actor->context) << 12;
@@ -1296,7 +1296,7 @@ s32 opHandler_MACCEL(Actor *actor) {
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         actor->msgActive = 1;
         actor->msgState = 0;
-        actor->moveSpeed = actor->msgChannel;
+        actor->moveSpeed = actor->baseMoveSpeed;
         actor->field_0x204 = POP(&actor->context);
         actor->windowId = POP(&actor->context);
         actor->msgPosY = POP(&actor->context) << 12;
@@ -1362,7 +1362,7 @@ void func_800B788C(Actor *self, Actor *target) {
  * @brief Proximity-anchored message from the OTHER two party members.
  *
  * On the active frame, locates the party slot whose @c memberSlot
- * matches @c actor->field_0x255 (the "speaker"), then sets up
+ * matches @c actor->partyCharacterId (the "speaker"), then sets up
  * proximity messages from the other two slots back at the speaker
  * via @c func_800B788C. Saves the chosen entity pointers in
  * @c D_800DE4F0 / @c D_800DE4F4, kicks off the speaker's own animation
@@ -1383,7 +1383,7 @@ s32 opHandler_JOIN(Actor *actor) {
 
     if ((actor->context.activeMask >> actor->context.scriptSlot) & 1) {
         for (i = 0; i < 3; i++) {
-            if (g_gameState.battleParty[i] == actor->field_0x255) {
+            if (g_gameState.battleParty[i] == actor->partyCharacterId) {
                 break;
             }
         }
@@ -1543,7 +1543,7 @@ s32 opHandler_SPLIT(Actor *actor) {
         if (g_fieldVars->memberSlot[0] != 0xFF) {
             D_800DE4F0 = &g_fieldActors[g_fieldVars->memberSlot[0]];
             func_800B7D44(D_800DE4F0, x0, y0, z0);
-            if (g_fieldVars->memberSlot[0] != actor->field_0x256) {
+            if (g_fieldVars->memberSlot[0] != actor->selfIndex) {
                 D_800DE4F0->context.flags |= 1;
             }
         }
@@ -1551,7 +1551,7 @@ s32 opHandler_SPLIT(Actor *actor) {
         if (g_fieldVars->memberSlot[1] != 0xFF) {
             D_800DE4F4 = &g_fieldActors[g_fieldVars->memberSlot[1]];
             func_800B7D44(D_800DE4F4, x1, y1, z1);
-            if (g_fieldVars->memberSlot[1] != actor->field_0x256) {
+            if (g_fieldVars->memberSlot[1] != actor->selfIndex) {
                 D_800DE4F4->context.flags |= 1;
             }
         }
@@ -1559,7 +1559,7 @@ s32 opHandler_SPLIT(Actor *actor) {
         if (g_fieldVars->memberSlot[2] != 0xFF) {
             D_800DE4F8 = &g_fieldActors[g_fieldVars->memberSlot[2]];
             func_800B7D44(D_800DE4F8, x2, y2, z2);
-            if (g_fieldVars->memberSlot[2] != actor->field_0x256) {
+            if (g_fieldVars->memberSlot[2] != actor->selfIndex) {
                 D_800DE4F8->context.flags |= 1;
             }
         }
@@ -2156,7 +2156,7 @@ s32 opHandler_UNKNOWN4(Actor *actor) {
  *
  * Updates @c actor->context.flags by clearing bits @c 0x280000 and setting
  * bit @c 0x100000, then dispatches @c func_800A97E4 with the
- * @c field_0x256 byte as the slot/voice ID, command @c 0x2E, and
+ * @c selfIndex byte as the slot/voice ID, command @c 0x2E, and
  * two zero args. Likely starts a queued voice/SFX cue.
  *
  * @param actor Script context.
@@ -2164,6 +2164,6 @@ s32 opHandler_UNKNOWN4(Actor *actor) {
  */
 s32 opHandler_OPENEYES(Actor *actor) {
     actor->context.flags = (actor->context.flags & ~0x280000) | 0x100000;
-    func_800A97E4(actor->field_0x256, 0x2E, 0, 0);
+    func_800A97E4(actor->selfIndex, 0x2E, 0, 0);
     return 2;
 }

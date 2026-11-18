@@ -45,6 +45,8 @@ MATRIX *ScaleMatrix(MATRIX *m, VECTOR *scale);
 MATRIX *ScaleMatrixL(MATRIX *m, VECTOR *scale);
 MATRIX *TransposeMatrix(MATRIX *m0, MATRIX *m1);
 void MatrixNormal_2(MATRIX *m, MATRIX *n);   /**< Orthonormalise @p m into @p n via the GTE. */
+void PushMatrix(void);
+void PopMatrix(void);
 void SetRotMatrix(MATRIX *m);
 void SetTransMatrix(MATRIX *m);
 void SetLightMatrix(MATRIX *m);
@@ -58,6 +60,7 @@ VECTOR *ApplyMatrixLV(MATRIX *m, VECTOR *v0, VECTOR *v1);
 VECTOR *ApplyTransposeMatrixLV(MATRIX *m, VECTOR *v0, VECTOR *v1);
 SVECTOR *ApplyMatrixSV(MATRIX *m, SVECTOR *v0, SVECTOR *v1);
 s32 RotTransPers(SVECTOR *v0, s32 *sxy, s32 *p, s32 *flag);
+extern void RotTrans(SVECTOR *v0,VECTOR *v1,long *flag);
 void LoadAverageShort12(SVECTOR *v0, SVECTOR *v1, s32 p0, s32 p1, SVECTOR *v2);
 void LoadAverageCol(u8 *v0, u8 *v1, s32 p0, s32 p1, u8 *v2);
 MATRIX *RotMatrixX(s32 r, MATRIX *m);

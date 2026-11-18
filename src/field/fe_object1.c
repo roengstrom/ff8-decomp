@@ -2,6 +2,7 @@
 #include "cdrom.h"
 #include "field.h"
 #include "gamestate.h"
+#include "battle.h"
 #include "main.h"
 #include "psxsdk/libgte.h"
 #include "psxsdk/libgpu.h"
@@ -11,6 +12,7 @@
 #include "field/fe_object1_2.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"
+#include "field/fe_object3.h"
 #include "field/fe_object10.h"
 #include "input/gamepad.h"
 
@@ -154,7 +156,7 @@ s32 *func_800983F0(void) {
     g_fieldContext.fieldMessages = *g_fieldMessages;
     size = *g_fieldDataEnd - *g_fieldScript;
     FastMemCpy((u8 *)FIELD_SCRIPT_STAGE, *g_fieldScript, size);
-    D_8005F13C = stageBase + size;
+    g_fieldSoundBuffer = stageBase + size;
 
     ptr = *g_fieldParticles;
     buf = (u8 *)ptr;
@@ -187,13 +189,13 @@ s32 *func_800983F0(void) {
     buf = (u8 *)func_800A0640((SPRT_16 *)buf);
 
     if (g_curFieldInfo->movieMask == 1) {
-        D_800D5EC8[0] = buf;
+        D_800D5EC8[0] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EC8[1] = buf;
+        D_800D5EC8[1] = (POLY_F3 *)buf;
         buf = (u8 *)func_800A29C0((func_800A29C0_arg0 *)buf);
-        D_800D5EB8[0] = buf;
+        D_800D5EB8[0] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
-        D_800D5EB8[1] = buf;
+        D_800D5EB8[1] = (DR_TPAGE *)buf;
         buf = (u8 *)func_800A2A30((func_800A2A30_item *)buf);
     }
 
@@ -208,13 +210,11 @@ s32 *func_800983F0(void) {
     }
 
     if (g_curFieldInfo->unk0D == 0) {
-        buf = (u8 *)func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C311C,
-                                  (u8 *)&D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0,
-                                  heapEnd);
+        buf = func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C311C,
+                            &D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0, heapEnd);
     } else {
-        buf = (u8 *)func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C315C,
-                                  (u8 *)&D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0,
-                                  heapEnd);
+        buf = func_800AA8A0(buf, buf + 0x20000, D_800C30DC, D_800C315C,
+                            &D_800C0910[D_800C2568[g_curFieldId] * 3], 0, D_800C06A0, heapEnd);
     }
 
     if (D_8007064D == 0) {
@@ -303,7 +303,7 @@ void FieldMain(void) {
     InitClearTiles();
 
     g_fieldContext.dialogState = 0;
-    g_fieldContext.unk1A1 = 0;
+    g_fieldContext.skipFieldDraw = 0;
 
     while (1) {
         if (g_previousGameMode != GAME_MODE_MENU) {
@@ -313,7 +313,7 @@ void FieldMain(void) {
         if (g_previousGameMode == GAME_MODE_NONE || g_previousGameMode == GAME_MODE_FIELD || g_previousGameMode == GAME_MODE_WORLD) {
             g_fieldContext.unk1A6 = 0;
             g_fieldContext.unk1A9 = 0;
-            g_fieldContext.unk1A7 = 1;
+            g_fieldContext.movieMaskOff = 1;
             g_fieldContext.mapJumpOff = 0;
             g_fieldContext.unk1AA = 0;
             g_fieldContext.unk015 = 0;
@@ -363,7 +363,7 @@ void FieldMain(void) {
             g_fieldDataEnd = &FIELD_DATA->end;
             p = func_800983F0();
             g_prefetchBuffer = p;
-            D_8005F13C = p;
+            g_fieldSoundBuffer = p;
         }
 
         func_800A1BB8();
@@ -463,9 +463,9 @@ void FieldMain(void) {
             g_fieldContext.mode = FIELD_MODE_NONE;
             g_gameMode = GAME_MODE_WORLD;
             g_fieldContext.previousFieldId = g_curFieldId;
-            D_80082C8C.param.entrance.entranceIndex = g_fieldContext.counter;
-            D_80082C8C.cmd = g_fieldContext.spawnTriIdx;
-            D_80082C8C.param.entrance.facingDirection = g_fieldContext.facingDirection;
+            g_worldTransfer.param.entrance.entranceIndex = g_fieldContext.counter;
+            g_worldTransfer.vehicle = g_fieldContext.spawnTriIdx;
+            g_worldTransfer.param.entrance.facingDirection = g_fieldContext.facingDirection;
             sndCmd21(-1, 0);
             break;
         }
@@ -517,7 +517,6 @@ void func_8009912C(void) {
     renderAndUpdateDisplay(1);
 }
 
-extern s32  GetPressedButtons(s32 slot, s32 sub); /* per-pad held buttons (s32 view) */
 extern s32  GetNewlyPressedButtons(s32 a, s32 b);          /* per-pad newly-pressed input */
 // TODO: Drop this and include the prototype from the owner.
 extern s32 applyButtonRemapTranslation(s32 arg); /* s32 view: input/button_remap.h's u16 (u16) masks arg and result, changing codegen */
@@ -595,7 +594,7 @@ void func_80099180(void) {
  * Clears both draw environments (unless @c FieldContext::unk1A5 suppressed it),
  * then loops. Each iteration flips @ref g_bufferIndex, points @ref D_800C71E0
  * at that buffer's GPU work area, snapshots the previous display environment
- * into @ref D_8005F110, clears the ordering table and runs the field VM tick
+ * into @ref g_prevDispEnv, clears the ordering table and runs the field VM tick
  * (@c func_800BD9C4) on the scratchpad stack.
  *
  * It then checks the two ways the player can leave, the soft-reset pad combo
@@ -617,7 +616,7 @@ void func_80099180(void) {
  *       branch delay slots.
  * @note The four loop-head assignments are ordered buffer / previous-dispenv /
  *       draw-env / dispenv. That order matters: it keeps the lifetime of
- *       @c D_8005F138 's @c %hi short enough that gcc does not hoist it out of
+ *       @c g_activeDispEnv 's @c %hi short enough that gcc does not hoist it out of
  *       the loop, which would exhaust the loop-invariant budget before
  *       @c g_curFieldView (see the memory note on @c threshold @c -= @c 3).
  */
@@ -641,9 +640,9 @@ void func_80099348(void) {
         g_bufferIndex++;
         g_bufferIndex &= 1;
         D_800C71E0 = &D_800C7218[g_bufferIndex];
-        D_8005F110 = D_8005F138;
+        g_prevDispEnv = g_activeDispEnv;
         g_activeDrawEnv = &g_drawEnvs[g_bufferIndex];
-        D_8005F138 = (s32)&g_dispEnvs[g_bufferIndex];
+        g_activeDispEnv = &g_dispEnvs[g_bufferIndex];
         ClearOTagR(D_800C71E0->ot, 0x1000);
 
         SCRATCH_STACK_ENTER();
@@ -725,7 +724,7 @@ void func_80099348(void) {
         }
 
         if (g_dispEnvs[(g_bufferIndex + 1) & 1].isrgb24 == 0
-            && g_fieldContext.unk1AD == 0) {
+            && g_fieldContext.hideActors == 0) {
             SCRATCH_STACK_ENTER();
             func_800A1CFC(g_fieldActors, D_800C71E0);
             SCRATCH_STACK_LEAVE();
@@ -739,8 +738,8 @@ void func_80099348(void) {
             func_800A06F0(0, D_800C71E0, D_800C6D98[g_bufferIndex],
                           D_800C71E0->unk4F80);
         } else if (g_curFieldInfo->movieMask == 1
-                   && g_fieldContext.unk1A7 == 0) {
-            func_800A2AF8(D_800C71E0, D_800D5EC8[g_bufferIndex],
+                   && g_fieldContext.movieMaskOff == 0) {
+            DrawMovieMask(D_800C71E0, D_800D5EC8[g_bufferIndex],
                           D_800D5EB8[g_bufferIndex], g_curFieldView);
         }
 
@@ -785,7 +784,7 @@ void func_80099348(void) {
         addPrim(&D_800C71E0->ot[1], &D_800C71E0->unk4F00);
 
         if (func_800BE274()) {
-            renderAndUpdateDisplay(g_fieldContext.unk1AC);
+            renderAndUpdateDisplay(g_fieldContext.movieFrameVBlanks);
         } else {
             renderAndUpdateDisplay(2);
         }
@@ -816,7 +815,7 @@ void func_80099348(void) {
         }
 
         if ((g_fieldVars->stateFlags & FIELD_STATE_COUNTDOWN) && g_gameState.mainData.countdownTimer == 0
-            && (g_fieldVars->fieldB6 & 0x100) == 0) {
+            && (g_fieldVars->battleFlags & NO_GAMEOVER_ON_TIME_UP) == 0) {
             g_fieldContext.counter = 0x4B;
             g_fieldContext.mode = FIELD_MODE_FIELD;
             g_fieldContext.spawnTriIdx = SPAWN_UNSET;
@@ -832,14 +831,14 @@ void func_80099348(void) {
         func_800A5A20(&g_fieldActors[D_8005F148], g_curFieldInfo->gateways);
         func_800A5898(D_800C71E0);
         /* Called for its side effect only, func_800BE274 dispatches into the
-           overlay when D_800DE4FD bit 1 is set; the original discards the result. */
+           overlay when g_fieldMovieFlags has FIELD_MOVIE_OPEN set; the original discards the result. */
         func_800BE274();
         encodeCardFilename(0, 0x18, 0xBE);
         D_800D5EA0 = VSync(1);
         while (DrawSync(1) != 0) {
         }
         if (func_800BE274()) {
-            VSync(g_fieldContext.unk1AC);
+            VSync(g_fieldContext.movieFrameVBlanks);
         } else {
             VSync(2);
         }
@@ -854,7 +853,7 @@ void func_80099348(void) {
             && func_800BE274() == 0 && g_fieldContext.dialogState != 4
             && g_fieldContext.dialogState != 3
             && g_fieldContext.dialogState != 2 && g_fieldContext.userControlOff == 0) {
-            func_800AD7AC(0);
+            FieldPause(NULL);
         }
 
         if (g_fieldContext.unk1AA == 1) {
@@ -866,7 +865,7 @@ void func_80099348(void) {
         }
         UpdateCdRead();
         func_800BE2DC();
-        if (g_fieldContext.unk1A1 == 0) {
+        if (g_fieldContext.skipFieldDraw == 0) {
             DrawOTag(&D_800C71E0->ot[0xFFF]);
         }
     }
@@ -1389,7 +1388,7 @@ s16 func_8009AC9C(s16 px, s16 py, s16 pz, TriangleList *list) {
     return (s16)bestIdx;
 }
 
-/** @brief Scale applied to @c g_fieldContext.unk00A when seeding @c Actor::moveSpeed. */
+/** @brief Scale applied to @c g_fieldContext.moveUnit when seeding @c Actor::moveSpeed. */
 #define FIELD_CHANNEL_SCALE 0x4367
 
 /**
@@ -1430,7 +1429,7 @@ void func_8009AEC0(void) {
     s16 i;
 
     D_8005F102 = 0;
-    g_fieldContext.unk00A = 20;
+    g_fieldContext.moveUnit = 20;
     D_8005F148 = g_fieldContext.entityIndex[0];
 
     for (i = 0; i < g_fieldActorCount; i++) {
@@ -1460,13 +1459,13 @@ void func_8009AEC0(void) {
                                       &g_fieldWalkmeshVerts[g_fieldActors[D_8005F148].triIdx * 3]) << 12;
                 }
             } else {
-                g_fieldActors[i].field_0x208 = 0x10;
+                g_fieldActors[i].animationSpeed = 0x10;
                 g_fieldActors[i].field_0x24F = 0;
                 g_fieldActors[D_8005F148].field_0x250 = 1;
                 g_fieldActors[D_8005F148].field_0x251 = 2;
                 /* Same scale func_800B6738 applies to D_800704B2 (there as *69020>>9), so
                    the entity starts exactly at the threshold that picks field_0x251. */
-                g_fieldActors[D_8005F148].moveSpeed = ((u32)(g_fieldContext.unk00A * 17255)) >> 7;
+                g_fieldActors[D_8005F148].moveSpeed = ((u32)(g_fieldContext.moveUnit * 17255)) >> 7;
                 g_fieldActors[D_8005F148].radius = 0x30;
                 g_fieldActors[D_8005F148].triIdx = 0;
                 g_fieldActors[D_8005F148].posX =
@@ -1510,9 +1509,9 @@ void func_8009AEC0(void) {
  * through @c func_800AA46C), restarting the cycle from phase zero whenever the
  * requested animation differs from the one already playing.
  *
- * @p delta then advances the slot's phase counter @c unk52 by
- * @c delta @c * the entity's per-frame phase step (@ref Actor::field_0x208),
- * wrapping against the cycle length @c unk0C: forward motion past the end
+ * @p delta then advances the slot's phase counter @c animationPhase by
+ * @c delta @c * the entity's per-frame phase step (@ref Actor::animationSpeed),
+ * wrapping against the cycle length @c animationLength: forward motion past the end
  * restarts at zero, reverse motion below zero jumps to the last phase. A
  * @p delta of zero leaves the phase alone (the entity is standing still).
  *
@@ -1539,22 +1538,22 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     s16 newOff;
     s16 oldOff;
 
-    if (D_800D9630[idx]->unk7E != anim) {
-        D_800D9630[idx]->unk52 = 0;
+    if (D_800D9630[idx]->animationIndex != anim) {
+        D_800D9630[idx]->animationPhase = 0;
     }
     func_800AA46C(idx, 13, anim, 0);
 
-    oldPhase = D_800D9630[idx]->unk52;
+    oldPhase = D_800D9630[idx]->animationPhase;
     if (delta != 0) {
         if (delta > 0) {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].field_0x208 * delta;
-            if (D_800D9630[idx]->unk52 >= D_800D9630[idx]->unk0C) {
-                D_800D9630[idx]->unk52 = 0;
+            newPhase = D_800D9630[idx]->animationPhase = oldPhase + g_fieldActors[idx].animationSpeed * delta;
+            if (D_800D9630[idx]->animationPhase >= D_800D9630[idx]->animationLength) {
+                D_800D9630[idx]->animationPhase = 0;
             }
         } else {
-            newPhase = D_800D9630[idx]->unk52 = oldPhase + g_fieldActors[idx].field_0x208 * delta;
-            if (D_800D9630[idx]->unk0C < D_800D9630[idx]->unk52) {
-                D_800D9630[idx]->unk52 = D_800D9630[idx]->unk0C - 1;
+            newPhase = D_800D9630[idx]->animationPhase = oldPhase + g_fieldActors[idx].animationSpeed * delta;
+            if (D_800D9630[idx]->animationLength < D_800D9630[idx]->animationPhase) {
+                D_800D9630[idx]->animationPhase = D_800D9630[idx]->animationLength - 1;
             }
         }
     }
@@ -1562,7 +1561,7 @@ void func_8009B4A8(s16 idx, u8 anim, s16 mode, s8 delta) {
     if (mode == 1) {
         newRel = newPhase - 0x80;
         oldRel = oldPhase - 0x80;
-        half = (D_800D9630[idx]->unk0C - (s16)g_fieldActors[idx].field_0x208) >> 1;
+        half = (D_800D9630[idx]->animationLength - (s16)g_fieldActors[idx].animationSpeed) >> 1;
         newOff = newRel - half;
         oldOff = oldRel - half;
         if ((newRel < 0 & oldRel >= 0) || (oldRel < 0 & newRel >= 0)) {
@@ -1900,15 +1899,15 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             }
             if ((flags & FIELD_PAD_WALK) || g_fieldContext.unk1A4 == 1) {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x4367) >> 7;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x4367) >> 7;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x4367) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x4367) >> 6;
                 }
             } else {
                 if (func_800BE274() == 0) {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x631F) >> 6;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x631F) >> 6;
                 } else {
-                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.unk00A * 0x631F) >> 5;
+                    ents[D_8005F148].moveSpeed = (u32)(g_fieldContext.moveUnit * 0x631F) >> 5;
                 }
             }
             SCRATCH_STACK_ENTER();
@@ -2056,7 +2055,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].msgState = 2;
                     } else {
                         ents[i].field_0x1DA--;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, -1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, -1);
                     }
                 }
                 if (flags & FIELD_PAD_YHIGH) {
@@ -2065,7 +2064,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].triIdx = ents[i].field_0x1FC;
                     } else {
                         ents[i].field_0x1DA++;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, 1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, 1);
                     }
                 }
             } else {
@@ -2074,7 +2073,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].msgState = 2;
                     } else {
                         ents[i].field_0x1DA--;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, -1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, -1);
                     }
                 }
                 if (flags & FIELD_PAD_YLOW) {
@@ -2083,7 +2082,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
                         ents[i].triIdx = ents[i].field_0x1FC;
                     } else {
                         ents[i].field_0x1DA++;
-                        func_8009B4A8((s16)i, D_800D9630[i]->unk7E, 1, 1);
+                        func_8009B4A8((s16)i, D_800D9630[i]->animationIndex, 1, 1);
                     }
                 }
             }
@@ -2092,9 +2091,9 @@ void func_8009BEC8(Actor *ents, s32 flags) {
             ents[i].triIdx = ents[i].field_0x1FC;
         } else {
             ents[i].field_0x1DA++;
-            D_800D9630[i]->unk52 += ents[i].field_0x208;
-            if (D_800D9630[i]->unk0C - 1 < D_800D9630[i]->unk52) {
-                D_800D9630[i]->unk52 = 0;
+            D_800D9630[i]->animationPhase += ents[i].animationSpeed;
+            if (D_800D9630[i]->animationLength - 1 < D_800D9630[i]->animationPhase) {
+                D_800D9630[i]->animationPhase = 0;
             }
         }
         ents[i].posX = func_800A0E54(ents[i].moveStartX, ents[i].msgTextPtr, ents[i].field_0x1D8, ents[i].field_0x1DA);
@@ -2115,7 +2114,7 @@ void func_8009BEC8(Actor *ents, s32 flags) {
  *
  * Otherwise every entity @c i is scored into @c angleTable: candidates are
  * skipped when they are the self entity, flagged busy (@c field_0x24B), inactive
- * (@c unk218 == -1), share the self's X/Y cell, lie outside a ±0xFF Z band, or
+ * (@c modelId == -1), share the self's X/Y cell, lie outside a ±0xFF Z band, or
  * fall outside the combined talk/collision radius. For the rest, the score is how
  * far the entity's bearing (via @ref func_8009A0E8) deviates from the self's
  * facing angle (@c facingDirection), folded to 0..0x80. The entity with the smallest
@@ -2154,7 +2153,7 @@ void func_8009CEE8(void) {
         angleTable[i] = 0x100;
         if (i == D_8005F148) continue;
         if (g_fieldActors[i].field_0x24B != 0) continue;
-        if (g_fieldActors[i].unk218 == -1) continue;
+        if (g_fieldActors[i].modelId == NO_MODEL) continue;
         entPos[0] = g_fieldActors[i].posX >> 12;
         entPos[1] = g_fieldActors[i].posY >> 12;
         entPos[2] = g_fieldActors[i].posZ >> 12;
@@ -2173,7 +2172,7 @@ void func_8009CEE8(void) {
     best = 0x40;
     bestIdx = D_8005F148;
     for (i = 0; i < g_fieldActorCount; i++) {
-        if (g_fieldActors[i].unk218 == -1) continue;
+        if (g_fieldActors[i].modelId == NO_MODEL) continue;
         if (angleTable[i] < (s16)best) {
             best = (u16)angleTable[i];
             bestIdx = i;
@@ -2747,7 +2746,7 @@ s32 func_8009E338(Vec3i *a0, Vec3i *a1, Vec3i *a2, Vec3s *a3) {
  * @brief Test if @p selfIdx overlaps with any other active entity at world @p pos.
  *
  * Iterates over the @c g_fieldActors entity table, skipping @p selfIdx itself
- * and any entity with @c unk218 == -1 (inactive). For each remaining entity,
+ * and any entity with @c modelId == -1 (inactive). For each remaining entity,
  * a quick z-axis bounding-band check is applied (|dz| < 0x7E after shifting
  * the entity's @c posZ down by 12 fixed-point bits and subtracting @p pos->z),
  * then a 2D radius overlap test against the average of the two radii.
@@ -2769,10 +2768,10 @@ s32 func_8009E468(s16 selfIdx, Vec3i *pos) {
     s16 i;
 
     selfRadius = g_fieldActors[selfIdx].radius;
-    if (g_fieldActors[selfIdx].unk218 != -1) {
+    if (g_fieldActors[selfIdx].modelId != NO_MODEL) {
         for (i = 0; i < g_fieldActorCount; i++) {
             if (i == selfIdx) continue;
-            if (g_fieldActors[i].unk218 == -1) continue;
+            if (g_fieldActors[i].modelId == NO_MODEL) continue;
             dz = (g_fieldActors[i].posZ >> 12) - pos->z;
             if ((u32)(dz + 0x7E) >= 0xFE) continue;
             dx = (g_fieldActors[i].posX - pos->x) >> 12;
@@ -2830,7 +2829,7 @@ s32 func_8009E604(Actor *a, Actor *b) {
  * Otherwise the trail is synthesised backwards from the player. Slot 0 holds the
  * exact position and slots 63..1 each step one trail spacing further back along
  * the player's facing, the step being @c sin / @c cos (@ref func_8009D234 /
- * @ref func_8009D254) scaled by @c FieldContext::unk00A. Each stepped point is
+ * @ref func_8009D254) scaled by @c FieldContext::moveUnit. Each stepped point is
  * snapped onto the navmesh by @ref func_8009AC9C and its Z read off that
  * triangle's plane (@ref func_8009DED8 twice, then @ref func_8009E338); if the
  * plane Z lands further than @c 0x136 from the stepped Z the point is off the
@@ -2907,9 +2906,9 @@ void func_8009E660(void) {
                applies to D_800704B2; written *4 >> 9 because that is the shift pair
                the original emits. */
             x -= func_8009D234(g_fieldActors[D_8005F148].facingDirection) *
-                 ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
+                 ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9) / 256;
             y -= -(func_8009D254(g_fieldActors[D_8005F148].facingDirection) *
-                   ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
+                   ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9)) / 256;
         }
     }
 }
@@ -2968,7 +2967,7 @@ void func_8009ECA4(void) {
     trail1.vy = g_fieldActors[g_fieldVars->memberSlot[1]].posY / 4096;
     trail2.vy = g_fieldActors[g_fieldVars->memberSlot[2]].posY / 4096;
 
-    stride = (g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9;
+    stride = (g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9;
     dir1 = func_8009A0E8(&trail1.vx, &lead.vx, &slots1);
     slots1 = (slots1 << 8) / stride;
     dir2 = func_8009A0E8(&trail2.vx, &lead.vx, &slots2);
@@ -2986,10 +2985,10 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail1.vx / 4096), (s16)(trail1.vy / 4096),
                               (s16)(trail1.vz / 4096), *g_fieldWalkmesh);
             trail1.vx -= func_8009D234((u8)dir1)
-                         * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail1.vy -= -(func_8009D254((u8)dir1)
-                           * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070760[63 - i].z =
@@ -3025,10 +3024,10 @@ void func_8009ECA4(void) {
                 func_8009AC9C((s16)(trail2.vx / 4096), (s16)(trail2.vy / 4096),
                               (s16)(trail2.vz / 4096), *g_fieldWalkmesh);
             trail2.vx -= func_8009D234((u8)dir2)
-                         * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4)) >> 9)
+                         * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4)) >> 9)
                          / 256;
             trail2.vy -= -(func_8009D254((u8)dir2)
-                           * ((g_fieldContext.unk00A * (FIELD_CHANNEL_SCALE * 4))
+                           * ((g_fieldContext.moveUnit * (FIELD_CHANNEL_SCALE * 4))
                               >> 9))
                          / 256;
             D_80070A60[63 - i].z =
@@ -3175,7 +3174,7 @@ void func_8009F8D0(s16 idx) {
  *
  * The passive path just ages @c field_0x1DA toward @c field_0x1D8 (reporting
  * state 2 once there) while advancing the entity's render-slot motion counter
- * @c unk52 by @c field_0x208, wrapping it at @c unk0C.
+ * @c animationPhase by @c animationSpeed, wrapping it at @c animationLength.
  *
  * @param idx   Entity index.
  * @param flags Input bits; @c 0x3000 and @c 0xC000 select the two directions.
@@ -3259,9 +3258,9 @@ void func_8009F990(s16 idx, s32 flags) {
             g_fieldActors[idx].msgState = 2;
         } else {
             g_fieldActors[idx].field_0x1DA++;
-            D_800D9630[idx]->unk52 += g_fieldActors[idx].field_0x208;
-            if (D_800D9630[idx]->unk0C - 1 < D_800D9630[idx]->unk52) {
-                D_800D9630[idx]->unk52 = 0;
+            D_800D9630[idx]->animationPhase += g_fieldActors[idx].animationSpeed;
+            if (D_800D9630[idx]->animationLength - 1 < D_800D9630[idx]->animationPhase) {
+                D_800D9630[idx]->animationPhase = 0;
             }
             func_8009F8D0(idx);
         }
@@ -3326,7 +3325,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
             D_80070760[p].field_0A = D_80070A60[p].field_0A = 5;
             func_8009F7F4((s16)idx, -1, actor->field_0x254, 1);
         }
-        actor->field_0x1D8 = (D_800D9630[(s16)idx]->unk0C >> 4) - 2;
+        actor->field_0x1D8 = (D_800D9630[(s16)idx]->animationLength >> 4) - 2;
         actor->posX = func_800A0E54(actor->moveStartX, actor->unk1A8, actor->field_0x1D8, actor->field_0x1DA);
         actor->posY = func_800A0E54(actor->moveStartY, actor->unk1AC, actor->field_0x1D8, actor->field_0x1DA);
         actor->posZ = func_800A0E54(actor->moveStartZ, actor->unk1B0, actor->field_0x1D8, actor->field_0x1DA);
@@ -3360,7 +3359,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
             D_80070760[p].field_0A = D_80070A60[p].field_0A = 3;
             func_8009F7F4((s16)idx, -1, actor->field_0x252, 1);
         }
-        actor->field_0x1D8 = (D_800D9630[(s16)idx]->unk0C >> 4) - 2;
+        actor->field_0x1D8 = (D_800D9630[(s16)idx]->animationLength >> 4) - 2;
         actor->posX = func_800A0E54(actor->field_0x1C0, actor->msgTextPtr, actor->field_0x1D8, actor->field_0x1DA);
         actor->posY = func_800A0E54(actor->field_0x1C4, actor->msgPosX, actor->field_0x1D8, actor->field_0x1DA);
         actor->posZ = func_800A0E54(actor->field_0x1C8, actor->msgPosY, actor->field_0x1D8, actor->field_0x1DA);
@@ -3386,7 +3385,7 @@ void func_8009FE18(s32 entIdx, Actor *actor, s32 flags) {
             D_80070760[p].field_0A = D_80070A60[p].field_0A = 5;
             func_8009F7F4((s16)idx, 1, actor->field_0x254, 1);
         }
-        actor->field_0x1D8 = (D_800D9630[(s16)idx]->unk0C >> 4) - 2;
+        actor->field_0x1D8 = (D_800D9630[(s16)idx]->animationLength >> 4) - 2;
         actor->posX = func_800A0E54(actor->unk1A8, actor->moveStartX, actor->field_0x1D8, actor->field_0x1DA);
         actor->posY = func_800A0E54(actor->unk1AC, actor->moveStartY, actor->field_0x1D8, actor->field_0x1DA);
         actor->posZ = func_800A0E54(actor->unk1B0, actor->moveStartZ, actor->field_0x1D8, actor->field_0x1DA);
@@ -3464,7 +3463,120 @@ SPRT_16 *func_800A0640(SPRT_16 *prim) {
     return prim;
 }
 
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1", func_800A06F0);
+void func_800A06F0(s16 arg0, FieldFrameBuf *arg1, u8 *arg2, u8 *arg3) {
+    CVECTOR *colors = (CVECTOR *)getScratchAddr(0);
+    DVECTOR *trans = (DVECTOR *)getScratchAddr(32);
+    DVECTOR *vis = (DVECTOR *)getScratchAddr(48);
+    DVECTOR *clip = (DVECTOR *)getScratchAddr(64);
+    DVECTOR *modulus = (DVECTOR *)getScratchAddr(68);
+    Bganime *bgAnim;
+    s16 i;
+
+    for (i = 0; i < 8; i++) {
+        vis[i].vx = g_curFieldInfo->unk0F & (1 << i);
+    }
+
+    for (i = 0; i < 8; i++) {
+        modulus[i].vx = g_curFieldInfo->cameraRanges[i].right * 2;
+        modulus[i].vy = g_curFieldInfo->cameraRanges[i].bottom * 2;
+    }
+
+    bgAnim = g_fieldBgAnims;
+    for (i = 0; i < g_fieldBgAnimCount; bgAnim++, i++) {
+        if (bgAnim->shadeCounter > bgAnim->unk19E) {
+            colors[i].r = bgAnim->unk1A7 + (((bgAnim->unk1AA - bgAnim->unk1A7) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            colors[i].g = bgAnim->unk1A8 + (((bgAnim->unk1AB - bgAnim->unk1A8) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            colors[i].b = bgAnim->unk1A9 + (((bgAnim->unk1AC - bgAnim->unk1A9) * bgAnim->unk19E) / bgAnim->shadeCounter);
+            bgAnim->unk19E++;
+        } else {
+            colors[i].r = bgAnim->unk1AA;
+            colors[i].g = bgAnim->unk1AB;
+            colors[i].b = bgAnim->unk1AC;
+            bgAnim->unk19E = 0;
+            bgAnim->shadeCounter = 0;
+        }
+        colors[i].cd = bgAnim->unk188 >> 6;
+    }
+
+    if (g_fieldContext.unk1A6 == 0) {
+        FieldView *view;
+        s16 negViewY;
+        s16 x0;
+        s32 x0Wide;
+
+        trans[0].vx = g_fieldContext.slots[arg0].q1;
+        trans[0].vy = g_fieldContext.slots[arg0].q2;
+        x0 = trans[0].vx;
+        x0Wide = trans[0].vx;
+        for (i = 1; i < 8; i++) {
+            trans[i].vx = (g_fieldContext.slots[arg0 + i].p3 + (x0 - g_fieldContext.slots[arg0 + i].q1)) - ((x0Wide * g_fieldContext.slots[arg0 + i].p5) / 256);
+            trans[i].vy = (g_fieldContext.slots[arg0 + i].p4 + (trans[0].vy - g_fieldContext.slots[arg0 + i].q2)) - ((trans[0].vy * g_fieldContext.slots[arg0 + i].p6) / 256);
+        }
+        view = g_curFieldView;
+        negViewY = -view->viewOfsY;
+        view = NULL; // matching hack
+        trans[0].vx = -g_curFieldView->viewOfsX;
+        trans[0].vy = negViewY;
+    } else {
+        FieldView *view;
+        s16 negViewX;
+
+        trans[1].vx = g_fieldContext.slots[1].q1;
+        trans[1].vy = g_fieldContext.slots[1].q2;
+        for (i = 2; i < 8; i++) {
+            trans[i].vx = (g_fieldContext.slots[arg0 + i].p3 + (trans[1].vx - g_fieldContext.slots[arg0 + i].q1)) - ((trans[1].vx * g_fieldContext.slots[arg0 + i].p5) / 256);
+            trans[i].vy = (g_fieldContext.slots[arg0 + i].p4 + (trans[1].vy - g_fieldContext.slots[arg0 + i].q2)) - ((trans[1].vy * g_fieldContext.slots[arg0 + i].p6) / 256);
+        }
+        view = g_curFieldView;
+        negViewX = -view->viewOfsX;
+        view = NULL; // matching hack
+        trans[0].vy = -g_curFieldView->viewOfsY;
+        trans[1].vx = -g_curFieldView->viewOfsX;
+        trans[1].vy = -g_curFieldView->viewOfsY;
+        trans[0].vx = negViewX;
+    }
+
+    if (g_fieldContext.unk1A6 == 1) {
+        FieldInfo *info = g_curFieldInfo;
+        FieldView *view;
+        s32 width;
+        u16 viewX;
+        s32 height;
+
+        width = info->screenRanges[0].left - info->screenRanges[0].right;
+        info = NULL; // matching hack
+        view = g_curFieldView;
+        viewX = view->viewOfsX;
+        view = NULL; // matching hack
+        clip[0].vy = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2 + ((g_fieldContext.slots[1].q1 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsX;
+        clip[1].vx = ((g_curFieldInfo->screenRanges[0].top - g_curFieldInfo->screenRanges[0].bottom) / 2 + ((g_fieldContext.slots[1].q2 - 0x20) & 0xFFFF)) - g_curFieldView->viewOfsY;
+        height = g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
+        clip[0].vx = (width / 2 + ((g_fieldContext.slots[1].q1 - 0x20) & 0xFFFF)) - viewX;
+        clip[1].vy = (height / 2 + ((g_fieldContext.slots[1].q2 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsY;
+    } else {
+        FieldInfo *info = g_curFieldInfo;
+        FieldView *view;
+        s32 width;
+        u16 viewX;
+        s32 xMin;
+        u16 slotX;
+        s32 height;
+
+        width = info->screenRanges[0].left - info->screenRanges[0].right;
+        info = NULL; // matching hack
+        slotX = g_fieldContext.slots[arg0].q1;
+        xMin = g_fieldContext.slots[arg0].q1 - 0x20;
+        view = g_curFieldView;
+        viewX = view->viewOfsX;
+        view = NULL; // matching hack
+        clip[0].vy = ((g_curFieldInfo->screenRanges[0].right - g_curFieldInfo->screenRanges[0].left) / 2 + ((slotX + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsX;
+        clip[1].vx = ((g_curFieldInfo->screenRanges[0].top - g_curFieldInfo->screenRanges[0].bottom) / 2 + ((g_fieldContext.slots[arg0].q2 - 0x20) & 0xFFFF)) - g_curFieldView->viewOfsY;
+        height = g_curFieldInfo->screenRanges[0].bottom - g_curFieldInfo->screenRanges[0].top;
+        clip[0].vx = (width / 2 + xMin) - viewX;
+        clip[1].vy = (height / 2 + ((g_fieldContext.slots[arg0].q2 + 0x10) & 0xFFFF)) - g_curFieldView->viewOfsY;
+    }
+    func_800A19B8(arg1, arg2, arg3, *g_fieldTileMap);
+}
 
 /**
  * @brief Restore VRAM regions for the dialog window and 16 strip layers.

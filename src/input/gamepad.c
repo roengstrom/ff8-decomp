@@ -411,7 +411,7 @@ static inline GamePadInputFrame *GetHistoricalFrame(s32 idx, s32 offset) {
     return &gamePad->frames[(gamePad->frameCounter - offset) & 7];
 }
 
-u16 GetPressedButtons(s32 idx, s32 offset) {
+s32 GetPressedButtons(s32 idx, s32 offset) {
     return GetHistoricalFrame(idx, offset)->currentlyPressedButtons;
 }
 
@@ -574,9 +574,9 @@ s32 IsVibrationEnabled(s32 idx) {
 void SetVibrationEnabled(s32 idx, s32 enabled) {
     GamePad *port = &g_engine.gamePads[idx & 1];
     if (enabled != 0) {
-        port->vibrationMask = 0xFF;
+        port->vibrationMask = GAMEPAD_VIBRATION_ENABLED_MASK;
     } else {
-        port->vibrationMask = 0;
+        port->vibrationMask = GAMEPAD_VIBRATION_DISABLED_MASK;
     }
 }
 
