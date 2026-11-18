@@ -68,7 +68,7 @@ extern u8 g_testQuestionText[];
 extern u8 g_testHeaderText[];
 extern TestChoiceMark g_testChoiceMarks[];
 extern u8 D_801FABD4;
-extern u32 D_801E69B8;
+extern u8 D_801E69B8[];
 
 /** Center offset: maxW = width, tw = (maxW - tw) / 2 */
 #define CalcCenter(maxW, tw, w) \
@@ -333,7 +333,7 @@ void func_801E67F0(void) {
         return;
     }
     state->score = 0;
-    func_801F1D34(&D_801E69B8);
+    func_801F1D34(D_801E69B8);
     func_801F1DB0(0);
     v0 = func_801E28D4();
     if (v0 == 0xFF) {

@@ -14,6 +14,7 @@ extern s32  renderBattleDisplayList(s32 *colorTag); /**< Walk the ordering table
 extern u8  *emitDrawEnvPackets(P_TAG *ot, u8 *pkt); /**< Emit SetDrawArea/SetDrawOffset packets, link into OT. */
 extern s32  getDisplayListHead(void);              /**< Next free packet in the active display-list buffer. */
 extern void copyDisplayRect(RECT *dst); /**< Copy the active draw environment's clip rect to @p dst. */
+extern void copyString(u8 *dst, u8 *src);
 extern void copyDisplayCoords(u16 *ofs); /**< Copy the active draw environment's draw offset to @p ofs. */
 
 /* Public data */

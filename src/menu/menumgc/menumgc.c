@@ -1,4 +1,5 @@
 #include "snd_sfx.h"
+#include "btl_anim.h"
 #include "character.h"
 #include "common.h"
 #include "game.h"
@@ -13,9 +14,6 @@
 #include "numstr.h"
 #include "psxsdk/libetc.h"
 
-extern s32 getMagicNamePtr(s32 a0);
-extern u8 *getCharName(s32 a0);
-extern void copyString(s32 a0, s32 a1);
 
 
 extern s32 popcount(s32 a0);
@@ -74,14 +72,14 @@ escape:
             goto copy_check;
 esc26:
             {
-                s32 val = getMagicNamePtr(spellId);
-                copyString((s32)local_buf, val);
+                u8 *val = getMagicNamePtr(spellId);
+                copyString(local_buf, val);
                 goto copy_check;
             }
 esc27:
             {
                 u8 *val = getCharName(g_gameState.chars[charIdx].characterId);
-                copyString((s32)local_buf, (s32)val);
+                copyString(local_buf, val);
             }
 copy_check:
             while (*p)

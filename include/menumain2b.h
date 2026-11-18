@@ -20,6 +20,7 @@ s32 func_801F5144(s32);
 s32 func_801F5150(s32, s32, s32);
 void func_801F537C(s32, BattleCharData *);
 void func_801F5400(s32);
+void func_801F5440(void);
 s32 func_801F565C(s32, s32);
 s32 func_801F56E4(s32, s32);
 void func_801F576C(s32, s32);
