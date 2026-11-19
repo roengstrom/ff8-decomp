@@ -34,6 +34,8 @@ extern u8 D_801F7E0C;
 extern u8 D_801F7F90[];
 extern u8 D_801F8BB8[];
 extern u8 D_801FAB7C;
+extern s32 D_801FABBC;
+extern s32 D_801FABC0;
 extern u8 D_801FABC4[4];
 extern u16 D_801FACE2;
 extern u16 D_801FACE4;
@@ -45,7 +47,8 @@ static void *func_801F36E8(void *ot, void *prim, s32 x, s32 y);
 static void *func_801F39D0(s32, s32, s32, s32, s32, s32);
 static void *func_801F3B64(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, u32 color);
 static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3);
-void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot);
+static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot);
+static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y, s32 index);
 static s32 func_801F4744(u8 *, s32);
 static s32 func_801F4A98(s32, s32, s32);
 static void func_801F5490(s32);
@@ -983,7 +986,69 @@ static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4454);
+static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y, s32 index) {
+    u8 buffer[16];
+    CharacterData *character;
+    CharMenuInfo *menuInfo;
+    LINE_F2 *line;
+    u8 *ptr;
+    u8 *charName;
+    s32 charId;
+    s32 digitBase;
+    u32 color;
+    s32 drawX;
+    s32 drawY;
+    u32 clut;
+    u32 barWidth;
+    charId = ctx->reserve[index];
+    if (charId == PARTY_SLOT_EMPTY) {
+        return prim;
+    }
+    character = &g_gameState.chars[charId];
+    digitBase = g_numberFormat.digits[0];
+    menuInfo = &g_charMenuInfo[charId];
+    color = func_801F3FB4(character->statusFlags);
+    x += index % 2 * 120;
+    y += index / 2 * 24;
+    drawX = x + 9;
+    drawY = y + 4;
+    charName = getCharName(character->characterId);
+    prim = func_801F0FEC(ot, prim, drawX, drawY, charName, color);
+    clut = (color * 64) + 2;
+    drawY = y + 17;
+    prim = drawIconClut(ot, prim, ICON_LV_YELLOW, x + 12, drawY, g_menuTint[MENU_TINT_NORMAL], clut);
+    drawX = x + 28;
+    ptr = &buffer[0];
+    intToDecStringShort(menuInfo->currentLevel, ptr, digitBase);
+    ptr = &buffer[2];
+    replaceLeadingZeros(ptr, 2, digitBase, getMenuString(11)[0]);
+    prim = func_8002C56C(ot, prim, drawX, drawY, ptr, color);
+    drawX = x + 59;
+    prim = drawIconClut(ot, prim, ICON_HP_YELLOW, drawX, drawY, g_menuTint[MENU_TINT_NORMAL], clut);
+    drawX = x + 75;
+    ptr = &buffer[0];
+    intToDecStringShort(menuInfo->currentHp, ptr, digitBase);
+    ptr = &buffer[1];
+    replaceLeadingZeros(ptr, 3, digitBase, getMenuString(11)[0]);
+    prim = func_8002C56C(ot, prim, drawX, drawY, ptr, color);
+    drawX = x + 59;
+    drawY = y + 25;
+    barWidth = menuInfo->hpRatio;
+    if (barWidth != 0) {
+        line = (LINE_F2 *)prim;
+        setLineF2(line);
+        setXY2(line, drawX, drawY, drawX + barWidth, drawY);
+        *(u32 *)&line->r0 = D_801FABBC;
+        addPrimFast(ot, line);
+        prim += sizeof(LINE_F2);
+    }
+    line = (LINE_F2 *)prim;
+    setLineF2(line);
+    setXY2(line, drawX + barWidth, drawY, x + 107, drawY);
+    *(u32 *)&line->r0 = D_801FABC0;
+    addPrimFast(ot, line);
+    return prim + sizeof(LINE_F2);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4744);
 

@@ -270,7 +270,7 @@ typedef struct {
     s16 currentHp; /**< 0x8: Current HP. */
     s16 maxHp; /**< 0xA: Max HP. */
     u8 currentLevel; /**< 0xC: Current level. */
-    s8 hpRatio; /**< 0xD: Current HP as a fraction of max HP. */
+    u8 hpRatio; /**< 0xD: Current HP as a fraction of max HP. */
     u16 statusFlags; /**< 0xE: Status flags. */
     u8 charId; /**< 0x10: Character ID. */
     u8 mag; /**< 0x11: Bonus MAG stat. */
