@@ -130,6 +130,7 @@ binaries:
     symbol_addrs_path: [config/symbols.main.txt, config/symbols.field.txt, config/symbols.field.private.txt]
     elf_path: build/field/field.elf
     asm_path: asm/field
+    hasm_in_src_path: true
     build_path: build/field
     section_order: [.rodata, .text, .data, .bss]
   segments:
@@ -155,6 +156,7 @@ binaries:
     - [0xDFA4, c, fe_object1_3]
     - [0xE3AC, c, fe_object1b]
     - [0x14B10, c, fe_object2]
+    - [0x14BD4, hasm, 14BD4]
     - [0x157AC, c, fe_object3]
     - [0x15B68, c, fe_object4]
     - [0x1885C, c, fe_object5]
