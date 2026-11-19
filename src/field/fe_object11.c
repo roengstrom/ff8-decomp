@@ -11,7 +11,7 @@
 #include "ui/dialog.h"
 #include "cd.h"
 #include "field/fe_object1.h"
-#include "field/fe_object1_2.h"
+#include "field/fe_object1_2b.h"
 #include "field/fe_object3.h"
 #include "field/fe_object5.h"
 #include "field/fe_object10.h"

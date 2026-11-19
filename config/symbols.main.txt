@@ -941,6 +941,7 @@ MulMatrix = 0x80040264;
 MulMatrix2 = 0x80040374;
 ApplyMatrix = 0x80040484;
 ApplyMatrixSV = 0x800404D4;
+TransMatrix = 0x80040534;
 ScaleMatrix = 0x80040564;
 SetRotMatrix = 0x800406A4;
 SetLightMatrix = 0x800406D4;

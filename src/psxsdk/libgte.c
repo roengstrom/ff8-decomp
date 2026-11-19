@@ -85,7 +85,7 @@ INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", ApplyMatrix);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", ApplyMatrixSV);
 
-INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", func_80040534);
+INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", TransMatrix);
 
 INCLUDE_ASM("asm/nonmatchings/psxsdk/libgte", ScaleMatrix);
 
