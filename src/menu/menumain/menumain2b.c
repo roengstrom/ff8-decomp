@@ -51,7 +51,7 @@ static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot
 static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y, s32 index);
 static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim);
 static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim);
-static s32 func_801F4A98(s32, s32, s32);
+static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim);
 static void func_801F5490(s32);
 static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
 static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
@@ -752,14 +752,14 @@ static void *func_801F36E8(void *ot, void *prim, s32 x, s32 y) {
     return prim;
 }
 
-void func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
+void *func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
     u8 buffer[16];
     s32 digitBase = g_numberFormat.digits[0];
     intToDecString(value, &buffer[0], digitBase);
     replaceLeadingZeros(&buffer[2], 7, digitBase, getMenuString(11)[0]);
     prim = func_8002C56C(ot, prim, x, y, &buffer[2], 7);
     x += 64;
-    drawIcon(ot, prim, 11, x, y, g_menuTint[MENU_TINT_NORMAL]);
+    return drawIcon(ot, prim, 11, x, y, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 /**
@@ -769,7 +769,7 @@ void func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
  * func_801F0FEC, configures g_menuDisplayCfg (icon 0x55), and draws
  * the panel border via DrawMenuWindow.
  */
-void func_801F38F8(s32 a0, s32 a1, s32 a2) {
+void *func_801F38F8(s32 a0, s32 a1, s32 a2) {
     u8 *ret1;
     s32 ret2;
 
@@ -780,7 +780,7 @@ void func_801F38F8(s32 a0, s32 a1, s32 a2) {
     g_menuDisplayCfg.x = 0x18;
     g_menuDisplayCfg.y = 7;
     *(s32 *)&g_menuDisplayCfg.w = 0x001900F4; /* w=0xF4, h=0x19 packed */
-    DrawMenuWindow(a1, ret2, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    return DrawMenuWindow(a1, ret2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 /** @brief Render text with explicit parameters (arg-reorder wrapper for func_801F0FEC). */
@@ -1101,9 +1101,8 @@ static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim) {
  * If a0[0x34] == 0, renders 3 command slots via func_801F42A4;
  * otherwise renders via func_801F3FE8 plus func_801F4744.
  */
-s32 func_801F486C(u8 *a0, s32 a1) {
+s32 func_801F486C(u8 *a0, s32 a1, void *result) {
     s32 i;
-    s32 result;
 
     if (a0[0x34] == 0) {
         for (i = 0; i < 3; i++) {
@@ -1124,7 +1123,7 @@ s32 func_801F486C(u8 *a0, s32 a1) {
  * Renders the Gil label string, sets up g_menuDisplayCfg rendering params,
  * and draws the panel decoration via DrawMenuWindow.
  */
-void func_801F4918(s32 a0, s32 a1, s32 a2) {
+void *func_801F4918(s32 a0, s32 a1, s32 a2) {
     s32 ret;
     ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.unk004);
     g_menuDisplayCfg.iconType = 0;
@@ -1133,7 +1132,7 @@ void func_801F4918(s32 a0, s32 a1, s32 a2) {
     g_menuDisplayCfg.y = 0xBE;
     g_menuDisplayCfg.w = 0xF4;
     g_menuDisplayCfg.h = 0x1A;
-    DrawMenuWindow(a1, ret, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    return DrawMenuWindow(a1, ret, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 /* ======================================================================== */
@@ -1170,7 +1169,50 @@ static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim) {
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);   
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4A98);
+static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim) {
+    u32 time;
+    u8 isPlayTime;
+    u32 gil;
+    MenuDisplayConfig *cfg;
+    u32 x;
+    u32 y;
+    cfg = &g_menuDisplayCfg;
+    if (func_801F0D84() != 1) {
+        return prim;
+    }
+    x = 271;
+    y = 178;
+    func_801F1AFC();
+    setMenuBrightness(s->brightness);
+    prim = func_801F49A4(s, ot, prim);
+    prim = func_801F38F8(s, ot, prim);
+    prim = func_801F486C(s, ot, prim);
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) {
+        gil = g_gameState.mainData.party.dreamGil;
+    } else {
+        gil = g_gameState.mainData.party.gil;
+    }
+    prim = func_801F36E8(ot, prim, x + 10, y + 16);
+    prim = func_801F3824(ot, prim, x + 10, y + 27, gil);
+    if (g_battleConfig.unk2 & BATTLE_FLAG_COUNTDOWN) {
+        time = g_gameState.mainData.countdownTimer;
+        isPlayTime = 0;
+    } else {
+        time = g_gameState.mainData.playTimeSeconds;
+        isPlayTime = 1;
+    }
+    prim = drawMenuClock(s, ot, prim, x + 10, y + 5, time, isPlayTime);
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 90;
+    cfg->h = 38;
+    prim = DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    prim = func_801F4918(s, ot, prim);
+    func_801F1B10();
+    return prim;
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4C60);
 
