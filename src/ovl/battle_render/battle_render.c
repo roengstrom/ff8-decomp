@@ -23,6 +23,7 @@ extern s32 g_debugMenuRepeatDelay[];
 extern s32 g_debugMenuRepeatTimer[];
 extern s32 g_kernelChecksum;
 
+// D_8009B53C is unused, but best guess is that they are predefined values passed as color to DrawDebugGradientRect
 static u8 D_8009B53C[16] = { 0x00, 0x80, 0x00, 0x00, 0x80, 0xFF, 0x00, 0x00, 0xFF, 0x80, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00 };
 static s32 g_debugMenuPrevButtons[2] = { 0, 0 };
 
