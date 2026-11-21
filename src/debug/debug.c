@@ -12,10 +12,11 @@
 #include "cdrom.h"
 #include "imgtoc.h"
 #include "memlayout.h"
+#include "overlay.h"
 #include "snd_init.h"
 #include "sound.h"
-#include "battle_render.h"
-#include "battle_render_2.h"
+#include "debug.h"
+#include "debug_menu.h"
 
 extern DebugMenuBuffer g_debugMenuBuffers[2];
 extern s32 g_debugMenuVSyncDelta;

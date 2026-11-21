@@ -1,7 +1,7 @@
 files:
 - {src: SLUS_008.92, dst: ., lzs: false}
 - {src: data/eng/battle/ovl/battle.ovl, dst: battle, lzs: false}
-- {src: data/eng/battle/ovl/battle_render.ovl, dst: battle, lzs: false}
+- {src: data/eng/battle/ovl/debug.ovl, dst: battle, lzs: false}
 - {src: data/eng/battle/ovl/mag*.ovl, dst: battle/mag, lzs: true}
 - {src: data/eng/battle/a0stg*.x, dst: battle/stage, lzs: true}
 - {src: data/eng/card/ovl/card.ovl, dst: card, lzs: true}

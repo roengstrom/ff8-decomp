@@ -6,7 +6,7 @@
 #include "gf.h"
 #include "gamestate.h"
 #include "ability.h"
-#include "battle_render.h"
+#include "debug.h"
 #include "battle_results/result.h"
 #include "btl_transition.h"
 #include "memlayout.h"

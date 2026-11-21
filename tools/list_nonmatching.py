@@ -91,7 +91,7 @@ DEEP_BINARIES = (
     ('build/SLUS_008.92', 'main'),
     ('build/ovl/world/world.bin', 'world'),
     ('build/ovl/battle/battle.bin', 'battle'),
-    ('build/ovl/battle_render/battle_render.bin', 'battle_render'),
+    ('build/ovl/debug/debug.ovl', 'debug'),
     ('build/ovl/tripletriad/tripletriad.bin', 'tripletriad'),
     ('build/ovl/field_init/field_init.bin', 'field_init'),
     ('build/field/field.bin', 'field'),

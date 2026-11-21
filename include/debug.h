@@ -1,5 +1,5 @@
-#ifndef BATTLE_RENDER_H
-#define BATTLE_RENDER_H
+#ifndef DEBUG_H
+#define DEBUG_H
 
 #include "common.h"
 

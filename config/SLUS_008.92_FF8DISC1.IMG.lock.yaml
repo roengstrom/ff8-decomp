@@ -4940,7 +4940,7 @@ entries:
   sector: 98107
   size: 2812
   sha1: 2be5dea1517b12731f8934837851b31dfeffb5b2
-- path: data/eng/battle/ovl/battle_render.ovl
+- path: data/eng/battle/ovl/debug.ovl
   sector: 98109
   size: 80376
   sha1: 035161ef7e9d3e7122649c3841f193e12c189589

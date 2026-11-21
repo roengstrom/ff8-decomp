@@ -43,7 +43,7 @@ CATEGORIES = [
     {"id": "field", "name": "field.bin"},
     {"id": "movie", "name": "movie.ovl"},
     {"id": "tripletriad", "name": "tripletriad.bin"},
-    {"id": "battle_render", "name": "battle_render.bin"},
+    {"id": "debug", "name": "debug.ovl"},
     {"id": "battle", "name": "battle.bin"},
     {"id": "world", "name": "world.bin"},
 ]

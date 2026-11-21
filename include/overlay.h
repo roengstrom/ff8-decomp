@@ -53,6 +53,7 @@ extern void loadSubOverlay(s32 a0, s32 a1);
 /** @brief Reset card-slot dispatch state for the Triple-Triad mini-game. */
 extern void resetCardSlots(s32 mode);
 
-extern s32 RunMenu(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+// No prototype: the original called it with fewer arguments than it takes.
+extern s32 RunMenu();
 
 #endif /* OVERLAY_H */

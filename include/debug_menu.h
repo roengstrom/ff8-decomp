@@ -1,5 +1,5 @@
-#ifndef BATTLE_RENDER_2_H
-#define BATTLE_RENDER_2_H
+#ifndef DEBUG_MENU_H
+#define DEBUG_MENU_H
 
 #include "common.h"
 #include "psxsdk/libgpu.h"
