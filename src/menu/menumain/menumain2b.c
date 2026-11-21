@@ -49,7 +49,7 @@ static void *func_801F3B64(s32 value1, s32 value2, void *ot, void *prim, s32 x, 
 static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3);
 static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot);
 static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y, s32 index);
-static s32 func_801F4744(u8 *, s32);
+static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim);
 static s32 func_801F4A98(s32, s32, s32);
 static void func_801F5490(s32);
 static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
@@ -58,6 +58,20 @@ static s32 func_801F5D5C(s32, DR_AREA *, s32, s32, s32, u16 *, s32, s32);
 static s32 func_801F5E0C(s32, s32, s32, s32, s32, s32, s32);
 static s32 func_801F6358(s32, s32, s32, s32, s32);
 static s32 func_801F6B54(s32, s32, s32, s32, s32);
+
+#define gte_dpcs_get_rgb(result, rgb, value)  \
+    __asm__ volatile(                         \
+        "mtc2   %1, $6\n"                     \
+        "mtc2   %2, $8\n"                     \
+        "nop\n"                               \
+        "nop\n"                               \
+        "c2     0x780010\n"                   \
+        "mfc2   %0, $22\n"                    \
+        "nop\n"                               \
+        : "=r"(result)                        \
+        : "r"(rgb), "r"(value)                \
+        : "memory"                            \
+    )
 
 static void func_801F2458(MainMenuCtx *s) {
     u16 inputRaw;
@@ -1050,7 +1064,35 @@ static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y,
     return prim + sizeof(LINE_F2);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4744);
+static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim) {
+    s32 i;
+    MenuDisplayConfig *cfg;
+    s32 value;
+    s32 result;
+    s32 x;
+    s32 y;
+    cfg = &g_menuDisplayCfg;
+    value = s->brightness;
+    value = ONE - value;
+    gte_dpcs_get_rgb(result, 0x400000EC, value);
+    D_801FABBC = result;
+    gte_dpcs_get_rgb(result, 0x40000000, value);
+    D_801FABC0 = result;
+    x = 32;
+    y = 112;
+    for (i = 0; i < 8; i++) {
+        do {
+            prim = func_801F4454(s, ot, prim, x, y, i);
+        } while (0);
+    }
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 232;
+    cfg->h = 77;
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /**
  * @brief Draw character command abilities panel.
@@ -1070,7 +1112,7 @@ s32 func_801F486C(u8 *a0, s32 a1) {
         for (i = 0; i < 3; i++) {
             result = func_801F3FE8(a0, a1, result, i);
         }
-        result = func_801F4744(a0, a1);
+        result = func_801F4744(a0, a1, result);
     }
     return result;
 }
