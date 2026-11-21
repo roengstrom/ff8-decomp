@@ -50,6 +50,7 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3);
 static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot);
 static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y, s32 index);
 static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim);
+static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim);
 static s32 func_801F4A98(s32, s32, s32);
 static void func_801F5490(s32);
 static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
@@ -1139,7 +1140,35 @@ void func_801F4918(s32 a0, s32 a1, s32 a2) {
 /* Party Status & HP Display                                                */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F49A4);
+static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim) {
+    MenuDisplayConfig *cfg;
+    u8 *text;
+    s32 width;
+    s32 panelX;
+
+    if (s->field44 <= 0) {
+        return prim;
+    }
+
+    cfg = &g_menuDisplayCfg;
+    text = func_801F6AFC(42);
+
+    width = getFirstLineWidth(text) + 20;
+    cfg->w = width;
+
+    width = (248 - width) / 2;
+    panelX = width + 20;
+    cfg->h = 26;
+
+    prim = func_801F0FEC(ot, prim, width + 30, 102, text, DIALOG_COLOR_WHITE);
+
+    cfg->iconType = ICON_NOTICE;
+    cfg->iconSubType = 0;
+    cfg->x = panelX;
+    cfg->y = 95;
+
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);   
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4A98);
 
