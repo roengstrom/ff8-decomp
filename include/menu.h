@@ -53,6 +53,12 @@ typedef enum {
     MENU_JUNCTION_TUTORIAL = 29
 } MenuId;
 
+typedef enum {
+    JUNCTION_EXCHANGE_LAGUNA = 0x1,
+    JUNCTION_EXCHANGE_KIROS = 0x2,
+    JUNCTION_EXCHANGE_WARD = 0x4
+} JunctionExchangeFlag;
+
 #define MENU_FROM_WORLD_MAP 0x80000000
 
 #define MENU_ALLOW_SAVE 0x01
