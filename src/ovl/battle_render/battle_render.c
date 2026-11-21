@@ -19,10 +19,12 @@
 
 extern DebugMenuBuffer g_debugMenuBuffers[2];
 extern s32 g_debugMenuVSyncDelta;
-extern s32 g_debugMenuPrevButtons[];
 extern s32 g_debugMenuRepeatDelay[];
 extern s32 g_debugMenuRepeatTimer[];
 extern s32 g_kernelChecksum;
+
+static u8 D_8009B53C[16] = { 0x00, 0x80, 0x00, 0x00, 0x80, 0xFF, 0x00, 0x00, 0xFF, 0x80, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00 };
+static s32 g_debugMenuPrevButtons[2] = { 0, 0 };
 
 static void PrintBuildInfo(void);
 static void SetBlackBackground(DRAWENV *env);
