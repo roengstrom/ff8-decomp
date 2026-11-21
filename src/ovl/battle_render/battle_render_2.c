@@ -48,7 +48,15 @@ typedef struct {
 
 extern u8 g_debugFontTim[];
 extern u8 g_debugFontLargeTim[];
-extern u8 g_debugFontLargeWidths[];
+
+static u8 g_debugFontLargeWidths[96] = {
+    4, 5, 4, 11, 8, 12, 11, 4, 4, 4, 8, 8, 4, 8, 4, 8,
+    9, 8, 9, 9, 10, 9, 9, 9, 9, 9, 5, 5, 8, 9, 8, 9,
+    4, 9, 9, 9, 9, 8, 8, 9, 9, 6, 9, 10, 8, 13, 10, 9,
+    9, 9, 9, 8, 9, 9, 9, 13, 9, 9, 9, 6, 11, 6, 8, 4,
+    8, 9, 9, 8, 9, 9, 8, 9, 9, 5, 8, 9, 5, 13, 9, 9,
+    9, 9, 8, 8, 7, 9, 9, 13, 9, 9, 9, 4, 4, 4, 4, 4
+};
 
 static void ShowSecondPage(void);
 static void func_8009A664(void);

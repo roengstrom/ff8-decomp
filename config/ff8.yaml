@@ -124,7 +124,7 @@ binaries:
     - [0x238, c, battle_render]
     - [0xC68, c, battle_render_2]
     - [0x353C, .data, battle_render]
-    - [0x3554, databin, debug_font_large_widths]
+    - [0x3554, .data, battle_render_2]
     - [0x35B4, databin, debug_font]
     - [0xB7D4, databin, debug_font_large]
     - [0x139F4, data]
