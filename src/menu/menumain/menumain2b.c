@@ -925,6 +925,9 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     s32 y = arg3 * 26;
     s32 y2 = y + 34;
+    s32 width = 232;
+    s32 height = 26;
+    s32 *packedWH = &cfg->w;
     if (charId != 255) {
         CharMenuInfo *charMenuInfo = &g_charMenuInfo[charId];
         CharacterData *charData = &g_gameState.chars[charId];
@@ -940,7 +943,10 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     cfg->iconSubType = 0;
     cfg->x = 32;
     cfg->y = y2;
-    *(s32 *)&cfg->w = 0x1A00E8;
+
+    // Stores width and height together in a single 32-bit value.
+    *packedWH = height << 16 | width;
+
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
