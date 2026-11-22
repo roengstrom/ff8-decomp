@@ -6,7 +6,7 @@
 #include "gf.h"
 #include "gamestate.h"
 #include "ability.h"
-#include "battle_render.h"
+#include "debug.h"
 #include "battle_results/result.h"
 #include "btl_transition.h"
 #include "memlayout.h"
@@ -629,7 +629,7 @@ void RunBattleModes(void) {
         case GAME_MODE_BATTLE_DEBUG_MENU:
             cdReadSync(D_800974C0[0].sector, D_800974C0[0].size, OVERLAY_PTR, NULL);
             FlushInstructionCache();
-            func_80098238();
+            RunDebugMenu();
             break;
         case GAME_MODE_BATTLE:
             setHudBrightness(0);

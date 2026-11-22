@@ -1234,7 +1234,7 @@ files:
 - data/eng/menu/ovl/menutest.ovl
 - data/eng/menu/mngrp.bin
 - data/eng/init.out
-- data/eng/battle/ovl/battle_render.ovl
+- data/eng/battle/ovl/debug.ovl
 - data/eng/battle/ovl/battle.ovl
 - data/eng/battle/scene.out
 - data/eng/battle/a0stg000.x

@@ -33,6 +33,8 @@ typedef struct {
     u8 result; // a BattleResult
     u8 sealedAbilities; // see @c SealedAbilityFlag
     u8  unk9;            /**< Bit 0 toggles the @c FieldVars.soundBankSelector at field-VM init. */
+    u8 padA[2];
+    u32 unkC;
 } BattleConfig;
 
 /** @brief Clipped rectangle result: the clipped rect + saved pre-clip position. */
@@ -745,7 +747,7 @@ typedef struct {
 
 extern s16             D_8005F11C;
 extern u8              D_8005F170;   /**< Cleared once at boot by loadKernel and set only by
-                                            battle_render's entry, which only RunBattleModes state 4
+                                            the debug overlay's entry, which only RunBattleModes state 4
                                             reaches; gates the magic menu's refill-all shortcut. */
 extern BattleCharState g_battleChars;  // 0x80078720
 extern BattleConfig    g_battleConfig; // 0x80082C08

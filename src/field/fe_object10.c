@@ -250,7 +250,7 @@ void func_800BD794(void) { s32 i = 0; do { s32 status = getPackedField2Bit(i) - 
  *
  * Mirror of @c func_800C4AE4 in we_object13. Drives every per-step
  * accumulator on @c g_fieldVars for the field map:
- *   - @c stepCounter (mirrored to @c D_80082C14).
+ *   - @c stepCounter (mirrored to @c g_battleConfig.unkC).
  *   - @c packedFlagsStepAcc — fires @c func_800BD794 every @c 0x2800 steps.
  *   - @c hpRegenStepAcc — fires GF and party HP regen every @c 8 steps.
  *   - @c seedExpStepAcc — fires the SeeD level-up tick every @c 0x6000 steps,
@@ -268,7 +268,7 @@ void func_800BD804(s32 stepDelta) {
     g_fieldVars->hpRegenStepAcc += stepDelta;
     g_fieldVars->packedFlagsStepAcc = (u16)(g_fieldVars->packedFlagsStepAcc + stepDelta);
     g_fieldVars->angeloLearnStepAcc += stepDelta;
-    D_80082C14 = (u32)g_fieldVars->stepCounter;
+    g_battleConfig.unkC = (u32)g_fieldVars->stepCounter;
     if (g_fieldVars->packedFlagsStepAcc >= 0x2800u) {
         g_fieldVars->packedFlagsStepAcc = 0;
         func_800BD794();

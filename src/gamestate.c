@@ -152,7 +152,7 @@ void func_80036D44(s32 mask) {
             continue;
         }
         chr = &g_gameState.chars[slot];
-        if (chr->exists & 0x8) {
+        if (chr->exists & CHAR_FLAG_UNK08) {
             chr->characterId = abilityId;
             new_var = mask & (1 << (abilityId - 8));
             if (new_var) {

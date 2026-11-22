@@ -1,4 +1,5 @@
 #include "common.h"
+#include "memlayout.h"
 #include "cd.h"
 #include "battle.h"
 #include "main.h"
@@ -66,8 +67,8 @@ void loadKernel(void) {
         g_battleConfig.obtainedGf[i] = GF_NONE;
     }
 
-    cdReadSync(g_kernelFileDesc.sector, g_kernelFileDesc.size, 0x801A0000, 0);
-    memcopy((u8 *)0x801A0000, &g_kernel, g_kernelFileDesc.size);
+    cdReadSync(g_kernelFileDesc.sector, g_kernelFileDesc.size, LOAD_BUFFER_ADDR, 0);
+    memcopy((u8 *)LOAD_BUFFER_ADDR, &g_kernel, g_kernelFileDesc.size);
 }
 
 /**

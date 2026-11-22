@@ -5,6 +5,7 @@
 #define IMG_TOC_ADDR 0x80097400
 #define WM2FIELD_ADDR 0x80097940
 #define OVERLAY_ADDR 0x80098000
+#define LOAD_BUFFER_ADDR 0x801A0000 // Used for loading stuff from disc into ram
 #define SCRATCH_ADDR 0x801B0000
 #define MUSIC_BUFFER_ADDR 0x801D0000
 

@@ -121,8 +121,14 @@ typedef struct {
 /* Initialise a gouraud-shaded textured 4-vertex polygon (len=12 words, code=0x3C). */
 #define setPolyGT4(p)    setlen(p, 12), setcode(p, 0x3c)
 
+/* Initialise an 8x8 sprite primitive (len=3 words, code=0x74). */
+#define setSprt8(p)      setlen(p, 3),  setcode(p, 0x74)
+
 /* Initialise a 16x16 sprite primitive (len=3 words, code=0x7C). */
 #define setSprt16(p)     setlen(p, 3),  setcode(p, 0x7c)
+
+/* Initialise a free-size sprite primitive (len=4 words, code=0x64). */
+#define setSprt(p)       setlen(p, 4),  setcode(p, 0x64)
 
 /* Toggle semi-transparency / shading bits in the primitive's code byte. */
 #define setSemiTrans(p, abe) \

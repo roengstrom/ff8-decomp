@@ -38,14 +38,14 @@ CATEGORIES = [
     {"id": "menutmag", "name": "menutmag.ovl"},
     {"id": "menutips", "name": "menutips.ovl"},
     {"id": "menutest", "name": "menutest.ovl"},
-    {"id": "field_init", "name": "field_init.bin"},
-    {"id": "intro", "name": "intro.bin"},
-    {"id": "field", "name": "field.bin"},
+    {"id": "field_init", "name": "field_init.ovl"},
+    {"id": "intro", "name": "intro.ovl"},
+    {"id": "field", "name": "field.ovl"},
     {"id": "movie", "name": "movie.ovl"},
-    {"id": "tripletriad", "name": "tripletriad.bin"},
-    {"id": "battle_render", "name": "battle_render.bin"},
-    {"id": "battle", "name": "battle.bin"},
-    {"id": "world", "name": "world.bin"},
+    {"id": "tripletriad", "name": "card.ovl"},
+    {"id": "debug", "name": "debug.ovl"},
+    {"id": "battle", "name": "battle.ovl"},
+    {"id": "world", "name": "world.ovl"},
 ]
 
 # Files/dirs to skip
@@ -76,7 +76,7 @@ def effect_categories():
         for ovl_dir in sorted(parent.glob("effect_*")):
             if (ovl_dir / "src").is_dir() and ovl_dir.name not in names:
                 names.append(ovl_dir.name)
-    return [{"id": name, "name": f"{name}.bin"} for name in names]
+    return [{"id": name, "name": f"mag{name[len('effect_'):]}.ovl"} for name in names]
 
 
 def unit_name(ovl_name, rel_from_ovl):

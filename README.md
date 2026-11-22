@@ -144,9 +144,9 @@ A more detailed progress report is available on [decomp.dev](https://decomp.dev/
       <td align="center" valign="middle"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Froengstrom.github.io%2Fff8-decomp%2Fbadges%2Ftripletriad-code.json" alt="Code"></td>
     </tr>
     <tr>
-      <td align="center">battle_render.bin</td>
-      <td align="center" valign="middle"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Froengstrom.github.io%2Fff8-decomp%2Fbadges%2Fbattle-render-functions.json" alt="Functions"></td>
-      <td align="center" valign="middle"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Froengstrom.github.io%2Fff8-decomp%2Fbadges%2Fbattle-render-code.json" alt="Code"></td>
+      <td align="center">debug.ovl</td>
+      <td align="center" valign="middle"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Froengstrom.github.io%2Fff8-decomp%2Fbadges%2Fdebug-functions.json" alt="Functions"></td>
+      <td align="center" valign="middle"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Froengstrom.github.io%2Fff8-decomp%2Fbadges%2Fdebug-code.json" alt="Code"></td>
     </tr>
     <tr>
       <td align="center">battle.bin</td>

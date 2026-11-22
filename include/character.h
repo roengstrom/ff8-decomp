@@ -177,6 +177,7 @@ typedef enum {
 
 /** @brief CharacterData::exists bit 0: character is present in the roster. */
 #define CHAR_FLAG_PRESENT 0x1
+#define CHAR_FLAG_UNK08 0x8
 
 /**
  * @brief Magic inventory entry (2 bytes).

@@ -602,6 +602,8 @@ typedef struct {
     /* 0x4D08 */ MiscTextEntry miscTextPointers[128];
 } Kernel;
 
+#define KERNEL_BUFFER_SIZE 0x9E08
+
 extern Kernel g_kernel;
 
 #endif

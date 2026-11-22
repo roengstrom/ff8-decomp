@@ -31,7 +31,6 @@ typedef struct StreamState {
 extern StreamState D_800E3E70;
 extern void (*D_800E3E60)(s32, void *);
 extern u8   D_800987C0;
-extern u32  D_80082C14;
 
 extern void func_80047C3C(u8 *msg);
 

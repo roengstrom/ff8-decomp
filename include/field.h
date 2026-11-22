@@ -222,7 +222,7 @@ typedef struct {
                                              actually validates. Field scripts could read it as M-memory
                                              @c 0x00..0x03 via @c PSHM_B, and it also watermarks the block in RAM
                                              and save dumps; which of those was intended is unknown. */
-    /* 0x04 */ u32 stepCounter;         /**< Total step delta accumulator, mirrored to D_80082C14. */
+    /* 0x04 */ u32 stepCounter;         /**< Total step delta accumulator, mirrored to @c g_battleConfig.unkC. */
     /* 0x08 */ s32 seedExpStepAcc;      /**< Step accumulator: fires the SeeD level-up tick at @c 0x6000. */
     /* 0x0C */ s32 hpRegenStepAcc;      /**< Step accumulator: fires HP regen ticks at @c 8. */
     /* 0x10 */ u16 seedExp;             /**< SeeD experience (clamped to [100, 3100]; level = exp/100). */
@@ -1013,8 +1013,6 @@ extern s32 D_800705F8;
 /** @brief Field-side status flag byte; bitfield (0x1, 0x2, 0x4, 0x8, 0x10, 0x20). */
 extern u8  D_8007809A;
 
-/** @brief Mirror of @c g_fieldVars->stepCounter (s32). */
-extern u32 D_80082C14;
 
 /** @brief Reset to 20 on field entry by @c func_8009AEC0 and scaled by
  *         134.8046875 (@c *69020>>9) in @c func_800B6738 to form the threshold

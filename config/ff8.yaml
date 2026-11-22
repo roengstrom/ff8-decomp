@@ -105,23 +105,28 @@ binaries:
     - [0x4860C, c, bc_object22]
     - [0x499B4, bin]
   - [0x54C48]
-- name: battle_render
+- name: debug
   sha1: 035161ef7e9d3e7122649c3841f193e12c189589
   options:
-    target_path: original/bin/battle/battle_render.ovl
-    src_path: src/ovl/battle_render
-    symbol_addrs_path: [config/symbols.main.txt, config/symbols.battle_render.txt]
+    target_path: original/bin/battle/debug.ovl
+    symbol_addrs_path: [config/symbols.main.txt, config/symbols.debug.txt]
     section_order: [.rodata, .text, .data, .bss]
   segments:
-  - name: battle_render
+  - name: debug
     type: code
     start: 0x0
     vram: 0x80098000
     subsegments:
-    - [0x0, rodata]
-    - [0x28, .rodata, battle_render]
-    - [0x238, c, battle_render]
-    - [0x353C, bin]
+    - [0x0, .rodata, debug]
+    - [0x24, pad]
+    - [0x28, .rodata, debug_menu]
+    - [0x238, c, debug]
+    - [0xC68, c, debug_menu]
+    - [0x353C, .data, debug]
+    - [0x3554, .data, debug_menu]
+    - [0x35B4, databin, debug_font]
+    - [0xB7D4, databin, debug_font_large]
+    - [0x139F4, data]
   - [0x139F8]
 - name: field
   sha1: ff84df55a00419a4a7a2b87ddeaf7cda5213b949

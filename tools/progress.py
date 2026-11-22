@@ -38,7 +38,7 @@ def effect_sources(name):
 EFFECT_OVERLAYS = effect_overlays()
 CODE_OVERLAYS = [
     "field_init", "intro", "field",
-    "tripletriad", "battle_render", "battle", "world",
+    "tripletriad", "debug", "battle", "world",
 ] + EFFECT_OVERLAYS
 
 OVERLAY_EXT = {name: "ovl" for name in MENU_OVERLAYS}
@@ -50,6 +50,7 @@ OVERLAY_SRC_GLOBS = {
     "intro":       ["src/intro.c", "src/intro_assets.c", "src/intro_state.c"],
     "field":       ["src/field/*.c"],
     "battle":      ["src/battle/*.c"],
+    "debug":       ["src/debug/*.c"],
     "tripletriad": ["src/tripletriad/*.c"],
     "world":       ["src/world/*.c"],
     **{name: effect_sources(name) for name in EFFECT_OVERLAYS},
