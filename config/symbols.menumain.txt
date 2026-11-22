@@ -124,3 +124,4 @@ func_801F7C98 = 0x801F7C98; // type:func
 g_menuDisplayCfg = 0x801FAB00;
 g_menumain_partyMemberMask = 0x801FABB8;
 func_9F9EFB00 = 0x9F9EFB00; // type:func
+g_charMenuInfo = 0x801FABC8;

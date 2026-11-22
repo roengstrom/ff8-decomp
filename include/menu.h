@@ -252,6 +252,12 @@ typedef struct {
     /* 0x06 */ u8 pad06[2];       /**< Padding. */
 } JunctionSlotDetail; /* 0x08 = 8 bytes */
 
+/** @brief Ability display info for menu rendering. */
+typedef struct {
+    u8 id; /**< 0x0: Ability ID. */
+    u8 category; /**< 0x1: Ability category. */
+} AbilityMenuInfo; /* 0x2 bytes */
+
 /**
  * @brief Character display info for menu rendering (stride 32).
  *
@@ -259,15 +265,18 @@ typedef struct {
  * Array of 8 entries indexed by character ID, located at D_801FABC8.
  */
 typedef struct {
-    /* 0x00 */ u8 pad00[8];        /**< Unknown. */
-    /* 0x08 */ s16 currentHp;      /**< Cached current HP. */
-    /* 0x0A */ s16 unk0A;          /**< Unknown stat value. */
-    /* 0x0C */ u8 unk0C;           /**< Unknown byte. */
-    /* 0x0D */ u8 pad0D;           /**< Padding. */
-    /* 0x0E */ u16 statusFlags;    /**< Character status flags (synced from CharacterData). */
-    /* 0x10 */ u8 pad10[2];        /**< Unknown. */
-    /* 0x12 */ u8 unk12;           /**< Unknown byte. */
-    /* 0x13 */ u8 pad13[13];       /**< Unknown. */
+    u32 currentExp; /**< 0x0: Current experience. */
+    s32 expToNextLevel; /**< 0x4: Remaining experience to next level. */
+    s16 currentHp; /**< 0x8: Current HP. */
+    s16 maxHp; /**< 0xA: Max HP. */
+    u8 currentLevel; /**< 0xC: Current level. */
+    u8 hpRatio; /**< 0xD: Current HP as a fraction of max HP. */
+    u16 statusFlags; /**< 0xE: Status flags. */
+    u8 charId; /**< 0x10: Character ID. */
+    u8 mag; /**< 0x11: Bonus MAG stat. */
+    u8 commandIds[4]; /**< 0x12: Command IDs. */
+    AbilityMenuInfo abilities[4]; /**< 0x16: Abilities. */
+    u8 pad1E[0x2];
 } CharMenuInfo; /* 0x20 = 32 bytes */
 
 extern CharMenuInfo g_charMenuInfo[];
@@ -302,33 +311,10 @@ typedef struct {
     u8 param2;  /**< 0x3: type-dependent (status mask, stat mask, compatibility amount, magazine end page). */
 } MItemEntry; /* 0x4 = 4 bytes */
 
-/** @brief Menu ability entry. */
-typedef struct {
-    u8 id; /**< 0x0: Ability ID. */
-    u8 category; /**< 0x1: Ability category. */
-} MenuAbilityEntry; /* 0x2 bytes */
-
-/** @brief Character data used for display in the menu. */
-typedef struct {
-    u32 currentExp; /**< 0x0: Current experience. */
-    s32 expToNextLevel; /**< 0x4: Remaining experience to next level. */
-    s16 currentHp; /**< 0x8: Current HP. */
-    s16 maxHp; /**< 0xA: Max HP. */
-    u8 currentLevel; /**< 0xC: Current level. */
-    s8 hpRatio; /**< 0xD: Current HP as a fraction of max HP. */
-    u16 statusFlags; /**< 0xE: Status flags. */
-    u8 charId; /**< 0x10: Character ID. */
-    u8 mag; /**< 0x11: Bonus MAG stat. */
-    u8 commandIds[4]; /**< 0x12: Command IDs. */
-    MenuAbilityEntry abilities[4]; /**< 0x16: Abilities. */
-    u8 pad1E[0x2];
-} MenuCharData; /* 0x20 bytes */
-
 extern u8 D_801F7F98[];
 extern FlagEntry D_801F87B8[];
 extern MItemEntry D_801F889C[];
 extern u16 D_801FA3C8[];  /**< 65-entry falloff table, built by menumain func_801EFF64. */
 extern u8 D_801FABC7;
-extern MenuCharData D_801FABC8[];
 
 #endif /* MENU_H */

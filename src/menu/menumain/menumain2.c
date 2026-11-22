@@ -1522,7 +1522,7 @@ s32 func_801F21D0(s32 a0) {
 /** @brief Set character status flags and sync to secondary table. */
 void func_801F21FC(s32 charId, s32 statusFlags) {
     g_gameState.chars[charId].statusFlags = statusFlags;
-    D_801FABC8[charId].statusFlags = statusFlags;
+    g_charMenuInfo[charId].statusFlags = statusFlags;
 }
 
 /** @brief Get GF status (stub, always returns 0). */
