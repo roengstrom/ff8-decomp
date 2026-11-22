@@ -1232,7 +1232,37 @@ static void *func_801F4CE8(void *ot, void *prim, u32 value, s32 x, s32 y) {
     return prim;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4D70);
+void *func_801F4D70(void *ot, void *prim, s32 x, s32 y, u32 width, u32 clut) {
+    u32 color;
+    DR_TWIN *tw;
+    ModeSprt *p;
+
+    // Dead code added to match with the original game binary.
+    clut++; clut--;
+
+    color = (clut & 0xFFFFFF) | SPRT_CODE;
+    prim = drawIcon(ot, prim, ICON_TINY_LEFT_CAP, x, y, color);
+    prim = drawIcon(ot, prim, ICON_TINY_RIGHT_CAP, x + width + 8, y, color);
+    tw = prim;
+    setlen(tw, 2);
+    tw->code[0] = TEXWINDOW_OFF;
+    tw->code[1] = 0;
+    addPrimFast(ot, tw);
+    p = (void *)tw + sizeof(DR_TWIN);
+    setlen(p, 7);
+    *(u32 *)&p->r0 = color;
+    p->code = 0x64;
+    p->drawMode = 0xE100041E;
+    p->texWindow[0] = 0xE20207FF;
+    p->texWindow[1] = 0;
+    p->x0 = x + 8;
+    p->y0 = y;
+    p->w = width;
+    p->h = 8;
+    *(u32 *)&p->u0 = 0x38900000;
+    addPrimFast(ot, p);
+    return (void *)p + sizeof(ModeSprt);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4EA8);
 
