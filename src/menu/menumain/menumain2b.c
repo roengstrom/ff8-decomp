@@ -54,7 +54,7 @@ static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim);
 static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim);
 static void *func_801F4C60(void *ot, void *prim, u32 value, s32 x, s32 y);
 static void *func_801F4CE8(void *ot, void *prim, u32 value, s32 x, s32 y);
-static void func_801F5490(s32);
+static void func_801F5490(MainMenuCtx *ctx);
 static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
 static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
 static s32 func_801F5D5C(s32, DR_AREA *, s32, s32, s32, u16 *, s32, s32);
@@ -1465,7 +1465,55 @@ void func_801F5440(void) {
     recalcPartyStats();
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F5490);
+static void func_801F5490(MainMenuCtx *ctx) {
+    s32 i;
+    s32 j;
+    u32 val1 = 0;
+    D_801FAB7C = func_80023C48();
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) {
+        ctx->unk34 = 0;
+    } else {
+        s32 val2 = ctx->field20;
+        for (i = 0; i < PARTY_SLOT_COUNT; i++) {
+            s32 member = g_gameState.mainData.party.partyMembers[i];
+            if (member != PARTY_SLOT_EMPTY) {
+                val2 &= ~(1 << member);
+            }
+        }
+        if (val2 != 0) {
+            ctx->unk34 = 1;
+        } else {
+            ctx->unk34 = 0;
+        }
+    }
+    for (i = 0; i < PARTY_SLOT_COUNT; i++) {
+        s32 member = g_gameState.mainData.party.partyMembers[i];
+        if (member != PARTY_SLOT_EMPTY && ((ctx->field20 >> member) & 1)) {
+            val1 |= 1 << member;
+            ctx->party[i] = member;
+        } else {
+            ctx->party[i] = PARTY_SLOT_EMPTY;
+        }
+    }
+    if (ctx->unk34 == 0) {
+        for (i = 0; i < CHARACTER_COUNT; i++) {
+            ctx->reserve[i] = PARTY_SLOT_EMPTY;
+        }
+        ctx->unk4A = 3;
+    } else {
+        for (j = 0, i = 0; i < CHARACTER_COUNT; i++) {
+            if (((ctx->field20 >> i) & 1) && !(val1 & (1 << i))) {
+                ctx->reserve[j++] = i;
+            }
+        }
+        ctx->unk4A = ((j + 1) / 2) + 3;
+        while (j < CHARACTER_COUNT) {
+            ctx->reserve[j++] = PARTY_SLOT_EMPTY;
+        }
+    }
+    func_801F5440();
+    func_801F1F98(ctx);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F565C);
 
