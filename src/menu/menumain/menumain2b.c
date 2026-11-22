@@ -1553,7 +1553,36 @@ restart:
     } while (0);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F56E4);
+u32 func_801F56E4(u32 charId, u32 otherChars) {
+    s32 i;
+    s32 max;
+    s32 val;
+    i = 0;
+    while (1) {
+        if (D_801FAB88[i] == PARTY_SLOT_EMPTY) {
+            return charId;
+        }
+        if (charId == D_801FAB88[i]) {
+            break;
+        }
+        i++;
+    }
+    max = i++;
+    while (1) {
+        if (max == i) {
+            return charId;
+        }
+        val = D_801FAB88[i];
+        if (val == PARTY_SLOT_EMPTY) {
+            i = 0;
+            continue;
+        }
+        i++;
+        if (otherChars & (1 << val)) {
+            return val;
+        }
+    }
+}
 
 /** @brief Set entity status flags, dispatched by type (character < 16, GF >= 16). */
 void func_801F576C(s32 a0, s32 a1) {
