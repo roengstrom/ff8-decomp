@@ -17,6 +17,7 @@ void *func_801F3DE4(s32 value1, s32 value2, void *ot, void *prim, s32 x, s32 y, 
 s32 func_801F3FB4(s32);
 void *func_801F4168(void *ot, void *prim, u8 *text, s32 x, s32 y, s32 progress, s32 iconType);
 void *func_801F4D70(void *ot, void *prim, s32 x, s32 y, u32 width, u32 clut);
+void *func_801F4EA8(void *ot, LINE_F2 *prim, s32 x, s32 y, s32 arg4);
 s32 func_801F5104(s32);
 s32 func_801F510C(s32);
 s32 func_801F5144(s32);

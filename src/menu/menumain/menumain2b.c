@@ -70,7 +70,6 @@ static s32 func_801F6B54(s32, s32, s32, s32, s32);
         "nop\n"                               \
         "c2     0x780010\n"                   \
         "mfc2   %0, $22\n"                    \
-        "nop\n"                               \
         : "=r"(result)                        \
         : "r"(rgb), "r"(value)                \
         : "memory"                            \
@@ -1078,8 +1077,10 @@ static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim) {
     value = s->brightness;
     value = ONE - value;
     gte_dpcs_get_rgb(result, 0x400000EC, value);
+    NOP();
     D_801FABBC = result;
     gte_dpcs_get_rgb(result, 0x40000000, value);
+    NOP();
     D_801FABC0 = result;
     x = 32;
     y = 112;
@@ -1264,7 +1265,54 @@ void *func_801F4D70(void *ot, void *prim, s32 x, s32 y, u32 width, u32 clut) {
     return (void *)p + sizeof(ModeSprt);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4EA8);
+void *func_801F4EA8(void *ot, LINE_F2 *prim, s32 x, s32 y, s32 arg4) {
+    u8 buffer[16];
+    u8 *bufferPtr;
+    s32 x2;
+    s32 y2;
+    u32 rgbc;
+    s32 value;
+    arg4 = (6000 - arg4) / 5;
+    arg4 = CLAMP(arg4, 0, 1000);
+    intToDecStringShort(arg4, &buffer[0], 40);
+    bufferPtr = &buffer[0];
+    replaceLeadingZeros(bufferPtr, 4, 40, 7);
+    x2 = x + 11;
+    y2 = y + 3;
+    while (1) {
+        s32 iconId = *bufferPtr++;
+        if (iconId == 0) {
+            break;
+        }
+        if (iconId != ICON_BLANK) {
+            prim = drawIcon(ot, prim, iconId, x2, y2, g_menuTint[MENU_TINT_NORMAL]);
+        }
+        x2 += 6;
+    }
+    value = ONE - g_menuBrightness;
+    value = CLAMP(value, 0, ONE);
+    x2 = x + 8;
+    y2 = y + 2;
+    gte_dpcs_get_rgb(rgbc, 0x402C2CFF, value);
+    if (arg4 != 0) {
+        s32 x3;
+        s32 y3;
+        x3 = x2 + ((arg4 * 30) / 1000);
+        setLineF2(prim);
+        *(s32 *)&prim->r0 = rgbc;
+        setXY2(prim, x2, y2, x3, y2);
+        addPrimFast(ot, prim);
+        prim++;
+        y3 = y + 3;
+        y2 = x3;
+        setLineF2(prim);
+        *(s32 *)&prim->r0 = rgbc;
+        setXY2(prim, x2, y3, y2, y3);
+        addPrimFast(ot, prim);
+        prim++;
+    }
+    return func_801F4D70(ot, prim, x, y, 30, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /** @brief Convert raw ability ID to menu display index (subtract 100). */
 s32 func_801F5104(s32 a0) {
