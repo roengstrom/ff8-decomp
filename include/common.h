@@ -150,6 +150,10 @@ static inline u32 linkPacket(u32 head, void *p) {
     return tag;
 }
 
+#define setSprtRGBC(p, word) (*(u32 *)&(p)->r0 = (word))
+#define setSprtUV(p, uv) (*(u16 *)&(p)->u0 = (uv))
+#define setSprtWH(p, word) (*(u32 *)&(p)->w = (word))
+
 /** @brief GP0(E2h) word that turns the texture window off. */
 #define TEXWINDOW_OFF 0xE2000000
 
