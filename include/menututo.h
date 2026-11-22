@@ -112,4 +112,8 @@ extern u8 D_801E4EC1;
 /** @brief Tutorial column index 2. */
 extern u8 D_801E4EC2;
 
+s32 func_801E2800(void);
+s32 func_801E2810(void);
+void func_801E2820(s32 index, s32 base);
+
 #endif /* MENUTUTO_H */

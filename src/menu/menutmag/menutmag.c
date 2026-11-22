@@ -1,151 +1,388 @@
 #include "common.h"
+#include "btl_anim.h"
+#include "btl_anim_packet.h"
+#include "menu.h"
 #include "menu_tint.h"
 #include "menumain2.h"
 #include "menutmag.h"
+#include "menututo.h"
+#include "overlay.h"
+#include "psxsdk/libetc.h"
+#include "snd_sfx.h"
+#include "ui/dialog.h"
+#include "ui/sprite.h"
+#include "ui/text.h"
+#include "ui/window.h"
+
+typedef struct {
+    /** 0x00 */ s32 task[4];
+    /** 0x10 */ u16 state;
+    /** 0x12 */ u8 pad12[0xE];
+    /** 0x20 */ s32 unk20;
+    /** 0x24 */ s32 unk24;
+    /** 0x28 */ s32 unk28;
+    /** 0x2C */ s32 unk2C;
+} func_801E5800_arg0;
 
 extern u8 D_801E764C[];
-extern u8 D_801E63EC[];
-extern u8 D_801E63F8[];
+extern char D_801E63EC[];
+extern MagazinePageEntry D_801E63F8[];
 
-void func_801E5800(s32 a0);
-void func_801E6170(s32 a0, s32 a1, s32 a2);
+static void func_801E5800(func_801E5800_arg0 *task);
+static void *func_801E5AF0(void *ot, PaperMatPrim *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage);
+static u8 *func_801E5C0C(s32 textId);
+static SpriteTable *func_801E5C28(void);
+static void *func_801E5C34(void *ot, void *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage);
+static void *func_801E5D1C(void *ot, void *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage);
+static void *func_801E5E2C(void *ot, void *head, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage);
+static void *func_801E5F5C(void *ot, void *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage);
+static void *func_801E6008(void *ot, void *prim, s32 x, s32 y, MagazinePageEntry *magPage);
+static void *func_801E606C(void *ot, void *prim, MagazinePageEntry *magPage);
+static void *func_801E6170(func_801E5800_arg0 *task, void *ot, void *prim);
+static void func_801E6290(void);
 
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5800);
+static void func_801E5800(func_801E5800_arg0 *task) {
+    u16 inputNew = g_menuDisplayCfg.inputNew;
+    u16 *statePtr = &task->state;
+    s32 page;
+    MagazinePageEntry *entry;
 
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5AF0);
-
-/**
- * @brief Look up a triple magic menu entry address.
- *
- * Indexes into D_801E764C by a0 (halfword stride), loads the offset
- * at +2, and returns base + offset.
- *
- * @param a0 Menu entry index.
- * @return Pointer into D_801E764C data.
- */
-s32 func_801E5C0C(s32 a0) {
-    u16 *table = (u16 *)D_801E764C;
-    return table[a0 + 1] + (s32)D_801E764C;
-}
-
-/**
- * @brief Return triple magic data buffer address.
- *
- * @return Constant 0x801CD000.
- */
-s32 func_801E5C28(void) {
-    return (s32)0x801CD000;
-}
-
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5C34);
-
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5D1C);
-
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E5E2C);
-
-/**
- * @brief Render a complete triple magic menu entry through multiple rendering passes.
- *
- * Chains five rendering calls in sequence: icon rendering (func_801E5D1C),
- * text rendering (func_801E5C34), color/shade rendering (func_801E5AF0),
- * border rendering (func_8002B898), and GPU primitive setup (func_801E5E2C).
- * Each call's return value becomes the next call's second argument.
- *
- * @param ctx Render context.
- * @param a1 Initial buffer/primitive pointer.
- * @param display Display configuration pointer.
- * @param colorData Color/shading data.
- * @param src Source entry data pointer (passed as 5th arg to sub-calls).
- */
-void func_801E5F5C(s32 ctx, s32 a1, s32 display, s32 colorData, s32 src) {
-    a1 = func_801E5D1C(ctx, a1, display, colorData, src);
-    a1 = func_801E5C34(ctx, a1, display, colorData, src);
-    a1 = func_801E5AF0(ctx, a1, display, colorData, src);
-    a1 = func_8002B898(ctx, a1, display, colorData);
-    func_801E5E2C(ctx, a1, display, colorData, src);
-}
-
-/**
- * @brief Set up display config from a source struct and render triple magic entry.
- *
- * Copies four halfwords from the source struct to g_menuDisplayCfg, adding x and y
- * offsets to the first two fields. Then calls func_801E5F5C to perform the
- * actual rendering with the configured display parameters.
- *
- * @param a0 Render context parameter.
- * @param a1 Entry index parameter.
- * @param xOff X offset to add to position.
- * @param yOff Y offset to add to position.
- * @param src Pointer to source coordinate/size struct (4 halfwords).
- */
-void func_801E6008(s32 a0, s32 a1, s32 xOff, s32 yOff, u16 *src) {
-
-    g_menuDisplayCfg.x = src[0] + xOff;
-    g_menuDisplayCfg.y = src[1] + yOff;
-    g_menuDisplayCfg.w = src[2];
-    g_menuDisplayCfg.h = src[3];
-    func_801E5F5C(a0, a1, &g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], src);
-}
-
-/**
- * @brief Render the triple magic menu title/header area.
- *
- * Creates a display box for the menu header using func_801F08D4, measures the
- * title text width to center it, renders the border and GPU primitives.
- *
- * @param ctx Render context.
- * @param buf Buffer/primitive pointer.
- * @param entryData Entry data pointer (passed to GPU primitive setup).
- */
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E606C);
-
-INCLUDE_ASM("asm/ovl/menutmag/nonmatchings/menutmag", func_801E6170);
-
-/**
- * @brief Initialize and run the triple magic menu overlay.
- *
- * Registers the overlay's main handler and render callback, loads the
- * "mmag.bin" data file, and if an active menu context is returned, looks up
- * the current entry, configures palette and display parameters, and invokes
- * the main state machine (func_801E5800).
- */
-void func_801E6290(void) {
-
-    s32 ctx;
-    s32 entryIdx;
-    u8 *entry;
-
-    ctx = func_801F179C(func_801E5800, func_801E6170);
-    func_801F1D2C(0, D_801E63EC, D_801E63F8);
-
-    if (ctx != 0) {
-        entryIdx = func_801E2800();
-        *(s32 *)(ctx + 0x28) = entryIdx;
-        *(s32 *)(ctx + 0x2C) = entryIdx;
-        entry = D_801E63F8 + entryIdx * 68;
-        loadSubOverlay(*(u8 *)(entry + 0x15) + 0x57, D_801E764C);
-        func_801E2820(*(u8 *)(entry + 0x16), *(u8 *)(entry + 0x17));
-        func_801E5800(ctx);
+    switch (task->state) {
+    case 0:
+        *statePtr = 1;
+    case 1:
+        *statePtr = 5;
+    case 2:
+        task->unk24 = 0x1000;
+        *statePtr = 3;
+    case 3:
+        if (pollCdReadStatus() == 0) {
+            task->unk28 = task->unk2C;
+            loadTimImage((u8 *)MENU_SUBOVERLAY_ADDR);
+            *statePtr = 4;
+        }
+        break;
+    case 4:
+        task->unk20 += 0x100;
+        if (task->unk20 >= 0x1000) {
+            task->unk20 = 0x1000;
+            *statePtr = 8;
+        }
+        break;
+    case 5:
+        *statePtr = 6;
+    case 6:
+        if (pollCdReadStatus() == 0) {
+            task->unk28 = task->unk2C;
+            loadTimImage((u8 *)MENU_SUBOVERLAY_ADDR);
+            *statePtr = 7;
+        }
+        break;
+    case 7:
+        task->unk24 += 0x100;
+        if (task->unk24 >= 0x1000) {
+            task->unk24 = 0x1000;
+            *statePtr = 8;
+        }
+        break;
+    case 8:
+        *statePtr = 9;
+        break;
+    case 9:
+        if (inputNew & PADRdown) {
+            page = task->unk28;
+            sendSpuCommand(2);
+            page++;
+            if (page > func_801E2810()) {
+                *statePtr = 0xD;
+            } else {
+                task->unk2C = page;
+                *statePtr = 0xA;
+            }
+        } else if (inputNew & PADLleft) {
+            page = task->unk28;
+            sendSpuCommand(2);
+            page--;
+            if (page < func_801E2800()) {
+                page = func_801E2810();
+            }
+            task->unk2C = page;
+            *statePtr = 0xA;
+        } else if (inputNew & PADLright) {
+            page = task->unk28;
+            sendSpuCommand(2);
+            page++;
+            if (page > func_801E2810()) {
+                page = func_801E2800();
+            }
+            task->unk2C = page;
+            *statePtr = 0xA;
+        } else if (inputNew & PADRup) {
+            sendSpuCommand(3);
+            *statePtr = 0xD;
+        }
+        break;
+    case 0xA:
+        entry = D_801E63F8;
+        entry += task->unk2C;
+        func_801E2820(entry->pageTextureCategory, entry->pageTexture);
+        *statePtr = 0xB;
+        break;
+    case 0xB:
+        *statePtr = 0xC;
+    case 0xC:
+        task->unk24 -= 0x100;
+        if (task->unk24 <= 0) {
+            task->unk24 = 0;
+            *statePtr = 6;
+        }
+        break;
+    case 0xD:
+        *statePtr = 0xE;
+        break;
+    case 0xE:
+        task->unk20 -= 0x100;
+        if (task->unk20 <= 0) {
+            task->unk20 = 0;
+            loadOverlayWithTimCallback(9, MENU_IMAGE_ADDR);
+            loadOverlayWithTimCallback(10, MENU_UNK_801D5000_ADDR);
+            *statePtr = 0xF;
+        }
+        break;
+    case 0xF:
+        if (pollCdReadStatus() == 0) {
+            *statePtr = 0x10;
+        }
+        break;
+    case 0x10:
+        func_801F18FC(task->task);
+        func_801F0BB0();
+        break;
     }
 }
 
-/**
- * @brief Wrapper that calls func_801E6290 (triple magic menu init/update).
- */
+static void *func_801E5AF0(void *ot, PaperMatPrim *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage) {
+    s32 r0;
+    s32 g0;
+    s32 b0;
+
+    r0 = color & 0xFF;
+    g0 = (color >> 8) & 0xFF;
+    b0 = (color >> 0x10) & 0xFF;
+
+    r0 = (r0 * magPage->paperMatRed) / 128;
+    g0 = (g0 * magPage->paperMatGreen) / 128;
+    b0 = (b0 * magPage->paperMatBlue) / 128;
+
+    r0 &= 0xFF;
+    g0 &= 0xFF;
+    b0 &= 0xFF;
+
+    if (magPage->paperMatHeight == 0 || magPage->paperMatWidth == 0) {
+        return prim;
+    }
+
+    setPaperMatPrim(prim, 1, 0, 0);
+    setRGB0(prim, r0, g0, b0);
+    setXY0(prim, cfg->x + magPage->paperMatX, cfg->y + magPage->paperMatY);
+    setWH(prim, magPage->paperMatWidth, magPage->paperMatHeight);
+
+    addPrimFast(ot, prim);
+
+    return prim + 1;
+}
+
+static u8 *func_801E5C0C(s32 textId) {
+    Mngrp_string *table = (Mngrp_string *)D_801E764C;
+    return D_801E764C + table->offsets[textId];
+}
+
+static SpriteTable *func_801E5C28(void) {
+    return (SpriteTable *)MENU_IMAGE_ADDR;
+}
+
+static void *func_801E5C34(void *ot, void *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage) {
+    s32 i;
+    MagazinePageOverlay *picOverlay;
+
+    picOverlay = magPage->pictureOverlays;
+    for (i = 0; i < 4; i++, picOverlay++) {
+        if (picOverlay->id != INVALID_ID) {
+            s32 x = cfg->x + picOverlay->x;
+            s32 y = cfg->y + picOverlay->y;
+            prim = DrawSpriteFromTable(ot, prim, func_801E5C28(), picOverlay->id, x, y, color);
+        }
+    }
+    return prim;
+}
+
+static void *func_801E5D1C(void *ot, void *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage) {
+    s32 i;
+    u32 pkt;
+    MagazinePageOverlay *textOverlay;
+
+    textOverlay = magPage->textOverlays;
+    for (i = 0; i < 4; i++, textOverlay++) {
+        if (textOverlay->id != INVALID_ID) {
+            s32 x = cfg->x + textOverlay->x;
+            s32 y = cfg->y + textOverlay->y;
+            if (i & 1) {
+                pkt = getDisplayListHead();
+                storeGpuPacket((u32)prim);
+            }
+            drawMessageText(ot, x, y, func_801E5C0C(textOverlay->id));
+            if (i & 1) {
+                prim = (void *)getDisplayListHead();
+                storeGpuPacket(pkt);
+            }
+        }
+    }
+    return prim;
+}
+
+static void *func_801E5E2C(void *ot, void *head, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage) {
+    s32 clut;
+    s32 drawModeCmd;
+    s32 texWindowCmd;
+    s32 winXRaw;
+    s32 winXSignAdjust;
+    s32 winYSignAdjust;
+    s32 sliceXOffset;
+    s32 sliceWidth;
+    s32 remainingWidth;
+    s32 xOffset;
+    DR_TWIN *twin;
+    PaperMatSlicePrim *prim;
+
+    clut = getClut(512, 219);
+    winXRaw = (magPage->paperBgParamA + 896) * 4;
+    drawModeCmd = _get_mode(1, 0, getTPage(1, 0, magPage->paperBgParamA + 896, 0));
+    winXSignAdjust = winXRaw;
+    sliceXOffset = magPage->paperBgParamB;
+    if (winXSignAdjust < 0) {
+        winXSignAdjust += 255;
+    }
+    winYSignAdjust = sliceXOffset;
+    winXRaw = ((winXRaw - (winXSignAdjust & 0x3F00)) >> 3) << 0xA;
+    if (winYSignAdjust < 0) {
+        winYSignAdjust += 255;
+    }
+    texWindowCmd = winXRaw | (((sliceXOffset - (winYSignAdjust & 0x100)) >> 3) << 0xF) | 0xE200039C;
+    remainingWidth = magPage->windowWidth;
+
+    twin = head;
+    setlen(twin, 2);
+    twin->code[0] = TEXWINDOW_OFF;
+    twin->code[1] = 0;
+    addPrimFast(ot, twin);
+    head = twin + 1;
+    prim = head;
+
+    xOffset = 0;
+    while (remainingWidth > 0) {
+        sliceWidth = remainingWidth;
+        if (remainingWidth > 64) {
+            sliceWidth = 64;
+        }
+        *(u32 *)&prim->sprt.r0 = color;
+        setPaperMatSlicePrim(prim, drawModeCmd, texWindowCmd);
+        setXY0(&prim->sprt, cfg->x + xOffset, cfg->y);
+        setWH(&prim->sprt, sliceWidth, cfg->h);
+        prim->sprt.clut = clut;
+        setUV0(&prim->sprt, 0, 0);
+        remainingWidth -= sliceWidth;
+        addPrimFast(ot, prim);
+        prim++;
+        xOffset += 64;
+    }
+    return prim;
+}
+
+static void *func_801E5F5C(void *ot, void *prim, MenuDisplayConfig *cfg, u32 color, MagazinePageEntry *magPage) {
+    prim = func_801E5D1C(ot, prim, cfg, color, magPage);
+    prim = func_801E5C34(ot, prim, cfg, color, magPage);
+    prim = func_801E5AF0(ot, prim, cfg, color, magPage);
+    prim = func_8002B898(ot, prim, (RECT *)cfg, color);
+    return func_801E5E2C(ot, prim, cfg, color, magPage);
+}
+
+static void *func_801E6008(void *ot, void *prim, s32 x, s32 y, MagazinePageEntry *magPage) {
+    g_menuDisplayCfg.x = magPage->windowX + x;
+    g_menuDisplayCfg.y = magPage->windowY + y;
+    g_menuDisplayCfg.w = magPage->windowWidth;
+    g_menuDisplayCfg.h = magPage->windowHeight;
+    return func_801E5F5C(ot, prim, &g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], magPage);
+}
+
+static void *func_801E606C(void *ot, void *prim, MagazinePageEntry *magPage) {
+    u8 *navigationHint;
+    s32 x;
+    s32 y;
+    u16 width;
+    u32 menuTint;
+
+    menuTint = g_menuTint[MENU_TINT_NORMAL];
+    navigationHint = func_801F08D4(1, 0xD, 0x1C, 0);
+    width = measureMessage(navigationHint);
+    x = (336 - width) / 2;
+    x += 24;
+    y = 200;
+    prim = (void *)func_801F0FEC(ot, prim, x, y, navigationHint, DIALOG_COLOR_WHITE);
+    g_menuDisplayCfg.x = 24;
+    g_menuDisplayCfg.y = 196;
+    g_menuDisplayCfg.w = 336;
+    g_menuDisplayCfg.h = 20;
+    prim = func_8002B898(ot, prim, (RECT *)&g_menuDisplayCfg, menuTint);
+    return func_801E5E2C(ot, prim, &g_menuDisplayCfg, menuTint, magPage);
+}
+
+static void *func_801E6170(func_801E5800_arg0 *task, void *ot, void *prim) {
+    MagazinePageEntry *entry;
+
+    if (task->unk20 == 0) {
+        return prim;
+    }
+    func_801F1AFC();
+    setMenuBrightness(task->unk20 * task->unk24 / 4096);
+    setTextBrightness(task->unk20 * task->unk24 / 4096);
+    entry = D_801E63F8;
+    entry += task->unk28;
+    prim = func_801E6008(ot, prim, 0, 0, entry);
+    setMenuBrightness(task->unk20);
+    setTextBrightness(task->unk20);
+    if (entry->footerFlag != 0) {
+        prim = func_801E606C(ot, prim, entry);
+    }
+    func_801F1B10();
+    return prim;
+}
+
+static void func_801E6290(void) {
+    func_801E5800_arg0 *task;
+    s32 page;
+    MagazinePageEntry *entry;
+
+    task = func_801F179C(func_801E5800, (MenuDrawCallback)func_801E6170);
+    func_801F1D2C(0, (s32)D_801E63EC, (s32)D_801E63F8);
+    if (task != NULL) {
+        page = func_801E2800();
+        task->unk28 = page;
+        task->unk2C = page;
+        entry = &D_801E63F8[page];
+        loadSubOverlay(entry->textFileIndex + 0x57, (s32)D_801E764C);
+        func_801E2820(entry->pageTextureCategory, entry->pageTexture);
+        func_801E5800(task);
+    }
+}
+
 void func_801E6348(void) {
     func_801E6290();
 }
 
-/**
- * @brief Wrapper that calls func_801E6290 (triple magic menu init/update).
- */
 void func_801E6368(void) {
     func_801E6290();
 }
 
-/**
- * @brief Wrapper that calls func_801E6290 (triple magic menu init/update).
- */
 void func_801E6388(void) {
     func_801E6290();
 }
