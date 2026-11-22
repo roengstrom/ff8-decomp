@@ -52,6 +52,8 @@ static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y,
 static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim);
 static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim);
 static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim);
+static void *func_801F4C60(void *ot, void *prim, u32 value, s32 x, s32 y);
+static void *func_801F4CE8(void *ot, void *prim, u32 value, s32 x, s32 y);
 static void func_801F5490(s32);
 static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
 static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
@@ -1214,9 +1216,21 @@ static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim) {
     return prim;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4C60);
+static void *func_801F4C60(void *ot, void *prim, u32 value, s32 x, s32 y) {
+    u8 buffer[16];
+    u32 clut = 0x64808080;
+    intToDecStringShort(value, &buffer[0], 56);
+    prim = func_801F0884(ot, prim, (y << 0x10) | (x & 0xFFFF), &buffer[2], clut);
+    return prim;
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4CE8);
+static void *func_801F4CE8(void *ot, void *prim, u32 value, s32 x, s32 y) {
+    u8 buffer[16];
+    u32 clut = 0x64808080;
+    intToDecStringShort(value, &buffer[0], 56);
+    prim = func_801F0884(ot, prim, (y << 0x10) | (x & 0xFFFF), &buffer[0], clut);
+    return prim;
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4D70);
 
