@@ -154,6 +154,7 @@ binaries:
     - [0x2F0, rodata]
     - [0x314, c, fe_object1]
     - [0x90F4, c, fe_object1_2]
+    - [0x99B8, hasm, 99B8]
     - [0x9BB8, c, fe_object1_2b]
     - [0xDFA4, c, fe_object1_3]
     - [0xE3AC, c, fe_object1b]

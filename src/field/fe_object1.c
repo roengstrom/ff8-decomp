@@ -10,6 +10,7 @@
 #include "field/fe_object1.h"
 #include "lzs.h"
 #include "field/fe_object1_2.h"
+#include "field/99B8.h"
 #include "field/fe_object1_2b.h"
 #include "field/fe_object1_3.h"
 #include "field/fe_object1b.h"

@@ -300,35 +300,3 @@ void func_800A17B8(Oscillator *osc) {
         }
     }
 }
-
-/**
- * @brief Per-frame field-object vertex transform + clip (hand-written asm).
- *
- * Reads clip bounds from the scratchpad (@c 0x1F800100 / @c 0x1F800104 =
- * min/max X,Y as s16 pairs), walks a stride-0x10 vertex array (@c a3)
- * until @c x == @c 0x7FFF, applies a per-object translate
- * (@c 0x1F800080[idx], idx = byte at @c a3+0xC) with wraparound by the
- * modulus at @c 0x1F800110, writes the clipped X/Y to @c a1+8 / @c a1+0xA,
- * and links GPU primitives via the @c 0xFFFFFF / @c 0x03000000 /
- * @c 0xFF000000 address masks (@c a0 / @c a2, including a @c 0xE1000000
- * draw-mode packet at @c a2).
- *
- * @note Hand-written assembly (own translation unit). Forensics from the
- *       C+asm-macro reconstruction campaign (permuter/func_800A19B8/base.c,
- *       82.93%% plateau, full structural parity): (1) its @c li constants
- *       are ori-form (ASPSX expand_li) while all 166 li sites in the rest
- *       of fe_object1.c are addiu-form (--aspsx-version=2.67), assembled
- *       with different settings than this CU; (2) trapping @c add / @c sub
- *       / @c addi cluster in the wrap/window-test/advance idioms while
- *       addresses use @c addu (the classic hand-asm signed-math/address
- *       convention); (3) the tag-build @c or operand order is
- *       anti-canonical for gcc combine; (4) two branch delay slots are
- *       left as @c nop where dbr had eligible fillers; (5) the register
- *       assignment (mask=t3 allocated before hotter x=t4) is unreachable
- *       by gcc's allocno priority order. Both project compilers emit only
- *       @c addu / @c subu / @c addiu for C arithmetic (re-verified
- *       2026-07-29). @c INCLUDE_ASM builds to a 100%% byte match and is
- *       the faithful source form; the base.c reconstruction documents the
- *       semantics and the residual classes.
- */
-INCLUDE_ASM("asm/field/nonmatchings/fe_object1_2", func_800A19B8);

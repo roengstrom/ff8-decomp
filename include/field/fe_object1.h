@@ -280,7 +280,6 @@ extern s32  func_800A0E54(s32 start, s32 end, s32 total, s32 progress);
 extern s32  func_800A0EB8(s32 start, s32 end, s32 total, s32 angle);
 extern s32  func_800A0F34(SVECTOR *v, s32 *sxy);
 extern void func_800A0FB8(Vec2s *out, s16 a, s16 b);
-extern int  func_800A19B8();
 /** @brief Draws each active entity's blob shadow as a flat-shaded 8-triangle fan. */
 /**
  * @brief Shape @c func_800A29C0 sees: array of 20-byte items with five
