@@ -13,11 +13,14 @@
 #include "cdrom.h"
 #include "imgtoc.h"
 #include "memlayout.h"
-#include "overlay.h"
 #include "snd_init.h"
 #include "sound.h"
 #include "debug.h"
 #include "debug_menu.h"
+
+#ifdef ADD_OMITTED_INCLUDES
+#include "overlay.h"
+#endif
 
 typedef struct {
     /** 0x00 */ u32 *ot;

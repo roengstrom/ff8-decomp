@@ -37,8 +37,6 @@ extern s32 g_debugMenuPolyG4Count;
 extern s32 g_debugMenuSprt8Count;
 extern s32 g_debugMenuSprt16Count;
 
-// No prototype: the original called it with fewer arguments than it takes.
-void PrintDebugText();
 void ShowFirstPage(void);
 s32 UpdateDebugMenu(void);
 void func_8009A60C(void);

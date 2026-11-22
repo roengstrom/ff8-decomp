@@ -12,11 +12,14 @@
 #include "cdrom.h"
 #include "imgtoc.h"
 #include "memlayout.h"
-#include "overlay.h"
 #include "snd_init.h"
 #include "sound.h"
 #include "debug.h"
 #include "debug_menu.h"
+
+#ifdef ADD_OMITTED_INCLUDES
+#include "overlay.h"
+#endif
 
 extern DebugMenuBuffer g_debugMenuBuffers[2];
 extern s32 g_debugMenuVSyncDelta;
