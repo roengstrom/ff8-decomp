@@ -34,7 +34,7 @@ s32 func_801F58EC(s32);
 void *func_801F5A38(void *ot, void *prim, s32 x, s32 y, u32 stringType, s16 *stringIds, u32 availableStrings);
 s32 func_801F5F30(s32, s32, s32, s32, s32, s32);
 s32 func_801F5F60(s32, s32, s32, s32);
-s32 func_801F605C(s32, s32, s32, s32, s32);
+void *func_801F605C(void* ot, void* prim, s32 x, s32 y, CharMenuInfo *info);
 s32 func_801F6234(s32, s32, s32, s32, s32);
 void *MenuDrawPortrait(s32, void *, void *, s32, s32, u32);
 s32 func_801F64A4(s32, s32, s32, s32, s32, s32, s32);

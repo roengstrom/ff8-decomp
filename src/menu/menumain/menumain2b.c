@@ -1906,7 +1906,49 @@ s32 func_801F5F60(s32 ctx, s32 dl, s32 color, s32 arrows) {
     return dl;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F605C);
+void *func_801F605C(void* ot, void* prim, s32 x, s32 y, CharMenuInfo *info) {
+    s32 i;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 x2 = x;
+    s32 y2 = y;
+    cfg->iconType = ICON_COMMAND;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 84;
+    cfg->h = 64;
+    x2 += 8;
+    y2 += 7;
+    i = 0;
+    for (i = 0; i < 4; i++) {
+        u32 cmdId = info->commandIds[i];
+        u32 color = DIALOG_COLOR_WHITE;
+        if (func_801F79F8(SEALED_ITEM)
+                && (cmdId == BATTLE_CMD_UNK13 || cmdId == BATTLE_CMD_ITEM)) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_MAGIC) && cmdId == BATTLE_CMD_MAGIC) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_GF) && cmdId == BATTLE_CMD_GF) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_DRAW) && cmdId == BATTLE_CMD_DRAW) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_COMMAND_ABILITIES)
+                && i != 0 && cmdId - 2 >= 2 && cmdId != BATTLE_CMD_DRAW
+                && cmdId != BATTLE_CMD_UNK13 && cmdId != BATTLE_CMD_ITEM) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (cmdId != BATTLE_CMD_NONE) {
+            u8 *cmdName = getBattleCommandName(cmdId);
+            prim = func_801F0FEC(ot, prim, x2, y2, cmdName, color);
+        }
+        y2 += 13;
+    }
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /**
  * @brief Draw the status icons of @p mask in a 3-column grid.
