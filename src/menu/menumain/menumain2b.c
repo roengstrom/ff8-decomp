@@ -1521,7 +1521,37 @@ static void func_801F5490(MainMenuCtx *ctx) {
     func_801F1F98(ctx);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F565C);
+u32 func_801F565C(u32 charId, u32 otherChars) {
+    s32 i;
+    s32 max;
+    s32 val;
+    i = 0;
+    while (1) {
+        if (D_801FAB88[i] == PARTY_SLOT_EMPTY) {
+            return charId;
+        }
+        if (charId == D_801FAB88[i]) {
+            break;
+        }
+        i++;
+    }
+    max = i;
+restart:
+    do {
+        i--;
+        if (max == i) {
+            return charId;
+        }
+        if (i < 0) {
+            i = 8;
+        }
+        val = D_801FAB88[i];
+        if (val != PARTY_SLOT_EMPTY && otherChars & (1 << val)) {
+            return val;
+        }
+        goto restart;
+    } while (0);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F56E4);
 

@@ -112,7 +112,6 @@ extern s16 D_801FAAF6;
 extern u8 D_801FAAF8;
 extern ST_801F1B4C D_801FAB38[];
 extern s16 D_801FAB78;
-extern u8 D_801FAB88[];
 extern u16 g_menumain_partyMemberMask;
 
 static void func_801F0274(s32, u32, s32, s32);
