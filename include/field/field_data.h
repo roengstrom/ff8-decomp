@@ -192,11 +192,20 @@ typedef struct {
 typedef struct {
     /* 0x000 */ MoveStep steps[17];
     /* 0x154 */ s16 zBias;        /**< Added to the projected OTZ before the range check. */
-    /* 0x156 */ u8  pad156[0x06];
-    /* 0x15C */ u16 activeCount;
-    /* 0x15E */ u8  pad15E[0x0C];
-    /* 0x16A */ s16 flags;        /**< Non-zero above bit 6 halves the sprite scale shift. */
-    /* 0x16C */ u8  pad16C[0x08];
+    /** 0x156 */ u8 pad156[0x04];
+    /** 0x15A */ s16 maxCount; // Cap on simultaneously-active particles.
+    /** 0x15C */ s16 activeCount;
+    /** 0x15E */ s16 unk15E;
+    /** 0x160 */ s16 unk160; // unk12 bias.
+    /** 0x162 */ s16 unk162; // unk12 jitter half-range.
+    /** 0x164 */ s16 unk164; // unk16 jitter half-range.
+    /** 0x166 */ s16 unk166; // Position-X jitter.
+    /** 0x168 */ s16 unk168; // Position-Y jitter.
+    /** 0x16A */ s16 flags; // Position-Z jitter (low 7 bits). Non-zero above bit 6 halves the sprite scale shift.
+    /** 0x16C */ s16 unk16C; // Velocity-X jitter half-range.
+    /** 0x16E */ s16 unk16E; // Velocity-Y jitter half-range.
+    /** 0x170 */ s16 unk170; // Velocity-Z jitter half-range.
+    /** 0x172 */ u8 pad172[0x02];
 } MoveRecord;                     /* 0x174 = 372 bytes */
 
 /**

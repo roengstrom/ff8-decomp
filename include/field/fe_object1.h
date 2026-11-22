@@ -130,32 +130,6 @@ typedef struct {
 } ParticleSystem;
 
 /**
- * @brief Particle emitter record (one of an array within ParticleSystem).
- *
- * Stride 0x174 bytes. Indexed by emitter id from the start of @c sys.
- * Holds the emitter's spawn-rate counters and the velocity/position
- * jitter ranges used to seed each particle.
- */
-typedef struct {
-    /* 0x000 */ u8 pad000[0x14E];
-    /* 0x14E */ u8 unk14E;          /**< Reset to 0 on each call. */
-    /* 0x14F */ u8 pad14F[0x0B];
-    /* 0x15A */ s16 maxCount;       /**< Cap on simultaneously-active particles. */
-    /* 0x15C */ s16 curCount;       /**< Currently active particle count. */
-    /* 0x15E */ s16 unk15E;         /**< Cleared together with @c curCount by @c func_800A3018. */
-    /* 0x160 */ s16 unk160;         /**< Velocity-Z bias (added * 32). */
-    /* 0x162 */ s16 unk162;         /**< Velocity-Z jitter half-range. */
-    /* 0x164 */ s16 unk164;         /**< unk16 jitter half-range. */
-    /* 0x166 */ s16 unk166;         /**< Position-X jitter (* 256). */
-    /* 0x168 */ s16 unk168;         /**< Position-Y jitter (* 256). */
-    /* 0x16A */ u16 unk16A;         /**< Position-Z jitter (low 7 bits). */
-    /* 0x16C */ s16 unk16C;         /**< Velocity-X jitter half-range. */
-    /* 0x16E */ s16 unk16E;         /**< Velocity-Y jitter half-range. */
-    /* 0x170 */ s16 unk170;         /**< Velocity-Z jitter half-range. */
-    /* 0x172 */ u8 pad172[0x02];
-} Emitter; /* 0x174 = 372 bytes */
-
-/**
  * @brief Particle "view" — overlay struct positioned at @c &sys->slots[slot].
  *
  * The view's fields are at the absolute byte offsets (0x2720..0x273B) where
@@ -280,7 +254,6 @@ extern s32  func_800A0E54(s32 start, s32 end, s32 total, s32 progress);
 extern s32  func_800A0EB8(s32 start, s32 end, s32 total, s32 angle);
 extern s32  func_800A0F34(SVECTOR *v, s32 *sxy);
 extern void func_800A0FB8(Vec2s *out, s16 a, s16 b);
-extern int  func_800A19B8();
 /** @brief Draws each active entity's blob shadow as a flat-shaded 8-triangle fan. */
 /**
  * @brief Shape @c func_800A29C0 sees: array of 20-byte items with five
