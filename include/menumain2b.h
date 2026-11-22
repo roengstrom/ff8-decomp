@@ -31,6 +31,7 @@ void func_801F576C(s32, s32);
 s32 func_801F57A4(s32);
 void func_801F5868(s32, s32);
 s32 func_801F58EC(s32);
+void *func_801F5A38(void *ot, void *prim, s32 x, s32 y, u32 stringType, s16 *stringIds, u32 availableStrings);
 s32 func_801F5F30(s32, s32, s32, s32, s32, s32);
 s32 func_801F5F60(s32, s32, s32, s32);
 s32 func_801F605C(s32, s32, s32, s32, s32);

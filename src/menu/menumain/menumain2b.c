@@ -1681,7 +1681,21 @@ s32 func_801F5984(u16 *src, u16 *dst, s32 a2) {
 /* Number & String Rendering                                                */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F5A38);
+void *func_801F5A38(void *ot, void *prim, s32 x, s32 y, u32 stringType, s16 *stringIds, u32 availableStrings) {
+    s16 xOffsets[36];
+    s32 i;
+    s32 y2 = y;
+    s32 count = func_801F5984(stringIds, xOffsets, stringType);
+    y2 -= 2;
+    for (i = 0; i < count; i++) {
+        s32 x2 = x + xOffsets[i];
+        u32 mask = 1 << i;
+        u32 color = (availableStrings & mask) ? DIALOG_COLOR_WHITE : DIALOG_COLOR_GRAY;
+        u8 *text = func_801F08D4(1, stringType, stringIds[i], 0);
+        prim = drawDecodedText(ot, prim, x2, y2, text, color);
+    }
+    return prim;
+}
 
 /**
  * @brief Size and draw a text-list panel from a -1-terminated id list.
