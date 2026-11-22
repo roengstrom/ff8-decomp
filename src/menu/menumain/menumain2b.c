@@ -2033,7 +2033,27 @@ s32 func_801F6418(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
     return a2;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F64A4);
+void *func_801F64A4(void *ot, void *prim, s32 x, s32 y, CharacterData *chr, CharMenuInfo *info, s32 arg6) {
+    u32 color;
+    u8 *chrName;
+    s32 x2 = x + 40;
+    s32 y2 = y + 57;
+    prim = MenuDrawPortrait(chr->characterId, ot, prim, x2, y2, g_menuTint[0]);
+    x2 = x + 79;
+    color = func_801F3FB4(info->statusFlags);
+    chrName = getCharName(chr->characterId);
+    prim = func_801F3994(chrName, ot, prim, x2, y2, color);
+    y2 = y + 75;
+    prim = func_801F3ABC(info->currentLevel, ot, prim, x2, y2, color);
+    if (arg6 != 0) {
+        x2 = x + 143;
+        y2 = y + 73;
+        prim = func_801F6418(info->charId, ot, prim, x2, y2);
+    }
+    x2 = x + 79;
+    y2 = y + 93;
+    return func_801F3CE0(info->currentHp, info->maxHp, ot, prim, x2, y2, color);
+}
 
 /**
  * @brief Draw full character info panel.
