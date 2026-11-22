@@ -40,6 +40,7 @@ s32 func_801F64A4(s32, s32, s32, s32, s32, s32, s32);
 s32 func_801F65F0(s32, s32, s32, s32, s32, s32);
 void func_801F66B0(s32, s32, s32, s32, s32);
 s32 func_801F6768(u16, s32, s32);
+void func_801F6888(void);
 u8 *func_801F6AA4(s32);                      /**< Look up a string in menu text category 3. */
 u8 *func_801F6AD0(s32);                      /**< Look up a string in menu text category 0. */
 u8 *func_801F6AFC(s32);

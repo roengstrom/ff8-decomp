@@ -11,6 +11,7 @@ void vsyncGameHandler(void);
 void RunBattleModes(void);
 
 s32 isBossBattle(void);
+s32 addItemToInventory(s32 itemId, s32 amount);
 void addCharMaxHp(s32 partyIdx, s32 amount);
 s32 hasJunctionedAbility(s32 partySlot, s32 abilityId);
 

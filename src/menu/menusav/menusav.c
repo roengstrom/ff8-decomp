@@ -15,12 +15,17 @@
 #include "psxsdk/libetc.h"
 #include "psxsdk/kernel.h"
 #include "memcard.h"
+#include "game.h"
+#include "render.h"
+
+#ifdef ADD_OMITTED_INCLUDES
+#include "snd_init.h"
+#endif
 
 extern u8 D_801EC294;
 extern u8 D_801EC301;
 extern s32 D_8005620C;
 extern u8 D_80097424[];
-extern u8 D_801EBD5C[];
 extern u16 D_801EBD24[];
 extern s32 D_801EC2E4;
 
@@ -184,6 +189,74 @@ typedef struct {
     /** 0x13A0 */ u16 checksumCopy;
 } SaveData;
 
+typedef struct {
+    /** 0x00 */ s32 task[4];
+    /** 0x10 */ u16 unk10;
+    /** 0x12 */ u8 pad12[4];
+    /** 0x16 */ u16 unk16;
+    /** 0x18 */ u16 unk18;
+    /** 0x1A */ u16 unk1A;
+    /** 0x1C */ u8 pad1C[4];
+    /** 0x20 */ s32 unk20;
+    /** 0x24 */ s32 unk24;
+    /** 0x28 */ u8 pad28[4];
+    /** 0x2C */ s16 unk2C;
+    /** 0x2E */ s16 unk2E;
+    /** 0x30 */ s16 unk30;
+    /** 0x32 */ s16 unk32;
+    /** 0x34 */ s16 unk34;
+    /** 0x36 */ s16 unk36;
+    /** 0x38 */ s16 unk38;
+    /** 0x3A */ u8 unk3A;
+    /** 0x3B */ u8 unk3B;
+    /** 0x3C */ u8 unk3C;
+    /** 0x3D */ u8 unk3D;
+    /** 0x3E */ u8 unk3E;
+    /** 0x3F */ s8 unk3F;
+    /** 0x40 */ u8 pad40;
+    /** 0x41 */ u8 unk41;
+    /** 0x42 */ u8 unk42;
+    /** 0x43 */ u8 pad43;
+    /** 0x44 */ u8 unk44;
+    /** 0x45 */ u8 unk45;
+    /** 0x46 */ s8 unk46;
+    /** 0x47 */ s8 unk47;
+    /** 0x48 */ u8 unk48;
+    /** 0x49 */ u8 unk49;
+    /** 0x4A */ u8 unk4A;
+    /** 0x4B */ u8 unk4B;
+    /** 0x4C */ u8 pad4C[2];
+    /** 0x4E */ u8 unk4E;
+    /** 0x4F */ u8 unk4F;
+    /** 0x50 */ u8 unk50[4];
+    /** 0x54 */ s16 unk54;
+    /** 0x56 */ u8 unk56;
+} func_801E7BE8_arg0;
+
+#define FUNC_801E7BE8_UNK45_FLAG_1 (1 << 1)
+#define CHOCOBO_WORLD_FLAG_2 (1 << 2)
+
+typedef struct {
+    /** 0x00 */ u8 pad0[0x52];
+    /** 0x52 */ u8 unk52[4];
+    /** 0x56 */ u8 pad56[0x2A];
+} func_801E7BE8_sp40;
+
+typedef struct {
+    /** 0x00 */ u8 pad0[3];
+    /** 0x03 */ u8 unk3;
+    /** 0x04 */ char unk4[0xA];
+    /** 0x0E */ u8 unkE;
+    /** 0x0F */ u8 padF[0x19];
+    /** 0x28 */ s32 unk28;
+} func_801E7BE8_D_801D1000;
+
+typedef struct {
+    /** 0x00 */ u8 pad0[0x17];
+    /** 0x17 */ u8 unk17;
+    /** 0x18 */ u8 pad18[0x2C];
+} D_801EBD5C_Entry;
+
 extern u8 D_80085148[];
 extern u32 highestSaveSequence;
 extern u8 D_801EC2A0[];
@@ -193,6 +266,17 @@ extern u16 D_80083792[];
 extern char D_801EB9E0[];
 extern char D_801EB9E4[];
 extern char D_8005624C[];
+extern char D_80056260[];
+extern u8 D_801EBD3C[];
+extern u16 D_801EBD4C[];
+extern u16 D_801EBD54[];
+extern D_801EBD5C_Entry D_801EBD5C[];
+extern u8 D_801EC08C[];
+extern struct DIRENTRY D_801EC2B0;
+extern s32 D_801EC2D0;
+extern u16 D_801EC2E0;
+extern u8 D_801EC2F4;
+extern s32 D_801EC2F8;
 
 void initCardDataBlock(void);
 void initCardEventHandlers(void);
@@ -234,6 +318,19 @@ static void func_801E2CE8(SaveMenuCtx *a0, s32 a1, s32 a2);
 static s32 func_801E2ECC(SaveMenuCtx *a0, s32 a1);
 static s32 func_801E3098(SaveMenuCtx *ctx);
 static void func_801E7B18(s32 a0);
+static s32 func_801E7A84(func_801E7BE8_arg0 *a0, func_801E7BE8_D_801D1000 *a1);
+static D_801EBD5C_Entry *func_801E7B40(s32 a0);
+static void func_801E7BE8(func_801E7BE8_arg0 *arg0);
+s32 readCardCreate(s32, char *, void *, s32, s32);
+s32 func_801E760C(func_801E7BE8_arg0 *);
+s32 func_801E76C4(func_801E7BE8_arg0 *, func_801E7BE8_D_801D1000 *);
+void func_801E7830(func_801E7BE8_D_801D1000 *);
+void func_801E7938(func_801E7BE8_arg0 *, s32, s32);
+s32 func_801E79CC(func_801E7BE8_arg0 *, func_801E7BE8_D_801D1000 *);
+void func_801E7B5C(func_801E7BE8_arg0 *);
+s32 func_801EAE98(s32);
+s32 func_801EB00C(s32, s32, s32, s32);
+s32 func_801EB054(s32, s32);
 
 /**
  * @brief Compute save slot data address.
@@ -2044,7 +2141,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7268); /* 0x158 */
 
 /** @brief Call memzero16 with g_gameState and 0x13A. */
 static void func_801E73C0(void) {
-    memzero16(&g_gameState, 0x13A);
+    memzero16((s32 *)&g_gameState, 0x13A);
 }
 
 /**
@@ -2232,12 +2329,12 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E79CC); /* 0xB8 */
  * @param a1 Second parameter for func_8004F200.
  * @return Card data result, or 2 if successful.
  */
-s32 func_801E7A84(u8 *a0, s32 a1) {
+static s32 func_801E7A84(func_801E7BE8_arg0 *a0, func_801E7BE8_D_801D1000 *a1) {
     s32 s0 = 0;
     s32 result;
 
     do {
-        if (func_8004F200(a0[0x3C] << 4, a1, 0x280, 0x80) != 0) {
+        if (func_8004F200(a0->unk3C << 4, a1, 0x280, 0x80) != 0) {
             sfxUpdate(0, 0, &result);
             break;
         }
@@ -2262,9 +2359,9 @@ static void func_801E7B18(s32 a0) {
  * @return Address of D_801EBD5C + a0 * 68.
  *
  */
-s32 func_801E7B40(s32 a0) {
-    s32 base = D_801EBD5C;
-    return base + a0 * 68;
+static D_801EBD5C_Entry *func_801E7B40(s32 a0) {
+    D_801EBD5C_Entry *base = D_801EBD5C;
+    return &base[a0];
 }
 
 /**
@@ -2293,7 +2390,1106 @@ s32 func_801E7B40(s32 a0) {
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7B5C); /* 0x8C */
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E7BE8); /* 0x1C1C */
+static void func_801E7BE8(func_801E7BE8_arg0 *arg0) {
+    u16 temp_fp;
+    u16 temp_s2;
+    u16 var_v0;
+    u16 *temp_s6;
+
+    temp_fp = g_menuDisplayCfg.inputRepeat;
+    temp_s2 = g_menuDisplayCfg.inputNew;
+    temp_s6 = &arg0->unk10;
+    var_v0 = *temp_s6;
+loop_1:
+    switch (var_v0) {
+    case 0x0:
+        arg0->unk20 = func_801E74CC(0);
+        *temp_s6 = 1;
+        break;
+    case 0x1:
+        arg0->unk2C += 0x100;
+        if (arg0->unk2C >= 0x1000) {
+            arg0->unk2C = 0x1000;
+            if (pollCdReadStatus() == 0) {
+                *temp_s6 = 2;
+            }
+        }
+        break;
+    case 0x2:
+        arg0->unk56 = 0;
+        arg0->unk20 = func_801E74CC(0);
+        *temp_s6 = 3;
+        break;
+    case 0x3:
+        *temp_s6 = 4;
+        break;
+    case 0x4: {
+        s32 temp_v0;
+
+        func_801EAE74();
+        do {
+            temp_v0 = func_801EAE98(arg0->unk3C << 4);
+        } while (temp_v0 == -1);
+        temp_v0 = func_801E7524(temp_v0);
+        if (temp_v0 < 0 || temp_v0 >= 2) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+        } else {
+            arg0->unk3E = 0;
+            initCardEventHandlers();
+            temp_v0 = pollCardReady(arg0->unk3C << 4);
+            switch (temp_v0) {
+            case 2:
+                arg0->unk3E = 1;
+            case 0:
+                *temp_s6 = 5;
+                break;
+            default:
+                arg0->unk24 = func_801E74CC(0xA);
+                arg0->unk16 = 0x46;
+                arg0->unk18 = 0x46;
+                *temp_s6 = 0x4A;
+                break;
+            }
+        }
+        break;
+    }
+    case 0x5: {
+        s32 temp_v0;
+
+        if (arg0->unk3E == 0) {
+            D_801EC2B0.name[0] = 0;
+            temp_v0 = openFirstFileRetry(arg0->unk3C << 4, D_8005624C, &D_801EC2B0);
+        } else {
+            temp_v0 = 0;
+        }
+        if (temp_v0 == 0) {
+            D_801EC2D0 = 0xFFFF;
+            *temp_s6 = 6;
+        } else {
+            *temp_s6 = 0x1E;
+        }
+        break;
+    }
+    case 0x6: {
+        struct DIRENTRY sp18;
+        s32 var_s0;
+        s32 temp_v0;
+
+        if (arg0->unk3E == 0) {
+            sp18.name[0] = 0;
+            temp_v0 = openFirstFileRetry(arg0->unk3C << 4, "*", &sp18);
+            for (var_s0 = 0; temp_v0 != 0; temp_v0 = cardNextFile(&sp18)) {
+                var_s0 += sp18.size;
+            }
+        } else {
+            var_s0 = 0;
+        }
+        arg0->unk42 = 0xF - var_s0 / 0x2000;
+        if (arg0->unk42 >= 7) {
+            *temp_s6 = 7;
+        } else {
+            arg0->unk24 = func_801E74CC(2);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+        }
+        break;
+    }
+    case 0x7:
+        func_801EAE74();
+        playSoundEffect(0x10);
+        arg0->unk3F = 0;
+        func_801F728C(func_801E74CC(1), 0x46);
+        arg0->unk3D = 1;
+        loadOverlayWithTimCallback(0xB4, 0x801D3000);
+        D_801EC2F4 = 1;
+        arg0->unk44 = 0;
+        *temp_s6 = 8;
+    case 0x8: {
+        u32 temp_s0;
+
+        temp_s0 = func_801E7524(func_801EAE98(arg0->unk3C << 4));
+        func_801E7B5C(arg0);
+        // The result is held unsigned and compared signed. A signed variable makes gcc merge the two compares.
+        if ((s32)temp_s0 >= 2 || (s32)temp_s0 < -1) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+            break;
+        }
+        arg0->unk3F = func_801F6768(temp_fp, 2, arg0->unk3F);
+        func_801F6F88(arg0->unk3F);
+        if (temp_s2 & PADRdown) {
+            sendSpuCommand(2);
+            arg0->unk3D = 0;
+            if (arg0->unk3F != 0) {
+                *temp_s6 = 0x46;
+            } else {
+                *temp_s6 = 0xA;
+            }
+        }
+        if (temp_s2 & PADRup) {
+            sendSpuCommand(3);
+            *temp_s6 = 0x46;
+        }
+        break;
+    }
+    case 0x9:
+        loadOverlayWithTimCallback(0xB4, 0x801D3000);
+        D_801EC2F4 = 1;
+        arg0->unk44 = 0;
+        *temp_s6 = 0xA;
+        break;
+    case 0xA:
+        func_801EAE4C();
+        *temp_s6 = 0xB;
+        break;
+    case 0xB: {
+        s32 temp_v0;
+
+        func_801E7B5C(arg0);
+        if ((temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4))) >= 2 || temp_v0 < -1) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+            break;
+        }
+        if (arg0->unk44 == 3) {
+            if (arg0->unk3E == 0) {
+                *temp_s6 = 0x13;
+            } else {
+                *temp_s6 = 0xC;
+            }
+        }
+        break;
+    }
+    case 0xC: {
+        s32 temp_s0;
+
+        arg0->unk20 = 0;
+        playSoundEffect(0x10);
+        temp_s0 = func_801E74CC(arg0->unk3C + 8);
+        func_801EAE74();
+        arg0->unk3F = 1;
+        func_801F728C(temp_s0, 0x37);
+        arg0->unk3D = 1;
+        *temp_s6 = 0xD;
+    }
+    case 0xD: {
+        s32 temp_v0;
+
+        if ((temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4))) >= 2 || temp_v0 < -1) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+            break;
+        }
+        arg0->unk3F = func_801F6768(temp_fp, 2, arg0->unk3F);
+        func_801F6F88(arg0->unk3F);
+        if (temp_s2 & PADRdown) {
+            sendSpuCommand(2);
+            arg0->unk3D = 0;
+            if (arg0->unk3F != 0) {
+                *temp_s6 = 0x46;
+            } else {
+                arg0->unk24 = func_801E2C90(0xD);
+                arg0->unk30 = 1;
+                *temp_s6 = 0xE;
+            }
+            if (temp_s2 & PADRup) {
+                sendSpuCommand(3);
+                *temp_s6 = 0x46;
+            }
+        }
+        break;
+    }
+    case 0xE:
+        *temp_s6 = 0xF;
+        break;
+    case 0xF:
+        *temp_s6 = 0x10;
+        break;
+    case 0x10:
+        if (func_800379AC(arg0->unk3C << 4) == 1) {
+            *temp_s6 = 0x11;
+        } else {
+            arg0->unk24 = func_801E74CC(0x2A);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+        }
+        break;
+    case 0x11:
+        playSoundEffect(0x10);
+        arg0->unk24 = func_801E2C90(0xE);
+        arg0->unk30 = 0x3C;
+        *temp_s6 = 0x12;
+        break;
+    case 0x12:
+        arg0->unk30--;
+        if (temp_s2 & (PADRup | PADRdown)) {
+            func_801F7BEC(temp_s2);
+            arg0->unk30 = 0;
+        }
+        if (arg0->unk30 <= 0) {
+            *temp_s6 = 0x13;
+        }
+        break;
+    case 0x13:
+        arg0->unk4A = 0;
+        arg0->unk20 = func_801E74CC(0x14);
+        arg0->unk41 = 1;
+        arg0->unk2E = 0;
+        arg0->unk4B = 0;
+        *temp_s6 = 0x14;
+        break;
+    case 0x14:
+        arg0->unk2E += 0x199;
+        if (arg0->unk2E >= 0x1000) {
+            arg0->unk2E = 0x1000;
+            *temp_s6 = 0x15;
+        }
+        break;
+    case 0x15:
+        *temp_s6 = 0x16;
+        break;
+    case 0x16:
+        *temp_s6 = 0x17;
+        break;
+    case 0x17: {
+        func_801E7BE8_sp40 sp40;
+        s32 temp_s0;
+        s32 temp_s0_2;
+        s32 temp_s0_3;
+        s32 var_s3;
+        s32 var_s3_2;
+        s32 var_s5;
+        s32 temp_v0;
+
+        var_s5 = arg0->unk4B << 0xE;
+        var_s3 = 0x4000;
+        if (arg0->unk4B == 2) {
+            var_s3 = 0x6000;
+        }
+        if (arg0->unk4B == 0) {
+            temp_s0 = func_801E2824();
+            temp_v0 = createCardFile(arg0->unk3C << 4, D_8005624C, 0xE000);
+            if (temp_v0 == -1) {
+                var_v0 = 0x1D;
+                goto loop_1;
+            }
+            if (temp_v0 == 2 && readCardCreate(arg0->unk3C << 4, D_8005624C, &sp40, 0x80, 0) == 0x80 && compareBytes(sp40.unk52, "MCX0", 4) != 0) {
+                arg0->unk41 = 0;
+                arg0->unk20 = 0;
+                arg0->unk4A = 1;
+                loadOverlayWithTimCallback(9, 0x801D5000);
+                func_801EAE74();
+                *temp_s6 = 0x20;
+                break;
+            }
+            btlMemcpyForward(func_801E282C(), (void *)0x801D1000, temp_s0);
+            ((func_801E7BE8_D_801D1000 *)0x801D1000)->unk3 = 7;
+            copyString(((func_801E7BE8_D_801D1000 *)0x801D1000)->unk4, D_80056260);
+            func_801EB00C(1, arg0->unk3C << 4, 1, 0x36);
+            temp_v0 = writeCardSector(arg0->unk3C << 4, D_8005624C, 0x801D1000, temp_s0, 0);
+            var_s3 -= temp_v0;
+            if (temp_v0 != temp_s0) {
+                func_801EB054(1, arg0->unk3C << 4);
+                var_v0 = 0x1D;
+                goto loop_1;
+            }
+            var_s5 += temp_v0;
+        }
+        if (writeCardSector(arg0->unk3C << 4, D_8005624C, var_s5 + 0x801D1800, var_s3, var_s5) != var_s3) {
+            func_801EB054(1, arg0->unk3C << 4);
+            var_v0 = 0x1D;
+            goto loop_1;
+        }
+        if (arg0->unk4B == 2) {
+            var_s3_2 = 0x80;
+            temp_s0_2 = func_801E2824() - 0x80;
+            if (writeCardSector(arg0->unk3C << 4, D_8005624C, 0x801D1880, temp_s0_2, var_s3_2) != temp_s0_2) {
+                func_801EB054(1, arg0->unk3C << 4);
+                var_v0 = 0x1D;
+                goto loop_1;
+            }
+            temp_s0_3 = writeCardSector(arg0->unk3C << 4, D_8005624C, 0x801D1800, 0x80, 0);
+            func_801EB054(1, arg0->unk3C << 4);
+            if (temp_s0_3 != var_s3_2) {
+                var_v0 = 0x1D;
+                goto loop_1;
+            }
+            arg0->unk20 = func_801E74CC(0x1A);
+            playSoundEffect(0x13);
+        }
+        func_801EAE74();
+        *temp_s6 = 0x18;
+        break;
+    }
+    case 0x18: {
+        s32 temp_v0;
+
+        temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4));
+        if (temp_v0 != -1 && temp_v0 != 0) {
+            var_v0 = 0x1D;
+            goto loop_1;
+        }
+        arg0->unk54 = D_801EBD54[arg0->unk4B];
+        *temp_s6 = 0x19;
+        break;
+    }
+    case 0x19: {
+        s32 temp_v0;
+
+        temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4));
+        if (temp_v0 != -1 && temp_v0 != 0) {
+            var_v0 = 0x1D;
+            goto loop_1;
+        }
+        if (arg0->unk4B == 2 && (temp_s2 & PADRdown)) {
+            sendSpuCommand(2);
+            arg0->unk54 = 0;
+        }
+        if (--arg0->unk54 < 0) {
+            *temp_s6 = 0x1A;
+        }
+        break;
+    }
+    case 0x1A: {
+        s32 temp_v0;
+
+        temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4));
+        if (temp_v0 != -1 && temp_v0 != 0) {
+            var_v0 = 0x1D;
+            goto loop_1;
+        }
+        arg0->unk2E -= 0x199;
+        if (arg0->unk2E <= 0) {
+            arg0->unk2E = 0;
+            arg0->unk4B++;
+            if (arg0->unk4B >= 3) {
+                arg0->unk41 = 0;
+                *temp_s6 = 0x1C;
+            } else {
+                *temp_s6 = 0x1B;
+            }
+        }
+        break;
+    }
+    case 0x1B: {
+        s32 temp_v0;
+
+        temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4));
+        if (temp_v0 != -1 && temp_v0 != 0) {
+            var_v0 = 0x1D;
+            goto loop_1;
+        }
+        arg0->unk2E += 0x199;
+        if (arg0->unk2E >= 0x1000) {
+            arg0->unk2E = 0x1000;
+            func_801EAE4C();
+            *temp_s6 = 0x16;
+        }
+        break;
+    }
+    case 0x1C: {
+        s32 temp_s0;
+
+        temp_s0 = func_801E74CC(0x1A);
+        arg0->unk4A = 1;
+        arg0->unk20 = temp_s0;
+        if (D_801EC2F4 != 0) {
+            loadOverlayWithTimCallback(9, 0x801D5000);
+            D_801EC2F4 = 0;
+        }
+        *temp_s6 = 2;
+        break;
+    }
+    case 0x1D:
+        arg0->unk41 = 0;
+        arg0->unk20 = 0;
+        arg0->unk24 = func_801E74CC(7);
+        arg0->unk16 = 0x46;
+        arg0->unk18 = 0x46;
+        *temp_s6 = 0x4A;
+        break;
+    case 0x1E: {
+        u32 spC0;
+        s32 var_a1;
+
+        initCardEventHandlers();
+        func_801EAE4C();
+        if (func_800509C0(arg0->unk3C << 4, &D_801EC2E0) == 0) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+        } else {
+            sfxUpdate(0, 0, &spC0);
+            var_a1 = D_801EC2E0;
+            switch (spC0) {
+            case 0:
+            case 3:
+                if (var_a1 != 0 && var_a1 != D_801EC2D0 / 64) {
+                    arg0->unk24 = func_801E74CC(4);
+                    arg0->unk16 = 0x46;
+                    arg0->unk18 = 0x46;
+                    *temp_s6 = 0x4A;
+                } else {
+                    *temp_s6 = var_a1 == 0 ? 0x21 : 0x24;
+                }
+                break;
+            case 1:
+            case 2:
+            default:
+                arg0->unk24 = func_801E74CC(0xA);
+                arg0->unk16 = 0x46;
+                arg0->unk18 = 0x46;
+                *temp_s6 = 0x4A;
+                break;
+            }
+        }
+        break;
+    }
+    case 0x1F:
+        *temp_s6 = 0x46;
+        break;
+    case 0x20: {
+        s32 temp_v0;
+
+        if ((temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4))) >= 2 || temp_v0 < -1) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+            break;
+        }
+        if (pollCdReadStatus() == 0) {
+            *temp_s6 = 2;
+        }
+        break;
+    }
+    case 0x21: {
+        s32 var_s0;
+        s32 var_s1;
+
+        playSoundEffect(0x10);
+        var_s1 = func_801E74CC(5);
+        func_801EAE74();
+        arg0->unk3F = 0;
+        var_s0 = 0x42;
+        if (GetGameVersion() == VERSION_SPAIN) {
+            var_s0 = 0x38;
+        }
+        func_801F728C(var_s1, var_s0);
+        arg0->unk3D = 1;
+        *temp_s6 = 0x22;
+        break;
+    }
+    case 0x22: {
+        s32 temp_v0;
+
+        if ((temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4))) >= 2 || temp_v0 < -1) {
+            arg0->unk24 = func_801E74CC(0xA);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+            break;
+        }
+        arg0->unk3F = func_801F6768(temp_fp, 2, arg0->unk3F);
+        func_801F6F88(arg0->unk3F);
+        if (temp_s2 & PADRdown) {
+            sendSpuCommand(2);
+            arg0->unk3D = 0;
+            if (arg0->unk3F != 0) {
+                *temp_s6 = 0x46;
+            } else {
+                *temp_s6 = 0x23;
+            }
+        }
+        if (temp_s2 & PADRup) {
+            sendSpuCommand(3);
+            *temp_s6 = 0x46;
+        }
+        break;
+    }
+    case 0x23: {
+        func_801E7BE8_sp40 spC8;
+        u32 sp148;
+        s32 temp_v0;
+
+        temp_v0 = readCardCreate(arg0->unk3C << 4, D_8005624C, &spC8, 0x80, 0);
+        sp148 = 2;
+        if (temp_v0 == 0x80) {
+            if (compareBytes(spC8.unk52, "MCX0", 4) != 0) {
+                func_8004EC64(arg0->unk3C << 4, D_801EC2D0 / 64, 0);
+                sfxUpdate(0, 0, &sp148);
+            } else {
+                func_801F728C(func_801E74CC(0x1B), 0x42);
+                arg0->unk16 = 9;
+                arg0->unk18 = 0x46;
+                arg0->unk1A = 0x46;
+                *temp_s6 = 0x48;
+                break;
+            }
+        }
+        if (sp148 == 0) {
+            VSync(4);
+            *temp_s6 = 2;
+        } else {
+            arg0->unk24 = func_801E74CC(0x13);
+            arg0->unk16 = 0x46;
+            arg0->unk18 = 0x46;
+            *temp_s6 = 0x4A;
+        }
+        break;
+    }
+    case 0x24:
+        func_801E7598();
+        func_801EAE74();
+        arg0->unk32 = 0x1000;
+        arg0->unk45 = 8;
+        *temp_s6 = 0x25;
+        break;
+    case 0x25:
+        if (pollCdReadStatus() == 0) {
+            var_v0 = *temp_s6 = 0x26;
+            goto loop_1;
+        }
+        break;
+    case 0x26:
+        arg0->unk32 -= 0xAA;
+        func_801E760C(arg0);
+        if (arg0->unk45 & FUNC_801E7BE8_UNK45_FLAG_1) {
+            arg0->unk46 = 1;
+        } else {
+            arg0->unk46 = 0;
+        }
+        if (arg0->unk32 <= 0) {
+            arg0->unk32 = 0;
+            *temp_s6 = 0x27;
+        }
+        func_801E7938(arg0, 1, arg0->unk46);
+        break;
+    case 0x27: {
+        s32 temp_s0;
+
+        arg0->unk56 = 0;
+        arg0->unk46 = func_801F6768(temp_fp, 4, arg0->unk46);
+        func_801E7938(arg0, 1, arg0->unk46);
+        temp_s0 = func_801E760C(arg0);
+        arg0->unk20 = func_801E74F8(D_801EBD4C[arg0->unk46]);
+        if (temp_s0 == 1) {
+            arg0->unk32 = 0x1000;
+            *temp_s6 = 2;
+            break;
+        }
+        if (temp_s2 & PADRup) {
+            sendSpuCommand(3);
+            *temp_s6 = 0x46;
+        }
+        if (temp_s2 & PADRdown) {
+            if ((arg0->unk45 >> arg0->unk46) & 1) {
+                switch (arg0->unk46) {
+                case 0:
+                    var_v0 = 0x28;
+                    goto loop_1;
+                case 1:
+                    sendSpuCommand(2);
+                    var_v0 = 0x2D;
+                    goto loop_1;
+                case 2:
+                    sendSpuCommand(2);
+                    var_v0 = 0x2A;
+                    goto loop_1;
+                case 3:
+                    sendSpuCommand(2);
+                    var_v0 = 0x36;
+                    goto loop_1;
+                }
+            } else {
+                sendSpuCommand(5);
+            }
+        }
+        break;
+    }
+    case 0x28: {
+        func_801E7BE8_D_801D1000 *var_s0;
+
+        var_s0 = (func_801E7BE8_D_801D1000 *)0x801D1000;
+        func_801EAE4C();
+        if (func_801E79CC(arg0, var_s0) == 0) {
+            if (var_s0->unkE != 0) {
+                sendSpuCommand(5);
+                arg0->unk24 = func_801E74CC(0x15);
+                arg0->unk16 = 0x27;
+                arg0->unk18 = 2;
+                *temp_s6 = 0x4A;
+                break;
+            }
+        } else {
+            func_801EAE74();
+            arg0->unk24 = func_801E74CC(0xC);
+            arg0->unk16 = 0x27;
+            arg0->unk18 = 2;
+            *temp_s6 = 0x4A;
+            break;
+        }
+        sendSpuCommand(2);
+        func_801E7830(var_s0);
+        if (func_801E7A84(arg0, var_s0) != 0) {
+            func_801EAE74();
+            arg0->unk24 = func_801E74CC(0xC);
+            arg0->unk16 = 0x24;
+            arg0->unk18 = 2;
+            *temp_s6 = 0x4A;
+        } else {
+            func_801E2814();
+            func_801E78FC();
+            *temp_s6 = 0x29;
+        }
+        break;
+    }
+    case 0x29:
+        func_801EAE74();
+        var_v0 = *temp_s6 = 0x27;
+        goto loop_1;
+    case 0x2A: {
+        s32 temp_v0;
+        func_801E7BE8_D_801D1000 *var_s0;
+
+        var_s0 = (func_801E7BE8_D_801D1000 *)0x801D1000;
+        func_801EAE4C();
+        arg0->unk56 = 1;
+        if (func_801E79CC(arg0, var_s0) == 0) {
+            temp_v0 = 0x16;
+            if (var_s0->unkE != 0) {
+                temp_v0 = 0x17;
+            }
+            func_801F728C(func_801E74CC(temp_v0), 0x3E);
+            arg0->unk16 = 0x2B;
+            arg0->unk18 = 0x27;
+            arg0->unk1A = 0x27;
+            *temp_s6 = 0x48;
+        } else {
+            arg0->unk24 = func_801E74CC(0xC);
+            arg0->unk16 = 0x27;
+            arg0->unk18 = 2;
+            *temp_s6 = 0x4A;
+        }
+        break;
+    }
+    case 0x2B: {
+        s32 temp_s0;
+
+        arg0->unk56 = 0;
+        func_801E7830((func_801E7BE8_D_801D1000 *)0x801D1000);
+        temp_s0 = func_801E7550();
+        ((func_801E7BE8_D_801D1000 *)0x801D1000)->unk28 = temp_s0;
+        if (func_801E7A84(arg0, (func_801E7BE8_D_801D1000 *)0x801D1000) != 0) {
+            func_801EAE74();
+            arg0->unk24 = func_801E74CC(0xC);
+            arg0->unk16 = 0x24;
+            arg0->unk18 = 2;
+            *temp_s6 = 0x4A;
+        } else {
+            func_801E2814();
+            func_801E78FC();
+            func_801E760C(arg0);
+            ((ChocoboWorldData *)getChocoboWorldPtr())->associatedSaveId = temp_s0;
+            *temp_s6 = 0x2C;
+        }
+        break;
+    }
+    case 0x2C:
+        func_801EAE74();
+        *temp_s6 = 0x27;
+        break;
+    case 0x2D: {
+        s32 temp_s0;
+        func_801E7BE8_D_801D1000 *var_s1;
+
+        func_801E7938(arg0, 1, arg0->unk46);
+        var_s1 = (func_801E7BE8_D_801D1000 *)0x801D1000;
+        temp_s0 = func_801E79CC(arg0, var_s1);
+        arg0->unk24 = func_801E74CC(0xC);
+        if (temp_s0 == 0) {
+            if (func_801E76C4(arg0, var_s1) == 0) {
+                arg0->unk24 = func_801E74CC(0x18);
+            } else {
+                var_s1->unkE = 3;
+                if (func_801E7A84(arg0, var_s1) == 0) {
+                    var_s1->unk28 = func_801E7550();
+                    var_s1->unkE = 0;
+                    func_801E2814();
+                    *temp_s6 = 0x2E;
+                    break;
+                }
+            }
+        }
+        arg0->unk16 = 0x27;
+        arg0->unk18 = 2;
+        *temp_s6 = 0x4A;
+        break;
+    }
+    case 0x2E: {
+        ChocoboWorldData *sp14C;
+        u8 *temp_v1;
+        u8 *var_s1;
+        u8 *var_s2;
+        s32 var_s3;
+        u8 *var_s5;
+        u8 *var_s8;
+        s32 var_s0;
+        s32 var_s1_2;
+
+        sp14C = (ChocoboWorldData *)getChocoboWorldPtr();
+        func_801E7938(arg0, 1, arg0->unk46);
+        var_s5 = (u8 *)0x801D3000;
+        for (var_s0 = 0; var_s0 < 0xC7; var_s0++) {
+            *var_s5 = 0;
+            var_s5++;
+        }
+        var_s3 = 0;
+        var_s8 = D_801EC08C;
+        var_s5 = (u8 *)0x801D3000;
+        for (var_s0 = 0; var_s0 < 4; var_s0++) {
+            for (var_s1_2 = 0; var_s1_2 < arg0->unk50[var_s0]; var_s1_2++) {
+                temp_v1 = &var_s5[(var_s8 + var_s0)[(func_801EB0B8() % 128) * 4]];
+                (*temp_v1)++;
+                if (*temp_v1 >= 100) {
+                    *temp_v1 = 100;
+                }
+                var_s3++;
+            }
+        }
+        if (arg0->unk49 != 0) {
+            var_s3++;
+            var_s5[0x41]++;
+        }
+        if (var_s3 == 0) {
+            VSync(4);
+            *temp_s6 = 0x27;
+        } else {
+            var_s2 = (u8 *)0x801D3000;
+            var_s1 = (u8 *)0x801D3100;
+            var_s3 = 0;
+            for (var_s0 = 0; var_s0 < 0xC7; var_s0++) {
+                if (*var_s2 != 0) {
+                    if (var_s0 == 0x64) {
+                        setFieldFlag(0x7B);
+                    }
+                    if (var_s0 == 0x41 && !(sp14C->flags & CHOCOBO_WORLD_FLAG_2)) {
+                        var_s0 = 0x6E;
+                    }
+                    *var_s1 = var_s0;
+                    var_s1++;
+                    var_s3++;
+                    *var_s1 = *var_s2;
+                    var_s1++;
+                }
+                var_s2++;
+            }
+            arg0->unk48 = var_s3;
+            *temp_s6 = 0x2F;
+        }
+        break;
+    }
+    case 0x2F:
+        arg0->unk20 = func_801E74CC(0x12);
+        arg0->unk3A = 0;
+        arg0->unk34 = 0x1000;
+        func_801E760C(arg0);
+        *temp_s6 = 0x30;
+    case 0x30:
+        func_801E7938(arg0, 0, arg0->unk46);
+        func_801E760C(arg0);
+        arg0->unk34 -= 0xAA;
+        if (arg0->unk34 <= 0) {
+            arg0->unk34 = 0;
+            *temp_s6 = 0x31;
+        }
+        break;
+    case 0x31:
+        func_801E760C(arg0);
+        func_801E7938(arg0, 0, arg0->unk46);
+        *temp_s6 = 0x32;
+        break;
+    case 0x32:
+        func_801E760C(arg0);
+        func_801E7938(arg0, 0, arg0->unk46);
+        if (temp_s2 & PADRdown) {
+            sendSpuCommand(8);
+            if ((arg0->unk3A + 1) * 11 >= arg0->unk48) {
+                *temp_s6 = 0x34;
+            } else {
+                arg0->unk3B = arg0->unk3A;
+                arg0->unk38 = 0xE67;
+                arg0->unk3A++;
+                *temp_s6 = 0x33;
+            }
+        }
+        break;
+    case 0x33:
+        func_801E760C(arg0);
+        arg0->unk38 -= 0x199;
+        if (arg0->unk38 <= 0) {
+            arg0->unk38 = 0;
+            *temp_s6 = 0x32;
+        }
+        if (temp_s2 & PADRdown) {
+            arg0->unk38 = 0;
+            var_v0 = 0x32;
+            goto loop_1;
+        }
+        func_801E7938(arg0, 0, arg0->unk46);
+        break;
+    case 0x34: {
+        u8 temp_a0;
+        u8 temp_a1;
+        u8 *var_s0;
+        s32 var_s1;
+
+        var_s0 = (u8 *)0x801D3100;
+        arg0->unk20 = 0;
+        for (var_s1 = 0; var_s1 < arg0->unk48; var_s1++) {
+            temp_a0 = *var_s0;
+            var_s0++;
+            temp_a1 = *var_s0;
+            var_s0++;
+            addItemToInventory(temp_a0, temp_a1);
+        }
+        func_801E760C(arg0);
+        func_801F6888();
+        *temp_s6 = 0x35;
+    }
+    case 0x35:
+        func_801E7938(arg0, 0, arg0->unk46);
+        func_801E760C(arg0);
+        arg0->unk34 += 0xAA;
+        if (arg0->unk34 >= 0x1000) {
+            arg0->unk34 = 0x1000;
+            *temp_s6 = 0x27;
+        }
+        break;
+    case 0x36:
+        arg0->unk4F = 0;
+        *temp_s6 = 0x37;
+        func_801E7938(arg0, 1, arg0->unk46);
+        break;
+    case 0x37:
+        func_801E7B18(func_801E7B40(D_801EBD3C[arg0->unk4F])->unk17);
+        D_801EC2F4 = 1;
+        *temp_s6 = 0x38;
+    case 0x38:
+        func_801E760C(arg0);
+        arg0->unk36 -= 0x199;
+        if (arg0->unk36 <= 0) {
+            arg0->unk36 = 0;
+            arg0->unk4B = D_801EBD3C[arg0->unk4F];
+            *temp_s6 = 0x39;
+        }
+        func_801E7938(arg0, 1, arg0->unk46);
+        break;
+    case 0x39:
+        if (pollCdReadStatus() == 0) {
+            *temp_s6 = 0x3A;
+        }
+        break;
+    case 0x3A:
+        loadTimImage((u8 *)0x801D3000);
+        arg0->unk41 = 1;
+        arg0->unk20 = func_801E74CC(0x25);
+        *temp_s6 = 0x3B;
+        break;
+    case 0x3B:
+        func_801E760C(arg0);
+        arg0->unk2E += 0x199;
+        if (arg0->unk2E >= 0x1000) {
+            arg0->unk2E = 0x1000;
+            *temp_s6 = 0x3C;
+        }
+        break;
+    case 0x3C:
+        *temp_s6 = 0x3D;
+    case 0x3D: {
+        s32 temp_s0;
+
+        temp_s0 = arg0->unk4F;
+        arg0->unk4F = func_801F6800(temp_fp, arg0->unk4E, temp_s0);
+        func_801E760C(arg0);
+        if (arg0->unk4F != temp_s0) {
+            *temp_s6 = 0x3E;
+        }
+        if (temp_s2 & PADRup) {
+            sendSpuCommand(3);
+            *temp_s6 = 0x41;
+        }
+        break;
+    }
+    case 0x3E:
+        func_801E7B18(func_801E7B40(D_801EBD3C[arg0->unk4F])->unk17);
+        *temp_s6 = 0x3F;
+        break;
+    case 0x3F:
+        func_801E760C(arg0);
+        arg0->unk2E -= 0x199;
+        if (arg0->unk2E <= 0) {
+            arg0->unk2E = 0;
+            arg0->unk4B = D_801EBD3C[arg0->unk4F];
+            *temp_s6 = 0x40;
+        }
+        break;
+    case 0x40:
+        func_801E760C(arg0);
+        if (pollCdReadStatus() == 0) {
+            *temp_s6 = 0x3A;
+        }
+        break;
+    case 0x41:
+        loadSubOverlay(9, 0x801D5000);
+        *temp_s6 = 0x42;
+    case 0x42:
+        func_801E760C(arg0);
+        arg0->unk2E -= 0x199;
+        if (arg0->unk2E <= 0) {
+            arg0->unk2E = 0;
+            *temp_s6 = 0x43;
+        }
+        break;
+    case 0x43:
+        func_801E760C(arg0);
+        arg0->unk41 = 0;
+        *temp_s6 = 0x44;
+        break;
+    case 0x44:
+        func_801E760C(arg0);
+        if (pollCdReadStatus() == 0) {
+            loadTimImage((u8 *)0x801D5000);
+            D_801EC2F4 = 0;
+            arg0->unk20 = func_801E74F8(D_801EBD3C[arg0->unk4F]);
+            if (arg0->unk45 == 8) {
+                arg0->unk32 = 0x1000;
+                arg0->unk36 = 0x1000;
+                arg0->unk4A = 1;
+                *temp_s6 = 2;
+            } else {
+                *temp_s6 = 0x45;
+            }
+        }
+        break;
+    case 0x45:
+        func_801E760C(arg0);
+        arg0->unk36 += 0x199;
+        if (arg0->unk36 >= 0x1000) {
+            arg0->unk36 = 0x1000;
+            *temp_s6 = 0x27;
+        }
+        func_801E7938(arg0, 1, arg0->unk46);
+        break;
+    case 0x46:
+        arg0->unk3D = 0;
+        sndSeqPlayPan7bit(D_801EC2F8, 0, 0x10, 0);
+        func_801EAE4C();
+        if (D_801EC2F4 != 0) {
+            loadOverlayWithTimCallback(9, 0x801D5000);
+            D_801EC2F4 = 0;
+        }
+        *temp_s6 = 0x47;
+        if (arg0->unk36 != 0) {
+            func_801E7938(arg0, 1, arg0->unk46);
+        }
+        break;
+    case 0x47:
+        arg0->unk2C -= 0x100;
+        if (arg0->unk2C <= 0) {
+            arg0->unk2C = 0;
+            sndCmd21(D_801EC2F8);
+            dispatchDrawCallback();
+            func_801F18FC(arg0->task);
+            func_801F0BB0();
+        }
+        if (arg0->unk36 != 0) {
+            func_801E7938(arg0, 1, arg0->unk46);
+        }
+        break;
+    case 0x48:
+        arg0->unk3F = 1;
+        arg0->unk3D = 1;
+        func_801EAE74();
+        *temp_s6 = 0x49;
+        break;
+    case 0x49: {
+        s32 temp_v0;
+
+        if ((temp_v0 = func_801E7524(func_801EAE98(arg0->unk3C << 4))) >= 2 || temp_v0 < -1) {
+            arg0->unk3D = 0;
+            *temp_s6 = arg0->unk1A;
+            break;
+        }
+        arg0->unk3F = func_801F6768(temp_fp, 2, arg0->unk3F);
+        if (temp_s2 & PADRup) {
+            sendSpuCommand(3);
+            arg0->unk3D = 0;
+            *temp_s6 = arg0->unk18;
+        } else if (temp_s2 & PADRdown) {
+            sendSpuCommand(2);
+            arg0->unk3D = 0;
+            if (arg0->unk3F != 0) {
+                *temp_s6 = arg0->unk18;
+            } else {
+                *temp_s6 = arg0->unk16;
+            }
+        } else {
+            func_801F6F88(arg0->unk3F);
+        }
+        break;
+    }
+    case 0x4A:
+        arg0->unk3D = 0;
+        arg0->unk30 = 0x258;
+        func_801EAE74();
+        arg0->unk47 = 0;
+        *temp_s6 = 0x4B;
+        break;
+    case 0x4B: {
+        s32 temp_v0;
+
+        temp_v0 = func_801E760C(arg0);
+        if (temp_v0 != -1) {
+            if (temp_v0 == 1) {
+                arg0->unk47 = 1;
+            }
+            if (temp_v0 == 3) {
+                arg0->unk47 = 1;
+            }
+        }
+        arg0->unk30--;
+        if (temp_s2 & (PADRup | PADRdown)) {
+            func_801F7BEC(temp_s2);
+            arg0->unk30 = 0;
+        }
+        if (arg0->unk30 <= 0) {
+            arg0->unk30 = 0;
+            if (arg0->unk47 != 0) {
+                arg0->unk32 = 0x1000;
+                arg0->unk34 = 0x1000;
+                *temp_s6 = arg0->unk18;
+            } else {
+                *temp_s6 = arg0->unk16;
+            }
+        }
+        break;
+    }
+    }
+    func_801F0948(arg0->unk2C * arg0->unk36 / 4096);
+}
 
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9804); /* 0xC4 */
 

@@ -284,8 +284,8 @@ void func_801E60C4(s32 card) {
 }
 
 /** @brief Call addItemToInventory then func_800370AC with same argument. */
-void func_801E60E4(s32 a0) {
-    addItemToInventory(a0);
+void func_801E60E4(s32 a0, s32 a1) {
+    addItemToInventory(a0, a1);
     func_800370AC(a0);
 }
 

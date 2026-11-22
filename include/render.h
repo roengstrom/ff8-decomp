@@ -14,6 +14,7 @@ extern void setVsyncCallback(s32 a0);
 extern void setDrawCallback(s32 a0);
 
 void setRenderFlag(u8 val);
+void dispatchDrawCallback(void);
 void SetModeBit0(void);
 
 #endif /* RENDER_H */
