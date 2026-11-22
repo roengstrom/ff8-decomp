@@ -38,10 +38,9 @@ typedef struct {
 extern u8 *D_800C96C8;
 
 /* func_8009B358/func_8009B550 are defined in we_object1, func_8009D8A8 in
- * we_object2; addItemToInventory and func_800A5DC8 are main-binary.
+ * we_object2; func_800A5DC8 is main-binary.
  * Caller-local prototypes. */
 extern void func_8009B550(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, s32 a5, s32 a6);
-extern void addItemToInventory(s32 itemId, s32 count);
 
 extern s32  func_800B4AA0(void);
 extern void func_800B56A0(void);

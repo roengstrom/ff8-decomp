@@ -1,4 +1,5 @@
 #include "common.h"
+#include "game.h"
 #include "psxsdk/libgte.h"
 #include "world.h"
 #include "world/we_object6.h"
