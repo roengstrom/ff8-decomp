@@ -50,8 +50,11 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3);
 static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot);
 static void *func_801F4454(MainMenuCtx *ctx, void *ot, void *prim, s32 x, s32 y, s32 index);
 static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim);
-static s32 func_801F4A98(s32, s32, s32);
-static void func_801F5490(s32);
+static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim);
+static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim);
+static void *func_801F4C60(void *ot, void *prim, u32 value, s32 x, s32 y);
+static void *func_801F4CE8(void *ot, void *prim, u32 value, s32 x, s32 y);
+static void func_801F5490(MainMenuCtx *ctx);
 static s32 func_801F5B54(s32, s32, s32, s32, s32, u16 *, s32);
 static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
 static s32 func_801F5D5C(s32, DR_AREA *, s32, s32, s32, u16 *, s32, s32);
@@ -67,7 +70,6 @@ static s32 func_801F6B54(s32, s32, s32, s32, s32);
         "nop\n"                               \
         "c2     0x780010\n"                   \
         "mfc2   %0, $22\n"                    \
-        "nop\n"                               \
         : "=r"(result)                        \
         : "r"(rgb), "r"(value)                \
         : "memory"                            \
@@ -751,14 +753,14 @@ static void *func_801F36E8(void *ot, void *prim, s32 x, s32 y) {
     return prim;
 }
 
-void func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
+void *func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
     u8 buffer[16];
     s32 digitBase = g_numberFormat.digits[0];
     intToDecString(value, &buffer[0], digitBase);
     replaceLeadingZeros(&buffer[2], 7, digitBase, getMenuString(11)[0]);
     prim = func_8002C56C(ot, prim, x, y, &buffer[2], 7);
     x += 64;
-    drawIcon(ot, prim, 11, x, y, g_menuTint[MENU_TINT_NORMAL]);
+    return drawIcon(ot, prim, 11, x, y, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 /**
@@ -768,7 +770,7 @@ void func_801F3824(void *ot, void *prim, s32 x, s32 y, u32 value) {
  * func_801F0FEC, configures g_menuDisplayCfg (icon 0x55), and draws
  * the panel border via DrawMenuWindow.
  */
-void func_801F38F8(s32 a0, s32 a1, s32 a2) {
+void *func_801F38F8(s32 a0, s32 a1, s32 a2) {
     u8 *ret1;
     s32 ret2;
 
@@ -779,7 +781,7 @@ void func_801F38F8(s32 a0, s32 a1, s32 a2) {
     g_menuDisplayCfg.x = 0x18;
     g_menuDisplayCfg.y = 7;
     *(s32 *)&g_menuDisplayCfg.w = 0x001900F4; /* w=0xF4, h=0x19 packed */
-    DrawMenuWindow(a1, ret2, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    return DrawMenuWindow(a1, ret2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 /** @brief Render text with explicit parameters (arg-reorder wrapper for func_801F0FEC). */
@@ -923,6 +925,9 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     s32 y = arg3 * 26;
     s32 y2 = y + 34;
+    s32 width = 232;
+    s32 height = 26;
+    s32 *packedWH = &cfg->w;
     if (charId != 255) {
         CharMenuInfo *charMenuInfo = &g_charMenuInfo[charId];
         CharacterData *charData = &g_gameState.chars[charId];
@@ -938,7 +943,10 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     cfg->iconSubType = 0;
     cfg->x = 32;
     cfg->y = y2;
-    *(s32 *)&cfg->w = 0x1A00E8;
+
+    // Stores width and height together in a single 32-bit value.
+    *packedWH = height << 16 | width;
+
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -1075,8 +1083,10 @@ static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim) {
     value = s->brightness;
     value = ONE - value;
     gte_dpcs_get_rgb(result, 0x400000EC, value);
+    NOP();
     D_801FABBC = result;
     gte_dpcs_get_rgb(result, 0x40000000, value);
+    NOP();
     D_801FABC0 = result;
     x = 32;
     y = 112;
@@ -1100,9 +1110,8 @@ static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim) {
  * If a0[0x34] == 0, renders 3 command slots via func_801F42A4;
  * otherwise renders via func_801F3FE8 plus func_801F4744.
  */
-s32 func_801F486C(u8 *a0, s32 a1) {
+s32 func_801F486C(u8 *a0, s32 a1, void *result) {
     s32 i;
-    s32 result;
 
     if (a0[0x34] == 0) {
         for (i = 0; i < 3; i++) {
@@ -1123,7 +1132,7 @@ s32 func_801F486C(u8 *a0, s32 a1) {
  * Renders the Gil label string, sets up g_menuDisplayCfg rendering params,
  * and draws the panel decoration via DrawMenuWindow.
  */
-void func_801F4918(s32 a0, s32 a1, s32 a2) {
+void *func_801F4918(s32 a0, s32 a1, s32 a2) {
     s32 ret;
     ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.unk004);
     g_menuDisplayCfg.iconType = 0;
@@ -1132,24 +1141,184 @@ void func_801F4918(s32 a0, s32 a1, s32 a2) {
     g_menuDisplayCfg.y = 0xBE;
     g_menuDisplayCfg.w = 0xF4;
     g_menuDisplayCfg.h = 0x1A;
-    DrawMenuWindow(a1, ret, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    return DrawMenuWindow(a1, ret, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
 /* ======================================================================== */
 /* Party Status & HP Display                                                */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F49A4);
+static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim) {
+    MenuDisplayConfig *cfg;
+    u8 *text;
+    s32 width;
+    s32 panelX;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4A98);
+    if (s->field44 <= 0) {
+        return prim;
+    }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4C60);
+    cfg = &g_menuDisplayCfg;
+    text = func_801F6AFC(42);
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4CE8);
+    width = getFirstLineWidth(text) + 20;
+    cfg->w = width;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4D70);
+    width = (248 - width) / 2;
+    panelX = width + 20;
+    cfg->h = 26;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F4EA8);
+    prim = func_801F0FEC(ot, prim, width + 30, 102, text, DIALOG_COLOR_WHITE);
+
+    cfg->iconType = ICON_NOTICE;
+    cfg->iconSubType = 0;
+    cfg->x = panelX;
+    cfg->y = 95;
+
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);   
+}
+
+static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim) {
+    u32 time;
+    u8 isPlayTime;
+    u32 gil;
+    MenuDisplayConfig *cfg;
+    u32 x;
+    u32 y;
+    cfg = &g_menuDisplayCfg;
+    if (func_801F0D84() != 1) {
+        return prim;
+    }
+    x = 271;
+    y = 178;
+    func_801F1AFC();
+    setMenuBrightness(s->brightness);
+    prim = func_801F49A4(s, ot, prim);
+    prim = func_801F38F8(s, ot, prim);
+    prim = func_801F486C(s, ot, prim);
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) {
+        gil = g_gameState.mainData.party.dreamGil;
+    } else {
+        gil = g_gameState.mainData.party.gil;
+    }
+    prim = func_801F36E8(ot, prim, x + 10, y + 16);
+    prim = func_801F3824(ot, prim, x + 10, y + 27, gil);
+    if (g_battleConfig.unk2 & BATTLE_FLAG_COUNTDOWN) {
+        time = g_gameState.mainData.countdownTimer;
+        isPlayTime = 0;
+    } else {
+        time = g_gameState.mainData.playTimeSeconds;
+        isPlayTime = 1;
+    }
+    prim = drawMenuClock(s, ot, prim, x + 10, y + 5, time, isPlayTime);
+    cfg->iconType = 0;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 90;
+    cfg->h = 38;
+    prim = DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+    prim = func_801F4918(s, ot, prim);
+    func_801F1B10();
+    return prim;
+}
+
+static void *func_801F4C60(void *ot, void *prim, u32 value, s32 x, s32 y) {
+    u8 buffer[16];
+    u32 clut = 0x64808080;
+    intToDecStringShort(value, &buffer[0], 56);
+    prim = func_801F0884(ot, prim, (y << 0x10) | (x & 0xFFFF), &buffer[2], clut);
+    return prim;
+}
+
+static void *func_801F4CE8(void *ot, void *prim, u32 value, s32 x, s32 y) {
+    u8 buffer[16];
+    u32 clut = 0x64808080;
+    intToDecStringShort(value, &buffer[0], 56);
+    prim = func_801F0884(ot, prim, (y << 0x10) | (x & 0xFFFF), &buffer[0], clut);
+    return prim;
+}
+
+void *func_801F4D70(void *ot, void *prim, s32 x, s32 y, u32 width, u32 clut) {
+    u32 color;
+    DR_TWIN *tw;
+    ModeSprt *p;
+
+    // Dead code added to match with the original game binary.
+    clut++; clut--;
+
+    color = (clut & 0xFFFFFF) | SPRT_CODE;
+    prim = drawIcon(ot, prim, ICON_TINY_LEFT_CAP, x, y, color);
+    prim = drawIcon(ot, prim, ICON_TINY_RIGHT_CAP, x + width + 8, y, color);
+    tw = prim;
+    setlen(tw, 2);
+    tw->code[0] = TEXWINDOW_OFF;
+    tw->code[1] = 0;
+    addPrimFast(ot, tw);
+    p = (void *)tw + sizeof(DR_TWIN);
+    setlen(p, 7);
+    *(u32 *)&p->r0 = color;
+    p->code = 0x64;
+    p->drawMode = 0xE100041E;
+    p->texWindow[0] = 0xE20207FF;
+    p->texWindow[1] = 0;
+    p->x0 = x + 8;
+    p->y0 = y;
+    p->w = width;
+    p->h = 8;
+    *(u32 *)&p->u0 = 0x38900000;
+    addPrimFast(ot, p);
+    return (void *)p + sizeof(ModeSprt);
+}
+
+void *func_801F4EA8(void *ot, LINE_F2 *prim, s32 x, s32 y, s32 arg4) {
+    u8 buffer[16];
+    u8 *bufferPtr;
+    s32 x2;
+    s32 y2;
+    u32 rgbc;
+    s32 value;
+    arg4 = (6000 - arg4) / 5;
+    arg4 = CLAMP(arg4, 0, 1000);
+    intToDecStringShort(arg4, &buffer[0], 40);
+    bufferPtr = &buffer[0];
+    replaceLeadingZeros(bufferPtr, 4, 40, 7);
+    x2 = x + 11;
+    y2 = y + 3;
+    while (1) {
+        s32 iconId = *bufferPtr++;
+        if (iconId == 0) {
+            break;
+        }
+        if (iconId != ICON_BLANK) {
+            prim = drawIcon(ot, prim, iconId, x2, y2, g_menuTint[MENU_TINT_NORMAL]);
+        }
+        x2 += 6;
+    }
+    value = ONE - g_menuBrightness;
+    value = CLAMP(value, 0, ONE);
+    x2 = x + 8;
+    y2 = y + 2;
+    gte_dpcs_get_rgb(rgbc, 0x402C2CFF, value);
+    if (arg4 != 0) {
+        s32 x3;
+        s32 y3;
+        x3 = x2 + ((arg4 * 30) / 1000);
+        setLineF2(prim);
+        *(s32 *)&prim->r0 = rgbc;
+        setXY2(prim, x2, y2, x3, y2);
+        addPrimFast(ot, prim);
+        prim++;
+        y3 = y + 3;
+        y2 = x3;
+        setLineF2(prim);
+        *(s32 *)&prim->r0 = rgbc;
+        setXY2(prim, x2, y3, y2, y3);
+        addPrimFast(ot, prim);
+        prim++;
+    }
+    return func_801F4D70(ot, prim, x, y, 30, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /** @brief Convert raw ability ID to menu display index (subtract 100). */
 s32 func_801F5104(s32 a0) {
@@ -1302,7 +1471,55 @@ void func_801F5440(void) {
     recalcPartyStats();
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F5490);
+static void func_801F5490(MainMenuCtx *ctx) {
+    s32 i;
+    s32 j;
+    u32 val1 = 0;
+    D_801FAB7C = func_80023C48();
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) {
+        ctx->unk34 = 0;
+    } else {
+        s32 val2 = ctx->field20;
+        for (i = 0; i < PARTY_SLOT_COUNT; i++) {
+            s32 member = g_gameState.mainData.party.partyMembers[i];
+            if (member != PARTY_SLOT_EMPTY) {
+                val2 &= ~(1 << member);
+            }
+        }
+        if (val2 != 0) {
+            ctx->unk34 = 1;
+        } else {
+            ctx->unk34 = 0;
+        }
+    }
+    for (i = 0; i < PARTY_SLOT_COUNT; i++) {
+        s32 member = g_gameState.mainData.party.partyMembers[i];
+        if (member != PARTY_SLOT_EMPTY && ((ctx->field20 >> member) & 1)) {
+            val1 |= 1 << member;
+            ctx->party[i] = member;
+        } else {
+            ctx->party[i] = PARTY_SLOT_EMPTY;
+        }
+    }
+    if (ctx->unk34 == 0) {
+        for (i = 0; i < CHARACTER_COUNT; i++) {
+            ctx->reserve[i] = PARTY_SLOT_EMPTY;
+        }
+        ctx->unk4A = 3;
+    } else {
+        for (j = 0, i = 0; i < CHARACTER_COUNT; i++) {
+            if (((ctx->field20 >> i) & 1) && !(val1 & (1 << i))) {
+                ctx->reserve[j++] = i;
+            }
+        }
+        ctx->unk4A = ((j + 1) / 2) + 3;
+        while (j < CHARACTER_COUNT) {
+            ctx->reserve[j++] = PARTY_SLOT_EMPTY;
+        }
+    }
+    func_801F5440();
+    func_801F1F98(ctx);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F565C);
 
