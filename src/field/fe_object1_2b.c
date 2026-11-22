@@ -15,7 +15,7 @@
 
 static void func_800A2F48(FieldParticles *particles);
 static void func_800A2F70(POLY_FT4 *prim);
-static void func_800A3018(Emitter *em);
+static void func_800A3018(MoveRecord *em);
 static void func_800A3534(FieldParticles *particles);
 
 /**
@@ -642,17 +642,17 @@ s16 func_800A2FE0(func_800A2FE0_arg0 *t) {
 }
 
 /**
- * @brief Zero @c curCount and @c unk15E across the first 16 emitter slots.
+ * @brief Zero @c activeCount and @c unk15E across the first 16 emitter slots.
  *
  * Called from @c func_800A2EE0 during particle-system init to reset the
  * active-particle counts (and the small @c unk15E word that travels with
  * them) without touching the static jitter ranges.
  */
-static void func_800A3018(Emitter *em) {
+static void func_800A3018(MoveRecord *em) {
     s32 i;
     for (i = 0; i < 16; i++) {
         em[i].unk15E = 0;
-        em[i].curCount = 0;
+        em[i].activeCount = 0;
     }
 }
 
@@ -671,20 +671,20 @@ static void func_800A3018(Emitter *em) {
  * @param count  Maximum particles to spawn this call.
  */
 void func_800A303C(s16 emIdx, ParticleSystem *sys, s16 *pos, s16 count) {
-    Emitter *em = (Emitter *)sys + emIdx;
+    MoveRecord *em = (MoveRecord *)sys + emIdx;
     Particle *p;
     s16 slot;
 
-    em->unk14E = 0;
+    em->steps[16].stepTotal = 0;
 
     while (1) {
         if (count <= 0) return;
-        if (em->curCount >= em->maxCount) return;
+        if (em->activeCount >= em->maxCount) return;
 
         slot = func_800A2FE0(sys);
         if (slot == -1) return;
 
-        em->curCount++;
+        em->activeCount++;
         p = (Particle *)&sys->slots[slot];
 
         p->emitterIdx = emIdx;
@@ -695,7 +695,7 @@ void func_800A303C(s16 emIdx, ParticleSystem *sys, s16 *pos, s16 count) {
         count--;
         p->posX = pos[0] * 16 + (func_800A2EA4(em->unk166) << 8) - em->unk166 * 128;
         p->posY = pos[1] * 16 + (func_800A2EA4(em->unk168) << 8) - em->unk168 * 128;
-        p->posZ = pos[2] * 16 + (func_800A2EA4(em->unk16A & 0x7F) << 8) - (em->unk16A & 0x7F) * 128;
+        p->posZ = pos[2] * 16 + (func_800A2EA4(em->flags & 0x7F) << 8) - (em->flags & 0x7F) * 128;
         p->velX = func_800A2EA4(em->unk16C * 32) - em->unk16C * 16;
         p->velY = func_800A2EA4(em->unk16E * 32) - em->unk16E * 16;
         p->velZ = func_800A2EA4(em->unk170 * 32) - em->unk170 * 16;
