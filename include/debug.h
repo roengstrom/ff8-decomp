@@ -36,7 +36,6 @@ typedef enum {
     DEBUG_MENU_OPTION_COUNT = 29
 } DebugMenuOption;
 
-extern u8 g_debugMenuCurrentPage;
 extern u8 g_debugMenuValueText[][10];
 extern s32 g_debugMenuOpenJunction;
 extern u8 g_debugMenuOptions[];

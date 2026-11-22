@@ -30,6 +30,7 @@ typedef struct {
 } DebugMenuBuffer;
 
 extern DebugMenuBuffer *g_debugMenuBuffer;
+extern u8 g_debugMenuCurrentPage;
 extern s32 g_debugMenuDrawModeCount;
 extern s32 g_debugMenuSprtCount;
 extern s32 g_debugMenuPolyG4Count;
