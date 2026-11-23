@@ -33,6 +33,8 @@
 // TODO: Drop this and include the prototype from the owner.
 extern s32 applyButtonRemapTranslation(s32 arg);
 
+static void *func_800A3EE0(P_TAG *ot, SPRT *sprt, s32 x, u32 value, u32 color, s32 clut);
+
 /**
  * @brief Reset and configure the seven dialogs.
  *
@@ -1509,40 +1511,70 @@ void *func_800A3D2C(void *otBase, void *pkt, s32 x, s32 y, s32 cardImg, s32 col)
     return pkt;
 }
 
-/**
- * @brief Render a right-aligned decimal number (e.g. a Triple Triad score/count)
- *        as a row of 12x12 textured SPRTs, linked into @p ot.
- *
- * Formats @p number into the digit-string buffer @ref D_801D49B8 via
- * @ref intToDecString, then:
- *  - Skips leading '1'-valued glyphs (the formatter's leading-zero placeholder),
- *    advancing @c str, capped at ~9.
- *  - Sums the per-glyph widths (low nibble of byte 0 of each char-table entry,
- *    table = `&D_8008371C - 4`, 1-indexed) over the remaining digits.
- *  - Subtracts that total from the x-coordinate to right-align the number.
- *  - Emits one 12x12 SPRT per glyph: colour = @p color, len = 4, w/h = 0xC000C,
- *    u/v from the char-table entry's `+2` halfword, x/y from @p xy (low s16 = x,
- *    high s16 = y), clut = `(clutPage << 6) + 0x3812` (getClut(288, 224+pal)).
- *    Glyphs at or left of the clip edge @ref D_801D4B18 are written but not
- *    linked (skipped). Each linked SPRT splices into @p ot via @c addPrimFast
- *    ($s4 temp); x advances by the glyph width after each.
- *  - Appends a trailing 0xE100041F tpage primitive ($s7 temp) and returns the
- *    next packet slot (prim + 8).
- *
- * @param ot       OT slot the SPRT chain links into (addPrimFast head).
- * @param prim     Packet buffer cursor (SPRT-sized, 0x14 bytes/glyph).
- * @param xy       Packed position: low s16 = x, high s16 = y.
- * @param number   Value to format and render.
- * @param color    Packed r/g/b/code stored into each SPRT (arg4, on stack).
- * @param clutPage Palette page; clut = (clutPage << 6) + 0x3812 (arg5, on stack).
- * @return Pointer to the next free packet slot (`(u8 *)prim + 8`).
- *
- * @note Decompiled to exact-instruction-count clean C (132/132); not yet
- *       byte-matched — the residual is register allocation (the prim/x s-reg
- *       priority and gcc's `prim + 0x10` IV-base choice). Permuter seed +
- *       ot_inline.h are in permuter/func_800A3EE0/. Purpose inferred from the code.
- */
-INCLUDE_ASM("asm/ovl/tripletriad/nonmatchings/be_object4", func_800A3EE0);
+static void *func_800A3EE0(P_TAG *ot, SPRT *sprt, s32 x, u32 value, u32 color, s32 clut) {
+    FontGlyph *table;
+    u8 *digits;
+    u8 *p;
+    s32 y;
+    s32 i;
+    s32 width;
+
+    table = D_8008371C;
+    table--;
+    if (value == 0) {
+        digits = &D_801D49B8[9];
+    }
+    y = x >> 16;
+    x <<= 16;
+    x >>= 16;
+    intToDecString(value, D_801D49B8, 1);
+    digits = D_801D49B8;
+    for (i = 0; i < 9; i++) {
+        if (*digits != 1) {
+            break;
+        }
+        digits++;
+    }
+
+    width = 0;
+    p = digits;
+    while (1) {
+        s32 c = *p++;
+        if (c == 0) {
+            break;
+        }
+        width += table[c].width & 0xF;
+    }
+    x -= width;
+
+    p = digits;
+    while (1) {
+        s32 c = *p++;
+        FontGlyph *g;
+        u16 uv;
+        if (c == 0) {
+            break;
+        }
+        g = &table[c];
+        uv = g->uv;
+        setSprtRGBC(sprt, color);
+        setlen(sprt, 4);
+        sprt->x0 = x;
+        sprt->y0 = y;
+        sprt->clut = getClut(288, 224) + (clut << 6);
+        setSprtUV(sprt, uv);
+        setSprtWH(sprt, 0xC000C);
+        if (D_801D4B18 < x) {
+            addPrimFast(ot, sprt);
+            sprt++;
+        }
+        x += g->width & 0xF;
+    }
+
+    setDrawTPage((DR_TPAGE *)sprt, 1, 0, getTPage(0, 0, 960, 256));
+    addPrimFast(ot, sprt);
+    return (DR_TPAGE *)sprt + 1;
+}
 
 /**
  * @brief Wrapper for func_800A3EE0 that selects a lookup table entry based on the 5th argument.
