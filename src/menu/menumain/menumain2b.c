@@ -1608,7 +1608,7 @@ s32 func_801F57A4(s32 a0) {
  * For GF (a0 >= 16): reads from g_gameState at stride 68 + 0x62.
  * For character: returns 0 if dead, else reads at stride 152 + 0x490.
  */
-u16 func_801F57DC(s32 a0) {
+s32 func_801F57DC(s32 a0) {
     if (a0 >= 16) {
         a0 -= 16;
         return g_gameState.gfs[a0].hp;
@@ -2319,7 +2319,42 @@ void *func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
     return DrawMenuWindow(ctx, dl, a4, g_menuTint[MENU_TINT_NORMAL]);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6D88);
+void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    if (gfId >= 0) {
+        s32 i;
+        u16 statusFlags = func_801F57A4(gfId);
+        u32 curHp = func_801F57DC(gfId);
+        u32 maxHp = func_801F58EC(gfId);
+        u32 level = func_801F5938(gfId);
+        u32 color = func_801F3FB4(statusFlags);
+        s32 x2 = x + 8;
+        s32 y2 = y + 8;
+        prim = func_801F3ABC(level, ot, prim, x2, y2, color);
+        x2 = x + 72;
+        y2 = y + 6;
+        prim = func_801F6418(gfId, ot, prim, x2, y2);
+        x2 = x + 8;
+        y2 = y + 23;
+        prim = func_801F3CE0(curHp, maxHp, ot, prim, x2, y2, color);
+        x2 = x + 82;
+        y2 = y + 8;
+        statusFlags &= STATUS_ICON_MASK;
+        for (i = 0; i < GF_COUNT; i++) {
+            if (statusFlags >> i & 1) {
+                prim = drawIcon(ot, prim, i + ICON_STATUS_KO, x2, y2, g_menuTint[MENU_TINT_NORMAL]);
+                x2 += 17;
+            }
+        }
+    }
+    cfg->iconType = ICON_STATUS;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 168;
+    cfg->h = 40;
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /* ======================================================================== */
 /* Config/Settings Display                                                  */

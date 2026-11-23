@@ -47,6 +47,7 @@ u8 *func_801F6AA4(s32);                      /**< Look up a string in menu text 
 u8 *func_801F6AD0(s32);                      /**< Look up a string in menu text category 0. */
 u8 *func_801F6AFC(s32);
 void *func_801F6C9C(s32, s32, s32, s32, s32, u16);
+void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId);
 void func_801F6F88(s32);
 s32 func_801F72B4(void);
 void func_801F72C4(void);
