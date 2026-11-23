@@ -41,6 +41,8 @@ extern u8 *D_801FACC8;
 extern u8 *D_801FACCC;
 extern u8 *D_801FACD0;
 extern RECT D_801FACD8;
+extern u16 D_801FACDA;
+extern s16 D_801FACE0;
 extern s16 D_801FACE2;
 extern s16 D_801FACE4;
 extern s32 D_801FACE8;
@@ -2409,7 +2411,35 @@ void *func_801F6FE4(void *ot, void *prim, s32 arg2, s32 progress) {
     return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F7148);
+void func_801F7148(u8 *arg0, u8 *arg1, u8 *arg2, s32 arg3) {
+    u32 h;
+    u32 w;
+    if (arg1 == NULL) {
+        arg1 = func_801F6AFC(47);
+    }
+    if (arg2 == NULL) {
+        arg2 = func_801F6AFC(48);
+    }
+    if (arg0 != NULL) {
+        D_801FACC8 = arg0;
+        w = getTextSize(arg0);
+    } else {
+        w = 0;
+    }
+    h = w >> 0x10;
+    w &= 0xFFFF;
+    D_801FACCC = arg1;
+    D_801FACD0 = arg2;
+    D_801FACD8.x = (364 - w) / 2;
+    D_801FACD8.w = w + 20;
+    D_801FACD8.y = arg3;
+    D_801FACD8.h = h + 44;
+    D_801FACE0 = (384 - w) / 2;
+    w = getFirstLineWidth(arg1);
+    w = CLAMP(w, getFirstLineWidth(arg2), w);
+    D_801FACE2 = (384 - w) / 2;
+    D_801FACE4 = h + 11 + D_801FACDA;
+}
 
 /** @brief Render config option (simplified wrapper for func_801F7148). */
 void func_801F728C(s32 a0, s32 a1) {
