@@ -37,8 +37,14 @@ extern u8 D_801FAB7C;
 extern s32 D_801FABBC;
 extern s32 D_801FABC0;
 extern u8 D_801FABC4[4];
-extern u16 D_801FACE2;
-extern u16 D_801FACE4;
+extern u8 *D_801FACC8;
+extern u8 *D_801FACCC;
+extern u8 *D_801FACD0;
+extern RECT D_801FACD8;
+extern u16 D_801FACDA;
+extern s16 D_801FACE0;
+extern s16 D_801FACE2;
+extern s16 D_801FACE4;
 extern s32 D_801FACE8;
 
 static void func_801F2458(MainMenuCtx *ctx);
@@ -1608,7 +1614,7 @@ s32 func_801F57A4(s32 a0) {
  * For GF (a0 >= 16): reads from g_gameState at stride 68 + 0x62.
  * For character: returns 0 if dead, else reads at stride 152 + 0x490.
  */
-u16 func_801F57DC(s32 a0) {
+s32 func_801F57DC(s32 a0) {
     if (a0 >= 16) {
         a0 -= 16;
         return g_gameState.gfs[a0].hp;
@@ -2319,7 +2325,42 @@ void *func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
     return DrawMenuWindow(ctx, dl, a4, g_menuTint[MENU_TINT_NORMAL]);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6D88);
+void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId) {
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    if (gfId >= 0) {
+        s32 i;
+        u16 statusFlags = func_801F57A4(gfId);
+        u32 curHp = func_801F57DC(gfId);
+        u32 maxHp = func_801F58EC(gfId);
+        u32 level = func_801F5938(gfId);
+        u32 color = func_801F3FB4(statusFlags);
+        s32 x2 = x + 8;
+        s32 y2 = y + 8;
+        prim = func_801F3ABC(level, ot, prim, x2, y2, color);
+        x2 = x + 72;
+        y2 = y + 6;
+        prim = func_801F6418(gfId, ot, prim, x2, y2);
+        x2 = x + 8;
+        y2 = y + 23;
+        prim = func_801F3CE0(curHp, maxHp, ot, prim, x2, y2, color);
+        x2 = x + 82;
+        y2 = y + 8;
+        statusFlags &= STATUS_ICON_MASK;
+        for (i = 0; i < GF_COUNT; i++) {
+            if (statusFlags >> i & 1) {
+                prim = drawIcon(ot, prim, i + ICON_STATUS_KO, x2, y2, g_menuTint[MENU_TINT_NORMAL]);
+                x2 += 17;
+            }
+        }
+    }
+    cfg->iconType = ICON_STATUS;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 168;
+    cfg->h = 40;
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /* ======================================================================== */
 /* Config/Settings Display                                                  */
@@ -2327,7 +2368,7 @@ INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6D88);
 
 /** @brief Get packed cursor coordinates (D_801FACE4 << 16 | D_801FACE2). */
 s32 func_801F6F6C(void) {
-    return (D_801FACE4 << 16) | D_801FACE2;
+    return ((u16) D_801FACE4 << 16) | (u16) D_801FACE2;
 }
 
 /** @brief Render menu item at grid position derived from hi/lo nibbles of a0. */
@@ -2339,9 +2380,66 @@ void func_801F6F88(s32 a0) {
     func_801F0994(lo | hi, (u16)val, (val >> 16) + lo * 13);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6FE4);
+void *func_801F6FE4(void *ot, void *prim, s32 arg2, s32 progress) {
+    MenuDisplayConfig *cfg;
+    s32 x;
+    s32 y;
+    u8 *ptr;
+    s32 color;
+    if (progress <= 0) {
+        return prim;
+    }
+    prim = func_801F03E8(ot, prim);
+    cfg = &g_menuDisplayCfg;
+    color = DIALOG_COLOR_WHITE;
+    x = D_801FACD8.x + 10;
+    y = D_801FACD8.y + 7;
+    ptr = D_801FACC8;
+    if (ptr != NULL) {
+        prim = func_801F0FEC(ot, prim, x, y, ptr, color);
+    }
+    x = D_801FACE2;
+    y = D_801FACE4;
+    ptr = D_801FACCC;
+    prim = func_801F0FEC(ot, prim, x, y, ptr, color);
+    y += 13;
+    ptr = D_801FACD0;
+    prim = func_801F0FEC(ot, prim, x, y, ptr, color);
+    cfg->iconType = ICON_NOTICE;
+    cfg->iconSubType = 0;
+    *(RECT *)&cfg->x = D_801FACD8;
+    return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F7148);
+void func_801F7148(u8 *arg0, u8 *arg1, u8 *arg2, s32 arg3) {
+    u32 h;
+    u32 w;
+    if (arg1 == NULL) {
+        arg1 = func_801F6AFC(47);
+    }
+    if (arg2 == NULL) {
+        arg2 = func_801F6AFC(48);
+    }
+    if (arg0 != NULL) {
+        D_801FACC8 = arg0;
+        w = getTextSize(arg0);
+    } else {
+        w = 0;
+    }
+    h = w >> 0x10;
+    w &= 0xFFFF;
+    D_801FACCC = arg1;
+    D_801FACD0 = arg2;
+    D_801FACD8.x = (364 - w) / 2;
+    D_801FACD8.w = w + 20;
+    D_801FACD8.y = arg3;
+    D_801FACD8.h = h + 44;
+    D_801FACE0 = (384 - w) / 2;
+    w = getFirstLineWidth(arg1);
+    w = CLAMP(w, getFirstLineWidth(arg2), w);
+    D_801FACE2 = (384 - w) / 2;
+    D_801FACE4 = h + 11 + D_801FACDA;
+}
 
 /** @brief Render config option (simplified wrapper for func_801F7148). */
 void func_801F728C(s32 a0, s32 a1) {
@@ -2420,21 +2518,75 @@ void func_801F739C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, MenuRowCallback a5) {
     func_801EFBB4(a0, ret2, a5);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F7454);
+s32 func_801F7454(s32 charId, s32 magicId, s32 amount) {
+    s32 i;
+    u32 mask = 0;
+    MagicSlot *magic = g_gameState.chars[charId].magic;
+    for (i = 0; i < 32; magic++, i++) {
+        if (magic->magicId != 0) {
+            mask |= 1 << i;
+        }
+        if (magicId == magic->magicId && magic->quantity != 0) {
+            s32 qtyNew = magic->quantity;
+            s32 qtyOld = qtyNew;
+            qtyNew += amount;
+            if (qtyNew >= 100) {
+                qtyNew = 100;
+            }
+            magic->quantity = qtyNew;
+            return qtyNew - qtyOld;
+        }
+    }
+    mask = ~mask;
+    if (mask == 0) {
+        return 0;
+    }
+    i = findNthSetBit(mask, 0);
+    amount = CLAMP(amount, 0, 100);
+    g_gameState.chars[charId].magic[i].magicId = magicId;
+    g_gameState.chars[charId].magic[i].quantity = amount;
+    return amount;
+}
 
 /** @brief Apply junction change, then update cursor and recalculate party stats. */
-s32 func_801F75A4(s32 a0) {
-    s32 result = func_801F7454(a0);
+s32 func_801F75A4(s32 a0, s32 a1, s32 a2) {
+    s32 result = func_801F7454(a0, a1, a2);
     func_801F1B4C(a0);
     func_801F5400(a0);
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F75EC);
+void func_801F75EC(s32 charId, s32 magicId, s32 amount) {
+    s32 i;
+    MagicSlot *magic = g_gameState.chars[charId].magic;
+    if (amount == 0) {
+        return;
+    }
+    for (i = 0; i < 32; magic++, i++) {
+        if (magicId == magic->magicId) {
+            s32 qty = magic->quantity;
+            qty -= amount;
+            if (qty < 0) {
+                qty = 0;
+            }
+            if (qty == 0) {
+                s32 j;
+                magic->magicId = 0;
+                for (j = 0; j < 19; j++) {
+                    if (g_gameState.chars[charId].junctions[j] == magicId) {
+                        g_gameState.chars[charId].junctions[j] = 0;
+                    }
+                }
+            }
+            magic->quantity = qty;
+            return;
+        }
+    }
+}
 
 /** @brief Remove junction, then update cursor and recalculate party stats. */
-void func_801F76A8(s32 a0) {
-    func_801F75EC(a0);
+void func_801F76A8(s32 a0, s32 a1, s32 a2) {
+    func_801F75EC(a0, a1, a2);
     func_801F1B4C(a0);
     func_801F5400(a0);
 }
