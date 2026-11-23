@@ -183,10 +183,10 @@ static void func_801E61A0(u8 *text, s32 data, s32 value, s32 x, s32 y)
 
     s->iconType = 0x55;
     s->iconSubType = 0;
-    s->x = x;
-    s->w = 0xF4;
-    s->y = y;
-    s->h = 0x16;
+    s->rect.x = x;
+    s->rect.w = 0xF4;
+    s->rect.y = y;
+    s->rect.h = 0x16;
 
     DrawMenuWindow(data, value, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }

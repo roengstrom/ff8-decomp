@@ -211,10 +211,10 @@ s32 func_801E64B4(s32 a0, s32 a1) {
     drawMessageText(disp, v0 + 0x18, 0xC, text);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 6;
-    g_menuDisplayCfg.w = maxW;
-    g_menuDisplayCfg.h = 0x16;
+    g_menuDisplayCfg.rect.x = 0x18;
+    g_menuDisplayCfg.rect.y = 6;
+    g_menuDisplayCfg.rect.w = maxW;
+    g_menuDisplayCfg.rect.h = 0x16;
     return DrawMenuWindow(disp, ot, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -247,18 +247,18 @@ s32 func_801E6570(TestMenuState *state, s32 a1, s32 a2) {
     a2 = func_801EF8D8(disp, a2);
     drawMessageText(disp, x, 0x23, g_testQuestionText);
 
-    cfg->x = 0x1C;
-    cfg->y = 0x21;
-    cfg->w = 0x148;
-    cfg->h = 0x9F;
+    cfg->rect.x = 0x1C;
+    cfg->rect.y = 0x21;
+    cfg->rect.w = 0x148;
+    cfg->rect.h = 0x9F;
     v0 = func_801EF800(disp, a2, cfg);
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = 0x18;
-    cfg->y = 0x1D;
-    cfg->w = 0x150;
-    cfg->h = 0xA7;
+    cfg->rect.x = 0x18;
+    cfg->rect.y = 0x1D;
+    cfg->rect.w = 0x150;
+    cfg->rect.h = 0xA7;
     return DrawMenuWindow(disp, v0, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -283,10 +283,10 @@ s32 func_801E66A8(TestMenuState *state, s32 a1, s32 a2) {
     drawMessageText(disp, v0 + 0x18, 0xC8, state->text);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 0xC4;
-    g_menuDisplayCfg.w = maxW;
-    g_menuDisplayCfg.h = 0x14;
+    g_menuDisplayCfg.rect.x = 0x18;
+    g_menuDisplayCfg.rect.y = 0xC4;
+    g_menuDisplayCfg.rect.w = maxW;
+    g_menuDisplayCfg.rect.h = 0x14;
     return DrawMenuWindow(disp, ot, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 

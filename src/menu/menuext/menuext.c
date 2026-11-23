@@ -495,10 +495,10 @@ s32 func_801E7EB4(ExtMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 0xA8;
-    cfg->h = 0x28;
+    cfg->rect.x = x;
+    cfg->rect.y = y;
+    cfg->rect.w = 0xA8;
+    cfg->rect.h = 0x28;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 

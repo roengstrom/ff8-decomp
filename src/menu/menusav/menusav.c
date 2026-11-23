@@ -3557,10 +3557,10 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E9CD4); /* 0xB0 */
  * @param src Pointer to source rectangle (4 halfwords: x, y, w, h).
  */
 void func_801E9D84(s32 a0, s32 a1, s32 a2, s32 a3, u16 *src) {
-    g_menuDisplayCfg.x = src[0] + a2;
-    g_menuDisplayCfg.y = src[1] + a3;
-    g_menuDisplayCfg.w = src[2];
-    g_menuDisplayCfg.h = src[3];
+    g_menuDisplayCfg.rect.x = src[0] + a2;
+    g_menuDisplayCfg.rect.y = src[1] + a3;
+    g_menuDisplayCfg.rect.w = src[2];
+    g_menuDisplayCfg.rect.h = src[3];
     func_801E9CD4(a0, a1, (s32)&g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], (s32)src);
 }
 
