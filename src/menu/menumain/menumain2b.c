@@ -60,7 +60,7 @@ static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
 static s32 func_801F5D5C(s32, DR_AREA *, s32, s32, s32, u16 *, s32, s32);
 static s32 func_801F5E0C(s32, s32, s32, s32, s32, s32, s32);
 static s32 func_801F6358(s32, s32, s32, s32, s32);
-static s32 func_801F6B54(s32, s32, s32, s32, s32);
+static void *func_801F6B54(void *ot, void *prim, s32 x, s32 y, s32 charId);
 
 #define gte_dpcs_get_rgb(result, rgb, value)  \
     __asm__ volatile(                         \
@@ -2268,7 +2268,21 @@ s32 func_801F6B28(s32 a0) {
     return D_801F7F98[D_801F889C[a0].type];
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6B54);
+static void *func_801F6B54(void *ot, void *prim, s32 x, s32 y, s32 charId) {
+    u8 buffer[16];
+    u32 color;
+    u8 *chrName;
+    void *prim2;
+    CharacterData *chr = &g_gameState.chars[charId];
+    charId = chr->characterId;
+    color = func_801F3FB4(chr->statusFlags);
+    chrName = getCharName(charId);
+    prim2 = func_801F0FEC(ot, prim, x, y, chrName, color);
+    prim = drawIconClut(ot, prim2, ICON_HP_YELLOW, x + 104, y + 2, g_menuTint[MENU_TINT_NORMAL], (color * 64) + 2);
+    intToDecStringShort(chr->currentHp, buffer, getMenuString(11)[1]);
+    replaceLeadingZeros(buffer, 4, getMenuString(11)[1], getMenuString(11)[0]);
+    return func_8002C56C(ot, prim, x + 116, y + 2, buffer, color);
+}
 
 /**
  * @brief Render a column of bitmask-selected entries inside a 168x120 panel.
