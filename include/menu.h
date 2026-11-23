@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "menu_tint.h"
+#include "psxsdk/libgpu.h"
 
 /** @brief Load address of the menu sub-overlays and their page data. */
 #define MENU_SUBOVERLAY_ADDR 0x801D1000
@@ -11,6 +12,8 @@
 #define MENU_IMAGE_ADDR 0x801CD000
 
 #define MENU_UNK_801D5000_ADDR 0x801D5000
+
+#define INVALID_ID 0xFF /**< Invalid or absent ID. */
 
 /**
  * @brief Menu task callbacks registered with func_801F179C.
@@ -316,6 +319,88 @@ typedef struct {
     u8 param1;  /**< 0x2: type-dependent (heal amount, GF id, ability id, magazine start page). */
     u8 param2;  /**< 0x3: type-dependent (status mask, stat mask, compatibility amount, magazine end page). */
 } MItemEntry; /* 0x4 = 4 bytes */
+
+/**
+ * @brief Represents a string-location table (`strings_locationsXX.bin`) stored in `mngrp.bin`.
+ *
+ * The table contains offsets to strings relative to a common base address.
+ * The number of offsets is specified by the `count` field.
+ */
+typedef struct {
+    u16 count;      /**< 0x00: Number of strings. */
+    u16 offsets[1]; /**< 0x02: String offsets. */
+} Mngrp_string;
+
+/**
+ * @brief Picture/text overlay drawn in the magazine page.
+ */
+typedef struct {
+    u16 x; /**< 0x00: X position. */
+    u8 y;  /**< 0x02: Y position. */
+    u8 id; /**< 0x03: ID. */
+} MagazinePageOverlay; /* 0x4 bytes */
+
+/**
+ * @brief Magazine page. Each entry repesents one page view (mmag.bin content).
+ */
+typedef struct {
+    u16 windowX; /**< 0x00: Window X. */
+    u16 windowY; /**< 0x02: Window Y. */
+    u16 windowWidth; /**< 0x04: Window width. */
+    u16 windowHeight; /**< 0x06: Window height. */
+    u16 paperMatX; /**< 0x08: Paper mat X. */
+    u16 paperMatY; /**< 0x0A: Paper mat Y. */
+    u16 paperMatWidth; /**< 0x0C: Paper mat width. */
+    u16 paperMatHeight; /**< 0x0E: Paper mat height. */
+    u8 paperMatRed; /**< 0x10: Paper mat red. */
+    u8 paperMatGreen; /**< 0x11: Paper mat green. */
+    u8 paperMatBlue; /**< 0x12: Paper mat blue. */
+    u8 paperBgParamA; /**< 0x13: Paper Background parameter A. */
+    u8 paperBgParamB; /**< 0x14: Paper Background parameter B. */
+    u8 textFileIndex; /**< 0x15: Text file index. */
+    u8 pageTextureCategory; /**< 0x16: Page texture category. */
+    u8 pageTexture; /**< 0x17: Page texture page number. */
+    u8 weaponId; /**< 0x18: Weapon ID. */
+    u8 weaponLineSpacing; /**< 0x19: Weapon line spacing. */
+    u8 duelId; /**< 0x1A: Zell limit break duel ID. */
+    u8 angeloId; /**< 0x1B: Angelo ID. */
+    u16 weaponListX; /**< 0x1C: Weapon list X. */
+    u8 weaponListY; /**< 0x1E: Weapon list Y. */
+    u8 weaponXOffset; /**< 0x1F: Weapon quantity column X offset. */
+    u16 duelComboX; /**< 0x20: Duel combo X. */
+    u8 duelComboY; /**< 0x22: Duel combo Y. */
+    u8 footerFlag; /**< 0x23: Footer flag. */
+    MagazinePageOverlay pictureOverlays[4]; /**< 0x24: Picture overlays in the page. */
+    MagazinePageOverlay textOverlays[4]; /**< 0x34: Text overlays in the page. */
+} MagazinePageEntry; /** 0x44 bytes */
+
+/**
+ * @brief GPU composite primitive for magazine paper mat.
+ */
+typedef struct {
+    DR_TPAGE tpage; /**< 0x00: Drawing texture page primitive. */
+    u8 r0;          /**< 0x08: Color red. */
+    u8 g0;          /**< 0x09: Color green. */
+    u8 b0;          /**< 0x0A: Color blue. */
+    u8 code;        /**< 0x0B: GP0 code. */
+    s16 x0;         /**< 0x0C: X coord. */
+    s16 y0;         /**< 0x0E: Y coord. */
+    s16 w;          /**< 0x10: Width. */
+    s16 h;          /**< 0x12: Height. */
+} PaperMatPrim; /* 0x14 bytes */
+
+/**
+ * @brief GPU composite primitive representing a slice of a magazine page.
+ */
+typedef struct {
+    DR_MODE twin; /**< 0x00: Drawing mode primitive. */
+    SPRT sprt;    /**< 0x0C: Sprite primitive. */
+} PaperMatSlicePrim; /* 0x20 bytes */
+
+#define setPaperMatPrim(p, dfe, dtd, tp) \
+    setlen(p, 4), (p)->tpage.code[0] = _get_mode(dfe, dtd, tp), (p)->code = 0x62
+#define setPaperMatSlicePrim(p, mode, tw) \
+    setlen(p, 7), (p)->twin.code[0] = (mode), (p)->twin.code[1] = (tw), (p)->sprt.tag = 0
 
 extern u8 D_801F7F98[];
 extern FlagEntry D_801F87B8[];
