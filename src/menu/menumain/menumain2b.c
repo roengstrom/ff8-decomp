@@ -1919,7 +1919,6 @@ void *func_801F605C(void* ot, void* prim, s32 x, s32 y, CharMenuInfo *info) {
     cfg->h = 64;
     x2 += 8;
     y2 += 7;
-    i = 0;
     for (i = 0; i < 4; i++) {
         u32 cmdId = info->commandIds[i];
         u32 color = DIALOG_COLOR_WHITE;
