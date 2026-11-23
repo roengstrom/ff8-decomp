@@ -2168,7 +2168,33 @@ s32 func_801F6800(u16 flags, s32 max, s32 current) {
     return current;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6888);
+void func_801F6888(void) {
+    u8 *item;
+    s32 i;
+    s32 minAmmo = 255;
+    s32 maxAmmo = 0;
+    ShotEntry *shot = g_kernel.shot;
+    for (i = 7; i >= 0; i--, shot++) {
+        s32 ammoItem = shot->ammoItem;
+        if (ammoItem < minAmmo) {
+            minAmmo = ammoItem;
+        }
+        if (maxAmmo < ammoItem) {
+            maxAmmo = ammoItem;
+        }
+    }
+    item = &g_gameState.mainData.itemSlots[0].id;
+    for (i = 0; i < ITEM_SLOT_COUNT; i++) {
+        s32 id = *item++;
+        s32 count = *item++;
+        if (count != 0 && id >= minAmmo && maxAmmo >= id) {
+            u8 newLimits = g_gameState.mainData.limitBreaks.irvineLimits;
+            id = 1 << (id - minAmmo);
+            newLimits |= id;
+            g_gameState.mainData.limitBreaks.irvineLimits = newLimits;
+        }
+    }
+}
 
 /**
  * @brief Initialize the main menu state.
