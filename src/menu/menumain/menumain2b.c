@@ -60,7 +60,7 @@ static s32 func_801F5C84(s32, s32, s32, s32, s32, u16 *, u32);
 static s32 func_801F5D5C(s32, DR_AREA *, s32, s32, s32, u16 *, s32, s32);
 static s32 func_801F5E0C(s32, s32, s32, s32, s32, s32, s32);
 static s32 func_801F6358(s32, s32, s32, s32, s32);
-static s32 func_801F6B54(s32, s32, s32, s32, s32);
+static void *func_801F6B54(void *ot, void *prim, s32 x, s32 y, s32 charId);
 
 #define gte_dpcs_get_rgb(result, rgb, value)  \
     __asm__ volatile(                         \
@@ -1521,9 +1521,68 @@ static void func_801F5490(MainMenuCtx *ctx) {
     func_801F1F98(ctx);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F565C);
+u32 func_801F565C(u32 charId, u32 otherChars) {
+    s32 i;
+    s32 max;
+    s32 val;
+    i = 0;
+    while (1) {
+        if (D_801FAB88[i] == PARTY_SLOT_EMPTY) {
+            return charId;
+        }
+        if (charId == D_801FAB88[i]) {
+            break;
+        }
+        i++;
+    }
+    max = i;
+restart:
+    do {
+        i--;
+        if (max == i) {
+            return charId;
+        }
+        if (i < 0) {
+            i = 8;
+        }
+        val = D_801FAB88[i];
+        if (val != PARTY_SLOT_EMPTY && otherChars & (1 << val)) {
+            return val;
+        }
+        goto restart;
+    } while (0);
+}
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F56E4);
+u32 func_801F56E4(u32 charId, u32 otherChars) {
+    s32 i;
+    s32 max;
+    s32 val;
+    i = 0;
+    while (1) {
+        if (D_801FAB88[i] == PARTY_SLOT_EMPTY) {
+            return charId;
+        }
+        if (charId == D_801FAB88[i]) {
+            break;
+        }
+        i++;
+    }
+    max = i++;
+    while (1) {
+        if (max == i) {
+            return charId;
+        }
+        val = D_801FAB88[i];
+        if (val == PARTY_SLOT_EMPTY) {
+            i = 0;
+            continue;
+        }
+        i++;
+        if (otherChars & (1 << val)) {
+            return val;
+        }
+    }
+}
 
 /** @brief Set entity status flags, dispatched by type (character < 16, GF >= 16). */
 void func_801F576C(s32 a0, s32 a1) {
@@ -1622,7 +1681,21 @@ s32 func_801F5984(u16 *src, u16 *dst, s32 a2) {
 /* Number & String Rendering                                                */
 /* ======================================================================== */
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F5A38);
+void *func_801F5A38(void *ot, void *prim, s32 x, s32 y, u32 stringType, s16 *stringIds, u32 availableStrings) {
+    s16 xOffsets[36];
+    s32 i;
+    s32 y2 = y;
+    s32 count = func_801F5984(stringIds, xOffsets, stringType);
+    y2 -= 2;
+    for (i = 0; i < count; i++) {
+        s32 x2 = x + xOffsets[i];
+        u32 mask = 1 << i;
+        u32 color = (availableStrings & mask) ? DIALOG_COLOR_WHITE : DIALOG_COLOR_GRAY;
+        u8 *text = func_801F08D4(1, stringType, stringIds[i], 0);
+        prim = drawDecodedText(ot, prim, x2, y2, text, color);
+    }
+    return prim;
+}
 
 /**
  * @brief Size and draw a text-list panel from a -1-terminated id list.
@@ -1833,7 +1906,48 @@ s32 func_801F5F60(s32 ctx, s32 dl, s32 color, s32 arrows) {
     return dl;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F605C);
+void *func_801F605C(void* ot, void* prim, s32 x, s32 y, CharMenuInfo *info) {
+    s32 i;
+    MenuDisplayConfig *cfg = &g_menuDisplayCfg;
+    s32 x2 = x;
+    s32 y2 = y;
+    cfg->iconType = ICON_COMMAND;
+    cfg->iconSubType = 0;
+    cfg->x = x;
+    cfg->y = y;
+    cfg->w = 84;
+    cfg->h = 64;
+    x2 += 8;
+    y2 += 7;
+    for (i = 0; i < 4; i++) {
+        u32 cmdId = info->commandIds[i];
+        u32 color = DIALOG_COLOR_WHITE;
+        if (func_801F79F8(SEALED_ITEM)
+                && (cmdId == BATTLE_CMD_UNK13 || cmdId == BATTLE_CMD_ITEM)) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_MAGIC) && cmdId == BATTLE_CMD_MAGIC) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_GF) && cmdId == BATTLE_CMD_GF) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_DRAW) && cmdId == BATTLE_CMD_DRAW) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (func_801F79F8(SEALED_COMMAND_ABILITIES)
+                && i != 0 && cmdId - 2 >= 2 && cmdId != BATTLE_CMD_DRAW
+                && cmdId != BATTLE_CMD_UNK13 && cmdId != BATTLE_CMD_ITEM) {
+            color = DIALOG_COLOR_GRAY;
+        }
+        if (cmdId != BATTLE_CMD_NONE) {
+            u8 *cmdName = getBattleCommandName(cmdId);
+            prim = func_801F0FEC(ot, prim, x2, y2, cmdName, color);
+        }
+        y2 += 13;
+    }
+    return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 /**
  * @brief Draw the status icons of @p mask in a 3-column grid.
@@ -1918,7 +2032,27 @@ s32 func_801F6418(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4) {
     return a2;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F64A4);
+void *func_801F64A4(void *ot, void *prim, s32 x, s32 y, CharacterData *chr, CharMenuInfo *info, s32 arg6) {
+    u32 color;
+    u8 *chrName;
+    s32 x2 = x + 40;
+    s32 y2 = y + 57;
+    prim = MenuDrawPortrait(chr->characterId, ot, prim, x2, y2, g_menuTint[0]);
+    x2 = x + 79;
+    color = func_801F3FB4(info->statusFlags);
+    chrName = getCharName(chr->characterId);
+    prim = func_801F3994(chrName, ot, prim, x2, y2, color);
+    y2 = y + 75;
+    prim = func_801F3ABC(info->currentLevel, ot, prim, x2, y2, color);
+    if (arg6 != 0) {
+        x2 = x + 143;
+        y2 = y + 73;
+        prim = func_801F6418(info->charId, ot, prim, x2, y2);
+    }
+    x2 = x + 79;
+    y2 = y + 93;
+    return func_801F3CE0(info->currentHp, info->maxHp, ot, prim, x2, y2, color);
+}
 
 /**
  * @brief Draw full character info panel.
@@ -2033,7 +2167,33 @@ s32 func_801F6800(u16 flags, s32 max, s32 current) {
     return current;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6888);
+void func_801F6888(void) {
+    u8 *item;
+    s32 i;
+    s32 minAmmo = 255;
+    s32 maxAmmo = 0;
+    ShotEntry *shot = g_kernel.shot;
+    for (i = 7; i >= 0; i--, shot++) {
+        s32 ammoItem = shot->ammoItem;
+        if (ammoItem < minAmmo) {
+            minAmmo = ammoItem;
+        }
+        if (maxAmmo < ammoItem) {
+            maxAmmo = ammoItem;
+        }
+    }
+    item = &g_gameState.mainData.itemSlots[0].id;
+    for (i = 0; i < ITEM_SLOT_COUNT; i++) {
+        s32 id = *item++;
+        s32 count = *item++;
+        if (count != 0 && id >= minAmmo && maxAmmo >= id) {
+            u8 newLimits = g_gameState.mainData.limitBreaks.irvineLimits;
+            id = 1 << (id - minAmmo);
+            newLimits |= id;
+            g_gameState.mainData.limitBreaks.irvineLimits = newLimits;
+        }
+    }
+}
 
 /**
  * @brief Initialize the main menu state.
@@ -2107,7 +2267,21 @@ s32 func_801F6B28(s32 a0) {
     return D_801F7F98[D_801F889C[a0].type];
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6B54);
+static void *func_801F6B54(void *ot, void *prim, s32 x, s32 y, s32 charId) {
+    u8 buffer[16];
+    u32 color;
+    u8 *chrName;
+    void *prim2;
+    CharacterData *chr = &g_gameState.chars[charId];
+    charId = chr->characterId;
+    color = func_801F3FB4(chr->statusFlags);
+    chrName = getCharName(charId);
+    prim2 = func_801F0FEC(ot, prim, x, y, chrName, color);
+    prim = drawIconClut(ot, prim2, ICON_HP_YELLOW, x + 104, y + 2, g_menuTint[MENU_TINT_NORMAL], (color * 64) + 2);
+    intToDecStringShort(chr->currentHp, buffer, getMenuString(11)[1]);
+    replaceLeadingZeros(buffer, 4, getMenuString(11)[1], getMenuString(11)[0]);
+    return func_8002C56C(ot, prim, x + 116, y + 2, buffer, color);
+}
 
 /**
  * @brief Render a column of bitmask-selected entries inside a 168x120 panel.

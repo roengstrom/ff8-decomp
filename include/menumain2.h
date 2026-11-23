@@ -66,6 +66,7 @@ extern u8 D_801FAB30;
 extern u8 D_801FAB31;
 extern u8 D_801FAB7A;
 extern u8 D_801FAB7B;
+extern u8 D_801FAB88[];
 
 DR_AREA *func_801F03E8(P_TAG *, DR_AREA *);
 void func_801F04E8(s32, u32, s32, s32);
