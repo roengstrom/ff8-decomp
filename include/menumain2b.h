@@ -2,6 +2,7 @@
 #define MENUMAIN2B_H
 
 #include "battle.h"
+#include "character.h"
 #include "common.h"
 #include "menumain2.h"
 
