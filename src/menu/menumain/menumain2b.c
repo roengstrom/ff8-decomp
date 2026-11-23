@@ -37,8 +37,12 @@ extern u8 D_801FAB7C;
 extern s32 D_801FABBC;
 extern s32 D_801FABC0;
 extern u8 D_801FABC4[4];
-extern u16 D_801FACE2;
-extern u16 D_801FACE4;
+extern u8 *D_801FACC8;
+extern u8 *D_801FACCC;
+extern u8 *D_801FACD0;
+extern RECT D_801FACD8;
+extern s16 D_801FACE2;
+extern s16 D_801FACE4;
 extern s32 D_801FACE8;
 
 static void func_801F2458(MainMenuCtx *ctx);
@@ -2362,7 +2366,7 @@ void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId) {
 
 /** @brief Get packed cursor coordinates (D_801FACE4 << 16 | D_801FACE2). */
 s32 func_801F6F6C(void) {
-    return (D_801FACE4 << 16) | D_801FACE2;
+    return ((u16) D_801FACE4 << 16) | (u16) D_801FACE2;
 }
 
 /** @brief Render menu item at grid position derived from hi/lo nibbles of a0. */
@@ -2374,7 +2378,36 @@ void func_801F6F88(s32 a0) {
     func_801F0994(lo | hi, (u16)val, (val >> 16) + lo * 13);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F6FE4);
+void *func_801F6FE4(void *ot, void *prim, s32 arg2, s32 progress) {
+    MenuDisplayConfig *cfg;
+    s32 x;
+    s32 y;
+    u8 *ptr;
+    s32 color;
+    if (progress <= 0) {
+        return prim;
+    }
+    prim = func_801F03E8(ot, prim);
+    cfg = &g_menuDisplayCfg;
+    color = DIALOG_COLOR_WHITE;
+    x = D_801FACD8.x + 10;
+    y = D_801FACD8.y + 7;
+    ptr = D_801FACC8;
+    if (ptr != NULL) {
+        prim = func_801F0FEC(ot, prim, x, y, ptr, color);
+    }
+    x = D_801FACE2;
+    y = D_801FACE4;
+    ptr = D_801FACCC;
+    prim = func_801F0FEC(ot, prim, x, y, ptr, color);
+    y += 13;
+    ptr = D_801FACD0;
+    prim = func_801F0FEC(ot, prim, x, y, ptr, color);
+    cfg->iconType = ICON_NOTICE;
+    cfg->iconSubType = 0;
+    *(RECT *)&cfg->x = D_801FACD8;
+    return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
+}
 
 INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F7148);
 
