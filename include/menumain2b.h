@@ -55,6 +55,8 @@ s32 func_801F72B4(void);
 void func_801F72C4(void);
 s32 func_801F738C(s32);
 s32 func_801F7394(s32);
+s32 func_801F7454(s32 charId, s32 magicId, s32 amount);
+void func_801F75EC(s32 charId, s32 magicId, s32 amount);
 s32 func_801F76E0(s32, s32, s32);
 
 #endif /* MENUMAIN2B_H */

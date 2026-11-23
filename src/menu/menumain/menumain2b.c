@@ -2518,21 +2518,75 @@ void func_801F739C(s32 a0, s32 a1, s32 a2, s32 a3, s32 a4, MenuRowCallback a5) {
     func_801EFBB4(a0, ret2, a5);
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F7454);
+s32 func_801F7454(s32 charId, s32 magicId, s32 amount) {
+    s32 i;
+    u32 mask = 0;
+    MagicSlot *magic = g_gameState.chars[charId].magic;
+    for (i = 0; i < 32; magic++, i++) {
+        if (magic->magicId != 0) {
+            mask |= 1 << i;
+        }
+        if (magicId == magic->magicId && magic->quantity != 0) {
+            s32 qtyNew = magic->quantity;
+            s32 qtyOld = qtyNew;
+            qtyNew += amount;
+            if (qtyNew >= 100) {
+                qtyNew = 100;
+            }
+            magic->quantity = qtyNew;
+            return qtyNew - qtyOld;
+        }
+    }
+    mask = ~mask;
+    if (mask == 0) {
+        return 0;
+    }
+    i = findNthSetBit(mask, 0);
+    amount = CLAMP(amount, 0, 100);
+    g_gameState.chars[charId].magic[i].magicId = magicId;
+    g_gameState.chars[charId].magic[i].quantity = amount;
+    return amount;
+}
 
 /** @brief Apply junction change, then update cursor and recalculate party stats. */
-s32 func_801F75A4(s32 a0) {
-    s32 result = func_801F7454(a0);
+s32 func_801F75A4(s32 a0, s32 a1, s32 a2) {
+    s32 result = func_801F7454(a0, a1, a2);
     func_801F1B4C(a0);
     func_801F5400(a0);
     return result;
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain2b", func_801F75EC);
+void func_801F75EC(s32 charId, s32 magicId, s32 amount) {
+    s32 i;
+    MagicSlot *magic = g_gameState.chars[charId].magic;
+    if (amount == 0) {
+        return;
+    }
+    for (i = 0; i < 32; magic++, i++) {
+        if (magicId == magic->magicId) {
+            s32 qty = magic->quantity;
+            qty -= amount;
+            if (qty < 0) {
+                qty = 0;
+            }
+            if (qty == 0) {
+                s32 j;
+                magic->magicId = 0;
+                for (j = 0; j < 19; j++) {
+                    if (g_gameState.chars[charId].junctions[j] == magicId) {
+                        g_gameState.chars[charId].junctions[j] = 0;
+                    }
+                }
+            }
+            magic->quantity = qty;
+            return;
+        }
+    }
+}
 
 /** @brief Remove junction, then update cursor and recalculate party stats. */
-void func_801F76A8(s32 a0) {
-    func_801F75EC(a0);
+void func_801F76A8(s32 a0, s32 a1, s32 a2) {
+    func_801F75EC(a0, a1, a2);
     func_801F1B4C(a0);
     func_801F5400(a0);
 }
