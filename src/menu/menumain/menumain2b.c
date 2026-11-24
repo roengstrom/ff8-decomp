@@ -2355,10 +2355,10 @@ void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId) {
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 168;
-    cfg->h = 40;
+    cfg->rect.x = x;
+    cfg->rect.y = y;
+    cfg->rect.w = 168;
+    cfg->rect.h = 40;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -2407,7 +2407,7 @@ void *func_801F6FE4(void *ot, void *prim, s32 arg2, s32 progress) {
     prim = func_801F0FEC(ot, prim, x, y, ptr, color);
     cfg->iconType = ICON_NOTICE;
     cfg->iconSubType = 0;
-    *(RECT *)&cfg->x = D_801FACD8;
+    cfg->rect = D_801FACD8;
     return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
 }
 
