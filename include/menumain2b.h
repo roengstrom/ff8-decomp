@@ -47,11 +47,16 @@ u8 *func_801F6AA4(s32);                      /**< Look up a string in menu text 
 u8 *func_801F6AD0(s32);                      /**< Look up a string in menu text category 0. */
 u8 *func_801F6AFC(s32);
 void *func_801F6C9C(s32, s32, s32, s32, s32, u16);
+void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId);
 void func_801F6F88(s32);
+void *func_801F6FE4(void *ot, void *prim, s32 arg2, s32 progress);
+void func_801F7148(u8 *arg0, u8 *arg1, u8 *arg2, s32 arg3);
 s32 func_801F72B4(void);
 void func_801F72C4(void);
 s32 func_801F738C(s32);
 s32 func_801F7394(s32);
+s32 func_801F7454(s32 charId, s32 magicId, s32 amount);
+void func_801F75EC(s32 charId, s32 magicId, s32 amount);
 s32 func_801F76E0(s32, s32, s32);
 
 #endif /* MENUMAIN2B_H */

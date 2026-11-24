@@ -1,5 +1,6 @@
 #include "common.h"
 #include "gamestate.h"
+#include "kernel.h"
 #include "input/gamepad.h"
 #include "menu.h"
 #include "menumain2.h"
@@ -10,8 +11,26 @@
 #include "snd_sfx.h"
 
 extern u8 D_80056290[];
+extern u8 D_80083756;
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain3", func_801F776C);
+s32 func_801F776C(s32 magicId, s32 junctionType) {
+    MagicEntry* magic = g_kernel.magic;
+    magic = &magic[magicId];
+    switch (junctionType) {
+    case 0 ... 8:
+        return magic->statJunction[junctionType];
+    case 10:
+        return magic->atkStatuses;
+    case 9:
+        return magic->atkElement;
+    case 11 ... 14:
+        return magic->defElement;
+    case 15 ... 18:
+        return magic->defStatuses;
+    default:
+        return 0;
+    }
+}
 
 /**
  * @brief Find ability slot by ID in character data.
@@ -111,7 +130,15 @@ void func_801F7A08(void) {
     }
 }
 
-INCLUDE_ASM("asm/ovl/menumain/nonmatchings/menumain3", func_801F7A54);
+s32 func_801F7A54(void) {
+    FieldVars *fieldVars = &g_gameState.fieldVars;
+    if (D_80083756 != 0 && !(g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED)) {
+        s32 seedExp = (s16)fieldVars->seedExp;
+        seedExp = CLAMP(seedExp, 100, 3100);
+        return seedExp / 100;
+    }
+    return -1;
+}
 
 /**
  * @brief Scale a value by 100 and store it clamped to [100, 3100] in g_gameState.fieldVars.seedExp.
