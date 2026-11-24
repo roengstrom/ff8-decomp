@@ -3,7 +3,25 @@
 #include "world/we_object6.h"
 #include "psxsdk/libc.h"
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800ACC68);
+void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf, SVECTOR *offset) {
+    MATRIX m;
+    VECTOR t;
+    s32 flag;
+
+    RotMatrixYXZ(angles, &m);
+    SetRotMatrix(&m);
+    t.vx = rotBuf->vx;
+    t.vy = rotBuf->vy;
+    t.vz = rotBuf->vz;
+    TransMatrix(&m, &t);
+    SetTransMatrix(&m);
+    RotTrans(offset, (VECTOR *)m.t, &flag);
+    TransposeMatrix(&m, outMat);
+    ApplyMatrixLV(outMat, (VECTOR *)m.t, (VECTOR *)outMat->t);
+    outMat->t[0] = -outMat->t[0];
+    outMat->t[1] = -outMat->t[1];
+    outMat->t[2] = -outMat->t[2];
+}
 
 /**
  * @brief Snapshot @c D_800D2390.tail with an angle-adjusted @c angle
