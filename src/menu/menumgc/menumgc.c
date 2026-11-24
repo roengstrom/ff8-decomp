@@ -2584,8 +2584,8 @@ s32 func_801EB1A0(s32 ctx, s32 arg1, s32 index, s32 a3_unused, s32 xExtra) {
 
     if (itemText != NULL) {
         s32 deltaX = xExtra + 0xA;
-        s32 x = g_menuDisplayCfg.rect.x + deltaX;
-        s32 y = g_menuDisplayCfg.rect.y + 9;
+        s32 x = g_menuDisplayCfg.windowBackgroundRect.x + deltaX;
+        s32 y = g_menuDisplayCfg.windowBackgroundRect.y + 9;
 
         decodeMessage(itemText, buf, -1);
         result = func_801F0FEC(ctx, arg1, x, y, buf, 7);

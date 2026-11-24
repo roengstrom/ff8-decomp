@@ -3233,10 +3233,10 @@ s32 renderStatTableA(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
         cfg->iconType = 0xD0;
     }
     cfg->iconSubType = 0;
-    cfg->rect.x = xBase;
-    cfg->rect.y = yBase;
-    cfg->rect.w = 0xDA;
-    cfg->rect.h = 0x59;
+    cfg->windowBackgroundRect.x = xBase;
+    cfg->windowBackgroundRect.y = yBase;
+    cfg->windowBackgroundRect.w = 218;
+    cfg->windowBackgroundRect.h = 89;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3316,10 +3316,10 @@ s32 renderStatTableB(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
         cfg->iconType = 0xD1;
     }
     cfg->iconSubType = 0;
-    cfg->rect.x = xBase;
-    cfg->rect.y = yBase;
-    cfg->rect.w = 0xDA;
-    cfg->rect.h = 0x60;
+    cfg->windowBackgroundRect.x = xBase;
+    cfg->windowBackgroundRect.y = yBase;
+    cfg->windowBackgroundRect.w = 218;
+    cfg->windowBackgroundRect.h = 96;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3421,10 +3421,10 @@ s32 renderStatTableC(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase, s32 junct
         cfg->iconType = 0xD2;
     }
     cfg->iconSubType = 0;
-    cfg->rect.x = xBase;
-    cfg->rect.y = yBase;
-    cfg->rect.w = 0xDA;
-    cfg->rect.h = 0x43;
+    cfg->windowBackgroundRect.x = xBase;
+    cfg->windowBackgroundRect.y = yBase;
+    cfg->windowBackgroundRect.w = 218;
+    cfg->windowBackgroundRect.h = 67;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3518,10 +3518,10 @@ s32 renderStatTableD(s32 renderCtx, s32 cursorY, s32 xBase, s32 yBase) {
         cfg->iconType = 0xD3;
     }
     cfg->iconSubType = 0;
-    cfg->rect.x = xBase;
-    cfg->rect.y = yBase;
-    cfg->rect.w = 0xDA;
-    cfg->rect.h = 0x43;
+    cfg->windowBackgroundRect.x = xBase;
+    cfg->windowBackgroundRect.y = yBase;
+    cfg->windowBackgroundRect.w = 218;
+    cfg->windowBackgroundRect.h = 67;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3571,10 +3571,10 @@ s32 renderStatGrid(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
 
     cfg->iconType = 0x5E;
     cfg->iconSubType = 0;
-    cfg->rect.x = x;
-    cfg->rect.w = 0x150;
-    cfg->rect.y = y;
-    cfg->rect.h = 0xA0;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.w = 336;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.h = 160;
     return DrawMenuWindow(ctx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3632,19 +3632,19 @@ s32 renderStatDeltaBar(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, 
     result = func_801F5A38(renderCtx, result, barX, cursorY,
                            11, ctx->dataPtr, ctx->statInfo[ctx->unk4E]);
 
-    cfg->rect.x = x + 2;
+    cfg->windowBackgroundRect.x = x + 2;
     h = (cursorY = 18);
-    cfg->rect.y = y;
-    cfg->rect.w = 240;
-    cfg->rect.h = h;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 240;
+    cfg->windowBackgroundRect.h = h;
     result = func_801EF800(renderCtx, result, cfg);
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->rect.x = x;
-    cfg->rect.y = y;
-    cfg->rect.w = 244;
-    cfg->rect.h = h;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 244;
+    cfg->windowBackgroundRect.h = h;
     return DrawMenuWindow(renderCtx, result, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3702,20 +3702,20 @@ s32 renderStatDeltaBarExt(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 
     prod = (delta + 0x1A) * scale;
     barW = (rem244 + prod) / 4096;
 
-    g_menuDisplayCfg.rect.x = x + 0x1A;
-    g_menuDisplayCfg.rect.y = y;
-    g_menuDisplayCfg.rect.w = barW - 0x26;
+    g_menuDisplayCfg.windowBackgroundRect.x = x + 26;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = barW - 38;
     h = 0x12;
-    g_menuDisplayCfg.rect.h = 0x12;
+    g_menuDisplayCfg.windowBackgroundRect.h = 18;
 
     cursorY = func_801EF800(renderCtx, cursorY, cfg);
 
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.y = y;
-    g_menuDisplayCfg.rect.w = barW;
-    g_menuDisplayCfg.rect.h = h;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = barW;
+    g_menuDisplayCfg.windowBackgroundRect.h = h;
 
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
@@ -3741,8 +3741,8 @@ s32 renderMagicItemCallback(s32 renderCtx, s32 cursorY, s32 itemIdx, s32 columnI
 
     if (itemText != NULL) {
         s32 deltaX = xOffset + 0xA;
-        s32 x = g_menuDisplayCfg.rect.x + deltaX;
-        s32 y = g_menuDisplayCfg.rect.y + 9;
+        s32 x = g_menuDisplayCfg.windowBackgroundRect.x + deltaX;
+        s32 y = g_menuDisplayCfg.windowBackgroundRect.y + 9;
 
         decodeMessage(itemText, buf, -1);
         result = func_801F0FEC(renderCtx, cursorY, x, y, buf, 7);
@@ -3768,13 +3768,13 @@ s32 renderMagicItemCallback(s32 renderCtx, s32 cursorY, s32 itemIdx, s32 columnI
 s32 setupMagicListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 callbackParam, s16 x, s16 y) {
     g_menuDisplayCfg.iconType = 0x55;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.w = 0x144;
-    g_menuDisplayCfg.rect.h = 0x1A;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.w = 324;
+    g_menuDisplayCfg.windowBackgroundRect.h = 26;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
-    g_menuDisplayCfg.rect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
     g_menuDisplayCfg.scrollOffset = ctx->unk34;
     g_menuDisplayCfg.dataPtr = (s32)&ctx->itemPtr;
 
@@ -3848,13 +3848,13 @@ s32 renderGfMagicGrid(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 xBas
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->rect.x = xBase;
-    cfg->rect.w = 0xB0;
-    cfg->rect.y = yBase;
+    cfg->windowBackgroundRect.x = xBase;
+    cfg->windowBackgroundRect.w = 176;
+    cfg->windowBackgroundRect.y = yBase;
     /* Regalloc: cursorY++/-- boosts cursorY priority to s3 over x(s4) */
     cursorY++;
     cursorY--;
-    cfg->rect.h = 0x5E;
+    cfg->windowBackgroundRect.h = 94;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3893,14 +3893,14 @@ s32 renderGfMagicEntry(s32 renderCtx, s32 cursorY, s32 col, s32 row, s32 xOff) {
             color = gf->charIdx == g_menuDisplayCfg.itemAttr;
         }
         namePtr = getMagicNamePtr(idx + 0x40);
-        cursorY = func_801F0FEC(renderCtx, cursorY, 0xC + g_menuDisplayCfg.rect.x + xOff, 7 + g_menuDisplayCfg.rect.y + row * 13, namePtr, color);
+        cursorY = func_801F0FEC(renderCtx, cursorY, 0xC + g_menuDisplayCfg.windowBackgroundRect.x + xOff, 7 + g_menuDisplayCfg.windowBackgroundRect.y + row * 13, namePtr, color);
         if (gf->charIdx != 0xFF) {
-            ysum = 7 + g_menuDisplayCfg.rect.y + row * 13;
-            xsum = 0x6C + g_menuDisplayCfg.rect.x + xOff;
+            ysum = 7 + g_menuDisplayCfg.windowBackgroundRect.y + row * 13;
+            xsum = 0x6C + g_menuDisplayCfg.windowBackgroundRect.x + xOff;
             cursorY = drawIcon(renderCtx, cursorY, ICON_JUNCTION_MARK, xsum, ysum, g_menuTint[MENU_TINT_NORMAL]);
         }
-        ysum = 7 + g_menuDisplayCfg.rect.y + row * 13;
-        xsum = 0x90 + g_menuDisplayCfg.rect.x + xOff;
+        ysum = 7 + g_menuDisplayCfg.windowBackgroundRect.y + row * 13;
+        xsum = 0x90 + g_menuDisplayCfg.windowBackgroundRect.x + xOff;
         cursorY = drawNumberMenuTint(renderCtx, cursorY, (ysum << 16) | (xsum & 0xFFFF), gf->level, color);
     }
     return cursorY;
@@ -3928,11 +3928,11 @@ s32 renderGfMagicPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, 
 
     g_menuDisplayCfg.iconType = 0x50;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.w = 0x9A;
-    g_menuDisplayCfg.rect.h = 0x40;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.w = 154;
+    g_menuDisplayCfg.windowBackgroundRect.h = 64;
     g_menuDisplayCfg.columnCount = 4;
-    g_menuDisplayCfg.rect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
     g_menuDisplayCfg.pageStart = ctx->unk44;
     g_menuDisplayCfg.pageEnd = ctx->unk45;
     g_menuDisplayCfg.scrollOffset = ctx->unk34;
@@ -4458,10 +4458,10 @@ s32 renderJunctionStatPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s3
 s32 setupStatBorderPanel(s32 ctx, s32 mode, s32 x, s32 y, s32 renderParam) {
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.w = 0x150;
-    g_menuDisplayCfg.rect.h = 0x48;
-    g_menuDisplayCfg.rect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.h = 72;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
     return DrawMenuWindow(ctx, mode, renderParam, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -4521,10 +4521,10 @@ s32 renderJunctionHeader(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->rect.x = x;
-    cfg->rect.y = y;
-    cfg->rect.w = 0xAE;
-    cfg->rect.h = 0x16;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 174;
+    cfg->windowBackgroundRect.h = 22;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -4609,8 +4609,8 @@ s32 renderMagicJunctionEntry(s32 renderCtx, s32 cursorY, s32 col, s32 row, s32 x
 
     if (magicId != 0 && qty != 0) {
         if (func_801F1CE8(charIdx, magicId) != 0) {
-            ysum = 7 + g_menuDisplayCfg.rect.y + row * 13;
-            xsum = 0x49 + g_menuDisplayCfg.rect.x + xOff;
+            ysum = 7 + g_menuDisplayCfg.windowBackgroundRect.y + row * 13;
+            xsum = 0x49 + g_menuDisplayCfg.windowBackgroundRect.x + xOff;
             cursorY = drawIcon(renderCtx, cursorY, ICON_JUNCTION_MARK, xsum, ysum, g_menuTint[MENU_TINT_NORMAL]);
             color = 1;
         }
@@ -4619,9 +4619,9 @@ s32 renderMagicJunctionEntry(s32 renderCtx, s32 cursorY, s32 col, s32 row, s32 x
             color = 0;
         }
         namePtr = getMagicNamePtr(magicId);
-        cursorY = func_801F0FEC(renderCtx, cursorY, 0xC + g_menuDisplayCfg.rect.x + xOff, 7 + g_menuDisplayCfg.rect.y + row * 13, namePtr, color);
-        ysum = 7 + g_menuDisplayCfg.rect.y + row * 13;
-        xsum = 0x6C + g_menuDisplayCfg.rect.x + xOff;
+        cursorY = func_801F0FEC(renderCtx, cursorY, 0xC + g_menuDisplayCfg.windowBackgroundRect.x + xOff, 7 + g_menuDisplayCfg.windowBackgroundRect.y + row * 13, namePtr, color);
+        ysum = 7 + g_menuDisplayCfg.windowBackgroundRect.y + row * 13;
+        xsum = 0x6C + g_menuDisplayCfg.windowBackgroundRect.x + xOff;
         cursorY = drawNumberMenuTint(renderCtx, cursorY, (ysum << 16) | (xsum & 0xFFFF), qty, color);
     }
     return cursorY;
@@ -4648,11 +4648,11 @@ s32 renderMagicJunctionEntry(s32 renderCtx, s32 cursorY, s32 col, s32 row, s32 x
 s32 renderMagicListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s32 y) {
     g_menuDisplayCfg.iconType = 0x4A;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.w = 0x78;
-    g_menuDisplayCfg.rect.h = 0x40;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.w = 120;
+    g_menuDisplayCfg.windowBackgroundRect.h = 64;
     g_menuDisplayCfg.columnCount = 4;
-    g_menuDisplayCfg.rect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
     g_menuDisplayCfg.pageStart = ctx->unk44;
     g_menuDisplayCfg.pageEnd = ctx->unk45;
     g_menuDisplayCfg.scrollOffset = ctx->unk34;
@@ -4700,8 +4700,8 @@ s32 renderAbilityListEntry(s32 ctx, s32 cursorY, s32 row, s32 col, s32 panelX) {
     data = (u8 *)g_menuDisplayCfg.dataPtr;
     if (data != 0) {
         idx = (row * 11) + col;
-        cfgX = g_menuDisplayCfg.rect.x;
-        cfgY = g_menuDisplayCfg.rect.y;
+        cfgX = g_menuDisplayCfg.windowBackgroundRect.x;
+        cfgY = g_menuDisplayCfg.windowBackgroundRect.y;
         if (idx < g_menuDisplayCfg.itemId) {
             colY = col * 13;
             {
@@ -4792,12 +4792,12 @@ s32 renderAbilityListPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32
 
     cfg->iconType = 0x5E;
     cfg->iconSubType = 0;
-    cfg->rect.x = panelX;
-    cfg->rect.w = 0xA2;
-    cfg->rect.h = 0xA0;
+    cfg->windowBackgroundRect.x = panelX;
+    cfg->windowBackgroundRect.w = 162;
+    cfg->windowBackgroundRect.h = 160;
     cfg->columnCount = 0xB;
     y = y + 0x38;
-    cfg->rect.y = y;
+    cfg->windowBackgroundRect.y = y;
     cfg->pageStart = ctx->unk44;
     cfg->pageEnd = ctx->unk45;
     cfg->scrollOffset = ctx->unk34;
@@ -4901,10 +4901,10 @@ s32 renderStatRowGrid(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, s
 
     cfg->iconType = 0x48;
     cfg->iconSubType = 0;
-    cfg->rect.x = x;
-    cfg->rect.y = y;
-    cfg->rect.w = 0xAE;
-    cfg->rect.h = 0x48;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 174;
+    cfg->windowBackgroundRect.h = 72;
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -4956,10 +4956,10 @@ s32 renderGfCompatGrid(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 x, 
     }
     cfg->iconType = 0x5E;
     cfg->iconSubType = 0;
-    cfg->rect.x = x;
-    cfg->rect.y = y;
-    cfg->rect.w = 0xAE;
-    cfg->rect.h = 0x48;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 174;
+    cfg->windowBackgroundRect.h = 72;
     return DrawMenuWindow(renderCtx, result, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -5043,13 +5043,13 @@ s32 renderCharSwitchPanel(JunctionMenuCtx *ctx, s32 renderCtx, s32 cursorY, s32 
 s32 renderCharNameBar(s32 renderCtx, s32 cursorY, s32 x, s32 height, s32 charIdx) {
     CharMenuInfo *menuInfo;
 
-    g_menuDisplayCfg.rect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
     x += 9;
-    g_menuDisplayCfg.rect.y = height;
-    g_menuDisplayCfg.rect.w = 0x9A;
+    g_menuDisplayCfg.windowBackgroundRect.y = height;
+    g_menuDisplayCfg.windowBackgroundRect.w = 154;
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.h = 0x16;
+    g_menuDisplayCfg.windowBackgroundRect.h = 22;
     height += 7;
 
     do {

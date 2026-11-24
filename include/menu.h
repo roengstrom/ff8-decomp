@@ -86,8 +86,8 @@ typedef s32 (*MenuDrawCallback)();
  * undefined_syms as an extern.
  */
 typedef struct {
-    /* 0x00 */ RECT rect;
-    /* 0x08 */ RECT rect2;
+    /* 0x00 */ RECT windowBackgroundRect;
+    /* 0x08 */ RECT windowBevelRect;
     /* 0x10 */ u8 iconType;       /**< Panel icon ID (0x00=none, 0x4A, 0x52, 0x55) */
     /* 0x11 */ u8 iconSubType;    /**< Icon sub-parameter (always 0) */
     /* 0x12 */ u8 animCounter;    /**< Animation tick counter (aliased as D_801FAB12) */

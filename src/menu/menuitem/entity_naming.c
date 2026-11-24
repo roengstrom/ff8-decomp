@@ -550,10 +550,10 @@ static void *func_801EA538(EntityNamingMenuState *s, void *ot, DR_TPAGE *prim, s
     }
     gs->iconType = ICON_NAME;
     gs->iconSubType = 0;
-    gs->rect.x = x;
-    gs->rect.y = y;
-    gs->rect.w = 258;
-    gs->rect.h = 32;
+    gs->windowBackgroundRect.x = x;
+    gs->windowBackgroundRect.y = y;
+    gs->windowBackgroundRect.w = 258;
+    gs->windowBackgroundRect.h = 32;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -574,10 +574,10 @@ static void *func_801EA714(void *ot, void *prim, s32 x, s32 y) {
     prim = func_801F0FEC(ot, prim, strX, strY, func_801E9E7C(STRING_NAME_THE_CHARACTER), DIALOG_COLOR_WHITE);
     g_menuDisplayCfg.iconType = ICON_HELP;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.y = y;
-    g_menuDisplayCfg.rect.w = 258;
-    g_menuDisplayCfg.rect.h = 26;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 258;
+    g_menuDisplayCfg.windowBackgroundRect.h = 26;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -611,10 +611,10 @@ static void *func_801EA7E0(EntityNamingMenuState *s, void *ot, void *prim, s32 x
     }
     gs->iconType = 0;
     gs->iconSubType = 0;
-    gs->rect.x = x;
-    gs->rect.y = y;
-    gs->rect.w = 80;
-    gs->rect.h = 125;
+    gs->windowBackgroundRect.x = x;
+    gs->windowBackgroundRect.y = y;
+    gs->windowBackgroundRect.w = 80;
+    gs->windowBackgroundRect.h = 125;
     prim = DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
     return prim;
 }
@@ -734,10 +734,10 @@ static void *func_801EAB00(EntityNamingMenuState *s, void *ot, void *prim, s32 x
     prim = func_801EAA04(s, ot, prim, x + 8, y + 10);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.y = y;
-    g_menuDisplayCfg.rect.w = 258;
-    g_menuDisplayCfg.rect.h = 125;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 258;
+    g_menuDisplayCfg.windowBackgroundRect.h = 125;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -758,10 +758,10 @@ static void *func_801EAB8C(void *ot, void *prim, s32 x, s32 y) {
     prim = func_801F0FEC(ot, prim, strX, strY, func_801E9E7C(STRING_NAME_INPUT), DIALOG_COLOR_WHITE);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = x;
-    g_menuDisplayCfg.rect.y = y;
-    g_menuDisplayCfg.rect.w = 90;
-    g_menuDisplayCfg.rect.h = 22;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 90;
+    g_menuDisplayCfg.windowBackgroundRect.h = 22;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 

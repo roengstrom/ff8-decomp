@@ -219,13 +219,13 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E5F7C);
 s32 func_801E6058(CardMenuState *state, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     g_menuDisplayCfg.iconType = 0x55;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = a3;
-    g_menuDisplayCfg.rect.w = 0xF5;
-    g_menuDisplayCfg.rect.h = 0x16;
+    g_menuDisplayCfg.windowBackgroundRect.x = a3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 245;
+    g_menuDisplayCfg.windowBackgroundRect.h = 22;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
-    g_menuDisplayCfg.rect.y = stackArg;
+    g_menuDisplayCfg.windowBackgroundRect.y = stackArg;
     g_menuDisplayCfg.scrollOffset = state->scroll;
     g_menuDisplayCfg.dataPtr = (s32)state->rowText;
     g_menuDisplayCfg.itemId = state->card;
@@ -315,10 +315,10 @@ static s32 DrawCardInfoPanel(CardMenuState *state, s32 ot, s32 head, s32 x, s32 
     }
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->rect.w = 0xA1;
-    cfg->rect.x = x;
-    cfg->rect.y = y;
-    cfg->rect.h = 0x4C;
+    cfg->windowBackgroundRect.w = 161;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.h = 76;
     head = (s32)DrawMenuWindow((void *)ot, (void *)head, 0x1000, g_menuTint[MENU_TINT_NORMAL]);
     return head;
 }
@@ -339,13 +339,13 @@ INCLUDE_ASM("asm/ovl/menucrd/nonmatchings/menucrd", func_801E67E4);
 s32 func_801E6920(CardMenuState *state, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.rect.x = a3;
-    g_menuDisplayCfg.rect.w = 0x150;
-    g_menuDisplayCfg.rect.h = 0x16;
+    g_menuDisplayCfg.windowBackgroundRect.x = a3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.h = 22;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
-    g_menuDisplayCfg.rect.y = stackArg;
+    g_menuDisplayCfg.windowBackgroundRect.y = stackArg;
     g_menuDisplayCfg.scrollOffset = state->scroll;
     g_menuDisplayCfg.dataPtr = (s32)state->rowText;
     g_menuDisplayCfg.itemId = state->card;
