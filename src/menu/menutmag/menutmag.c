@@ -184,7 +184,7 @@ static void *func_801E5AF0(void *ot, PaperMatPrim *prim, MenuDisplayConfig *cfg,
 
     setPaperMatPrim(prim, 1, 0, 0);
     setRGB0(prim, r0, g0, b0);
-    setXY0(prim, cfg->x + magPage->paperMatX, cfg->y + magPage->paperMatY);
+    setXY0(prim, cfg->windowBackgroundRect.x + magPage->paperMatX, cfg->windowBackgroundRect.y + magPage->paperMatY);
     setWH(prim, magPage->paperMatWidth, magPage->paperMatHeight);
 
     addPrimFast(ot, prim);
@@ -208,8 +208,8 @@ static void *func_801E5C34(void *ot, void *prim, MenuDisplayConfig *cfg, u32 col
     picOverlay = magPage->pictureOverlays;
     for (i = 0; i < 4; i++, picOverlay++) {
         if (picOverlay->id != INVALID_ID) {
-            s32 x = cfg->x + picOverlay->x;
-            s32 y = cfg->y + picOverlay->y;
+            s32 x = cfg->windowBackgroundRect.x + picOverlay->x;
+            s32 y = cfg->windowBackgroundRect.y + picOverlay->y;
             prim = DrawSpriteFromTable(ot, prim, func_801E5C28(), picOverlay->id, x, y, color);
         }
     }
@@ -224,8 +224,8 @@ static void *func_801E5D1C(void *ot, void *prim, MenuDisplayConfig *cfg, u32 col
     textOverlay = magPage->textOverlays;
     for (i = 0; i < 4; i++, textOverlay++) {
         if (textOverlay->id != INVALID_ID) {
-            s32 x = cfg->x + textOverlay->x;
-            s32 y = cfg->y + textOverlay->y;
+            s32 x = cfg->windowBackgroundRect.x + textOverlay->x;
+            s32 y = cfg->windowBackgroundRect.y + textOverlay->y;
             if (i & 1) {
                 pkt = getDisplayListHead();
                 storeGpuPacket((u32)prim);
@@ -286,8 +286,8 @@ static void *func_801E5E2C(void *ot, void *head, MenuDisplayConfig *cfg, u32 col
         }
         *(u32 *)&prim->sprt.r0 = color;
         setPaperMatSlicePrim(prim, drawModeCmd, texWindowCmd);
-        setXY0(&prim->sprt, cfg->x + xOffset, cfg->y);
-        setWH(&prim->sprt, sliceWidth, cfg->h);
+        setXY0(&prim->sprt, cfg->windowBackgroundRect.x + xOffset, cfg->windowBackgroundRect.y);
+        setWH(&prim->sprt, sliceWidth, cfg->windowBackgroundRect.h);
         prim->sprt.clut = clut;
         setUV0(&prim->sprt, 0, 0);
         remainingWidth -= sliceWidth;
@@ -302,15 +302,15 @@ static void *func_801E5F5C(void *ot, void *prim, MenuDisplayConfig *cfg, u32 col
     prim = func_801E5D1C(ot, prim, cfg, color, magPage);
     prim = func_801E5C34(ot, prim, cfg, color, magPage);
     prim = func_801E5AF0(ot, prim, cfg, color, magPage);
-    prim = func_8002B898(ot, prim, (RECT *)cfg, color);
+    prim = func_8002B898(ot, prim, &cfg->windowBackgroundRect, color);
     return func_801E5E2C(ot, prim, cfg, color, magPage);
 }
 
 static void *func_801E6008(void *ot, void *prim, s32 x, s32 y, MagazinePageEntry *magPage) {
-    g_menuDisplayCfg.x = magPage->windowX + x;
-    g_menuDisplayCfg.y = magPage->windowY + y;
-    g_menuDisplayCfg.w = magPage->windowWidth;
-    g_menuDisplayCfg.h = magPage->windowHeight;
+    g_menuDisplayCfg.windowBackgroundRect.x = magPage->windowX + x;
+    g_menuDisplayCfg.windowBackgroundRect.y = magPage->windowY + y;
+    g_menuDisplayCfg.windowBackgroundRect.w = magPage->windowWidth;
+    g_menuDisplayCfg.windowBackgroundRect.h = magPage->windowHeight;
     return func_801E5F5C(ot, prim, &g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], magPage);
 }
 
@@ -328,11 +328,11 @@ static void *func_801E606C(void *ot, void *prim, MagazinePageEntry *magPage) {
     x += 24;
     y = 200;
     prim = (void *)func_801F0FEC(ot, prim, x, y, navigationHint, DIALOG_COLOR_WHITE);
-    g_menuDisplayCfg.x = 24;
-    g_menuDisplayCfg.y = 196;
-    g_menuDisplayCfg.w = 336;
-    g_menuDisplayCfg.h = 20;
-    prim = func_8002B898(ot, prim, (RECT *)&g_menuDisplayCfg, menuTint);
+    g_menuDisplayCfg.windowBackgroundRect.x = 24;
+    g_menuDisplayCfg.windowBackgroundRect.y = 196;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.h = 20;
+    prim = func_8002B898(ot, prim, &g_menuDisplayCfg.windowBackgroundRect, menuTint);
     return func_801E5E2C(ot, prim, &g_menuDisplayCfg, menuTint, magPage);
 }
 

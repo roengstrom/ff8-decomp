@@ -396,10 +396,10 @@ s32 func_801E6668(s32 arg0, s32 arg1) {
     storeGpuPacket(temp_s0);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 0x1D;
-    g_menuDisplayCfg.w = 0x150;
-    g_menuDisplayCfg.h = 0xA7;
+    g_menuDisplayCfg.windowBackgroundRect.x = 24;
+    g_menuDisplayCfg.windowBackgroundRect.y = 29;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.h = 167;
     var_a3 = D_801EC414 != 0xFFFF;
     if (D_801EC416 != 0xFFFF) {
         var_a3 |= 2;
@@ -432,11 +432,11 @@ s32 func_801E6768(s32 a0, s32 a1) {
         drawMessageText(disp, 0x24, 0xC, (((s32)new_var) + ot) - ot);
         g_menuDisplayCfg.iconType = 0;
         g_menuDisplayCfg.iconSubType = 0;
-        g_menuDisplayCfg.x = 0x18;
-        g_menuDisplayCfg.y = 6;
+        g_menuDisplayCfg.windowBackgroundRect.x = 24;
+        g_menuDisplayCfg.windowBackgroundRect.y = 6;
     }
-    g_menuDisplayCfg.w = 0xF4;
-    g_menuDisplayCfg.h = 0x16;
+    g_menuDisplayCfg.windowBackgroundRect.w = 244;
+    g_menuDisplayCfg.windowBackgroundRect.h = 22;
     return DrawMenuWindow(disp, ot, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 

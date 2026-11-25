@@ -617,20 +617,20 @@ DR_AREA *func_801F2FAC(P_TAG *ot, DR_AREA *prim) {
     h2 = (ONE - D_801FAB2A) * 12;
     h = (h1 + h2) / ONE;
 
-    cfg->x = xBase + 2;
-    cfg->y = yBase + 6;
-    cfg->w = 88;
-    cfg->h = h;
+    cfg->windowBackgroundRect.x = xBase + 2;
+    cfg->windowBackgroundRect.y = yBase + 6;
+    cfg->windowBackgroundRect.w = 88;
+    cfg->windowBackgroundRect.h = h;
 
     prim = func_801EF800(ot, prim, cfg);
     h += 10;
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = xBase;
-    cfg->y = yBase;
-    cfg->w = 90;
-    cfg->h = h;
+    cfg->windowBackgroundRect.x = xBase;
+    cfg->windowBackgroundRect.y = yBase;
+    cfg->windowBackgroundRect.w = 90;
+    cfg->windowBackgroundRect.h = h;
 
     prim = DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
     setMenuBrightness(oldBrightness);
@@ -784,9 +784,9 @@ void *func_801F38F8(s32 a0, s32 a1, s32 a2) {
     ret2 = func_801F0FEC(a1, a2, 0x22, 0xF, ret1, 7);
     g_menuDisplayCfg.iconType = 0x55;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 7;
-    *(s32 *)&g_menuDisplayCfg.w = 0x001900F4; /* w=0xF4, h=0x19 packed */
+    g_menuDisplayCfg.windowBackgroundRect.x = 24;
+    g_menuDisplayCfg.windowBackgroundRect.y = 7;
+    *(s32 *)&g_menuDisplayCfg.windowBackgroundRect.w = 25 << 16 | 244; // width 244, height 25
     return DrawMenuWindow(a1, ret2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -933,7 +933,7 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     s32 y2 = y + 34;
     s32 width = 232;
     s32 height = 26;
-    s32 *packedWH = &cfg->w;
+    s32 *packedWH = &cfg->windowBackgroundRect.w;
     if (charId != 255) {
         CharMenuInfo *charMenuInfo = &g_charMenuInfo[charId];
         CharacterData *charData = &g_gameState.chars[charId];
@@ -947,8 +947,8 @@ static void *func_801F3FE8(MainMenuCtx *s, void *ot, void *prim, s32 arg3) {
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
-    cfg->x = 32;
-    cfg->y = y2;
+    cfg->windowBackgroundRect.x = 32;
+    cfg->windowBackgroundRect.y = y2;
 
     // Stores width and height together in a single 32-bit value.
     *packedWH = height << 16 | width;
@@ -972,10 +972,10 @@ void *func_801F4168(void *ot, void *prim, u8 *text, s32 x, s32 y, s32 progress, 
     prim = func_801F0FEC(ot, prim, x2 + 10, y + 8, text, DIALOG_COLOR_WHITE);
     g_menuDisplayCfg.iconType = iconType;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x2;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = width;
-    g_menuDisplayCfg.h = height + 16;
+    g_menuDisplayCfg.windowBackgroundRect.x = x2;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = width;
+    g_menuDisplayCfg.windowBackgroundRect.h = height + 16;
     return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -1007,10 +1007,10 @@ static void *func_801F42A4(MainMenuCtx *ctx, void *ot, void *prim, s32 partySlot
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
-    cfg->x = 32;
-    cfg->y = panelY;
-    cfg->w = 232;
-    cfg->h = 50;
+    cfg->windowBackgroundRect.x = 32;
+    cfg->windowBackgroundRect.y = panelY;
+    cfg->windowBackgroundRect.w = 232;
+    cfg->windowBackgroundRect.h = 50;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -1103,10 +1103,10 @@ static void *func_801F4744(MainMenuCtx *s, void *ot, void *prim) {
     }
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 232;
-    cfg->h = 77;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 232;
+    cfg->windowBackgroundRect.h = 77;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -1143,10 +1143,10 @@ void *func_801F4918(s32 a0, s32 a1, s32 a2) {
     ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.unk004);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = 0x18;
-    g_menuDisplayCfg.y = 0xBE;
-    g_menuDisplayCfg.w = 0xF4;
-    g_menuDisplayCfg.h = 0x1A;
+    g_menuDisplayCfg.windowBackgroundRect.x = 24;
+    g_menuDisplayCfg.windowBackgroundRect.y = 190;
+    g_menuDisplayCfg.windowBackgroundRect.w = 244;
+    g_menuDisplayCfg.windowBackgroundRect.h = 26;
     return DrawMenuWindow(a1, ret, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -1168,18 +1168,18 @@ static void *func_801F49A4(MainMenuCtx *s, void *ot, void *prim) {
     text = func_801F6AFC(42);
 
     width = getFirstLineWidth(text) + 20;
-    cfg->w = width;
+    cfg->windowBackgroundRect.w = width;
 
     width = (248 - width) / 2;
     panelX = width + 20;
-    cfg->h = 26;
+    cfg->windowBackgroundRect.h = 26;
 
     prim = func_801F0FEC(ot, prim, width + 30, 102, text, DIALOG_COLOR_WHITE);
 
     cfg->iconType = ICON_NOTICE;
     cfg->iconSubType = 0;
-    cfg->x = panelX;
-    cfg->y = 95;
+    cfg->windowBackgroundRect.x = panelX;
+    cfg->windowBackgroundRect.y = 95;
 
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);   
 }
@@ -1219,10 +1219,10 @@ static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim) {
     prim = drawMenuClock(s, ot, prim, x + 10, y + 5, time, isPlayTime);
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 90;
-    cfg->h = 38;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 90;
+    cfg->windowBackgroundRect.h = 38;
     prim = DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
     prim = func_801F4918(s, ot, prim);
     func_801F1B10();
@@ -1751,10 +1751,10 @@ static s32 func_801F5B54(s32 ctx, s32 dl, s32 x, s32 y, s32 textCat, u16 *ids, s
     }
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = maxWidth + 0x10;
-    cfg->h = count * 12 + 0xA;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = maxWidth + 16;
+    cfg->windowBackgroundRect.h = count * 12 + 10;
     dl = DrawMenuWindow(ctx, dl, param, g_menuTint[MENU_TINT_NORMAL]);
     return dl;
 }
@@ -1902,12 +1902,12 @@ s32 func_801F5F60(s32 ctx, s32 dl, s32 color, s32 arrows) {
         blink = 0;
     }
     if (arrows & 1) {
-        bottom = cfg->y + cfg->h - 10;
-        dl = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_ARROW_LEFT, g_menuDisplayCfg.x + 2, bottom, color, blink);
+        bottom = cfg->windowBackgroundRect.y + cfg->windowBackgroundRect.h - 10;
+        dl = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_ARROW_LEFT, g_menuDisplayCfg.windowBackgroundRect.x + 2, bottom, color, blink);
     }
     if (arrows & 2) {
-        bottom = cfg->y + cfg->h - 10;
-        dl = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_ARROW_RIGHT, g_menuDisplayCfg.x + cfg->w - 9, bottom, color, blink);
+        bottom = cfg->windowBackgroundRect.y + cfg->windowBackgroundRect.h - 10;
+        dl = (s32)drawIconClut((void *)ctx, (TSPRT *)dl, ICON_ARROW_RIGHT, g_menuDisplayCfg.windowBackgroundRect.x + cfg->windowBackgroundRect.w - 9, bottom, color, blink);
     }
     return dl;
 }
@@ -1919,10 +1919,10 @@ void *func_801F605C(void* ot, void* prim, s32 x, s32 y, CharMenuInfo *info) {
     s32 y2 = y;
     cfg->iconType = ICON_COMMAND;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 84;
-    cfg->h = 64;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 84;
+    cfg->windowBackgroundRect.h = 64;
     x2 += 8;
     y2 += 7;
     for (i = 0; i < 4; i++) {
@@ -2098,13 +2098,13 @@ void func_801F66B0(s32 ctx, s32 dl, s32 x, s32 y, s32 weaponId) {
 
     x += 0xC8;
     y += 0x79;
-    g_menuDisplayCfg.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
     x += 9;
-    g_menuDisplayCfg.w = 0x9A;
+    g_menuDisplayCfg.windowBackgroundRect.w = 154;
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.h = 0x16;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.h = 22;
     y += 7;
     name = getWeaponName(weaponId);
     dl = func_801F0FEC(ctx, dl, x, y, name, 7);
@@ -2317,11 +2317,11 @@ void *func_801F6C9C(s32 ctx, s32 dl, s32 x, s32 y, s32 a4, u16 mask) {
         }
     }
     cfg->iconType = 0x49;
-    cfg->w = 0xA8;
+    cfg->windowBackgroundRect.w = 168;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->h = 0x78;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.h = 120;
     return DrawMenuWindow(ctx, dl, a4, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -2355,10 +2355,10 @@ void *func_801F6D88(void *ot, void *prim, s32 x, s32 y, s32 gfId) {
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 168;
-    cfg->h = 40;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 168;
+    cfg->windowBackgroundRect.h = 40;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -2407,7 +2407,7 @@ void *func_801F6FE4(void *ot, void *prim, s32 arg2, s32 progress) {
     prim = func_801F0FEC(ot, prim, x, y, ptr, color);
     cfg->iconType = ICON_NOTICE;
     cfg->iconSubType = 0;
-    *(RECT *)&cfg->x = D_801FACD8;
+    cfg->windowBackgroundRect = D_801FACD8;
     return DrawMenuWindow(ot, prim, progress, g_menuTint[MENU_TINT_NORMAL]);
 }
 

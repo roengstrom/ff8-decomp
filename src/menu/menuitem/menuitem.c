@@ -3820,10 +3820,10 @@ static void *func_801E7D18(void *ot, void *prim, s32 page, s32 rowInPage, s32 x)
     }
 
     x1 = x + 13;
-    x2 = g_menuDisplayCfg.x + x1;
+    x2 = g_menuDisplayCfg.windowBackgroundRect.x + x1;
 
     y1 = rowInPage * 13 + 9;
-    y2 = g_menuDisplayCfg.y + y1;
+    y2 = g_menuDisplayCfg.windowBackgroundRect.y + y1;
 
     // Dead code added to match with the original game binary.
     tmp++; tmp--;
@@ -3853,10 +3853,10 @@ static void *func_801E7D18(void *ot, void *prim, s32 page, s32 rowInPage, s32 x)
 static void *func_801E7E74(ItemMenuState *s, void *ot, void *prim, s32 x, s32 y) {
     g_menuDisplayCfg.iconType = ICON_ITEM;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = 166;
-    g_menuDisplayCfg.h = 160;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 166;
+    g_menuDisplayCfg.windowBackgroundRect.h = 160;
     g_menuDisplayCfg.columnCount = 11;
     g_menuDisplayCfg.pageStart = s->primaryListPageStart;
     g_menuDisplayCfg.pageEnd = s->primaryListPageEnd;
@@ -3871,10 +3871,10 @@ static void *func_801E7E74(ItemMenuState *s, void *ot, void *prim, s32 x, s32 y)
 static void *func_801E7F4C(ItemMenuState *s, void *ot, void *prim, s32 x, s32 y) {
     g_menuDisplayCfg.iconType = ICON_ITEM;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = 166;
-    g_menuDisplayCfg.h = 160;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 166;
+    g_menuDisplayCfg.windowBackgroundRect.h = 160;
     g_menuDisplayCfg.columnCount = 11;
     g_menuDisplayCfg.pageStart = s->pageStart;
     g_menuDisplayCfg.pageEnd = s->pageEnd;
@@ -3890,10 +3890,10 @@ static void *func_801E8024(ItemMenuState *s, void *ot, void *prim, s32 x, s32 y)
     prim = func_801F5A38(ot, prim, x + 26, y + 6, 9, D_801EB1D8, 15);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = 244;
-    g_menuDisplayCfg.h = 18;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 244;
+    g_menuDisplayCfg.windowBackgroundRect.h = 18;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -3907,8 +3907,8 @@ static void *func_801E80D0(void *ot, void *prim, s32 dataIndex, s32 page, s32 x)
     ptr = g_menuDisplayCfg.dataPtr;
     if (ptr[dataIndex] != NULL) {
         xOffset = x + 10;
-        strX = g_menuDisplayCfg.x + xOffset;
-        strY = g_menuDisplayCfg.y + 9;
+        strX = g_menuDisplayCfg.windowBackgroundRect.x + xOffset;
+        strY = g_menuDisplayCfg.windowBackgroundRect.y + 9;
         decodeMessage(ptr[dataIndex], str, -1);
         prim = func_801F0FEC(ot, prim, strX, strY, str, 7);
     }
@@ -3919,10 +3919,10 @@ static void *func_801E80D0(void *ot, void *prim, s32 dataIndex, s32 page, s32 x)
 static void *func_801E8180(ItemMenuState *s, void *ot, void *prim, s32 x, s32 y) {
     g_menuDisplayCfg.iconType = ICON_HELP;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = 324;
-    g_menuDisplayCfg.h = 26;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 324;
+    g_menuDisplayCfg.windowBackgroundRect.h = 26;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
@@ -3962,10 +3962,10 @@ static void *menuitem_drawGfPanel(void *ot, void *prim, s32 x, s32 y, s32 arg4, 
     } 
     cfg->iconType = ICON_NAME;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 168;
-    cfg->h = 120;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 168;
+    cfg->windowBackgroundRect.h = 120;
     prim = DrawMenuWindow(ot, prim, arg4, g_menuTint[MENU_TINT_NORMAL]);
     return prim;
 }
@@ -4038,8 +4038,8 @@ static void *func_801E84A4(void *ot, void *prim, s32 page, s32 rowInPage, s32 x)
         return prim;
     }
 
-    xBase = cfg->x + x;
-    yBase = cfg->y + rowInPage * 13;
+    xBase = cfg->windowBackgroundRect.x + x;
+    yBase = cfg->windowBackgroundRect.y + rowInPage * 13;
 
     itemName = getItemName(id);
     xCoord = xBase + 12;
@@ -4055,10 +4055,10 @@ static void *func_801E859C(ItemMenuState *s, void* ot, void* prim, s32 x, s32 y)
     prim = drawIcon(ot, prim, 77, x + 114, y, g_menuTint[MENU_TINT_NORMAL]);
     g_menuDisplayCfg.iconType = ICON_ITEM;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = 150;
-    g_menuDisplayCfg.h = 64;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 150;
+    g_menuDisplayCfg.windowBackgroundRect.h = 64;
     g_menuDisplayCfg.columnCount = 4;
     prim = func_801F5F30(ot, prim, x + 28, y, g_menuTint[MENU_TINT_NORMAL], g_menuDisplayCfg.pageStart);
     prim = func_801F5F60(ot, prim, g_menuTint[MENU_TINT_NORMAL], 3);
@@ -4136,8 +4136,8 @@ static void *func_801E8780(void *ot, void *prim, s32 ablPage, s32 ablRowInPage, 
         color = DIALOG_COLOR_GRAY;
     }
 
-    xCoord = cfg->x + x;
-    yCoord = cfg->y + (ablRowInPage * 13);
+    xCoord = cfg->windowBackgroundRect.x + x;
+    yCoord = cfg->windowBackgroundRect.y + (ablRowInPage * 13);
 
     xCoord += 13;
     yCoord += 9;
@@ -4162,10 +4162,10 @@ static void *func_801E88AC(ItemMenuState *s, void *ot, void *prim, s32 x, s32 y)
     s32 arrows;
     g_menuDisplayCfg.iconType = ICON_ABILITY;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = x;
-    g_menuDisplayCfg.y = y;
-    g_menuDisplayCfg.w = 166;
-    g_menuDisplayCfg.h = 160;
+    g_menuDisplayCfg.windowBackgroundRect.x = x;
+    g_menuDisplayCfg.windowBackgroundRect.y = y;
+    g_menuDisplayCfg.windowBackgroundRect.w = 166;
+    g_menuDisplayCfg.windowBackgroundRect.h = 160;
     g_menuDisplayCfg.columnCount = 11;
     g_menuDisplayCfg.pageStart = s->battlePrimaryListPageStart;
     g_menuDisplayCfg.pageEnd = s->battlePrimaryListPageEnd;
@@ -4210,8 +4210,8 @@ static void *func_801E89C0(void *ot, void *prim, MenuDisplayConfig *cfg, s32 col
     if (magPage->duelId != INVALID_ID) {
         g_gameState.mainData.limitBreaks.zellLimits |= 1 << magPage->duelId;
         buttons = g_kernel.duel[magPage->duelId].buttons;
-        x = cfg->x + magPage->duelComboX;
-        y = cfg->y + magPage->duelComboY;
+        x = cfg->windowBackgroundRect.x + magPage->duelComboX;
+        y = cfg->windowBackgroundRect.y + magPage->duelComboY;
         for (i = 0; i < 5; i++) {
             button = *buttons++;
             if (button == INVALID_BUTTON_ID) {
@@ -4259,10 +4259,10 @@ static void *func_801E8AF0(void *ot, void *prim, MenuDisplayConfig *cfg, s32 col
 
     g_gameState.mainData.party.unlockedWeapons |= 1 << magPage->weaponId;
 
-    xBase = cfg->x;
+    xBase = cfg->windowBackgroundRect.x;
     xBase += magPage->weaponListX;
 
-    yBase = cfg->y;
+    yBase = cfg->windowBackgroundRect.y;
     yBase += magPage->weaponListY;
 
     recipe = &D_801EB330;
@@ -4330,7 +4330,7 @@ static void *func_801E8C88(void *ot, PaperMatPrim *prim, MenuDisplayConfig *cfg,
 
     setPaperMatPrim(prim, 1, 0, 0);
     setRGB0(prim, r0, g0, b0);
-    setXY0(prim, cfg->x + magPage->paperMatX, cfg->y + magPage->paperMatY);
+    setXY0(prim, cfg->windowBackgroundRect.x + magPage->paperMatX, cfg->windowBackgroundRect.y + magPage->paperMatY);
     setWH(prim, magPage->paperMatWidth, magPage->paperMatHeight);
 
     addPrimFast(ot, prim);
@@ -4363,8 +4363,8 @@ static void *func_801E8DB0(void *ot, void *prim, MenuDisplayConfig *cfg, u32 col
     picOverlay = magPage->pictureOverlays;
     for (i = 0; i < 4; i++, picOverlay++) {
         if (picOverlay->id != INVALID_ID) {
-            s32 x = cfg->x + picOverlay->x;
-            s32 y = cfg->y + picOverlay->y;
+            s32 x = cfg->windowBackgroundRect.x + picOverlay->x;
+            s32 y = cfg->windowBackgroundRect.y + picOverlay->y;
             prim = DrawSpriteFromTable(ot, prim, GetMenuImageBufferTable(), picOverlay->id, x, y, color);
         }
     }
@@ -4392,8 +4392,8 @@ static void *func_801E8E98(void *ot, void *prim, MenuDisplayConfig *cfg, u32 col
     textOverlay = magPage->textOverlays;
     for (i = 0; i < 4; i++, textOverlay++) {
         if (textOverlay->id != INVALID_ID) {
-            s32 x = cfg->x + textOverlay->x;
-            s32 y = cfg->y + textOverlay->y;
+            s32 x = cfg->windowBackgroundRect.x + textOverlay->x;
+            s32 y = cfg->windowBackgroundRect.y + textOverlay->y;
             if (i & 1) {
                 pkt = getDisplayListHead();
                 storeGpuPacket(prim);
@@ -4468,8 +4468,8 @@ static void *func_801E8FA8(void *ot, void *head, MenuDisplayConfig *cfg, u32 col
         }
         *(u32*)&prim->sprt.r0 = color;
         setPaperMatSlicePrim(prim, drawModeCmd, texWindowCmd);
-        setXY0(&prim->sprt, cfg->x + xOffset, cfg->y);
-        setWH(&prim->sprt, sliceWidth, cfg->h);
+        setXY0(&prim->sprt, cfg->windowBackgroundRect.x + xOffset, cfg->windowBackgroundRect.y);
+        setWH(&prim->sprt, sliceWidth, cfg->windowBackgroundRect.h);
         prim->sprt.clut = clut;
         setUV0(&prim->sprt, 0, 0);
         remainingWidth -= sliceWidth;
@@ -4529,10 +4529,10 @@ static void *func_801E90D8(void *ot, void *prim, MenuDisplayConfig *cfg, u32 col
  * @return Updated primitive-buffer pointer after the page is rendered.
  */
 static void *func_801E91E4(void *ot, void *prim, s32 x, s32 y, MagazinePageEntry *magPage) {
-    g_menuDisplayCfg.x = magPage->windowX + x;
-    g_menuDisplayCfg.y = magPage->windowY + y;
-    g_menuDisplayCfg.w = magPage->windowWidth;
-    g_menuDisplayCfg.h = magPage->windowHeight;
+    g_menuDisplayCfg.windowBackgroundRect.x = magPage->windowX + x;
+    g_menuDisplayCfg.windowBackgroundRect.y = magPage->windowY + y;
+    g_menuDisplayCfg.windowBackgroundRect.w = magPage->windowWidth;
+    g_menuDisplayCfg.windowBackgroundRect.h = magPage->windowHeight;
     return func_801E90D8(ot, prim, &g_menuDisplayCfg, g_menuTint[MENU_TINT_NORMAL], magPage);
 }
 
@@ -4565,10 +4565,10 @@ static void *func_801E9248(void *ot, void *prim, MagazinePageEntry *magPage) {
     x += 24;
     y = 200;
     prim = func_801F0FEC(ot, prim, x, y, navigationHint, DIALOG_COLOR_WHITE);
-    g_menuDisplayCfg.x = 24;
-    g_menuDisplayCfg.y = 196;
-    g_menuDisplayCfg.w = 336;
-    g_menuDisplayCfg.h = 20;
+    g_menuDisplayCfg.windowBackgroundRect.x = 24;
+    g_menuDisplayCfg.windowBackgroundRect.y = 196;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.h = 20;
     prim = func_8002B898(ot, prim, &g_menuDisplayCfg, menuTint);
     return func_801E8FA8(ot, prim, &g_menuDisplayCfg, menuTint, magPage);
 }
@@ -4642,10 +4642,10 @@ static void *func_801E934C(void *ot, void *prim, s32 x, s32 y, s32 entityId, s32
     }
     cfg->iconType = ICON_STATUS;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 168;
-    cfg->h = 40;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 168;
+    cfg->windowBackgroundRect.h = 40;
     return DrawMenuWindow(ot, prim, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 

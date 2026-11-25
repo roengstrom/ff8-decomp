@@ -835,10 +835,10 @@ static s32 func_801E3EC0(s32 renderCtx, s32 cursorY, s32 x, s32 y) {
 
     cfg->iconType = 0x57;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->w = 0xF4;
-    cfg->y = y;
-    cfg->h = 0x16;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.w = 244;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.h = 22;
 
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
@@ -867,10 +867,10 @@ static u32 func_801E3F8C(TutoState *state, s32 renderCtx, s32 cursorY, s32 x, s3
 
     cfg->iconType = 0x55;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = w;
-    cfg->h = h;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = w;
+    cfg->windowBackgroundRect.h = h;
 
     return DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
@@ -919,10 +919,10 @@ static u32 func_801E4080(void *state, s32 renderCtx, s32 cursorY, s32 x, s32 y) 
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->y = y;
-    cfg->w = 0x86;
-    cfg->h = 0x80;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.y = y;
+    cfg->windowBackgroundRect.w = 134;
+    cfg->windowBackgroundRect.h = 128;
 
     cursorY = DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
     return cursorY;
@@ -953,12 +953,12 @@ static s32 func_801E4214(s32 renderCtx, s32 cursorY, s32 index, s32 startY, s32 
     endPos += 1;
     text = func_801E28E4(0x17);
     labelX = x + 0xA;
-    yPos = g_menuDisplayCfg.y + 5;
+    yPos = g_menuDisplayCfg.windowBackgroundRect.y + 5;
     yPos += startY * 15;
 
-    cursorY = func_801F0FEC(renderCtx, cursorY, g_menuDisplayCfg.x + labelX, yPos, text, 7);
+    cursorY = func_801F0FEC(renderCtx, cursorY, g_menuDisplayCfg.windowBackgroundRect.x + labelX, yPos, text, 7);
 
-    panelX = g_menuDisplayCfg.x;
+    panelX = g_menuDisplayCfg.windowBackgroundRect.x;
     xCoord = panelX + (x + 0xC0);
     return drawNumberMenuTint(renderCtx, cursorY, (yPos << 16) | xCoord, endPos, 7);
 }
@@ -977,11 +977,11 @@ static u32 func_801E431C(TutoState *state, s32 renderCtx, s32 cursorY, s16 x, s1
 
     cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x = x;
-    cfg->w = 0xCA;
-    cfg->h = 0x9E;
+    cfg->windowBackgroundRect.x = x;
+    cfg->windowBackgroundRect.w = 202;
+    cfg->windowBackgroundRect.h = 158;
     cfg->columnCount = 0xA;
-    cfg->y = y;
+    cfg->windowBackgroundRect.y = y;
     cfg->pageStart = state->targetPage;
     cfg->pageEnd = state->prevPage;
     cfg->scrollOffset = state->scrollAnim;
@@ -1039,10 +1039,10 @@ static s32 func_801E43D4(TutoState *state, s32 renderCtx, s32 cursorY) {
 
         cfg->iconType = 0;
         cfg->iconSubType = 0;
-        cfg->x = scaled + 158;
-        cfg->y = 57;
-        cfg->w = 202;
-        cfg->h = 143 - (9 - state->availCount) * 15;
+        cfg->windowBackgroundRect.x = scaled + 158;
+        cfg->windowBackgroundRect.y = 57;
+        cfg->windowBackgroundRect.w = 202;
+        cfg->windowBackgroundRect.h = 143 - (9 - state->availCount) * 15;
         cursorY = DrawMenuWindow(renderCtx, cursorY, ONE, g_menuTint[MENU_TINT_NORMAL]);
     }
     return cursorY;

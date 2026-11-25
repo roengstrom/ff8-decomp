@@ -1101,10 +1101,10 @@ static s32 func_801E6E0C(s32 arg0, s32 arg1, s32 arg2, s32 arg3) {
     arg1 = func_801E5A8C(arg0, arg1, arg2 + 12, arg3 + 5, 3, D_801E9B64, 0x7);
     g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = arg2;
-    g_menuDisplayCfg.y = arg3;
-    g_menuDisplayCfg.w = 336;
-    g_menuDisplayCfg.h = 21;
+    g_menuDisplayCfg.windowBackgroundRect.x = arg2;
+    g_menuDisplayCfg.windowBackgroundRect.y = arg3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.h = 21;
     return DrawMenuWindow(arg0, arg1, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -1134,8 +1134,8 @@ static s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     msg = ((s32 *)(g_menuDisplayCfg.dataPtr))[arg2];
     if (msg != 0) {
         xOffset = arg4 + 10;
-        x = g_menuDisplayCfg.x + xOffset;
-        y = g_menuDisplayCfg.y + 5;
+        x = g_menuDisplayCfg.windowBackgroundRect.x + xOffset;
+        y = g_menuDisplayCfg.windowBackgroundRect.y + 5;
         decodeMessage(msg, buffer, -1);
         arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, DIALOG_COLOR_WHITE);
     }
@@ -1159,13 +1159,13 @@ static s32 func_801E6EB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 static s32 func_801E6F60(ShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
     g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 324;
-    g_menuDisplayCfg.h = 20;
+    g_menuDisplayCfg.windowBackgroundRect.x = a3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 324;
+    g_menuDisplayCfg.windowBackgroundRect.h = 20;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
-    g_menuDisplayCfg.y = a4;
+    g_menuDisplayCfg.windowBackgroundRect.y = a4;
     g_menuDisplayCfg.scrollOffset = s->scrollOffset;
     g_menuDisplayCfg.dataPtr = (s32)&s->itemDesc;
     return func_801EFBB4(a1, a2, func_801E6EB0);
@@ -1197,8 +1197,8 @@ static s32 func_801E6FD8(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 
     cfg = &g_menuDisplayCfg;
     shopItemIdx = arg2 * 8 + arg3;
-    xBase = cfg->x + arg4;
-    yBase = cfg->y + arg3 * 13;
+    xBase = cfg->windowBackgroundRect.x + arg4;
+    yBase = cfg->windowBackgroundRect.y + arg3 * 13;
 
     s = (ShopMenuState *)cfg->dataPtr;
     itemId = func_801E5800(s, s->shopAction, shopItemIdx);
@@ -1295,10 +1295,10 @@ static s32 func_801E722C(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
 
     cfg->iconType = ICON_INFO;
     cfg->iconSubType = 0;
-    cfg->x = arg3;
-    cfg->w = 80;
-    cfg->y = arg4;
-    cfg->h = 119;
+    cfg->windowBackgroundRect.x = arg3;
+    cfg->windowBackgroundRect.w = 80;
+    cfg->windowBackgroundRect.y = arg4;
+    cfg->windowBackgroundRect.h = 119;
 
     return DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
@@ -1321,11 +1321,11 @@ static s32 func_801E722C(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
 static s32 func_801E7374(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     g_menuDisplayCfg.iconType = ICON_ITEM;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = arg3;
-    g_menuDisplayCfg.w = 256;
-    g_menuDisplayCfg.h = 119;
+    g_menuDisplayCfg.windowBackgroundRect.x = arg3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 256;
+    g_menuDisplayCfg.windowBackgroundRect.h = 119;
     g_menuDisplayCfg.columnCount = 8;
-    g_menuDisplayCfg.y = arg4;
+    g_menuDisplayCfg.windowBackgroundRect.y = arg4;
     g_menuDisplayCfg.pageStart = s->pageStart;
     g_menuDisplayCfg.pageEnd = s->pageEnd;
     g_menuDisplayCfg.scrollOffset = s->scrollOffset;
@@ -1375,10 +1375,10 @@ static s32 func_801E7508(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
 
     g_menuDisplayCfg.iconType = ICON_INFO;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = arg3;
-    g_menuDisplayCfg.w = 336;
-    g_menuDisplayCfg.y = arg4;
-    g_menuDisplayCfg.h = 23;
+    g_menuDisplayCfg.windowBackgroundRect.x = arg3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.y = arg4;
+    g_menuDisplayCfg.windowBackgroundRect.h = 23;
 
     return DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
@@ -1435,11 +1435,11 @@ static s32 func_801E7628(ShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32 arg
     arg2 = drawNumberMenuTint(arg1, arg2, (y << 0x10) | (x & 0xFFFF), price * s->selectedQuantity, color);
 
     cfg->iconType = ICON_PRICE;
-    cfg->w = 104;
+    cfg->windowBackgroundRect.w = 104;
     cfg->iconSubType = 0;
-    cfg->x = arg3;
-    cfg->y = arg4;
-    cfg->h = 66;
+    cfg->windowBackgroundRect.x = arg3;
+    cfg->windowBackgroundRect.y = arg4;
+    cfg->windowBackgroundRect.h = 66;
 
     return DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
@@ -1495,15 +1495,15 @@ s32 func_801E77EC(s32 fieldShopId, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 
     cfg->iconType = ICON_NAME;
     cfg->iconSubType = 0;
-    cfg->x = arg3;
-    cfg->y = arg4;
+    cfg->windowBackgroundRect.x = arg3;
+    cfg->windowBackgroundRect.y = arg4;
 
     if (flag != 0) {
-        cfg->w = 336;
-        cfg->h = 20;
+        cfg->windowBackgroundRect.w = 336;
+        cfg->windowBackgroundRect.h = 20;
     } else {
-        cfg->w = 244;
-        cfg->h = 20;
+        cfg->windowBackgroundRect.w = 244;
+        cfg->windowBackgroundRect.h = 20;
     }
 
     arg2 = DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
@@ -1534,10 +1534,10 @@ static void func_801E791C(u8 *msg, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     }
     cfg->iconType = ICON_NONE;
     cfg->iconSubType = 0;
-    cfg->x = arg3;
-    cfg->w = 218;
-    cfg->y = arg4;
-    cfg->h = 21;
+    cfg->windowBackgroundRect.x = arg3;
+    cfg->windowBackgroundRect.w = 218;
+    cfg->windowBackgroundRect.y = arg4;
+    cfg->windowBackgroundRect.h = 21;
     DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
