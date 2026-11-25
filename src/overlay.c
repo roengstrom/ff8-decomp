@@ -57,8 +57,8 @@ void func_80035D30(s32 cmd, s32 overlay_id, s32 lba_offset, s32 load_addr) {
     callback = func_80035E8C;
 
     if (lba_offset < 0) {
-        lba = D_80097420[overlay_id * 2];
-        size = D_80097420[overlay_id * 2 + 1];
+        lba = g_menuFileDescs[overlay_id * 2];
+        size = g_menuFileDescs[overlay_id * 2 + 1];
         offset = 0;
     } else {
         u32 (*entry)[2];
@@ -68,7 +68,7 @@ void func_80035D30(s32 cmd, s32 overlay_id, s32 lba_offset, s32 load_addr) {
         entry = D_80053D08;
         entry += lba_offset;
         offset = (*entry)[0];
-        lba = D_80097420[overlay_id * 2];
+        lba = g_menuFileDescs[overlay_id * 2];
         bit = offset & 1;
         cmd = (u32)bit < 1;
         offset = offset & ~1;
@@ -271,7 +271,7 @@ void loadOverlay(s32 overlay_id, s32 a1, s32 a2) {
  * @param a0 Overlay identifier.
  * @param a1 Destination load address.
  */
-void loadOverlayDirect(s32 a0, s32 a1) {
+void LoadDiscFile(s32 a0, s32 a1) {
     enqueueOverlayCmd(0, a0, -1, a1, 0, 0);
 }
 
