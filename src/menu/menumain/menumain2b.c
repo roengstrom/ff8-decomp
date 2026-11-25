@@ -548,9 +548,9 @@ restart:
 
     }
 
-    if (s->lastPlayTime != g_gameState.mainData.playTimeSeconds) {
+    if (s->lastPlayTime != g_gameState.mainData.clockTicks) {
         s->colonTimer = GetVideoMode() == MODE_NTSC ? 30 : 25;
-        s->lastPlayTime = g_gameState.mainData.playTimeSeconds;
+        s->lastPlayTime = g_gameState.mainData.clockTicks;
     }
     if (s->colonTimer != 0) {
         s->colonTimer--;
@@ -1140,7 +1140,7 @@ s32 func_801F486C(u8 *a0, s32 a1, void *result) {
  */
 void *func_801F4918(s32 a0, s32 a1, s32 a2) {
     s32 ret;
-    ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.unk004);
+    ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.locationId);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.windowBackgroundRect.x = 24;
@@ -1213,7 +1213,7 @@ static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim) {
         time = g_gameState.mainData.countdownTimer;
         isPlayTime = 0;
     } else {
-        time = g_gameState.mainData.playTimeSeconds;
+        time = g_gameState.mainData.clockTicks;
         isPlayTime = 1;
     }
     prim = drawMenuClock(s, ot, prim, x + 10, y + 5, time, isPlayTime);

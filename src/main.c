@@ -137,7 +137,7 @@ static void VsyncHandler(void) {
     // Make use of that fact to tick the in-game clock.
     g_secondTicker += CLOCK_TICKS_PER_VSYNC;
     if (g_secondTicker >> CLOCK_ONE_SECOND_BIT) {
-        g_gameState.mainData.playTimeSeconds++;
+        g_gameState.mainData.clockTicks++;
         g_secondTicker &= CLOCK_REMAINDER_MASK;
     }
 

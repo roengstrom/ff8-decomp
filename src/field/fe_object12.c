@@ -35,7 +35,7 @@
  *    @ref FIELD_STATE_PARTY_OVERRIDE is set, also mirrors @c fieldF3 into @c g_battleConfig.sealedAbilities
  *    and @c GameConfig.sealedAbilities and replays @c opHandler_SETPARTY2.
  *  - Publishes @c field56 to @c g_worldTransfer.vehicle, pushes the expected disc to
- *    the CD layer (@c setDiscNumber, @c g_gameState.unk048 = disc - 1), derives
+ *    the CD layer (@c setDiscNumber, @c g_gameState.disc = disc - 1), derives
  *    the salary-enabled flag from @ref FIELD_STATE_SALARY_OFF, and installs the
  *    @c stopAllSounds VSync callback and @c func_80037D40 draw callback.
  *
@@ -110,7 +110,7 @@ void SmInitEventAll(s32 fullReset)
     setDiscNumber(g_fieldVars->expectedDiscId);
     vfv = g_fieldVars; /* volatile view: forces the tail's reloads of disc/stateFlags */
     disc = vfv->expectedDiscId;
-    do { g_gameState.unk048 = disc - 1; } while (0);
+    do { g_gameState.disc = disc - 1; } while (0);
     setSalaryEnabled((((u32)vfv->stateFlags >> 3) ^ 1) & 1);
     setVsyncCallback((s32)stopAllSounds);
     setDrawCallback((s32)func_80037D40);

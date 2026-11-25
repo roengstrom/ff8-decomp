@@ -2246,7 +2246,7 @@ s32 func_801E7524(s32 a0) {
 s32 func_801E7550(void) {
     s32 result;
 
-    result = g_gameState.mainData.playTimeSeconds ^ g_gameState.mainData.party.gil ^ (g_gameState.mainData.fieldCDC << 0x10);
+    result = g_gameState.mainData.clockTicks ^ g_gameState.mainData.party.gil ^ (g_gameState.mainData.fieldCDC << 0x10);
     return result ^ func_801E74BC();
 }
 
