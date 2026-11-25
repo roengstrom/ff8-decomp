@@ -20,7 +20,6 @@ extern u32 D_800974F0[];
 extern CdFileDesc g_kernelFileDesc;
 extern CdFileDesc g_systemFileDescs[];
 
-// Files of the menu group (g_menuFileDescs), counted from TOC entry 4.
 typedef enum {
     DISC_FILE_MENUMAIN = 0,
     DISC_FILE_MENUCFG = 1,

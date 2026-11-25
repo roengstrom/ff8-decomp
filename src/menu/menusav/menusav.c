@@ -170,7 +170,7 @@ typedef struct {
 
 typedef struct {
     /** 0x00 */ u8 magic[2]; // "SC"
-    /** 0x02 */ u8 type; // 0x11, 0x12 or 0x13 for one, two or three icon images
+    /** 0x02 */ u8 type;
     /** 0x03 */ u8 blockCount;
     /** 0x04 */ u8 documentName[64];
     /** 0x44 */ u8 pad44[12];
