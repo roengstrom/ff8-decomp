@@ -222,7 +222,7 @@ typedef struct {
 
 typedef struct {
     /** 0x0000 */ GameState state;
-    /** 0x13A0 */ u16 checksumCopy;
+    /** 0x13A0 */ u16 checksum;
 } SaveData;
 
 typedef struct {
@@ -507,10 +507,10 @@ static s32 BuildSaveFile(s32 slot, u8 *dst) {
     save = (SaveData *)dst;
 
     // Checksum the state from the GF records to the end, and mark the save as not fully written yet.
-    save->checksumCopy = 0;
+    save->checksum = 0;
     leader = func_800377B4(0x1350, (u8 *)save->state.gfs);
     save->state.checksum = leader;
-    save->checksumCopy = leader;
+    save->checksum = leader;
     save->state.writeMarker = SAVE_MARKER_INCOMPLETE;
 
     // Fill in the summary that the save list shows. The leader is the first filled party slot.
@@ -1817,7 +1817,7 @@ dispatch:
         save = (SaveData *)MENU_SUBOVERLAY_ADDR;
         checksum = func_800377B4(0x1350, (u8 *)(MENU_SUBOVERLAY_ADDR + 0x50));
         // The first compare uses the raw return value, the second the narrowed one.
-        if (checksum == save->state.checksum && (u16)checksum == save->checksumCopy) {
+        if (checksum == save->state.checksum && (u16)checksum == save->checksum) {
             sum0 = save->state.mainData.clockTicks;
             sum1 = (u16)save->state.mainData.fieldCDC + sum0;
             partial = save->state.saveCount + sum1;
