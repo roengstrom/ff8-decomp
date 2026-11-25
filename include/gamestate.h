@@ -373,13 +373,6 @@ typedef struct {
     /* 0x1C */ u8 fieldRngOffset;
 } FieldStateSnapshot; /* 0x1E = 30 bytes (29 data + 1 trailing pad, u16-aligned) */
 
-/**
- * @brief Full game state (g_gameState at 0x80077378, 0x13A0 bytes).
- *
- * Sections not yet mapped to named structs are left as padding arrays.
- * Use this for struct-based field access; for raw pointer arithmetic
- * use (s32)&g_gameState to prevent CC1PSX symbol+constant folding.
- */
 typedef struct {
     /* 0x000 */ u16 checksum;
     /* 0x002 */ u16 writeMarker;
@@ -391,28 +384,28 @@ typedef struct {
     /* 0x010 */ u32 clockTicks;
     /* 0x014 */ u8 leaderLevel;
     /* 0x015 */ u8 partyCharacterIds[3];
-    /* 0x018 */ u8                squallName[12];              /**< Squall's name (null-terminated). */
-    /* 0x024 */ u8                rinoaName[12];               /**< Rinoa's name (null-terminated). */
-    /* 0x030 */ u8                angeloName[12];              /**< Angelo's name (null-terminated). */
-    /* 0x03C */ u8                bokoName[12];                /**< Boko's name (null-terminated). */
+    /* 0x018 */ u8 squallName[12];
+    /* 0x024 */ u8 rinoaName[12];
+    /* 0x030 */ u8 angeloName[12];
+    /* 0x03C */ u8 bokoName[12];
     /* 0x048 */ u8 disc;
     /* 0x049 */ u8 pad049[3];
     /* 0x04C */ u32 saveSequence;
-    /* 0x050 */ GfSaveData        gfs[GF_COUNT];               /**< GF save data (16 × 68 bytes). */
-    /* 0x490 */ CharacterData     chars[CHARACTER_COUNT];      /**< Character data (8 × 152 bytes). */
-    /* 0x950 */ ShopData          shops[SHOP_COUNT];           /**< Shop inventory (20 × 20 bytes). */
-    /* 0xAE0 */ GameConfig        config;                      /**< Game config (20 bytes). */
-    /* 0xAF4 */ SaveMainData      mainData;                     /**< Party/items/battle state (580 bytes). */
-    /* 0xD38 */ u8                battleParty[4];              /**< Battle party member IDs (mirrors party.partyMembers). */
-    /* 0xD3C */ u8                padD3C[4];        /**< Battle vars / misc. */
+    /* 0x050 */ GfSaveData gfs[GF_COUNT];
+    /* 0x490 */ CharacterData chars[CHARACTER_COUNT];
+    /* 0x950 */ ShopData shops[SHOP_COUNT];
+    /* 0xAE0 */ GameConfig config;
+    /* 0xAF4 */ SaveMainData mainData;
+    /* 0xD38 */ u8 battleParty[4];
+    /* 0xD3C */ u8 padD3C[4];
     /* 0xD40 */ FieldStateSnapshot fieldStateSnapshot;
-    /* 0xD5E */ u8                padD5D[2];        /**< Battle vars / misc (continued). */
-    /* 0xD60 */ FieldVars         fieldVars;                   /**< Steps, SeeD rank, counters (@c &g_gameState.fieldVars == @c g_fieldVars). */
-    /* 0xE58 */ u8                padE58[0x08];                /**< Trailing 8 bytes of the 0xD60 region; not part of @ref FieldVars (the field-reset wipe stops at 0xE58) and read by nothing so far. */
-    /* 0xE60 */ u8                padE60[0x400];               /**< Field script vars, TT rules. */
-    /* 0x1260 */ u8               pad1260[0x80];               /**< World map position/vehicles. */
-    /* 0x12E0 */ TripleTriadData  cards;                    /**< Triple Triad data (128 bytes). */
-    /* 0x1360 */ ChocoboWorldData chocobo;                 /* D_800786D8 *< Chocobo World data (64 bytes). */
+    /* 0xD5E */ u8 padD5D[2];
+    /* 0xD60 */ FieldVars fieldVars;
+    /* 0xE58 */ u8 padE58[0x08];
+    /* 0xE60 */ u8 padE60[0x400];
+    /* 0x1260 */ u8 pad1260[0x80];
+    /* 0x12E0 */ TripleTriadData cards;
+    /* 0x1360 */ ChocoboWorldData chocobo;
 } GameState; /* 0x13A0 = 5024 bytes */
 
 /* SaveMainData.partyLockFlag bits. Only bit 0 has a confirmed meaning; the
