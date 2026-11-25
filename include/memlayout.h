@@ -8,5 +8,7 @@
 #define LOAD_BUFFER_ADDR 0x801A0000 // Used for loading stuff from disc into ram
 #define SCRATCH_ADDR 0x801B0000
 #define MUSIC_BUFFER_ADDR 0x801D0000
+#define MENU_SUBOVERLAY_ADDR 0x801D1000 // Load address of the menu sub-overlays and their page data.
+#define MENU_LOAD_BUFFER_ADDR 0x801D3000
 
 #endif /* MEMLAYOUT_H */

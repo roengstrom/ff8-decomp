@@ -481,6 +481,7 @@ typedef struct {
 } CardDataBlock;
 
 /** Memory card constants. */
+#define CARD_FRAME_SIZE 0x80
 #define CARD_BLOCK_SIZE      0x2000   /**< 8KB per block. */
 #define CARD_TOTAL_CAPACITY  0x1E000  /**< 120KB (15 blocks). */
 #define CARD_OPEN_CREATE     0x200    /**< Open flag: create file. */

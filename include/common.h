@@ -44,6 +44,8 @@ typedef union {
 /* Clamp value to [lo, hi] range. */
 #define CLAMP(val, lo, hi) ((val) < (lo) ? (lo) : (val) > (hi) ? (hi) : (val))
 
+#define min(a, b) ((a) > (b) ? (b) : (a))
+
 /* Absolute value. Uppercase so it does not shadow libc/builtin abs() (some
  * TUs need that form). Uses `<=` rather than `<` on the sign test so the
  * compiler emits `blez` for the branch, matching the original codegen
