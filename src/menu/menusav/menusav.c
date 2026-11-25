@@ -543,7 +543,7 @@ static s32 BuildSaveFile(s32 slot, u8 *dst) {
     btlMemcpyForward((u8 *)save, (u8 *)GetSaveBlockHeader(slot), sizeof(SaveBlockHeader));
 
     // The card writes whole frames.
-    return (sizeof(SaveFile) + CARD_FRAME_SIZE - 1) / CARD_FRAME_SIZE * CARD_FRAME_SIZE;
+    return (sizeof(SaveFile) + MEMORY_CARD_FRAME_SIZE - 1) / MEMORY_CARD_FRAME_SIZE * MEMORY_CARD_FRAME_SIZE;
 }
 
 /** @brief Draw inner panel with section id 0x5 and clear flag. */

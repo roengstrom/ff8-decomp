@@ -5,6 +5,7 @@
 #include "psxsdk/libc.h"
 #include "battle.h"
 #include "btl_anim.h"
+#include "memcard.h"
 #include "field_init.h"
 #include "btl_anim_packet.h"
 #include "ui/icon.h"
@@ -965,21 +966,21 @@ s32 createCardFile(s32 cardId, char *filename, s32 size) {
     if (checkCardFileExists(cardId, filename) != 0) {
         return 2;
     }
-    size = ((size + CARD_BLOCK_SIZE - 1) / CARD_BLOCK_SIZE) * CARD_BLOCK_SIZE;
+    size = ((size + MEMORY_CARD_BLOCK_SIZE - 1) / MEMORY_CARD_BLOCK_SIZE) * MEMORY_CARD_BLOCK_SIZE;
     free = sumCardFileSizes(cardId);
-    free = CARD_TOTAL_CAPACITY - free;
+    free = MEMORY_CARD_TOTAL_CAPACITY - free;
     if (free < size) {
         return -1;
     }
-    size /= CARD_BLOCK_SIZE;
-    fd = openCardFile(cardId, filename, (size << 16) | CARD_OPEN_CREATE);
+    size /= MEMORY_CARD_BLOCK_SIZE;
+    fd = openCardFile(cardId, filename, (size << 16) | MEMORY_CARD_OPEN_CREATE);
     neg1 = -1;
     if (fd == neg1) {
         markCardBusy(cardId);
         return -1;
     }
     closeFileDescriptor(fd);
-    fd = openCardFile(cardId, filename, CARD_OPEN_READWRITE);
+    fd = openCardFile(cardId, filename, MEMORY_CARD_OPEN_READWRITE);
     if (fd == neg1) {
         markCardBusy(cardId);
         return -1;
