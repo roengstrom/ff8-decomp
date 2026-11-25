@@ -193,7 +193,7 @@ typedef struct {
     /** 0x08 */ u16 leaderMaxHp;
     /** 0x0A */ u16 saveCount;
     /** 0x0C */ u32 gil;
-    /** 0x10 */ u32 clockTicks;
+    /** 0x10 */ u32 playTimeSeconds;
     /** 0x14 */ u8 leaderLevel;
     /** 0x15 */ u8 partyCharacterIds[3];
     /** 0x18 */ u8 squallName[12];
@@ -454,7 +454,7 @@ static s32 BuildSaveHeaders(s32 slot, SaveHeaders *dst) {
     btlMemcpyForward((u8 *)saveHeader, (u8 *)&dst->save, sizeof(dst->save));
 
     // Play time in minutes. The counter ticks every 59.8 frames, so a minute is 60 ticks on NTSC and 50 on PAL.
-    playTime = saveHeader->clockTicks;
+    playTime = saveHeader->playTimeSeconds;
     if (GetVideoMode() == MODE_NTSC) {
         playTime /= 60;
     } else {
@@ -536,7 +536,7 @@ static s32 BuildSaveFile(s32 slot, u8 *dst) {
     } else {
         save->state.gil = save->state.mainData.party.gil;
     }
-    save->state.clockTicks = save->state.mainData.clockTicks;
+    save->state.playTimeSeconds = save->state.mainData.playTimeSeconds;
     save->state.saveSequence = ++g_highestSaveSequence;
 
     // Update the save list's copy of this slot's header.
@@ -1818,7 +1818,7 @@ dispatch:
         checksum = func_800377B4(0x1350, (u8 *)(MENU_SUBOVERLAY_ADDR + 0x50));
         // The first compare uses the raw return value, the second the narrowed one.
         if (checksum == save->state.checksum && (u16)checksum == save->checksum) {
-            sum0 = save->state.mainData.clockTicks;
+            sum0 = save->state.mainData.playTimeSeconds;
             sum1 = (u16)save->state.mainData.fieldCDC + sum0;
             partial = save->state.saveCount + sum1;
             D_80083792[0] = partial + save->state.mainData.fieldCE0 + save->state.mainData.fieldCE2;
@@ -2343,7 +2343,7 @@ s32 func_801E7524(s32 a0) {
 s32 func_801E7550(void) {
     s32 result;
 
-    result = g_gameState.mainData.clockTicks ^ g_gameState.mainData.party.gil ^ (g_gameState.mainData.fieldCDC << 0x10);
+    result = g_gameState.mainData.playTimeSeconds ^ g_gameState.mainData.party.gil ^ (g_gameState.mainData.fieldCDC << 0x10);
     return result ^ func_801E74BC();
 }
 

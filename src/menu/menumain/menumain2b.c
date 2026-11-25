@@ -548,9 +548,9 @@ restart:
 
     }
 
-    if (s->lastPlayTime != g_gameState.mainData.clockTicks) {
+    if (s->lastPlayTime != g_gameState.mainData.playTimeSeconds) {
         s->colonTimer = GetVideoMode() == MODE_NTSC ? 30 : 25;
-        s->lastPlayTime = g_gameState.mainData.clockTicks;
+        s->lastPlayTime = g_gameState.mainData.playTimeSeconds;
     }
     if (s->colonTimer != 0) {
         s->colonTimer--;
@@ -1213,7 +1213,7 @@ static void *func_801F4A98(MainMenuCtx *s, void *ot, void *prim) {
         time = g_gameState.mainData.countdownTimer;
         isPlayTime = 0;
     } else {
-        time = g_gameState.mainData.clockTicks;
+        time = g_gameState.mainData.playTimeSeconds;
         isPlayTime = 1;
     }
     prim = drawMenuClock(s, ot, prim, x + 10, y + 5, time, isPlayTime);
