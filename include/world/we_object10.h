@@ -60,6 +60,7 @@ extern s32  func_800BA870(u8 *p);
 extern s32 func_800BEF6C(void);
 extern void func_800AEB58(XformEntry *entry, XformGroup *group);
 extern void func_8009C5FC(s32 *data);
+extern s32 func_800BD82C(WorldObjList *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans);
 
 extern void func_800BEC60(u8 *flags);
 

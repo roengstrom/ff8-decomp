@@ -122,7 +122,44 @@ s32 func_800BD7E4(s32 charIdx) {
     return 0;
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", func_800BD82C);
+s32 func_800BD82C(WorldObjList *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans) {
+    s32 i;
+    s32 count;
+
+    if (slot != NULL) {
+        if (trans != NULL) {
+            slot->position = *trans;
+        }
+        if (rot != NULL) {
+            slot->vec = *rot;
+        }
+        slot->marker = marker;
+        if (flag >= 0) {
+            slot->pad11 = flag;
+        }
+    }
+
+    for (i = 0, count = 0; i < OBJ_SLOT_COUNT; i++) {
+        if (actor->ids[i] == OBJ_LIST_END) {
+            actor->ids[i] = marker;
+            if (marker < FIRST_OBJ_ID) {
+                if (slot != NULL) {
+                    slot->lookupIdx = count;
+                }
+                return 1;
+            }
+            if (slot != NULL) {
+                slot->lookupIdx = -1;
+            }
+            return 0;
+        }
+        if (actor->ids[i] < FIRST_OBJ_ID) {
+            count++;
+        }
+    }
+
+    return -1;
+}
 
 /**
  * @brief Copy 10 flag bytes from D_800780D8 to destination struct.

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "world.h"
 #include "world/we_object6.h"
+#include "world/we_object10.h"
 #include "psxsdk/libc.h"
 
 void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf, SVECTOR *offset) {
