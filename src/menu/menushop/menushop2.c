@@ -404,10 +404,10 @@ static s32 func_801E8978(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 availableCh
 
     cfg->iconType = ICON_NAME;
     cfg->iconSubType = 0;
-    cfg->x = arg2;
-    cfg->y = arg3;
-    cfg->w = 136;
-    cfg->h = 105;
+    cfg->windowBackgroundRect.x = arg2;
+    cfg->windowBackgroundRect.y = arg3;
+    cfg->windowBackgroundRect.w = 136;
+    cfg->windowBackgroundRect.h = 105;
 
     arg1 = DrawMenuWindow(arg0, arg1, ONE, g_menuTint[MENU_TINT_NORMAL]);
     return arg1;
@@ -439,8 +439,8 @@ static s32 func_801E8AB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     msg = ((s32 *)(g_menuDisplayCfg.dataPtr))[arg2];
     if (msg != 0) {
         xOffset = arg4 + 10;
-        x = g_menuDisplayCfg.x + xOffset;
-        y = g_menuDisplayCfg.y + 4;
+        x = g_menuDisplayCfg.windowBackgroundRect.x + xOffset;
+        y = g_menuDisplayCfg.windowBackgroundRect.y + 4;
         decodeMessage(msg, buffer, -1);
         arg1 = func_801F0FEC(arg0, arg1, x, y, buffer, DIALOG_COLOR_WHITE);
     }
@@ -462,13 +462,13 @@ static s32 func_801E8AB0(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 static s32 func_801E8B60(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
     g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 324;
-    g_menuDisplayCfg.h = 20;
+    g_menuDisplayCfg.windowBackgroundRect.x = a3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 324;
+    g_menuDisplayCfg.windowBackgroundRect.h = 20;
     g_menuDisplayCfg.columnCount = 1;
     g_menuDisplayCfg.pageStart = 0;
     g_menuDisplayCfg.pageEnd = 1;
-    g_menuDisplayCfg.y = a4;
+    g_menuDisplayCfg.windowBackgroundRect.y = a4;
     g_menuDisplayCfg.scrollOffset = s->scrollOffset;
     g_menuDisplayCfg.dataPtr = (s32)&s->weaponName;
     return func_801EFBB4(a1, a2, func_801E8AB0);
@@ -528,10 +528,10 @@ static s32 func_801E8BD8(JunkShopMenuState *s, s32 arg1, s32 arg2, s32 arg3, s32
 
     cfg->iconType = ICON_INFO;
     cfg->iconSubType = 0;
-    cfg->x = arg3;
-    cfg->y = arg4;
-    cfg->w = 200;
-    cfg->h = 105;
+    cfg->windowBackgroundRect.x = arg3;
+    cfg->windowBackgroundRect.y = arg4;
+    cfg->windowBackgroundRect.w = 200;
+    cfg->windowBackgroundRect.h = 105;
 
     arg2 = DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
     return arg2;
@@ -608,10 +608,10 @@ static s32 func_801E8D84(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
 
     cfg->iconType = ICON_ITEM;
     cfg->iconSubType = 0;
-    cfg->x = a3;
-    cfg->y = a4;
-    cfg->w = 136;
-    cfg->h = 105;
+    cfg->windowBackgroundRect.x = a3;
+    cfg->windowBackgroundRect.y = a4;
+    cfg->windowBackgroundRect.w = 136;
+    cfg->windowBackgroundRect.h = 105;
 
     a2 = DrawMenuWindow(a1, a2, ONE, g_menuTint[MENU_TINT_NORMAL]);
     return a2;
@@ -827,10 +827,10 @@ static s32 func_801E9554(JunkShopMenuState *s, s32 a1, s32 a2, s32 a3, s32 a4) {
     a2 = func_801E90F8(s, a1, a2, a3, a4);
     g_menuDisplayCfg.iconType = ICON_INFO;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = a3;
-    g_menuDisplayCfg.w = 336;
-    g_menuDisplayCfg.y = a4;
-    g_menuDisplayCfg.h = 38;
+    g_menuDisplayCfg.windowBackgroundRect.x = a3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.y = a4;
+    g_menuDisplayCfg.windowBackgroundRect.h = 38;
     return DrawMenuWindow(a1, a2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -855,10 +855,10 @@ static s32 func_801E95DC(u8 *msg, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
     }
     g_menuDisplayCfg.iconType = ICON_NONE;
     g_menuDisplayCfg.iconSubType = 0;
-    g_menuDisplayCfg.x = arg3;
-    g_menuDisplayCfg.w = 336;
-    g_menuDisplayCfg.y = arg4;
-    g_menuDisplayCfg.h = 20;
+    g_menuDisplayCfg.windowBackgroundRect.x = arg3;
+    g_menuDisplayCfg.windowBackgroundRect.w = 336;
+    g_menuDisplayCfg.windowBackgroundRect.y = arg4;
+    g_menuDisplayCfg.windowBackgroundRect.h = 20;
     return DrawMenuWindow(arg1, arg2, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 

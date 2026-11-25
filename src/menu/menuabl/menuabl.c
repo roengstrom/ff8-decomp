@@ -593,12 +593,12 @@ restart:
 s32 func_801E3530(s32 a0, s32 a1, s16 a2, s16 a3) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
 
-    cfg->iconType    = 0;
+    cfg->iconType = 0;
     cfg->iconSubType = 0;
-    cfg->x           = a2;
-    cfg->w           = 0xF4;
-    cfg->h           = 0x12;
-    cfg->y           = a3;
+    cfg->windowBackgroundRect.x = a2;
+    cfg->windowBackgroundRect.w = 244;
+    cfg->windowBackgroundRect.h = 18;
+    cfg->windowBackgroundRect.y = a3;
     return DrawMenuWindow(a0, a1, ONE, g_menuTint[MENU_TINT_NORMAL]);
 }
 
@@ -626,8 +626,8 @@ s32 func_801E3580(s32 ctx, s32 state, s32 idx, s32 unk3, s32 yOff) {
     s32 x, y;
     if (entry != NULL) {
         s32 adj = yOff + 0xA;
-        x = cfg->x + adj;
-        y = cfg->y + 9;
+        x = cfg->windowBackgroundRect.x + adj;
+        y = cfg->windowBackgroundRect.y + 9;
         decodeMessage(entry, buf, -1);
         result = func_801F0FEC(ctx, state, x, y, buf, 7);
     }
@@ -651,17 +651,17 @@ s32 func_801E3630(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
-    cfg->iconType     = 0x55;
-    cfg->iconSubType  = 0;
-    cfg->x            = a3;
-    cfg->w            = 0x144;
-    cfg->h            = 0x1A;
-    cfg->columnCount  = 1;
-    cfg->pageStart    = 0;
-    cfg->pageEnd      = 1;
-    cfg->y            = stackArg;
+    cfg->iconType = 0x55;
+    cfg->iconSubType = 0;
+    cfg->windowBackgroundRect.x = a3;
+    cfg->windowBackgroundRect.w = 324;
+    cfg->windowBackgroundRect.h = 26;
+    cfg->columnCount = 1;
+    cfg->pageStart = 0;
+    cfg->pageEnd = 1;
+    cfg->windowBackgroundRect.y = stackArg;
     cfg->scrollOffset = ctx->scrollOff;
-    cfg->dataPtr      = (s32)ctx->items;
+    cfg->dataPtr = (s32)ctx->items;
     return func_801EFBB4(a1, a2, func_801E3580);
 }
 
@@ -697,8 +697,8 @@ s32 func_801E36AC(s32 ctx, s32 pkt, s32 col, s32 row, s32 scrollOffset) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     s32 adj = scrollOffset + 11;
 
-    x = cfg->x + adj;
-    y = cfg->y + 10;
+    x = cfg->windowBackgroundRect.x + adj;
+    y = cfg->windowBackgroundRect.y + 10;
     y = y + (row * 13);
     index = (col * 11) + row;
     if (index < D_801E3D9C) {
@@ -737,17 +737,17 @@ s32 func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     AbilityListCtx    *ctx = (AbilityListCtx *)a0;
 
-    cfg->iconType     = 0x5E;
-    cfg->iconSubType  = 0;
-    cfg->x            = a3;
-    cfg->w            = 0x8A;
-    cfg->h            = 0xA0;
-    cfg->columnCount  = 0xB;
-    cfg->y            = stackArg;
-    cfg->pageStart    = ctx->pageStart;
-    cfg->pageEnd      = ctx->pageEnd;
+    cfg->iconType = 0x5E;
+    cfg->iconSubType = 0;
+    cfg->windowBackgroundRect.x = a3;
+    cfg->windowBackgroundRect.w = 138;
+    cfg->windowBackgroundRect.h = 160;
+    cfg->columnCount = 0xB;
+    cfg->windowBackgroundRect.y = stackArg;
+    cfg->pageStart = ctx->pageStart;
+    cfg->pageEnd = ctx->pageEnd;
     cfg->scrollOffset = ctx->scrollOff;
-    cfg->dataPtr      = (s32)ctx;
+    cfg->dataPtr = (s32)ctx;
 
     if (D_801E3D9C >= 0xC) {
         s32 scrollbar = func_801F5F30(a1, a2, a3 + 0x28, stackArg, g_menuTint[MENU_TINT_NORMAL], ctx->pageStart);
@@ -777,8 +777,8 @@ s32 func_801E381C(s32 a0, s32 a1, s32 a2, s32 a3, s32 stackArg) {
 s32 func_801E3904(s32 ctx, s32 pkt, s32 col, s32 row, s32 scrollOffset) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     s32 adj = scrollOffset + 0xB;
-    s32 x = cfg->x + adj;
-    s32 y = cfg->y + 0xA;
+    s32 x = cfg->windowBackgroundRect.x + adj;
+    s32 y = cfg->windowBackgroundRect.y + 0xA;
     s32 index;
 
     y = y + (row * 13);
@@ -813,17 +813,17 @@ s32 func_801E39E0(SoundMenuState *s, s32 ot, s32 a2, s32 a3, s32 stackArg) {
     MenuDisplayConfig *cfg = &g_menuDisplayCfg;
     MenuRowCallback callback;
 
-    cfg->iconType     = 0x49;
-    cfg->iconSubType  = 0;
-    cfg->x            = a3;
-    cfg->w            = 0xC6;
-    cfg->h            = 0xA0;
-    cfg->columnCount  = 0xB;
-    cfg->y            = stackArg;
-    cfg->pageStart    = s->field_38;
-    cfg->pageEnd      = s->field_39;
+    cfg->iconType = 0x49;
+    cfg->iconSubType = 0;
+    cfg->windowBackgroundRect.x = a3;
+    cfg->windowBackgroundRect.w = 198;
+    cfg->windowBackgroundRect.h = 160;
+    cfg->columnCount = 0xB;
+    cfg->windowBackgroundRect.y = stackArg;
+    cfg->pageStart = s->field_38;
+    cfg->pageEnd = s->field_39;
     cfg->scrollOffset = s->field_34;
-    cfg->dataPtr      = (s32)s;
+    cfg->dataPtr = (s32)s;
 
     if (D_801E3DB8 >= 0xC) {
         s32 scrollbar = func_801F5F30(ot, a2, a3 + 0x20, stackArg, g_menuTint[MENU_TINT_NORMAL], s->field_38);
@@ -942,8 +942,8 @@ void func_801E3C9C(void) {
         func_801E2A34, func_801E3AE0);
 
     if (st != NULL) {
-        st->state       = 0;
-        st->dataPtr     = 0;
+        st->state = 0;
+        st->dataPtr = 0;
         st->abilityMask = func_801F72B4();
         st->displaySize = 0x1000;
         func_801E3C28();

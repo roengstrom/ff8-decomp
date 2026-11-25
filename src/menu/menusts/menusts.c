@@ -201,10 +201,10 @@ s32 func_801E72D8(s32 displayList, s32 ot, s32 x, s32 y, s32 mode) {
             *(u8 *)((s32)cfgPtr + 0x10) = 0xD0;
         }
         cfgPtr->iconSubType = 0;
-        cfgPtr->x = x;
-        cfgPtr->y = y;
-        cfgPtr->w = 0x82;
-        cfgPtr->h = 0x38;
+        cfgPtr->windowBackgroundRect.x = x;
+        cfgPtr->windowBackgroundRect.y = y;
+        cfgPtr->windowBackgroundRect.w = 130;
+        cfgPtr->windowBackgroundRect.h = 56;
         ot = DrawMenuWindow(displayList, ot, mode, g_menuTint[MENU_TINT_NORMAL]);
     }
 

@@ -85,7 +85,7 @@ void func_801E6B3C(u8 *a0, s32 a1, s32 a2, s32 a3, s32 arg4) {
 
     *(u8 *)(cfg + 0x10) = 0x55;
     *(u8 *)(cfg + 0x11) = 0;
-    g_menuDisplayCfg.x = a3;
+    g_menuDisplayCfg.windowBackgroundRect.x = a3;
     *(s16 *)(cfg + 0x04) = 0x144;
     *(s16 *)(cfg + 0x06) = 0x1A;
     *(u8 *)(cfg + 0x13) = 1;
@@ -121,7 +121,7 @@ void func_801E6C84(s32 a0, s32 a1) {
     cfg = &g_menuDisplayCfg;
     *(u8 *)(cfg + 0x10) = 0x50;
     *(u8 *)(cfg + 0x11) = 0;
-    g_menuDisplayCfg.x = 0x18;
+    g_menuDisplayCfg.windowBackgroundRect.x = 24;
     *(s16 *)(cfg + 0x02) = 0x38;
     *(s16 *)(cfg + 0x04) = 0x150;
     *(s16 *)(cfg + 0x06) = 0xA0;
