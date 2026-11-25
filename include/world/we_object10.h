@@ -46,9 +46,11 @@ typedef struct {
 
 /** Object-id list: a 6-byte header followed by a 0xFF-terminated id array. */
 typedef struct {
-    u8 header[6];           /* header (purpose not yet identified) */
-    u8 ids[OBJ_SLOT_COUNT]; /* object ids present in this list */
-} WorldObjList;
+    u8 header[2]; /**<0x0: header (purpose not yet identified) */
+    u8 unk2[2];
+    u8 unk4[2];
+    u8 ids[0x40]; /**< 0x06: object ids present in this list */
+} WorldObjList; /* 0x46 bytes */
 
 extern u8             D_800DCE78[];
 extern s32            D_800C5DAC;

@@ -684,35 +684,24 @@ INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object10", func_800BE720);
 s32 func_800BE7FC(WorldObjList *objList, u8 *section) {
     s32 i;
     s32 j;
-    u32 id;
     u32 off;
-    u8 *cur;
-
-    i = 0;
-    cur = objList->header;
-loop:
-    id = cur[sizeof(objList->header)];
-    if (id == OBJ_LIST_END) {
-        goto done;
-    }
-    if (id < FIRST_OBJ_ID) {
-        goto next;
-    }
-    /* skip ids already handled earlier in the list */
-    for (j = 0; j < i; j++) {
-        if (objList->ids[j] == id) {
-            goto next;
+    for (i = 0; i < OBJ_SLOT_COUNT; i++) {
+        if (objList->ids[i] == OBJ_LIST_END) {
+            return;
         }
-    }
-    off = ((u32 *)section)[cur[sizeof(objList->header)] - FIRST_OBJ_ID];
-    func_8009C5FC((s32 *)(section + off));
+        if (objList->ids[i] < FIRST_OBJ_ID) {
+            continue;
+        }
+        /* skip ids already handled earlier in the list */
+        for (j = 0; j < i; j++) {
+            if (objList->ids[j] == objList->ids[i]) {
+                goto next;
+            }
+        }
+        off = ((u32 *)section)[objList->ids[i] - FIRST_OBJ_ID];
+        func_8009C5FC((s32 *)(section + off));
 next:
-    i++;
-    cur++;
-    if (i < OBJ_SLOT_COUNT) {
-        goto loop;
     }
-done:;
 }
 
 

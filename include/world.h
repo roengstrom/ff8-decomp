@@ -168,6 +168,11 @@ typedef struct {
     Entry12 entries[1];
 } KeyBuffer;
 
+typedef struct {
+    u8 unk0;
+    u8 unk1;
+} ST_D_800C5984;
+
 /* world globals (we_object7) */
 extern s32 D_800C4D2C;
 extern s32 D_800C4D40;
@@ -206,7 +211,7 @@ extern s32 D_800C5D54;
  * u32 byte-offsets to the actual entry payloads.
  */
 extern u8 *D_800C976C;
-extern u8  D_800C5984[];
+extern ST_D_800C5984 D_800C5984[];
 extern u16 D_800C5C44[];
 extern s32 D_800C97A4;
 extern s32 D_800C9878;
