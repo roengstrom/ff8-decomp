@@ -10,7 +10,7 @@
 
 extern CdFileDesc g_bootFileDescs[];
 extern CdFileDesc g_fieldFileDescs[];
-extern u32 D_80097420[];
+extern u32 g_menuFileDescs[];
 extern CdFileDesc D_800974B8[];
 extern CdFileDesc D_800974C0[];
 extern CdFileDesc D_800974C8[];
@@ -19,5 +19,27 @@ extern CdFileDesc g_soundFileDescs[];
 extern u32 D_800974F0[];
 extern CdFileDesc g_kernelFileDesc;
 extern CdFileDesc g_systemFileDescs[];
+
+typedef enum {
+    DISC_FILE_MENUMAIN = 0,
+    DISC_FILE_MENUCFG = 1,
+    DISC_FILE_MENUPTY = 2,
+    DISC_FILE_MENUSTS = 3,
+    DISC_FILE_MENUABL = 4,
+    DISC_FILE_MENUSHOP = 5,
+    DISC_FILE_MENUEXT = 6,
+    DISC_FILE_MENUITEM = 7,
+    DISC_FILE_MENUMGC = 8,
+    DISC_FILE_MENUGF = 9,
+    DISC_FILE_MENUJNC2 = 10,
+    DISC_FILE_MENUSAV = 11,
+    DISC_FILE_MENUCRD = 12,
+    DISC_FILE_MENUTUTO = 13,
+    DISC_FILE_MENUTMAG = 14,
+    DISC_FILE_MENUTIPS = 15,
+    DISC_FILE_MENUTEST = 16,
+    DISC_FILE_MNGRP = 17,
+    DISC_FILE_INIT_OUT = 18
+} DiscFile;
 
 #endif /* IMGTOC_H */

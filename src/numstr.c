@@ -15,7 +15,6 @@ extern u8 D_8008369C[];
 extern u8 *getBattleCharNameWrapper(s32 entityIdx);
 extern u8 *getCharNameWrapper(s32 charId);
 extern u8 *getCharNameWrapper2(s32 charId);
-extern s32 btlStrlen(u8 *str);
 extern u32 D_800529F4[];
 extern u32 D_80052A08[];
 

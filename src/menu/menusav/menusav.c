@@ -5,8 +5,10 @@
 #include "menumain2b.h"
 #include "menu_tint.h"
 #include "menusav.h"
+#include "memlayout.h"
 #include "gamestate.h"
 #include "overlay.h"
+#include "imgtoc.h"
 #include "snd_sfx.h"
 #include "party_stats.h"
 #include "cdrom.h"
@@ -22,10 +24,9 @@
 #include "snd_init.h"
 #endif
 
-extern u8 D_801EC294;
+extern u8 g_chocoboWorldChanged;
 extern u8 D_801EC301;
-extern s32 D_8005620C;
-extern u8 D_80097424[];
+extern u32 D_80097424[];
 extern u16 D_801EBD24[];
 extern s32 D_801EC2E4;
 
@@ -168,26 +169,66 @@ typedef struct {
 } SaveMenuCtx;
 
 typedef struct {
-    /** 0x00 */ u8 pad0[0x4C];
+    /** 0x00 */ u8 magic[2]; // "SC"
+    /** 0x02 */ u8 type;
+    /** 0x03 */ u8 blockCount;
+    /** 0x04 */ u8 documentName[64];
+    /** 0x44 */ u8 pad44[12];
+    /** 0x50 */ u16 fileListIconCount;
+    /** 0x52 */ u8 fileType[4]; // "MCX0" in a PocketStation program, "CRD0" in a data file
+    /** 0x56 */ u8 gameSelectionPageCount;
+    /** 0x57 */ u8 deviceDriverCount;
+    /** 0x58 */ u8 pad58[4];
+    /** 0x5C */ u32 programStart;
+    /** 0x60 */ u16 clut[16];
+    /** 0x80 */ u8 icon[128]; // 16x16, 4 bits per pixel
+    /** 0x100 */ u8 fileListIcon[128]; // 32x32, 1 bit per pixel, shown in the PocketStation's file list
+} MemoryCardFileHeader; // PS1 specific header
+
+typedef struct {
+    /** 0x00 */ u16 checksum;
+    /** 0x02 */ u16 writeMarker;
+    /** 0x04 */ u16 locationId;
+    /** 0x06 */ u16 leaderHp;
+    /** 0x08 */ u16 leaderMaxHp;
+    /** 0x0A */ u16 saveCount;
+    /** 0x0C */ u32 gil;
+    /** 0x10 */ u32 playTimeSeconds;
+    /** 0x14 */ u8 leaderLevel;
+    /** 0x15 */ u8 partyCharacterIds[3];
+    /** 0x18 */ u8 squallName[12];
+    /** 0x24 */ u8 rinoaName[12];
+    /** 0x30 */ u8 angeloName[12];
+    /** 0x3C */ u8 bokoName[12];
+    /** 0x48 */ u8 disc;
+    /** 0x49 */ u8 pad49[3];
     /** 0x4C */ u32 saveSequence;
     /** 0x50 */ u8 pad50[2];
     /** 0x52 */ u8 unk52[4];
+    /** 0x56 */ u8 pad56[0x2A];
 } SaveBlockHeader;
 
 typedef struct {
-    /** 0x000 */ u16 checksum;
-    /** 0x002 */ u8 pad2[8];
-    /** 0x00A */ u16 unkA;
-    /** 0x00C */ u8 padC[0xCC4];
-    /** 0xCD0 */ s32 playTimeSeconds;
-    /** 0xCD4 */ u8 padCD4[8];
-    /** 0xCDC */ u16 fieldCDC;
-    /** 0xCDE */ u8 padCDE[2];
-    /** 0xCE0 */ u16 fieldCE0;
-    /** 0xCE2 */ u16 fieldCE2;
-    /** 0xCE4 */ u8 padCE4[0x6BC];
-    /** 0x13A0 */ u16 checksumCopy;
+    /** 0x000 */ MemoryCardFileHeader card;
+    /** 0x180 */ SaveBlockHeader save;
+} SaveHeaders;
+
+#define SAVE_BLOCK_HEADERS ((SaveBlockHeader *)MENU_LOAD_BUFFER_ADDR)
+
+#define SAVE_MARKER_COMPLETE 0x08FF
+#define SAVE_MARKER_INCOMPLETE 0xFFFF
+
+#define SJIS_DIGIT_ZERO 0x824F // https://en.wikipedia.org/wiki/Shift_JIS
+
+typedef struct {
+    /** 0x0000 */ GameState state;
+    /** 0x13A0 */ u16 checksum;
 } SaveData;
+
+typedef struct {
+    /** 0x0000 */ MemoryCardFileHeader card;
+    /** 0x0180 */ SaveData data;
+} SaveFile;
 
 typedef struct {
     /** 0x00 */ s32 task[4];
@@ -258,8 +299,10 @@ typedef struct {
 } D_801EBD5C_Entry;
 
 extern u8 D_80085148[];
-extern u32 highestSaveSequence;
-extern u8 D_801EC2A0[];
+extern u32 g_highestSaveSequence;
+extern u8 g_memoryCardBlockStatus[];
+extern MemoryCardFileHeader *g_saveHeaderTemplates[16];
+extern u8 D_801EBD34[];
 extern u16 D_801EC290;
 extern u16 D_801EC292;
 extern u16 D_80083792[];
@@ -286,15 +329,13 @@ s32 pollCardReady(s32);
 s32 pollCardStatus(s32);
 s32 openFirstFileRetry(s32, char *, struct DIRENTRY *);
 s32 cardNextFile(struct DIRENTRY *);
-s32 btlStrlen(char *);
 s32 compareBytes(void *, void *, s32);
-s32 readCardFileSync(s32, char *, s32, s32, s32);
+s32 readCardFileSync(s32, char *, void *, s32, s32);
 s32 pollCardEventsDiscard(void);
 void closeFileDescriptorWrapper(s32);
 void markCardBusy(s32);
 s32 createCardFile(s32, char *, s32);
 s32 writeCardSector(s32, char *, s32, s32, s32);
-void btlMemcpyForward(s32, void *, s32);
 static void func_801EAE74(void);
 static void func_801EAE4C(void);
 s32 func_801F6800(u16, s32, s32);
@@ -306,10 +347,12 @@ static void func_801E73C0(void);
 static void func_801E73E8(void);
 static void func_801E7408(void);
 void func_801F728C(s32, s32);
+static s32 GetHeaderSize(void);
+static MemoryCardFileHeader *GetSaveErrorHeader(void);
 static void func_801E283C(void);
-static void func_801E2860(void);
-s32 func_801E2958(s32, s32);
-s32 func_801E2AB0(s32, s32);
+static void LoadInitOut(void);
+static s32 BuildSaveHeaders(s32 slot, SaveHeaders *dst);
+static s32 BuildSaveFile(s32 slot, u8 *dst);
 void func_801E2DDC(SaveMenuCtx *);
 s32 func_801E2E9C(SaveMenuCtx *);
 void func_801E2F6C(void);
@@ -332,122 +375,176 @@ s32 func_801EAE98(s32);
 s32 func_801EB00C(s32, s32, s32, s32);
 s32 func_801EB054(s32, s32);
 
-/**
- * @brief Compute save slot data address.
- *
- * Returns a pointer into the D_801D3000 region at offset a0 * 128.
- *
- * @param a0 Save slot index.
- * @return Pointer to save slot data.
- */
-s32 func_801E2800(s32 a0) {
-    return (s32)0x801D3000 + (a0 << 7);
+static SaveBlockHeader *GetSaveBlockHeader(s32 block) {
+    return &SAVE_BLOCK_HEADERS[block];
 }
 
-/**
- * @brief Set D_801EC294 flag to 1.
- */
-void func_801E2814(void) {
-    D_801EC294 = 1;
+static void SetChocoboWorldChanged(void) {
+    g_chocoboWorldChanged = 1;
 }
 
-/**
- * @brief Return save data buffer size constant.
- *
- * @return Always 0x180.
- */
-s32 func_801E2824(void) {
-    return 0x180;
+static s32 GetHeaderSize(void) {
+    return sizeof(MemoryCardFileHeader);
 }
 
-/**
- * @brief Read save system state pointer.
- *
- * @return Value of D_8005620C.
- */
-s32 func_801E282C(void) {
-    return D_8005620C;
+static MemoryCardFileHeader *GetSaveErrorHeader(void) {
+    return g_saveHeaderTemplates[0];
 }
 
-/**
- * @brief Clear 0x2000 bytes of sprite buffer at 0x801D1000.
- */
 static void func_801E283C(void) {
-    u8 *ptr = (u8 *)0x801D1000;
-    s32 count = 0x2000;
-    do {
-        *ptr = 0;
-        count--;
-        ptr++;
-    } while (count > 0);
-}
+    u8 *buf = (u8 *)MENU_SUBOVERLAY_ADDR;
+    s32 count;
 
-/**
- * @brief Load sprite data for save menu slot 0x12.
- *
- * Clears the sprite buffer, initiates a DMA read of sprite data
- * to 0x801D1000, waits for completion, then copies the data to
- * the game state region using table entry 0x12 from D_80097424.
- */
-static void func_801E2860(void) {
-    s32 v0;
-    s32 idx = 0x12;
-
-    func_801E283C();
-    loadOverlayDirect(idx, 0x801D1000);
-    do {
-        v0 = pollCdReadStatus();
-    } while (v0 != 0);
-    {
-        s32 base = D_80097424;
-        s32 entry = *(s32 *)(base + idx * 8);
-        btlMemcpyForward(0x801D1000, g_gameState.gfs, entry);
+    for (count = MENU_LOAD_BUFFER_ADDR - MENU_SUBOVERLAY_ADDR; count > 0; count--) {
+        *buf++ = 0;
     }
 }
 
-/**
- * @brief Encode a two-digit number as character codes into a buffer.
- *
- * Divides a1 by 10 to get tens and ones digits, adds 0x824F offset
- * to each, then stores as 4 bytes (high/low of tens, high/low of ones)
- * into buffer at a0.
- *
- * @param a0 Output buffer (4 bytes written, pointer advanced to 5th byte).
- * @param a1 Value to encode (0-99).
- * @return Pointer past the last written byte.
- */
-s32 func_801E28C8(u8 *a0, s32 a1) {
-    s32 v1 = a1 / 10;
-    a1 = a1 - v1 * 10;
-    v1 += 0x824F;
-    a1 += 0x824F;
-    *a0 = v1 >> 8;
-    a0++;
-    *a0 = v1;
-    a0++;
-    *a0 = a1 >> 8;
-    a0++;
-    *a0 = a1;
-    return (s32)(a0 + 1);
+static void LoadInitOut(void) {
+    s32 id = DISC_FILE_INIT_OUT;
+    s32 size;
+
+    func_801E283C();
+    LoadDiscFile(id, MENU_SUBOVERLAY_ADDR);
+    while (pollCdReadStatus() != 0);
+    size = D_80097424[id * 2];
+    btlMemcpyForward((u8 *)MENU_SUBOVERLAY_ADDR, (u8 *)g_gameState.gfs, size);
+}
+
+static u8 *WriteTwoDigitNumber(u8 *dst, s32 value) {
+    s32 tens = value / 10;
+    s32 ones = value % 10;
+
+    // The SJIS encoding has 0-9 all in a row, use encoded 0 as offset and add number
+    tens += SJIS_DIGIT_ZERO;
+    ones += SJIS_DIGIT_ZERO;
+    *dst++ = tens >> 8;
+    *dst++ = tens;
+    *dst++ = ones >> 8;
+    *dst++ = ones;
+    return dst;
+}
+
+static s32 IsSaveFullyWritten(s32 block) {
+    return GetSaveBlockHeader(block)->writeMarker == SAVE_MARKER_COMPLETE;
 }
 
 /**
- * @brief Check if save slot halfword equals 0x8FF.
+ * @brief Build the headers of a save file.
  *
- * Calls func_801E2800 to get save slot address, loads halfword
- * at offset +2, and returns whether it equals 0x8FF.
+ * The title shows the play time, and the save is marked as fully written. It also lists the block as an FF8 save.
  *
- * @param a0 Save slot index.
- * @return 1 if halfword equals 0x8FF, 0 otherwise.
+ * @param slot Save slot on the memory card, 0 to 14.
+ * @param dst Buffer for the headers.
+ * @return Number of bytes to write to the card.
  */
-s32 func_801E292C(s32 a0) {
-    s32 result = func_801E2800(a0);
-    return *(u16 *)(result + 2) == 0x8FF;
+static s32 BuildSaveHeaders(s32 slot, SaveHeaders *dst) {
+    SaveBlockHeader *saveHeader;
+    u32 playTime;
+    u8 *cursor;
+    s32 hours;
+    s32 minutes;
+
+    // Copy this block's card header template, then its save header marked as fully written.
+    slot++;
+    cursor = (u8 *)g_saveHeaderTemplates[slot];
+    saveHeader = GetSaveBlockHeader(slot - 1);
+    saveHeader->writeMarker = SAVE_MARKER_COMPLETE;
+    btlMemcpyForward(cursor, (u8 *)&dst->card, sizeof(dst->card));
+    btlMemcpyForward((u8 *)saveHeader, (u8 *)&dst->save, sizeof(dst->save));
+
+    // Play time in minutes. The counter ticks every 59.8 frames, so a minute is 60 ticks on NTSC and 50 on PAL.
+    playTime = saveHeader->playTimeSeconds;
+    if (GetVideoMode() == MODE_NTSC) {
+        playTime /= 60;
+    } else {
+        playTime /= 50;
+    }
+
+    // Append the play time to the title as hours and minutes, at most 99:59.
+    cursor = dst->card.documentName;
+    cursor += btlStrlen(cursor);
+    playTime = min(playTime, 5999);
+    minutes = playTime % 60;
+    hours = playTime / 60;
+    cursor = WriteTwoDigitNumber(cursor, hours);
+    btlStrcat2(cursor, D_801EBD34);
+    WriteTwoDigitNumber(cursor + btlStrlen(cursor), minutes);
+
+    g_memoryCardBlockStatus[slot - 1] = BLOCK_FF8_SAVE;
+    return sizeof(*dst);
 }
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2958); /* 0x158 */
+/**
+ * @brief Build a whole save file from the current game state.
+ *
+ * The file is the card header, then the game state with its checksum, padded with zeros to a whole card frame.
+ * It starts with the error header and the save marked as not fully written, until BuildSaveHeaders writes the
+ * slot's own headers. It also updates the save list's copy of the slot's header.
+ *
+ * @param slot Save slot on the memory card, 0 to 14.
+ * @param dst Buffer for the file.
+ * @return Number of bytes to write to the card.
+ */
+static s32 BuildSaveFile(s32 slot, u8 *dst) {
+    MemoryCardFileHeader *src;
+    SaveData *save;
+    s32 i;
+    s32 leader;
+    s32 id;
 
-INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E2AB0); /* 0x1E0 */
+    // Clear the buffer, so the file is padded with zeros up to a whole card frame.
+    src = g_saveHeaderTemplates[0];
+    func_801E283C();
+
+    // Start with the error header, which the second write replaces with the slot's own header.
+    btlMemcpyForward((u8 *)src, dst, sizeof(MemoryCardFileHeader));
+    dst += sizeof(MemoryCardFileHeader);
+
+    // Copy the game state after the card header.
+    g_gameState.saveCount++;
+    btlMemcpyForward((u8 *)&g_gameState, dst, sizeof(SaveData));
+    save = (SaveData *)dst;
+
+    // Checksum the state from the GF records to the end, and mark the save as not fully written yet.
+    save->checksum = 0;
+    leader = func_800377B4(0x1350, (u8 *)save->state.gfs);
+    save->state.checksum = leader;
+    save->checksum = leader;
+    save->state.writeMarker = SAVE_MARKER_INCOMPLETE;
+
+    // Fill in the summary that the save list shows. The leader is the first filled party slot.
+    leader = 0;
+    for (i = 0; i < 3; i++) {
+        if (save->state.mainData.party.partyMembers[i] != 0xFF) {
+            leader = i;
+            break;
+        }
+    }
+    save->state.leaderLevel = g_battleChars.chars[leader].currentLevel;
+    for (i = 0; i < 3; i++) {
+        id = save->state.mainData.party.partyMembers[i];
+        if (id != 0xFF) {
+            id = save->state.chars[id].characterId;
+        }
+        save->state.partyCharacterIds[i] = id;
+    }
+    save->state.leaderHp = g_battleChars.chars[leader].currentHp;
+    save->state.leaderMaxHp = g_battleChars.chars[leader].maxHp;
+    if (g_gameState.mainData.partyLockFlag & PARTY_LOCK_LOCKED) {
+        save->state.gil = save->state.mainData.party.dreamGil;
+    } else {
+        save->state.gil = save->state.mainData.party.gil;
+    }
+    save->state.playTimeSeconds = save->state.mainData.playTimeSeconds;
+    save->state.saveSequence = ++g_highestSaveSequence;
+
+    // Update the save list's copy of this slot's header.
+    btlMemcpyForward((u8 *)save, (u8 *)GetSaveBlockHeader(slot), sizeof(SaveBlockHeader));
+
+    // The card writes whole frames.
+    return (sizeof(SaveFile) + MEMORY_CARD_FRAME_SIZE - 1) / MEMORY_CARD_FRAME_SIZE * MEMORY_CARD_FRAME_SIZE;
+}
 
 /** @brief Draw inner panel with section id 0x5 and clear flag. */
 s32 func_801E2C90(s32 a0) {
@@ -753,7 +850,7 @@ dispatch:
         playSoundEffect(0xF);
         func_801E73C0();
         func_801E73E8();
-        func_801E2860();
+        LoadInitOut();
         func_801E7408();
         func_801E2F6C();
         setModeBit(1);
@@ -817,7 +914,7 @@ dispatch:
         if (inputNew & PADRup) {
             sendSpuCommand(3);
             if (ctx->isLoading == 0) {
-                if (D_801EC294 != 0) {
+                if (g_chocoboWorldChanged != 0) {
                     *stepPtr = SAVE_MENU_CHOCOBO_CHANGED;
                 } else {
                     *stepPtr = SAVE_MENU_EXIT_START;
@@ -893,7 +990,7 @@ dispatch:
         ctx->scanBlock = 0;
         ctx->readRetries = 0;
         slotStatus = ctx->cardStatus[ctx->selectedCard];
-        highestSaveSequence = 0;
+        g_highestSaveSequence = 0;
         ctx->infoMsg = func_801E2C90(ctx->selectedCard + 0x22);
         if (slotStatus == 1) {
             ctx->helpMsg = func_801E2C90(0x19);
@@ -934,7 +1031,7 @@ dispatch:
         ctx->progress = 0x100;
         if (ctx->cardReadyResult == 2) {
             for (i = 0; i < 15; i++) {
-                D_801EC2A0[i] = BLOCK_UNUSED;
+                g_memoryCardBlockStatus[i] = BLOCK_UNUSED;
             }
             ctx->freeBlocks = i;
         } else {
@@ -965,14 +1062,14 @@ dispatch:
             matchCount = 0;
             hasSharedFile = 0;
             for (i = 0; i < 15; i++) {
-                D_801EC2A0[i] = BLOCK_UNUSED;
+                g_memoryCardBlockStatus[i] = BLOCK_UNUSED;
                 for (j = 0; j < fileCount; j++) {
                     func_801F7C98(i, searchPattern);
                     if (compareBytes(fileNames[j], D_8005624C, btlStrlen(D_8005624C)) != 0) {
                         hasSharedFile = 1;
                     }
                     if (compareBytes(searchPattern, fileNames[j], btlStrlen(searchPattern)) != 0) {
-                        D_801EC2A0[i] = BLOCK_FF8_SAVE;
+                        g_memoryCardBlockStatus[i] = BLOCK_FF8_SAVE;
                         matchCount++;
                         break;
                     }
@@ -985,8 +1082,8 @@ dispatch:
             }
             matchCount = 14;
             while (blocksLeft > 0) {
-                if (D_801EC2A0[matchCount] == BLOCK_UNUSED) {
-                    D_801EC2A0[matchCount] = BLOCK_OTHER_TITLE;
+                if (g_memoryCardBlockStatus[matchCount] == BLOCK_UNUSED) {
+                    g_memoryCardBlockStatus[matchCount] = BLOCK_OTHER_TITLE;
                     blocksLeft--;
                 }
                 matchCount--;
@@ -994,8 +1091,8 @@ dispatch:
             if (hasSharedFile != 0) {
                 blocksLeft = 7;
                 while (blocksLeft > 0) {
-                    if (D_801EC2A0[matchCount] == BLOCK_UNUSED) {
-                        D_801EC2A0[matchCount] = BLOCK_CHOCOBO_WORLD;
+                    if (g_memoryCardBlockStatus[matchCount] == BLOCK_UNUSED) {
+                        g_memoryCardBlockStatus[matchCount] = BLOCK_CHOCOBO_WORLD;
                         blocksLeft--;
                     }
                     matchCount--;
@@ -1015,10 +1112,10 @@ dispatch:
         if (ctx->progress > ctx->progressLimit) {
             ctx->progress = ctx->progressLimit;
         }
-        slotStates = D_801EC2A0;
+        slotStates = g_memoryCardBlockStatus;
         if (slotStates[ctx->scanBlock] == BLOCK_FF8_SAVE) {
             func_801F7C98(ctx->scanBlock, slotName);
-            result = readCardFileSync(ctx->selectedCard << 4, slotName, func_801E2800(ctx->scanBlock), 0x80, 0x180);
+            result = readCardFileSync(ctx->selectedCard << 4, slotName, GetSaveBlockHeader(ctx->scanBlock), 0x80, 0x180);
             ctx->fileHandle = result;
             if (result == -1) {
                 slotStates[ctx->scanBlock] = BLOCK_UNUSED;
@@ -1032,7 +1129,7 @@ dispatch:
             break;
         }
         if (slotStates[ctx->scanBlock] == BLOCK_CHOCOBO_WORLD && ctx->unk59 != 0) {
-            result = readCardFileSync(ctx->selectedCard << 4, D_8005624C, func_801E2800(ctx->scanBlock), 0x80, 0);
+            result = readCardFileSync(ctx->selectedCard << 4, D_8005624C, GetSaveBlockHeader(ctx->scanBlock), 0x80, 0);
             ctx->fileHandle = result;
             if (result == -1) {
                 slotStates[ctx->scanBlock] = BLOCK_UNUSED;
@@ -1083,24 +1180,24 @@ dispatch:
         switch (poll3) {
         case 0:
             closeFileDescriptorWrapper(ctx->fileHandle);
-            if (D_801EC2A0[ctx->scanBlock] == BLOCK_CHOCOBO_WORLD && ctx->unk59 != 0) {
+            if (g_memoryCardBlockStatus[ctx->scanBlock] == BLOCK_CHOCOBO_WORLD && ctx->unk59 != 0) {
                 ctx->unk59 = 0;
-                if (compareBytes(((SaveBlockHeader *)func_801E2800(ctx->scanBlock))->unk52, D_801EB9E4, 4) == 0) {
+                if (compareBytes((GetSaveBlockHeader(ctx->scanBlock))->unk52, D_801EB9E4, 4) == 0) {
                     for (slotIndex = 0; slotIndex < 15; slotIndex++) {
-                        if (D_801EC2A0[slotIndex] == BLOCK_CHOCOBO_WORLD) {
-                            D_801EC2A0[slotIndex] = BLOCK_CHOCOBO_WORLD_FAILED;
+                        if (g_memoryCardBlockStatus[slotIndex] == BLOCK_CHOCOBO_WORLD) {
+                            g_memoryCardBlockStatus[slotIndex] = BLOCK_CHOCOBO_WORLD_FAILED;
                         }
                     }
                 }
             } else {
-                SaveBlockHeader *header = (SaveBlockHeader *)func_801E2800(ctx->scanBlock);
+                SaveBlockHeader *header = GetSaveBlockHeader(ctx->scanBlock);
 
-                if (highestSaveSequence < header->saveSequence) {
-                    highestSaveSequence = header->saveSequence;
+                if (g_highestSaveSequence < header->saveSequence) {
+                    g_highestSaveSequence = header->saveSequence;
                     D_80085148[ctx->selectedCard] = ctx->scanBlock;
                 }
-                if (func_801E292C(ctx->scanBlock) == 0) {
-                    D_801EC2A0[ctx->scanBlock] = BLOCK_DAMAGED;
+                if (IsSaveFullyWritten(ctx->scanBlock) == 0) {
+                    g_memoryCardBlockStatus[ctx->scanBlock] = BLOCK_DAMAGED;
                 }
             }
             ctx->readRetries = 0;
@@ -1144,7 +1241,7 @@ dispatch:
             ctx->progress = 0x1000;
             ctx->cardReadyResult = result;
             for (clearSlot = 0; clearSlot < 15; clearSlot++) {
-                D_801EC2A0[clearSlot] = BLOCK_UNUSED;
+                g_memoryCardBlockStatus[clearSlot] = BLOCK_UNUSED;
             }
             ctx->freeBlocks = 15;
             *stepPtr = SAVE_MENU_LIST_LOADED;
@@ -1164,7 +1261,7 @@ dispatch:
         if (ctx->isLoading == 1) {
             freeCount = 0;
             for (slot = 0; slot < 15; slot++) {
-                if (D_801EC2A0[slot] == BLOCK_FF8_SAVE) {
+                if (g_memoryCardBlockStatus[slot] == BLOCK_FF8_SAVE) {
                     freeCount++;
                 }
             }
@@ -1176,7 +1273,7 @@ dispatch:
         if (ctx->isLoading == 0) {
             usedCount = 0;
             for (slotB = 0; slotB < 15; slotB++) {
-                if (D_801EC2A0[slotB] == BLOCK_OTHER_TITLE) {
+                if (g_memoryCardBlockStatus[slotB] == BLOCK_OTHER_TITLE) {
                     usedCount++;
                 }
             }
@@ -1218,7 +1315,7 @@ dispatch:
         ctx->savedPopupTimer = 0;
         ctx->helpMsg = func_801E2C90(0xA);
         for (fillSlot = 0; fillSlot < 15; fillSlot++) {
-            D_801EC2A0[fillSlot] = BLOCK_NO_CARD;
+            g_memoryCardBlockStatus[fillSlot] = BLOCK_NO_CARD;
         }
         D_80085148[ctx->selectedCard] = 0;
         markCardBusy(ctx->selectedCard << 4);
@@ -1269,7 +1366,7 @@ dispatch:
         if (inputNew & PADRdown) {
             ctx->savedPopupTimer = 0;
             if (ctx->isLoading == 1) {
-                if (D_801EC2A0[ctx->selectedBlock] == BLOCK_FF8_SAVE) {
+                if (g_memoryCardBlockStatus[ctx->selectedBlock] == BLOCK_FF8_SAVE) {
                     sendSpuCommand(2);
                     initCardEventHandlers();
                     *stepPtr = SAVE_MENU_LOAD_OPEN;
@@ -1277,7 +1374,7 @@ dispatch:
                     sendSpuCommand(5);
                 }
             } else {
-                switch (D_801EC2A0[ctx->selectedBlock]) {
+                switch (g_memoryCardBlockStatus[ctx->selectedBlock]) {
                 case BLOCK_FF8_SAVE:
                 case BLOCK_DAMAGED:
                     sendSpuCommand(2);
@@ -1491,8 +1588,8 @@ dispatch:
         }
     case SAVE_MENU_UNK_36:
         initCardDataBlock();
-        if (D_801EC2A0[ctx->selectedBlock] == BLOCK_UNUSED) {
-            blockSize = func_801E2AB0(ctx->selectedBlock, 0x801D1000);
+        if (g_memoryCardBlockStatus[ctx->selectedBlock] == BLOCK_UNUSED) {
+            blockSize = BuildSaveFile(ctx->selectedBlock, (u8 *)MENU_SUBOVERLAY_ADDR);
             if (ctx->freeBlocks < (blockSize + 0x1FFF) / 8192) {
                 state = SAVE_MENU_SAVE_NO_ROOM;
                 goto dispatch;
@@ -1510,9 +1607,9 @@ dispatch:
         ctx->progress = 0;
         func_801F7C98(ctx->selectedBlock, slotName);
         func_801F7A08();
-        writeSize = func_801E2AB0(ctx->selectedBlock, 0x801D1000);
+        writeSize = BuildSaveFile(ctx->selectedBlock, (u8 *)MENU_SUBOVERLAY_ADDR);
         ctx->writeSize = writeSize;
-        if (D_801EC2A0[ctx->selectedBlock] == BLOCK_UNUSED) {
+        if (g_memoryCardBlockStatus[ctx->selectedBlock] == BLOCK_UNUSED) {
             if (createCardFile(ctx->selectedCard << 4, slotName, writeSize) == -1) {
                 state = SAVE_MENU_SAVE_FAILED;
                 goto dispatch;
@@ -1532,7 +1629,7 @@ dispatch:
         break;
     case SAVE_MENU_UNK_3A:
         func_801F7C98(ctx->scanBlock, slotName2);
-        result = readCardFileSync(ctx->selectedCard << 4, slotName2, 0x801D1000, 0x80, 0x180);
+        result = readCardFileSync(ctx->selectedCard << 4, slotName2, (u8 *)MENU_SUBOVERLAY_ADDR, 0x80, 0x180);
         ctx->fileHandle = result;
         if (result == -1) {
             state = SAVE_MENU_SAVE_FAILED;
@@ -1577,7 +1674,7 @@ dispatch:
             ctx->progress = 0xFD6;
         }
         func_801F7C98(ctx->scanBlock, slotName3);
-        result = readCardFileSync(ctx->selectedCard << 4, slotName3, 0x801D2380, 0x80, 0x1A7);
+        result = readCardFileSync(ctx->selectedCard << 4, slotName3, (u8 *)MENU_SUBOVERLAY_ADDR + 0x1380, 0x80, 0x1A7);
         ctx->fileHandle = result;
         if (result == -1) {
             state = SAVE_MENU_SAVE_FAILED;
@@ -1630,7 +1727,7 @@ dispatch:
             ctx->progress = 0xFD6;
         }
         func_801F7C98(ctx->selectedBlock, slotName4);
-        writeSize2 = func_801E2958(ctx->selectedBlock, 0x801D1000);
+        writeSize2 = BuildSaveHeaders(ctx->selectedBlock, (SaveHeaders *)MENU_SUBOVERLAY_ADDR);
         poll14 = writeCardSector(ctx->selectedCard << 4, slotName4, 0x801D1000, writeSize2, 0);
         ctx->writeSize = writeSize2;
         ctx->timer = 300;
@@ -1640,7 +1737,7 @@ dispatch:
             goto dispatch;
         }
         playSoundEffect(0x13);
-        D_801EC294 = 0;
+        g_chocoboWorldChanged = 0;
         *stepPtr = SAVE_MENU_UNK_40;
         break;
     case SAVE_MENU_UNK_40:
@@ -1677,12 +1774,12 @@ dispatch:
         *stepPtr = SAVE_MENU_UNK_47;
     case SAVE_MENU_UNK_47:
         func_801F7C98(ctx->selectedBlock, slotName5);
-        if (D_801EC2A0[ctx->selectedBlock] == BLOCK_UNUSED) {
+        if (g_memoryCardBlockStatus[ctx->selectedBlock] == BLOCK_UNUSED) {
             *stepPtr = SAVE_MENU_LOAD_READ_FAILED;
         }
         func_801E283C();
         func_801E283C();
-        poll15 = readCardFileSync(ctx->selectedCard << 4, slotName5, 0x801D1000, 0x1400, 0x180);
+        poll15 = readCardFileSync(ctx->selectedCard << 4, slotName5, (u8 *)MENU_SUBOVERLAY_ADDR, 0x1400, 0x180);
         ctx->timer = 300;
         ctx->fileHandle = poll15;
         if (poll15 == -1) {
@@ -1717,22 +1814,22 @@ dispatch:
         }
         break;
     case SAVE_MENU_LOAD_VERIFY:
-        save = (SaveData *)0x801D1000;
-        checksum = func_800377B4(0x1350, (u8 *)0x801D1050);
+        save = (SaveData *)MENU_SUBOVERLAY_ADDR;
+        checksum = func_800377B4(0x1350, (u8 *)(MENU_SUBOVERLAY_ADDR + 0x50));
         // The first compare uses the raw return value, the second the narrowed one.
-        if (checksum == save->checksum && (u16)checksum == save->checksumCopy) {
-            sum0 = save->playTimeSeconds;
-            sum1 = save->fieldCDC + sum0;
-            partial = save->unkA + sum1;
-            D_80083792[0] = partial + save->fieldCE0 + save->fieldCE2;
+        if (checksum == save->state.checksum && (u16)checksum == save->checksum) {
+            sum0 = save->state.mainData.playTimeSeconds;
+            sum1 = (u16)save->state.mainData.fieldCDC + sum0;
+            partial = save->state.saveCount + sum1;
+            D_80083792[0] = partial + save->state.mainData.fieldCE0 + save->state.mainData.fieldCE2;
             ctx->progress = 0x1000;
-            btlMemcpyForward(0x801D1000, &g_gameState, 0x13A4);
+            btlMemcpyForward((u8 *)MENU_SUBOVERLAY_ADDR, (u8 *)&g_gameState, 0x13A4);
             recalcPartyStats();
             func_801F7954();
             func_801F798C();
             func_801F7928();
             playSoundEffect(0x13);
-            D_801EC294 = 0;
+            g_chocoboWorldChanged = 0;
             *stepPtr = SAVE_MENU_EXIT_START;
             break;
         }
@@ -1861,7 +1958,7 @@ dispatch:
         ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
         if (inputNew & (PADRup | PADRdown)) {
             func_801F7BEC(inputNew);
-            D_801EC294 = 0;
+            g_chocoboWorldChanged = 0;
             *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
         }
         break;
@@ -2018,7 +2115,7 @@ void func_801E5B70(s32 a0, s32 a1, s32 a2) {
 /**
  * @brief Look up save slot data and render with func_801F3824.
  *
- * Calls func_801E2800 with the 5th argument to get a save slot pointer,
+ * Calls GetSaveBlockHeader with the 5th argument to get a save slot pointer,
  * loads the word at offset 0xC, then passes it as the 5th stack arg
  * to func_801F3824 along with adjusted copies of the original arguments.
  *
@@ -2026,12 +2123,12 @@ void func_801E5B70(s32 a0, s32 a1, s32 a2) {
  * @param a1 Second render parameter (passed through).
  * @param a2 Third render parameter (0x100 added).
  * @param a3 Fourth render parameter (0x14 added).
- * @param stack_arg Save slot index for func_801E2800.
+ * @param stack_arg Save slot index for GetSaveBlockHeader.
  */
 /**
  * @brief Look up save slot data and render with func_801F3824.
  *
- * Calls func_801E2800 with the 5th argument to get a save slot pointer,
+ * Calls GetSaveBlockHeader with the 5th argument to get a save slot pointer,
  * loads the word at offset 0xC, then passes it as the 5th stack arg
  * to func_801F3824 along with adjusted copies of the original arguments.
  *
@@ -2039,7 +2136,7 @@ void func_801E5B70(s32 a0, s32 a1, s32 a2) {
  * @param a1 Second render parameter (passed through).
  * @param a2 Third render parameter (0x100 added).
  * @param a3 Fourth render parameter (0x14 added).
- * @param stack_arg Save slot index for func_801E2800.
+ * @param stack_arg Save slot index for GetSaveBlockHeader.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5BCC); /* 0x6C */
 
@@ -2050,7 +2147,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04); /* 0xC0 */
 /**
  * @brief Look up save slot data and render with func_801F3270.
  *
- * Calls func_801E2800 with the 5th argument to get a save slot pointer,
+ * Calls GetSaveBlockHeader with the 5th argument to get a save slot pointer,
  * loads the word at offset 0x10, then passes it as the 5th stack arg
  * to func_801F3270 along with adjusted copies of the original arguments.
  *
@@ -2058,7 +2155,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5D04); /* 0xC0 */
  * @param a1 Second render parameter (passed through).
  * @param a2 Third render parameter (0x100 added).
  * @param a3 Fourth render parameter (0x8 added).
- * @param stack_arg Save slot index for func_801E2800.
+ * @param stack_arg Save slot index for GetSaveBlockHeader.
  */
 INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E5DC4); /* 0x6C */
 
@@ -2678,7 +2775,7 @@ loop_1:
             var_s3 = 0x6000;
         }
         if (arg0->unk4B == 0) {
-            temp_s0 = func_801E2824();
+            temp_s0 = GetHeaderSize();
             temp_v0 = createCardFile(arg0->unk3C << 4, D_8005624C, 0xE000);
             if (temp_v0 == -1) {
                 var_v0 = 0x1D;
@@ -2693,7 +2790,7 @@ loop_1:
                 *temp_s6 = 0x20;
                 break;
             }
-            btlMemcpyForward(func_801E282C(), (void *)0x801D1000, temp_s0);
+            btlMemcpyForward((u8 *)GetSaveErrorHeader(), (u8 *)MENU_SUBOVERLAY_ADDR, temp_s0);
             ((func_801E7BE8_D_801D1000 *)0x801D1000)->unk3 = 7;
             copyString(((func_801E7BE8_D_801D1000 *)0x801D1000)->unk4, D_80056260);
             func_801EB00C(1, arg0->unk3C << 4, 1, 0x36);
@@ -2713,7 +2810,7 @@ loop_1:
         }
         if (arg0->unk4B == 2) {
             var_s3_2 = 0x80;
-            temp_s0_2 = func_801E2824() - 0x80;
+            temp_s0_2 = GetHeaderSize() - 0x80;
             if (writeCardSector(arg0->unk3C << 4, D_8005624C, 0x801D1880, temp_s0_2, var_s3_2) != temp_s0_2) {
                 func_801EB054(1, arg0->unk3C << 4);
                 var_v0 = 0x1D;
@@ -3050,7 +3147,7 @@ loop_1:
             arg0->unk18 = 2;
             *temp_s6 = 0x4A;
         } else {
-            func_801E2814();
+            SetChocoboWorldChanged();
             func_801E78FC();
             *temp_s6 = 0x29;
         }
@@ -3099,7 +3196,7 @@ loop_1:
             arg0->unk18 = 2;
             *temp_s6 = 0x4A;
         } else {
-            func_801E2814();
+            SetChocoboWorldChanged();
             func_801E78FC();
             func_801E760C(arg0);
             ((ChocoboWorldData *)getChocoboWorldPtr())->associatedSaveId = temp_s0;
@@ -3127,7 +3224,7 @@ loop_1:
                 if (func_801E7A84(arg0, var_s1) == 0) {
                     var_s1->unk28 = func_801E7550();
                     var_s1->unkE = 0;
-                    func_801E2814();
+                    SetChocoboWorldChanged();
                     *temp_s6 = 0x2E;
                     break;
                 }

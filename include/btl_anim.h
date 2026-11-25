@@ -15,6 +15,9 @@ extern u8  *emitDrawEnvPackets(P_TAG *ot, u8 *pkt); /**< Emit SetDrawArea/SetDra
 extern s32  getDisplayListHead(void);              /**< Next free packet in the active display-list buffer. */
 extern void copyDisplayRect(RECT *dst); /**< Copy the active draw environment's clip rect to @p dst. */
 extern void copyString(u8 *dst, u8 *src);
+extern void btlStrcat2(u8 *dst, u8 *src);
+extern void btlMemcpyForward(u8 *src, u8 *dst, s32 n);
+extern s32 btlStrlen(u8 *str);
 extern void copyDisplayCoords(u16 *ofs); /**< Copy the active draw environment's draw offset to @p ofs. */
 
 /* Public data */

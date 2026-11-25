@@ -557,13 +557,13 @@ s32 func_800B6420(Actor *actor) {
 }
 
 /**
- * @brief Pop a value from the stack and store to g_gameState.unk004.
+ * @brief Pop a value from the stack and store to g_gameState.locationId.
  *
  * @param actor Pointer to the actor (script context).
  * @return 2 (continue processing).
  */
 s32 opHandler_SETPLACE(ScriptContext *context) {
-    g_gameState.unk004 = POP(context);
+    g_gameState.locationId = POP(context);
     return 2;
 }
 
@@ -661,7 +661,7 @@ s32 opHandler_ENDING(ScriptContext *context) {
  */
 s32 opHandler_DISC(ScriptContext *context) {
     g_fieldVars->expectedDiscId = POP_BYTE(context);
-    g_gameState.unk048 = g_fieldVars->expectedDiscId - 1;
+    g_gameState.disc = g_fieldVars->expectedDiscId - 1;
     setDiscNumber(g_fieldVars->expectedDiscId);
     return 2;
 }

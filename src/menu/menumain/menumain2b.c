@@ -1140,7 +1140,7 @@ s32 func_801F486C(u8 *a0, s32 a1, void *result) {
  */
 void *func_801F4918(s32 a0, s32 a1, s32 a2) {
     s32 ret;
-    ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.unk004);
+    ret = func_801F6358(a1, a2, 0x22, 0xC6, g_gameState.locationId);
     g_menuDisplayCfg.iconType = 0;
     g_menuDisplayCfg.iconSubType = 0;
     g_menuDisplayCfg.windowBackgroundRect.x = 24;
