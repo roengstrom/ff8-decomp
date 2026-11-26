@@ -17,6 +17,7 @@
 #include "psxsdk/libetc.h"
 #include "psxsdk/kernel.h"
 #include "memcard.h"
+#include "menugrp.h"
 #include "game.h"
 #include "render.h"
 
@@ -357,7 +358,7 @@ void func_801E2DDC(SaveMenuCtx *);
 s32 func_801E2E9C(SaveMenuCtx *);
 void func_801E2F6C(void);
 
-static void func_801E2CE8(SaveMenuCtx *a0, s32 a1, s32 a2);
+static void DrawHandPointer(SaveMenuCtx *ctx, s32 slot, s32 column);
 static s32 func_801E2ECC(SaveMenuCtx *a0, s32 a1);
 static s32 func_801E3098(SaveMenuCtx *ctx);
 static void func_801E7B18(s32 a0);
@@ -546,58 +547,35 @@ static s32 BuildSaveFile(s32 slot, u8 *dst) {
     return (sizeof(SaveFile) + MEMORY_CARD_FRAME_SIZE - 1) / MEMORY_CARD_FRAME_SIZE * MEMORY_CARD_FRAME_SIZE;
 }
 
-/** @brief Draw inner panel with section id 0x5 and clear flag. */
-s32 func_801E2C90(s32 a0) {
-    return func_801F08D4(1, 5, a0, 0);
+s32 GetSaveMenuLabel(SaveMenuText id) {
+    return func_801F08D4(MENU_TEXT_TABLE_MNGRP, MNGRP1_SECTION_SAVE_MENU, id, MENU_TEXT_LABEL);
 }
 
-/** @brief Draw inner panel with section id 0x5 and set flag. */
-s32 func_801E2CBC(s32 a0) {
-    return func_801F08D4(1, 5, a0, 1);
+static s32 GetSaveMenuHelpText(SaveMenuText id) {
+    return func_801F08D4(MENU_TEXT_TABLE_MNGRP, MNGRP1_SECTION_SAVE_MENU, id, MENU_TEXT_HELP);
 }
 
-/**
- * @brief Render save slot label at computed Y position.
- * @param a0 Save data pointer (halfwords at offsets 0x32 and 0x36)
- * @param a1 Width selector (non-zero = 0x98, zero = 0x64)
- * @param a2 Offset selector (non-zero = use offset 0x36, zero = use 0x32)
- */
-static void func_801E2CE8(SaveMenuCtx *a0, s32 a1, s32 a2) {
-    s32 width = 0x64;
-    s32 ypos;
+static void DrawHandPointer(SaveMenuCtx *ctx, s32 slot, s32 column) {
+    s32 y = slot ? 152 : 100;
+    s32 x = column ? ctx->chocoboColumnX + 7 : ctx->cardColumnX + 7;
 
-    if (a1 != 0) {
-        width = 0x98;
-    }
-    if (a2 != 0) {
-        ypos = a0->chocoboColumnX + 7;
-    } else {
-        ypos = a0->cardColumnX + 7;
-    }
-    func_801F0994(0, ypos, width);
+    func_801F0994(0, x, y);
 }
 
 /**
- * @brief Render save slot label at computed Y position.
- * @param a0 First parameter passed through to func_801F0954
- * @param a1 Second parameter passed through to func_801F0954
- * @param a2 Row index (multiplied by 24 and offset by 0xA3 for Y position)
- */
-void func_801E2D38(s32 a0, s32 a1, s32 a2) {
-    func_801F0954(1, a0, a1, a2 * 24 + 0xA3);
-}
-
-/**
- * @brief Render a save slot indicator icon at a grid position.
+ * @brief Draw the title menu's hand pointer next to a row.
  *
- * Divides @p a0 by 3 to get the remainder, computes a y-coordinate
- * as remainder * 53 + 0x3C, and renders via func_801F0994 at
- * position (0, 0x22, y).
- *
- * @param a0 Linear save slot index.
+ * @param brightness The hand's brightness in fixed point. ONE (4096) draws it at
+ * full brightness, and 0 makes it black.
+ * @param x The screen X the hand points at.
+ * @param row 0 for NEW GAME, 1 for Continue.
  */
-void func_801E2D78(s32 a0) {
-    func_801F0994(0, 0x22, (a0 % 3) * 53 + 0x3C);
+static void DrawTitleHandPointer(s32 brightness, s32 x, s32 row) {
+    func_801F0954(1, brightness, x, row * 24 + 163);
+}
+
+static void DrawHandPointerAtMemoryCardBlock(s32 block) {
+    func_801F0994(0, 34, (block % 3) * 53 + 60);
 }
 
 /**
@@ -658,20 +636,20 @@ static s32 func_801E2ECC(SaveMenuCtx *a0, s32 a1) {
     if (a1 != 0) {
         if ((u32)v0 < 2) {
             if (a0->hasPocketStation[idx] == 1) {
-                return func_801E2CBC(0x20);
+                return GetSaveMenuHelpText(0x20);
             }
-            return func_801E2C90(0x25);
+            return GetSaveMenuLabel(0x25);
         }
-        return func_801E2C90(0x25);
+        return GetSaveMenuLabel(0x25);
     } else {
         if ((u32)v0 < 2) {
             s32 id = 0x1F;
             if (a0->isLoading == 1) {
                 id = 0x28;
             }
-            return func_801E2CBC(id);
+            return GetSaveMenuHelpText(id);
         }
-        return func_801E2C90(0x0A);
+        return GetSaveMenuLabel(0x0A);
     }
 }
 
@@ -780,7 +758,7 @@ dispatch:
             *stepPtr = SAVE_MENU_CARD_SELECT_ENTER;
         }
         func_801F0948(ctx->brightness);
-        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        DrawHandPointer(ctx, ctx->selectedCard, ctx->columnCursor);
         break;
     case SAVE_MENU_TITLE_INIT:
         one = 1;
@@ -793,7 +771,7 @@ dispatch:
         ctx->titleCursor = one;
         initCardDataBlock();
         func_801EAE74();
-        func_801E2D38(0, ctx->titleMenuX, ctx->titleCursor);
+        DrawTitleHandPointer(0, ctx->titleMenuX, ctx->titleCursor);
         *stepPtr = SAVE_MENU_UNK_03;
         break;
     case SAVE_MENU_UNK_03:
@@ -802,7 +780,7 @@ dispatch:
         if (pollCdReadStatus() == 0) {
             *stepPtr = SAVE_MENU_UNK_04;
         }
-        func_801E2D38(0, ctx->titleMenuX, ctx->titleCursor);
+        DrawTitleHandPointer(0, ctx->titleMenuX, ctx->titleCursor);
         break;
     case SAVE_MENU_UNK_04:
         func_801E2DDC(ctx);
@@ -813,7 +791,7 @@ dispatch:
             state = SAVE_MENU_UNK_05;
             goto dispatch;
         }
-        func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+        DrawTitleHandPointer(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
         break;
     case SAVE_MENU_UNK_05:
         func_801E2DDC(ctx);
@@ -827,7 +805,7 @@ dispatch:
             ctx->unk4C = 0xFF;
             ctx->titleCursor = func_801F6768(inputRepeat, 2, ctx->titleCursor);
         }
-        func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+        DrawTitleHandPointer(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
         if (inputNew & PADRdown) {
             if (ctx->titleCursor != 0) {
                 if (slotAvailable != 0) {
@@ -857,7 +835,7 @@ dispatch:
         func_801F7954();
         func_801F798C();
         func_801F7928();
-        func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+        DrawTitleHandPointer(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
         D_80085148[0] = 0;
         D_80085148[1] = 0;
         *stepPtr = SAVE_MENU_EXIT_START;
@@ -870,7 +848,7 @@ dispatch:
         initCardDataBlock();
         func_801EAE74();
         *stepPtr = SAVE_MENU_CARD_SELECT_INPUT;
-        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        DrawHandPointer(ctx, ctx->selectedCard, ctx->columnCursor);
         break;
     case SAVE_MENU_CARD_CHECK_FAILED:
         sendSpuCommand(5);
@@ -909,7 +887,7 @@ dispatch:
         if (ctx->showChocoboColumn != 0) {
             ctx->columnCursor = func_801F6800(repeat, 2, ctx->columnCursor);
         }
-        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        DrawHandPointer(ctx, ctx->selectedCard, ctx->columnCursor);
         ctx->helpMsg = func_801E2ECC(ctx, ctx->columnCursor);
         if (inputNew & PADRup) {
             sendSpuCommand(3);
@@ -956,7 +934,7 @@ dispatch:
             *stepPtr = SAVE_MENU_UNK_0E;
         }
         func_801F0948(ctx->brightness);
-        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        DrawHandPointer(ctx, ctx->selectedCard, ctx->columnCursor);
         break;
     case SAVE_MENU_UNK_0E:
         func_801F0C5C(0x1B, ctx);
@@ -983,7 +961,7 @@ dispatch:
             }
         }
         func_801F0948(ctx->brightness);
-        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        DrawHandPointer(ctx, ctx->selectedCard, ctx->columnCursor);
         break;
     case SAVE_MENU_LIST_OPEN:
         ctx->layout = 2;
@@ -991,13 +969,13 @@ dispatch:
         ctx->readRetries = 0;
         slotStatus = ctx->cardStatus[ctx->selectedCard];
         g_highestSaveSequence = 0;
-        ctx->infoMsg = func_801E2C90(ctx->selectedCard + 0x22);
+        ctx->infoMsg = GetSaveMenuLabel(ctx->selectedCard + 0x22);
         if (slotStatus == 1) {
-            ctx->helpMsg = func_801E2C90(0x19);
+            ctx->helpMsg = GetSaveMenuLabel(0x19);
             D_80085148[ctx->selectedCard] = 0;
             ctx->selectedBlock = 0xFF;
         } else {
-            ctx->helpMsg = func_801E2C90(0x10);
+            ctx->helpMsg = GetSaveMenuLabel(0x10);
         }
         *stepPtr = SAVE_MENU_LIST_PREPARE;
         break;
@@ -1027,7 +1005,7 @@ dispatch:
     case SAVE_MENU_LIST_READ_DIRECTORY:
         ctx->showProgress = 1;
         ctx->progress = 0;
-        ctx->helpMsg = func_801E2C90(0x10);
+        ctx->helpMsg = GetSaveMenuLabel(0x10);
         ctx->progress = 0x100;
         if (ctx->cardReadyResult == 2) {
             for (i = 0; i < 15; i++) {
@@ -1301,19 +1279,19 @@ dispatch:
     case SAVE_MENU_LIST_SHOW:
         ctx->layout = 5;
         if (ctx->isLoading == 0) {
-            ctx->helpMsg = func_801E2C90(4);
+            ctx->helpMsg = GetSaveMenuLabel(4);
         } else {
-            ctx->helpMsg = func_801E2C90(0x1D);
+            ctx->helpMsg = GetSaveMenuLabel(0x1D);
         }
         initCardEventHandlers();
         initCardDataBlock();
         ctx->noCardPolls = 0;
-        func_801E2D78(ctx->selectedBlock);
+        DrawHandPointerAtMemoryCardBlock(ctx->selectedBlock);
         *stepPtr = SAVE_MENU_LIST_INPUT;
         break;
     case SAVE_MENU_NO_CARD:
         ctx->savedPopupTimer = 0;
-        ctx->helpMsg = func_801E2C90(0xA);
+        ctx->helpMsg = GetSaveMenuLabel(0xA);
         for (fillSlot = 0; fillSlot < 15; fillSlot++) {
             g_memoryCardBlockStatus[fillSlot] = BLOCK_NO_CARD;
         }
@@ -1362,7 +1340,7 @@ dispatch:
             *stepPtr = SAVE_MENU_PAGE_RIGHT_START;
         }
         ctx->selectedBlock = moved + row * 3;
-        func_801E2D78(ctx->selectedBlock);
+        DrawHandPointerAtMemoryCardBlock(ctx->selectedBlock);
         if (inputNew & PADRdown) {
             ctx->savedPopupTimer = 0;
             if (ctx->isLoading == 1) {
@@ -1411,7 +1389,7 @@ dispatch:
         ctx->selectedBlock = colUp + rowUp * 3;
         sendSpuCommand(1);
         ctx->pageSlide = -0xF80;
-        func_801E2D78(ctx->selectedBlock);
+        DrawHandPointerAtMemoryCardBlock(ctx->selectedBlock);
         poll5 = pollCardStatus(ctx->selectedCard << 4);
         if (poll5 != -1) {
             if (poll5 == 3) {
@@ -1441,7 +1419,7 @@ dispatch:
                 ctx->noCardPolls = 0;
             }
         }
-        func_801E2D78(ctx->selectedBlock);
+        DrawHandPointerAtMemoryCardBlock(ctx->selectedBlock);
         ctx->pageSlide += 0x80;
         if (ctx->pageSlide >= 0) {
             ctx->pageSlide = 0;
@@ -1465,7 +1443,7 @@ dispatch:
         ctx->selectedBlock = colDown + rowDown * 3;
         sendSpuCommand(1);
         ctx->pageSlide = 0xF80;
-        func_801E2D78(ctx->selectedBlock);
+        DrawHandPointerAtMemoryCardBlock(ctx->selectedBlock);
         poll7 = pollCardStatus(ctx->selectedCard << 4);
         if (poll7 != -1) {
             if (poll7 == 3) {
@@ -1495,7 +1473,7 @@ dispatch:
                 ctx->noCardPolls = 0;
             }
         }
-        func_801E2D78(ctx->selectedBlock);
+        DrawHandPointerAtMemoryCardBlock(ctx->selectedBlock);
         ctx->pageSlide -= 0x80;
         if (ctx->pageSlide <= 0) {
             ctx->pageSlide = 0;
@@ -1548,7 +1526,7 @@ dispatch:
     case SAVE_MENU_OVERWRITE_OPEN:
         ctx->layout = 4;
         ctx->yesNoCursor = 1;
-        func_801F728C(func_801E2C90(5), 0x54);
+        func_801F728C(GetSaveMenuLabel(5), 0x54);
         initCardDataBlock();
         ctx->noCardPolls = 0;
         *stepPtr = SAVE_MENU_OVERWRITE_INPUT;
@@ -1596,7 +1574,7 @@ dispatch:
             }
         }
         ctx->layout = 7;
-        ctx->helpMsg = func_801E2C90(9);
+        ctx->helpMsg = GetSaveMenuLabel(9);
         *stepPtr = SAVE_MENU_UNK_37;
         break;
     case SAVE_MENU_UNK_37:
@@ -1766,7 +1744,7 @@ dispatch:
         break;
     case SAVE_MENU_LOAD_OPEN:
         ctx->layout = 6;
-        ctx->helpMsg = func_801E2C90(8);
+        ctx->helpMsg = GetSaveMenuLabel(8);
         ctx->showProgress = 1;
         ctx->progress = 0;
         *stepPtr = SAVE_MENU_UNK_46;
@@ -1849,7 +1827,7 @@ dispatch:
         *stepPtr = SAVE_MENU_UNK_4C;
         break;
     case SAVE_MENU_FORMAT_PROMPT_OPEN:
-        func_801F728C(func_801E2C90(ctx->selectedCard + 0xB), 0x42);
+        func_801F728C(GetSaveMenuLabel(ctx->selectedCard + 0xB), 0x42);
         ctx->layout = 8;
         ctx->yesNoCursor = 1;
         initCardDataBlock();
@@ -1981,14 +1959,14 @@ dispatch:
         }
         if (ctx->isLoading == 1) {
             if (ctx->titleCursor == 0) {
-                func_801E2D38(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
+                DrawTitleHandPointer(ctx->brightness, ctx->titleMenuX, ctx->titleCursor);
                 break;
             }
             func_801F1DB0(ctx->brightness);
             break;
         }
         func_801F0948(ctx->brightness);
-        func_801E2CE8(ctx, ctx->selectedCard, ctx->columnCursor);
+        DrawHandPointer(ctx, ctx->selectedCard, ctx->columnCursor);
         break;
     }
     if (ctx->savedPopupTimer != 0) {
@@ -2018,7 +1996,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E579C); /* 0x124 */
  * @param a2 Y position for rendering
  */
 void func_801E58C0(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x26);
+    s32 v0 = GetSaveMenuLabel(0x26);
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
@@ -2029,7 +2007,7 @@ void func_801E58C0(s32 a0, s32 a1, s32 a2) {
  * @param a2 Y position for rendering
  */
 void func_801E591C(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x0F);
+    s32 v0 = GetSaveMenuLabel(0x0F);
     func_801F4274(a1, a2, v0, 0xC0, 0x87, 0x1000);
 }
 
@@ -2040,7 +2018,7 @@ void func_801E591C(s32 a0, s32 a1, s32 a2) {
  * @param a2 Y position for rendering
  */
 void func_801E5978(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x12);
+    s32 v0 = GetSaveMenuLabel(0x12);
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
@@ -2051,7 +2029,7 @@ void func_801E5978(s32 a0, s32 a1, s32 a2) {
  * @param a2 Y position for rendering
  */
 void func_801E59D4(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x18);
+    s32 v0 = GetSaveMenuLabel(0x18);
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
@@ -2062,7 +2040,7 @@ void func_801E59D4(s32 a0, s32 a1, s32 a2) {
  * @param a2 Y position for rendering
  */
 void func_801E5A30(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x27);
+    s32 v0 = GetSaveMenuLabel(0x27);
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
@@ -2073,7 +2051,7 @@ void func_801E5A30(s32 a0, s32 a1, s32 a2) {
  * @param a2 Y position for rendering
  */
 void func_801E5A8C(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x13);
+    s32 v0 = GetSaveMenuLabel(0x13);
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
@@ -2082,7 +2060,7 @@ void func_801E5A8C(s32 a0, s32 a1, s32 a2) {
  *
  * Checks the signed halfword at a0[0x3C]. If positive, selects
  * string ID 0x29 (if a0[0x53] == 2) or 0x1C (otherwise), and
- * renders via func_801E2C90 + func_801F4274.
+ * renders via GetSaveMenuLabel + func_801F4274.
  *
  * @param a0 Save context pointer.
  * @param a1 X position for rendering.
@@ -2096,7 +2074,7 @@ s32 func_801E5AE8(u8 *a0, s32 a1, s32 a2) {
         if (a0[0x53] == 2) {
             id = 0x29;
         }
-        s0 = func_801F4274(a1, s0, func_801E2C90(id), 0xC0, 0x6B, 0x1000);
+        s0 = func_801F4274(a1, s0, GetSaveMenuLabel(id), 0xC0, 0x6B, 0x1000);
     }
     return s0;
 }
@@ -2108,7 +2086,7 @@ s32 func_801E5AE8(u8 *a0, s32 a1, s32 a2) {
  * @param a2 Y position for rendering
  */
 void func_801E5B70(s32 a0, s32 a1, s32 a2) {
-    s32 v0 = func_801E2C90(0x17);
+    s32 v0 = GetSaveMenuLabel(0x17);
     func_801F4274(a1, a2, v0, 0xC0, 0x6B, 0x1000);
 }
 
@@ -2198,7 +2176,7 @@ INCLUDE_ASM("asm/ovl/menusav/nonmatchings/menusav", func_801E6754); /* 0xB0 */
  * @param a1 Y position for rendering
  */
 void func_801E6804(s32 a0, s32 a1) {
-    s32 v0 = func_801E2C90(0x0D);
+    s32 v0 = GetSaveMenuLabel(0x0D);
     func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
 }
 
@@ -2208,7 +2186,7 @@ void func_801E6804(s32 a0, s32 a1) {
  * @param a1 Y position for rendering
  */
 void func_801E6860(s32 a0, s32 a1) {
-    s32 v0 = func_801E2C90(0x0E);
+    s32 v0 = GetSaveMenuLabel(0x0E);
     func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
 }
 
@@ -2218,7 +2196,7 @@ void func_801E6860(s32 a0, s32 a1) {
  * @param a1 Y position for rendering
  */
 void func_801E68BC(s32 a0, s32 a1) {
-    s32 v0 = func_801E2C90(0x16);
+    s32 v0 = GetSaveMenuLabel(0x16);
     func_801F4274(a0, a1, v0, 0xC0, 0x64, 0x1000);
 }
 
@@ -2695,7 +2673,7 @@ loop_1:
             if (arg0->unk3F != 0) {
                 *temp_s6 = 0x46;
             } else {
-                arg0->unk24 = func_801E2C90(0xD);
+                arg0->unk24 = GetSaveMenuLabel(0xD);
                 arg0->unk30 = 1;
                 *temp_s6 = 0xE;
             }
@@ -2724,7 +2702,7 @@ loop_1:
         break;
     case 0x11:
         playSoundEffect(0x10);
-        arg0->unk24 = func_801E2C90(0xE);
+        arg0->unk24 = GetSaveMenuLabel(0xE);
         arg0->unk30 = 0x3C;
         *temp_s6 = 0x12;
         break;
