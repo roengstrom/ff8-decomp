@@ -62,7 +62,7 @@ VECTOR *ApplyMatrixLV(MATRIX *m, VECTOR *v0, VECTOR *v1);
 VECTOR *ApplyTransposeMatrixLV(MATRIX *m, VECTOR *v0, VECTOR *v1);
 SVECTOR *ApplyMatrixSV(MATRIX *m, SVECTOR *v0, SVECTOR *v1);
 s32 RotTransPers(SVECTOR *v0, s32 *sxy, s32 *p, s32 *flag);
-extern void RotTrans(SVECTOR *v0,VECTOR *v1,long *flag);
+extern void RotTrans(SVECTOR *v0, VECTOR *v1, s32 *flag);
 void LoadAverageShort12(SVECTOR *v0, SVECTOR *v1, s32 p0, s32 p1, SVECTOR *v2);
 void LoadAverageCol(u8 *v0, u8 *v1, s32 p0, s32 p1, u8 *v2);
 MATRIX *RotMatrixX(s32 r, MATRIX *m);

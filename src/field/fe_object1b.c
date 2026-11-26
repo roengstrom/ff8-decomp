@@ -105,7 +105,7 @@ extern u16 D_800D6720[];
 extern u16 D_800D9328[][6];
 extern u32 D_800D96B0[];
 extern SVECTOR *D_800DD6C0;
-extern long D_800DD6C8;
+extern s32 D_800DD6C8;
 extern func_800AA8A0_node D_800DD6D0[];
 extern u8 D_800D9628[];
 extern u8 D_800DD6C4[];

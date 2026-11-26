@@ -46,9 +46,11 @@ typedef struct {
 
 /** Object-id list: a 6-byte header followed by a 0xFF-terminated id array. */
 typedef struct {
-    u8 header[6];           /* header (purpose not yet identified) */
-    u8 ids[OBJ_SLOT_COUNT]; /* object ids present in this list */
-} WorldObjList;
+    u8 header[2]; /**<0x0: header (purpose not yet identified) */
+    u8 unk2[2];
+    u8 unk4[2];
+    u8 ids[0x40]; /**< 0x06: object ids present in this list */
+} WorldObjList; /* 0x46 bytes */
 
 extern u8             D_800DCE78[];
 extern s32            D_800C5DAC;
@@ -60,6 +62,7 @@ extern s32  func_800BA870(u8 *p);
 extern s32 func_800BEF6C(void);
 extern void func_800AEB58(XformEntry *entry, XformGroup *group);
 extern void func_8009C5FC(s32 *data);
+extern s32 func_800BD82C(WorldObjList *worldObjList, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans);
 
 extern void func_800BEC60(u8 *flags);
 

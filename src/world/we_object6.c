@@ -1,9 +1,31 @@
 #include "common.h"
 #include "world.h"
 #include "world/we_object6.h"
+#include "world/we_object10.h"
 #include "psxsdk/libc.h"
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800ACC68);
+extern SlotEntry D_800C5B5C[];
+extern u8 D_800D243F;
+
+void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf, SVECTOR *offset) {
+    MATRIX m;
+    VECTOR t;
+    s32 flag;
+
+    RotMatrixYXZ(angles, &m);
+    SetRotMatrix(&m);
+    t.vx = rotBuf->vx;
+    t.vy = rotBuf->vy;
+    t.vz = rotBuf->vz;
+    TransMatrix(&m, &t);
+    SetTransMatrix(&m);
+    RotTrans(offset, (VECTOR *)m.t, &flag);
+    TransposeMatrix(&m, outMat);
+    ApplyMatrixLV(outMat, (VECTOR *)m.t, (VECTOR *)outMat->t);
+    outMat->t[0] = -outMat->t[0];
+    outMat->t[1] = -outMat->t[1];
+    outMat->t[2] = -outMat->t[2];
+}
 
 /**
  * @brief Snapshot @c D_800D2390.tail with an angle-adjusted @c angle
@@ -47,7 +69,140 @@ void func_800AD688(void) {
 void func_800AD690(void) {
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800AD698);
+void func_800AD698(SceneState *st, WorldObjList *worldObjList) {
+    VECTOR vec;
+    SVECTOR svec;
+    s32 i;
+    u32 vehicle;
+    for (i = 0; i < 2; i++) {
+        worldObjList->unk2[i] = -1;
+    }
+    for (i = 0; i < 64; i++) {
+        worldObjList->ids[i] = -1;
+    }
+    D_800C5C18 = -1;
+    D_800C5C1C = -1;
+    D_800C5C20 = -1;
+    D_800C5C24 = -1;
+    D_800C5C28 = -1;
+    D_800C5C2C = -1;
+    D_800C5C30 = -1;
+    D_800C5C34 = -1;
+    func_800BD918(worldObjList);
+    func_800ADE24(worldObjList, &D_800DBFB8[D_800C5B50], D_800D226C);
+    func_800AE0C8(worldObjList, &D_800DBFB8[D_800C5B50], D_800D226C, st);
+    func_800B83B4(worldObjList);
+    for (i = 0; i < 3; i++) {
+        if (D_800D23D8[102] >> i & 1) {
+            s32 rot_z;
+            vec = *(VECTOR *)&D_800D2128[i + 31];
+            svec.vy = D_800D2128[i + 31].rot_y;
+            rot_z = D_800D2128[i + 31].rot_z;
+            svec.vz = rot_z;
+            svec.vx = 0;
+            func_800BD82C(worldObjList, &D_800DBFB8[D_800C5B50], 79, 0, &svec, &vec);
+            D_800C5B50++;
+            func_800BD82C(worldObjList, &D_800DBFB8[D_800C5B50], 80, 4, &svec, &vec);
+            D_800C5B50++;
+        }
+    }
+    vehicle = (u8)st->vehicle;
+    if (vehicle < 10 || vehicle == 128) {
+        D_800C5C18 = func_800BD6EC(st->vehicle);
+    } else {
+        for (i = 0; i < D_800C5B50; i++) {
+            if (
+                (func_800B00D8(D_800DBFB8[i].marker) >= 0 && func_800B00D8(D_800DBFB8[i].marker) < 10)
+                || func_800B00D8(D_800DBFB8[i].marker) == 128
+            ) {
+                D_800C5C18 = i;
+                break;
+            }
+        }
+    }
+    D_800C5C1C = func_800BD754(2);
+    D_800C5C20 = func_800BD754(3);
+    D_800C5C24 = func_800BD754(1);
+    D_800C5C2C = func_800BD754(64);
+    D_800C5C30 = func_800BD754(65);
+    if (st->mode == 0) {
+        if ((u8)st->vehicle - 16 < 7U && (u8)st->param.entrance.entranceIndex - 64 < 4U) {
+            worldObjList->header[0] = 3;
+            for (i = 0; i < D_800C5B50; i++) {
+                if (
+                    (func_800B00D8(D_800DBFB8[i].marker) >= 0 && func_800B00D8(D_800DBFB8[i].marker) < 10) 
+                    || func_800B00D8(D_800DBFB8[i].marker) == 128
+                ) {
+                    worldObjList->header[1] = func_800B00D8(D_800DBFB8[i].marker);
+                    D_800C5C18 = i;
+                    break;
+                }
+            }
+            worldObjList->unk2[0] = (u8)st->param.entrance.entranceIndex - 64 >= 2U;
+            worldObjList->unk4[1] = st->param.entrance.entranceIndex & 1 ? -1 : 1;
+            worldObjList->unk2[1] = D_800D243F & 1 ? -1 : worldObjList->unk2[0] == 0;
+            worldObjList->unk4[0] = st->param.entrance.facingDirection;
+        } else if (
+            st->mode == 0 && (
+                ((u8)st->vehicle - 64 < 3U || (u8)st->vehicle - 32 < 9U || (u8)st->vehicle == 132)
+                && st->param.entrance.entranceIndex != -1
+                && st->param.entrance.facingDirection != -1
+            )
+        ) {
+            worldObjList->header[0] = 1;
+            worldObjList->header[1] = st->vehicle;
+            worldObjList->unk2[0] = st->param.entrance.entranceIndex % 14;
+            worldObjList->unk4[1] = st->param.entrance.entranceIndex >= 14 ? -1 : 1;
+            worldObjList->unk2[1] = -1;
+            worldObjList->unk4[0] = st->param.entrance.facingDirection;
+        } else if (
+            st->mode == 0
+            && (u8)st->vehicle - 16 < 7U
+            && st->param.entrance.entranceIndex != -1
+            && st->param.entrance.facingDirection != -1
+        ) {
+            worldObjList->header[0] = 2;
+            worldObjList->header[1] = st->vehicle;
+            worldObjList->unk2[0] = st->param.entrance.entranceIndex % 14;
+            worldObjList->unk4[1] = st->param.entrance.entranceIndex >= 14 ? -1 : 1;
+            worldObjList->unk2[1] = -1;
+            worldObjList->unk4[0] = st->param.entrance.facingDirection;
+        } else {
+            worldObjList->header[0] = 0;
+            worldObjList->header[1] = st->vehicle;
+            if (!(D_800D243F & 1)) {
+                worldObjList->unk2[0] = 0;
+                worldObjList->unk2[1] = 1;
+            }
+        }
+    } else {
+        worldObjList->header[0] = 0;
+        worldObjList->header[1] = st->vehicle;
+        if (!(D_800D243F & 1)) {
+            worldObjList->unk2[0] = 0;
+            worldObjList->unk2[1] = 1;
+        }
+    }
+    if (worldObjList->header[0] == 1) {
+        if (worldObjList->header[1] - 64 < 3U) {
+            worldObjList++; worldObjList--;
+            func_800BD82C(worldObjList, &D_800DBFB8[D_800C5B50], func_800B0010(worldObjList->header[1]), 0, NULL, NULL);
+            D_800C5B50++;
+        }
+        D_800C5C18 = func_800BD6EC(st->vehicle);
+    } else {
+        for (i = 0; worldObjList->unk2[i] != 255 && i < 2; i++) {
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk0, 0, NULL, NULL);
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk1, 0, NULL, NULL);
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk1, 0, NULL, NULL);
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk0, 0, NULL, NULL);
+        }
+    }
+    for (i = 0; i < D_800C5B58; i++) {
+        func_800BD82C(worldObjList, &D_800C5B5C[i], D_800C5B5C[i].marker, -1, NULL, NULL);
+    }
+    func_800BD540(worldObjList);
+}
 
 /**
  * @brief Walk the placement script and emit slot entries for FF13/FF14 ops.
