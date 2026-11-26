@@ -122,7 +122,7 @@ s32 func_800BD7E4(s32 charIdx) {
     return 0;
 }
 
-s32 func_800BD82C(WorldObjList *actor, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans) {
+s32 func_800BD82C(WorldObjList *worldObjList, SlotEntry *slot, s32 marker, s32 flag, SVECTOR *rot, VECTOR *trans) {
     s32 i;
     s32 count;
 
@@ -140,8 +140,8 @@ s32 func_800BD82C(WorldObjList *actor, SlotEntry *slot, s32 marker, s32 flag, SV
     }
 
     for (i = 0, count = 0; i < OBJ_SLOT_COUNT; i++) {
-        if (actor->ids[i] == OBJ_LIST_END) {
-            actor->ids[i] = marker;
+        if (worldObjList->ids[i] == OBJ_LIST_END) {
+            worldObjList->ids[i] = marker;
             if (marker < FIRST_OBJ_ID) {
                 if (slot != NULL) {
                     slot->lookupIdx = count;
@@ -153,7 +153,7 @@ s32 func_800BD82C(WorldObjList *actor, SlotEntry *slot, s32 marker, s32 flag, SV
             }
             return 0;
         }
-        if (actor->ids[i] < FIRST_OBJ_ID) {
+        if (worldObjList->ids[i] < FIRST_OBJ_ID) {
             count++;
         }
     }

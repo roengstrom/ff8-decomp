@@ -11,7 +11,7 @@ extern s32 D_800C5C34;
 extern void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf,
                           SVECTOR *offset);
 
-extern void func_800AD698(SceneState *st, WorldObjList *flags);
+extern void func_800AD698(SceneState *st, WorldObjList *worldObjList);
 extern void func_800AE31C(u8 *flags);
 extern s32  func_800AE518(u8 *flags);
 extern void func_800AEEB0(u8 *flags, void *a, void *b, void *c);

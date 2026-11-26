@@ -69,16 +69,16 @@ void func_800AD688(void) {
 void func_800AD690(void) {
 }
 
-void func_800AD698(SceneState *st, WorldObjList *flags) {
+void func_800AD698(SceneState *st, WorldObjList *worldObjList) {
     VECTOR vec;
     SVECTOR svec;
     s32 i;
     u32 vehicle;
     for (i = 0; i < 2; i++) {
-        flags->unk2[i] = -1;
+        worldObjList->unk2[i] = -1;
     }
     for (i = 0; i < 64; i++) {
-        flags->ids[i] = -1;
+        worldObjList->ids[i] = -1;
     }
     D_800C5C18 = -1;
     D_800C5C1C = -1;
@@ -88,10 +88,10 @@ void func_800AD698(SceneState *st, WorldObjList *flags) {
     D_800C5C2C = -1;
     D_800C5C30 = -1;
     D_800C5C34 = -1;
-    func_800BD918(flags);
-    func_800ADE24(flags, &D_800DBFB8[D_800C5B50], D_800D226C);
-    func_800AE0C8(flags, &D_800DBFB8[D_800C5B50], D_800D226C, st);
-    func_800B83B4(flags);
+    func_800BD918(worldObjList);
+    func_800ADE24(worldObjList, &D_800DBFB8[D_800C5B50], D_800D226C);
+    func_800AE0C8(worldObjList, &D_800DBFB8[D_800C5B50], D_800D226C, st);
+    func_800B83B4(worldObjList);
     for (i = 0; i < 3; i++) {
         if (D_800D23D8[102] >> i & 1) {
             s32 rot_z;
@@ -100,9 +100,9 @@ void func_800AD698(SceneState *st, WorldObjList *flags) {
             rot_z = D_800D2128[i + 31].rot_z;
             svec.vz = rot_z;
             svec.vx = 0;
-            func_800BD82C(flags, &D_800DBFB8[D_800C5B50], 79, 0, &svec, &vec);
+            func_800BD82C(worldObjList, &D_800DBFB8[D_800C5B50], 79, 0, &svec, &vec);
             D_800C5B50++;
-            func_800BD82C(flags, &D_800DBFB8[D_800C5B50], 80, 4, &svec, &vec);
+            func_800BD82C(worldObjList, &D_800DBFB8[D_800C5B50], 80, 4, &svec, &vec);
             D_800C5B50++;
         }
     }
@@ -127,21 +127,21 @@ void func_800AD698(SceneState *st, WorldObjList *flags) {
     D_800C5C30 = func_800BD754(65);
     if (st->mode == 0) {
         if ((u8)st->vehicle - 16 < 7U && (u8)st->param.entrance.entranceIndex - 64 < 4U) {
-            flags->header[0] = 3;
+            worldObjList->header[0] = 3;
             for (i = 0; i < D_800C5B50; i++) {
                 if (
                     (func_800B00D8(D_800DBFB8[i].marker) >= 0 && func_800B00D8(D_800DBFB8[i].marker) < 10) 
                     || func_800B00D8(D_800DBFB8[i].marker) == 128
                 ) {
-                    flags->header[1] = func_800B00D8(D_800DBFB8[i].marker);
+                    worldObjList->header[1] = func_800B00D8(D_800DBFB8[i].marker);
                     D_800C5C18 = i;
                     break;
                 }
             }
-            flags->unk2[0] = (u8)st->param.entrance.entranceIndex - 64 >= 2U;
-            flags->unk4[1] = st->param.entrance.entranceIndex & 1 ? -1 : 1;
-            flags->unk2[1] = D_800D243F & 1 ? -1 : flags->unk2[0] == 0;
-            flags->unk4[0] = st->param.entrance.facingDirection;
+            worldObjList->unk2[0] = (u8)st->param.entrance.entranceIndex - 64 >= 2U;
+            worldObjList->unk4[1] = st->param.entrance.entranceIndex & 1 ? -1 : 1;
+            worldObjList->unk2[1] = D_800D243F & 1 ? -1 : worldObjList->unk2[0] == 0;
+            worldObjList->unk4[0] = st->param.entrance.facingDirection;
         } else if (
             st->mode == 0 && (
                 ((u8)st->vehicle - 64 < 3U || (u8)st->vehicle - 32 < 9U || (u8)st->vehicle == 132)
@@ -149,59 +149,59 @@ void func_800AD698(SceneState *st, WorldObjList *flags) {
                 && st->param.entrance.facingDirection != -1
             )
         ) {
-            flags->header[0] = 1;
-            flags->header[1] = st->vehicle;
-            flags->unk2[0] = st->param.entrance.entranceIndex % 14;
-            flags->unk4[1] = st->param.entrance.entranceIndex >= 14 ? -1 : 1;
-            flags->unk2[1] = -1;
-            flags->unk4[0] = st->param.entrance.facingDirection;
+            worldObjList->header[0] = 1;
+            worldObjList->header[1] = st->vehicle;
+            worldObjList->unk2[0] = st->param.entrance.entranceIndex % 14;
+            worldObjList->unk4[1] = st->param.entrance.entranceIndex >= 14 ? -1 : 1;
+            worldObjList->unk2[1] = -1;
+            worldObjList->unk4[0] = st->param.entrance.facingDirection;
         } else if (
             st->mode == 0
             && (u8)st->vehicle - 16 < 7U
             && st->param.entrance.entranceIndex != -1
             && st->param.entrance.facingDirection != -1
         ) {
-            flags->header[0] = 2;
-            flags->header[1] = st->vehicle;
-            flags->unk2[0] = st->param.entrance.entranceIndex % 14;
-            flags->unk4[1] = st->param.entrance.entranceIndex >= 14 ? -1 : 1;
-            flags->unk2[1] = -1;
-            flags->unk4[0] = st->param.entrance.facingDirection;
+            worldObjList->header[0] = 2;
+            worldObjList->header[1] = st->vehicle;
+            worldObjList->unk2[0] = st->param.entrance.entranceIndex % 14;
+            worldObjList->unk4[1] = st->param.entrance.entranceIndex >= 14 ? -1 : 1;
+            worldObjList->unk2[1] = -1;
+            worldObjList->unk4[0] = st->param.entrance.facingDirection;
         } else {
-            flags->header[0] = 0;
-            flags->header[1] = st->vehicle;
+            worldObjList->header[0] = 0;
+            worldObjList->header[1] = st->vehicle;
             if (!(D_800D243F & 1)) {
-                flags->unk2[0] = 0;
-                flags->unk2[1] = 1;
+                worldObjList->unk2[0] = 0;
+                worldObjList->unk2[1] = 1;
             }
         }
     } else {
-        flags->header[0] = 0;
-        flags->header[1] = st->vehicle;
+        worldObjList->header[0] = 0;
+        worldObjList->header[1] = st->vehicle;
         if (!(D_800D243F & 1)) {
-            flags->unk2[0] = 0;
-            flags->unk2[1] = 1;
+            worldObjList->unk2[0] = 0;
+            worldObjList->unk2[1] = 1;
         }
     }
-    if (flags->header[0] == 1) {
-        if (flags->header[1] - 64 < 3U) {
-            flags++; flags--;
-            func_800BD82C(flags, &D_800DBFB8[D_800C5B50], func_800B0010(flags->header[1]), 0, NULL, NULL);
+    if (worldObjList->header[0] == 1) {
+        if (worldObjList->header[1] - 64 < 3U) {
+            worldObjList++; worldObjList--;
+            func_800BD82C(worldObjList, &D_800DBFB8[D_800C5B50], func_800B0010(worldObjList->header[1]), 0, NULL, NULL);
             D_800C5B50++;
         }
         D_800C5C18 = func_800BD6EC(st->vehicle);
     } else {
-        for (i = 0; flags->unk2[i] != 255 && i < 2; i++) {
-            func_800BD82C(flags, NULL, D_800C5984[flags->unk2[0]].unk0, 0, NULL, NULL);
-            func_800BD82C(flags, NULL, D_800C5984[flags->unk2[0]].unk1, 0, NULL, NULL);
-            func_800BD82C(flags, NULL, D_800C5984[flags->unk2[0]].unk1, 0, NULL, NULL);
-            func_800BD82C(flags, NULL, D_800C5984[flags->unk2[0]].unk0, 0, NULL, NULL);
+        for (i = 0; worldObjList->unk2[i] != 255 && i < 2; i++) {
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk0, 0, NULL, NULL);
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk1, 0, NULL, NULL);
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk1, 0, NULL, NULL);
+            func_800BD82C(worldObjList, NULL, D_800C5984[worldObjList->unk2[0]].unk0, 0, NULL, NULL);
         }
     }
     for (i = 0; i < D_800C5B58; i++) {
-        func_800BD82C(flags, &D_800C5B5C[i], D_800C5B5C[i].marker, -1, NULL, NULL);
+        func_800BD82C(worldObjList, &D_800C5B5C[i], D_800C5B5C[i].marker, -1, NULL, NULL);
     }
-    func_800BD540(flags);
+    func_800BD540(worldObjList);
 }
 
 /**
