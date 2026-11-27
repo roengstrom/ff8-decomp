@@ -1,11 +1,65 @@
 #include "common.h"
+#include "psxsdk/inline_c.h"
+#include "psxsdk/libgpu.h"
+#include "psxsdk/libgte.h"
 #include "world.h"
+#include "world/we_object0.h"
 #include "world/we_object6.h"
 #include "world/we_object10.h"
 #include "psxsdk/libc.h"
 
+extern CVECTOR D_8009815C;
 extern SlotEntry D_800C5B5C[];
+extern s32 D_800C9FD4;
 extern u8 D_800D243F;
+
+/**
+ * Store 3 screen coordinates to continuous addresses.
+ */
+#define gte_stsz3c(r0) __asm__ volatile (                \
+    "swc2   $17, 0( %0 );"                               \
+    "swc2   $18, 4( %0 );"                               \
+    "swc2   $19, 8( %0 )"                                \
+    :                                                    \
+    : "r"(r0)                                            \
+    : "memory")
+
+/* 
+ * Calculates lighting colors for three vertices (NCCT
+ * stands for Normal Color Color Triple).
+ */
+#define gte_ncct() __asm__ volatile (                    \
+    "nop;"                                               \
+    "nop;"                                               \
+    ".word  0x4B18043F"                                  \
+    : : )
+
+/*
+ * Stores the RGB colors of the three vertices in a
+ * POLY_GT3 primitive.
+ */
+#define gte_strgb3_gt3(r0) __asm__ volatile (            \
+    "swc2   $20, 4( %0 );"                               \
+    "swc2   $21, 0x10( %0 );"                            \
+    "swc2   $22, 0x1C( %0 )"                             \
+    :                                                    \
+    : "r"(r0)                                            \
+    : "memory")
+
+/*
+ * Loads the texture coordinates of the three vertices in
+ * a POLY_GT3 primitive.
+ */
+#define gte_ldtr_gt3( r0 ) __asm__ volatile (            \
+    "lw     $12, 0( %0 );"                               \
+    "lw     $13, 4( %0 );"                               \
+    "lw     $14, 8( %0 );"                               \
+    "ctc2   $12, $5;"                                    \
+    "ctc2   $13, $6;"                                    \
+    "ctc2   $14, $7"                                     \
+    :                                                    \
+    : "r"( r0 )                                          \
+    : "memory")
 
 void func_800ACC68(MATRIX *outMat, SVECTOR *angles, SVECTOR *rotBuf, SVECTOR *offset) {
     MATRIX m;
@@ -61,7 +115,216 @@ void func_800ACD38(MATRIX *outMat) {
     func_800ACC68(outMat, &buf, D_800C97F8, &D_800D2390.head);
 }
 
-INCLUDE_ASM("asm/ovl/world/nonmatchings/we_object6", func_800ACDC4);
+void func_800ACDC4(GlyphHeader *glyphHeader, BattleSceneCtx *ctx, WorldPrimBank *primBank) {
+    CVECTOR colorVec;
+    VECTOR transferVec;
+    u8 worldSlots[4];
+    ImageCoord imgCoords1[4];
+    ImageCoord imgCoords2[4];
+    SVECTOR vertices[3];
+    u32 depths[3];
+    u32 buffer[3];
+    s32 depth;
+    s32 outerProduct;
+    POLY_GT3 *prim;
+    CmdDesc *entries;
+    s32 color;
+    s32 i;
+    s32 j;
+    u32 idx;
+    s32 entryFlag;
+    SVECTOR *verticesPtr1;
+    SVECTOR *verticesPtr2;
+    s32 maxDepthAux;
+    s32 maxDepth;
+    u32 addr;
+
+    entries = glyphHeader->entries;
+    colorVec = D_8009815C;
+    prim = primBank->gt3.base;
+    verticesPtr1 = (void *)entries + glyphHeader->count * sizeof(CmdDesc);
+    verticesPtr2 = (void *)verticesPtr1 + glyphHeader->id * sizeof(SVECTOR);
+
+    for (i = 0; i < 4; i++) {
+        worldSlots[i] = D_800C5398[i];
+        imgCoords1[i] = D_800C5378[i];
+        imgCoords2[i] = D_800C5388[i];
+    }
+
+    gte_sttr(&transferVec);
+    gte_ldtr(0, 0, 0);
+    gte_ldrgb(&colorVec);
+
+    for (i = 0; i < glyphHeader->count; i++, entries++) {
+        u8 *ptr = entries->unk0;
+        for (j = 0; j < 3; j++, ptr++) {
+            vertices[j].vx = verticesPtr1[*ptr].vx + transferVec.vx;
+            vertices[j].vy = verticesPtr1[*ptr].vy + transferVec.vy;
+            vertices[j].vz = verticesPtr1[*ptr].vz + transferVec.vz;
+            gte_ldv0(&vertices[j]);
+            gte_rtps();
+            if (j != 0 && depth >= 0) {
+                s32 val1 = (vertices[j - 1].vy - transferVec.vy) * (ONE - depth);
+                s32 val2 = depth >> 6;
+                s32 val3 = val2 * val2;
+                depth = val2;
+                val2 = (val1 >> 12) + transferVec.vy + val3;
+                vertices[j - 1].vy = val2;
+            }
+            gte_stsz(&depth);
+            depth = (depth >> 2) - D_800C4D30;
+        }
+
+        if (depth >= 0) {
+            s32 val1 = (vertices[j - 1].vy - transferVec.vy) * (ONE - depth);
+            s32 val2 = depth >> 6;
+            s32 val3 = val2 * val2;
+            depth = val2;
+            val2 = (val1 >> 12) + transferVec.vy + val3;
+            vertices[j - 1].vy = val2;
+        }
+
+        gte_ldv3c(&vertices[0]);
+        gte_rtpt();
+        idx = entries->unkC;
+        gte_nclip();
+        gte_stsxy3_gt3(prim);
+
+        if (prim->x0 >= 321U && prim->x1 >= 321U && prim->x2 >= 321U) {
+            continue;
+        }
+
+        if (prim->y0 >= 241U && prim->y1 >= 241U && prim->y2 >= 241U) {
+            continue;
+        }
+
+        gte_stopz(&outerProduct);
+        if (outerProduct <= 0) {
+            continue;
+        }
+
+        entryFlag = entries->flag;
+        gte_stsz3c(depths);
+
+        if (depths[0] > depths[1]) {
+            maxDepthAux = depths[2] < depths[0] ? depths[0] : depths[2];
+        } else {
+            maxDepthAux = depths[2] < depths[1] ? depths[1] : depths[2];
+        }
+        maxDepth = maxDepthAux / 4U;
+        if (maxDepth >= 8192U) {
+            continue;
+        }
+
+        gte_ldv3(&verticesPtr2[entries->unk3], &verticesPtr2[entries->unk4], &verticesPtr2[entries->unk5]);
+
+        switch (entryFlag & 3) {
+        case 1:
+            color = 100;
+            break;
+        case 2:
+            color = 90;
+            break;
+        case 3:
+            color = 80;
+            break;
+        default:
+            color = 128;
+            break;
+        }
+
+        colorVec.b = color;
+        colorVec.g = color;
+        colorVec.r = color;
+        gte_ldrgb(&colorVec);
+        gte_ncct();
+
+        if (entryFlag & 0x20) {
+            *(u32 *)&prim->u0 = (D_800D2270[idx].unk2 << 0x10) | entries->unk6;
+            *(u32 *)&prim->u1 = (D_800D2270[idx].unk0 << 0x10) | entries->unk8;
+            *(u32 *)&prim->u2 = entries->unkA;
+        } else if (entryFlag & 0x40) {
+            *(u32 *)&prim->u0 = ((idx | 0x3FC0) << 0x10) | entries->unk6;
+            *(u32 *)&prim->u1 = 0x001C0000 | entries->unk8;
+            *(u32 *)&prim->u2 = entries->unkA;
+        } else {
+            u32 val1 = worldSlots[0] == idx / 32 ? 0 : worldSlots[2] == idx / 32 ? 2 : -1;
+            if ((u8)val1 != 0xFF && D_800C4D38 != 50 && maxDepth <= D_800C53EC[3] * 2) {
+                s32 val2;
+                s32 val3;
+                s32 val4;
+                s32 val5;
+                val2 = D_800C53EC[1] << 1;
+                val3 = D_800C53EC[0] << 1;
+                val3 = maxDepth >= val3;
+                val4 = maxDepth >= val2;
+                val2 = val3 + val4;
+                val5 = D_800C53EC[2] << 1;
+                val3 = maxDepth >= val5;
+                val5 = val2 + val3;
+
+                if (idx & 0x10) {
+                    val1++;
+                }
+
+                *(u32 *)&prim->u0 = ((s16)imgCoords2[(u8)val1].y + (idx & 0xF) << 6
+                        | ((s16)imgCoords2[(u8)val1].x + (val5 << 6) >> 4) & 0x3F) << 0x10
+                        | entries->unk6;
+                *(u32 *)&prim->u1 = ((imgCoords1[(u8)val1].y & 0x100) << 0x10 >> 0x14
+                    | ((imgCoords1[(u8)val1].x & 0x3FF) >> 6 | 0x80)
+                    | (imgCoords1[(u8)val1].y & 0x200) << 0x10 >> 0x10 << 2) << 0x10
+                    | entries->unk8;
+                *(u32 *)&prim->u2 = entries->unkA;
+            } else {
+                u32 tmp = (idx & 0x10) << 3 | (idx & 0x20) << 0xA;
+                *(u32 *)&prim->u0 = ((((idx / 16) + 224) * 64) | (idx % 16)) << 0x10 | (entries->unk6 & 0xFEFE) >> 1 | tmp;
+                *(u32 *)&prim->u1 = ((idx  / 64) | 0x10) << 0x10 | (entries->unk8 & 0xFEFE) >> 1 | tmp;
+                *(u32 *)&prim->u2 = tmp | (entries->unkA & 0xFEFE) >> 1;
+            }
+        }
+
+        if (D_800D2448 == 0 && maxDepth < D_800C9FD4) {
+            buffer[0] = prim->x0 >= 161;
+            buffer[1] = prim->x1 >= 161;
+            buffer[2] = prim->x2 >= 161;
+
+            if (buffer[0] != buffer[1] || buffer[0] != buffer[2]) {
+                buffer[0] = prim->y0 >= 181;
+                buffer[1] = prim->y1 >= 181;
+                buffer[2] = prim->y2 >= 181;
+
+                if (buffer[0] != buffer[1] || buffer[0] != buffer[2]) {
+                    D_800D2448 = 1;
+                }
+            }
+        }
+
+        addr = *(&ctx->primList[maxDepth >> 1]);
+        prim->tag = (prim->tag & 0xFF000000) | (addr & 0x00FFFFFF);
+        ctx->primList[maxDepth >> 1] = ((u32)ctx->primList[maxDepth >> 1] & 0xFF000000) | ((u32)prim & 0x00FFFFFF);
+
+        gte_strgb3_gt3(prim);
+
+        if (entryFlag & 0x10) {
+            prim->code |= 2;
+        } else {
+            prim->code &= 0xFD;
+        }
+
+        prim++;
+        primBank->gt3.base = prim;
+
+        if (prim >= primBank->gt3.end) {
+            break;
+        }
+    }
+
+    gte_ldtr_gt3(&transferVec);
+
+    if (primBank->gt3.base > primBank->gt3.end) {
+        func_8009C528(100);
+    }
+}
 
 void func_800AD688(void) {
 }

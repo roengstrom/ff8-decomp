@@ -97,7 +97,14 @@ typedef struct {
  * to by D_800C4D64, D_800C4D68, D_800C4D6C (three slots).
  */
 typedef struct {
-    u8 unk_00[0xD];
+    u8 unk0[3];
+    u8 unk3;
+    u8 unk4;
+    u8 unk5;
+    u16 unk6;
+    u16 unk8;
+    u16 unkA;
+    u8 unkC;
     u8 type;        /**< 0x0D: Command type byte. */
     u8 flag;        /**< 0x0E: Command flag byte. */
     u8 param;       /**< 0x0F: Command parameter byte. */

@@ -30,7 +30,7 @@ extern void func_800ACD38(MATRIX *outMat);
 extern s32 func_800B01A0(s16 viewY, s16 viewX, VECTOR *pos, SVECTOR *screenOut,
                          s8 *byteOut, s16 *halfOut);
 
-extern void func_800ACDC4(GlyphHeader *p, BattleSceneCtx *ctx, WorldPrimBank *pools);
+extern void func_800ACDC4(GlyphHeader *glyphHeader, BattleSceneCtx *ctx, WorldPrimBank *primBank);
 
 extern ScriptOp *func_800AF004(u8 *base, s32 flag);
 
