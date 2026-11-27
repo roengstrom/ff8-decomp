@@ -102,7 +102,6 @@ extern s32     D_800C9FF0[];
 extern s32     D_800D2130[];
 extern s32    *D_800D2230;
 extern s32    *D_800D2268;
-extern s32     D_800D2270;
 extern s32     D_800D2290[];
 extern u8      D_800D23DC;   /**< Same byte as @c D_800D23D8[4]. */
 extern SVECTOR D_800D2450;
